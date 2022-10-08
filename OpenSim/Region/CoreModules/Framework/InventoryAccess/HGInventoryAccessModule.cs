@@ -150,10 +150,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         protected void OnCompleteMovementToRegion(IClientAPI client, bool arg2)
         {
             //m_log.DebugFormat("[HG INVENTORY ACCESS MODULE]: OnCompleteMovementToRegion of user {0}", client.Name);
-            ScenePresence sp = client.SceneAgent as ScenePresence;
-            if (sp is not null )
+            if (client.SceneAgent is ScenePresence sp)
             {
-                AgentCircuitData aCircuit = ((ScenePresence)sp).Scene.AuthenticateHandler.GetAgentCircuitData(client.AgentId);
+                AgentCircuitData aCircuit = sp.Scene.AuthenticateHandler.GetAgentCircuitData(client.AgentId);
                 if (aCircuit != null &&  (aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) != 0)
                 {
                     if (m_RestrictInventoryAccessAbroad)

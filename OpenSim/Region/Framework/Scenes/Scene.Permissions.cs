@@ -1164,8 +1164,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (client == null || client.SceneAgent == null|| destPart == null || item == null)
                     return false;
 
-                ScenePresence sp = client.SceneAgent as ScenePresence;
-                if(sp == null || sp.IsDeleted)
+                if(client.SceneAgent is not ScenePresence sp || sp.IsDeleted)
                     return false;
 
                 Delegate[] list = handler.GetInvocationList();

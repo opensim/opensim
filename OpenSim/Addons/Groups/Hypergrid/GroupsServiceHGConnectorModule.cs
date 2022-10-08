@@ -164,12 +164,11 @@ namespace OpenSim.Groups
 
         void OnCompleteMovementToRegion(IClientAPI client, bool arg2)
         {
-            ScenePresence sp = client.SceneAgent as ScenePresence;
-            if (sp is not null)
+            if (client.SceneAgent is ScenePresence sp)
             {
                 if (sp.PresenceType != PresenceType.Npc)
                 {
-                    AgentCircuitData aCircuit = ((ScenePresence)sp).Scene.AuthenticateHandler.GetAgentCircuitData(client.AgentId);
+                    AgentCircuitData aCircuit = sp.Scene.AuthenticateHandler.GetAgentCircuitData(client.AgentId);
                     if (aCircuit != null && (aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) != 0 &&
                         m_OfflineIM != null && m_Messaging != null)
                     {
