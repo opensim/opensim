@@ -659,11 +659,8 @@ namespace OpenSim.Region.Framework.Scenes
                     if (Vector3.DistanceSquared(RootPart.StatusSandboxPos, value) > 100)
                     {
                         RootPart.ScriptSetPhysicsStatus(false);
-
-                        if (Scene is not null)
-                            Scene.SimChat(Utils.StringToBytes("Hit Sandbox Limit"),
+                        Scene?.SimChat(Utils.StringToBytes("Hit Sandbox Limit"),
                                   ChatTypeEnum.DebugChannel, 0x7FFFFFFF, RootPart.AbsolutePosition, Name, UUID, false);
-
                         return;
                     }
                 }
@@ -700,9 +697,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                if (Scene is not null)
-                    Scene.EventManager.TriggerParcelPrimCountTainted();
-
+                Scene?.EventManager.TriggerParcelPrimCountTainted();
             }
         }
 
@@ -1030,11 +1025,8 @@ namespace OpenSim.Region.Framework.Scenes
                 av.sitSOGmoved();
             }
 
-            if (sog.m_rootPart.KeyframeMotion is not null)
-                sog.m_rootPart.KeyframeMotion.CrossingFailure();
-
-            if (sog.RootPart.PhysActor is not null)
-                sog.RootPart.PhysActor.CrossingFailure();
+            sog.m_rootPart.KeyframeMotion?.CrossingFailure();
+            sog.RootPart.PhysActor?.CrossingFailure();
 
             sog.inTransit = false;
             AttachToBackup();
@@ -1333,11 +1325,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                if (m_scene is not null)
-                {
-                    return m_scene.RegionInfo.RegionID;
-                }
-                return UUID.Zero;
+                return m_scene is not null ? m_scene.RegionInfo.RegionID : UUID.Zero;
             }
         }
 
@@ -2173,11 +2161,7 @@ namespace OpenSim.Region.Framework.Scenes
         public UUID GetPartsFullID(uint localID)
         {
             SceneObjectPart part = GetPart(localID);
-            if (part is not null)
-            {
-                return part.UUID;
-            }
-            return UUID.Zero;
+            return part is not null ? part.UUID : UUID.Zero;
         }
 
         public void ObjectGrabHandler(uint localId, Vector3 offsetPos, IClientAPI remoteClient)
@@ -2974,8 +2958,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (IsAttachment)
             {
                 ScenePresence sp = m_scene.GetScenePresence(AttachedAvatar);
-                if (sp is not null)
-                    sp.SendAttachmentScheduleUpdate(this);
+                sp?.SendAttachmentScheduleUpdate(this);
                 return;
             }
 
@@ -5407,7 +5390,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public virtual string ExtraToXmlString()
         {
-            return $"<ExtraFromItemID>{FromItemID.ToString()}</ExtraFromItemID>";
+            return $"<ExtraFromItemID>{FromItemID}</ExtraFromItemID>";
         }
 
         public virtual void ExtraFromXmlString(string xmlstr)
