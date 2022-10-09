@@ -3,14 +3,14 @@
 case "$1" in
 
  'clean')
-    mono bin/Prebuild.exe /file prebuild.xml /clean
+    dotnet bin/prebuild.dll /file prebuild.xml /clean
 
   ;;
 
 
   'autoclean')
 
-    echo y|mono bin/Prebuild.exe /file prebuild.xml /clean
+    echo y|dotnet bin/prebuild.dll /file prebuild.xml /clean
 
   ;;
 
@@ -18,7 +18,7 @@ case "$1" in
 
   *)
 
-    mono bin/Prebuild.exe /target vs2022 /targetframework net6_0 /excludedir = "obj | bin" /file prebuild.xml
+    dotnet bin/prebuild.dll /target vs2022 /targetframework net6_0 /excludedir = "obj | bin" /file prebuild.xml
 
   ;;
 
