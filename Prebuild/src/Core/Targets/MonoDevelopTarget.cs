@@ -110,7 +110,7 @@ namespace Prebuild.Core.Targets
 					08:12 < cj> alrighty.
 					08:12 < jonp> you just get warnings when using it
 					*/
-                    Assembly assem = Assembly.LoadWithPartialName(refr.Name);
+                    Assembly assem = Assembly.Load(refr.Name);
                     ret += assem.FullName;
                     //ret += refr.Name;
                 }

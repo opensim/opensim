@@ -37,7 +37,6 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.EnterpriseServices.Internal;
 
 using Prebuild.Core;
 using Prebuild.Core.Utilities;
@@ -71,16 +70,6 @@ namespace Prebuild
                     exit = true;
                     OutputTargets(kernel);
                 }
-                if (kernel.CommandLine.WasPassed("install"))
-                {
-                    exit = true;
-                    InstallAssembly(kernel);
-                }
-                if (kernel.CommandLine.WasPassed("remove"))
-                {
-                    exit = true;
-                    RemoveAssembly(kernel);
-                }
 
                 if (!exit)
                 {
@@ -108,21 +97,6 @@ namespace Prebuild
 
         #region	Private	Methods
 
-        private static void InstallAssembly(Kernel kernel)
-        {
-            Publish publish = new Publish();
-            string file = kernel.CommandLine["install"];
-            //Console.WriteLine(".."+file+"..");
-            publish.GacInstall(file);
-        }
-
-        private static void RemoveAssembly(Kernel kernel)
-        {
-            Publish publish = new Publish();
-            string file = kernel.CommandLine["remove"];
-            publish.GacRemove(file);
-        }
-
         private static void OutputUsage()
         {
             Console.WriteLine("Usage: prebuild /target <target> [options]");
@@ -135,8 +109,6 @@ namespace Prebuild
             Console.WriteLine("/ppo             Pre-process the file, but perform no other processing");
             Console.WriteLine("/pause           Pauses the application after execution to view the output");
             Console.WriteLine("/yes             Default to yes to any questions asked");
-            Console.WriteLine("/install         Install assembly into the GAC");
-            Console.WriteLine("/remove          Remove assembly from the GAC");
             Console.WriteLine();
             Console.WriteLine("See 'prebuild /showtargets for a list of available targets");
             Console.WriteLine("See readme.txt or check out http://dnpb.sourceforge.net for more information");

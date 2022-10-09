@@ -202,21 +202,17 @@ namespace Prebuild.Core.Targets
         private void transformToFile(string filename, XsltArgumentList argList, string nodeName)
         {
             // Create an XslTransform for this file
-            XslTransform templateTransformer =
-                new XslTransform();
+            XslTransform templateTransformer = new XslTransform();
 
             // Load up the template
-            XmlNode templateNode =
-                autotoolsDoc.SelectSingleNode(nodeName + "/*");
-            templateTransformer.Load(templateNode.CreateNavigator(), xr, e);
-
+            XmlNode templateNode = autotoolsDoc.SelectSingleNode(nodeName + "/*");
+            //templateTransformer.Load(templateNode.CreateNavigator(), xr, e);
+            templateTransformer.Load(templateNode.CreateNavigator(), xr);
             // Create a writer for the transformed template
-            XmlTextWriter templateWriter =
-                new XmlTextWriter(filename, null);
+            XmlTextWriter templateWriter = new XmlTextWriter(filename, null);
 
             // Perform transformation, writing the file
-            templateTransformer.Transform
-                (m_Kernel.CurrentDoc, argList, templateWriter, xr);
+            templateTransformer.Transform(m_Kernel.CurrentDoc, argList, templateWriter, xr);
         }
 
         static string NormalizeAsmName(string name)
@@ -639,7 +635,8 @@ namespace Prebuild.Core.Targets
             {
                 string source = Path.Combine(project.FullPath, filename);
                 string dest = Path.Combine(projectDir, filename);
-
+                
+                /*
                 if (filename.Contains("AssemblyInfo.cs"))
                 {
                     // If we've got an AssemblyInfo.cs, pull the version number from it
@@ -683,7 +680,7 @@ namespace Prebuild.Core.Targets
                     }
 
                 }
-
+                */
                 // Tell the user if there's a problem copying the file
                 try
                 {
@@ -714,7 +711,7 @@ namespace Prebuild.Core.Targets
             for (int refNum = 0; refNum < project.References.Count; refNum++)
             {
                 ReferenceNode refr = project.References[refNum];
-                Assembly refAssembly = Assembly.LoadWithPartialName(refr.Name);
+                Assembly refAssembly = Assembly.Load(refr.Name);
 
                 /* Determine which pkg-config (.pc) file refers to
                    this assembly */

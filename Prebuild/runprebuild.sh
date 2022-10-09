@@ -1,3 +1,2 @@
 #!/bin/sh
-#exec mono [PREFIX]/prebuild.exe "$@"
-exec mono Prebuild.exe /target VS2010 
+dotnet bootstrap/prebuild.dll /target vs2022 /targetframework net6_0 /excludedir = "obj | bin" /file prebuild.xml
