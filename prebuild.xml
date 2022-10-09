@@ -2045,29 +2045,6 @@
 
     </Project>
 
-    <Project name="OpenSim.Tools.lslc" path="OpenSim/Tools/Compiler" type="Exe">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="OpenMetaverseTypes"/>
-      <Reference name="OpenMetaverse"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Region.ScriptEngine.Shared.CodeTools"/>
-      <Reference name="Nini"/>
-      <Reference name="log4net"/>
-
-    </Project>
-
     <Project name="OpenSim.Tools.Configger" path="OpenSim/Tools/Configger" type="Exe">
       <Configuration name="Debug">
         <Options>
