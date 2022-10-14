@@ -105,7 +105,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 AssetMetadata metadata = new AssetMetadata();
 
                 string filename = reader.ReadElementString("filename");
-                m_log.DebugFormat("[DEARCHIVER]: Reading node {0}", filename);
+                m_log.Debug($"[DEARCHIVER]: Reading node {filename}");
 
                 metadata.Name = reader.ReadElementString("name");
                 metadata.Description = reader.ReadElementString("description");
@@ -119,7 +119,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 reader.Read();
             }
 
-            m_log.DebugFormat("[DEARCHIVER]: Resolved {0} items of asset metadata", m_metadata.Count);
+            m_log.Debug($"[DEARCHIVER]: Resolved {m_metadata.Count} items of asset metadata");
 
             ResolvePendingAssetData();
         }
@@ -148,16 +148,14 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             if (m_metadata.ContainsKey(filename))
             {
                 AssetMetadata metadata = m_metadata[filename];
-
-                if (ArchiveConstants.ASSET_TYPE_TO_EXTENSION.ContainsKey(metadata.AssetType))
+                if (ArchiveConstants.ASSET_TYPE_TO_EXTENSION.TryGetValue(metadata.AssetType, out string extension))
                 {
-                    string extension = ArchiveConstants.ASSET_TYPE_TO_EXTENSION[metadata.AssetType];
                     filename = filename.Remove(filename.Length - extension.Length);
                 }
 
-                m_log.DebugFormat("[ARCHIVER]: Importing asset {0}", filename);
+                m_log.Debug($"[ARCHIVER]: Importing asset {filename}");
 
-                AssetBase asset = new AssetBase(new UUID(filename), metadata.Name, metadata.AssetType, UUID.Zero.ToString());
+                AssetBase asset = new AssetBase(new UUID(filename), metadata.Name, metadata.AssetType, UUID.ZeroString);
                 asset.Description = metadata.Description;
                 asset.Data = data;
 
@@ -165,9 +163,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             }
             else
             {
-                m_log.ErrorFormat(
-                    "[DEARCHIVER]: Tried to dearchive data with filename {0} without any corresponding metadata",
-                    assetPath);
+                m_log.Error(
+                    $"[DEARCHIVER]: Tried to dearchive data with filename {assetPath} without any corresponding metadata");
             }
         }
 
