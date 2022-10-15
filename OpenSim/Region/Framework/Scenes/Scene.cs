@@ -6049,7 +6049,6 @@ Environment.Exit(1);
                     firstname = string.Empty,
                     lastname = string.Empty
                 };
-            }
 
             try
             {
