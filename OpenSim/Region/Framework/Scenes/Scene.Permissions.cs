@@ -108,7 +108,7 @@ namespace OpenSim.Region.Framework.Scenes
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private Scene m_scene;
+        private readonly Scene m_scene;
         public ScenePermissions(Scene scene)
         {
             m_scene = scene;

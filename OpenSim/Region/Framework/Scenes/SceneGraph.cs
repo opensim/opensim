@@ -65,17 +65,17 @@ namespace OpenSim.Region.Framework.Scenes
         #region Fields
 
 
-        protected internal EntityManager Entities = new EntityManager();
+        protected internal EntityManager Entities = new();
 
-        private Dictionary<UUID, SceneObjectPart> m_scenePartsByID = new Dictionary<UUID, SceneObjectPart>(1024);
-        private Dictionary<uint, SceneObjectPart> m_scenePartsByLocalID = new Dictionary<uint, SceneObjectPart>(1024);
+        private Dictionary<UUID, SceneObjectPart> m_scenePartsByID = new(1024);
+        private Dictionary<uint, SceneObjectPart> m_scenePartsByLocalID = new(1024);
         private SceneObjectPart[] m_scenePartsArray;
-        private Dictionary<UUID, ScenePresence> m_scenePresenceMap = new Dictionary<UUID, ScenePresence>();
-        private Dictionary<uint, ScenePresence> m_scenePresenceLocalIDMap = new Dictionary<uint, ScenePresence>();
-        private Dictionary<UUID, SceneObjectGroup> m_updateList = new Dictionary<UUID, SceneObjectGroup>();
+        private Dictionary<UUID, ScenePresence> m_scenePresenceMap = new();
+        private Dictionary<uint, ScenePresence> m_scenePresenceLocalIDMap = new();
+        private Dictionary<UUID, SceneObjectGroup> m_updateList = new();
         private List<ScenePresence> m_scenePresenceList;
 
-        private Scene m_parentScene;
+        private readonly Scene m_parentScene;
         private PhysicsScene _PhyScene;
 
         private int m_numRootAgents = 0;
@@ -97,17 +97,17 @@ namespace OpenSim.Region.Framework.Scenes
         /// These operations rely on the parts composition of the object.  If allowed to run concurrently then race
         /// conditions can occur.
         /// </remarks>
-        private readonly Object m_updateLock = new Object();
-        private readonly  Object m_linkLock = new Object();
-        private System.Threading.ReaderWriterLockSlim m_scenePresencesLock;
-        private System.Threading.ReaderWriterLockSlim m_scenePartsLock;
+        private readonly Object m_updateLock = new();
+        private readonly  Object m_linkLock = new();
+        private readonly ReaderWriterLockSlim m_scenePresencesLock;
+        private readonly ReaderWriterLockSlim m_scenePartsLock;
 
         #endregion
 
         protected internal SceneGraph(Scene parent)
         {
-            m_scenePresencesLock = new System.Threading.ReaderWriterLockSlim();
-            m_scenePartsLock = new System.Threading.ReaderWriterLockSlim();
+            m_scenePresencesLock = new ReaderWriterLockSlim();
+            m_scenePartsLock = new ReaderWriterLockSlim();
             m_parentScene = parent;
             m_scenePresenceList = null;
             m_scenePartsArray = null;
@@ -123,8 +123,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                if (_PhyScene is null)
-                    _PhyScene = m_parentScene.RequestModuleInterface<PhysicsScene>();
+                _PhyScene ??= m_parentScene.RequestModuleInterface<PhysicsScene>();
                 return _PhyScene;
             }
             set
@@ -231,7 +230,7 @@ namespace OpenSim.Region.Framework.Scenes
             PhysicsScene?.ProcessPreSimulation();
         }
 
-        public void GetCoarseLocations(out List<Vector3> coarseLocations, out List<UUID> avatarUUIDs, uint maxLocations)
+        public void GetCoarseLocations(out List<Vector3> coarseLocations, out List<UUID> avatarUUIDs, int maxLocations)
         {
             coarseLocations = new List<Vector3>();
             avatarUUIDs = new List<UUID>();
@@ -243,22 +242,17 @@ namespace OpenSim.Region.Framework.Scenes
             float scaleX = (float)m_parentScene.RegionInfo.RegionSizeX / (float)Constants.RegionSize;
             if (scaleX == 0)
                 scaleX = 1.0f;
-            scaleX = 1.0f / scaleX;
+            else
+                scaleX = 1.0f / scaleX;
             float scaleY = (float)m_parentScene.RegionInfo.RegionSizeY / (float)Constants.RegionSize;
             if (scaleY == 0)
-                    scaleY = 1.0f;
-            scaleY = 1.0f / scaleY;
+                scaleY = 1.0f;
+            else
+                scaleY = 1.0f / scaleY;
 
             List<ScenePresence> presences = GetScenePresences();
-            int len =  presences.Count;
-            if(len > maxLocations)
-                len = (int)maxLocations;
-
-            ScenePresence sp;
-            for (int i = 0; i < len; ++i)
+            foreach (ScenePresence sp in presences)
             {
-                sp = presences[i];
-
                 // If this presence is a child agent, we don't want its coarse locations
                 if (sp.IsChildAgent)
                     continue;
@@ -268,6 +262,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                 coarseLocations.Add(pos);
                 avatarUUIDs.Add(sp.UUID);
+                if (--maxLocations <= 0)
+                    break;
             }
         }
 
@@ -397,7 +393,7 @@ namespace OpenSim.Region.Framework.Scenes
             PhysicsActor pa = sceneObject.RootPart.PhysActor;
             if (pa is not null && pa.IsPhysical && vel.IsNotZero())
             {
-                sceneObject.RootPart.ApplyImpulse((vel * sceneObject.GetMass()), false);
+                sceneObject.RootPart.ApplyImpulse(vel * sceneObject.GetMass(), false);
             }
 
             return true;
@@ -642,11 +638,9 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 catch (Exception e)
                 {
-                    m_log.ErrorFormat(
-                        "[INNER SCENE]: Failed to update {0}, {1} - {2}", sog.Name, sog.UUID, e);
+                    m_log.Error($"[INNER SCENE]: Failed to update {sog.Name}, {sog.UUID} - {e.Message}");
                 }
             }
-            updates = null;
         }
 
         protected internal void AddPhysicalPrim(int number)
@@ -733,9 +727,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (!Entities.Remove(agentID))
             {
-                m_log.WarnFormat(
-                    "[SCENE GRAPH]: Tried to remove non-existent scene presence with agent ID {0} from scene Entities list",
-                    agentID);
+                m_log.Warn($"[SCENE GRAPH]: Tried to remove non-existent scene presence with ID {agentID}");
             }
 
             bool entered = false;
@@ -765,7 +757,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-                    m_log.WarnFormat("[SCENE GRAPH]: Tried to remove non-existent scene presence with agent ID {0} from scene ScenePresences list", agentID);
+                    m_log.Warn($"[SCENE GRAPH]: Tried to remove non-existent scene presence with ID {agentID}");
                 }
             }
             finally
@@ -939,8 +931,7 @@ namespace OpenSim.Region.Framework.Scenes
                     entered = true;
                 }
 
-                if(m_scenePresenceList is null)
-                    m_scenePresenceList = new List<ScenePresence>(m_scenePresenceMap.Values);
+                m_scenePresenceList ??= new List<ScenePresence>(m_scenePresenceMap.Values);
 
                 return m_scenePresenceList;
             }

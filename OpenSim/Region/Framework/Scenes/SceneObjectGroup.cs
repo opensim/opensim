@@ -1460,8 +1460,7 @@ namespace OpenSim.Region.Framework.Scenes
             XmlNodeList nodes = doc.GetElementsByTagName("SavedScriptState");
             if (nodes.Count > 0)
             {
-                if (m_savedScriptState is null)
-                    m_savedScriptState = new Dictionary<UUID, string>();
+                m_savedScriptState ??= new Dictionary<UUID, string>();
                 foreach (XmlNode node in nodes)
                 {
                     if (node.Attributes["UUID"] is not null)
@@ -1483,8 +1482,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (reader.Name.Equals("SavedScriptState") && reader.NodeType == XmlNodeType.Element)
                 {
                     //m_log.DebugFormat("[SCENE OBJECT GROUP]: Loading script state for {0}", Name);
-                    if (m_savedScriptState is null)
-                        m_savedScriptState = new Dictionary<UUID, string>();
+                    m_savedScriptState ??= new Dictionary<UUID, string>();
 
                     string uuid = reader.GetAttribute("UUID");
 
@@ -3721,7 +3719,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     // empirically convert distance diference to a impulse
                     Vector3 grabforce = pos - AbsolutePosition;
-                    grabforce = grabforce * (pa.Mass * 0.1f);
+                    grabforce *= pa.Mass * 0.1f;
                     pa.AddForce(grabforce, false);
                     m_scene.PhysicsScene.AddPhysicsActorTaint(pa);
                 }
@@ -4027,7 +4025,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         public int GetPartCount()
         {
-            return Parts.Count();
+            return Parts.Length;
         }
 
         public void AdjustChildPrimPermissions(bool forceTaskInventoryPermissive)
@@ -4513,7 +4511,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 SceneObjectPart obPart = parts[i];
                 if (obPart.UUID != m_rootPart.UUID)
-                    obPart.OffsetPosition = obPart.OffsetPosition + diff;
+                    obPart.OffsetPosition += diff;
             }
 
             AbsolutePosition = newPos;
@@ -4910,7 +4908,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if(m_targetsByScript.TryGetValue(waypoint.scriptID, out List<int>handles))
                     {
                         handles.Remove(handle);
-                        if(handles.Count() == 0)
+                        if(handles.Count == 0)
                             m_targetsByScript.Remove(waypoint.scriptID);
                     }
                     m_rotTargets.Remove(handle);
@@ -4962,7 +4960,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (m_targetsByScript.TryGetValue(waypoint.scriptID, out List<int> handles))
                     {
                         handles.Remove(handle);
-                        if (handles.Count() == 0)
+                        if (handles.Count == 0)
                             m_targetsByScript.Remove(waypoint.scriptID);
                     }
                     m_targets.Remove(handle);
