@@ -127,21 +127,21 @@ namespace OpenSim.Framework
     public delegate void ObjectDrop(uint localID, IClientAPI remoteClient);
 
     public delegate void UpdatePrimFlags(
-        uint localID, bool UsePhysics, bool IsTemporary, bool IsPhantom, ExtraPhysicsData PhysData, IClientAPI remoteClient);
+        uint localID, bool UsePhysics, bool IsTemporary, bool IsPhantom, in ExtraPhysicsData PhysData, IClientAPI remoteClient);
 
     public delegate void UpdatePrimTexture(uint localID, byte[] texture, IClientAPI remoteClient);
 
-    public delegate void UpdateVector(uint localID, Vector3 pos, IClientAPI remoteClient);
+    public delegate void UpdateVector(uint localID, in Vector3 pos, IClientAPI remoteClient);
 
     public delegate void ClientChangeObject(uint localID, object data ,IClientAPI remoteClient);
 
-    public delegate void UpdatePrimRotation(uint localID, Quaternion rot, IClientAPI remoteClient);
+    public delegate void UpdatePrimRotation(uint localID, in Quaternion rot, IClientAPI remoteClient);
 
-    public delegate void UpdatePrimSingleRotation(uint localID, Quaternion rot, IClientAPI remoteClient);
+    public delegate void UpdatePrimSingleRotation(uint localID, in Quaternion rot, IClientAPI remoteClient);
 
-    public delegate void UpdatePrimSingleRotationPosition(uint localID, Quaternion rot, Vector3 pos, IClientAPI remoteClient);
+    public delegate void UpdatePrimSingleRotationPosition(uint localID, in Quaternion rot, in Vector3 pos, IClientAPI remoteClient);
 
-    public delegate void UpdatePrimGroupRotation(uint localID, Vector3 pos, Quaternion rot, IClientAPI remoteClient);
+    public delegate void UpdatePrimGroupRotation(uint localID, in Vector3 pos, in Quaternion rot, IClientAPI remoteClient);
 
     public delegate void ObjectDuplicate(uint localID, Vector3 offset, uint dupeFlags, UUID AgentID, UUID GroupID);
 

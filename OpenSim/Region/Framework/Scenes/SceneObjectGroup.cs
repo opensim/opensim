@@ -4426,7 +4426,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Move this scene object
         /// </summary>
         /// <param name="pos"></param>
-        public void UpdateGroupPosition(Vector3 pos)
+        public void UpdateGroupPosition(in Vector3 pos)
         {
             if (m_scene.EventManager.TriggerGroupMove(UUID, pos))
             {
@@ -4434,15 +4434,19 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     m_rootPart.AttachedPos = pos;
                 }
-
-                if (RootPart.GetStatusSandbox())
+                else if (RootPart.GetStatusSandbox())
                 {
-                    if (Vector3.DistanceSquared(RootPart.StatusSandboxPos, pos) > 100)
+                    Vector3 mov = pos - RootPart.StatusSandboxPos;
+                    float movLenSQ = mov.LengthSquared();
+                    if (movLenSQ > 100.5f)
                     {
+                        mov *= 10.0f / MathF.Sqrt(movLenSQ);
+                        AbsolutePosition = RootPart.StatusSandboxPos + mov;
                         RootPart.ScriptSetPhysicsStatus(false);
-                        pos = AbsolutePosition;
                         Scene.SimChat(Utils.StringToBytes("Hit Sandbox Limit"),
                               ChatTypeEnum.DebugChannel, 0x7FFFFFFF, RootPart.AbsolutePosition, Name, UUID, false);
+                        HasGroupChanged = true;
+                        return;
                     }
                 }
 
