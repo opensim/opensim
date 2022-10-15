@@ -29,7 +29,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using System.Text;
 using System.Xml;
 using log4net;
 using OpenMetaverse;
@@ -49,7 +48,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <summary>
         /// Store for asset data we received before we get the metadata
         /// </summary>
-        protected Dictionary<string, byte[]> m_assetDataAwaitingMetadata = new Dictionary<string, byte[]>();
+        protected Dictionary<string, byte[]> m_assetDataAwaitingMetadata = new();
 
         /// <summary>
         /// Asset metadata.  Is null if asset metadata isn't yet available.
@@ -91,9 +90,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         {
             m_metadata = new Dictionary<string, AssetMetadata>();
 
-            StringReader sr = new StringReader(xml);
-            XmlTextReader reader = new XmlTextReader(sr);
-            reader.DtdProcessing = DtdProcessing.Ignore;
+            StringReader sr = new(xml);
+            XmlTextReader reader = new(sr)
+            {
+                DtdProcessing = DtdProcessing.Ignore
+            };
 
             reader.ReadStartElement("assets");
             reader.Read();
@@ -102,7 +103,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             {
                 reader.Read();
 
-                AssetMetadata metadata = new AssetMetadata();
+                AssetMetadata metadata = new();
 
                 string filename = reader.ReadElementString("filename");
                 m_log.Debug($"[DEARCHIVER]: Reading node {filename}");
@@ -143,7 +144,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         protected void ResolveAssetData(string assetPath, byte[] data)
         {
             // Right now we're nastily obtaining the UUID from the filename
-            string filename = assetPath.Remove(0, ArchiveConstants.ASSETS_PATH.Length);
+            string filename = assetPath[ArchiveConstants.ASSETS_PATH.Length..];
 
             if (m_metadata.ContainsKey(filename))
             {
@@ -155,9 +156,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                 m_log.Debug($"[ARCHIVER]: Importing asset {filename}");
 
-                AssetBase asset = new AssetBase(new UUID(filename), metadata.Name, metadata.AssetType, UUID.ZeroString);
-                asset.Description = metadata.Description;
-                asset.Data = data;
+                AssetBase asset = new(new UUID(filename), metadata.Name, metadata.AssetType, UUID.ZeroString)
+                {
+                    Description = metadata.Description,
+                    Data = data
+                };
 
                 m_cache.Store(asset);
             }
