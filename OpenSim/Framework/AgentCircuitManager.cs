@@ -42,36 +42,38 @@ namespace OpenSim.Framework
         /// <remarks>
         /// We lock this for operations both on this dictionary and on m_agentCircuitsByUUID
         /// </remarks>
-        private ConcurrentDictionary<uint, AgentCircuitData> m_agentCircuits = new ConcurrentDictionary<uint, AgentCircuitData>();
+        private readonly ConcurrentDictionary<uint, AgentCircuitData> m_agentCircuits = new();
 
         /// <summary>
         /// Agent circuits indexed by agent UUID.
         /// </summary>
-        private ConcurrentDictionary<UUID, AgentCircuitData> m_agentCircuitsByUUID = new ConcurrentDictionary<UUID, AgentCircuitData>();
+        private readonly ConcurrentDictionary<UUID, AgentCircuitData> m_agentCircuitsByUUID = new();
 
         public virtual AuthenticateResponse AuthenticateSession(UUID sessionID, UUID agentID, uint circuitcode)
         {
-            AuthenticateResponse user = new AuthenticateResponse();
-            if (!m_agentCircuits.TryGetValue(circuitcode, out AgentCircuitData validcircuit) || validcircuit == null)
+            AuthenticateResponse user = new();
+            if (!m_agentCircuits.TryGetValue(circuitcode, out AgentCircuitData validcircuit) || validcircuit is null)
             {
                 //don't have this circuit code in our list
                 user.Authorised = false;
                 return user;
             }
 
-            if ((sessionID == validcircuit.SessionID) && (agentID == validcircuit.AgentID))
+            if (sessionID.Equals(validcircuit.SessionID) && agentID.Equals(validcircuit.AgentID))
             {
                 user.Authorised = true;
-                user.LoginInfo = new Login();
-                user.LoginInfo.Agent = agentID;
-                user.LoginInfo.Session = sessionID;
-                user.LoginInfo.SecureSession = validcircuit.SecureSessionID;
-                user.LoginInfo.First = validcircuit.firstname;
-                user.LoginInfo.Last = validcircuit.lastname;
-                user.LoginInfo.InventoryFolder = validcircuit.InventoryFolder;
-                user.LoginInfo.BaseFolder = validcircuit.BaseFolder;
-                user.LoginInfo.StartPos = validcircuit.startpos;
-                user.LoginInfo.StartFar = (float)validcircuit.startfar;
+                user.LoginInfo = new Login
+                {
+                    Agent = agentID,
+                    Session = sessionID,
+                    SecureSession = validcircuit.SecureSessionID,
+                    First = validcircuit.firstname,
+                    Last = validcircuit.lastname,
+                    InventoryFolder = validcircuit.InventoryFolder,
+                    BaseFolder = validcircuit.BaseFolder,
+                    StartPos = validcircuit.startpos,
+                    StartFar = validcircuit.startfar
+                };
             }
             else
             {
@@ -106,7 +108,7 @@ namespace OpenSim.Framework
         {
             if (m_agentCircuits.TryRemove(circuitCode, out AgentCircuitData ac))
             {
-                m_agentCircuitsByUUID.TryRemove(ac.AgentID, out AgentCircuitData dummy);
+                m_agentCircuitsByUUID.TryRemove(ac.AgentID, out AgentCircuitData _);
             }
         }
 
@@ -114,16 +116,16 @@ namespace OpenSim.Framework
         {
             if (m_agentCircuitsByUUID.TryRemove(agentID, out AgentCircuitData ac))
             {
-                m_agentCircuits.TryRemove(ac.circuitcode, out AgentCircuitData dummy);
+                m_agentCircuits.TryRemove(ac.circuitcode, out AgentCircuitData _);
             }
         }
 
         public virtual void RemoveCircuit(AgentCircuitData ac)
         {
-            m_agentCircuitsByUUID.TryRemove(ac.AgentID, out AgentCircuitData dummy);
-            m_agentCircuits.TryRemove(ac.circuitcode, out AgentCircuitData dummyb);
-            if (dummy!= null && dummy.circuitcode != ac.circuitcode) //??
-                m_agentCircuits.TryRemove(dummy.circuitcode, out AgentCircuitData dummyc);
+            m_agentCircuitsByUUID.TryRemove(ac.AgentID, out AgentCircuitData byuuid);
+            m_agentCircuits.TryRemove(ac.circuitcode, out AgentCircuitData _);
+            if (byuuid is not null && byuuid.circuitcode != ac.circuitcode) //??
+                m_agentCircuits.TryRemove(byuuid.circuitcode, out AgentCircuitData _);
         }
 
         public AgentCircuitData GetAgentCircuitData(uint circuitCode)

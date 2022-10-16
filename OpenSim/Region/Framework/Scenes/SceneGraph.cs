@@ -37,6 +37,7 @@ using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes.Types;
 using OpenSim.Region.PhysicsModules.SharedBase;
 using OpenSim.Region.Framework.Interfaces;
+using System.Runtime.InteropServices;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -251,7 +252,7 @@ namespace OpenSim.Region.Framework.Scenes
                 scaleY = 1.0f / scaleY;
 
             List<ScenePresence> presences = GetScenePresences();
-            foreach (ScenePresence sp in presences)
+            foreach (ScenePresence sp in CollectionsMarshal.AsSpan(presences))
             {
                 // If this presence is a child agent, we don't want its coarse locations
                 if (sp.IsChildAgent)
@@ -804,7 +805,7 @@ namespace OpenSim.Region.Framework.Scenes
             int rootnpccount = 0;
 
             List<ScenePresence> presences = GetScenePresences();
-            foreach(ScenePresence sp in presences)
+            foreach(ScenePresence sp in CollectionsMarshal.AsSpan(presences))
             {
                 if (sp.IsChildAgent)
                     ++childcount;
@@ -986,7 +987,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal ScenePresence GetScenePresence(in string firstName, in string lastName)
         {
             List<ScenePresence> presences = GetScenePresences();
-            foreach (ScenePresence presence in presences)
+            foreach (ScenePresence presence in CollectionsMarshal.AsSpan(presences))
             {
                 if (string.Equals(presence.Firstname, firstName, StringComparison.CurrentCultureIgnoreCase)
                     && string.Equals(presence.Lastname, lastName, StringComparison.CurrentCultureIgnoreCase))
@@ -1050,7 +1051,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal bool TryGetAvatarByName(in string name, out ScenePresence avatar)
         {
             List<ScenePresence> presences = GetScenePresences();
-            foreach (ScenePresence presence in presences)
+            foreach (ScenePresence presence in CollectionsMarshal.AsSpan(presences))
             {
                 if (string.Equals(name, presence.ControllingClient.Name, StringComparison.CurrentCultureIgnoreCase))
                 {
@@ -1122,11 +1123,10 @@ namespace OpenSim.Region.Framework.Scenes
             float closestDistance = 280f;
             EntityIntersection result = new();
             EntityBase[] EntityList = GetEntities();
-            foreach (EntityBase ent in EntityList)
+            foreach (EntityBase ent in EntityList.AsSpan())
             {
-                if (ent is SceneObjectGroup)
+                if (ent is SceneObjectGroup reportingG)
                 {
-                    SceneObjectGroup reportingG = ent as SceneObjectGroup;
                     EntityIntersection inter = reportingG.TestIntersection(hray, frontFacesOnly, faceCenters);
                     if (inter.HitTF && inter.distance < closestDistance)
                     {
@@ -1149,7 +1149,7 @@ namespace OpenSim.Region.Framework.Scenes
             EntityBase[] entities = Entities.GetEntities();
             List<SceneObjectGroup> ret = new(entities.Length);
 
-            foreach(EntityBase et in entities)
+            foreach(EntityBase et in entities.AsSpan())
             {
                 if(et is SceneObjectGroup sog)
                     ret.Add(sog);
@@ -1188,7 +1188,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>null if the part was not found</returns>
         protected internal SceneObjectGroup GetSceneObjectGroup(in string name)
         {
-            foreach(EntityBase entity in Entities.GetEntities())
+            foreach(EntityBase entity in Entities.GetEntities().AsSpan())
             {
                 if (entity is SceneObjectGroup sog && sog.Name.Equals(name))
                     return sog;
@@ -1355,7 +1355,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal void ForEachSOG(Action<SceneObjectGroup> action)
         {
             EntityBase[] entities = Entities.GetEntities();
-            foreach (EntityBase entity in entities)
+            foreach (EntityBase entity in entities.AsSpan())
             {
                 if (entity is SceneObjectGroup sog)
                 {
@@ -1379,7 +1379,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void ForEachRootScenePresence(Action<ScenePresence> action)
         {
             List<ScenePresence> presences = GetScenePresences();
-            foreach (ScenePresence sp in presences)
+            foreach (ScenePresence sp in CollectionsMarshal.AsSpan(presences))
             {
                 if(sp.IsChildAgent || sp.IsDeleted)
                     continue;
@@ -1402,7 +1402,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void ForEachScenePresence(Action<ScenePresence> action)
         {
             List<ScenePresence> presences = GetScenePresences();
-            foreach (ScenePresence sp in presences)
+            foreach (ScenePresence sp in CollectionsMarshal.AsSpan(presences))
             {
                 if (sp.IsDeleted)
                     continue;
@@ -1890,10 +1890,9 @@ namespace OpenSim.Region.Framework.Scenes
                 List<SceneObjectGroup> childGroups = new();
 
                 // We do this in reverse to get the link order of the prims correct
-                for (int i = 0; i < children.Count; i++)
+                foreach (SceneObjectPart childpart in CollectionsMarshal.AsSpan(children))
                 {
-                    SceneObjectGroup child = children[i].ParentGroup;
-
+                    SceneObjectGroup child = childpart.ParentGroup;
                     // Don't try and add a group to itself - this will only cause severe problems later on.
                     if (child == parentGroup)
                         continue;
@@ -1910,7 +1909,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                foreach (SceneObjectGroup child in childGroups)
+                foreach (SceneObjectGroup child in CollectionsMarshal.AsSpan(childGroups))
                 {
                     if (parentGroup.OwnerID == child.OwnerID)
                     {
@@ -1962,7 +1961,7 @@ namespace OpenSim.Region.Framework.Scenes
             Monitor.Enter(m_linkLock);
             try
             {
-                foreach (SceneObjectPart part in prims)
+                foreach (SceneObjectPart part in CollectionsMarshal.AsSpan(prims))
                 {
                     if(part is null)
                         continue;
@@ -1997,7 +1996,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (childParts.Count > 0)
                 {
-                    foreach (SceneObjectPart child in childParts)
+                    foreach (SceneObjectPart child in CollectionsMarshal.AsSpan(childParts))
                     {
                         // Unlink all child parts from their groups
                         child.ParentGroup.DelinkFromGroup(child, true);
@@ -2007,7 +2006,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                foreach (SceneObjectPart root in rootParts)
+                foreach (SceneObjectPart root in CollectionsMarshal.AsSpan(rootParts))
                 {
                     // In most cases, this will run only one time, and the prim
                     // will be a solo prim
@@ -2035,7 +2034,7 @@ namespace OpenSim.Region.Framework.Scenes
                         // Determine new root
                         //
                         newSet.RemoveAt(0);
-                        foreach (SceneObjectPart newChild in newSet)
+                        foreach (SceneObjectPart newChild in CollectionsMarshal.AsSpan(newSet))
                             newChild.ClearUpdateSchedule();
 
                         LinkObjects(newRoot, newSet);
@@ -2051,7 +2050,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // trigger events in the roots
                 //
-                foreach (SceneObjectGroup g in affectedGroups)
+                foreach (SceneObjectGroup g in CollectionsMarshal.AsSpan(affectedGroups))
                 {
                     if(g.RootPart.PhysActor is not null)
                         g.RootPart.PhysActor.Building = false;
@@ -2143,7 +2142,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                         if (m_parentScene.Permissions.PropagatePermissions())
                         {
-                            foreach (SceneObjectPart child in parts)
+                            foreach (SceneObjectPart child in parts.AsSpan())
                             {
                                 child.Inventory.ChangeInventoryOwner(AgentID);
                                 child.TriggerScriptChangedEvent(Changed.OWNER);
@@ -2165,7 +2164,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                         Entities.Add(copy);
                         m_scenePartsArray = null;
-                        foreach (SceneObjectPart part in parts)
+                        foreach (SceneObjectPart part in parts.AsSpan())
                         {
                             if (part.GetPrimType() == PrimType.SCULPT)
                                 m_numMesh++;
