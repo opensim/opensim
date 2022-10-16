@@ -190,13 +190,13 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 m_module = module;
 
-                HasEvents = (requestID, y) =>
+                HasEvents = delegate (in UUID requestID, in UUID _)
                 {
                     lock (responses)
                         return responses.ContainsKey(requestID);
                 };
 
-                Drop = (requestID, y) =>
+                Drop = delegate (in UUID requestID, in UUID _)
                 {
                     lock (responses)
                     {
@@ -206,7 +206,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     }
                 };
 
-                GetEvents = (requestID, y) =>
+                GetEvents = delegate (in UUID requestID, in UUID _)
                 {
                     lock (responses)
                     {
@@ -221,7 +221,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     }
                 };
 
-                Request = (requestID, request) =>
+                Request = delegate(in UUID requestID, OSHttpRequest request)
                 {
                     APollRequest reqinfo = new APollRequest();
                     reqinfo.thepoll = this;
@@ -231,7 +231,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     return null;
                 };
 
-                NoEvents = (x, y) =>
+                NoEvents = delegate (in UUID _, in UUID _)
                 {
                     Hashtable response = new Hashtable();
                     response["int_response_code"] = 500;

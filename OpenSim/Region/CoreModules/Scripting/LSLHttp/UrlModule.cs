@@ -537,7 +537,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             }
         }
 
-        protected Hashtable NoEvents(UUID requestID, UUID sessionID)
+        protected Hashtable NoEvents(in UUID requestID, in UUID sessionID)
         {
             Hashtable response = new Hashtable();
             UrlData url;
@@ -569,7 +569,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             return response;
         }
 
-        protected bool HasEvents(UUID requestID, UUID sessionID)
+        protected bool HasEvents(in UUID requestID, in UUID sessionID)
         {
             UrlData url=null;
 
@@ -591,7 +591,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             }
         }
 
-        protected void Drop(UUID requestID, UUID sessionID)
+        protected void Drop(in UUID requestID, in UUID _)
         {
             UrlData url = null;
             lock (m_RequestMap)
@@ -608,7 +608,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             }
         }
 
-        protected Hashtable GetEvents(UUID requestID, UUID sessionID)
+        protected Hashtable GetEvents(in UUID requestID, in UUID sessionID)
         {
             UrlData url = null;
 
@@ -689,7 +689,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             return resp;
         }
 
-        public OSHttpResponse HttpRequestHandler(UUID requestID, OSHttpRequest request)
+        public OSHttpResponse HttpRequestHandler(in UUID requestID, OSHttpRequest request)
         {
             lock (request)
             {
@@ -707,7 +707,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                     string uri_tmp;
                     string pathInfo;
 
-                    int pos = uri.IndexOf("/", 45); // /lslhttp/uuid/ <-
+                    int pos = uri.IndexOf('/', 45); // /lslhttp/uuid/ <-
                     if (pos >= 45)
                     {
                         uri_tmp = uri.Substring(0, pos);

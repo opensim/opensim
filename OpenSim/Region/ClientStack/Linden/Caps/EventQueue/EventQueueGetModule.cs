@@ -55,7 +55,7 @@ namespace OpenSim.Region.ClientStack.Linden
     public partial class  EventQueueGetModule : IEventQueue, INonSharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private static string LogHeader = "[EVENT QUEUE GET MODULE]";
+        private static readonly string LogHeader = "[EVENT QUEUE GET MODULE]";
 
         private const int KEEPALIVE = 60; // this could be larger now, but viewers expect it on opensim
         // we need to go back to close before viwers, or we may lose data
@@ -68,10 +68,10 @@ namespace OpenSim.Region.ClientStack.Linden
 
         protected Scene m_scene;
 
-        private Dictionary<UUID, int> m_ids = new Dictionary<UUID, int>();
+        private readonly Dictionary<UUID, int> m_ids = new();
 
-        private Dictionary<UUID, Queue<byte[]>> queues = new Dictionary<UUID, Queue<byte[]>>();
-        private Dictionary<UUID, UUID> m_AvatarQueueUUIDMapping = new Dictionary<UUID, UUID>();
+        private readonly Dictionary<UUID, Queue<byte[]>> queues = new();
+        private readonly Dictionary<UUID, UUID> m_AvatarQueueUUIDMapping = new();
 
         #region INonSharedRegionModule methods
         public virtual void Initialise(IConfigSource config)
@@ -339,9 +339,9 @@ namespace OpenSim.Region.ClientStack.Linden
         /// Generate an Event Queue Get handler path for the given eqg uuid.
         /// </summary>
         /// <param name='eqgUuid'></param>
-        private string GenerateEqgCapPath(UUID eqgUuid)
+        private static string GenerateEqgCapPath(UUID eqgUuid)
         {
-            return string.Format("/CE/{0}", eqgUuid);
+            return $"/CE/{eqgUuid}";
         }
 
         public void OnRegisterCaps(UUID agentID, Caps caps)
@@ -349,16 +349,13 @@ namespace OpenSim.Region.ClientStack.Linden
             // Register an event queue for the client
 
             if (DebugLevel > 0)
-                m_log.DebugFormat(
-                    "[EVENTQUEUE]: OnRegisterCaps: agentID {0} caps {1} region {2}",
-                    agentID, caps, m_scene.RegionInfo.RegionName);
+                m_log.Debug(
+                    $"[EVENTQUEUE]: OnRegisterCaps: agentID {agentID} caps {caps} region {m_scene.Name}");
 
             UUID eventQueueGetUUID;
-            Queue<Byte[]> queue = null;
-
             lock (queues)
             {
-                queues.TryGetValue(agentID, out queue);
+                queues.TryGetValue(agentID, out Queue<byte[]> queue);
 
                 if (queue == null)
                 {
@@ -388,17 +385,16 @@ namespace OpenSim.Region.ClientStack.Linden
                     lock (m_AvatarQueueUUIDMapping)
                     {
                         // Its reuse caps path not queues those are been reused already
-                        if (m_AvatarQueueUUIDMapping.ContainsKey(agentID))
+                        if (m_AvatarQueueUUIDMapping.TryGetValue(agentID, out eventQueueGetUUID))
                         {
                             m_log.DebugFormat("[EVENTQUEUE]: Found Existing UUID!");
-                            eventQueueGetUUID = m_AvatarQueueUUIDMapping[agentID];
                             lock (m_ids)
                             {
                                 // change to negative numbers so they are changed at end of sending first marker
                                 // old data on a queue may be sent on a response for a new caps
                                 // but at least will be sent with coerent IDs
-                                if (m_ids.ContainsKey(agentID))
-                                    m_ids[agentID] = -m_ids[agentID];
+                                if (m_ids.TryGetValue(agentID, out int previd))
+                                    m_ids[agentID] = -previd;
                                 else
                                 {
                                     m_ids[agentID] = -Random.Shared.Next(30000000);
@@ -411,8 +407,8 @@ namespace OpenSim.Region.ClientStack.Linden
                             m_AvatarQueueUUIDMapping[agentID] = eventQueueGetUUID;
                             lock (m_ids)
                             {
-                                if (m_ids.ContainsKey(agentID))
-                                    m_ids[agentID]++;
+                                if (m_ids.TryGetValue(agentID, out int previd))
+                                    m_ids[agentID] = ++previd;
                                 else
                                 {
                                     m_ids.Add(agentID, Random.Shared.Next(30000000));
@@ -428,7 +424,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     new PollServiceEventArgs(null, GenerateEqgCapPath(eventQueueGetUUID), HasEvents, GetEvents, NoEvents, Drop, agentID, VIEWERKEEPALIVE));
         }
 
-        public bool HasEvents(UUID requestID, UUID agentID)
+        public bool HasEvents(in UUID _, in UUID agentID)
         {
             Queue<byte[]> queue = GetQueue(agentID);
             if (queue != null)
@@ -449,28 +445,27 @@ namespace OpenSim.Region.ClientStack.Linden
         /// <param name='element'>Element containing message</param>
         private void LogOutboundDebugMessage(OSD element, UUID agentId)
         {
-            if (element is OSDMap)
+            if (element is OSDMap ev)
             {
-                OSDMap ev = (OSDMap)element;
                 m_log.Debug($"Eq OUT {ev["message"],-30} to {m_scene.GetScenePresence(agentId).Name,-20} {m_scene.Name,-20}");
             }
         }
 
-        public void Drop(UUID requestID, UUID pAgentId)
+        public void Drop(in UUID requestID, in UUID pAgentId)
         {
             // do nothing, in last case http server will do it
         }
 
-        private readonly byte[] EventHeader = osUTF8.GetASCIIBytes("<llsd><map><key>events</key><array>");
+        private static readonly byte[] EventHeader = osUTF8.GetASCIIBytes("<llsd><map><key>events</key><array>");
 
-        public Hashtable GetEvents(UUID requestID, UUID pAgentId)
+        public Hashtable GetEvents(in UUID requestID, in UUID pAgentId)
         {
             if (DebugLevel >= 2)
                 m_log.Warn($"POLLED FOR EQ MESSAGES BY {pAgentId} in {m_scene.Name}");
 
             Queue<byte[]> queue = GetQueue(pAgentId);
-            if (queue == null)
-                return NoAgent(requestID, pAgentId);
+            if (queue is null)
+                return NoAgent();
 
             byte[] element = null;
             List<byte[]> elements;
@@ -500,7 +495,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     element = queue.Dequeue();
                     // add elements until a marker is found
                     // so they get into a response
-                    if (element == null)
+                    if (element is null)
                         break;
 
                     if (DebugLevel > 0)
@@ -513,7 +508,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             lock (m_ids)
             {
-                if (element == null && negativeID)
+                if (element is null && negativeID)
                 {
                     m_ids[pAgentId] = Random.Shared.Next(30000000);
                 }
@@ -534,7 +529,7 @@ namespace OpenSim.Region.ClientStack.Linden
             elements.Add(element);
             totalSize += element.Length;
 
-            Hashtable responsedata = new Hashtable
+            Hashtable responsedata = new()
             {
                 ["int_response_code"] = 200,
                 ["content_type"] = "application/xml"
@@ -556,26 +551,20 @@ namespace OpenSim.Region.ClientStack.Linden
             return responsedata;
         }
 
-        public Hashtable NoEvents(UUID requestID, UUID agentID)
+        public Hashtable NoEvents(in UUID _, in UUID agentID)
         {
-            Hashtable responsedata = new Hashtable();
-            Queue<byte[]> queue = GetQueue(agentID);
-            if (queue == null)
+            return new Hashtable()
             {
-                responsedata["int_response_code"] = (int)HttpStatusCode.NotFound;
-                return responsedata;
-            }
-            responsedata["int_response_code"] = (int)HttpStatusCode.BadGateway;
-            return responsedata;
+                ["int_response_code"] = GetQueue(agentID) == null ? (int)HttpStatusCode.NotFound : (int)HttpStatusCode.BadGateway
+            };
         }
 
-        public Hashtable NoAgent(UUID requestID, UUID agentID)
+        public static Hashtable NoAgent()
         {
-            Hashtable responsedata = new Hashtable
+            return new Hashtable()
             {
                 ["int_response_code"] = (int)HttpStatusCode.NotFound
             };
-            return responsedata;
         }
     }
 }

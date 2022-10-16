@@ -610,7 +610,7 @@ namespace OpenSim.Framework.Console
 
         // Check if there is anything to send. Return true if this client has
         // lines pending.
-        protected bool HasEvents(UUID RequestID, UUID sessionID)
+        protected bool HasEvents(in UUID RequestID, in UUID sessionID)
         {
             ConsoleConnection c = null;
 
@@ -627,7 +627,7 @@ namespace OpenSim.Framework.Console
         }
 
         // Send all pending output to the client.
-        protected Hashtable GetEvents(UUID RequestID, UUID sessionID)
+        protected Hashtable GetEvents(in UUID RequestID, in UUID sessionID)
         {
             // Find the connection that goes with this client.
             ConsoleConnection c = null;
@@ -716,17 +716,15 @@ namespace OpenSim.Framework.Console
 
         // This is really just a no-op. It generates what is sent
         // to the client if the poll times out without any events.
-        protected Hashtable NoEvents(UUID RequestID, UUID id)
+        protected Hashtable NoEvents(in UUID RequestID, in UUID id)
         {
             Hashtable result = new Hashtable();
 
             XmlDocument xmldoc = new XmlDocument();
-            XmlNode xmlnode = xmldoc.CreateNode(XmlNodeType.XmlDeclaration,
-                    "", "");
+            XmlNode xmlnode = xmldoc.CreateNode(XmlNodeType.XmlDeclaration, "", "");
 
             xmldoc.AppendChild(xmlnode);
-            XmlElement rootElement = xmldoc.CreateElement("", "ConsoleSession",
-                    "");
+            XmlElement rootElement = xmldoc.CreateElement("", "ConsoleSession", "");
 
             xmldoc.AppendChild(rootElement);
 

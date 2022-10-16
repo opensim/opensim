@@ -163,7 +163,7 @@ namespace OpenSim.Services.GridService
             return null;
         }
 
-        private static IPEndPoint dummyIP = new IPEndPoint(0,0);
+        private static readonly IPEndPoint dummyIP = new IPEndPoint(0,0);
         private bool TryCreateLinkImpl(UUID scopeID, int xloc, int yloc, RegionURI rurl, UUID ownerID, out GridRegion regInfo)
         {
             m_log.InfoFormat("[HYPERGRID LINKER]: Link to {0} {1}, in <{2},{3}>",
@@ -293,7 +293,7 @@ namespace OpenSim.Services.GridService
         private bool TryCreateLinkImpl(UUID scopeID, int xloc, int yloc, string remoteRegionName, uint externalPort, string externalHostName, string serverURI, UUID ownerID, out GridRegion regInfo, out string reason)
         {
             m_log.InfoFormat("[HYPERGRID LINKER]: Link to {0} {1}, in <{2},{3}>",
-                ((serverURI == null) ? (externalHostName + ":" + externalPort) : serverURI),
+                (serverURI ?? externalHostName + ":" + externalPort),
                 remoteRegionName, Util.WorldToRegionLoc((uint)xloc), Util.WorldToRegionLoc((uint)yloc));
 
             reason = string.Empty;
