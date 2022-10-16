@@ -106,12 +106,6 @@ namespace OpenMetaverse
 
         #region PacketDropDebugging
         /// <summary>
-        /// For debugging purposes only... random number generator for dropping
-        /// outbound packets.
-        /// </summary>
-        private Random m_dropRandomGenerator = new Random();
-
-        /// <summary>
         /// For debugging purposes only... parameters for a simplified
         /// model of packet loss with bursts, overall drop rate should
         /// be roughly 1 - m_dropLengthProbability / (m_dropProbabiliy + m_dropLengthProbability)
@@ -135,7 +129,7 @@ namespace OpenMetaverse
         /// </summary>
         private bool DropOutgoingPacket()
         {
-            double rnum = m_dropRandomGenerator.NextDouble();
+            double rnum = Random.Shared.NextDouble();
 
             // if the connection has been idle for awhile (more than m_dropResetTicks) then
             // reset the state to the default state, don't continue a burst

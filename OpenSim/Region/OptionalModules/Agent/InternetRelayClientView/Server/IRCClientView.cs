@@ -661,7 +661,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         public uint CircuitCode
         {
-            get { return (uint)Util.RandomClass.Next(0,int.MaxValue); }
+            get { return (uint)Random.Shared.Next(0,int.MaxValue); }
         }
 
         public IPEndPoint RemoteEndPoint

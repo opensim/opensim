@@ -256,8 +256,6 @@ namespace OpenSim.Region.PhysicsModule.ODE
         /// </summary>
         private int latertickcount;
 
-        private Random fluidRandomizer = new Random(Environment.TickCount);
-
         private uint m_regionWidth = Constants.RegionSize;
         private uint m_regionHeight = Constants.RegionSize;
 

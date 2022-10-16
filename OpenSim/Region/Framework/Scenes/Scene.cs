@@ -146,9 +146,8 @@ namespace OpenSim.Region.Framework.Scenes
                         EntityBase[] entities = Entities.GetEntities();
                         foreach (EntityBase ent in entities)
                         {
-                            if (ent is SceneObjectGroup)
+                            if (ent is SceneObjectGroup sog)
                             {
-                                SceneObjectGroup sog = ent as SceneObjectGroup;
                                 sog.CreateScriptInstances(0, false, DefaultScriptEngine, 0);
                                 sog.ResumeScripts();
                             }
@@ -797,10 +796,8 @@ namespace OpenSim.Region.Framework.Scenes
             Normalized55FPS = true;
             SeeIntoRegion = true;
 
-            Random random = new();
-
-            m_lastAllocatedLocalId = (int)(random.NextDouble() * (uint.MaxValue / 4));
-            m_lastAllocatedIntId = (int)(random.NextDouble() * (int.MaxValue / 4));
+            m_lastAllocatedLocalId = (int)(Random.Shared.NextDouble() * (uint.MaxValue / 4));
+            m_lastAllocatedIntId = (int)(Random.Shared.NextDouble() * (int.MaxValue / 4));
             m_authenticateHandler = authen;
             m_sceneGridService = new SceneCommunicationService();
             m_SimulationDataService = simDataService;
@@ -6079,9 +6076,9 @@ Environment.Exit(1);
                 return true;
 
             // Permissions.IsAdministrator is the same as IsGod for now
-//            bool isAdmin = Permissions.IsAdministrator(agentID);
-//            if(isAdmin)
-//                return true;
+            //bool isAdmin = Permissions.IsAdministrator(agentID);
+            //if(isAdmin)
+            //   return true;
 
             // also honor estate managers access rights
             bool isManager = Permissions.IsEstateManager(agentID);

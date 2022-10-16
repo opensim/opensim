@@ -375,8 +375,7 @@ namespace OpenSim.Region.ClientStack.Linden
                                 m_ids[agentID]++;
                             else
                             {
-                                Random rnd = new Random(Environment.TickCount);
-                                m_ids[agentID] = rnd.Next(30000000);
+                                m_ids[agentID] = Random.Shared.Next(30000000);
                             }
                         }
                     }
@@ -402,8 +401,7 @@ namespace OpenSim.Region.ClientStack.Linden
                                     m_ids[agentID] = -m_ids[agentID];
                                 else
                                 {
-                                    Random rnd = new Random(Environment.TickCount);
-                                    m_ids[agentID] = -rnd.Next(30000000);
+                                    m_ids[agentID] = -Random.Shared.Next(30000000);
                                 }
                             }
                         }
@@ -417,8 +415,7 @@ namespace OpenSim.Region.ClientStack.Linden
                                     m_ids[agentID]++;
                                 else
                                 {
-                                    Random rnd = new Random(Environment.TickCount);
-                                    m_ids.Add(agentID, rnd.Next(30000000));
+                                    m_ids.Add(agentID, Random.Shared.Next(30000000));
                                 }
                             }
                         }
@@ -518,8 +515,7 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 if (element == null && negativeID)
                 {
-                    Random rnd = new Random(Environment.TickCount);
-                    m_ids[pAgentId] = rnd.Next(30000000);
+                    m_ids[pAgentId] = Random.Shared.Next(30000000);
                 }
                 else
                     m_ids[pAgentId] = thisID + 1;

@@ -142,7 +142,7 @@ namespace OpenSim.Services.GridService
         public GridRegion LinkRegion(UUID scopeID, string regionDescriptor)
         {
             string reason = string.Empty;
-            uint xloc = Util.RegionToWorldLoc((uint)random.Next(0, Int16.MaxValue));
+            uint xloc = Util.RegionToWorldLoc((uint)Random.Shared.Next(0, Int16.MaxValue));
             return TryLinkRegionToCoords(scopeID, regionDescriptor, (int)xloc, 0, out reason);
         }
 
@@ -157,7 +157,7 @@ namespace OpenSim.Services.GridService
                 return null;
             }
 
-            int xloc = random.Next(0, short.MaxValue) << 8;
+            int xloc = Random.Shared.Next(0, short.MaxValue) << 8;
             if(TryCreateLinkImpl(scopeID, xloc, 0, rurl, UUID.Zero, out GridRegion regInfo))
                 return regInfo;
             return null;
@@ -242,8 +242,6 @@ namespace OpenSim.Services.GridService
                 regInfo.RegionName, Util.WorldToRegionLoc((uint)regInfo.RegionLocX), Util.WorldToRegionLoc((uint)regInfo.RegionLocY), regInfo.TerrainImage);
             return true;
         }
-
-        private static Random random = new Random();
 
         // From the command line link-region (obsolete) and the map
         private GridRegion TryLinkRegionToCoords(UUID scopeID, string mapName, int xloc, int yloc, out string reason)

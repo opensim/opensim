@@ -913,10 +913,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Float llFrand(double mag)
         {
-            lock (Util.RandomClass)
-            {
-                return Util.RandomClass.NextDouble() * mag;
-            }
+            return Random.Shared.NextDouble() * mag;
         }
 
         public LSL_Integer llFloor(double f)
@@ -5985,11 +5982,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_List llListRandomize(LSL_List src, int stride)
         {
             LSL_List result;
-            Random rand = new Random();
 
             int   chunkk;
             int[] chunks;
-
 
             if (stride <= 0)
             {
@@ -6015,7 +6010,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 for (int i = chunkk - 1; i > 0; i--)
                 {
                     // Elect an unrandomized chunk to swap
-                    int index = rand.Next(i + 1);
+                    int index = Random.Shared.Next(i + 1);
 
                     // and swap position with first unrandomized chunk
                     int tmp = chunks[i];

@@ -166,7 +166,6 @@ namespace OpenSim.Framework
         }
 
         private static uint nextXferID = 5000;
-        private static readonly Random randomClass = new ThreadSafeRandom();
 
         // Get a list of invalid file characters (OS dependent)
         private static readonly string regexInvalidFileChars = $"[{new String(Path.GetInvalidFileNameChars())}]";
@@ -412,9 +411,10 @@ namespace OpenSim.Framework
             }
         }
 
+        // legacy, do not use
         public static Random RandomClass
         {
-            get { return randomClass; }
+            get {  return Random.Shared;}
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
