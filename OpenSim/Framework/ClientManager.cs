@@ -191,7 +191,7 @@ namespace OpenSim.Framework
             IClientAPI[] localArray;
             lock (m_syncRoot)
             {
-                if (m_array == null)
+                if (m_array is null)
                 {
                     if (m_dictbyUUID.Count == 0)
                         return;

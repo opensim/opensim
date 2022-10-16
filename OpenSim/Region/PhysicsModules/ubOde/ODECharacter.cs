@@ -155,7 +155,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public int m_eventsubscription = 0;
         private int m_cureventsubscription = 0;
-        private readonly CollisionEventUpdate CollisionEventsThisFrame = new CollisionEventUpdate();
+        private readonly CollisionEventUpdate CollisionEventsThisFrame = new();
         private bool SentEmptyCollisionsEvent;
 
         public bool bad = false;
@@ -602,9 +602,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 if (size.Z < 0.01f)
                     size.Z = 0.01f;
 
-                strAvatarSize st = new strAvatarSize();
-                st.size = size;
-                st.offset = feetOffset;
+                strAvatarSize st = new()
+                {
+                    size = size,
+                    offset = feetOffset
+                };
                 AddChange(changes.AvatarSize, st);
             }
             else
@@ -1085,7 +1087,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     if (r > 1.0f)
                         return false;
 
-                    float dp = 1.0f - (float)Math.Sqrt(r);
+                    float dp = 1.0f - MathF.Sqrt(r);
                     if (dp > 0.05f)
                         dp = 0.05f;
 
@@ -1147,7 +1149,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                 float tdp = contact.depth;
                 float t = offset.X;
-                t = Math.Abs(t);
+                t = MathF.Abs(t);
                 if (t > 1e-6)
                 {
                     tdp /= t;
@@ -1298,8 +1300,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             float terrainheight = m_parent_scene.GetTerrainHeightAtXY(tmpX, tmpY);
             if (aabbminz < terrainheight)
             {
-                if (ctz.Z < 0)
-                    ctz.Z = 0;
+                if (ctz.Z < 0f)
+                    ctz.Z = 0f;
 
                 if (!m_haveLastFallVel)
                 {
@@ -1317,9 +1319,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     vec.Z += -vel.Z * PID_D;
                     if (n.Z < 0.4f)
                     {
-                        vec.X = depth * PID_P * 50 - vel.X * PID_D;
+                        vec.X = depth * PID_P * 50f - vel.X * PID_D;
                         vec.X *= n.X;
-                        vec.Y = depth * PID_P * 50 - vel.Y * PID_D;
+                        vec.Y = depth * PID_P * 50f - vel.Y * PID_D;
                         vec.Y *= n.Y;
                         vec.Z *= n.Z;
                         if (n.Z < 0.1f)
@@ -1350,14 +1352,14 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                         m_iscollidingGround = true;
 
-                        ContactPoint contact = new ContactPoint();
-                        contact.PenetrationDepth = depth;
-                        contact.Position.X = _position.X;
-                        contact.Position.Y = _position.Y;
-                        contact.Position.Z = terrainheight;
-                        contact.SurfaceNormal = -n;
-                        contact.RelativeSpeed = Vector3.Dot(m_lastFallVel,n);
-                        contact.CharacterFeet = true;
+                        ContactPoint contact = new()
+                        {
+                            PenetrationDepth = depth,
+                            Position = new( _position.X, _position.Y, terrainheight),
+                            SurfaceNormal = -n,
+                            RelativeSpeed = Vector3.Dot(m_lastFallVel, n),
+                            CharacterFeet = true
+                        };
                         AddCollisionEvent(0,contact);
                         m_lastFallVel = vel;
 
@@ -1412,7 +1414,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     float fz = (m_targetHoverHeight - _position.Z);
 
                     //  if error is zero, use position control; otherwise, velocity control
-                    if (Math.Abs(fz) < 0.01f)
+                    if (MathF.Abs(fz) < 0.01f)
                     {
                         ctz.Z = 0;
                     }
@@ -1421,11 +1423,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         _zeroFlag = false;
                         fz /= m_PIDHoverTau;
 
-                        float tmp = Math.Abs(fz);
-                        if (tmp > 50)
-                            fz = 50 * Math.Sign(fz);
-                        else if (tmp < 0.1)
-                            fz = 0.1f * Math.Sign(fz);
+                        float tmp = MathF.Abs(fz);
+                        if (tmp > 50f)
+                            fz = 50f * MathF.Sign(fz);
+                        else if (tmp < 0.1f)
+                            fz = 0.1f * MathF.Sign(fz);
 
                         ctz.Z = fz;
                     }
@@ -1444,14 +1446,14 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                 // movement relative to surface if moving on it
                 // dont disturbe vertical movement, ie jumps
-                if (m_iscolliding && !m_flying && ctz.Z == 0 && m_collideNormal.Z > 0.2f && m_collideNormal.Z < 0.94f)
+                if (m_iscolliding && !m_flying && ctz.Z == 0f && m_collideNormal.Z > 0.2f && m_collideNormal.Z < 0.94f)
                 {
                     float p = ctz.X * m_collideNormal.X + ctz.Y * m_collideNormal.Y;
-                    ctz.X *= (float)Math.Sqrt(1 - m_collideNormal.X * m_collideNormal.X);
-                    ctz.Y *= (float)Math.Sqrt(1 - m_collideNormal.Y * m_collideNormal.Y);
+                    ctz.X *= MathF.Sqrt(1 - m_collideNormal.X * m_collideNormal.X);
+                    ctz.Y *= MathF.Sqrt(1 - m_collideNormal.Y * m_collideNormal.Y);
                     ctz.Z -= p;
-                    if (ctz.Z < 0)
-                        ctz.Z *= 2;
+                    if (ctz.Z < 0f)
+                        ctz.Z *= 2f;
 
                 }
             }
@@ -1535,9 +1537,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                                     {
                                     }
 
-                                    if (Math.Abs(ctz.X) > Math.Abs(vel.X))
+                                    if (MathF.Abs(ctz.X) > MathF.Abs(vel.X))
                                         vec.X += (ctz.X - vel.X) * PID_D;
-                                    if (Math.Abs(ctz.Y) > Math.Abs(vel.Y))
+                                    if (MathF.Abs(ctz.Y) > MathF.Abs(vel.Y))
                                         vec.Y += (ctz.Y - vel.Y) * PID_D;
                                 }
                             }
@@ -1642,22 +1644,22 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void round(ref Vector3 v, int digits)
         {
-            v.X = (float)Math.Round(v.X, digits);
-            v.Y = (float)Math.Round(v.Y, digits);
-            v.Z = (float)Math.Round(v.Z, digits);
+            v.X = MathF.Round(v.X, digits);
+            v.Y = MathF.Round(v.Y, digits);
+            v.Z = MathF.Round(v.Z, digits);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetSmooth(ref Vector3 dst, ref Vector3 value, int rounddigits)
         {
             dst.X = 0.4f * dst.X + 0.6f * value.X;
-            dst.X = (float)Math.Round(dst.X, rounddigits);
+            dst.X = MathF.Round(dst.X, rounddigits);
 
             dst.Y = 0.4f * dst.Y + 0.6f * value.Y;
-            dst.Y = (float)Math.Round(dst.Y, rounddigits);
+            dst.Y = MathF.Round(dst.Y, rounddigits);
 
             dst.Z = 0.4f * dst.Z + 0.6f * value.Z;
-            dst.Z = (float)Math.Round(dst.Z, rounddigits);
+            dst.Z = MathF.Round(dst.Z, rounddigits);
         }
 
         /// <summary>
@@ -1998,7 +2000,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 float t = m_orientation2D.W * m_orientation2D.W + m_orientation2D.Z * m_orientation2D.Z;
                 if (t > 0)
                 {
-                    t = 1.0f / (float)Math.Sqrt(t);
+                    t = 1.0f / MathF.Sqrt(t);
                     m_orientation2D.W *= t;
                     m_orientation2D.Z *= t;
                 }

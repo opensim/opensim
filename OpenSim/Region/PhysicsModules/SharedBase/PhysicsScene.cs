@@ -161,7 +161,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         {
             PhysicsActor ret = AddAvatar(avName, position, velocity, size, isFlying);
 
-            if (ret != null)
+            if (ret is not null)
                 ret.LocalID = localID;
 
             return ret;

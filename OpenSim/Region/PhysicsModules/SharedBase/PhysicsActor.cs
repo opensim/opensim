@@ -137,23 +137,22 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
 
         public void AddCollider(uint localID, ContactPoint contact)
         {
-            if (m_objCollisionList.TryGetValue(localID, out ContactPoint oldcp))
+            ref ContactPoint curcp = ref CollectionsMarshal.GetValueRefOrAddDefault(m_objCollisionList, localID, out bool ex);
+            if (ex)
             {
-                float lastVel = oldcp.RelativeSpeed;
-                if (oldcp.PenetrationDepth < contact.PenetrationDepth)
+                if (curcp.PenetrationDepth < contact.PenetrationDepth)
                 {
-                    if (Math.Abs(lastVel) > Math.Abs(contact.RelativeSpeed))
-                        contact.RelativeSpeed = lastVel;
-                    m_objCollisionList[localID] = contact;
+                    if (Math.Abs(curcp.PenetrationDepth) > Math.Abs(contact.RelativeSpeed))
+                        contact.RelativeSpeed = curcp.PenetrationDepth;
+                    curcp = contact;
                 }
-                else if (Math.Abs(lastVel) < Math.Abs(contact.RelativeSpeed))
+                else if (MathF.Abs(curcp.RelativeSpeed) < MathF.Abs(contact.RelativeSpeed))
                 {
-                    oldcp.RelativeSpeed = contact.RelativeSpeed;
-                    m_objCollisionList[localID] = oldcp;
+                    curcp.RelativeSpeed = contact.RelativeSpeed;
                 }
             }
             else
-                m_objCollisionList.Add(localID, contact);
+                curcp = contact;
         }
 
         /// <summary>
