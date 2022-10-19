@@ -172,6 +172,12 @@ namespace OpenSim.Framework
         private static readonly string regexInvalidPathChars = $"[{new String(Path.GetInvalidPathChars())}]";
         private static readonly object XferLock = new();
 
+        public static readonly char[] SplitCommaArray = new char[] { ',' };
+        public static readonly char[] SplitDotArray = new char[] { '.' };
+        public static readonly char[] SplitColonArray = new char[] { ':' };
+        public static readonly char[] SplitSemicolonArray = new char[] { ';' };
+        public static readonly char[] SplitSlashArray = new char[] { '/' };
+
         /// <summary>
         /// Thread pool used for Util.FireAndForget if FireAndForgetMethod.SmartThreadPool is used
         /// </summary>
@@ -565,7 +571,7 @@ namespace OpenSim.Framework
                 string host;
                 int port = 80;
 
-                string[] parts = inputName.Split(new char[] { ':' });
+                string[] parts = inputName.Split(Util.SplitColonArray);
                 int indx;
                 if (parts.Length == 0)
                     return false;
@@ -621,7 +627,7 @@ namespace OpenSim.Framework
                 //          http://grid.example.com "region name"
                 //          http://grid.example.com
 
-                string[] parts = inputName.Split(new char[] { ' ' });
+                string[] parts = inputName.Split();
 
                 if (parts.Length == 0)
                     return false;
@@ -1849,7 +1855,7 @@ namespace OpenSim.Framework
         /// <returns></returns>
         public static T GetConfigVarFromSections<T>(IConfigSource config, string varname, string[] sections, object val)
         {
-            foreach (string section in sections)
+            foreach (string section in sections.AsSpan())
             {
                 IConfig cnf = config.Configs[section];
                 if (cnf == null)
@@ -1864,9 +1870,8 @@ namespace OpenSim.Framework
                 else if (typeof(T) == typeof(float))
                     val = cnf.GetFloat(varname, (float)val);
                 else
-                    m_log.Error($"[UTIL]: Unhandled type {typeof(T)}");
+                    m_log.ErrorFormat("[UTIL]: Unhandled type {0}", typeof(T));
             }
-
             return (T)val;
         }
 
@@ -2440,7 +2445,7 @@ namespace OpenSim.Framework
                 else
                 {
                     // uh?
-                    m_log.Debug($"[UTILS]: Got OSD of unexpected type {buffer.Type.ToString()}");
+                    m_log.Debug($"[UTILS]: Got OSD of unexpected type {buffer.Type}");
                     return null;
                 }
             }
@@ -2548,7 +2553,7 @@ namespace OpenSim.Framework
 
             try
             {
-                port1 = uri.Split(new char[] { ':' })[2];
+                port1 = uri.Split(Util.SplitColonArray)[2];
             }
             catch { }
 
@@ -3494,7 +3499,7 @@ namespace OpenSim.Framework
             if (xff.Length == 0)
                 return null;
 
-            string[] parts = xff.Split(new char[] { ',' });
+            string[] parts = xff.Split(Util.SplitCommaArray);
             if (parts.Length > 0)
             {
                 try
@@ -4186,7 +4191,7 @@ namespace OpenSim.Framework
             // in the agent circuit data for foreigners
             if (lastName.Contains('@'))
             {
-                string[] parts = firstName.Split(new char[] { '.' });
+                string[] parts = firstName.Split(Util.SplitDotArray);
                 if (parts.Length == 2)
                     return CalcUniversalIdentifier(id, agentsURI, parts[0].Trim() + " " + parts[1].Trim());
             }

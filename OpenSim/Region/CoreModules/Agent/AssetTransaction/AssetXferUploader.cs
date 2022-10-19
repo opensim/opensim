@@ -556,7 +556,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 
                         else if (textures > 0)
                         {
-                            string[] parts = line.Split(new char[] {' '});
+                            string[] parts = line.Split();
 
                             UUID tx = new UUID(parts[1]);
                             int id = Convert.ToInt32(parts[0]);
@@ -634,7 +634,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                     }
                     else if (textures > 0)
                     {
-                        string[] parts = line.Split(new char[] {' '});
+                        string[] parts = line.Split();
 
                         UUID tx = new UUID(parts[1]);
                         int id = Convert.ToInt32(parts[0]);

@@ -359,7 +359,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         bool error = false;
                         if (!string.IsNullOrWhiteSpace(ownerPerm))
                         {
-                            ids = ownerPerm.Split(new char[] {','});
+                            ids = ownerPerm.Split(Util.SplitCommaArray);
                             foreach (string id in ids)
                             {
                                 string current = id.Trim();
@@ -415,7 +415,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         error = false;
                         if (!string.IsNullOrWhiteSpace(creatorPerm))
                         {
-                            ids = creatorPerm.Split(new char[] {','});
+                            ids = creatorPerm.Split(Util.SplitCommaArray);
                             foreach (string id in ids)
                             {
                                 string current = id.Trim();

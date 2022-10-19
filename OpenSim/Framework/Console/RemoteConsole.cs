@@ -322,7 +322,7 @@ namespace OpenSim.Framework.Console
 
                     for (i=0 ; i < cmd.Length ; i++)
                     {
-                        if (cmd[i].Contains(" "))
+                        if (cmd[i].Contains(' '))
                             cmd[i] = "\"" + cmd[i] + "\"";
                     }
                     return String.Empty;

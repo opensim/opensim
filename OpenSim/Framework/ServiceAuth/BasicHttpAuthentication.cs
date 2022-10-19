@@ -75,7 +75,7 @@ namespace OpenSim.Framework.ServiceAuth
             string recovered = Util.Base64ToString(data);
             if (!String.IsNullOrEmpty(recovered))
             {
-                string[] parts = recovered.Split(new char[] { ':' });
+                string[] parts = recovered.Split(Util.SplitColonArray);
                 if (parts.Length >= 2)
                 {
                     return m_Username.Equals(parts[0]) && m_Password.Equals(parts[1]);

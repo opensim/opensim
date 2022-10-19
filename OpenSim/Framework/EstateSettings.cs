@@ -536,7 +536,7 @@ namespace OpenSim.Framework
 
                 if (p.PropertyType.IsArray)
                 {
-                    string[] elements = ((string)map[p.Name]).Split(new char[] { ',' });
+                    string[] elements = ((string)map[p.Name]).Split(Util.SplitCommaArray);
                     UUID[] uuids = new UUID[elements.Length];
                     int i = 0;
                     foreach (string e in elements)

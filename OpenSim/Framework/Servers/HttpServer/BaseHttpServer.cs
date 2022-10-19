@@ -2443,7 +2443,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 return;
             }
 
-            string[] splited = methods.Split(new char[] { ',' });
+            string[] splited = methods.Split(Util.SplitCommaArray);
             string method = splited[0];
             if (string.IsNullOrWhiteSpace(method))
             {

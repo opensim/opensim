@@ -306,7 +306,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     m_uMan.AddUser(agentID, f, l, url);
 
                     string name = m_uMan.GetUserName(agentID);
-                    string[] parts = name.Trim().Split(new char[] { ' ' });
+                    string[] parts = name.Trim().Split();
                     if (parts.Length == 2)
                     {
                         first = parts[0];

@@ -44,7 +44,7 @@ namespace OpenSim.Data.MySQL
 
         public UserAccountData[] GetUsers(UUID scopeID, string query)
         {
-            string[] words = query.Split(new char[] {' '});
+            string[] words = query.Split();
 
             bool valid = false;
 

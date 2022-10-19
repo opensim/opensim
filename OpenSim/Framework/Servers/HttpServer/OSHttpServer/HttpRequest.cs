@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Web;
+using OpenSim.Framework;
 using OSHttpServer.Exceptions;
 
 
@@ -362,7 +363,7 @@ namespace OSHttpServer
                     break;
 
                 case "forwarded":
-                    string[] parts = value.Split(new char[]{';'});
+                    string[] parts = value.Split(Util.SplitSemicolonArray);
                     string addr = string.Empty;
                     for(int i = 0; i < parts.Length; ++i)
                     {
@@ -386,7 +387,7 @@ namespace OSHttpServer
                 case "x-forwarded-for":
                     if (value.Length > 7)
                     {
-                        string[] xparts = value.Split(new char[]{','});
+                        string[] xparts = value.Split(Util.SplitCommaArray);
                         if(xparts.Length > 0)
                         {
                             string xs = xparts[0].Trim();

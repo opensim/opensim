@@ -89,7 +89,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
             {
                 str = str.Replace('<', ' ');
                 str = str.Replace('>', ' ');
-                string[] tmps = str.Split(new Char[] {','});
+                string[] tmps = str.Split(Util.SplitCommaArray);
                 if (tmps.Length < 3)
                 {
                     z = y = x = 0;
@@ -427,7 +427,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
             {
                 str = str.Replace('<', ' ');
                 str = str.Replace('>', ' ');
-                string[] tmps = str.Split(new Char[] {','});
+                string[] tmps = str.Split(Util.SplitCommaArray);
                 if (tmps.Length < 4 ||
                     !Double.TryParse(tmps[3], NumberStyles.Float, Culture.NumberFormatInfo, out s))
                 {

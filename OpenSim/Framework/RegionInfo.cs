@@ -511,7 +511,7 @@ namespace OpenSim.Framework
                 config.Set("Location", location);
             }
 
-            string[] locationElements = location.Split(new char[] {','});
+            string[] locationElements = location.Split(Util.SplitCommaArray);
 
             RegionLocX = Convert.ToUInt32(locationElements[0]);
             RegionLocY = Convert.ToUInt32(locationElements[1]);

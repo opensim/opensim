@@ -133,7 +133,7 @@ namespace OpenSim.Data.Null
 //            m_log.DebugFormat(
 //                "[NULL USER ACCOUNT DATA]: Called GetUsers with scope [{0}], query [{1}]", scopeID, query);
 
-            string[] words = query.Split(new char[] { ' ' });
+            string[] words = query.Split();
 
             for (int i = 0; i < words.Length; i++)
             {
