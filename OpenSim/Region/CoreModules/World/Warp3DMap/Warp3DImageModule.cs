@@ -42,8 +42,6 @@ using Mono.Addins;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.PhysicsModules.SharedBase;
-using OpenSim.Services.Interfaces;
 
 using OpenMetaverse;
 using OpenMetaverse.Assets;
@@ -75,7 +73,6 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         private Dictionary<UUID, warp_Texture> m_warpTextures = new Dictionary<UUID, warp_Texture>();
         private Dictionary<UUID, int> m_colors = new Dictionary<UUID, int>();
 
-        private IConfigSource m_config;
         private bool m_drawPrimVolume = true;   // true if should render the prims on the tile
         private bool m_textureTerrain = true;   // true if to create terrain splatting texture
         private bool m_textureAverageTerrain = false; // replace terrain textures by their average color
@@ -89,40 +86,35 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
         private bool m_Enabled = false;
 
-//        private Bitmap lastImage = null;
-        private DateTime lastImageTime = DateTime.MinValue;
-
         #region Region Module interface
 
         public void Initialise(IConfigSource source)
         {
-            m_config = source;
-
             string[] configSections = new string[] { "Map", "Startup" };
 
             if (Util.GetConfigVarFromSections<string>(
-                m_config, "MapImageModule", configSections, "MapImageModule") != "Warp3DImageModule")
+                source, "MapImageModule", configSections, "MapImageModule") != "Warp3DImageModule")
                 return;
 
             m_Enabled = true;
 
             m_drawPrimVolume =
-                Util.GetConfigVarFromSections<bool>(m_config, "DrawPrimOnMapTile", configSections, m_drawPrimVolume);
+                Util.GetConfigVarFromSections<bool>(source, "DrawPrimOnMapTile", configSections, m_drawPrimVolume);
             m_textureTerrain =
-                Util.GetConfigVarFromSections<bool>(m_config, "TextureOnMapTile", configSections, m_textureTerrain);
+                Util.GetConfigVarFromSections<bool>(source, "TextureOnMapTile", configSections, m_textureTerrain);
             m_textureAverageTerrain =
-                Util.GetConfigVarFromSections<bool>(m_config, "AverageTextureColorOnMapTile", configSections, m_textureAverageTerrain);
+                Util.GetConfigVarFromSections<bool>(source, "AverageTextureColorOnMapTile", configSections, m_textureAverageTerrain);
             if (m_textureAverageTerrain)
                 m_textureTerrain = true;
             m_texturePrims =
-                Util.GetConfigVarFromSections<bool>(m_config, "TexturePrims", configSections, m_texturePrims);
+                Util.GetConfigVarFromSections<bool>(source, "TexturePrims", configSections, m_texturePrims);
             m_texturePrimSize =
-                Util.GetConfigVarFromSections<float>(m_config, "TexturePrimSize", configSections, m_texturePrimSize);
+                Util.GetConfigVarFromSections<float>(source, "TexturePrimSize", configSections, m_texturePrimSize);
             m_renderMeshes =
-                Util.GetConfigVarFromSections<bool>(m_config, "RenderMeshes", configSections, m_renderMeshes);
+                Util.GetConfigVarFromSections<bool>(source, "RenderMeshes", configSections, m_renderMeshes);
 
-            m_renderMaxHeight = Util.GetConfigVarFromSections<float>(m_config, "RenderMaxHeight", configSections, m_renderMaxHeight);
-            m_renderMinHeight = Util.GetConfigVarFromSections<float>(m_config, "RenderMinHeight", configSections, m_renderMinHeight);
+            m_renderMaxHeight = Util.GetConfigVarFromSections<float>(source, "RenderMaxHeight", configSections, m_renderMaxHeight);
+            m_renderMinHeight = Util.GetConfigVarFromSections<float>(source, "RenderMinHeight", configSections, m_renderMinHeight);
             /*
             m_cameraHeight = Util.GetConfigVarFromSections<float>(m_config, "RenderCameraHeight", configSections, m_cameraHeight);
 
@@ -825,13 +817,13 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static warp_Vector ConvertVector(Vector3 vector)
+        private static warp_Vector ConvertVector(in Vector3 vector)
         {
             return new warp_Vector(vector.X, vector.Z, vector.Y);
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static warp_Quaternion ConvertQuaternion(Quaternion quat)
+        private static warp_Quaternion ConvertQuaternion(in Quaternion quat)
         {
             return new warp_Quaternion(quat.X, quat.Z, quat.Y, -quat.W);
         }
@@ -843,12 +835,9 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             return c;
         }
 
-        private static Vector3 SurfaceNormal(Vector3 c1, Vector3 c2, Vector3 c3)
+        private static Vector3 SurfaceNormal(in Vector3 c1, in Vector3 c2, in Vector3 c3)
         {
-            Vector3 edge1 = new Vector3(c2.X - c1.X, c2.Y - c1.Y, c2.Z - c1.Z);
-            Vector3 edge2 = new Vector3(c3.X - c1.X, c3.Y - c1.Y, c3.Z - c1.Z);
-
-            Vector3 normal = Vector3.Cross(edge1, edge2);
+            Vector3 normal = Vector3.Cross(c2 - c1, c3 - c1);
             normal.Normalize();
 
             return normal;
