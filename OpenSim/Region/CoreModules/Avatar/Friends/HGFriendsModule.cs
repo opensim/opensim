@@ -824,7 +824,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     string[] parts = im.fromAgentName.Split(new char[] { '@' });
                     if (parts.Length == 2)
                     {
-                        string[] fl = parts[0].Trim().Split(new char[] { '.' });
+                        string[] fl = parts[0].Trim().Split(Util.SplitDotArray);
                         if (fl.Length == 2)
                             m_uMan.AddUser(new UUID(im.fromAgentID), fl[0], fl[1], "http://" + parts[1]);
                         else
