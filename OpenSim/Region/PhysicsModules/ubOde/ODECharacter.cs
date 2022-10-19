@@ -1028,7 +1028,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         }
 
         //in place 2D rotation around Z assuming rot is normalised and is a rotation around Z
-        public void RotateXYonZ(ref float x, ref float y, ref Quaternion rot)
+        public static void RotateXYonZ(ref float x, ref float y, ref Quaternion rot)
         {
             float sin = 2.0f * rot.Z * rot.W;
             float cos = rot.W * rot.W - rot.Z * rot.Z;
@@ -1037,20 +1037,20 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             x = tx * cos - y * sin;
             y = tx * sin + y * cos;
         }
-        public void RotateXYonZ(ref float x, ref float y, float sin, float cos)
+        public static void RotateXYonZ(ref float x, ref float y, float sin, float cos)
         {
             float tx = x;
             x = tx * cos - y * sin;
             y = tx * sin + y * cos;
         }
-        public void invRotateXYonZ(ref float x, ref float y, float sin, float cos)
+        public static void invRotateXYonZ(ref float x, ref float y, float sin, float cos)
         {
             float tx = x;
             x = tx * cos + y * sin;
             y = -tx * sin + y * cos;
         }
 
-        public void invRotateXYonZ(ref float x, ref float y, ref Quaternion rot)
+        public static void invRotateXYonZ(ref float x, ref float y, in Quaternion rot)
         {
             float sin = -2.0f * rot.Z * rot.W;
             float cos = rot.W * rot.W - rot.Z * rot.Z;
@@ -1061,129 +1061,116 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal bool Collide(IntPtr me, IntPtr other, bool reverse, ref SafeNativeMethods.ContactGeom contact,
+        internal bool Collide(IntPtr other, bool reverse, ref SafeNativeMethods.ContactGeom contact,
             ref SafeNativeMethods.ContactGeom altContact, ref bool useAltcontact, ref bool feetcollision)
         {
             feetcollision = false;
             useAltcontact = false;
 
-            //if (me == capsule)
-            if (me == collider)
+            Vector3 offset;
+
+            float h = contact.pos.Z - _position.Z;
+            offset.Z = h - feetOff;
+
+            offset.X = contact.pos.X - _position.X;
+            offset.Y = contact.pos.Y - _position.Y;
+
+            SafeNativeMethods.GeomClassID gtype = SafeNativeMethods.GeomGetClass(other);
+            if (gtype == SafeNativeMethods.GeomClassID.CapsuleClass)
             {
-                Vector3 offset;
+                Vector3 roff = offset * Quaternion.Inverse(m_orientation2D);
+                float r = roff.X * roff.X / AvaAvaSizeXsq;
+                r += (roff.Y * roff.Y) / AvaAvaSizeYsq;
+                if (r > 1.0f)
+                    return false;
 
-                float h = contact.pos.Z - _position.Z;
-                offset.Z = h - feetOff;
+                float dp = 1.0f - MathF.Sqrt(r);
+                if (dp > 0.05f)
+                    dp = 0.05f;
 
-                offset.X = contact.pos.X - _position.X;
-                offset.Y = contact.pos.Y - _position.Y;
+                contact.depth = dp;
 
-                SafeNativeMethods.GeomClassID gtype = SafeNativeMethods.GeomGetClass(other);
-                if (gtype == SafeNativeMethods.GeomClassID.CapsuleClass)
+                if (offset.Z < 0)
                 {
-                    Vector3 roff = offset * Quaternion.Inverse(m_orientation2D);
-                    float r = roff.X * roff.X / AvaAvaSizeXsq;
-                    r += (roff.Y * roff.Y) / AvaAvaSizeYsq;
-                    if (r > 1.0f)
-                        return false;
-
-                    float dp = 1.0f - MathF.Sqrt(r);
-                    if (dp > 0.05f)
-                        dp = 0.05f;
-
-                    contact.depth = dp;
-
-                    if (offset.Z < 0)
+                    feetcollision = true;
+                    if (h < boneOff)
                     {
-                        feetcollision = true;
-                        if (h < boneOff)
-                        {
-                            m_collideNormal.X = contact.normal.X;
-                            m_collideNormal.Y = contact.normal.Y;
-                            m_collideNormal.Z = contact.normal.Z;
-                            IsColliding = true;
-                        }
+                        m_collideNormal = Unsafe.As<SafeNativeMethods.Vector3, Vector3>(ref contact.normal);
+                        IsColliding = true;
                     }
-                    return true;
-                }
-
-                if (gtype == SafeNativeMethods.GeomClassID.SphereClass && SafeNativeMethods.GeomGetBody(other) != IntPtr.Zero)
-                {
-                    if (SafeNativeMethods.GeomSphereGetRadius(other) < 0.5)
-                        return true;
-                }
-
-                if (offset.Z > 0 || contact.normal.Z > 0.35f)
-                {
-                    if (offset.Z <= 0)
-                    {
-                        feetcollision = true;
-                        if (h < boneOff)
-                        {
-                            m_collideNormal.X = contact.normal.X;
-                            m_collideNormal.Y = contact.normal.Y;
-                            m_collideNormal.Z = contact.normal.Z;
-                            IsColliding = true;
-                        }
-                    }
-                    return true;
-                }
-
-                if (m_flying)
-                    return true;
-
-                feetcollision = true;
-                if (h < boneOff)
-                {
-                    m_collideNormal.X = contact.normal.X;
-                    m_collideNormal.Y = contact.normal.Y;
-                    m_collideNormal.Z = contact.normal.Z;
-                    IsColliding = true;
-                }
-
-                useAltcontact = true;
-
-                offset.Z -= 0.2f;
-
-                offset.Normalize();
-
-                float tdp = contact.depth;
-                float t = offset.X;
-                t = MathF.Abs(t);
-                if (t > 1e-6)
-                {
-                    tdp /= t;
-                    tdp *= contact.normal.X;
-                }
-                else
-                    tdp *= 10;
-
-                if (tdp > 0.25f)
-                    tdp = 0.25f;
-
-                altContact.pos = contact.pos;
-                //altContact.g1 = contact.g1;
-                //altContact.g2 = contact.g2;
-                //altContact.side1 = contact.side1;
-                //altContact.side2 = contact.side2;
-
-                altContact.depth = tdp;
-
-                if (reverse)
-                {
-                    altContact.normal.X = offset.X;
-                    altContact.normal.Y = offset.Y;
-                    altContact.normal.Z = offset.Z;
-                }
-                else
-                {
-                    altContact.normal.X = -offset.X;
-                    altContact.normal.Y = -offset.Y;
-                    altContact.normal.Z = -offset.Z;
                 }
                 return true;
             }
-            return false;
+
+            if (gtype == SafeNativeMethods.GeomClassID.SphereClass && SafeNativeMethods.GeomGetBody(other) != IntPtr.Zero)
+            {
+                if (SafeNativeMethods.GeomSphereGetRadius(other) < 0.5)
+                    return true;
+            }
+
+            if (offset.Z > 0 || contact.normal.Z > 0.35f)
+            {
+                if (offset.Z <= 0)
+                {
+                    feetcollision = true;
+                    if (h < boneOff)
+                    {
+                        m_collideNormal = Unsafe.As<SafeNativeMethods.Vector3, Vector3>(ref contact.normal);
+                        IsColliding = true;
+                    }
+                }
+                return true;
+            }
+
+            if (m_flying)
+                return true;
+
+            feetcollision = true;
+            if (h < boneOff)
+            {
+                m_collideNormal = Unsafe.As<SafeNativeMethods.Vector3, Vector3>(ref contact.normal);
+                IsColliding = true;
+            }
+
+            useAltcontact = true;
+
+            offset.Z -= 0.2f;
+
+            offset.Normalize();
+
+            float tdp = contact.depth;
+            float t = offset.X;
+            t = MathF.Abs(t);
+            if (t > 1e-6)
+            {
+                tdp /= t;
+                tdp *= contact.normal.X;
+            }
+            else
+                tdp *= 10;
+
+            if (tdp > 0.25f)
+                tdp = 0.25f;
+
+            altContact.pos = contact.pos;
+            //altContact.g1 = contact.g1;
+            //altContact.g2 = contact.g2;
+            //altContact.side1 = contact.side1;
+            //altContact.side2 = contact.side2;
+
+            altContact.depth = tdp;
+
+            if (reverse)
+            {
+                altContact.normal = Unsafe.As<Vector3, SafeNativeMethods.Vector3>(ref offset);
+            }
+            else
+            {
+                altContact.normal.X = -offset.X;
+                altContact.normal.Y = -offset.Y;
+                altContact.normal.Z = -offset.Z;
+            }
+            return true;
         }
 
         /// <summary>

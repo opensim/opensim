@@ -242,12 +242,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             internal SurfaceParameters surface;
             internal ContactGeom geom;
             internal Vector3 fdir1;
-            internal static readonly int unmanagedSizeOf = Marshal.SizeOf(typeof(Contact));
         }
 
+        internal static readonly int SizeOfContact = Marshal.SizeOf(typeof(Contact));
 
         [StructLayout(LayoutKind.Sequential)]
-        //needed for Contact only, rest should use the class
         internal struct ContactGeom
         {
 
@@ -258,20 +257,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             internal IntPtr g2;
             internal int side1;
             internal int side2;
-            internal static readonly int unmanagedSizeOf = Marshal.SizeOf(typeof(ContactGeom));
         }
 
-        /*
-        [StructLayout(LayoutKind.Sequential)]
-        internal struct GeomClass
-        {
-            internal int bytes;
-            internal GetColliderFnFn collider;
-            internal GetAABBFn aabb;
-            internal AABBTestFn aabb_test;
-            internal GeomDtorFn dtor;
-        }
-        */
+        internal static readonly int SizeOfContactGeom = Marshal.SizeOf(typeof(ContactGeom));
 
         [StructLayout(LayoutKind.Sequential)]
         internal struct JointFeedback
@@ -541,7 +529,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             unsafe
             {
                 Vector3* vtmp = BodyGetAngularVelUnsafe(body);
-                return new OMV.Vector3(vtmp->X, vtmp->Y, vtmp->Z);
+                return Unsafe.As<SafeNativeMethods.Vector3, OMV.Vector3>(ref *vtmp);
             }
         }
 
@@ -551,7 +539,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             unsafe
             {
                 Vector3* vtmp = BodyGetAngularVelUnsafe(body);
-                return new OMV.Vector3(0, 0, (float)Math.Round(vtmp->Z, 3));
+                return Unsafe.As<SafeNativeMethods.Vector3, OMV.Vector3>(ref *vtmp);
             }
         }
 
@@ -593,7 +581,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             unsafe
             {
                 Vector3* vtmp = BodyGetLinearVelUnsafe(body);
-                return new OMV.Vector3(vtmp->X, vtmp->Y, vtmp->Z);
+                return Unsafe.As<SafeNativeMethods.Vector3, OMV.Vector3>(ref *vtmp);
             }
         }
 
@@ -619,7 +607,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             unsafe
             {
                 Vector3* vtmp = BodyGetPositionUnsafe(body);
-                return new OMV.Vector3(vtmp->X, vtmp->Y, vtmp->Z);
+                return Unsafe.As<SafeNativeMethods.Vector3, OMV.Vector3>(ref *vtmp);
             }
         }
 
@@ -1076,7 +1064,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             unsafe
             {
                 Vector3* vtmp = GeomGetPositionUnsafe(geom);
-                return new OMV.Vector3(vtmp->X, vtmp->Y, vtmp->Z);
+                return Unsafe.As<SafeNativeMethods.Vector3, OMV.Vector3>(ref *vtmp);
             }
         }
 
@@ -1142,8 +1130,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 dReal width, dReal depth, int widthSamples, int depthSamples,
                 dReal scale, dReal offset, dReal thickness, int bWrap);
 
-
-
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomHeightfieldDataBuildDouble"), SuppressUnmanagedCodeSecurity]
         internal static extern void GeomHeightfieldDataBuildDouble(IntPtr d, double[] pHeightData, int bCopyHeightData,
                 dReal width, dReal depth, int widthSamples, int depthSamples,
@@ -1168,7 +1154,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomHeightfieldSetHeightfieldData"), SuppressUnmanagedCodeSecurity]
         internal static extern void GeomHeightfieldSetHeightfieldData(IntPtr g, IntPtr d);
-
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomUbitTerrainDataBuild"), SuppressUnmanagedCodeSecurity]
         internal static extern void GeomOSTerrainDataBuild(IntPtr d, float[] pHeightData, int bCopyHeightData,

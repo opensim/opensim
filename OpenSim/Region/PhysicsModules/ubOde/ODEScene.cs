@@ -474,7 +474,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             m_contactsHandler = GCHandle.Alloc(m_contacts, GCHandleType.Pinned);
             ContactgeomsArray = m_contactsHandler.AddrOfPinnedObject();
 
-            GlobalContactsArray = Marshal.AllocHGlobal((maxContactJoints + 100) * SafeNativeMethods.Contact.unmanagedSizeOf);
+            GlobalContactsArray = Marshal.AllocHGlobal((maxContactJoints + 100) * SafeNativeMethods.SizeOfContact);
 
             contactSharedForJoints.geom.g1 = IntPtr.Zero;
             contactSharedForJoints.geom.g2 = IntPtr.Zero;
@@ -546,7 +546,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             contactSharedForJoints.geom.pos = contactGeom.pos;
             contactSharedForJoints.geom.normal = contactGeom.normal;
 
-            IntPtr contact = new(GlobalContactsArray.ToInt64() + (Int64)(ContactJointCount * SafeNativeMethods.Contact.unmanagedSizeOf));
+            IntPtr contact = new(GlobalContactsArray.ToInt64() + (Int64)(ContactJointCount * SafeNativeMethods.SizeOfContact));
             Marshal.StructureToPtr(contactSharedForJoints, contact, false);
             return SafeNativeMethods.JointCreateContactPtr(world, JointContactGroup, contact);
         }
@@ -578,7 +578,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 // contact points in the space
                 try
                 {
-                    SafeNativeMethods.SpaceCollide2(g1, g2, IntPtr.Zero, NearCallback);
+                    SafeNativeMethods.SpaceCollide2(g1, g2, IntPtr.Zero, DefaultNearCallback);
                 }
                 catch (AccessViolationException)
                 {
@@ -598,10 +598,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     SafeNativeMethods.GeomGetCategoryBits(g2) == (uint)CollisionCategories.VolumeDtc)
                 {
                     int cflags = unchecked((int)(1 | SafeNativeMethods.CONTACTS_UNIMPORTANT));
-                    count = SafeNativeMethods.CollidePtr(g1, g2, cflags, ContactgeomsArray, SafeNativeMethods.ContactGeom.unmanagedSizeOf);
+                    count = SafeNativeMethods.CollidePtr(g1, g2, cflags, ContactgeomsArray, SafeNativeMethods.SizeOfContactGeom);
                 }
                 else
-                    count = SafeNativeMethods.CollidePtr(g1, g2, contactsPerCollision, ContactgeomsArray, SafeNativeMethods.ContactGeom.unmanagedSizeOf);
+                    count = SafeNativeMethods.CollidePtr(g1, g2, contactsPerCollision, ContactgeomsArray, SafeNativeMethods.SizeOfContactGeom);
             }
             catch (SEHException)
             {
@@ -642,7 +642,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     curctc0.depth, false
                     );
 
-                collision_accounting_events(p1, p2, ref volDepthContact);
+                Collision_accounting_events(p1, p2, ref volDepthContact);
                 return;
             }
 
@@ -786,7 +786,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                 if (dop1ava)
                 {
-                    if ((((OdeCharacter)p1).Collide(g1, g2, false, ref curctc, ref altWorkContact, ref useAltcontact, ref FeetCollision)))
+                    if ((((OdeCharacter)p1).Collide(g2, false, ref curctc, ref altWorkContact, ref useAltcontact, ref FeetCollision)))
                     {
                         if (p2.PhysicsActorType == (int)ActorTypes.Agent)
                         {
@@ -801,7 +801,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 }
                 else if (dop2ava)
                 {
-                    if ((((OdeCharacter)p2).Collide(g2, g1, true, ref curctc, ref altWorkContact, ref useAltcontact, ref FeetCollision)))
+                    if ((((OdeCharacter)p2).Collide(g1, true, ref curctc, ref altWorkContact, ref useAltcontact, ref FeetCollision)))
                     {
                         if (p1.PhysicsActorType == (int)ActorTypes.Agent)
                         {
@@ -831,28 +831,169 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     {
                         maxDepth = curctc.depth;
                         maxDepthContact.PenetrationDepth = maxDepth;
-                        maxDepthContact.Position.X = curctc.pos.X;
-                        maxDepthContact.Position.Y = curctc.pos.Y;
-                        maxDepthContact.Position.Z = curctc.pos.Z;
+                        maxDepthContact.Position = Unsafe.As<SafeNativeMethods.Vector3, Vector3>(ref curctc.pos);
                         maxDepthContact.CharacterFeet = FeetCollision;
                     }
 
                     if (curctc.depth < minDepth)
                     {
                         minDepth = curctc.depth;
-                        maxDepthContact.SurfaceNormal.X = curctc.normal.X;
-                        maxDepthContact.SurfaceNormal.Y = curctc.normal.Y;
-                        maxDepthContact.SurfaceNormal.Z = curctc.normal.Z;
+                        maxDepthContact.SurfaceNormal = Unsafe.As<SafeNativeMethods.Vector3, Vector3>(ref curctc.normal);
                     }
                 }
             }
 
             if (ncontacts > 0)
             {
-                collision_accounting_events(p1, p2, ref maxDepthContact);
+                Collision_accounting_events(p1, p2, ref maxDepthContact);
             }
         }
-        
+
+        private void CharPrimNearCallback(IntPtr space, IntPtr g1, IntPtr g2)
+        {
+            //  no lock here!  It's invoked from within Simulate(), which is thread-locked
+            if (ContactJointCount >= maxContactJoints)
+                return;
+
+            // Test if we're colliding a geom with a space.
+            // If so we have to drill down into the space recursively
+            if (g1 == IntPtr.Zero || g2 == IntPtr.Zero)
+                return;
+
+            //if (SafeNativeMethods.GeomIsSpace(g1) || SafeNativeMethods.GeomIsSpace(g2))
+            if (SafeNativeMethods.GeomIsSpace(g2))
+            {
+                // We'll be calling near recursivly if one
+                // of them is a space to find all of the
+                // contact points in the space
+                try
+                {
+                    SafeNativeMethods.SpaceCollide2(g1, g2, IntPtr.Zero, CharPrimNearCallback);
+                }
+                catch (AccessViolationException)
+                {
+                    m_log.Warn("[PHYSICS]: Unable to collide test a space");
+                }
+                return;
+            }
+
+            // Figure out how many contact points we have
+            int count = 0;
+            try
+            {
+                if (SafeNativeMethods.GeomGetCategoryBits(g2) == (uint)CollisionCategories.VolumeDtc)
+                {
+                    int cflags = unchecked((int)(1 | SafeNativeMethods.CONTACTS_UNIMPORTANT));
+                    count = SafeNativeMethods.CollidePtr(g1, g2, cflags, ContactgeomsArray, SafeNativeMethods.SizeOfContactGeom);
+                }
+                else
+                    count = SafeNativeMethods.CollidePtr(g1, g2, contactsPerCollision, ContactgeomsArray, SafeNativeMethods.SizeOfContactGeom);
+            }
+            catch (SEHException)
+            {
+                m_log.Error("[PHYSICS]: The Operating system shut down ODE because of corrupt memory.  This could be a result of really irregular terrain.  If this repeats continuously, restart using Basic Physics and terrain fill your terrain.  Restarting the sim.");
+                //ode.drelease(world);
+                base.TriggerPhysicsBasedRestart();
+            }
+            catch (Exception e)
+            {
+                m_log.WarnFormat("[PHYSICS]: Unable to collide test an object: {0}", e.Message);
+                return;
+            }
+
+            // contacts done
+            if (count == 0)
+                return;
+
+            // try get physical actors
+            if (!actor_name_map.TryGetValue(g1, out PhysicsActor p1))
+            {
+                m_log.WarnFormat("[PHYSICS]: failed actor mapping for geom 1");
+                return;
+            }
+
+            if (!actor_name_map.TryGetValue(g2, out PhysicsActor p2))
+            {
+                m_log.WarnFormat("[PHYSICS]: failed actor mapping for geom 2");
+                return;
+            }
+
+            // do volume detection case
+            if (p2.IsVolumeDtc)
+            {
+                ref SafeNativeMethods.ContactGeom curctc0 = ref m_contacts[0];
+                ContactPoint volDepthContact = new(
+                    new Vector3(curctc0.pos.X, curctc0.pos.Y, curctc0.pos.Z),
+                    new Vector3(curctc0.normal.X, curctc0.normal.Y, curctc0.normal.Z),
+                    curctc0.depth, false
+                    );
+
+                Collision_accounting_events(p1, p2, ref volDepthContact);
+                return;
+            }
+
+            if(p2.PhysicsActorType != (int)ActorTypes.Prim)
+                    return;
+
+            IntPtr Joint;
+            bool FeetCollision = false;
+            int ncontacts = 0;
+
+            ContactPoint accountContact = new();
+
+            float minDepth = float.MaxValue;
+            float maxDepth = float.MinValue;
+
+            contactSharedForJoints.surface.mu = 0;
+            contactSharedForJoints.surface.bounce = 0;
+
+            bool useAltcontact;
+
+            IntPtr b1 = SafeNativeMethods.GeomGetBody(g1);
+            IntPtr b2 = SafeNativeMethods.GeomGetBody(g2);
+
+            for (int i = 0; i < count; ++i)
+            {
+                ref SafeNativeMethods.ContactGeom curctc = ref m_contacts[i];
+                useAltcontact = false;
+                 
+                if ((((OdeCharacter)p1).Collide(g2, false, ref curctc, ref altWorkContact, ref useAltcontact, ref FeetCollision)))
+                {
+                    if(p2.rootVelocity.LengthSquared() > 0.0f)
+                        p2.CollidingObj = true;
+ 
+                    Joint = useAltcontact ?
+                                CreateContacJoint(ref altWorkContact, false) :
+                                CreateContacJoint(ref curctc, false);
+                    if (Joint == IntPtr.Zero)
+                        break;
+
+                    SafeNativeMethods.JointAttach(Joint, b1, b2);
+
+                    ncontacts++;
+
+                    if (curctc.depth > maxDepth)
+                    {
+                        maxDepth = curctc.depth;
+                        accountContact.PenetrationDepth = maxDepth;
+                        accountContact.Position = Unsafe.As<SafeNativeMethods.Vector3, Vector3>(ref curctc.pos);
+                        accountContact.CharacterFeet = FeetCollision;
+                    }
+
+                    if (curctc.depth < minDepth)
+                    {
+                        minDepth = curctc.depth;
+                        accountContact.SurfaceNormal = Unsafe.As<SafeNativeMethods.Vector3, Vector3>(ref curctc.normal);
+                    }
+                }
+            }
+
+            if (ncontacts > 0)
+            {
+                Collision_accounting_events(p1, p2, ref accountContact);
+            }
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void CollideCharChar(OdeCharacter p1, OdeCharacter p2)
         {
@@ -863,7 +1004,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             int count = 0;
             try
             {
-                count = SafeNativeMethods.CollidePtr(p1.collider, p2.collider, contactsPerCollision, ContactgeomsArray, SafeNativeMethods.ContactGeom.unmanagedSizeOf);
+                count = SafeNativeMethods.CollidePtr(p1.collider, p2.collider, contactsPerCollision, ContactgeomsArray, SafeNativeMethods.SizeOfContactGeom);
             }
             catch (SEHException)
             {
@@ -885,7 +1026,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             bool FeetCollision = false;
             int ncontacts = 0;
 
-            ContactPoint maxDepthContact = new();
+            ContactPoint maccountContact = new();
 
             float minDepth = float.MaxValue;
             float maxDepth = float.MinValue;
@@ -900,15 +1041,14 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 ref SafeNativeMethods.ContactGeom curctc = ref m_contacts[i];
                 useAltcontact = false;
 
-                if (p1.Collide(p1.collider, p2.collider, false, ref curctc, ref altWorkContact, ref useAltcontact, ref FeetCollision))
+                if (p1.Collide(p2.collider, false, ref curctc, ref altWorkContact, ref useAltcontact, ref FeetCollision))
                 {
                     p1.CollidingObj = true;
                     p1.CollidingObj = true;
 
-                    if (useAltcontact)
-                        Joint = CreateContacJoint(ref altWorkContact, false);
-                    else
-                        Joint = CreateContacJoint(ref curctc, false);
+                    Joint = useAltcontact ?
+                         CreateContacJoint(ref altWorkContact, false) :
+                            CreateContacJoint(ref curctc, false);
                     if (Joint == IntPtr.Zero)
                         break;
 
@@ -919,30 +1059,26 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     if (curctc.depth > maxDepth)
                     {
                         maxDepth = curctc.depth;
-                        maxDepthContact.PenetrationDepth = maxDepth;
-                        maxDepthContact.Position.X = curctc.pos.X;
-                        maxDepthContact.Position.Y = curctc.pos.Y;
-                        maxDepthContact.Position.Z = curctc.pos.Z;
-                        maxDepthContact.CharacterFeet = FeetCollision;
+                        maccountContact.PenetrationDepth = maxDepth;
+                        maccountContact.Position = Unsafe.As<SafeNativeMethods.Vector3, Vector3>(ref curctc.pos);
+                        maccountContact.CharacterFeet = FeetCollision;
                     }
 
                     if (curctc.depth < minDepth)
                     {
                         minDepth = curctc.depth;
-                        maxDepthContact.SurfaceNormal.X = curctc.normal.X;
-                        maxDepthContact.SurfaceNormal.Y = curctc.normal.Y;
-                        maxDepthContact.SurfaceNormal.Z = curctc.normal.Z;
+                        maccountContact.SurfaceNormal = Unsafe.As<SafeNativeMethods.Vector3, Vector3>(ref curctc.normal);
                     }
                 }
             }
 
             if (ncontacts > 0)
             {
-                collision_accounting_events(p1, p2, ref maxDepthContact);
+                Collision_accounting_events(p1, p2, ref maccountContact);
             }
         }
 
-        private void collision_accounting_events(PhysicsActor p1, PhysicsActor p2, ref ContactPoint contact)
+        private static void Collision_accounting_events(PhysicsActor p1, PhysicsActor p2, ref ContactPoint contact)
         {
 
             // update actors collision score
@@ -1054,8 +1190,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                                 if (chr.Body != IntPtr.Zero && chr.collider != IntPtr.Zero)
                                 {
-                                    SafeNativeMethods.SpaceCollide2(chr.collider, StaticSpace, IntPtr.Zero, NearCallback);
-                                    SafeNativeMethods.SpaceCollide2(chr.collider, ActiveSpace, IntPtr.Zero, NearCallback);
+                                    SafeNativeMethods.SpaceCollide2(chr.collider, StaticSpace, IntPtr.Zero, CharPrimNearCallback);
+                                    SafeNativeMethods.SpaceCollide2(chr.collider, ActiveSpace, IntPtr.Zero, CharPrimNearCallback);
                                 }
                             }
                         }
@@ -1073,8 +1209,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                                     chr.CollidingObj = false;
 
                                     // do colisions with static space
-                                    SafeNativeMethods.SpaceCollide2(chr.collider, StaticSpace, IntPtr.Zero, NearCallback);
-                                    SafeNativeMethods.SpaceCollide2(chr.collider, ActiveSpace, IntPtr.Zero, NearCallback);
+                                    SafeNativeMethods.SpaceCollide2(chr.collider, StaticSpace, IntPtr.Zero, CharPrimNearCallback);
+                                    SafeNativeMethods.SpaceCollide2(chr.collider, ActiveSpace, IntPtr.Zero, CharPrimNearCallback);
 
                                     float mx = chr._AABB2D.minx;
                                     float Mx = chr._AABB2D.maxx;
