@@ -635,13 +635,14 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             // do volume detection case
             if ((p1.IsVolumeDtc || p2.IsVolumeDtc))
             {
+                ref SafeNativeMethods.ContactGeom curctc0 = ref m_contacts[0];
                 ContactPoint volDepthContact = new(
-                    new Vector3(m_contacts[0].pos.X, m_contacts[0].pos.Y, m_contacts[0].pos.Z),
-                    new Vector3(m_contacts[0].normal.X, m_contacts[0].normal.Y, m_contacts[0].normal.Z),
-                    m_contacts[0].depth, false
+                    new Vector3(curctc0.pos.X, curctc0.pos.Y, curctc0.pos.Z),
+                    new Vector3(curctc0.normal.X, curctc0.normal.Y, curctc0.normal.Z),
+                    curctc0.depth, false
                     );
 
-                collision_accounting_events(p1, p2, volDepthContact);
+                collision_accounting_events(p1, p2, ref volDepthContact);
                 return;
             }
 
@@ -779,12 +780,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             for (int i = 0; i < count; ++i)
             {
+                ref SafeNativeMethods.ContactGeom curctc = ref m_contacts[i];
                 noskip = true;
                 useAltcontact = false;
 
                 if (dop1ava)
                 {
-                    if ((((OdeCharacter)p1).Collide(g1, g2, false, ref m_contacts[i], ref altWorkContact, ref useAltcontact, ref FeetCollision)))
+                    if ((((OdeCharacter)p1).Collide(g1, g2, false, ref curctc, ref altWorkContact, ref useAltcontact, ref FeetCollision)))
                     {
                         if (p2.PhysicsActorType == (int)ActorTypes.Agent)
                         {
@@ -799,7 +801,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 }
                 else if (dop2ava)
                 {
-                    if ((((OdeCharacter)p2).Collide(g2, g1, true, ref m_contacts[i], ref altWorkContact, ref useAltcontact, ref FeetCollision)))
+                    if ((((OdeCharacter)p2).Collide(g2, g1, true, ref curctc, ref altWorkContact, ref useAltcontact, ref FeetCollision)))
                     {
                         if (p1.PhysicsActorType == (int)ActorTypes.Agent)
                         {
@@ -817,7 +819,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 {
                     Joint = useAltcontact ? 
                                 CreateContacJoint(ref altWorkContact, smoothMesh) : 
-                                CreateContacJoint(ref m_contacts[i], smoothMesh);
+                                CreateContacJoint(ref curctc, smoothMesh);
                     if (Joint == IntPtr.Zero)
                         break;
 
@@ -825,29 +827,29 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                     ncontacts++;
 
-                    if (m_contacts[i].depth > maxDepth)
+                    if (curctc.depth > maxDepth)
                     {
-                        maxDepth = m_contacts[i].depth;
+                        maxDepth = curctc.depth;
                         maxDepthContact.PenetrationDepth = maxDepth;
-                        maxDepthContact.Position.X = m_contacts[i].pos.X;
-                        maxDepthContact.Position.Y = m_contacts[i].pos.Y;
-                        maxDepthContact.Position.Z = m_contacts[i].pos.Z;
+                        maxDepthContact.Position.X = curctc.pos.X;
+                        maxDepthContact.Position.Y = curctc.pos.Y;
+                        maxDepthContact.Position.Z = curctc.pos.Z;
                         maxDepthContact.CharacterFeet = FeetCollision;
                     }
 
-                    if (m_contacts[i].depth < minDepth)
+                    if (curctc.depth < minDepth)
                     {
-                        minDepth = m_contacts[i].depth;
-                        maxDepthContact.SurfaceNormal.X = m_contacts[i].normal.X;
-                        maxDepthContact.SurfaceNormal.Y = m_contacts[i].normal.Y;
-                        maxDepthContact.SurfaceNormal.Z = m_contacts[i].normal.Z;
+                        minDepth = curctc.depth;
+                        maxDepthContact.SurfaceNormal.X = curctc.normal.X;
+                        maxDepthContact.SurfaceNormal.Y = curctc.normal.Y;
+                        maxDepthContact.SurfaceNormal.Z = curctc.normal.Z;
                     }
                 }
             }
 
             if (ncontacts > 0)
             {
-                collision_accounting_events(p1, p2, maxDepthContact);
+                collision_accounting_events(p1, p2, ref maxDepthContact);
             }
         }
         
@@ -895,9 +897,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             for (int i = 0; i < count; ++i)
             {
+                ref SafeNativeMethods.ContactGeom curctc = ref m_contacts[i];
                 useAltcontact = false;
 
-                if (p1.Collide(p1.collider, p2.collider, false, ref m_contacts[i], ref altWorkContact, ref useAltcontact, ref FeetCollision))
+                if (p1.Collide(p1.collider, p2.collider, false, ref curctc, ref altWorkContact, ref useAltcontact, ref FeetCollision))
                 {
                     p1.CollidingObj = true;
                     p1.CollidingObj = true;
@@ -905,7 +908,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     if (useAltcontact)
                         Joint = CreateContacJoint(ref altWorkContact, false);
                     else
-                        Joint = CreateContacJoint(ref m_contacts[i], false);
+                        Joint = CreateContacJoint(ref curctc, false);
                     if (Joint == IntPtr.Zero)
                         break;
 
@@ -913,33 +916,33 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                     ncontacts++;
 
-                    if (m_contacts[i].depth > maxDepth)
+                    if (curctc.depth > maxDepth)
                     {
-                        maxDepth = m_contacts[i].depth;
+                        maxDepth = curctc.depth;
                         maxDepthContact.PenetrationDepth = maxDepth;
-                        maxDepthContact.Position.X = m_contacts[i].pos.X;
-                        maxDepthContact.Position.Y = m_contacts[i].pos.Y;
-                        maxDepthContact.Position.Z = m_contacts[i].pos.Z;
+                        maxDepthContact.Position.X = curctc.pos.X;
+                        maxDepthContact.Position.Y = curctc.pos.Y;
+                        maxDepthContact.Position.Z = curctc.pos.Z;
                         maxDepthContact.CharacterFeet = FeetCollision;
                     }
 
-                    if (m_contacts[i].depth < minDepth)
+                    if (curctc.depth < minDepth)
                     {
-                        minDepth = m_contacts[i].depth;
-                        maxDepthContact.SurfaceNormal.X = m_contacts[i].normal.X;
-                        maxDepthContact.SurfaceNormal.Y = m_contacts[i].normal.Y;
-                        maxDepthContact.SurfaceNormal.Z = m_contacts[i].normal.Z;
+                        minDepth = curctc.depth;
+                        maxDepthContact.SurfaceNormal.X = curctc.normal.X;
+                        maxDepthContact.SurfaceNormal.Y = curctc.normal.Y;
+                        maxDepthContact.SurfaceNormal.Z = curctc.normal.Z;
                     }
                 }
             }
 
             if (ncontacts > 0)
             {
-                collision_accounting_events(p1, p2, maxDepthContact);
+                collision_accounting_events(p1, p2, ref maxDepthContact);
             }
         }
 
-        private void collision_accounting_events(PhysicsActor p1, PhysicsActor p2, ContactPoint contact)
+        private void collision_accounting_events(PhysicsActor p1, PhysicsActor p2, ref ContactPoint contact)
         {
 
             // update actors collision score
@@ -1038,9 +1041,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 {
                     try
                     {
-                        if (_charactersList.Count == 1)
+                        Span<OdeCharacter> charsSpan = CollectionsMarshal.AsSpan(_charactersList);
+                        if (charsSpan.Length == 1)
                         {
-                            OdeCharacter chr = _charactersList[0];
+                            OdeCharacter chr = charsSpan[0];
                             if (chr.Colliderfilter < -1)
                                 chr.Colliderfilter = -1;
                             else
@@ -1057,9 +1061,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         }
                         else
                         {
-                            for (int i = 0; i < _charactersList.Count; ++i)
+                            for (int i = 0; i < charsSpan.Length; ++i)
                             {
-                                OdeCharacter chr = _charactersList[i];
+                                OdeCharacter chr = charsSpan[i];
 
                                 if (chr.Colliderfilter < -1)
                                     chr.Colliderfilter = -1;
@@ -1077,9 +1081,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                                     float my = chr._AABB2D.miny;
                                     float My = chr._AABB2D.maxy;
 
-                                    for (int j = i + 1; j < _charactersList.Count; ++j)
+                                    for (int j = i + 1 ; j < charsSpan.Length; ++j)
                                     {
-                                        OdeCharacter chr2 = _charactersList[j];
+                                        OdeCharacter chr2 = charsSpan[j];
                                         if (chr2.Colliderfilter < -1)
                                             continue;
                                     
@@ -1680,7 +1684,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                         lock (_collisionEventPrimRemove)
                         {
-                            foreach (PhysicsActor obj in _collisionEventPrimRemove)
+                            foreach (PhysicsActor obj in CollectionsMarshal.AsSpan(_collisionEventPrimRemove))
                                 _collisionEventPrim.Remove(obj.LocalID);
 
                             _collisionEventPrimRemove.Clear();
