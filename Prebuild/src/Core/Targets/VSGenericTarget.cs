@@ -317,7 +317,6 @@ namespace Prebuild.Core.Targets
 
                 }
 
-
                 #region Files
                 foreach (string filePath in project.Files)
                 {
@@ -674,6 +673,9 @@ namespace Prebuild.Core.Targets
         private void WriteProjectDotNet(SolutionNode solution, ProjectNode project, StreamWriter ps)
         {
             #region Project File
+            bool listFiles = false;
+            string prebuild = string.Empty;
+            string postbuild = string.Empty;
             using (ps)
             {
                 ps.WriteLine("<Project Sdk=\"Microsoft.NET.Sdk\">");
@@ -681,12 +683,17 @@ namespace Prebuild.Core.Targets
 
                 ps.WriteLine("  <PropertyGroup>");
                 ps.WriteLine("    <TargetFramework>{0}</TargetFramework>", project.FrameworkVersion.ToString().Replace("_", "."));
+                ps.WriteLine("    <PreserveCompilationContext>false</PreserveCompilationContext>");
                 ps.WriteLine("    <OutputType>{0}</OutputType>", project.Type == ProjectType.Web ? ProjectType.Library.ToString() : project.Type.ToString());
                 ps.WriteLine("    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>");
-                ps.WriteLine("    <RuntimeFrameworkVersion>5.0.0</RuntimeFrameworkVersion>");
+                if(project.FrameworkVersion == FrameworkVersion.netstandard2_0)
+                    ps.WriteLine("    <RuntimeFrameworkVersion>5.0.0</RuntimeFrameworkVersion>");
                 ps.WriteLine("    <ImplicitUsings>disable</ImplicitUsings>");
                 ps.WriteLine("    <AssemblyName>{0}</AssemblyName>", project.AssemblyName);
                 ps.WriteLine("    <Deterministic>true</Deterministic>");
+                //ps.WriteLine("    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>");
+                ps.WriteLine("    <ProduceReferenceAssembly>false</ProduceReferenceAssembly>");
+                ps.WriteLine("    <GenerateDependencyFile>false</GenerateDependencyFile>");
                 ps.WriteLine("  </PropertyGroup>");
                 ps.WriteLine();
 
@@ -720,6 +727,16 @@ namespace Prebuild.Core.Targets
                         ps.WriteLine("	  <FileAlignment>{0}</FileAlignment>", conf.Options["FileAlignment"]);
                         ps.WriteLine("	  <Optimize>{0}</Optimize>", conf.Options["OptimizeCode"]);
                         ps.WriteLine("	  <TieredCompilation>false</TieredCompilation>");
+
+                        ps.WriteLine("	  <UseCommonOutputDirectory>{0}</UseCommonOutputDirectory>", conf.Options["UseCommonOutputDirectory"].ToString());
+                        ps.WriteLine("	  <AppendTargetFrameworkToOutputPath>{0}</AppendTargetFrameworkToOutputPath>", conf.Options["AppendTargetFrameworkToOutputPath"].ToString());
+                        ps.WriteLine("	  <AppendRuntimeIdentifierToOutputPath>{0}</AppendRuntimeIdentifierToOutputPath>", conf.Options["AppendRuntimeIdentifierToOutputPath"].ToString());
+                        if ((bool)conf.Options["EnableDefaultItems"] == false)
+                        {
+                            listFiles = true;
+                            ps.WriteLine("	  <EnableDefaultItems>false</EnableDefaultItems>");
+                        }
+
                         if (project.Type != ProjectType.Web)
                             ps.WriteLine("	  <OutputPath>{0}</OutputPath>",
                                          Helper.EndPath(Helper.NormalizePath(conf.Options["OutputPath"].ToString())));
@@ -734,6 +751,16 @@ namespace Prebuild.Core.Targets
                         ps.WriteLine("	  <NoStdLib>{0}</NoStdLib>", conf.Options["NoStdLib"]);
                         ps.WriteLine("	  <NoWarn>{0}</NoWarn>", conf.Options["SuppressWarnings"]);
                         ps.WriteLine("	  <PlatformTarget>{0}</PlatformTarget>", conf.Platform);
+
+                        if (conf.Options["PreBuildEvent"] != null && conf.Options["PreBuildEvent"].ToString().Length != 0)
+                        {
+                            prebuild = conf.Options["PreBuildEvent"].ToString();
+                        }
+                        if (conf.Options["PostBuildEvent"] != null && conf.Options["PostBuildEvent"].ToString().Length != 0)
+                        {
+                            postbuild = conf.Options["PostBuildEvent"].ToString();
+                        }
+
                         ps.WriteLine("	</PropertyGroup>");
                     }
                 }
@@ -761,6 +788,200 @@ namespace Prebuild.Core.Targets
                 }
                 // Output the ItemGroup for project.References
                 WriteProjectReferencesDotNet(solution, project, ps);
+
+                if (listFiles)
+                {
+                    List<string> list = new List<string>();
+                    ps.WriteLine("	<ItemGroup>");
+                    foreach (string filePath in project.Files)
+                    {
+                        // Add the filePath with the destination as the key
+                        // will use it later to form the copy parameters with Include lists
+                        // for each destination
+                        if (project.Files.GetBuildAction(filePath) == BuildAction.Copy)
+                            continue;
+                        //					if (file == "Properties\\Bind.Designer.cs")
+                        //					{
+                        //						Console.WriteLine("Wait a minute!");
+                        //						Console.WriteLine(project.Files.GetSubType(file).ToString());
+                        //					}
+                        SubType subType = project.Files.GetSubType(filePath);
+
+                        // Visual Studio chokes on file names if forward slash is used as a path separator
+                        // instead of backslash.  So we must make sure that all file paths written to the
+                        // project file use \ as a path separator.
+                        string file = filePath.Replace(@"/", @"\");
+
+                        if (subType != SubType.Code && subType != SubType.Settings && subType != SubType.Designer
+                            && subType != SubType.CodeBehind)
+                        {
+                            ps.WriteLine("	  <EmbeddedResource Include=\"{0}\">", file.Substring(0, file.LastIndexOf('.')) + ".resx");
+                            ps.WriteLine("		<DependentUpon>{0}</DependentUpon>", Path.GetFileName(file));
+                            ps.WriteLine("		<SubType>Designer</SubType>");
+                            ps.WriteLine("	  </EmbeddedResource>");
+                            //
+                        }
+
+                        if (subType == SubType.Designer)
+                        {
+                            ps.WriteLine("	  <EmbeddedResource Include=\"{0}\">", file);
+
+                            string autogen_name = file.Substring(0, file.LastIndexOf('.')) + ".Designer.cs";
+                            string dependent_name = filePath.Substring(0, file.LastIndexOf('.')) + ".cs";
+
+                            // Check for a parent .cs file with the same name as this designer file
+                            if (File.Exists(Helper.NormalizePath(dependent_name)))
+                            {
+                                ps.WriteLine("		<DependentUpon>{0}</DependentUpon>", Path.GetFileName(dependent_name));
+                            }
+                            else
+                            {
+                                ps.WriteLine("		<Generator>ResXFileCodeGenerator</Generator>");
+                                ps.WriteLine("		<LastGenOutput>{0}</LastGenOutput>", Path.GetFileName(autogen_name));
+                                ps.WriteLine("		<SubType>" + subType + "</SubType>");
+                            }
+
+                            ps.WriteLine("	  </EmbeddedResource>");
+                            if (File.Exists(Helper.NormalizePath(autogen_name)))
+                            {
+                                ps.WriteLine("	  <Compile Include=\"{0}\">", autogen_name);
+                                //ps.WriteLine("	  <DesignTime>True</DesignTime>");
+
+                                // If a parent .cs file exists, link this autogen file to it. Otherwise link
+                                // to the designer file
+                                if (File.Exists(dependent_name))
+                                {
+                                    ps.WriteLine("		<DependentUpon>{0}</DependentUpon>", Path.GetFileName(dependent_name));
+                                }
+                                else
+                                {
+                                    ps.WriteLine("		<AutoGen>True</AutoGen>");
+                                    ps.WriteLine("		<DependentUpon>{0}</DependentUpon>", Path.GetFileName(filePath));
+                                }
+
+                                ps.WriteLine("	  </Compile>");
+                            }
+                            list.Add(autogen_name);
+                        }
+                        if (subType == SubType.Settings)
+                        {
+                            ps.Write("	  <{0} ", project.Files.GetBuildAction(filePath));
+                            ps.WriteLine("Include=\"{0}\">", file);
+                            string fileName = Path.GetFileName(filePath);
+                            if (project.Files.GetBuildAction(filePath) == BuildAction.None)
+                            {
+                                ps.WriteLine("		<Generator>SettingsSingleFileGenerator</Generator>");
+                                ps.WriteLine("		<LastGenOutput>{0}</LastGenOutput>", fileName.Substring(0, fileName.LastIndexOf('.')) + ".Designer.cs");
+                            }
+                            else
+                            {
+                                ps.WriteLine("		<SubType>Code</SubType>");
+                                ps.WriteLine("		<AutoGen>True</AutoGen>");
+                                ps.WriteLine("		<DesignTimeSharedInput>True</DesignTimeSharedInput>");
+                                string fileNameShort = fileName.Substring(0, fileName.LastIndexOf('.'));
+                                string fileNameShorter = fileNameShort.Substring(0, fileNameShort.LastIndexOf('.'));
+                                ps.WriteLine("		<DependentUpon>{0}</DependentUpon>", Path.GetFileName(fileNameShorter + ".settings"));
+                            }
+                            ps.WriteLine("	  </{0}>", project.Files.GetBuildAction(filePath));
+                        }
+                        else if (subType != SubType.Designer)
+                        {
+                            string path = Helper.NormalizePath(file);
+                            string path_lower = path.ToLower();
+
+                            if (!list.Contains(filePath))
+                            {
+                                ps.Write("	  <{0} ", project.Files.GetBuildAction(filePath));
+
+                                int startPos = 0;
+                                if (project.Files.GetPreservePath(filePath))
+                                {
+                                    while ((@"./\").IndexOf(file.Substring(startPos, 1)) != -1)
+                                        startPos++;
+
+                                }
+                                else
+                                {
+                                    startPos = file.LastIndexOf(Path.GetFileName(path));
+                                }
+
+                                // be sure to write out the path with backslashes so VS recognizes
+                                // the file properly.
+                                ps.WriteLine("Include=\"{0}\">", file);
+
+                                int last_period_index = file.LastIndexOf('.');
+                                string short_file_name = (last_period_index >= 0)
+                                    ? file.Substring(0, last_period_index)
+                                    : file;
+                                string extension = Path.GetExtension(path);
+                                // make this upper case, so that when File.Exists tests for the
+                                // existence of a designer file on a case-sensitive platform,
+                                // it is correctly identified.
+                                string designer_format = string.Format(".Designer{0}", extension);
+
+                                if (path_lower.EndsWith(designer_format.ToLowerInvariant()))
+                                {
+                                    int designer_index = path.IndexOf(designer_format);
+                                    string file_name = path.Substring(0, designer_index);
+
+                                    // There are two corrections to the next lines:
+                                    // 1. Fix the connection between a designer file and a form
+                                    //	  or usercontrol that don't have an associated resx file.
+                                    // 2. Connect settings files to associated designer files.
+                                    if (File.Exists(file_name + extension))
+                                        ps.WriteLine("		<DependentUpon>{0}</DependentUpon>", Path.GetFileName(file_name + extension));
+                                    else if (File.Exists(file_name + ".resx"))
+                                        ps.WriteLine("		<DependentUpon>{0}</DependentUpon>", Path.GetFileName(file_name + ".resx"));
+                                    else if (File.Exists(file_name + ".settings"))
+                                    {
+                                        ps.WriteLine("		<DependentUpon>{0}</DependentUpon>", Path.GetFileName(file_name + ".settings"));
+                                        ps.WriteLine("		<AutoGen>True</AutoGen>");
+                                        ps.WriteLine("		<DesignTimeSharedInput>True</DesignTimeSharedInput>");
+                                    }
+                                }
+                                else if (subType == SubType.CodeBehind)
+                                {
+                                    ps.WriteLine("		<DependentUpon>{0}</DependentUpon>", Path.GetFileName(short_file_name));
+                                }
+                                if (project.Files.GetIsLink(filePath))
+                                {
+                                    string alias = project.Files.GetLinkPath(filePath);
+                                    alias += file.Substring(startPos);
+                                    alias = Helper.NormalizePath(alias);
+                                    ps.WriteLine("		<Link>{0}</Link>", alias);
+                                }
+                                else if (project.Files.GetBuildAction(filePath) != BuildAction.None)
+                                {
+                                    if (project.Files.GetBuildAction(filePath) != BuildAction.EmbeddedResource)
+                                    {
+                                        ps.WriteLine("		<SubType>{0}</SubType>", subType);
+                                    }
+                                }
+
+                                if (project.Files.GetCopyToOutput(filePath) != CopyToOutput.Never)
+                                {
+                                    ps.WriteLine("		<CopyToOutputDirectory>{0}</CopyToOutputDirectory>", project.Files.GetCopyToOutput(filePath));
+                                }
+
+                                ps.WriteLine("	  </{0}>", project.Files.GetBuildAction(filePath));
+                            }
+                        }
+                    }
+                    ps.WriteLine("  </ItemGroup>");
+                }
+
+                if (!string.IsNullOrEmpty(prebuild))
+                {
+                    ps.WriteLine("    <Target Name=\"PreBuild\" BeforeTargets=\"PreBuildEvent\">");
+                    ps.WriteLine("	    <Exec Command = \"{0}\" />", prebuild);
+                    ps.WriteLine("	  </Target>");
+                }
+                if (!string.IsNullOrEmpty(postbuild))
+                {
+                    ps.WriteLine("	  <Target Name = \"PostBuild\" AfterTargets = \"PostBuildEvent\">");
+                    ps.WriteLine("	    <Exec Command = \"{0}\" />", postbuild);
+                    ps.WriteLine("	  </Target>");
+                }
 
                 ps.WriteLine("</Project>");
                 #endregion
@@ -790,6 +1011,7 @@ namespace Prebuild.Core.Targets
                 foreach (ReferenceNode refr in otherReferences)
                 {
                     ps.Write("	  <Reference");
+                    //ps.Write(" Update=\"");
                     ps.Write(" Include=\"");
                     ps.Write(refr.Name);
                     ps.WriteLine("\" >");
@@ -1166,6 +1388,9 @@ namespace Prebuild.Core.Targets
 
             Helper.DeleteIfExists(projectFile);
             Helper.DeleteIfExists(userFile);
+
+            string projectobj = Helper.MakeFilePath(project.FullPath,"obj");
+            Helper.DeleteFolderIfExists(projectobj);
         }
 
         private void CleanSolution(SolutionNode solution)

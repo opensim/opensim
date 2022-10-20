@@ -152,7 +152,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
         {
             foreach (Scene s in m_Scenes)
             {
-                if (s.RegionInfo.RegionID == RegionID)
+                if (s.RegionInfo.RegionID.Equals(RegionID))
                     return s;
             }
 

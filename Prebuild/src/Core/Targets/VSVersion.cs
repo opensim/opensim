@@ -63,6 +63,7 @@ namespace Prebuild.Core.Targets
         /// </summary>
         VS15,
         VS17,
-        VS19
+        VS19,
+        VS22
     }
 }

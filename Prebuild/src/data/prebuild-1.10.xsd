@@ -187,8 +187,8 @@
 			<xs:all>
 				<xs:element name="CompilerDefines" type="xs:string" minOccurs="0" />
                 <xs:element name="OptimizeCode" type="xs:boolean" minOccurs="0" />
-                <xs:element name="Prefer32Bit" type="xs:boolean" minOccurs="0" />               
-                <xs:element name="CheckUnderflowOverflow" type="xs:boolean" minOccurs="0" />
+				<xs:element name="Prefer32Bit" type="xs:boolean" minOccurs="0" />
+				<xs:element name="CheckUnderflowOverflow" type="xs:boolean" minOccurs="0" />
 				<xs:element name="AllowUnsafe" type="xs:boolean" minOccurs="0" />
 				<xs:element name="PreBuildEvent" type="xs:string" minOccurs="0" />
 				<xs:element name="PostBuildEvent" type="xs:string" minOccurs="0" />
@@ -214,6 +214,10 @@
 				</xs:element>
 				<xs:element name="WarningsAsErrors" type="xs:boolean" minOccurs="0" />
 				<xs:element name="SuppressWarnings" type="xs:string" minOccurs="0" />
+				<xs:element name="UseCommonOutputDirectory" type="xs:boolean" minOccurs="0" />
+				<xs:element name="AppendTargetFrameworkToOutputPath" type="xs:boolean" minOccurs="0" />
+				<xs:element name="AppendRuntimeIdentifierToOutputPath" type="xs:boolean" minOccurs="0" />
+				<xs:element name="EnableDefaultItems" type="xs:boolean" minOccurs="0" />
 				<xs:element name="OutputPath" type="xs:string" minOccurs="0" />
 				<xs:element name="GenerateDocumentation" type="xs:boolean" minOccurs="0" />
 				<xs:element name="XmlDocFile" type="xs:string" minOccurs="0" />

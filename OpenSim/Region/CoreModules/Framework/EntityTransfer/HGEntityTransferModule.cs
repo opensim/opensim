@@ -289,6 +289,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     };
 
                     bool success = connector.LoginAgentToGrid(source, agentCircuit, reg, finalDestination, false, out reason);
+                    //logout = success & !isLocal; // flag for later logout from this grid; this is an HG TP
                     logout = success; // flag for later logout from this grid; this is an HG TP
 
                     if (success)
@@ -647,6 +648,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         public override bool HandleIncomingSceneObject(SceneObjectGroup so, Vector3 newPosition)
         {
             UUID OwnerID = so.OwnerID;
+            if (OwnerID.IsZero())
+            {
+                m_log.DebugFormat(
+                    "[HG TRANSFER MODULE]: Denied object {0}({1}) entry into {2} because ownerID is zero",
+                        so.Name, so.UUID, m_sceneName);
+                return false;
+            }
+
             if (m_sceneRegionInfo.EstateSettings.IsBanned(OwnerID))
             {
                 m_log.DebugFormat(
@@ -661,8 +670,24 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return base.HandleIncomingSceneObject(so, newPosition);
 
             // Equally, we can't use so.AttachedAvatar here.
-            if (OwnerID.IsZero() || m_scene.UserManagementModule.IsLocalGridUser(OwnerID))
+            if (m_scene.UserManagementModule.IsLocalGridUser(OwnerID))
                 return base.HandleIncomingSceneObject(so, newPosition);
+
+            if (m_scene.GetScenePresence(OwnerID) == null)
+            {
+                m_log.DebugFormat(
+                "[HG TRANSFER MODULE]: Denied attachment {0}({1}) owner {2} not in region {3}",
+                    so.Name, so.UUID, OwnerID, m_sceneName);
+                return false;
+            }
+
+            if (!m_scene.AddSceneObject(so))
+            {
+                m_log.DebugFormat(
+                    "[ENTITY TRANSFER MODULE]: Problem adding scene object {0} {1} into {2} ",
+                    so.Name, so.UUID, m_sceneName);
+                return false;
+            }
 
             // foreign user
             AgentCircuitData aCircuit = m_scene.AuthenticateHandler.GetAgentCircuitData(OwnerID);
@@ -683,9 +708,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                             () =>
                             {
                                 string url = aCircuit.ServiceURLs["AssetServerURI"].ToString();
-    //                            m_log.DebugFormat(
-    //                                "[HG ENTITY TRANSFER MODULE]: Incoming attachment {0} for HG user {1} with asset service {2}",
-    //                                so.Name, so.AttachedAvatar, url);
+                                //m_log.DebugFormat(
+                                //    "[HG ENTITY TRANSFER MODULE]: Incoming attachment {0} for HG user {1} with asset service {2}",
+                                //    so.Name, so.AttachedAvatar, url);
 
                                 IDictionary<UUID, sbyte> ids = new Dictionary<UUID, sbyte>();
                                 HGUuidGatherer uuidGatherer = new HGUuidGatherer(m_scene.AssetService, url, ids);
@@ -696,9 +721,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                                     int tickStart = Util.EnvironmentTickCount();
                                     uuidGatherer.GatherNext();
 
-    //                                m_log.DebugFormat(
-    //                                    "[HG ENTITY TRANSFER]: Gathered attachment asset uuid {0} for object {1} for HG user {2} took {3} ms with asset service {4}",
-    //                                    nextUuid, so.Name, so.OwnerID, Util.EnvironmentTickCountSubtract(tickStart), url);
+                                    //m_log.DebugFormat(
+                                    //    "[HG ENTITY TRANSFER]: Gathered attachment asset uuid {0} for object {1} for HG user {2} took {3} ms with asset service {4}",
+                                    //    nextUuid, so.Name, so.OwnerID, Util.EnvironmentTickCountSubtract(tickStart), url);
 
                                     int ticksElapsed = Util.EnvironmentTickCountSubtract(tickStart);
 
@@ -713,9 +738,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                                     }
                                 }
 
-    //                            m_log.DebugFormat(
-    //                                "[HG ENTITY TRANSFER]: Fetching {0} assets for attachment {1} for HG user {2} with asset service {3}",
-    //                                ids.Count, so.Name, so.OwnerID, url);
+                                //m_log.DebugFormat(
+                                //    "[HG ENTITY TRANSFER]: Fetching {0} assets for attachment {1} for HG user {2} with asset service {3}",
+                                //    ids.Count, so.Name, so.OwnerID, url);
 
                                 foreach (UUID id in ids.Keys)
                                 {
@@ -742,9 +767,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                                 aCircuit = null;
                                 uuidGatherer = null;
 
-    //                            m_log.DebugFormat(
-    //                                "[HG ENTITY TRANSFER MODULE]: Completed incoming attachment {0} for HG user {1} with asset server {2}",
-    //                                so.Name, so.OwnerID, url);
+                                //m_log.DebugFormat(
+                                //    "[HG ENTITY TRANSFER MODULE]: Completed incoming attachment {0} for HG user {1} with asset server {2}",
+                                //    so.Name, so.OwnerID, url);
                             },
                             OwnerID.ToString());
                     }
@@ -792,6 +817,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                                 foreach (SceneObjectGroup defso in deftatt)
                                 {
+                                    if(defso.OwnerID.NotEqual(defsp.UUID))
+                                    {
+                                        m_log.ErrorFormat(
+                                            "[HG TRANSFER MODULE] attachment {0}({1} owner {2} does not match HG avatarID {3}",
+                                                defso.Name, defso.UUID, defso.OwnerID, defsp.UUID);
+                                        continue;
+                                    }
                                     uuidGatherer.AddForInspection(defso);
                                     while (!uuidGatherer.Complete)
                                     {

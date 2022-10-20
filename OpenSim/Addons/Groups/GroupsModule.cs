@@ -597,8 +597,7 @@ namespace OpenSim.Groups
                 string giver = notice.noticeData.AttachmentOwnerID;
                 UUID attachmentUUID = notice.noticeData.AttachmentItemID;
 
-                if (attachmentUUID == null || attachmentUUID.IsZero() ||
-                        giver == null || giver == UUID.ZeroString )
+                if (attachmentUUID.IsZero() || giver == null || giver == UUID.ZeroString )
                     return;
 
                 if (m_debugEnabled)

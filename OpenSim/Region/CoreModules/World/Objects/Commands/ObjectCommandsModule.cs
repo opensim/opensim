@@ -355,7 +355,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 return;
 
             Predicate<SceneObjectGroup> searchPredicate
-                = so => so.OwnerID == ownerID && !so.IsAttachment;
+                = so => so.OwnerID.Equals(ownerID) && !so.IsAttachment;
 
             OutputSogsToConsole(searchPredicate, showFull);
         }
@@ -762,7 +762,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
                     m_scene.ForEachSOG(delegate (SceneObjectGroup g)
                     {
-                        if (g.OwnerID == match && !g.IsAttachment)
+                        if (g.OwnerID.Equals(match) && !g.IsAttachment)
                             deletes.Add(g);
                     });
 

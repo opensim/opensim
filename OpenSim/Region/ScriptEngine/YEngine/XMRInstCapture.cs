@@ -149,10 +149,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
                 // "DetectParams" are returned by llDetected...() script functions
                 // for the currently active event, if any.
-                if(m_DetectParams != null)
+                var detectParams = m_DetectParams;
+                if (detectParams != null)
                 {
                     XmlElement detParArrayN = doc.CreateElement("", "DetectArray", "");
-                    AppendXMLDetectArray(doc, detParArrayN, m_DetectParams);
+                    AppendXMLDetectArray(doc, detParArrayN, detectParams);
                     scriptStateN.AppendChild(detParArrayN);
                 }
                 //m_RunOnePhase = "GetExecutionState F";
@@ -231,11 +232,15 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private static void AppendXMLDetectArray(XmlDocument doc, XmlElement parent, DetectParams[] detect)
         {
-            foreach(DetectParams d in detect)
+            try
             {
-                XmlElement detectParamsN = GetXMLDetect(doc, d);
-                parent.AppendChild(detectParamsN);
+                foreach(DetectParams d in detect)
+                {
+                    XmlElement detectParamsN = GetXMLDetect(doc, d);
+                    parent.AppendChild(detectParamsN);
+                }
             }
+            catch { }
         }
 
         private static XmlElement GetXMLDetect(XmlDocument doc, DetectParams d)

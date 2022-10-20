@@ -139,7 +139,7 @@ namespace OpenSim.Framework.Monitoring
                 // There is no script frame time currently because we don't yet collect it
                 sb.Append("PktsIn  PktOut  PendDl  PendUl  UnackB  TotlFt  NetFt   PhysFt  OthrFt  AgntFt  ImgsFt\n");
                 sb.AppendFormat(
-                        "{0,6:0}  {1,6:0}  {2,6:0}  {3,6:0}  {4,6:0}  {5,6:0.0}  {6,6:0.0}  {7,6:0.0}  {8,6:0.0}  {9,6:0.0}  {10,6:0.0}\n",
+                        "{0,6:0}  {1,6:0}  {2,6:0}  {3,6:0}  {4,6:0}  {5,6:0.00}  {6,6:0.00}  {7,6:0.00}  {8,6:0.00}  {9,6:0.00}  {10,6:0.00}\n",
                         data[(int)StatsIndex.InPacketsPerSecond], data[(int)StatsIndex.OutPacketsPerSecond],
                         data[(int)StatsIndex.PendingDownloads], data[(int)StatsIndex.PendingUploads],
                         data[(int)StatsIndex.UnAckedBytes], data[(int)StatsIndex.FrameMS],

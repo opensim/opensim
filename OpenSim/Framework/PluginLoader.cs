@@ -215,8 +215,6 @@ namespace OpenSim.Framework
             AddinManager.AddinLoadError += on_addinloaderror_;
             AddinManager.AddinLoaded += on_addinloaded_;
 
-            //clear_registry_(dir);
-
             //suppress_console_output_(true);
             AddinManager.Initialize(dir);
             AddinManager.Registry.Update(null);
@@ -237,41 +235,6 @@ namespace OpenSim.Framework
                 log.Error ("[PLUGINS]: Plugin Error: "
                         + args.Exception.Message + "\n"
                         + args.Exception.StackTrace);
-        }
-
-        private void clear_registry_(string dir)
-        {
-            // The Mono addin manager (in Mono.Addins.dll version 0.2.0.0)
-            // occasionally seems to corrupt its addin cache
-            // Hence, as a temporary solution we'll remove it before each startup
-
-            string customDir = Environment.GetEnvironmentVariable ("MONO_ADDINS_REGISTRY");
-            string v0 = "addin-db-000";
-            string v1 = "addin-db-001";
-            if (customDir != null && customDir != String.Empty)
-            {
-                v0 = Path.Combine(customDir, v0);
-                v1 = Path.Combine(customDir, v1);
-            }
-            try
-            {
-                if (Directory.Exists(v0))
-                    Directory.Delete(v0, true);
-
-                if (Directory.Exists(v1))
-                    Directory.Delete(v1, true);
-
-            }
-            catch (IOException)
-            {
-                // If multiple services are started simultaneously, they may
-                // each test whether the directory exists at the same time, and
-                // attempt to delete the directory at the same time. However,
-                // one of the services will likely succeed first, causing the
-                // second service to throw an IOException. We catch it here and
-                // continue on our merry way.
-                // Mike 2008.08.01, patch from Zaki
-            }
         }
 
         private static TextWriter prev_console_;
