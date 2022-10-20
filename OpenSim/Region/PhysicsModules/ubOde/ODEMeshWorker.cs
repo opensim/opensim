@@ -440,7 +440,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                 if (pbs.SculptEntry)
                 {
-                    if (pbs.SculptTexture != null && !pbs.SculptTexture.IsZero())
+                    if (pbs.SculptTexture.IsNotZero())
                     {
                         repData.assetID = pbs.SculptTexture;
                         repData.meshState = MeshState.needAsset;

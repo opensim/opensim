@@ -1424,24 +1424,28 @@ namespace OpenSim.Region.CoreModules.World.Land
                     if (currentParcel == null)
                         continue;
 
+                    LandData currentParcelLandData = currentParcel.LandData;
+                    if (currentParcelLandData == null)
+                        continue;
+
                     // types
-                    if (currentParcel.LandData.OwnerID.Equals(remote_client.AgentId))
+                    if (currentParcelLandData.OwnerID.Equals(remote_client.AgentId))
                     {
                         //Owner Flag
                         curByte = LandChannel.LAND_TYPE_OWNED_BY_REQUESTER;
                     }
-                    else if (currentParcel.LandData.IsGroupOwned && remote_client.IsGroupMember(currentParcel.LandData.GroupID))
+                    else if (currentParcelLandData.IsGroupOwned && remote_client.IsGroupMember(currentParcelLandData.GroupID))
                     {
                         curByte = LandChannel.LAND_TYPE_OWNED_BY_GROUP;
                     }
-                    else if (currentParcel.LandData.SalePrice > 0 &&
-                                (currentParcel.LandData.AuthBuyerID.IsZero() ||
-                                currentParcel.LandData.AuthBuyerID.Equals(remote_client.AgentId)))
+                    else if (currentParcelLandData.SalePrice > 0 &&
+                                (currentParcelLandData.AuthBuyerID.IsZero() ||
+                                currentParcelLandData.AuthBuyerID.Equals(remote_client.AgentId)))
                     {
                         //Sale type
                         curByte = LandChannel.LAND_TYPE_IS_FOR_SALE;
                     }
-                    else if (currentParcel.LandData.OwnerID.IsZero())
+                    else if (currentParcelLandData.OwnerID.IsZero())
                     {
                         //Public type
                         curByte = LandChannel.LAND_TYPE_PUBLIC; // this does nothing, its zero

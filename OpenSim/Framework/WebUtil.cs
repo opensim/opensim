@@ -993,7 +993,7 @@ namespace OpenSim.Framework
             catch (Exception e)
             {
                 m_log.InfoFormat("[FORMS]: Error creating {0} request to : {1}. Request: {2}", verb, requestUrl, e.Message);
-                throw e;
+                throw;
             }
 
             int sendlen = 0;
@@ -1015,7 +1015,7 @@ namespace OpenSim.Framework
                 catch (Exception e)
                 {
                     m_log.InfoFormat("[FORMS]: Error sending {0} request to: {1}. {2}", verb,requestUrl, e.Message);
-                    throw e;
+                    throw;
                 }
             }
 
@@ -1036,7 +1036,7 @@ namespace OpenSim.Framework
             catch (Exception e)
             {
                 m_log.InfoFormat("[FORMS]: Error receiving response from {0}: {1}.", requestUrl, e.Message);
-                throw e;
+                throw;
             }
 
             int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
@@ -1091,7 +1091,7 @@ namespace OpenSim.Framework
             catch (Exception e)
             {
                 m_log.InfoFormat("[FORMS]: Error creating POST request to {0}: {1}", requestUrl, e.Message);
-                throw e;
+                throw;
             }
 
             byte[] data = Util.UTF8NBGetbytes(obj);
@@ -1110,7 +1110,7 @@ namespace OpenSim.Framework
             catch (Exception e)
             {
                 m_log.InfoFormat("[FORMS]: Error sending POST request to {0}: {1}", requestUrl, e.Message);
-                throw e;
+                throw;
             }
 
             string respstring = String.Empty;
@@ -1129,7 +1129,7 @@ namespace OpenSim.Framework
             catch (Exception e)
             {
                 m_log.InfoFormat("[FORMS]: Error receiving response from {0}: {1}", requestUrl, e.Message);
-                throw e;
+                throw;
             }
 
             int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);

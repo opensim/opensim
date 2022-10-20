@@ -4431,11 +4431,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llCreateLink(LSL_Key target, LSL_Integer parent)
         {
-            if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_CHANGE_LINKS) == 0
-                && !m_automaticLinkPermission)
+            if (!m_automaticLinkPermission)
             {
-                Error("llCreateLink", "PERMISSION_CHANGE_LINKS permission not set");
-                return;
+                if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_CHANGE_LINKS) == 0)
+                {
+                    Error("llCreateLink", "PERMISSION_CHANGE_LINKS required");
+                    return;
+                }
+                if (m_item.PermsGranter.NotEqual(m_host.ParentGroup.OwnerID))
+                {
+                    Error("llCreateLink", "PERMISSION_CHANGE_LINKS not set by script owner");
+                    return;
+                }
             }
 
             CreateLink(target, parent);
@@ -4446,33 +4453,42 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (!UUID.TryParse(target, out UUID targetID) || targetID.IsZero())
                 return;
 
+            SceneObjectGroup hostgroup = m_host.ParentGroup;
+            if (hostgroup.AttachmentPoint != 0)
+                return; // Fail silently if attached
+            if ((hostgroup.RootPart.OwnerMask & (uint)PermissionMask.Modify) == 0)
+                return;
+
             SceneObjectPart targetPart = World.GetSceneObjectPart(targetID);
             if (targetPart == null)
                 return;
 
-            if (targetPart.ParentGroup.AttachmentPoint != 0)
-                return; // Fail silently if attached
+            SceneObjectGroup targetgrp = targetPart.ParentGroup;
 
-            if (targetPart.ParentGroup.RootPart.OwnerID.NotEqual(m_host.ParentGroup.RootPart.OwnerID))
+            if (targetgrp == null || targetgrp.OwnerID.NotEqual(hostgroup.OwnerID))
+                return;
+
+            if (targetgrp.AttachmentPoint != 0)
+                return; // Fail silently if attached
+            if ((targetgrp.RootPart.OwnerMask & (uint)PermissionMask.Modify) == 0)
                 return;
 
             SceneObjectGroup parentPrim = null, childPrim = null;
 
             if (parent != 0)
             {
-                parentPrim = m_host.ParentGroup;
-                childPrim = targetPart.ParentGroup;
+                parentPrim = hostgroup;
+                childPrim = targetgrp;
             }
             else
             {
-                parentPrim = targetPart.ParentGroup;
-                childPrim = m_host.ParentGroup;
+                parentPrim = targetgrp;
+                childPrim = hostgroup;
             }
 
             // Required for linking
             childPrim.RootPart.ClearUpdateSchedule();
             parentPrim.LinkToGroup(childPrim, true);
-
 
             parentPrim.TriggerScriptChangedEvent(Changed.LINK);
             parentPrim.RootPart.CreateSelected = false;
@@ -4492,7 +4508,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llBreakLink(int linknum)
         {
-
             if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_CHANGE_LINKS) == 0
                 && !m_automaticLinkPermission)
             {
@@ -4512,6 +4527,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (parentSOG.AttachmentPoint != 0)
                 return; // Fail silently if attached
+
+            if ((parentSOG.RootPart.OwnerMask & (uint)PermissionMask.Modify) == 0)
+                return;
+
             SceneObjectPart childPrim = null;
 
             switch (linknum)
@@ -6338,9 +6357,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_String llGetDate()
         {
-            DateTime date = DateTime.Now.ToUniversalTime();
-            string result = date.ToString("yyyy-MM-dd");
-            return result;
+            return DateTime.UtcNow.ToString("yyyy-MM-dd");
         }
 
         public LSL_Integer llEdgeOfWorld(LSL_Vector pos, LSL_Vector dir)
@@ -10983,7 +11000,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_String llGetTimestamp()
         {
-            return DateTime.Now.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ");
+            return DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ");
         }
 
         public LSL_Integer llGetNumberOfPrims()
@@ -14661,6 +14678,33 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             ret.Add(new LSL_Integer(count));
                             break;
 
+                        case ScriptBaseClass.OBJECT_ACCOUNT_LEVEL:
+                            ret.Add(new LSL_Integer(1));
+                            break;
+                        case ScriptBaseClass.OBJECT_MATERIAL:
+                            ret.Add(new LSL_Integer((int)Material.Flesh));
+                            break;
+                        case ScriptBaseClass.OBJECT_MASS:
+                            ret.Add(new LSL_Float(av.GetMass()));
+                            break;
+                        case ScriptBaseClass.OBJECT_TEXT:
+                            ret.Add(new LSL_String(""));
+                            break;
+                        case ScriptBaseClass.OBJECT_REZ_TIME:
+                            ret.Add(new LSL_String(""));
+                            break;
+                        case ScriptBaseClass.OBJECT_LINK_NUMBER:
+                            ret.Add(new LSL_Integer(0));
+                            break;
+                        case ScriptBaseClass.OBJECT_SCALE:
+                            ret.Add(new LSL_Vector(av.Appearance.AvatarBoxSize));
+                            break;
+                        case ScriptBaseClass.OBJECT_TEXT_COLOR:
+                            ret.Add(new LSL_Vector(0f, 0f, 0f));
+                            break;
+                        case ScriptBaseClass.OBJECT_TEXT_ALPHA:
+                            ret.Add(new LSL_Float(1.0f));
+                            break;
                         default:
                             // Invalid or unhandled constant.
                             ret.Add(new LSL_Integer(ScriptBaseClass.OBJECT_UNKNOWN_DETAIL));
@@ -14885,6 +14929,36 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             break;
                         case ScriptBaseClass.OBJECT_ANIMATED_SLOTS_AVAILABLE:
                             ret.Add(new LSL_Integer(0));
+                            break;
+                        case ScriptBaseClass.OBJECT_ACCOUNT_LEVEL:
+                            ret.Add(new LSL_Integer(1));
+                            break;
+                        case ScriptBaseClass.OBJECT_MATERIAL:
+                            ret.Add(new LSL_Integer(m_host.Material));
+                            break;
+                        case ScriptBaseClass.OBJECT_MASS:
+                            ret.Add(new LSL_Float(llGetMassMKS()));
+                            break;
+                        case ScriptBaseClass.OBJECT_TEXT:
+                            ret.Add(new LSL_String(m_host.Text));
+                            break;
+                        case ScriptBaseClass.OBJECT_REZ_TIME:
+                            ret.Add(new LSL_String(m_host.Rezzed.ToString("yyyy-MM-ddTHH:mm:ss.ffffffZ", CultureInfo.InvariantCulture)));
+                            break;
+                        case ScriptBaseClass.OBJECT_LINK_NUMBER:
+                            ret.Add(new LSL_Integer(m_host.LinkNum));
+                            break;
+                        case ScriptBaseClass.OBJECT_SCALE:
+                            ret.Add(new LSL_Vector(m_host.Scale));
+                            break;
+                        case ScriptBaseClass.OBJECT_TEXT_COLOR:
+                            Color4 textColor = m_host.GetTextColor();
+                            ret.Add(new LSL_Vector(textColor.R,
+                                                   textColor.G,
+                                                   textColor.B));
+                            break;
+                        case ScriptBaseClass.OBJECT_TEXT_ALPHA:
+                            ret.Add(new LSL_Float(m_host.GetTextColor().A));
                             break;
                         default:
                             // Invalid or unhandled constant.

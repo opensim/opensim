@@ -42,6 +42,11 @@ namespace OpenSim.Region.ClientStack.Linden
             UpdateInventoryItemAsset(httpRequest, httpResponse, map, (byte)AssetType.Settings);
         }
 
+        public void UpdateMaterialItemAsset(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, OSDMap map)
+        {
+            UpdateInventoryItemAsset(httpRequest, httpResponse, map, (byte)AssetType.Material);
+        }
+
         public void UpdateGestureItemAsset(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, OSDMap map)
         {
             UpdateInventoryItemAsset(httpRequest, httpResponse, map, (byte)AssetType.Gesture);

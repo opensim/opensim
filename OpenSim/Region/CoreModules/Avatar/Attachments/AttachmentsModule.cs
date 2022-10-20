@@ -1260,7 +1260,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 return null;
             }
 
-            bool ItemIDNotZero = !itemID.IsZero();
+            bool ItemIDNotZero = itemID.IsNotZero();
 
             if (ItemIDNotZero)
                 objatt = m_invAccessModule.RezObject(sp.ControllingClient,

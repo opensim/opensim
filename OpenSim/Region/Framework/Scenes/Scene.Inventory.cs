@@ -30,18 +30,13 @@ using System.Collections.Generic;
 using System.Collections;
 using System.Reflection;
 using System.Text;
-using System.Threading;
-using System.Timers;
 using System.Xml;
 using OpenMetaverse;
-using OpenMetaverse.Packets;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Serialization.External;
-using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes.Serialization;
-using OpenSim.Services.Interfaces;
 using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.Framework.Scenes
@@ -341,6 +336,17 @@ namespace OpenSim.Region.Framework.Scenes
                     }
 
                     avatar.ControllingClient.SendAlertMessage("Setting updated");
+                    break;
+                }
+                case InventoryType.Material:
+                {
+                    if ((item.CurrentPermissions & (uint)PermissionMask.Modify) == 0)
+                    {
+                        avatar.ControllingClient.SendAgentAlertMessage("Insufficient permissions to edit setting", false);
+                        return UUID.Zero;
+                    }
+
+                    avatar.ControllingClient.SendAlertMessage("Material updated");
                     break;
                 }
             }
@@ -1199,25 +1205,26 @@ namespace OpenSim.Region.Framework.Scenes
             uint baseMask, uint currentMask, uint everyoneMask, uint nextOwnerMask, uint groupMask, int creationDate,
             bool assetUpload)
         {
-            InventoryItemBase item = new InventoryItemBase();
-            item.Owner = remoteClient.AgentId;
-            item.CreatorId = creatorID;
-            item.CreatorData = creatorData;
-            item.ID = UUID.Random();
-            item.AssetID = assetID;
-            item.Name = name;
-            item.Description = description;
-            item.Flags = flags;
-            item.AssetType = assetType;
-            item.InvType = invType;
-            item.Folder = folderID;
-            item.CurrentPermissions = currentMask;
-            item.NextPermissions = nextOwnerMask;
-            item.EveryOnePermissions = everyoneMask;
-            item.GroupPermissions = groupMask;
-            item.BasePermissions = baseMask;
-            item.CreationDate = creationDate;
-
+            InventoryItemBase item = new InventoryItemBase
+            {
+                Owner = remoteClient.AgentId,
+                CreatorId = creatorID,
+                CreatorData = creatorData,
+                ID = UUID.Random(),
+                AssetID = assetID,
+                Name = name,
+                Description = description,
+                Flags = flags,
+                AssetType = assetType,
+                InvType = invType,
+                Folder = folderID,
+                CurrentPermissions = currentMask,
+                NextPermissions = nextOwnerMask,
+                EveryOnePermissions = everyoneMask,
+                GroupPermissions = groupMask,
+                BasePermissions = baseMask,
+                CreationDate = creationDate
+            };
             // special AnimationSet case
             if (item.InvType == (int)CustomInventoryType.AnimationSet)
                 AnimationSet.enforceItemPermitions(item,true);
@@ -1888,9 +1895,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else // Updating existing item with new perms etc
             {
-//                    m_log.DebugFormat(
-//                        "[PRIM INVENTORY]: Updating item {0} in {1} for UpdateTaskInventory()",
-//                        currentItem.Name, part.Name);
+                //m_log.DebugFormat(
+                //    "[PRIM INVENTORY]: Updating item {0} in {1} for UpdateTaskInventory()",
+                //    currentItem.Name, part.Name);
 
                 if (!Permissions.CanEditObjectInventory(part.UUID, remoteClient.AgentId))
                     return;
@@ -1903,12 +1910,12 @@ namespace OpenSim.Region.Framework.Scenes
                     AgentTransactionsModule.HandleTaskItemUpdateFromTransaction(
                         remoteClient, part, transactionID, currentItem);
 
-//                        if ((InventoryType)itemInfo.InvType == InventoryType.Notecard)
-//                            remoteClient.SendAgentAlertMessage("Notecard saved", false);
-//                        else if ((InventoryType)itemInfo.InvType == InventoryType.LSL)
-//                            remoteClient.SendAgentAlertMessage("Script saved", false);
-//                        else
-//                            remoteClient.SendAgentAlertMessage("Item saved", false);
+                    //if ((InventoryType)itemInfo.InvType == InventoryType.Notecard)
+                    //    remoteClient.SendAgentAlertMessage("Notecard saved", false);
+                    //else if ((InventoryType)itemInfo.InvType == InventoryType.LSL)
+                    //    remoteClient.SendAgentAlertMessage("Script saved", false);
+                    //else
+                    //    remoteClient.SendAgentAlertMessage("Item saved", false);
                 }
 
                 // Base ALWAYS has move
@@ -2043,9 +2050,9 @@ namespace OpenSim.Region.Framework.Scenes
                     // tell anyone watching that there is a new script in town
                     EventManager.TriggerNewScript(agentID, part, copyID);
 
-                    //                        m_log.InfoFormat("[PRIMINVENTORY]: " +
-                    //                                         "Rezzed script {0} into prim local ID {1} for user {2}",
-                    //                                         item.inventoryName, localID, remoteClient.Name);
+                    //m_log.InfoFormat("[PRIMINVENTORY]: " +
+                    //   "Rezzed script {0} into prim local ID {1} for user {2}",
+                    //   item.inventoryName, localID, remoteClient.Name);
 
                     part.ParentGroup.ResumeScripts();
 
@@ -2078,10 +2085,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>The part where the script was rezzed if successful.  False otherwise.</returns>
         public SceneObjectPart RezNewScript(UUID agentID, InventoryItemBase itemBase)
         {
-            return RezNewScript(
-                agentID,
-                itemBase,
-                "default\n{\n    state_entry()\n    {\n        llSay(0, \"Script running\");\n    }\n}");
+            return RezNewScript(agentID, itemBase, null);
         }
 
         /// <summary>
@@ -2097,53 +2101,62 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectPart part = GetSceneObjectPart(itemBase.Folder);
             if (part == null)
             {
-//                m_log.DebugFormat(
-//                    "[SCENE INVENTORY]: Could not find part with id {0} for {1} to rez new script",
-//                    itemBase.Folder, agentID);
+                //m_log.DebugFormat(
+                //    "[SCENE INVENTORY]: Could not find part with id {0} for {1} to rez new script",
+                //    itemBase.Folder, agentID);
 
                 return null;
             }
 
             if (!Permissions.CanCreateObjectInventory(itemBase.InvType, part.UUID, agentID))
             {
-//                m_log.DebugFormat(
-//                    "[SCENE INVENTORY]: No permission to create new script in {0} for {1}", part.Name, agentID);
+                //m_log.DebugFormat(
+                //    "[SCENE INVENTORY]: No permission to create new script in {0} for {1}", part.Name, agentID);
 
                 return null;
             }
 
-            AssetBase asset
-                = CreateAsset(
-                    itemBase.Name,
-                    itemBase.Description,
-                    (sbyte)itemBase.AssetType,
+            UUID assetID;
+
+            if (scriptText == null)
+                assetID = Constants.DefaultScriptID;
+            else
+            {
+                AssetBase asset = CreateAsset(
+                    itemBase.Name, itemBase.Description,
+                    (sbyte)AssetType.LSLText,
                     Encoding.ASCII.GetBytes(scriptText),
                     agentID);
 
-            AssetService.Store(asset);
+                AssetService.Store(asset);
+                assetID = asset.FullID;
+            }
 
-            TaskInventoryItem taskItem = new TaskInventoryItem();
-
-            taskItem.ResetIDs(itemBase.Folder);
-            taskItem.ParentID = itemBase.Folder;
-            taskItem.CreationDate = (uint)itemBase.CreationDate;
-            taskItem.Name = itemBase.Name;
-            taskItem.Description = itemBase.Description;
-            taskItem.Type = itemBase.AssetType;
-            taskItem.InvType = itemBase.InvType;
-            taskItem.OwnerID = itemBase.Owner;
-            taskItem.CreatorID = itemBase.CreatorIdAsUuid;
-            taskItem.BasePermissions = itemBase.BasePermissions;
-            taskItem.CurrentPermissions = itemBase.CurrentPermissions;
-            taskItem.EveryonePermissions = itemBase.EveryOnePermissions;
-            taskItem.GroupPermissions = itemBase.GroupPermissions;
-            taskItem.NextPermissions = itemBase.NextPermissions;
-            taskItem.GroupID = itemBase.GroupID;
-            taskItem.GroupPermissions = 0;
-            taskItem.Flags = itemBase.Flags;
-            taskItem.PermsGranter = UUID.Zero;
-            taskItem.PermsMask = 0;
-            taskItem.AssetID = asset.FullID;
+            TaskInventoryItem taskItem = new TaskInventoryItem
+            {
+                ItemID = UUID.Random(),
+                OldItemID = UUID.Zero,
+                ParentPartID = itemBase.Folder,
+                ParentID = itemBase.Folder,
+                CreationDate = (uint)itemBase.CreationDate,
+                Name = itemBase.Name,
+                Description = itemBase.Description,
+                Type = itemBase.AssetType,
+                InvType = itemBase.InvType,
+                OwnerID = itemBase.Owner,
+                CreatorID = itemBase.CreatorIdAsUuid,
+                BasePermissions = itemBase.BasePermissions,
+                CurrentPermissions = itemBase.CurrentPermissions,
+                EveryonePermissions = itemBase.EveryOnePermissions,
+                //GroupPermissions = itemBase.GroupPermissions,
+                GroupPermissions = 0,
+                NextPermissions = itemBase.NextPermissions,
+                GroupID = itemBase.GroupID,
+                Flags = itemBase.Flags,
+                PermsGranter = UUID.Zero,
+                PermsMask = 0,
+                AssetID = assetID
+            };
 
             part.Inventory.AddInventoryItem(taskItem, false);
             part.Inventory.CreateScriptInstance(taskItem, 0, false, DefaultScriptEngine, 1);

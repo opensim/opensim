@@ -2060,7 +2060,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 return false;
             }
 
-            if(sog.OwnerID != sp.UUID && (perms & (uint)PermissionMask.Transfer) == 0)
+            if(sog.OwnerID.NotEqual(sp.UUID) && (perms & (uint)PermissionMask.Transfer) == 0)
                  return false;
             return true;
         }
