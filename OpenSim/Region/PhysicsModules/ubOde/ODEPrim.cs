@@ -1037,15 +1037,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 SafeNativeMethods.AllocateODEDataForThread(0);
                 if(Body != IntPtr.Zero)
                 {
-                    SafeNativeMethods.Vector3 dtmp = SafeNativeMethods.BodyGetAngularVel(Body);
-                    m_rotationalVelocity.X = dtmp.X;
-                    m_rotationalVelocity.Y = dtmp.Y;
-                    m_rotationalVelocity.Z = dtmp.Z;
-
-                    dtmp = SafeNativeMethods.BodyGetLinearVel(Body);
-                    _velocity.X = dtmp.X;
-                    _velocity.Y = dtmp.Y;
-                    _velocity.Z = dtmp.Z;
+                    m_rotationalVelocity = SafeNativeMethods.BodyGetAngularVelOMV(Body);
+                    _velocity = SafeNativeMethods.BodyGetLinearVelOMV(Body);
 
                     SafeNativeMethods.BodySetLinearVel(Body, 0, 0, 0); // stop it
                     SafeNativeMethods.BodySetAngularVel(Body, 0, 0, 0);
