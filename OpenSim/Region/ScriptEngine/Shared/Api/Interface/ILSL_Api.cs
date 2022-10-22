@@ -274,6 +274,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llMapDestination(string simname, LSL_Vector pos, LSL_Vector look_at);
         LSL_String llMD5String(string src, int nonce);
         LSL_String llSHA1String(string src);
+        LSL_String llSHA256String(LSL_String src);
               void llMessageLinked(int linknum, int num, string str, string id);
               void llMinEventDelay(double delay);
               void llModifyLand(int action, int brush);

@@ -8248,6 +8248,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return Util.SHA1Hash(src, Encoding.UTF8).ToLower();
         }
 
+        public LSL_String llSHA256String(LSL_String input)
+        {
+            // Create a SHA256   
+            using (SHA256 sha256Hash = SHA256.Create())
+            {
+                // ComputeHash - returns byte array
+                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(input));
+                return Util.bytesToHexString(bytes, true);
+            }
+        }
+
         protected ObjectShapePacket.ObjectDataBlock SetPrimitiveBlockShapeParams(SceneObjectPart part, int holeshape, LSL_Vector cut, float hollow, LSL_Vector twist, byte profileshape, byte pathcurve)
         {
             float tempFloat;                                    // Use in float expressions below to avoid byte cast precision issues.
