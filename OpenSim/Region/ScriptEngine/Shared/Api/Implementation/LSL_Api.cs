@@ -52,6 +52,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -8226,6 +8227,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llSHA1String(string src)
         {
             return Util.SHA1Hash(src, Encoding.UTF8).ToLower();
+        }
+
+        public LSL_String llSHA256String(LSL_String input)
+        {
+            // Create a SHA256   
+            using SHA256 sha256Hash = SHA256.Create();
+
+            // ComputeHash - returns byte array
+            Span<byte> bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(input)).AsSpan();
+            return Util.bytesToHexString(bytes, true);
         }
 
         protected ObjectShapePacket.ObjectDataBlock SetPrimitiveBlockShapeParams(SceneObjectPart part, int holeshape, LSL_Vector cut, float hollow, LSL_Vector twist, byte profileshape, byte pathcurve)

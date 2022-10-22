@@ -1230,12 +1230,12 @@ namespace OpenSim.Framework
             return (char)(b > 9 ? b + 0x37 : b + '0');
         }
 
-        public static string bytesToHexString(byte[] bytes, bool lowerCaps)
+        public static string bytesToHexString(Span<byte> bytes, bool lowerCaps)
         {
             if (bytes == null || bytes.Length == 0)
                 return string.Empty;
 
-            char[] chars = new char[2 * bytes.Length];
+            Span<char> chars = stackalloc char[2 * bytes.Length];
             if (lowerCaps)
             {
                 for (int i = 0, j = 0; i < bytes.Length; ++i)

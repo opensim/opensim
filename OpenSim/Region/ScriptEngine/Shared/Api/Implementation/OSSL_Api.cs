@@ -2623,7 +2623,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             using (SHA256 sha256Hash = SHA256.Create())  
             {  
                 // ComputeHash - returns byte array
-                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(input));  
+                Span<byte> bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(input)).AsSpan();  
                 return Util.bytesToHexString(bytes, true);
             }
         }

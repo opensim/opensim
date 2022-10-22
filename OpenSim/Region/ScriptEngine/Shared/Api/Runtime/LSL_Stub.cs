@@ -1157,6 +1157,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llSHA1String(src);
         }
 
+        public LSL_String llSHA256String(LSL_String src)
+        {
+            return m_LSL_Functions.llSHA256String(src);
+        }
+
         public void llMessageLinked(int linknum, int num, string str, string id)
         {
             m_LSL_Functions.llMessageLinked(linknum, num, str, id);
