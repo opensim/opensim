@@ -1230,31 +1230,66 @@ namespace OpenSim.Framework
             return (char)(b > 9 ? b + 0x37 : b + '0');
         }
 
-        public static string bytesToHexString(Span<byte> bytes, bool lowerCaps)
+        public static unsafe string bytesToHexString(byte[] bytes, bool lowerCaps)
         {
             if (bytes == null || bytes.Length == 0)
                 return string.Empty;
 
-            Span<char> chars = stackalloc char[2 * bytes.Length];
-            if (lowerCaps)
+            return string.Create(2 * bytes.Length, bytes, (chars, bytes) =>
             {
+                fixed (char* dstb = chars)
+                fixed (byte* srcb = bytes)
+                {
+                    char* dst = dstb;
+                    if (lowerCaps)
+                    {
+                        for (int i = 0; i < bytes.Length; ++i)
+                        {
+                            byte b = srcb[i];
+                            *dst++ = HighNibbleToHexByteCharLowcaps(b);
+                            *dst++ = LowNibbleToHexByteCharLowcaps(b);
+                        }
+                    }
+                    else
+                    {
+                        for (int i = 0; i < bytes.Length; ++i)
+                        {
+                            byte b = srcb[i];
+                            *dst++ = HighNibbleToHexByteCharLowcaps(b);
+                            *dst++ = LowNibbleToHexByteCharLowcaps(b);
+                        }
+                    }
+                }
+            });
+        }
+
+        public static unsafe string bytesToLowcaseHexString(byte[] bytes)
+        {
+            if (bytes == null || bytes.Length == 0)
+                return string.Empty;
+
+            return string.Create(2 * bytes.Length, bytes, (chars, bytes) =>
+            {
+                fixed (char* dstb = chars)
+                fixed (byte* srcb = bytes)
+                {
+                    char* dst = dstb;
+                    for (int i = 0; i < bytes.Length; ++i)
+                    {
+                        byte b = srcb[i];
+                        *dst++ = HighNibbleToHexByteCharLowcaps(b);
+                        *dst++ = LowNibbleToHexByteCharLowcaps(b);
+                    }
+                }
+                /*
                 for (int i = 0, j = 0; i < bytes.Length; ++i)
                 {
                     byte b = bytes[i];
                     chars[j++] = HighNibbleToHexByteCharLowcaps(b);
                     chars[j++] = LowNibbleToHexByteCharLowcaps(b);
                 }
-            }
-            else
-            {
-                for (int i = 0, j = 0; i < bytes.Length; ++i)
-                {
-                    byte b = bytes[i];
-                    chars[j++] = HighNibbleToHexByteCharHighcaps(b);
-                    chars[j++] = LowNibbleToHexByteCharHighcaps(b);
-                }
-            }
-            return new string(chars);
+                */
+            });
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -2619,13 +2619,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public string osSHA256(string input)
         {
+            byte[] bytes;
             // Create a SHA256   
-            using (SHA256 sha256Hash = SHA256.Create())  
-            {  
+            using (SHA256 sha256Hash = SHA256.Create())
+            {
                 // ComputeHash - returns byte array
-                Span<byte> bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(input)).AsSpan();  
-                return Util.bytesToHexString(bytes, true);
+                bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(input));
             }
+            return Util.bytesToLowcaseHexString(bytes);
         }
 
         /// <summary>

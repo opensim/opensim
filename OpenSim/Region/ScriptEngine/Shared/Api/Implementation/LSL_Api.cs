@@ -8231,12 +8231,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_String llSHA256String(LSL_String input)
         {
+            byte[] bytes;
             // Create a SHA256   
-            using SHA256 sha256Hash = SHA256.Create();
-
-            // ComputeHash - returns byte array
-            Span<byte> bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(input)).AsSpan();
-            return Util.bytesToHexString(bytes, true);
+            using (SHA256 sha256Hash = SHA256.Create())
+            {
+                // ComputeHash - returns byte array
+                bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(input.m_string));
+            }
+            return Util.bytesToLowcaseHexString(bytes);
         }
 
         protected ObjectShapePacket.ObjectDataBlock SetPrimitiveBlockShapeParams(SceneObjectPart part, int holeshape, LSL_Vector cut, float hollow, LSL_Vector twist, byte profileshape, byte pathcurve)
