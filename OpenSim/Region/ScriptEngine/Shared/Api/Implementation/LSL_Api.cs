@@ -642,13 +642,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public List<ScenePresence> GetLinkAvatars(int linkType)
         {
-            List<ScenePresence> ret = new List<ScenePresence>();
-            if (m_host == null || m_host.ParentGroup == null || m_host.ParentGroup.IsDeleted)
+            if (m_host is null)
+                return new List<ScenePresence>();
+
+            return GetLinkAvatars(linkType, m_host.ParentGroup);
+
+        }
+
+        public List<ScenePresence> GetLinkAvatars(int linkType, SceneObjectGroup sog)
+        {
+            List<ScenePresence> ret = new();
+            if (sog is null || sog.IsDeleted)
                 return ret;
 
-            //            List<ScenePresence> avs = m_host.ParentGroup.GetLinkedAvatars();
-            // this needs check
-            List<ScenePresence> avs = m_host.ParentGroup.GetSittingAvatars();
+            List<ScenePresence> avs = sog.GetSittingAvatars();
             switch (linkType)
             {
                 case ScriptBaseClass.LINK_SET:
@@ -670,22 +677,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (linkType < 0)
                         return ret;
 
-                    int partCount = m_host.ParentGroup.GetPartCount();
+                    int partCount = sog.GetPartCount();
 
-                    if (linkType <= partCount)
+                    linkType -= partCount;
+                    if (linkType <= 0)
                     {
                         return ret;
                     }
                     else
                     {
-                        linkType = linkType - partCount;
                         if (linkType > avs.Count)
                         {
                             return ret;
                         }
                         else
                         {
-                            ret.Add(avs[linkType-1]);
+                            ret.Add(avs[linkType - 1]);
                             return ret;
                         }
                     }
@@ -4621,28 +4628,70 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Key llGetLinkKey(int linknum)
         {
-            if(linknum < 0)
+            if (linknum < 0)
             {
                 if (linknum == ScriptBaseClass.LINK_THIS)
                     return m_host.UUID.ToString();
                 return ScriptBaseClass.NULL_KEY;
             }
 
+            SceneObjectGroup sog = m_host.ParentGroup;
             if (linknum < 2)
-                return m_host.ParentGroup.RootPart.UUID.ToString();
+                return sog.RootPart.UUID.ToString();
 
-            SceneObjectPart part = m_host.ParentGroup.GetLinkNumPart(linknum);
-            if (part != null)
+            SceneObjectPart part = sog.GetLinkNumPart(linknum);
+            if (part is not null)
             {
                 return part.UUID.ToString();
             }
             else
             {
-                if (linknum > m_host.ParentGroup.PrimCount)
+                if (linknum > sog.PrimCount)
                 {
-                    linknum -= m_host.ParentGroup.PrimCount + 1;
+                    linknum -= sog.PrimCount + 1;
 
-                    List<ScenePresence> avatars = GetLinkAvatars(ScriptBaseClass.LINK_SET);
+                    List<ScenePresence> avatars = GetLinkAvatars(ScriptBaseClass.LINK_SET, sog);
+                    if (avatars.Count > linknum)
+                    {
+                        return avatars[linknum].UUID.ToString();
+                    }
+                }
+                return ScriptBaseClass.NULL_KEY;
+            }
+        }
+
+        public LSL_Key llObjectGetLinkKey(LSL_Key objectid, int linknum)
+        {
+            if (!UUID.TryParse(objectid, out UUID oID))
+                return ScriptBaseClass.NULL_KEY;
+
+            if (!World.TryGetSceneObjectPart(oID, out SceneObjectPart sop))
+                return ScriptBaseClass.NULL_KEY;
+
+            if (linknum < 0)
+            {
+                if (linknum == ScriptBaseClass.LINK_THIS)
+                    return sop.UUID.ToString();
+                return ScriptBaseClass.NULL_KEY;
+            }
+
+            SceneObjectGroup sog = sop.ParentGroup;
+
+            if (linknum < 2)
+                return sog.RootPart.UUID.ToString();
+
+            SceneObjectPart part = sog.GetLinkNumPart(linknum);
+            if (part is not null)
+            {
+                return part.UUID.ToString();
+            }
+            else
+            {
+                if (linknum > sog.PrimCount)
+                {
+                    linknum -= sog.PrimCount + 1;
+
+                    List<ScenePresence> avatars = GetLinkAvatars(ScriptBaseClass.LINK_SET, sog);
                     if (avatars.Count > linknum)
                     {
                         return avatars[linknum].UUID.ToString();
