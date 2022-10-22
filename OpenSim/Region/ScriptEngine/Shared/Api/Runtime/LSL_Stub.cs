@@ -563,6 +563,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llGetLinkKey(linknum);
         }
 
+        public LSL_Key llObjectGetLinkKey(LSL_Key objectid, int linknum)
+        {
+            return m_LSL_Functions.llObjectGetLinkKey(objectid, linknum); ;
+        }
+
         public LSL_String llGetLinkName(int linknum)
         {
             return m_LSL_Functions.llGetLinkName(linknum);
