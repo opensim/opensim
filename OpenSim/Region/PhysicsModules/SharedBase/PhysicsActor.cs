@@ -632,16 +632,11 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
             get { return (int)m_actorType; }
             set {
                 ActorTypes type = (ActorTypes)value;
-                switch (type)
+                m_actorType = type switch
                 {
-                    case ActorTypes.Ground:
-                    case ActorTypes.Water:
-                        m_actorType = type;
-                        break;
-                    default:
-                        m_actorType = ActorTypes.Unknown;
-                        break;
-                }
+                    ActorTypes.Ground or ActorTypes.Water => type,
+                    _ => ActorTypes.Unknown,
+                };
             }
         }
 
