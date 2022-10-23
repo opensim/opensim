@@ -424,7 +424,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     new PollServiceEventArgs(null, GenerateEqgCapPath(eventQueueGetUUID), HasEvents, GetEvents, NoEvents, Drop, agentID, VIEWERKEEPALIVE));
         }
 
-        public bool HasEvents(in UUID _, in UUID agentID)
+        public bool HasEvents(UUID _, UUID agentID)
         {
             Queue<byte[]> queue = GetQueue(agentID);
             if (queue != null)
@@ -451,14 +451,14 @@ namespace OpenSim.Region.ClientStack.Linden
             }
         }
 
-        public void Drop(in UUID requestID, in UUID pAgentId)
+        public void Drop(UUID requestID, UUID pAgentId)
         {
             // do nothing, in last case http server will do it
         }
 
         private static readonly byte[] EventHeader = osUTF8.GetASCIIBytes("<llsd><map><key>events</key><array>");
 
-        public Hashtable GetEvents(in UUID requestID, in UUID pAgentId)
+        public Hashtable GetEvents(UUID requestID, UUID pAgentId)
         {
             if (DebugLevel >= 2)
                 m_log.Warn($"POLLED FOR EQ MESSAGES BY {pAgentId} in {m_scene.Name}");
@@ -551,7 +551,7 @@ namespace OpenSim.Region.ClientStack.Linden
             return responsedata;
         }
 
-        public Hashtable NoEvents(in UUID _, in UUID agentID)
+        public Hashtable NoEvents(UUID _, UUID agentID)
         {
             return new Hashtable()
             {

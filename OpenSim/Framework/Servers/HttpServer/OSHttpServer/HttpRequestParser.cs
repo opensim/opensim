@@ -433,7 +433,7 @@ namespace OSHttpServer.Parser
             return handledBytes;
         }
 
-        static int GetLineBreakSize(in byte[] buffer, int offset)
+        static int GetLineBreakSize(byte[] buffer, int offset)
         {
             byte c = buffer[offset];
             if (c == '\r')

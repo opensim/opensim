@@ -31,13 +31,12 @@ using OpenMetaverse;
 
 namespace OpenSim.Framework.Servers.HttpServer
 {
-    public delegate OSHttpResponse RequestMethod(in UUID ID, OSHttpRequest request);
-    public delegate bool HasEventsMethod(in UUID requestID, in UUID pId);
+    public delegate OSHttpResponse RequestMethod(UUID ID, OSHttpRequest request);
+    public delegate bool HasEventsMethod(UUID requestID, UUID pId);
+    public delegate Hashtable GetEventsMethod(UUID requestID, UUID pId);
 
-    public delegate Hashtable GetEventsMethod(in UUID requestID, in UUID pId);
-
-    public delegate Hashtable NoEventsMethod(in UUID requestID, in UUID pId);
-    public delegate void DropMethod(in UUID requestID, in UUID pId);
+    public delegate Hashtable NoEventsMethod(UUID requestID, UUID pId);
+    public delegate void DropMethod(UUID requestID, UUID pId);
 
     public class PollServiceEventArgs : EventArgs
     {

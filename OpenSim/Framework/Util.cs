@@ -1281,14 +1281,6 @@ namespace OpenSim.Framework
                         *dst++ = LowNibbleToHexByteCharLowcaps(b);
                     }
                 }
-                /*
-                for (int i = 0, j = 0; i < bytes.Length; ++i)
-                {
-                    byte b = bytes[i];
-                    chars[j++] = HighNibbleToHexByteCharLowcaps(b);
-                    chars[j++] = LowNibbleToHexByteCharLowcaps(b);
-                }
-                */
             });
         }
 

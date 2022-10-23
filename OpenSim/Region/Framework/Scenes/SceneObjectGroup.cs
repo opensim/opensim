@@ -4426,7 +4426,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Move this scene object
         /// </summary>
         /// <param name="pos"></param>
-        public void UpdateGroupPosition(in Vector3 pos)
+        public void UpdateGroupPosition(Vector3 pos)
         {
             if (m_scene.EventManager.TriggerGroupMove(UUID, pos))
             {

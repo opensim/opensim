@@ -817,13 +817,13 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static warp_Vector ConvertVector(in Vector3 vector)
+        private static warp_Vector ConvertVector(Vector3 vector)
         {
             return new warp_Vector(vector.X, vector.Z, vector.Y);
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static warp_Quaternion ConvertQuaternion(in Quaternion quat)
+        private static warp_Quaternion ConvertQuaternion(Quaternion quat)
         {
             return new warp_Quaternion(quat.X, quat.Z, quat.Y, -quat.W);
         }
@@ -835,7 +835,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             return c;
         }
 
-        private static Vector3 SurfaceNormal(in Vector3 c1, in Vector3 c2, in Vector3 c3)
+        private static Vector3 SurfaceNormal(Vector3 c1, Vector3 c2, Vector3 c3)
         {
             Vector3 normal = Vector3.Cross(c2 - c1, c3 - c1);
             normal.Normalize();

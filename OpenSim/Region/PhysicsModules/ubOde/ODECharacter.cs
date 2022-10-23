@@ -1629,7 +1629,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void round(ref Vector3 v, int digits)
+        public static void round(ref Vector3 v, int digits)
         {
             v.X = MathF.Round(v.X, digits);
             v.Y = MathF.Round(v.Y, digits);
@@ -1880,10 +1880,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             changePhysicsStatus(false);
         }
 
+        /*
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void changeShape(PrimitiveBaseShape arg)
         {
         }
+        */
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void changeAvatarSize(strAvatarSize st)
@@ -2036,7 +2038,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (Body != IntPtr.Zero)
                 SafeNativeMethods.BodyEnable(Body);
         }
-
+        /*
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void changeSetTorque(Vector3 newTorque)
         {
@@ -2081,6 +2083,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private void changeBuilding(bool arg)
         {
         }
+        */
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void setFreeMove()
@@ -2174,7 +2177,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 return false;
             }
 
-            // nasty switch
             switch (what)
             {
                 case changes.Add:
@@ -2192,6 +2194,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     changeOrientation((Quaternion)arg);
                     break;
 
+                /*
                 case changes.PosOffset:
                     donullchange();
                     break;
@@ -2199,7 +2202,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 case changes.OriOffset:
                     donullchange();
                     break;
-
+                */
                 case changes.Velocity:
                     changeVelocity((Vector3)arg);
                     break;
@@ -2208,17 +2211,19 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     changeTargetVelocity((Vector3)arg);
                     break;
 
-                //case changes.Acceleration:
-                //    changeacceleration((Vector3)arg);
-                //    break;
-                //case changes.AngVelocity:
-                //    changeangvelocity((Vector3)arg);
-                //    break;
+                /*
+                case changes.Acceleration:
+                    changeacceleration((Vector3)arg);
+                    break;
 
+                case changes.AngVelocity:
+                    changeangvelocity((Vector3)arg);
+                    break;
+                */
                 case changes.Force:
                     changeForce((Vector3)arg);
                     break;
-
+                /*
                 case changes.Torque:
                     changeSetTorque((Vector3)arg);
                     break;
@@ -2234,7 +2239,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 case changes.AngLock:
                     changeAngularLock((byte)arg);
                     break;
-
+                */
                 case changes.Size:
                     changeSize((Vector3)arg);
                     break;
@@ -2263,7 +2268,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     changePIDHoverActive((bool)arg);
                     break;
 
-                /* not in use for now
+                /*
                 case changes.Shape:
                     changeShape((PrimitiveBaseShape)arg);
                     break;
@@ -2275,11 +2280,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 case changes.VolumeDtc:
                     changeVolumedetetion((bool)arg);
                     break;
-
+                */
                 case changes.Physical:
                     changePhysicsStatus((bool)arg);
                     break;
-
+                /*
                 case changes.Selected:
                     changeSelectedStatus((bool)arg);
                     break;
@@ -2292,12 +2297,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     changeBuilding((bool)arg);
                     break;
                 */
-                case changes.Null:
-                    donullchange();
-                    break;
-
+                //case changes.Null:
                 default:
-                    donullchange();
                     break;
             }
             return false;

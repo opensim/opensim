@@ -448,11 +448,13 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
 
         public virtual PhysicsInertiaData GetInertiaData()
         {
-            PhysicsInertiaData data = new PhysicsInertiaData();
-            data.TotalMass = this.Mass;
-            data.CenterOfMass = CenterOfMass - Position;
-            data.Inertia = Vector3.Zero;
-            data.InertiaRotation = Vector4.Zero;
+            PhysicsInertiaData data = new()
+            {
+                TotalMass = Mass,
+                CenterOfMass = CenterOfMass - Position,
+                Inertia = Vector3.Zero,
+                InertiaRotation = Vector4.Zero
+            };
             return data;
         }
 

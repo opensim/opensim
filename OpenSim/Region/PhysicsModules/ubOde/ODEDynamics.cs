@@ -666,7 +666,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             m_ffactor = 1f;
         }
 
-        public static Vector3 Xrot(in Quaternion rot)
+        public static Vector3 Xrot(Quaternion rot)
         {
             Vector3 vec;
             rot.Normalize(); // just in case
@@ -676,7 +676,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             return vec;
         }
 
-        public static Vector3 Zrot(in Quaternion rot)
+        public static Vector3 Zrot(Quaternion rot)
         {
             Vector3 vec;
             rot.Normalize(); // just in case
@@ -690,7 +690,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private const float pi = MathF.PI;
         private const float halfpi = 0.5f * MathF.PI;
  
-        public static Vector3 ubRot2Euler(in Quaternion rot)
+        public static Vector3 ubRot2Euler(Quaternion rot)
         {
             // returns roll in X
             //         pitch in Y
@@ -732,7 +732,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             return vec;
         }
 
-        public static void GetRollPitch(in Quaternion rot, out float roll, out float pitch)
+        public static void GetRollPitch(Quaternion rot, out float roll, out float pitch)
         {
             // assuming rot is normalised
             // rot.Normalize();

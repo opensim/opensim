@@ -5370,7 +5370,7 @@ Label_GroupsDone:
         /// <param name="fullID"></param>
         /// <param name="sop"></param>
         /// <returns></returns>
-        public bool TryGetSceneObjectPart(in UUID fullID, out SceneObjectPart sop)
+        public bool TryGetSceneObjectPart(UUID fullID, out SceneObjectPart sop)
         {
             return m_sceneGraph.TryGetSceneObjectPart(fullID, out sop);
         }

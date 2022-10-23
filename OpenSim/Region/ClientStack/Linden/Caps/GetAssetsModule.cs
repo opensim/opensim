@@ -199,7 +199,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_scene = scene;
                 m_hgassets = HGAssetSVC;
 
-                HasEvents = delegate(in UUID requestID, in UUID _)
+                HasEvents = delegate(UUID requestID, UUID _)
                 {
                     lock (responses)
                     {
@@ -207,7 +207,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     }
                 };
 
-                Drop = delegate(in UUID requestID, in UUID _)
+                Drop = delegate(UUID requestID, UUID _)
                 {
                     lock (responses)
                     {
@@ -217,7 +217,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     }
                 };
 
-                GetEvents = delegate(in UUID requestID, in UUID _)
+                GetEvents = delegate(UUID requestID, UUID _)
                 {
                     lock (responses)
                     {
@@ -237,7 +237,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     return new Hashtable();
                 };
                 
-                Request = delegate (in UUID requestID, OSHttpRequest request)
+                Request = delegate (UUID requestID, OSHttpRequest request)
                 {
                     APollRequest reqinfo = new()
                     {
@@ -251,7 +251,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 };
 
                 // this should never happen except possible on shutdown
-                NoEvents = delegate (in UUID _, in UUID _)
+                NoEvents = delegate (UUID _, UUID _)
                 {
                     /*
                     lock (requests)
