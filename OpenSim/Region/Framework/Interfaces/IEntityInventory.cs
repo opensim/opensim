@@ -217,7 +217,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// The inventory item.  Null if no such item was found.
         /// </returns>
         TaskInventoryItem GetInventoryItem(string name);
-
+        TaskInventoryItem GetInventoryItem(string name, int assetType);
         /// <summary>
         /// Get inventory items by name.
         /// </summary>
