@@ -96,10 +96,10 @@ namespace OpenSim.Region.Framework.Scenes.Scripting
             if (UUID.TryParse(identifier, out UUID key))
                 return key;
 
-            if (part.Inventory != null)
+            if (part.Inventory is not null)
             {
-                TaskInventoryItem item = part.Inventory.GetInventoryItem(identifier);
-                if (item != null && item.Type == (int)type)
+                TaskInventoryItem item = part.Inventory.GetInventoryItem(identifier, (int)type);
+                if (item is not null)
                     return item.AssetID;
             }
 
@@ -112,17 +112,17 @@ namespace OpenSim.Region.Framework.Scenes.Scripting
                 return key;
 
             TaskInventoryItem item;
-            if (part.Inventory != null)
+            if (part.Inventory is not null)
             {
-                item = part.Inventory.GetInventoryItem(identifier);
-                if (item != null && item.Type == (int)type)
+                item = part.Inventory.GetInventoryItem(identifier, (int)type);
+                if (item is not null)
                     return item.AssetID;
             }
 
-            if (part.LocalId != host.LocalId && host.Inventory != null)
+            if (part.LocalId != host.LocalId && host.Inventory is not null)
             {
-                item = host.Inventory.GetInventoryItem(identifier);
-                if (item != null && item.Type == (int)type)
+                item = host.Inventory.GetInventoryItem(identifier, (int)type);
+                if (item is not null)
                     return item.AssetID;
             }
             return UUID.Zero;
