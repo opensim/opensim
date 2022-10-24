@@ -46,12 +46,12 @@ namespace OpenSim.Region.Framework.Scenes.Scripting
         /// <param name='type'></param>
         public static UUID GetAssetIdFromItemName(SceneObjectPart part, string name, int type)
         {
-            TaskInventoryItem item = part.Inventory.GetInventoryItem(name);
+            TaskInventoryItem item = part.Inventory.GetInventoryItem(name, type);
 
-            if (item != null && item.Type == type)
+            if (item is not null)
                 return item.AssetID;
-            else
-                return UUID.Zero;
+
+            return UUID.Zero;
         }
 
         /// <summary>
