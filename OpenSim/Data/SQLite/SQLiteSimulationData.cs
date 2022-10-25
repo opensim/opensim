@@ -1878,8 +1878,12 @@ namespace OpenSim.Data.SQLite
             newData.Dwell = Convert.ToInt32(row["Dwell"]);
             newData.MediaType = (String)row["MediaType"];
             newData.MediaDescription = (String)row["MediaDescription"];
-            newData.MediaWidth = Convert.ToInt32((((string)row["MediaSize"]).Split(','))[0]);
-            newData.MediaHeight = Convert.ToInt32((((string)row["MediaSize"]).Split(','))[1]);
+            string[] sizes = ((string)row["MediaSize"]).Split(',');
+            if (sizes.Length > 1)
+            {
+                newData.MediaWidth = Convert.ToInt32(sizes[0]);
+                newData.MediaHeight = Convert.ToInt32(sizes[1]);
+            }
             newData.MediaLoop = Convert.ToBoolean(row["MediaLoop"]);
             newData.ObscureMedia = Convert.ToBoolean(row["ObscureMedia"]);
             newData.ObscureMusic = Convert.ToBoolean(row["ObscureMusic"]);
@@ -1904,9 +1908,8 @@ namespace OpenSim.Data.SQLite
                 newData.UserLookAt = Vector3.Zero;
             }
             newData.ParcelAccessList = new List<LandAccessEntry>();
-            UUID authBuyerID = UUID.Zero;
-
-            UUID.TryParse((string)row["AuthbuyerID"], out authBuyerID);
+            UUID.TryParse((string)row["AuthbuyerID"], out UUID authBuyerID);
+            newData.AuthBuyerID = authBuyerID;
 
             newData.OtherCleanTime = Convert.ToInt32(row["OtherCleanTime"]);
 
@@ -1992,7 +1995,7 @@ namespace OpenSim.Data.SQLite
             newSettings.ParcelImageID = new UUID((String)row["parcel_tile_ID"]);
             newSettings.GodBlockSearch = Convert.ToBoolean(row["block_search"]);
             newSettings.Casino = Convert.ToBoolean(row["casino"]);
-            if (!(row["cacheID"] is System.DBNull))
+            if (row["cacheID"] is not System.DBNull)
                 newSettings.CacheID = new UUID((String)row["cacheID"]);
 
             return newSettings;
@@ -2393,7 +2396,7 @@ namespace OpenSim.Data.SQLite
 
             s.ExtraParams = (byte[])row["ExtraParams"];
 
-            if (!(row["Media"] is System.DBNull))
+            if (row["Media"] is not System.DBNull)
                 s.Media = PrimitiveBaseShape.MediaList.FromXml((string)row["Media"]);
 
             return s;
@@ -2441,7 +2444,7 @@ namespace OpenSim.Data.SQLite
             row["Texture"] = s.TextureEntry;
             row["ExtraParams"] = s.ExtraParams;
 
-            if (s.Media != null)
+            if (s.Media is not null)
                 row["Media"] = s.Media.ToXml();
         }
 

@@ -92,19 +92,15 @@ namespace OpenSim.Data.MySQL
 
         private IDataReader ExecuteReader(MySqlCommand c)
         {
-            IDataReader r = null;
-
             try
             {
-                r = c.ExecuteReader();
+                return c.ExecuteReader();
             }
             catch (Exception e)
             {
                 m_log.ErrorFormat("{0} MySQL error in ExecuteReader: {1}", LogHeader, e);
                 throw;
             }
-
-            return r;
         }
 
         private void ExecuteNonQuery(MySqlCommand c)
@@ -298,17 +294,17 @@ namespace OpenSim.Data.MySQL
                             sb.Append("IN (");
                             for(int i = 0; i < uuids.Count - 1; ++i )
                             {
-                                sb.Append("'");
+                                sb.Append('\'');
                                 sb.Append(uuids[i]);
                                 sb.Append("',");
                             }
-                            sb.Append("'");
+                            sb.Append('\'');
                             sb.Append(uuids[uuids.Count - 1]);
                             sb.Append("')");
                             sqlparams = sb.ToString();
                         }
                         else
-                            sqlparams = "='" + uuids[0] + "'";
+                            sqlparams = $"='{uuids[0]}'";
 
                         cmd.CommandText = "delete from primshapes where UUID " + sqlparams;
                         ExecuteNonQuery(cmd);
@@ -1095,9 +1091,9 @@ namespace OpenSim.Data.MySQL
             else
                 prim.SoundFlags = 1; // If it's persisted at all, it's looped
 
-            if (!(row["TextureAnimation"] is DBNull))
+            if (row["TextureAnimation"] is not DBNull)
                 prim.TextureAnimation = (byte[])row["TextureAnimation"];
-            if (!(row["ParticleSystem"] is DBNull))
+            if (row["ParticleSystem"] is not DBNull)
                 prim.ParticleSystem = (byte[])row["ParticleSystem"];
 
             prim.SetCameraEyeOffset(new Vector3(
@@ -1122,7 +1118,7 @@ namespace OpenSim.Data.MySQL
 
             prim.Material = unchecked((byte)(sbyte)row["Material"]);
 
-            if (!(row["ClickAction"] is DBNull))
+            if (row["ClickAction"] is not DBNull)
                 prim.ClickAction = unchecked((byte)(sbyte)row["ClickAction"]);
 
             prim.CollisionSound = DBGuid.FromDB(row["CollisionSound"]);
@@ -1132,10 +1128,10 @@ namespace OpenSim.Data.MySQL
             prim.PassCollisions = ((sbyte)row["PassCollisions"] != 0);
             prim.LinkNum = (int)row["LinkNumber"];
 
-            if (!(row["MediaURL"] is System.DBNull))
+            if (row["MediaURL"] is not System.DBNull)
                 prim.MediaUrl = (string)row["MediaURL"];
 
-            if (!(row["AttachedPosX"] is System.DBNull))
+            if (row["AttachedPosX"] is not System.DBNull)
             {
                 prim.AttachedPos = new Vector3(
                     (float)row["AttachedPosX"],
@@ -1144,14 +1140,14 @@ namespace OpenSim.Data.MySQL
                     );
             }
 
-            if (!(row["DynAttrs"] is System.DBNull))
+            if (row["DynAttrs"] is not System.DBNull)
                 prim.DynAttrs = DAMap.FromXml((string)row["DynAttrs"]);
             else
                 prim.DynAttrs = null;
 
-            if (!(row["KeyframeMotion"] is DBNull))
+            if (row["KeyframeMotion"] is not DBNull)
             {
-                Byte[] data = (byte[])row["KeyframeMotion"];
+                byte[] data = (byte[])row["KeyframeMotion"];
                 if (data.Length > 0)
                     prim.KeyframeMotion = KeyframeMotion.FromData(null, data);
                 else
@@ -1169,11 +1165,9 @@ namespace OpenSim.Data.MySQL
             prim.Restitution = (float)row["Restitution"];
             prim.RotationAxisLocks = (byte)Convert.ToInt32(row["RotationAxisLocks"].ToString());
 
-            SOPVehicle vehicle = null;
-
             if (row["Vehicle"].ToString() != String.Empty)
             {
-                vehicle = SOPVehicle.FromXml2(row["Vehicle"].ToString());
+                SOPVehicle vehicle = SOPVehicle.FromXml2(row["Vehicle"].ToString());
                 if (vehicle != null)
                     prim.VehicleParams = vehicle;
             }
@@ -1183,9 +1177,9 @@ namespace OpenSim.Data.MySQL
                 pdata = PhysicsInertiaData.FromXml2(row["PhysInertia"].ToString());
             prim.PhysicsInertia = pdata;
 
-            if (!(row["sopanims"] is DBNull))
+            if (row["sopanims"] is not DBNull)
             {
-                Byte[] data = (byte[])row["sopanims"];
+                byte[] data = (byte[])row["sopanims"];
                 if (data.Length > 0)
                     prim.DeSerializeAnimations(data);
                 else
@@ -1306,7 +1300,7 @@ namespace OpenSim.Data.MySQL
             newSettings.GodBlockSearch = Convert.ToBoolean(row["block_search"]);
             newSettings.Casino = Convert.ToBoolean(row["casino"]);
 
-            if (!(row["cacheID"] is DBNull))
+            if (row["cacheID"] is not DBNull)
                 newSettings.CacheID = DBGuid.FromDB(row["cacheID"]);
 
 
@@ -1350,11 +1344,9 @@ namespace OpenSim.Data.MySQL
             newData.MusicURL = (String) row["MusicURL"];
             newData.PassHours = Convert.ToSingle(row["PassHours"]);
             newData.PassPrice = Convert.ToInt32(row["PassPrice"]);
-            UUID authedbuyer = UUID.Zero;
-            UUID snapshotID = UUID.Zero;
 
-            UUID.TryParse((string)row["AuthBuyerID"], out authedbuyer);
-            UUID.TryParse((string)row["SnapshotUUID"], out snapshotID);
+            UUID.TryParse((string)row["AuthBuyerID"], out UUID authedbuyer);
+            UUID.TryParse((string)row["SnapshotUUID"], out UUID snapshotID);
             newData.OtherCleanTime = Convert.ToInt32(row["OtherCleanTime"]);
             newData.Dwell = Convert.ToSingle(row["Dwell"]);
 
@@ -1378,20 +1370,24 @@ namespace OpenSim.Data.MySQL
 
             newData.MediaDescription = (string) row["MediaDescription"];
             newData.MediaType = (string) row["MediaType"];
-            newData.MediaWidth = Convert.ToInt32((((string) row["MediaSize"]).Split(','))[0]);
-            newData.MediaHeight = Convert.ToInt32((((string) row["MediaSize"]).Split(','))[1]);
+            string[] sizes = ((string)row["MediaSize"]).Split(',');
+            if (sizes.Length > 1)
+            {
+                newData.MediaWidth = Convert.ToInt32(sizes[0]);
+                newData.MediaHeight = Convert.ToInt32(sizes[1]);
+            }
             newData.MediaLoop = Convert.ToBoolean(row["MediaLoop"]);
             newData.ObscureMusic = Convert.ToBoolean(row["ObscureMusic"]);
             newData.ObscureMedia = Convert.ToBoolean(row["ObscureMedia"]);
 
             newData.ParcelAccessList = new List<LandAccessEntry>();
 
-            if (!(row["SeeAVs"] is System.DBNull))
-                newData.SeeAVs = Convert.ToInt32(row["SeeAVs"]) != 0 ? true : false;
-            if (!(row["AnyAVSounds"] is System.DBNull))
-                newData.AnyAVSounds = Convert.ToInt32(row["AnyAVSounds"]) != 0 ? true : false;
-            if (!(row["GroupAVSounds"] is System.DBNull))
-                newData.GroupAVSounds = Convert.ToInt32(row["GroupAVSounds"]) != 0 ? true : false;
+            if (row["SeeAVs"] is not System.DBNull)
+                newData.SeeAVs = Convert.ToInt32(row["SeeAVs"]) != 0;
+            if (row["AnyAVSounds"] is not System.DBNull)
+                newData.AnyAVSounds = Convert.ToInt32(row["AnyAVSounds"]) != 0;
+            if (row["GroupAVSounds"] is not System.DBNull)
+                newData.GroupAVSounds = Convert.ToInt32(row["GroupAVSounds"]) != 0;
 
             if (row["environment"] is DBNull)
             {
@@ -1831,7 +1827,7 @@ namespace OpenSim.Data.MySQL
             s.State = (byte)(int)row["State"];
             s.LastAttachPoint = (byte)(int)row["LastAttachPoint"];
 
-            if (!(row["Media"] is System.DBNull))
+            if (row["Media"] is not System.DBNull)
                 s.Media = PrimitiveBaseShape.MediaList.FromXml((string)row["Media"]);
 
             return s;
@@ -1951,7 +1947,7 @@ namespace OpenSim.Data.MySQL
                         {
                             while (reader.Read())
                             {
-                                UUID id = new UUID(reader["UUID"].ToString());
+                                UUID id = new UUID(reader["UUID"].ToString().AsSpan());
 
                                 uuids.Add(id);
                             }
