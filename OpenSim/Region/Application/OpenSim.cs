@@ -300,6 +300,8 @@ namespace OpenSim
                                             + "       without this option, skip loading that object\n"
                                             + "--skip-assets will load the OAR but ignore the assets it contains.\n"
                                             + "--lookup-aliases will lookup aliases for local users and update creator/owner/last owner information accordingly.\n"
+                                            + "--allow-reassign allow reassignment of creator/owner/lastowner to the region owner/default user\n"
+                                            + "       if no local user (or alias) is found. Default is false\n"
                                             + "--default-user will use this user for any objects with an owner whose UUID is not found in the grid.\n"
                                             + "--no-objects suppresses the addition of any objects (good for loading only the terrain).\n"
                                             + "--rotation specified rotation to be applied to the oar. Specified in degrees.\n"

@@ -943,19 +943,26 @@
 [Economy]
     ; the economy module in use
     ; To use other modules you need to override this setting
+    ; EconomyModule  = BetaGridLikeMoneyModule, DTLNSLMoneyModule, Gloebit, None
     ; economymodule = BetaGridLikeMoneyModule
+    ; EconomyModule = DTLNSLMoneyModule
+    ; EconomyModule = Gloebit
 
+    ; Set this if you want HG vsitors to transact local currency
+    ; HGAvatarAs     = "hgavatar"
+
+    ; Generate Alerts on Region Entry
+    ; SendAlert      = false;
+    
     ; the url of the economy service.
     ; this must match the grid economy setting (also known as helperURI or CurrencyServer, etc)
-    ; economy = https://the.currency.machine.fdqn:port/folder/folder...
+    ; EconomyHelper = https://the.currency.machine.fdqn:port/folder/folder...
 
     ;# {SellEnabled} {} {Enable selling for 0?} {true false} true
     ; The default economy module only implements just enough to allow free actions (transfer of objects, etc).
     ; There is no intention to implement anything further in core OpenSimulator.
     ; This functionality has to be provided by third party modules.
-
-    ;; Enables selling things for $0.  Default is true.
-    ; SellEnabled = true
+    SellEnabled    = true
 
     ;# {PriceUpload} {} {Price for uploading?} {} 0
     ;; Money Unit fee to upload textures, animations etc.  Default is 0.
@@ -964,6 +971,23 @@
     ;# {PriceGroupCreate} {} {Fee for group creation} {} 0
     ;; Money Unit fee to create groups.  Default is 0.
     ; PriceGroupCreate = 0
+        
+    ; If you're using the DTL Money Module the following setting provide configuration
+    ; for the associated money server that manages money transactions grid-wide.
+    ;
+    ; CurrencyServer = "${Const|BaseURL}:8008/"
+    ; UserServer     = "${Const|BaseURL}:${Const|PublicPort}"
+
+    ;; CA
+    ; CheckServerCert = false
+    ; CACertFilename  = ""
+    ; CACertPassword  = ""
+
+    ;; Client Cert
+    ; CheckClientCert    = false
+    ; ClientCertFilename = ""
+    ; ClientCertPassword = ""    
+
 
 [YEngine]
     ;; implements non preemptive microthreading, so fixing problems like llSleep or long events handlers
