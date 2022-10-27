@@ -289,7 +289,7 @@ namespace OpenSim.Data.SQLite
             metadata.CreatorID = row["CreatorID"].ToString();
 
             // Current SHA1s are not stored/computed.
-            metadata.SHA1 = new byte[] {};
+            metadata.SHA1 = Array.Empty<byte>();
 
             return metadata;
         }

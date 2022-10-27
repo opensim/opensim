@@ -521,7 +521,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             if (!m_OutboundPermission && !UserManagementModule.IsLocalGridUser(sp.UUID))
             {
-                if (sog.OwnerID == sp.UUID)
+                if (sog.OwnerID.Equals(sp.UUID))
                     return true;
                 return false;
             }

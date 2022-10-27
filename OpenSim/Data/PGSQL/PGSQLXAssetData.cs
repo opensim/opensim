@@ -63,7 +63,7 @@ namespace OpenSim.Data.PGSQL
         /// <summary>
         /// We can reuse this for all hashing since all methods are single-threaded through m_dbBLock
         /// </summary>
-        private HashAlgorithm hasher = new SHA256CryptoServiceProvider();
+        private HashAlgorithm hasher = SHA256.Create();
 
         #region IPlugin Members
 

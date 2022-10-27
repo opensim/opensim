@@ -215,6 +215,7 @@ namespace OpenSim.Framework
             AddinManager.AddinLoadError += on_addinloaderror_;
             AddinManager.AddinLoaded += on_addinloaded_;
 
+            //suppress_console_output_(true);
             AddinManager.Initialize(dir);
             AddinManager.Registry.Update(null);
         }
@@ -233,6 +234,21 @@ namespace OpenSim.Framework
                 log.Error("[PLUGINS]: Plugin Error: "
                         + args.Exception.Message + "\n"
                         + args.Exception.StackTrace);
+        }
+
+        private static TextWriter prev_console_;
+        public void suppress_console_output_(bool save)
+        {
+            if (save)
+            {
+                prev_console_ = System.Console.Out;
+                System.Console.SetOut(new StreamWriter(Stream.Null));
+            }
+            else
+            {
+                if (prev_console_ != null)
+                    System.Console.SetOut(prev_console_);
+            }
         }
     }
 

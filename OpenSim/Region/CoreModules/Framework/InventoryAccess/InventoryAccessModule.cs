@@ -27,15 +27,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Net;
-using System.Xml;
+using System.Globalization;
 using System.Reflection;
-using System.Text;
-using System.Threading;
 
 using OpenSim.Framework;
-using OpenSim.Framework.Capabilities;
-using OpenSim.Framework.Client;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Serialization;
@@ -161,7 +156,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
         #endregion
 
-        private readonly byte[]  DEFAULTSCRIPT = osUTF8.GetASCIIBytes("default\n{\n    state_entry()\n    {\n        llSay(0, \"Script running\");\n    }\n}");
+        //private readonly byte[]  DEFAULTSCRIPT = osUTF8.GetASCIIBytes("default\n{\n    state_entry()\n    {\n        llSay(0, \"Script running\");\n    }\n}");
         #region Inventory Access
 
         /// <summary>
@@ -213,29 +208,36 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 }
             }
 
-            ScenePresence presence;
-            if (m_Scene.TryGetScenePresence(remoteClient.AgentId, out presence))
+            if (m_Scene.TryGetScenePresence(remoteClient.AgentId, out ScenePresence presence))
             {
-                byte[] data = null;
                 uint everyonemask = 0;
                 uint groupmask = 0;
                 uint flags = 0;
 
                 if (invType == (sbyte)InventoryType.Landmark && presence != null)
                 {
-                    string suffix = string.Empty, prefix = string.Empty;
-                    string strdata = GenerateLandmark(presence, out prefix, out suffix);
-                    data = Encoding.ASCII.GetBytes(strdata);
+                    string strdata = GenerateLandmark(presence, out string prefix, out string suffix);
+                    byte[] data = osUTF8.GetASCIIBytes(strdata);
                     name = prefix + name;
                     description += suffix;
                     groupmask = (uint)PermissionMask.AllAndExport;
-                    everyonemask = (uint)(PermissionMask.AllAndExport & ~PermissionMask.Modify);                   
+                    everyonemask = (uint)(PermissionMask.AllAndExport & ~PermissionMask.Modify);
+
+                    AssetBase asset = m_Scene.CreateAsset(name, description, assetType, data, remoteClient.AgentId);
+                    m_Scene.AssetService.Store(asset);
+                    m_Scene.CreateNewInventoryItem(
+                        remoteClient, remoteClient.AgentId.ToString(), string.Empty, folderID,
+                        name, description, flags, callbackID, asset.FullID, asset.Type, invType,
+                        (uint)PermissionMask.AllAndExport, (uint)PermissionMask.AllAndExport,
+                        everyonemask, nextOwnerMask, groupmask,
+                        creationDate, false); // Data from viewer
+                    return;
                 }
-                if(assetType == (sbyte)AssetType.Settings)
+                switch (assetType)
                 {
-                    flags = subType;
-                    if (data == null)
+                    case (sbyte)AssetType.Settings:
                     {
+                        flags = subType;
                         IEnvironmentModule envModule = m_Scene.RequestModuleInterface<IEnvironmentModule>();
                         if(envModule == null)
                             return;
@@ -254,25 +256,41 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                                 creationDate, false); // Data from viewer
                         return;
                     }
-                }
-                else if( assetType == (byte)AssetType.LSLText)
-                {
-                    if(data == null)
-                        data = DEFAULTSCRIPT;
-                }
-                else if( assetType == (byte)AssetType.Clothing ||
-                         assetType == (byte)AssetType.Bodypart)
-                    flags = subType;
+                    case (sbyte)AssetType.LSLText:
+                    {
+                        m_Scene.CreateNewInventoryItem(
+                                remoteClient, remoteClient.AgentId.ToString(), string.Empty, folderID,
+                                name, description, flags, callbackID, Constants.DefaultScriptID, (sbyte)AssetType.LSLText, invType,
+                                (uint)PermissionMask.AllAndExport, (uint)PermissionMask.AllAndExport,
+                                everyonemask, nextOwnerMask, groupmask,
+                                creationDate, false); // Data from viewer
+                        return;
+                    }
+                    case (sbyte)AssetType.Notecard:
+                    {
+                        m_Scene.CreateNewInventoryItem(
+                                remoteClient, remoteClient.AgentId.ToString(), string.Empty, folderID,
+                                name, description, flags, callbackID, Constants.EmptyNotecardID, (sbyte)AssetType.Notecard, invType,
+                                (uint)PermissionMask.AllAndExport, (uint)PermissionMask.AllAndExport,
+                                everyonemask, nextOwnerMask, groupmask,
+                                creationDate, false); // Data from viewer
+                        return;
+                    }
 
-                AssetBase asset = m_Scene.CreateAsset(name, description, assetType, data, remoteClient.AgentId);
-                m_Scene.AssetService.Store(asset);
+                    case (sbyte)AssetType.Clothing:
+                    case (sbyte)AssetType.Bodypart:
+                        flags = subType;
+                        break;
+                    default:
+                        break;
+                }
+
                 m_Scene.CreateNewInventoryItem(
                         remoteClient, remoteClient.AgentId.ToString(), string.Empty, folderID,
-                        name, description, flags, callbackID, asset.FullID, asset.Type, invType,
-                        (uint)PermissionMask.AllAndExport, // Base
-                        (uint)PermissionMask.AllAndExport, // Current
-                        everyonemask,
-                        nextOwnerMask, groupmask, creationDate, false); // Data from viewer
+                        name, description, flags, callbackID, UUID.Zero, assetType, invType,
+                        (uint)PermissionMask.AllAndExport, (uint)PermissionMask.AllAndExport,
+                        everyonemask, nextOwnerMask, groupmask,
+                        creationDate, false); // Data from viewer
             }
             else
             {
@@ -287,7 +305,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             prefix = string.Empty;
             suffix = string.Empty;
             Vector3 pos = presence.AbsolutePosition;
-            return String.Format(Culture.FormatProvider, "Landmark version 2\nregion_id {0}\nlocal_pos {1} {2} {3}\nregion_handle {4}\n",
+            return String.Format(CultureInfo.InvariantCulture.NumberFormat, "Landmark version 2\nregion_id {0}\nlocal_pos {1} {2} {3}\nregion_handle {4}\n",
                                 presence.Scene.RegionInfo.RegionID,
                                 pos.X, pos.Y, pos.Z,
                                 presence.RegionHandle);
@@ -370,13 +388,24 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 }
                 case InventoryType.Settings:
                 {
-                    if((item.CurrentPermissions & (uint)PermissionMask.Modify) == 0)
+                    if ((item.CurrentPermissions & (uint)PermissionMask.Modify) == 0)
                     {
                         remoteClient.SendAgentAlertMessage("Insufficient permissions to edit setting", false);
                         return UUID.Zero;
                     }
 
                     remoteClient.SendAlertMessage("Setting updated");
+                    break;
+                }
+                case InventoryType.Material:
+                {
+                    if ((item.CurrentPermissions & (uint)PermissionMask.Modify) == 0)
+                    {
+                        remoteClient.SendAgentAlertMessage("Insufficient permissions to edit setting", false);
+                        return UUID.Zero;
+                    }
+
+                    remoteClient.SendAlertMessage("Material updated");
                     break;
                 }
             }
@@ -964,25 +993,18 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             byte bRayEndIsIntersection = (byte)(RayEndIsIntersection ? 1 : 0);
             Vector3 pos;
 
-            bool single
-                = m_Scene.GetObjectsToRez(
+            bool single = m_Scene.GetObjectsToRez(
                     rezAsset.Data, attachment, out objlist, out veclist, out bbox, out offsetHeight);
 
+            pos = m_Scene.GetNewRezLocation(RayStart, RayEnd,
+                    RayTargetID, Quaternion.Identity,
+                    BypassRayCast, bRayEndIsIntersection, true,
+                    bbox, false);
+
             if (single)
-            {
-                pos = m_Scene.GetNewRezLocation(
-                    RayStart, RayEnd, RayTargetID, Quaternion.Identity,
-                    BypassRayCast, bRayEndIsIntersection, true, bbox, false);
                 pos.Z += offsetHeight;
-            }
             else
-            {
-                pos = m_Scene.GetNewRezLocation(RayStart, RayEnd,
-                        RayTargetID, Quaternion.Identity,
-                        BypassRayCast, bRayEndIsIntersection, true,
-                        bbox, false);
                 pos -= bbox / 2;
-            }
 
             int primcount = 0;
             if(attachment)
@@ -1008,7 +1030,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     primcount += g.PrimCount;
             }
 
-
             if (!m_Scene.Permissions.CanRezObject(
                 primcount, remoteClient.AgentId, pos)
                 && !attachment)
@@ -1017,13 +1038,12 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 // have already removed the item from the folder
                 // if it's no copy.
                 // Put it back if it's not an attachment
-                //
+
                 if (item != null)
                 {
                     if (((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0) && (!attachment))
                         remoteClient.SendBulkUpdateInventory(item);
                 }
-
                 return null;
             }
 

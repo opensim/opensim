@@ -104,7 +104,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Tests
 
             m_scene.EventManager.OnChatFromWorld += OnChatFromWorld;
 
-            SceneObjectPart partWhereRezzed = m_scene.RezNewScript(userId, itemTemplate);
+            SceneObjectPart partWhereRezzed = m_scene.RezNewScript(userId, itemTemplate, Constants.DefaultScriptText);
 
             m_chatEvent.WaitOne(60000);
 

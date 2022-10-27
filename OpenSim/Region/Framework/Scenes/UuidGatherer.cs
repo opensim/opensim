@@ -407,6 +407,14 @@ namespace OpenSim.Region.Framework.Scenes
                     if (part.Shape.ProjectionTextureUUID.IsNotZero())
                         GatheredUuids[part.Shape.ProjectionTextureUUID] = (sbyte)AssetType.Texture;
 
+                    if(part.Shape.RenderMaterials != null && part.Shape.RenderMaterials.entries != null)
+                    {
+                        for(int j = 0; j < part.Shape.RenderMaterials.entries.Length; ++j)
+                        {
+                            if(part.Shape.RenderMaterials.entries[j].id.IsNotZero())
+                                AddForInspection(part.Shape.RenderMaterials.entries[j].id, (sbyte)AssetType.Material);
+                        }
+                    }
                     UUID collisionSound = part.CollisionSound;
                     if (collisionSound.IsNotZero() && collisionSound.NotEqual(part.invalidCollisionSoundUUID))
                         GatheredUuids[collisionSound] = (sbyte)AssetType.Sound;
@@ -581,33 +589,36 @@ namespace OpenSim.Region.Framework.Scenes
             GatheredUuids[assetUuid] = assetType;
             try
             {
-                if ((sbyte)AssetType.Bodypart == assetType || (sbyte)AssetType.Clothing == assetType)
+                switch ((AssetType)assetType)
                 {
-                    RecordWearableAssetUuids(assetBase);
-                }
-                else if ((sbyte)AssetType.Gesture == assetType)
-                {
-                    RecordGestureAssetUuids(assetBase);
-                }
-                else if ((sbyte)AssetType.Notecard == assetType)
-                {
-                    RecordNoteCardEmbeddedAssetUuids(assetBase);
-                }
-                else if ((sbyte)AssetType.LSLText == assetType)
-                {
-                    RecordEmbeddedAssetDataUuids(assetBase);
-                }
-                else if ((sbyte)OpenSimAssetType.Material == assetType)
-                {
-                    RecordMaterialAssetUuids(assetBase);
-                }
-                else if ((sbyte)AssetType.Object == assetType)
-                {
-                    RecordSceneObjectAssetUuids(assetBase);
-                }
-                else if ((sbyte)AssetType.Settings == assetType)
-                {
-                    RecordEmbeddedAssetDataUuids(assetBase); // BAD to do
+                    case AssetType.Bodypart:
+                    case AssetType.Clothing:
+                        RecordWearableAssetUuids(assetBase);
+                        break;
+                    case AssetType.Gesture:
+                        RecordGestureAssetUuids(assetBase);
+                        break;
+                    case AssetType.Notecard:
+                        RecordNoteCardEmbeddedAssetUuids(assetBase);
+                        break;
+                    case AssetType.LSLText:
+                        RecordEmbeddedAssetDataUuids(assetBase);
+                        break;
+                    case (AssetType)OpenSimAssetType.Material:
+                        RecordMaterialAssetUuids(assetBase);
+                        break;
+                    case AssetType.Object:
+                        RecordSceneObjectAssetUuids(assetBase);
+                        break;
+                    case AssetType.Settings:
+                        RecordEmbeddedAssetDataUuids(assetBase); // BAD to do
+                        break;
+                    case AssetType.Material:
+                        RecordEmbeddedAssetDataUuids(assetBase);
+                        break;
+
+                    default:
+                        break;
                 }
             }
             catch (Exception e)
@@ -645,7 +656,8 @@ namespace OpenSim.Region.Framework.Scenes
                     || (sbyte)AssetType.LSLText == assetType
                     || (sbyte)OpenSimAssetType.Material == assetType
                     || (sbyte)AssetType.Object == assetType
-                    || (sbyte)AssetType.Settings == assetType)
+                    || (sbyte)AssetType.Settings == assetType
+                    || (sbyte)AssetType.Material == assetType)
                 {
                     AddForInspection(assetUuid);
                 }

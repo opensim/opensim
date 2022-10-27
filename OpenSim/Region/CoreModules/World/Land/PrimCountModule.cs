@@ -216,7 +216,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 if (obj.IsSelected || obj.GetSittingAvatarsCount() > 0)
                     parcelCounts.Selected += partCount;
 
-                if (obj.OwnerID == landData.OwnerID)
+                if (obj.OwnerID.Equals(landData.OwnerID))
                     parcelCounts.Owner += partCount;
                 else if (!landData.GroupID.IsZero() && obj.GroupID.Equals(landData.GroupID))
                     parcelCounts.Group += partCount;
