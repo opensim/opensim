@@ -246,7 +246,7 @@ namespace OpenSim.Data.MySQL
                     }
 
                     byte[] hash;
-                    using (HashAlgorithm hasher = new SHA256CryptoServiceProvider())
+                    using (HashAlgorithm hasher = SHA256.Create())
                         hash = hasher.ComputeHash(asset.Data);
 
 //                        m_log.DebugFormat(

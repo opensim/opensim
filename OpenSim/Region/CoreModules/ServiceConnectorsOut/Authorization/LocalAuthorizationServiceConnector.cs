@@ -43,9 +43,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "LocalAuthorizationServicesConnector")]
     public class LocalAuthorizationServicesConnector : INonSharedRegionModule, IAuthorizationService
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IAuthorizationService m_AuthorizationService;
         private Scene m_Scene;
@@ -106,7 +104,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
             if (!m_Enabled)
                 return;
 
-            m_AuthorizationService = new AuthorizationService(m_AuthorizationConfig, m_Scene);
+            m_AuthorizationService = new AuthorizationService(m_AuthorizationConfig, scene);
 
             m_log.InfoFormat(
                 "[AUTHORIZATION CONNECTOR]: Enabled local authorization for region {0}",

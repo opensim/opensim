@@ -46,8 +46,8 @@ namespace OpenSim.Framework.Console
 
         override protected void Append(LoggingEvent le)
         {
-            if (m_console != null)
-                m_console.LockOutput();
+            //if (m_console != null)
+            //    m_console.LockOutput();
 
             string loggingMessage = RenderLoggingEvent(le);
 
@@ -78,11 +78,13 @@ namespace OpenSim.Framework.Console
             {
                 System.Console.WriteLine("Couldn't write out log message: {0}", e.ToString());
             }
+            /*
             finally
             {
                 if (m_console != null)
                     m_console.UnlockOutput();
             }
+            */
         }
     }
 }

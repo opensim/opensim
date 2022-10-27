@@ -1656,7 +1656,6 @@ namespace OpenSim.Region.CoreModules.Asset
 
         public void Get(string id, string ForeignAssetService, bool StoreOnLocalGrid, SimpleAssetRetrieved callBack)
         {
-            return;
         }
 
         public bool[] AssetsExist(string[] ids)

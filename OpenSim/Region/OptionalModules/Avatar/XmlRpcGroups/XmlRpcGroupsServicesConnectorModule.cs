@@ -1171,10 +1171,10 @@ namespace Nwc.XmlRpc
                         {
                             resp = (XmlRpcResponse)_deserializer.Deserialize(inputXml);
                         }
-                        catch (Exception e)
+                        catch
                         {
                             RequestResponse = inputXml;
-                            throw e;
+                            throw;
                         }
                     }
                 }
