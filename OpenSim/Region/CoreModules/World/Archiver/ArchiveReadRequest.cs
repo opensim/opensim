@@ -124,6 +124,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// </summary>
         protected bool m_lookupAliases;
 
+        /// <summary>
+        /// Should we reassign unknown ids to the region owner?
+        /// </summary>
+        protected bool m_allowReassign;
+
         /// <value>
         /// Displacement added to each object as it is added to the world
         /// </value>
@@ -233,6 +238,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_noObjects = options.ContainsKey("no-objects");
             m_skipAssets = options.ContainsKey("skipAssets");
             m_lookupAliases = options.ContainsKey("lookupAliases");
+            m_allowReassign = options.ContainsKey("allowReassign");
             m_requestId = requestId;
             m_displacement = options.ContainsKey("displacement") ? (Vector3)options["displacement"] : Vector3.Zero;
             m_rotation = options.ContainsKey("rotation") ? (float)options["rotation"] : 0f;
@@ -290,6 +296,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_loadStream = loadStream;
             m_skipAssets = options.ContainsKey("skipAssets");
             m_lookupAliases = options.ContainsKey("lookupAliases");
+            m_allowReassign = options.ContainsKey("allowReassign");
             m_merge = options.ContainsKey("merge");
             m_mergeReplaceObjects = options.ContainsKey("mReplaceObjects");
             m_requestId = requestId;
@@ -785,127 +792,140 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         private void ModifySceneObject(Scene scene, SceneObjectGroup sceneObject)
         {
             // Try to retain the original creator/owner/lastowner if their uuid is present on this grid
-            // or creator data is present.  Otherwise, use the estate owner instead.
+            // If not and we are resolving aliases try that next.  If an alias is found use that and
+            // clear creatorData since its not relevant.  Finally if we still don't know who the user
+            // and there is no creatorData (for a HG user) assign the default user if allowReassign is true.
             foreach (SceneObjectPart part in sceneObject.Parts)
             {
-                if (string.IsNullOrEmpty(part.CreatorData))
+                if (ResolveUserUuid(scene, part.CreatorID) == false)
                 {
-                    if (ResolveUserUuid(scene, part.CreatorID) == false)
+                    if ((m_lookupAliases == true) &&
+                        (ResolveUserAlias(scene, part.CreatorID, out UUID userID) == true))
                     {
-                        if (m_lookupAliases == true)
-                        {
-                            if (ResolveUserAlias(scene, part.CreatorID, out UUID userID))
-                                part.CreatorID = userID;
-                            else
-                                part.CreatorID = m_defaultUser;
-                        }
-                        else
-                        {
-                            part.CreatorID = m_defaultUser;
-                        }
+                        part.CreatorID = userID;
+                        part.CreatorData = null;
+                    }
+                    else if ((m_allowReassign == true) && string.IsNullOrEmpty(part.CreatorData))
+                    {
+                        part.CreatorID = m_defaultUser;
                     }
                 }
 
-                if (UserManager != null)
+                // If the userid is not null (bad data happens) and there is CreatorData
+                // Add the user to the GridUsers creator table.
+                if ((UserManager != null) && 
+                    ((part.CreatorID != UUID.Zero) && (part.CreatorData != null)))
                 {
                     UserManager.AddCreatorUser(part.CreatorID, part.CreatorData);
                 }
 
-                if (!(ResolveUserUuid(scene, part.OwnerID) || ResolveGroupUuid(part.OwnerID)))
+                // If the Owner isnt a local user or group resolve aliases and
+                // reassignment as needed.
+                if ((ResolveUserUuid(scene, part.OwnerID) == false) &&
+                    (ResolveGroupUuid(part.OwnerID) == false))
                 {
-                    if (m_lookupAliases == true)
+                    if ((m_lookupAliases == true) &&
+                        (ResolveUserAlias(scene, part.OwnerID, out UUID userID) == true))
                     {
-                        if (ResolveUserAlias(scene, part.OwnerID, out UUID userID))
-                            part.OwnerID = userID;
-                        else
-                            part.OwnerID = m_defaultUser;
+                        part.OwnerID = userID;
                     }
-                    else
+                    else if (m_allowReassign == true)
                     {
                         part.OwnerID = m_defaultUser;
                     }
                 }
-
-                if (!(ResolveUserUuid(scene, part.LastOwnerID) || ResolveGroupUuid(part.LastOwnerID)))
+                // If the LastOwner isnt a local user or group resolve aliases and
+                // reassignment as needed.
+                if ((ResolveUserUuid(scene, part.LastOwnerID) == false) &&
+                    (ResolveGroupUuid(part.LastOwnerID) == false))
                 {
-                    if (m_lookupAliases == true)
+                    if ((m_lookupAliases == true) &&
+                        (ResolveUserAlias(scene, part.LastOwnerID, out UUID userID) == true))
                     {
-                        if (ResolveUserAlias(scene, part.LastOwnerID, out UUID userID))
-                            part.LastOwnerID = userID;
-                        else
-                            part.LastOwnerID = m_defaultUser;
+                        part.LastOwnerID = userID;
                     }
-                    else
+                    else if (m_allowReassign == true)
                     {
                         part.LastOwnerID = m_defaultUser;
                     }
                 }
 
+                // If we can't find a local group just zero it
                 if (!ResolveGroupUuid(part.GroupID))
                 {
                     part.GroupID = UUID.Zero;
                 }
 
-                // And zap any troublesome sit target information
-                //                    part.SitTargetOrientation = new Quaternion(0, 0, 0, 1);
-                //                    part.SitTargetPosition    = new Vector3(0, 0, 0);
-
-                // Fix ownership/creator of inventory items
-                // Not doing so results in inventory items
-                // being no copy/no mod for everyone
+                // Handle the stuff in Task Inventory
                 lock (part.TaskInventory)
                 {
-/* avination code disabled for opensim
-                    // And zap any troublesome sit target information
-                    part.SitTargetOrientation = new Quaternion(0, 0, 0, 1);
-                    part.SitTargetPosition = new Vector3(0, 0, 0);
-*/
                     // Fix ownership/creator of inventory items
                     // Not doing so results in inventory items
                     // being no copy/no mod for everyone
                     part.TaskInventory.LockItemsForRead(true);
-
                     TaskInventoryDictionary inv = part.TaskInventory;
+
                     foreach (KeyValuePair<UUID, TaskInventoryItem> kvp in inv)
                     {
-                        if (!(ResolveUserUuid(scene, kvp.Value.OwnerID) || ResolveGroupUuid(kvp.Value.OwnerID)))
+                        // Try to retain the original creator/owner/lastowner if their uuid is present on this grid
+                        // If not and we are resolving aliases try that next.  If an alias is found use that and
+                        // clear creatorData since its not relevant.  Finally if we still don't know who the user
+                        // and there is no creatorData (for a HG user) assign the default user if allowReassign is true.
+                        if (ResolveUserUuid(scene, kvp.Value.CreatorID) == false)
                         {
-                            if (m_lookupAliases == true)
+                            if ((m_lookupAliases == true) &&
+                                (ResolveUserAlias(scene, kvp.Value.CreatorID, out UUID userID) == true))
                             {
-                                if (ResolveUserAlias(scene, kvp.Value.OwnerID, out UUID userID))
-                                    kvp.Value.OwnerID = userID;
-                                else
-                                    kvp.Value.OwnerID = m_defaultUser;
+                                kvp.Value.CreatorID = userID;
+                                kvp.Value.CreatorData = null;
                             }
-                            else
+                            else if ((m_allowReassign == true) && string.IsNullOrEmpty(kvp.Value.CreatorData))
+                            {
+                                kvp.Value.CreatorID = m_defaultUser;
+                            }
+                        }
+
+                        // If the userid is not null (bad data happens) and there is CreatorData
+                        // Add the user to the GridUsers creator table.
+                        if ((UserManager != null) &&
+                            ((kvp.Value.CreatorID != UUID.Zero) && (kvp.Value.CreatorData != null)))
+                        {
+                            UserManager.AddCreatorUser(kvp.Value.CreatorID, kvp.Value.CreatorData);
+                        }
+
+                        // If the Owner isnt a local user or group resolve aliases and
+                        // reassignment as needed.
+                        if ((ResolveUserUuid(scene, kvp.Value.OwnerID) == false) &&
+                            (ResolveGroupUuid(kvp.Value.OwnerID) == false))
+                        {
+                            if ((m_lookupAliases == true) &&
+                                (ResolveUserAlias(scene, kvp.Value.OwnerID, out UUID userID) == true))
+                            {
+                                kvp.Value.OwnerID = userID;
+                            }
+                            else if (m_allowReassign == true)
                             {
                                 kvp.Value.OwnerID = m_defaultUser;
                             }
                         }
 
-                        if (string.IsNullOrEmpty(kvp.Value.CreatorData))
+                        // If the LastOwner isnt a local user or group resolve aliases and
+                        // reassignment as needed.
+                        if ((ResolveUserUuid(scene, kvp.Value.LastOwnerID) == false) &&
+                            (ResolveGroupUuid(kvp.Value.LastOwnerID) == false))
                         {
-                            if (!ResolveUserUuid(scene, kvp.Value.CreatorID))
+                            if ((m_lookupAliases == true) &&
+                                (ResolveUserAlias(scene, kvp.Value.LastOwnerID, out UUID userID) == true))
                             {
-                                if (m_lookupAliases == true)
-                                {
-                                    if (ResolveUserAlias(scene, kvp.Value.CreatorID, out UUID userID))
-                                        kvp.Value.CreatorID = userID;
-                                    else
-                                        kvp.Value.CreatorID = m_defaultUser;
-                                }
-                                else
-                                {
-                                    kvp.Value.CreatorID = m_defaultUser;
-                                }
+                                kvp.Value.LastOwnerID = userID;
+                            }
+                            else if (m_allowReassign == true)
+                            {
+                                kvp.Value.LastOwnerID = m_defaultUser;
                             }
                         }
 
-                        if (UserManager != null)
-                        {
-                            UserManager.AddCreatorUser(kvp.Value.CreatorID, kvp.Value.CreatorData);
-                        }
-
+                        // Local group isn't found set it to zero
                         if (!ResolveGroupUuid(kvp.Value.GroupID))
                         {
                             kvp.Value.GroupID = UUID.Zero;
