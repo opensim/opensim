@@ -306,8 +306,8 @@ namespace OpenSim.Services.InventoryService
 
         public InventoryItemBase[] GetMultipleItems(UUID[] ids)
         {
-            List<InventoryItemBase> items = new List<InventoryItemBase>();
-            foreach (UUID id in ids)
+            List<InventoryItemBase> items = new(ids.Length);
+            foreach (UUID id in ids.AsSpan())
             {
                 if (m_items.TryGetValue(id, out InventoryItemBase it))
                     items.Add(it);

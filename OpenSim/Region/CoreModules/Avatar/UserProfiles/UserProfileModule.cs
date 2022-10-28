@@ -883,13 +883,10 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         /// </param>
         public void PicksRequest(Object sender, string method, List<String> args)
         {
-            if (!(sender is IClientAPI))
+            if (sender is not IClientAPI remoteClient)
                 return;
 
-            IClientAPI remoteClient = (IClientAPI)sender;
-
-            UUID targetId;
-            if(!UUID.TryParse(args[0], out targetId))
+            if(!UUID.TryParse(args[0], out UUID targetId))
                 return;
 
             Dictionary<UUID, string> picks = new Dictionary<UUID, string>();

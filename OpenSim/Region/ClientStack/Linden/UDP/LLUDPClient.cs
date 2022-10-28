@@ -749,7 +749,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     LLUDPClient udpcli = this;
                     ThrottleOutPacketTypeFlags cats = categories;
-                    Action<LLUDPClient, ThrottleOutPacketTypeFlags> act = delegate
+                    void act(LLUDPClient arg1, ThrottleOutPacketTypeFlags arg2)
                     {
                         QueueEmpty callback = udpcli.OnQueueEmpty;
                         if (callback != null)
@@ -763,7 +763,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         udpcli.QueueEmptyRunning = false;
                         udpcli = null;
                         callback = null;
-                    };
+                    }
 
                     m_udpServer.OqrEngine.QueueJob(AgentID.ToString(), () => act(udpcli, cats));
                 }

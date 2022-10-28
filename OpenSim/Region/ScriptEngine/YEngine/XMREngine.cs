@@ -1551,15 +1551,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
                 bool curRunnning = instance.Running;
                 instance.m_Item.ScriptRunning = curRunnning;
-                IEventQueue eq = World.RequestModuleInterface<IEventQueue>();
-                if(eq == null)
-                {
-                    controllingClient.SendScriptRunningReply(objectID, itemID, curRunnning);
-                }
-                else
-                {
-                    eq.ScriptRunningEvent(objectID, itemID, curRunnning, controllingClient.AgentId);
-                }
+                controllingClient.SendScriptRunningReply(objectID, itemID, curRunnning);
             }
         }
 

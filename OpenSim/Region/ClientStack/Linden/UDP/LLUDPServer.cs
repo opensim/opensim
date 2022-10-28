@@ -513,13 +513,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void AddScene(IScene scene)
         {
-            if (Scene != null)
+            if (Scene is not null)
             {
                 m_log.Error("[LLUDPSERVER]: AddScene() called on an LLUDPServer that already has a scene");
                 return;
             }
 
-            if (!(scene is Scene))
+            if (scene is not OpenSim.Region.Framework.Scenes.Scene)
             {
                 m_log.Error($"[LLUDPSERVER]: AddScene() called with an unrecognized scene type {scene.GetType()}");
                 return;
