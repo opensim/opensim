@@ -2354,7 +2354,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             lock (SyncObject)
             {
                 m_rayCastManager.QueueRequest(req);
-                if (!Monitor.Wait(SyncObject, 10000))
+                if (!Monitor.Wait(SyncObject, 500))
                     return null;
                 else
                     return ourresults;
