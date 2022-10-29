@@ -511,7 +511,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 Buffer.BlockCopy(Utils.FloatToBytes(rate), 0, data, i, 4); i += 4;
 
                 rate = (float)m_throttleCategories[(int)ThrottleOutPacketType.Asset].RequestedDripRate * multiplier;
-                Buffer.BlockCopy(Utils.FloatToBytes(rate), 0, data, i, 4); i += 4;
+                Buffer.BlockCopy(Utils.FloatToBytes(rate), 0, data, i, 4); //i += 4;
 
                 m_packedThrottles = data;
             }
@@ -577,7 +577,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
 //            if (m_deliverPackets == false) return false;
 
-            OutgoingPacket packet = null;
+            OutgoingPacket packet;
             DoubleLocklessQueue<OutgoingPacket> queue;
             bool packetSent = false;
             ThrottleOutPacketTypeFlags emptyCategories = 0;
@@ -765,7 +765,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         callback = null;
                     }
 
-                    m_udpServer.OqrEngine.QueueJob(AgentID.ToString(), () => act(udpcli, cats));
+                    _ = m_udpServer.OqrEngine.QueueJob(AgentID.ToString(), () => act(udpcli, cats));
                 }
                 else
                     Util.FireAndForget(FireQueueEmpty, categories, "LLUDPClient.BeginFireQueueEmpty");
@@ -821,23 +821,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             ThrottleOutPacketType category = (ThrottleOutPacketType)i;
 
-            switch (category)
+            return category switch
             {
-                case ThrottleOutPacketType.Land:
-                    return ThrottleOutPacketTypeFlags.Land; // Terrain data
-                case ThrottleOutPacketType.Wind:
-                    return ThrottleOutPacketTypeFlags.Wind; // Wind data
-                case ThrottleOutPacketType.Cloud:
-                    return ThrottleOutPacketTypeFlags.Cloud; // Cloud data
-                case ThrottleOutPacketType.Task:
-                    return ThrottleOutPacketTypeFlags.Task; // Object updates and everything not on the other categories
-                case ThrottleOutPacketType.Texture:
-                    return ThrottleOutPacketTypeFlags.Texture; // Textures data (also impacts http texture and mesh by default)
-                case ThrottleOutPacketType.Asset:
-                    return ThrottleOutPacketTypeFlags.Asset; // Non-texture Assets data
-                default:
-                    return 0;
-            }
+                ThrottleOutPacketType.Land => ThrottleOutPacketTypeFlags.Land,// Terrain data
+                ThrottleOutPacketType.Wind => ThrottleOutPacketTypeFlags.Wind,// Wind data
+                ThrottleOutPacketType.Cloud => ThrottleOutPacketTypeFlags.Cloud,// Cloud data
+                ThrottleOutPacketType.Task => ThrottleOutPacketTypeFlags.Task,// Object updates and everything not on the other categories
+                ThrottleOutPacketType.Texture => ThrottleOutPacketTypeFlags.Texture,// Textures data (also impacts http texture and mesh by default)
+                ThrottleOutPacketType.Asset => ThrottleOutPacketTypeFlags.Asset,// Non-texture Assets data
+                _ => 0,
+            };
         }
     }
 
