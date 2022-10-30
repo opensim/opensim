@@ -14815,21 +14815,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                             break;
                         case ScriptBaseClass.OBJECT_VELOCITY:
-                            Vector3 vel = Vector3.Zero;
+                            Vector3 vel;
 
                             if (obj.ParentGroup.IsAttachment)
                             {
                                 ScenePresence sp = World.GetScenePresence(obj.ParentGroup.AttachedAvatar);
-
-                                if (sp != null)
-                                    vel = sp.GetWorldVelocity();
+                                vel = sp != null ? sp.GetWorldVelocity() : Vector3.Zero;
                             }
                             else
                             {
                                 vel = obj.Velocity;
                             }
 
-                            ret.Add(vel);
+                            ret.Add(new LSL_Vector(vel));
                             break;
                         case ScriptBaseClass.OBJECT_OWNER:
                             ret.Add(new LSL_String(obj.OwnerID.ToString()));
