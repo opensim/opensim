@@ -42,6 +42,7 @@ Now just run `OpenSim.exe` from the `bin` folder, and set up the region.
  
  if you have mono 6.x complete, you already have libgdiplus, otherwise you need to install it
  for example on debian:
+ 
  `apt-get update && apt-get install -y apt-utils libgdiplus libc6-dev`
 
 ### Building
