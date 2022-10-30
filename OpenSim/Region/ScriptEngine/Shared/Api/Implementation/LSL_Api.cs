@@ -14492,9 +14492,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (!UUID.TryParse(id, out UUID key) || key.IsZero())
                 return ret;
 
-            int count = 0;
+            int count;
             ScenePresence av = World.GetScenePresence(key);
-            if (av != null)
+            if (av is not null)
             {
                 List<SceneObjectGroup> Attachments = null;
                 int? nAnimated = null;
@@ -14503,7 +14503,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     switch (int.Parse(o.ToString()))
                     {
                         case ScriptBaseClass.OBJECT_NAME:
-                            ret.Add(new LSL_String(av.Firstname + " " + av.Lastname));
+                            ret.Add(new LSL_String($"{av.Firstname} {av.Lastname}"));
                             break;
                         case ScriptBaseClass.OBJECT_DESC:
                             ret.Add(new LSL_String(""));
@@ -14511,8 +14511,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         case ScriptBaseClass.OBJECT_POS:
                             Vector3 avpos;
 
-                            if (av.ParentID != 0 && av.ParentPart != null &&
-                                av.ParentPart.ParentGroup != null && av.ParentPart.ParentGroup.RootPart != null )
+                            if (av.ParentID != 0 && av.ParentPart is not null &&
+                                av.ParentPart.ParentGroup is not null && av.ParentPart.ParentGroup.RootPart is not null )
                             {
                                 avpos = av.OffsetPosition;
 
@@ -14528,7 +14528,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             else
                                 avpos = av.AbsolutePosition;
 
-                            ret.Add(new LSL_Vector((double)avpos.X, (double)avpos.Y, (double)avpos.Z));
+                            ret.Add(new LSL_Vector(avpos));
                             break;
                         case ScriptBaseClass.OBJECT_ROT:
                             Quaternion avrot = av.GetWorldRotation();
@@ -14536,7 +14536,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             break;
                         case ScriptBaseClass.OBJECT_VELOCITY:
                             Vector3 avvel = av.GetWorldVelocity();
-                            ret.Add(new LSL_Vector((double)avvel.X, (double)avvel.Y, (double)avvel.Z));
+                            ret.Add(new LSL_Vector(avvel));
                             break;
                         case ScriptBaseClass.OBJECT_OWNER:
                             ret.Add(new LSL_Key((string)id));
@@ -14577,14 +14577,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             break;
                         case ScriptBaseClass.OBJECT_ROOT:
                             SceneObjectPart p = av.ParentPart;
-                            if (p != null)
-                            {
+                            if (p is not null)
                                 ret.Add(new LSL_String(p.ParentGroup.RootPart.UUID.ToString()));
-                            }
                             else
-                            {
                                 ret.Add(new LSL_Key((string)id));
-                            }
                             break;
                         case ScriptBaseClass.OBJECT_ATTACHED_POINT:
                             ret.Add(new LSL_Integer(0));
@@ -14625,8 +14621,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             ret.Add(new LSL_Vector(Vector3.Zero));
                             break;
                         case ScriptBaseClass.OBJECT_PRIM_COUNT:
-                            if (Attachments == null)
-                                Attachments = av.GetAttachments();
+                            Attachments ??= av.GetAttachments();
                             count = 0;
                             try
                             {
@@ -14637,8 +14632,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             ret.Add(new LSL_Integer(count));
                             break;
                         case ScriptBaseClass.OBJECT_TOTAL_INVENTORY_COUNT:
-                            if (Attachments == null)
-                                Attachments = av.GetAttachments();
+                            Attachments ??= av.GetAttachments();
                             count = 0;
                             try
                             {
@@ -14678,8 +14672,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 count = nAnimated.Value;
                             else
                             {
-                                if (Attachments == null)
-                                    Attachments = av.GetAttachments();
+                                Attachments ??= av.GetAttachments();
                                 try
                                 {
                                     for(int i = 0; i < Attachments.Count;++i)
@@ -14700,8 +14693,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 count = nAnimated.Value;
                             else
                             {
-                                if (Attachments == null)
-                                    Attachments = av.GetAttachments();
+                                Attachments ??= av.GetAttachments();
                                 count = 0;
                                 try
                                 {
@@ -14757,7 +14749,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             SceneObjectPart obj = World.GetSceneObjectPart(key);
-            if (obj != null)
+            if (obj is not null)
             {
                 foreach (object o in args.Data)
                 {
@@ -14770,17 +14762,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             ret.Add(new LSL_String(obj.Description));
                             break;
                         case ScriptBaseClass.OBJECT_POS:
-                            Vector3 opos = obj.AbsolutePosition;
-                            ret.Add(new LSL_Vector(opos.X, opos.Y, opos.Z));
+                            ret.Add(new LSL_Vector(obj.AbsolutePosition));
                             break;
                         case ScriptBaseClass.OBJECT_ROT:
-                            Quaternion rot = Quaternion.Identity;
-
+                            Quaternion rot;
                             if (obj.ParentGroup.IsAttachment)
                             {
                                 ScenePresence sp = World.GetScenePresence(obj.ParentGroup.AttachedAvatar);
-
-                                if (sp != null)
+                                if (sp is null)
+                                    rot = Quaternion.Identity;
+                                else
                                     rot = sp.GetWorldRotation();
                             }
                             else
@@ -14791,18 +14782,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     rot = obj.GetWorldRotation();
                             }
 
-                            LSL_Rotation objrot = new LSL_Rotation(rot);
-                            ret.Add(objrot);
+                            ret.Add(new LSL_Rotation(rot));
 
                             break;
                         case ScriptBaseClass.OBJECT_VELOCITY:
-                            Vector3 vel = Vector3.Zero;
-
+                            Vector3 vel;
                             if (obj.ParentGroup.IsAttachment)
                             {
                                 ScenePresence sp = World.GetScenePresence(obj.ParentGroup.AttachedAvatar);
-
-                                if (sp != null)
+                                if(sp is null)
+                                    vel = Vector3.Zero;
+                                else
                                     vel = sp.GetWorldVelocity();
                             }
                             else
@@ -14810,7 +14800,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 vel = obj.Velocity;
                             }
 
-                            ret.Add(vel);
+                            ret.Add(new LSL_Vector(vel));
                             break;
                         case ScriptBaseClass.OBJECT_OWNER:
                             ret.Add(new LSL_String(obj.OwnerID.ToString()));
