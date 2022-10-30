@@ -37,18 +37,24 @@ Now just run `OpenSim.exe` from the `bin` folder, and set up the region.
 
 ## Requirements
 
- *[dotnet 6.0 SDK and Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
+ * [dotnet 6.0 SDK and Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
+ * libgdiplus 
+ 
+ if you have mono 6.x complete, you already have libgdiplus, otherwise you need to install it
+ for example on debian:
+ `apt-get update && apt-get install -y apt-utils libgdiplus libc6-dev`
 
 ### Building
   To create the project files, run:
 
   `./runprebuild.sh`
+
+  copy file bin/System.Drawing.Common.dll.linux to bin/System.Drawing.Common.dll
   
   then run
 
  `dotnet build --configuration Release OpenSim.sln`
   
-  copy file bin/System.Drawing.Common.dll.linux to bin/System.Drawing.Common.dll
 
 Configure. See below
 
