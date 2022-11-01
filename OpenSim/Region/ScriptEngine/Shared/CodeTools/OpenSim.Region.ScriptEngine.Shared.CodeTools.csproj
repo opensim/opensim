@@ -7,10 +7,6 @@
     <Copyright>OpenSimulator developers</Copyright>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="log4net">
-      <HintPath>..\..\..\..\..\bin\log4net.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Nini">
       <HintPath>..\..\..\..\..\bin\Nini.dll</HintPath>
       <Private>False</Private>
@@ -34,5 +30,8 @@
     <Compile Remove="Tests\CompilerTest.cs" />
     <Compile Remove="Tests\CSCodeGeneratorTest.cs" />
     <Compile Remove="Tests\LSL_EventTests.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="log4net" Version="2.0.15" />
   </ItemGroup>
 </Project>
