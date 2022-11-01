@@ -52,10 +52,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 
         public void ApiTypeLSL(IScriptApi api)
         {
-            if (!(api is ILSL_Api))
-                return;
-
-            m_LSL_Functions = (ILSL_Api)api;
+            if (api is ILSL_Api p)
+                m_LSL_Functions = p;
         }
 
         public void state(string newState)

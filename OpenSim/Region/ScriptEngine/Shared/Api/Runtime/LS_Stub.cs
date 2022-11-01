@@ -51,10 +51,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 
         public void ApiTypeLS(IScriptApi api)
         {
-            if (!(api is ILS_Api))
-                return;
-
-            m_LS_Functions = (ILS_Api)api;
+            if (api is ILS_Api p)
+                m_LS_Functions = p;
         }
 
         public LSL_List lsGetWindlightScene(LSL_List rules)
