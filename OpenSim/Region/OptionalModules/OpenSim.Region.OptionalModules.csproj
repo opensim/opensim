@@ -11,14 +11,6 @@
       <HintPath>..\..\..\bin\DotNetOpenMail.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Ionic.Zip">
-      <HintPath>..\..\..\bin\Ionic.Zip.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="log4net">
-      <HintPath>..\..\..\bin\log4net.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Mono.Data.SqliteClient">
       <HintPath>..\..\..\bin\Mono.Data.SqliteClient.dll</HintPath>
       <Private>False</Private>
@@ -82,6 +74,8 @@
     <Compile Remove="World\NPC\Tests\NPCModuleTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Ionic.Zlib.Core" Version="1.0.0" />
+    <PackageReference Include="log4net" Version="2.0.15" />
     <PackageReference Include="Mono.Addins" Version="1.3.14" />
     <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
   </ItemGroup>
