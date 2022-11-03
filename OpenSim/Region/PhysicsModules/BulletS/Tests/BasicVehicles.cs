@@ -49,7 +49,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS.Tests
         Vector3 TestVehicleInitPosition { get; set; }
         float simulationTimeStep = 0.089f;
 
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void Init()
         {
             Dictionary<string, string> engineParams = new Dictionary<string, string>();
@@ -74,7 +74,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS.Tests
 
         }
 
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public void TearDown()
         {
             if (PhysicsScene != null)
