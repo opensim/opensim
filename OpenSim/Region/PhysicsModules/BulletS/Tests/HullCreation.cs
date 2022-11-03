@@ -51,13 +51,13 @@ namespace OpenSim.Region.PhysicsModule.BulletS.Tests
         BSScene PhysicsScene { get; set; }
         Vector3 ObjectInitPosition;
 
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void Init()
         {
 
         }
 
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public void TearDown()
         {
             if (PhysicsScene != null)
