@@ -48,7 +48,14 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool CollideVerticalChars(OdeCharacter p1, OdeCharacter p2, ref ContactPoint cp, ref int feet)
+        public static Vector3 minusXRotateByShortQZ(Vector2 shortQuaternion)
+        {
+            float num = shortQuaternion.X + shortQuaternion.X;
+            return new(shortQuaternion.X * num - 1f, shortQuaternion.Y * num, 0);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static bool CollideSimpleChars(OdeCharacter p1, OdeCharacter p2, ref ContactPoint cp, ref int feet)
         {
             Vector3 tt;
             tt.Z = p1._position.Z - p2._position.Z;
@@ -70,13 +77,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                 cp.Position = p1._position;
                 cp.Position.Z -= 0.5f * tt.Z;
-                cp.SurfaceNormal.Z = 0;
 
                 float hd = tt.X * tt.X + tt.Y * tt.Y;
                 if (hd < 1e-6f)
                 {
-                    cp.SurfaceNormal.X = 1;
-                    cp.SurfaceNormal.Y = 0;
+                    cp.SurfaceNormal = minusXRotateByShortQZ(p1.Orientation2D);
                     cp.PenetrationDepth = rsum;
                     return true;
                 }
@@ -99,6 +104,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                 cp.SurfaceNormal.X = tt.X;
                 cp.SurfaceNormal.Y = tt.Y;
+                cp.SurfaceNormal.Z = 0;
 
                 float hk = r1 - 0.5f * rhsum;
                 if (hk <= 0)
@@ -166,7 +172,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (ContactJointCount >= maxContactJoints)
                 return;
             int feetcollision = 0;
-            if (!CollideVerticalChars(p1, p2, ref SharedChrContact, ref feetcollision))
+            if (!CollideSimpleChars(p1, p2, ref SharedChrContact, ref feetcollision))
                 return;
 
             p1.CollidingObj = true;
