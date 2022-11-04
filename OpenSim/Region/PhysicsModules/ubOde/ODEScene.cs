@@ -164,7 +164,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         public Object arg;
     }
 
-    public class ODEScene : PhysicsScene
+    public partial class ODEScene : PhysicsScene
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -545,6 +545,16 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             contactSharedForJoints.geom.depth = smooth ? contactGeom.depth * 0.05f : contactGeom.depth;
             contactSharedForJoints.geom.pos = contactGeom.pos;
             contactSharedForJoints.geom.normal = contactGeom.normal;
+
+            IntPtr contact = new(GlobalContactsArray.ToInt64() + (Int64)(ContactJointCount * SafeNativeMethods.SizeOfContact));
+            Marshal.StructureToPtr(contactSharedForJoints, contact, false);
+            return SafeNativeMethods.JointCreateContactPtr(world, JointContactGroup, contact);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private IntPtr CreateCharContacJoint()
+        {
+            ContactJointCount++;
 
             IntPtr contact = new(GlobalContactsArray.ToInt64() + (Int64)(ContactJointCount * SafeNativeMethods.SizeOfContact));
             Marshal.StructureToPtr(contactSharedForJoints, contact, false);
@@ -994,90 +1004,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void CollideCharChar(OdeCharacter p1, OdeCharacter p2)
-        {
-            if (ContactJointCount >= maxContactJoints)
-                return;
-
-            // Figure out how many contact points we have
-            int count = 0;
-            try
-            {
-                count = SafeNativeMethods.CollidePtr(p1.collider, p2.collider, contactsPerCollision, ContactgeomsArray, SafeNativeMethods.SizeOfContactGeom);
-            }
-            catch (SEHException)
-            {
-                m_log.Error("[PHYSICS]: The Operating system shut down ODE because of corrupt memory.  This could be a result of really irregular terrain.  If this repeats continuously, restart using Basic Physics and terrain fill your terrain.  Restarting the sim.");
-                //ode.drelease(world);
-                base.TriggerPhysicsBasedRestart();
-            }
-            catch (Exception e)
-            {
-                m_log.WarnFormat("[PHYSICS]: Unable to collide test an object: {0}", e.Message);
-                return;
-            }
-
-            // contacts done
-            if (count == 0)
-                return;
-
-            IntPtr Joint;
-            bool FeetCollision = false;
-            int ncontacts = 0;
-
-            ContactPoint maccountContact = new();
-
-            float minDepth = float.MaxValue;
-            float maxDepth = float.MinValue;
-
-            contactSharedForJoints.surface.mu = 0;
-            contactSharedForJoints.surface.bounce = 0;
-
-            bool useAltcontact;
-
-            for (int i = 0; i < count; ++i)
-            {
-                ref SafeNativeMethods.ContactGeom curctc = ref m_contacts[i];
-                useAltcontact = false;
-
-                if (p1.Collide(p2.collider, false, ref curctc, ref altWorkContact, ref useAltcontact, ref FeetCollision))
-                {
-                    p1.CollidingObj = true;
-                    p1.CollidingObj = true;
-
-                    Joint = useAltcontact ?
-                         CreateContacJoint(ref altWorkContact, false) :
-                            CreateContacJoint(ref curctc, false);
-                    if (Joint == IntPtr.Zero)
-                        break;
-
-                    SafeNativeMethods.JointAttach(Joint, p1.Body, p2.Body);
-
-                    ncontacts++;
-
-                    if (curctc.depth > maxDepth)
-                    {
-                        maxDepth = curctc.depth;
-                        maccountContact.PenetrationDepth = maxDepth;
-                        maccountContact.Position = Unsafe.As<SafeNativeMethods.Vector3, Vector3>(ref curctc.pos);
-                        maccountContact.CharacterFeet = FeetCollision;
-                    }
-
-                    if (curctc.depth < minDepth)
-                    {
-                        minDepth = curctc.depth;
-                        maccountContact.SurfaceNormal = Unsafe.As<SafeNativeMethods.Vector3, Vector3>(ref curctc.normal);
-                    }
-                }
-            }
-
-            if (ncontacts > 0)
-            {
-                Collision_accounting_events(p1, p2, ref maccountContact);
-            }
-        }
-
         private static void Collision_accounting_events(PhysicsActor p1, PhysicsActor p2, ref ContactPoint contact)
         {
 
@@ -1188,11 +1114,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                                 chr.IsColliding = false;
                                 chr.CollidingObj = false;
 
-                                if (chr.Body != IntPtr.Zero && chr.collider != IntPtr.Zero)
-                                {
-                                    SafeNativeMethods.SpaceCollide2(chr.collider, StaticSpace, IntPtr.Zero, CharPrimNearCallback);
-                                    SafeNativeMethods.SpaceCollide2(chr.collider, ActiveSpace, IntPtr.Zero, CharPrimNearCallback);
-                                }
+                                SafeNativeMethods.SpaceCollide2(chr.collider, StaticSpace, IntPtr.Zero, CharPrimNearCallback);
+                                SafeNativeMethods.SpaceCollide2(chr.collider, ActiveSpace, IntPtr.Zero, CharPrimNearCallback);
                             }
                         }
                         else
@@ -1222,27 +1145,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                                         OdeCharacter chr2 = charsSpan[j];
                                         if (chr2.Colliderfilter < -1)
                                             continue;
-                                    
+
                                         if(Mx < chr2._AABB2D.minx ||
                                            mx > chr2._AABB2D.maxx ||
                                            My < chr2._AABB2D.miny ||
                                            my > chr2._AABB2D.maxy)
                                             continue;
-                                        /*
-                                        //avatar is always vertical
-                                        float r = chr.CapsuleRadius + chr2.CapsuleRadius;
-                                        float t = Math.Abs(chr2._position.X - chr._position.X);
-                                        if (t > r)
-                                            continue;
-                                        t = Math.Abs(chr2._position.Y - chr._position.Y);
-                                        if (t > r)
-                                            continue;
-
-                                        r = chr.CapsuleSizeZ + chr2.CapsuleSizeZ;
-                                        t = Math.Abs(chr2._position.Z - chr._position.Z);
-                                        if (t > r)
-                                            continue;
-                                        */
+ 
                                         CollideCharChar(chr, chr2);
                                     }
                                 }
