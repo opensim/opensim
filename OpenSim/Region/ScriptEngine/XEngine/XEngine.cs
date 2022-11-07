@@ -253,10 +253,15 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public void Initialise(IConfigSource configSource)
         {
-            if (configSource.Configs["XEngine"] == null)
+            m_ScriptConfig = configSource.Configs["XEngine"];
+            if (m_ScriptConfig == null)
                 return;
 
-            m_ScriptConfig = configSource.Configs["XEngine"];
+            if (!m_ScriptConfig.GetBoolean("Enabled", true))
+                return;
+
+            m_Enabled = true;
+
             m_ConfigSource = configSource;
 
             string rawScriptStopStrategy = m_ScriptConfig.GetString("ScriptStopStrategy", "co-op");
@@ -282,19 +287,13 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public void AddRegion(Scene scene)
         {
-            if (m_ScriptConfig == null)
+            if (!m_Enabled)
                 return;
-
+ 
             m_ScriptFailCount = 0;
             m_ScriptErrorMessage = String.Empty;
 
-            m_Enabled = m_ScriptConfig.GetBoolean("Enabled", true);
-
-            if (!m_Enabled)
-                return;
-
-            AppDomain.CurrentDomain.AssemblyResolve +=
-                OnAssemblyResolve;
+            AppDomain.CurrentDomain.AssemblyResolve +=  OnAssemblyResolve;
 
             m_Scene = scene;
             m_log.InfoFormat("[XEngine]: Initializing scripts in region {0}", m_Scene.RegionInfo.RegionName);
@@ -536,7 +535,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         continue;
                     }
 
-                    if (itemId != UUID.Zero)
+                    if (!itemId.IsZero())
                     {
                         IScriptInstance instance = GetInstance(itemId);
                         if (instance == null)
@@ -1136,7 +1135,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             bool postOnRez = (bool)p[4];
             StateSource stateSource = (StateSource)p[5];
 
-//            m_log.DebugFormat("[XEngine]: DoOnRezScript called for script {0}", itemID);
+            //m_log.DebugFormat("[XEngine]: DoOnRezScript called for script {0}", itemID);
 
             lock (m_CompileDict)
             {
@@ -1216,74 +1215,64 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                                 m_ScriptErrors[itemID] = new ArrayList();
 
                             m_ScriptErrors[itemID].Add(warning);
-    //                        try
-    //                        {
-    //                            // DISPLAY WARNING INWORLD
-    //                            string text = "Warning:\n" + warning;
-    //                            if (text.Length > 1000)
-    //                                text = text.Substring(0, 1000);
-    //                            if (!ShowScriptSaveResponse(item.OwnerID,
-    //                                    assetID, text, true))
-    //                            {
-    //                                if (presence != null && (!postOnRez))
-    //                                    presence.ControllingClient.SendAgentAlertMessage("Script saved with warnings, check debug window!", false);
-    //
-    //                                World.SimChat(Utils.StringToBytes(text),
-    //                                              ChatTypeEnum.DebugChannel, 2147483647,
-    //                                              part.AbsolutePosition,
-    //                                              part.Name, part.UUID, false);
-    //                            }
-    //                        }
-    //                        catch (Exception e2) // LEGIT: User Scripting
-    //                        {
-    //                            m_log.Error("[XEngine]: " +
-    //                                    "Error displaying warning in-world: " +
-    //                                    e2.ToString());
-    //                            m_log.Error("[XEngine]: " +
-    //                                    "Warning:\r\n" +
-    //                                    warning);
-    //                        }
+                            //try
+                            //{
+                                  // DISPLAY WARNING INWORLD
+                            //  string text = "Warning:\n" + warning;
+                            //  if (text.Length > 1000)
+                            //      text = text.Substring(0, 1000);
+                            //  if (!ShowScriptSaveResponse(item.OwnerID,assetID, text, true))
+                            //  {
+                            //     if (presence != null && (!postOnRez))
+                            //       presence.ControllingClient.SendAgentAlertMessage("Script saved with warnings, check debug window!", false);
+                            //
+                            //      World.SimChat(Utils.StringToBytes(text),
+                            //          ChatTypeEnum.DebugChannel, 2147483647,
+                            //          part.AbsolutePosition,
+                            //          part.Name, part.UUID, false);
+                            //  }
+                            //}
+                            //catch (Exception e2) // LEGIT: User Scripting
+                            //{
+                            //  m_log.Error("[XEngine]: " + "Error displaying warning in-world: " + e2.ToString());
+                            //  m_log.Error("[XEngine]: " + "Warning:\r\n" + warning);
+                            //}
                         }
                     }
                 }
                 catch (Exception e)
                 {
-//                    m_log.ErrorFormat(
-//                        "[XEngine]: Exception when rezzing script with item ID {0}, {1}{2}",
-//                        itemID, e.Message, e.StackTrace);
+                    //m_log.ErrorFormat(
+                    //      "[XEngine]: Exception when rezzing script with item ID {0}, {1}{2}",
+                    //      itemID, e.Message, e.StackTrace);
 
-    //                try
-    //                {
+                    //try
+                    //{
                         if (!m_ScriptErrors.ContainsKey(itemID))
                             m_ScriptErrors[itemID] = new ArrayList();
                         // DISPLAY ERROR INWORLD
-    //                    m_ScriptErrorMessage += "Failed to compile script in object: '" + part.ParentGroup.RootPart.Name + "' Script name: '" + item.Name + "' Error message: " + e.Message.ToString();
-    //
+                        //m_ScriptErrorMessage += "Failed to compile script in object: '" + part.ParentGroup.RootPart.Name + "' Script name: '" + item.Name + "' Error message: " + e.Message.ToString();
+
                         m_ScriptFailCount++;
                         m_ScriptErrors[itemID].Add(e.Message.ToString());
-    //                    string text = "Error compiling script '" + item.Name + "':\n" + e.Message.ToString();
-    //                    if (text.Length > 1000)
-    //                        text = text.Substring(0, 1000);
-    //                    if (!ShowScriptSaveResponse(item.OwnerID,
-    //                            assetID, text, false))
-    //                    {
-    //                        if (presence != null && (!postOnRez))
-    //                            presence.ControllingClient.SendAgentAlertMessage("Script saved with errors, check debug window!", false);
-    //                        World.SimChat(Utils.StringToBytes(text),
-    //                                      ChatTypeEnum.DebugChannel, 2147483647,
-    //                                      part.AbsolutePosition,
-    //                                      part.Name, part.UUID, false);
-    //                    }
-    //                }
-    //                catch (Exception e2) // LEGIT: User Scripting
-    //                {
-    //                    m_log.Error("[XEngine]: "+
-    //                            "Error displaying error in-world: " +
-    //                            e2.ToString());
-    //                    m_log.Error("[XEngine]: " +
-    //                            "Errormessage: Error compiling script:\r\n" +
-    //                            e.Message.ToString());
-    //                }
+                        //string text = "Error compiling script '" + item.Name + "':\n" + e.Message.ToString();
+                        //if (text.Length > 1000)
+                        //    text = text.Substring(0, 1000);
+                        //if (!ShowScriptSaveResponse(item.OwnerID,assetID, text, false))
+                        //{
+                        //  if (presence != null && (!postOnRez))
+                        //     presence.ControllingClient.SendAgentAlertMessage("Script saved with errors, check debug window!", false);
+                        //  World.SimChat(Utils.StringToBytes(text),
+                        //                  ChatTypeEnum.DebugChannel, 2147483647,
+                        //                  part.AbsolutePosition,
+                        //                  part.Name, part.UUID, false);
+                        //  }
+                        //}
+                        //catch (Exception e2) // LEGIT: User Scripting
+                        //{
+                        //  m_log.Error("[XEngine]: "+ "Error displaying error in-world: " + e2.ToString());
+                        //  m_log.Error("[XEngine]: " + "Errormessage: Error compiling script:\r\n" + e.Message.ToString());
+                        //}
 
                     lock (m_CompileDict)
                         m_CompileDict.Remove(itemID);
@@ -1297,7 +1286,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 // Create the object record
                 if ((!m_Scripts.ContainsKey(itemID)) || (m_Scripts[itemID].AssetID != assetID))
                 {
-
                     bool attachDomains = m_AttachmentsDomainLoading && part.ParentGroup.IsAttachmentCheckFull();
                     UUID appDomain = part.ParentGroup.RootPart.UUID;
 
@@ -1543,13 +1531,15 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             lock (m_CompileDict)
                 m_CompileDict.Remove(itemID);
 
-            bool runIt;
-            if (m_runFlags.TryGetValue(itemID, out runIt))
+            bool runIt = instance.ScriptTask.ScriptRunning;
+            if (m_runFlags.TryGetValue(itemID, out bool flagrunIt))
             {
-                if (!runIt)
-                    StopScript(itemID);
+                runIt &= flagrunIt;
                 m_runFlags.Remove(itemID);
             }
+
+            if (!runIt)
+                StopScript(itemID);
 
             return true;
         }
@@ -1866,7 +1856,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 string path = Path.Combine(Directory.GetCurrentDirectory(),
                                            Path.Combine(s, assemblyName))+".dll";
 
-//                Console.WriteLine("[XEngine]: Trying to resolve {0}", path);
+                //Console.WriteLine("[XEngine]: Trying to resolve {0}", path);
 
                 if (File.Exists(path))
                     return Assembly.LoadFrom(path);
@@ -1890,8 +1880,13 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             IScriptInstance instance = GetInstance(itemID);
             if (instance != null)
             {
+                if (instance.ScriptTask != null)
+                    instance.ScriptTask.ScriptRunning = running;
+
                 if (running)
-                        instance.Start();
+                {
+                    instance.Start();
+                }
                 else
                 {
                     if(self)
@@ -1941,7 +1936,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             IScriptInstance instance = GetInstance(itemID);
             if (instance != null)
+            {
                 instance.Start();
+                if (instance.ScriptTask != null)
+                    instance.ScriptTask.ScriptRunning = true;
+            }
             else
                 m_runFlags.AddOrUpdate(itemID, true, 240);
 
@@ -1962,10 +1961,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     instance.StayStopped = true;    // the script was stopped explicitly
 
                 instance.Stop(m_WaitForEventCompletionOnScriptStop);
+                if (instance.ScriptTask != null)
+                    instance.ScriptTask.ScriptRunning = false;
             }
             else
             {
-//                m_log.DebugFormat("[XENGINE]: Could not find script with ID {0} to stop in {1}", itemID, World.Name);
+                //m_log.DebugFormat("[XENGINE]: Could not find script with ID {0} to stop in {1}", itemID, World.Name);
                 m_runFlags.AddOrUpdate(itemID, false, 240);
             }
 
@@ -2226,7 +2227,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
 //            m_log.DebugFormat("[XEngine]: Writing state for script item with ID {0}", itemID);
 
-            if (xml == String.Empty)
+            if (xml.Length == 0)
                 return false;
 
             XmlDocument doc = new XmlDocument();
@@ -2266,82 +2267,81 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             if (World.m_trustBinaries)
             {
                 XmlNodeList assemL = rootE.GetElementsByTagName("Assembly");
-
-                if (assemL.Count != 1)
-                    return false;
-
-                XmlElement assemE = (XmlElement)assemL[0];
-
-                string fn = assemE.GetAttribute("Filename");
-                string base64 = assemE.InnerText;
-
-                string path = Path.Combine(m_ScriptEnginesPath, World.RegionInfo.RegionID.ToString());
-                path = Path.Combine(path, fn);
-
-                if (!File.Exists(path))
+                if (assemL.Count > 0)
                 {
-                    Byte[] filedata = Convert.FromBase64String(base64);
+                    XmlElement assemE = (XmlElement)assemL[0];
 
-                    try
+                    string fn = assemE.GetAttribute("Filename");
+                    string base64 = assemE.InnerText;
+
+                    string path = Path.Combine(m_ScriptEnginesPath, World.RegionInfo.RegionID.ToString());
+                    path = Path.Combine(path, fn);
+
+                    if (!File.Exists(path))
                     {
-                        using (FileStream fs = File.Create(path))
+                        Byte[] filedata = Convert.FromBase64String(base64);
+
+                        try
                         {
-//                            m_log.DebugFormat("[XEngine]: Writing assembly file {0}", path);
-
-                            fs.Write(filedata, 0, filedata.Length);
-                        }
-                    }
-                    catch (IOException ex)
-                    {
-                        // if there already exists a file at that location, it may be locked.
-                        m_log.ErrorFormat("[XEngine]: Error whilst writing assembly file {0}, {1}", path, ex.Message);
-                    }
-
-                    string textpath = path + ".text";
-                    try
-                    {
-                        using (FileStream fs = File.Create(textpath))
-                        {
-                            using (StreamWriter sw = new StreamWriter(fs))
+                            using (FileStream fs = File.Create(path))
                             {
-//                                m_log.DebugFormat("[XEngine]: Writing .text file {0}", textpath);
+    //                            m_log.DebugFormat("[XEngine]: Writing assembly file {0}", path);
 
-                                sw.Write(base64);
+                                fs.Write(filedata, 0, filedata.Length);
                             }
                         }
-                    }
-                    catch (IOException ex)
-                    {
-                        // if there already exists a file at that location, it may be locked.
-                        m_log.ErrorFormat("[XEngine]: Error whilst writing .text file {0}, {1}", textpath, ex.Message);
-                    }
-                }
-
-                XmlNodeList mapL = rootE.GetElementsByTagName("LineMap");
-                if (mapL.Count > 0)
-                {
-                    XmlElement mapE = (XmlElement)mapL[0];
-
-                    string mappath = Path.Combine(m_ScriptEnginesPath, World.RegionInfo.RegionID.ToString());
-                    mappath = Path.Combine(mappath, mapE.GetAttribute("Filename"));
-
-                    try
-                    {
-                        using (FileStream mfs = File.Create(mappath))
+                        catch (IOException ex)
                         {
-                            using (StreamWriter msw = new StreamWriter(mfs))
-                            {
-    //                            m_log.DebugFormat("[XEngine]: Writing linemap file {0}", mappath);
+                            // if there already exists a file at that location, it may be locked.
+                            m_log.ErrorFormat("[XEngine]: Error whilst writing assembly file {0}, {1}", path, ex.Message);
+                        }
 
-                                msw.Write(mapE.InnerText);
+                        string textpath = path + ".text";
+                        try
+                        {
+                            using (FileStream fs = File.Create(textpath))
+                            {
+                                using (StreamWriter sw = new StreamWriter(fs))
+                                {
+    //                                m_log.DebugFormat("[XEngine]: Writing .text file {0}", textpath);
+
+                                    sw.Write(base64);
+                                }
                             }
                         }
+                        catch (IOException ex)
+                        {
+                            // if there already exists a file at that location, it may be locked.
+                            m_log.ErrorFormat("[XEngine]: Error whilst writing .text file {0}, {1}", textpath, ex.Message);
+                        }
                     }
-                    catch (IOException ex)
+
+                    XmlNodeList mapL = rootE.GetElementsByTagName("LineMap");
+                    if (mapL.Count > 0)
                     {
-                        // if there already exists a file at that location, it may be locked.
-                        m_log.Error(
-                            string.Format("[XEngine]: Linemap file {0} could not be written.  Exception  ", mappath), ex);
+                        XmlElement mapE = (XmlElement)mapL[0];
+
+                        string mappath = Path.Combine(m_ScriptEnginesPath, World.RegionInfo.RegionID.ToString());
+                        mappath = Path.Combine(mappath, mapE.GetAttribute("Filename"));
+
+                        try
+                        {
+                            using (FileStream mfs = File.Create(mappath))
+                            {
+                                using (StreamWriter msw = new StreamWriter(mfs))
+                                {
+        //                            m_log.DebugFormat("[XEngine]: Writing linemap file {0}", mappath);
+
+                                    msw.Write(mapE.InnerText);
+                                }
+                            }
+                        }
+                        catch (IOException ex)
+                        {
+                            // if there already exists a file at that location, it may be locked.
+                            m_log.Error(
+                                string.Format("[XEngine]: Linemap file {0} could not be written.  Exception  ", mappath), ex);
+                        }
                     }
                 }
             }

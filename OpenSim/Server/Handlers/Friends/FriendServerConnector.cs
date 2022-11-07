@@ -50,7 +50,7 @@ namespace OpenSim.Server.Handlers.Friends
             string theService = serverConfig.GetString("LocalServiceModule",
                     String.Empty);
 
-            if (theService == String.Empty)
+            if (theService.Length == 0)
                 throw new Exception("No LocalServiceModule in config file");
 
             Object[] args = new Object[] { config };

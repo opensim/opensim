@@ -85,22 +85,22 @@ namespace OpenSim.Services.HypergridService
                     throw new Exception(String.Format("No section {0} in config file", m_ConfigName));
 
                 string theService = serverConfig.GetString("FriendsService", string.Empty);
-                if (theService == String.Empty)
+                if (theService.Length == 0)
                     throw new Exception("No FriendsService in config file " + m_ConfigName);
                 m_FriendsService = ServerUtils.LoadPlugin<IFriendsService>(theService, args);
 
                 theService = serverConfig.GetString("UserAccountService", string.Empty);
-                if (theService == String.Empty)
+                if (theService.Length == 0)
                     throw new Exception("No UserAccountService in " + m_ConfigName);
                 m_UserAccountService = ServerUtils.LoadPlugin<IUserAccountService>(theService, args);
 
                 theService = serverConfig.GetString("GridService", string.Empty);
-                if (theService == String.Empty)
+                if (theService.Length == 0)
                     throw new Exception("No GridService in " + m_ConfigName);
                 m_GridService = ServerUtils.LoadPlugin<IGridService>(theService, args);
 
                 theService = serverConfig.GetString("PresenceService", string.Empty);
-                if (theService == String.Empty)
+                if (theService.Length == 0)
                     throw new Exception("No PresenceService in " + m_ConfigName);
                 m_PresenceService = ServerUtils.LoadPlugin<IPresenceService>(theService, args);
 
@@ -260,7 +260,7 @@ namespace OpenSim.Services.HypergridService
             {
                 PresenceInfo friendSession = null;
                 foreach (PresenceInfo pinfo in friendSessions)
-                    if (pinfo.RegionID != UUID.Zero) // let's guard against traveling agents
+                    if (!pinfo.RegionID.IsZero()) // let's guard against traveling agents
                     {
                         friendSession = pinfo;
                         break;

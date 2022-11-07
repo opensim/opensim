@@ -94,7 +94,6 @@ namespace OpenSim.Region.ClientStack.Linden
         private ExpiringKey<UUID> m_badRequests;
 
         private string m_fetchInventoryDescendents2Url;
-//        private string m_webFetchInventoryDescendentsUrl;
 
         private static FetchInvDescHandler m_webFetchHandler;
 
@@ -118,13 +117,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 return;
 
             m_fetchInventoryDescendents2Url = config.GetString("Cap_FetchInventoryDescendents2", string.Empty);
-//            m_webFetchInventoryDescendentsUrl = config.GetString("Cap_WebFetchInventoryDescendents", string.Empty);
-
-//            if (m_fetchInventoryDescendents2Url != string.Empty || m_webFetchInventoryDescendentsUrl != string.Empty)
-            if (m_fetchInventoryDescendents2Url != string.Empty)
-            {
-                m_Enabled = true;
-            }
+            m_Enabled = m_fetchInventoryDescendents2Url.Length > 0;
         }
 
         public void AddRegion(Scene s)
@@ -222,7 +215,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     m_badRequests = null;
                 }
             }
-//            m_queue.Dispose();
+            //m_queue.Dispose();
         }
 
         public string Name { get { return "WebFetchInvDescModule"; } }
@@ -346,38 +339,23 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private void RegisterCaps(UUID agentID, Caps caps)
         {
-            RegisterFetchDescendentsCap(agentID, caps, "FetchInventoryDescendents2", m_fetchInventoryDescendents2Url);
-        }
-
-        private void RegisterFetchDescendentsCap(UUID agentID, Caps caps, string capName, string url)
-        {
-            string capUrl;
-
-            // disable the cap clause
-            if (url == "")
-            {
-                return;
-            }
             // handled by the simulator
-            else if (url == "localhost")
+            if (m_fetchInventoryDescendents2Url == "localhost")
             {
-                capUrl = "/" + UUID.Random();
-
                 // Register this as a poll service
-                PollServiceInventoryEventArgs args = new PollServiceInventoryEventArgs(this, capUrl, agentID);
+                PollServiceInventoryEventArgs args = new PollServiceInventoryEventArgs(this, "/" + UUID.Random(), agentID);
                 //args.Type = PollServiceEventArgs.EventType.Inventory;
 
-                caps.RegisterPollHandler(capName, args);
+                caps.RegisterPollHandler("FetchInventoryDescendents2", args);
             }
             // external handler
             else
             {
-                capUrl = url;
                 IExternalCapsModule handler = Scene.RequestModuleInterface<IExternalCapsModule>();
                 if (handler != null)
-                    handler.RegisterExternalUserCapsHandler(agentID,caps,capName,capUrl);
+                    handler.RegisterExternalUserCapsHandler(agentID, caps, "FetchInventoryDescendents2", m_fetchInventoryDescendents2Url);
                 else
-                    caps.RegisterHandler(capName, capUrl);
+                    caps.RegisterHandler("FetchInventoryDescendents2", m_fetchInventoryDescendents2Url);
             }
         }
 

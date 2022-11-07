@@ -80,8 +80,8 @@ namespace OpenSim.Server.Handlers.Neighbour
                         return;
                     }
 
-                    if (RestHandlerUtils.GetParams(httpRequest.UriPath, out UUID regionID, out ulong regionHandle, out string action)
-                        || regionID == UUID.Zero)
+                    if (!RestHandlerUtils.GetParams(httpRequest.UriPath, out UUID regionID, out ulong regionHandle, out string action)
+                        || regionID.IsZero())
                     {
                         m_log.InfoFormat("[RegionPostHandler]: Invalid parameters for neighbour message {0}", httpRequest.UriPath);
                         httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
@@ -106,8 +106,6 @@ namespace OpenSim.Server.Handlers.Neighbour
         // TODO: unused: private bool m_AllowForeignGuests;
         protected void ProcessPostRequest(OSDMap args, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, UUID regionID)
         {
-            byte[] result = new byte[0];
-
             if (m_AuthenticationService != null)
             {
                 // Authentication

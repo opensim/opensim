@@ -3,10 +3,6 @@
     <TargetFramework>net48</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="log4net">
-      <HintPath>..\..\..\..\..\bin\log4net.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Nini">
       <HintPath>..\..\..\..\..\bin\Nini.dll</HintPath>
       <Private>False</Private>
@@ -44,6 +40,7 @@
     <Compile Remove="EstateAccess.cs" />
     <Compile Remove="EstateChangeInfo.cs" />
     <Compile Remove="FetchInventory2Module.cs" />
+	<Compile Remove="FetchLibDescModule.cs" />
     <Compile Remove="GetAssetsModule.cs" />
     <Compile Remove="MeshUploadFlagModule.cs" />
     <Compile Remove="RegionConsoleModule.cs" />
@@ -62,6 +59,7 @@
     <Compile Remove="ObjectCaps\UploadObjectAssetModule.cs" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="log4net" Version="2.0.15" />
     <PackageReference Include="NUnitTestAdapter" Version="2.3.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
   </ItemGroup>

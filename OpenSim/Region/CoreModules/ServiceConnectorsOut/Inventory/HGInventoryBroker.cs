@@ -114,7 +114,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                     string localDll = inventoryConfig.GetString("LocalGridInventoryService",
                             String.Empty);
  
-                    if (localDll == String.Empty)
+                    if (localDll.Length == 0)
                     {
                         m_log.Error("[HG INVENTORY CONNECTOR]: No LocalGridInventoryService named in section InventoryService");
                         //return;

@@ -709,29 +709,57 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                         else
                         {
                             string location = response.Headers["Location"];
-
                             if (location == null)
                             {
                                 Status = 499;//ClientErrorJoker;
                                 ResponseBody = "HTTP redirect code but no location header";
                                 RequestModule.GotCompletedRequest(this);
                             }
-                            else if (!RequestModule.CheckAllowed(new Uri(location)))
-                            {
-                                Status = 499;//ClientErrorJoker;
-                                ResponseBody = "URL from HTTP redirect blocked: " + location;
-                                RequestModule.GotCompletedRequest(this);
-                            }
                             else
                             {
-                                Status = 0;
-                                Url = location;
-                                Redirects++;
-                                ResponseBody = null;
+                                if(Uri.TryCreate(location, UriKind.RelativeOrAbsolute, out Uri locationUri))
+                                {
+                                    bool validredir = true;
+                                    if(!locationUri.IsAbsoluteUri)
+                                    {
+                                        string newloc = response.ResponseUri.Scheme +"://" + response.ResponseUri.DnsSafeHost + ":" + 
+                                            response.ResponseUri.Port +"/" + location;
+                                        if (!Uri.TryCreate(newloc, UriKind.RelativeOrAbsolute, out locationUri))
+                                        {
+                                            Status = 499;//ClientErrorJoker;
+                                            ResponseBody = "HTTP redirect code but invalid location header";
+                                            RequestModule.GotCompletedRequest(this);
+                                            validredir = false;
+                                        }
+                                        location = newloc;
+                                    }
+                                    if(validredir)
+                                    {
+                                        if (!RequestModule.CheckAllowed(locationUri))
+                                        {
+                                            Status = 499;//ClientErrorJoker;
+                                            ResponseBody = "URL from HTTP redirect blocked: " + location;
+                                            RequestModule.GotCompletedRequest(this);
+                                        }
+                                        else
+                                        {
+                                            Status = 0;
+                                            Url = location;
+                                            Redirects++;
+                                            ResponseBody = null;
 
-                                //m_log.DebugFormat("Redirecting to [{0}]", Url);
+                                            //m_log.DebugFormat("Redirecting to [{0}]", Url);
 
-                                Process();
+                                            Process();
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    Status = 499;//ClientErrorJoker;
+                                    ResponseBody = "HTTP redirect code but invalid location header";
+                                    RequestModule.GotCompletedRequest(this);
+                                }
                             }
                         }
                     }

@@ -172,54 +172,77 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
         /// <param name="size">Size of entire object</param>
         /// <param name="coords"></param>
         /// <param name="faces"></param>
-        private void AddSubMesh(OSDMap subMeshData, List<Coord> coords, List<Face> faces)
+        private unsafe void  AddSubMesh(OSDMap subMeshData, List<Coord> coords, List<Face> faces)
         {
             // Console.WriteLine("subMeshMap for {0} - {1}", primName, Util.GetFormattedXml((OSD)subMeshMap));
 
             // As per http://wiki.secondlife.com/wiki/Mesh/Mesh_Asset_Format, some Mesh Level
             // of Detail Blocks (maps) contain just a NoGeometry key to signal there is no
             // geometry for this submesh.
-            if (subMeshData.ContainsKey("NoGeometry") && ((OSDBoolean)subMeshData["NoGeometry"]))
+            if (subMeshData.ContainsKey("NoGeometry"))
                 return;
 
-            OpenMetaverse.Vector3 posMax;
-            OpenMetaverse.Vector3 posMin;
-            if (subMeshData.ContainsKey("PositionDomain"))
+            byte[] posBytes = subMeshData["Position"].AsBinary();
+            if (posBytes == null || posBytes.Length == 0)
+                return;
+            byte[] triangleBytes = subMeshData["TriangleList"].AsBinary();
+            if (triangleBytes == null || triangleBytes.Length == 0)
+                return;
+
+            const float invMaxU16 = 1.0f / 65535f;
+            Vector3 posRange;
+            Vector3 posMin;
+            if(subMeshData.TryGetValue("PositionDomain", out OSD tmp))
             {
-                posMax = ((OSDMap)subMeshData["PositionDomain"])["Max"].AsVector3();
-                posMin = ((OSDMap)subMeshData["PositionDomain"])["Min"].AsVector3();
+                posRange = ((OSDMap)tmp)["Max"].AsVector3();
+                posMin = ((OSDMap)tmp)["Min"].AsVector3();
+                posRange = posRange - posMin;
+                posRange *= invMaxU16;
             }
             else
             {
-                posMax = new Vector3(0.5f, 0.5f, 0.5f);
+                posRange = new Vector3(invMaxU16, invMaxU16, invMaxU16);
                 posMin = new Vector3(-0.5f, -0.5f, -0.5f);
             }
 
-            ushort faceIndexOffset = (ushort)coords.Count;
+            int faceIndexOffset = coords.Count;
 
-            byte[] posBytes = subMeshData["Position"].AsBinary();
-            for (int i = 0; i < posBytes.Length; i += 6)
-            {
-                ushort uX = Utils.BytesToUInt16(posBytes, i);
-                ushort uY = Utils.BytesToUInt16(posBytes, i + 2);
-                ushort uZ = Utils.BytesToUInt16(posBytes, i + 4);
+            fixed (byte* ptrstart = posBytes)
+            { 
+                byte* end = ptrstart + posBytes.Length;
+                byte* ptr = ptrstart;
+                while (ptr < end)
+                {
+                    ushort uX = Utils.BytesToUInt16(ptr);
+                    ptr += 2;
+                    ushort uY = Utils.BytesToUInt16(ptr);
+                    ptr += 2;
+                    ushort uZ = Utils.BytesToUInt16(ptr);
+                    ptr += 2;
 
-                Coord c = new Coord(
-                Utils.UInt16ToFloat(uX, posMin.X, posMax.X),
-                Utils.UInt16ToFloat(uY, posMin.Y, posMax.Y),
-                Utils.UInt16ToFloat(uZ, posMin.Z, posMax.Z));
-
-                coords.Add(c);
+                    coords.Add(new Coord(
+                            uX * posRange.X + posMin.X,
+                            uY * posRange.Y + posMin.Y,
+                            uZ * posRange.Z + posMin.Z)
+                        );
+                }
             }
 
-            byte[] triangleBytes = subMeshData["TriangleList"].AsBinary();
-            for (int i = 0; i < triangleBytes.Length; i += 6)
+            fixed (byte* ptrstart = triangleBytes)
             {
-                ushort v1 = (ushort)(Utils.BytesToUInt16(triangleBytes, i) + faceIndexOffset);
-                ushort v2 = (ushort)(Utils.BytesToUInt16(triangleBytes, i + 2) + faceIndexOffset);
-                ushort v3 = (ushort)(Utils.BytesToUInt16(triangleBytes, i + 4) + faceIndexOffset);
-                Face f = new Face(v1, v2, v3);
-                faces.Add(f);
+                byte* end = ptrstart + triangleBytes.Length;
+                byte* ptr = ptrstart;
+                while (ptr < end)
+                {
+                    int v1 = Utils.BytesToUInt16(ptr) + faceIndexOffset;
+                    ptr += 2;
+                    int v2 = Utils.BytesToUInt16(ptr) + faceIndexOffset;
+                    ptr += 2;
+                    int v3 = Utils.BytesToUInt16(ptr) + faceIndexOffset;
+                    ptr += 2;
+                    Face f = new Face(v1, v2, v3);
+                    faces.Add(f);
+                }
             }
         }
 
@@ -349,7 +372,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
         /// <param name="coords">Coords are added to this list by the method.</param>
         /// <param name="faces">Faces are added to this list by the method.</param>
         /// <returns>true if coords and faces were successfully generated, false if not</returns>
-        private bool GenerateCoordsAndFacesFromPrimMeshData(
+        private unsafe bool GenerateCoordsAndFacesFromPrimMeshData(
             string primName, PrimitiveBaseShape primShape, out List<Coord> coords, out List<Face> faces, bool convex)
         {
 //            m_log.DebugFormat("[MESH]: experimental mesh proxy generation for {0}", primName);
@@ -380,13 +403,13 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                         meshOsd = (OSDMap)osd;
                     else
                     {
-                        m_log.WarnFormat("[Mesh}: unable to cast mesh asset to OSDMap prim: {0}",primName);
+                        m_log.WarnFormat("[Mesh}: unable to cast mesh asset to OSDMap prim: {0} asset {1}",primName, primShape.SculptTexture);
                         return false;
                     }
                 }
                 catch (Exception e)
                 {
-                    m_log.Error("[MESH]: Exception deserializing mesh asset header:" + e.ToString());
+                    m_log.ErrorFormat("[MESH]: Error deserializing mesh asset header: {0} in Prim '{1}' asset {2}", e.Message, primName, primShape.SculptTexture);
                     return false;
                 }
 
@@ -479,8 +502,6 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                     List<float3> vs = new List<float3>();
                     PHullResult hullr = new PHullResult();
                     float3 f3;
-                    Coord c;
-                    Face f;
                     Vector3 range;
                     Vector3 min;
 
@@ -523,101 +544,91 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                             }
 
                             data = cmap["Positions"].AsBinary();
-                            int ptr = 0;
-                            int vertsoffset = 0;
-
-                            if (totalpoints == data.Length / 6) // 2 bytes per coord, 3 coords per point
+                            fixed(byte* ptrstart = data)
                             {
-                                foreach (int hullsize in hsizes)
+                                byte* ptr = ptrstart;
+
+                                int vertsoffset = 0;
+
+                                if (totalpoints == data.Length / 6) // 2 bytes per coord, 3 coords per point
                                 {
-                                    for (i = 0; i < hullsize; i++ )
+                                    foreach (int hullsize in hsizes)
                                     {
-                                        t1 = data[ptr++];
-                                        t1 += data[ptr++] << 8;
-                                        t2 = data[ptr++];
-                                        t2 += data[ptr++] << 8;
-                                        t3 = data[ptr++];
-                                        t3 += data[ptr++] << 8;
-
-                                        f3 = new float3((t1 * range.X + min.X),
-                                                  (t2 * range.Y + min.Y),
-                                                  (t3 * range.Z + min.Z));
-                                        vs.Add(f3);
-                                    }
-
-                                    if(hullsize <3)
-                                    {
-                                        vs.Clear();
-                                        continue;
-                                    }
-
-                                    if (hullsize <5)
-                                    {
-                                        foreach (float3 point in vs)
+                                        if (hullsize < 4)
                                         {
-                                            c.X = point.x;
-                                            c.Y = point.y;
-                                            c.Z = point.z;
-                                            coords.Add(c);
-                                        }
-                                        f = new Face(vertsoffset, vertsoffset + 1, vertsoffset + 2);
-                                        faces.Add(f);
+                                            if (hullsize < 3)
+                                            {
+                                                ptr += 6 * hullsize;
+                                                continue;
+                                            }
 
-                                        if (hullsize == 4)
+                                            for (i = 0; i < hullsize; i++)
+                                            {
+                                                t1 = Utils.BytesToUInt16(ptr); ptr += 2;
+                                                t2 = Utils.BytesToUInt16(ptr); ptr += 2;
+                                                t3 = Utils.BytesToUInt16(ptr); ptr += 2;
+
+                                                coords.Add(new Coord(
+                                                                t1 * range.X + min.X,
+                                                                t2 * range.Y + min.Y,
+                                                                t3 * range.Z + min.Z)
+                                                           );
+                                                
+                                            }
+
+                                            faces.Add(new Face(vertsoffset, vertsoffset + 1, vertsoffset + 2));
+
+                                            vertsoffset += hullsize;
+                                            continue;
+                                        }
+
+                                        for (i = 0; i < hullsize; i++)
                                         {
-                                            // not sure about orientation..
-                                            f = new Face(vertsoffset, vertsoffset + 2, vertsoffset + 3);
-                                            faces.Add(f);
-                                            f = new Face(vertsoffset, vertsoffset + 3, vertsoffset + 1);
-                                            faces.Add(f);
-                                            f = new Face(vertsoffset + 3, vertsoffset + 2, vertsoffset + 1);
-                                            faces.Add(f);
+                                            t1 = Utils.BytesToUInt16(ptr); ptr += 2;
+                                            t2 = Utils.BytesToUInt16(ptr); ptr += 2;
+                                            t3 = Utils.BytesToUInt16(ptr); ptr += 2;
+
+                                            f3 = new float3(t1 * range.X + min.X,
+                                                            t2 * range.Y + min.Y,
+                                                            t3 * range.Z + min.Z);
+                                            vs.Add(f3);
                                         }
-                                        vertsoffset += vs.Count;
+
+                                        List<int> indices;
+                                        if (!HullUtils.ComputeHull(vs, out indices))
+                                        {
+                                            vs.Clear();
+                                            continue;
+                                        }
+
+                                        nverts = vs.Count;
+                                        nindexs = indices.Count;
+
+                                        if (nindexs % 3 != 0)
+                                        {
+                                            vs.Clear();
+                                            continue;
+                                        }
+
+                                        for (i = 0; i < vs.Count; i++)
+                                            coords.Add(new Coord(vs[i].x, vs[i].y, vs[i].z));
+
+                                        for (i = 0; i < indices.Count; i += 3)
+                                        {
+                                            t1 = indices[i];
+                                            if (t1 > nverts)
+                                                break;
+                                            t2 = indices[i + 1];
+                                            if (t2 > nverts)
+                                                break;
+                                            t3 = indices[i + 2];
+                                            if (t3 > nverts)
+                                                break;
+                                            faces.Add(new Face(vertsoffset + t1, vertsoffset + t2, vertsoffset + t3));
+                                        }
+                                        vertsoffset += nverts;
                                         vs.Clear();
-                                        continue;
                                     }
-
-                                    List<int> indices;
-                                    if (!HullUtils.ComputeHull(vs, out indices))
-                                    {
-                                        vs.Clear();
-                                        continue;
-                                    }
-
-                                    nverts = vs.Count;
-                                    nindexs = indices.Count;
-
-                                    if (nindexs % 3 != 0)
-                                    {
-                                        vs.Clear();
-                                        continue;
-                                    }
-
-                                    for (i = 0; i < nverts; i++)
-                                    {
-                                        c.X = vs[i].x;
-                                        c.Y = vs[i].y;
-                                        c.Z = vs[i].z;
-                                        coords.Add(c);
-                                    }
-
-                                    for (i = 0; i < nindexs; i += 3)
-                                    {
-                                        t1 = indices[i];
-                                        if (t1 > nverts)
-                                            break;
-                                        t2 = indices[i + 1];
-                                        if (t2 > nverts)
-                                            break;
-                                        t3 = indices[i + 2];
-                                        if (t3 > nverts)
-                                            break;
-                                        f = new Face(vertsoffset + t1, vertsoffset + t2, vertsoffset + t3);
-                                        faces.Add(f);
-                                    }
-                                    vertsoffset += nverts;
-                                    vs.Clear();
                                 }
                             }
                             if (coords.Count > 0 && faces.Count > 0)
@@ -631,55 +642,41 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                     }
                     vs.Clear();
 
-                    if (cmap.ContainsKey("BoundingVerts"))
+                    if (cmap.TryGetValue("BoundingVerts", out OSD odata))
                     {
-                        data = cmap["BoundingVerts"].AsBinary();
-
-                        for (i = 0; i < data.Length; )
-                        {
-                            t1 = data[i++];
-                            t1 += data[i++] << 8;
-                            t2 = data[i++];
-                            t2 += data[i++] << 8;
-                            t3 = data[i++];
-                            t3 += data[i++] << 8;
-
-                            f3 = new float3((t1 * range.X + min.X),
-                                      (t2 * range.Y + min.Y),
-                                      (t3 * range.Z + min.Z));
-                            vs.Add(f3);
-                        }
-
-                        nverts = vs.Count;
-
-                        if (nverts < 3)
+                        data = odata.AsBinary();
+                        if (data.Length < 3 * 6)
                         {
                             vs.Clear();
                             return false;
                         }
 
-                        if (nverts < 5)
+                        fixed (byte* ptrstart = data)
                         {
-                            foreach (float3 point in vs)
+                            byte* end = ptrstart + data.Length;
+                            byte* ptr = ptrstart;
+                            while(ptr < end)
                             {
-                                c.X = point.x;
-                                c.Y = point.y;
-                                c.Z = point.z;
-                                coords.Add(c);
-                            }
+                                t1 = Utils.BytesToUInt16(ptr); ptr += 2;
+                                t2 = Utils.BytesToUInt16(ptr); ptr += 2;
+                                t3 = Utils.BytesToUInt16(ptr); ptr += 2;
 
-                            f = new Face(0, 1, 2);
-                            faces.Add(f);
-
-                            if (nverts == 4)
-                            {
-                                f = new Face(0, 2, 3);
-                                faces.Add(f);
-                                f = new Face(0, 3, 1);
-                                faces.Add(f);
-                                f = new Face( 3, 2, 1);
-                                faces.Add(f);
+                                f3 = new float3((t1 * range.X + min.X),
+                                          (t2 * range.Y + min.Y),
+                                          (t3 * range.Z + min.Z));
+                                vs.Add(f3);
                             }
+                        }
+
+                        nverts = vs.Count;
+
+                        if (nverts < 4)
+                        {
+                            for (i = 0; i < vs.Count; i++)
+                                coords.Add(new Coord(vs[i].x, vs[i].y, vs[i].z));
+
+                            faces.Add(new Face(0, 1, 2));
+
                             vs.Clear();
                             return true;
                         }
@@ -693,14 +690,10 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                         if (nindexs % 3 != 0)
                             return false;
 
-                        for (i = 0; i < nverts; i++)
-                        {
-                            c.X = vs[i].x;
-                            c.Y = vs[i].y;
-                            c.Z = vs[i].z;
-                            coords.Add(c);
-                        }
-                        for (i = 0; i < nindexs; i += 3)
+                        for (i = 0; i < vs.Count; i++)
+                            coords.Add(new Coord(vs[i].x, vs[i].y, vs[i].z));
+
+                        for (i = 0; i < indices.Count; i += 3)
                         {
                             t1 = indices[i];
                             if (t1 > nverts)
@@ -711,15 +704,14 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                             t3 = indices[i + 2];
                             if (t3 > nverts)
                                 break;
-                            f = new Face(t1, t2, t3);
-                            faces.Add(f);
+
+                            faces.Add(new Face(t1, t2, t3));
                         }
                         vs.Clear();
                         if (coords.Count > 0 && faces.Count > 0)
                             return true;
                     }
-                    else
-                        return false;
+                    return false;
                 }
             }
 

@@ -210,19 +210,9 @@ namespace OpenSim.Region.Framework.Scenes
                         for (int i = 0; i < 11; i++)
                             inthash ^= *ptr++;
                     }
-                    fixed (Guid* ptrbase = &NormalMapID.Guid)
-                    {
-                        ptr = (int*)ptrbase;
-                        for (int i = 0; i < 16; i++)
-                            inthash ^= ptr[i];
-                    }
-                    fixed (Guid* ptrbase = &SpecularMapID.Guid)
-                    {
-                        ptr = (int*)ptrbase;
-                        for (int i = 0; i < 16; i++)
-                            inthash ^= ptr[i];
-                    }
-                }
+                    inthash ^= NormalMapID.GetHashCode();
+                    inthash ^= SpecularMapID.GetHashCode();
+                 }
                 validinthash = true;
             }
             return inthash;

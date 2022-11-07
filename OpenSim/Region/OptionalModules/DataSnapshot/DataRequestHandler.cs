@@ -61,7 +61,6 @@ namespace OpenSim.Region.DataSnapshot
 
         public void OnGetSnapshot(IOSHttpRequest req, IOSHttpResponse resp)
         {
-            Hashtable reply = new Hashtable();
             string reqtag;
             if(req.QueryAsDictionary.TryGetValue("region", out string snapObj) && !string.IsNullOrWhiteSpace(snapObj))
                 reqtag = snapObj + req.RemoteIPEndPoint.Address.ToString();

@@ -28,7 +28,7 @@
 using log4net;
 using System;
 using System.Collections.Generic;
-using System.Reflection;
+using System.Runtime.InteropServices;
 using OpenSim.Framework;
 using OpenMetaverse;
 
@@ -55,12 +55,20 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         Absolute
     }
 
-    public struct CameraData
+    public class CameraData
     {
         public Quaternion CameraRotation;
         public Vector3 CameraAtAxis;
         public bool MouseLook;
-        public bool Valid;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 16)]
+    public struct AABB2D
+    {
+        public float minx;
+        public float maxx;
+        public float miny;
+        public float maxy;
     }
 
     public struct ContactPoint
@@ -129,26 +137,23 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
 
         public void AddCollider(uint localID, ContactPoint contact)
         {
-            if (!m_objCollisionList.ContainsKey(localID))
+            if (m_objCollisionList.TryGetValue(localID, out ContactPoint oldcp))
             {
-                m_objCollisionList.Add(localID, contact);
-            }
-            else
-            {
-                float lastVel = m_objCollisionList[localID].RelativeSpeed;
-                if (m_objCollisionList[localID].PenetrationDepth < contact.PenetrationDepth)
+                float lastVel = oldcp.RelativeSpeed;
+                if (oldcp.PenetrationDepth < contact.PenetrationDepth)
                 {
-                    if(Math.Abs(lastVel) > Math.Abs(contact.RelativeSpeed))
+                    if (Math.Abs(lastVel) > Math.Abs(contact.RelativeSpeed))
                         contact.RelativeSpeed = lastVel;
                     m_objCollisionList[localID] = contact;
                 }
-                else if(Math.Abs(lastVel) < Math.Abs(contact.RelativeSpeed))
+                else if (Math.Abs(lastVel) < Math.Abs(contact.RelativeSpeed))
                 {
-                    ContactPoint tmp = m_objCollisionList[localID];
-                    tmp.RelativeSpeed = contact.RelativeSpeed;
-                    m_objCollisionList[localID] = tmp;
+                    oldcp.RelativeSpeed = contact.RelativeSpeed;
+                    m_objCollisionList[localID] = oldcp;
                 }
             }
+            else
+                m_objCollisionList.Add(localID, contact);
         }
 
         /// <summary>
@@ -162,7 +167,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
 
     public abstract class PhysicsActor
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public delegate void RequestTerseUpdate();
         public delegate void CollisionUpdate(EventArgs e);
@@ -189,12 +194,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         public CameraData TryGetCameraData()
         {
             GetCameraData handler = OnPhysicsRequestingCameraData;
-            if (handler != null)
-            {
-                return handler();
-            }
-
-            return new CameraData { Valid = false };
+            return (handler == null) ? null : handler();
         }
 
         public static PhysicsActor Null
@@ -209,6 +209,8 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
             cdata.mu = 0;
             cdata.bounce = 0;
         }
+
+        public AABB2D _AABB2D;
 
         public abstract bool Stopped { get; }
 
@@ -231,7 +233,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
 
         public abstract PrimitiveBaseShape Shape { set; }
 
-        uint m_baseLocalID;
+        public uint m_baseLocalID;
         public virtual uint LocalID
         {
             set { m_baseLocalID = value; }
@@ -267,38 +269,17 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
 
         public virtual void RequestPhysicsterseUpdate()
         {
-            // Make a temporary copy of the event to avoid possibility of
-            // a race condition if the last subscriber unsubscribes
-            // immediately after the null check and before the event is raised.
-            RequestTerseUpdate handler = OnRequestTerseUpdate;
-
-            if (handler != null)
-            {
-                handler();
-            }
+            OnRequestTerseUpdate?.Invoke();
         }
 
         public virtual void RaiseOutOfBounds(Vector3 pos)
         {
-            // Make a temporary copy of the event to avoid possibility of
-            // a race condition if the last subscriber unsubscribes
-            // immediately after the null check and before the event is raised.
-            OutOfBounds handler = OnOutOfBounds;
-
-            if (handler != null)
-            {
-                handler(pos);
-            }
+            OnOutOfBounds?.Invoke(pos);
         }
 
         public virtual void SendCollisionUpdate(EventArgs e)
         {
-            CollisionUpdate handler = OnCollisionUpdate;
-
-//            m_log.DebugFormat("[PHYSICS ACTOR]: Sending collision for {0}", LocalID);
-
-            if (handler != null)
-                handler(e);
+            OnCollisionUpdate?.Invoke(e);
         }
 
         public virtual void SetMaterial (int material) { }
@@ -456,6 +437,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         public abstract float APIDDamping { set;}
 
         public abstract void AddForce(Vector3 force, bool pushforce);
+        public abstract void AvatarJump(float forceZ);
         public abstract void AddAngularForce(Vector3 force, bool pushforce);
         public abstract void SetMomentum(Vector3 momentum);
         public abstract void SubscribeEvents(int ms);
@@ -671,6 +653,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         public override void link(PhysicsActor obj) { }
         public override void delink() { }
         public override void LockAngularMotion(byte axislocks) { }
+        public override void AvatarJump(float forceZ) { }
         public override void AddForce(Vector3 force, bool pushforce) { }
         public override void AddAngularForce(Vector3 force, bool pushforce) { }
 

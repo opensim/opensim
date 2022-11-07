@@ -132,7 +132,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.SitStand
 
                     foreach (SceneObjectPart part in sceneObject.Parts)
                     {
-                        if (part.IsSitTargetSet && part.SitTargetAvatar == UUID.Zero)
+                        if (part.IsSitTargetSet && part.SitTargetAvatar.IsZero())
                         {
                             sitPart = part;
                             break;

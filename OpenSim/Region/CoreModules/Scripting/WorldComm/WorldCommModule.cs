@@ -26,9 +26,8 @@
  */
 
 using System;
-using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
 using Nini.Config;
@@ -91,17 +90,20 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Scripting.WorldComm
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "WorldCommModule")]
+    [Mono.Addins.Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "WorldCommModule")]
     public class WorldCommModule : IWorldComm, INonSharedRegionModule
     {
-        // private static readonly ILog m_log =
-        //     LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private const int DEBUG_CHANNEL = 0x7fffffff;
 
-        private ListenerManager m_listenerManager;
-        private ConcurrentQueue<ListenerInfo> m_pending;
+        private object mainLock = new object();
+        private Dictionary<int, List<ListenerInfo>> m_listenersByChannel = new Dictionary<int, List<ListenerInfo>>();
+        private int m_maxlisteners = 1000;
+        private int m_maxhandles = 65;
+        private int m_curlisteners;
         private Scene m_scene;
+ 
         private int m_whisperdistance = 10;
         private int m_saydistance = 20;
         private int m_shoutdistance = 100;
@@ -112,20 +114,13 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         {
             // wrap this in a try block so that defaults will work if
             // the config file doesn't specify otherwise.
-            int maxlisteners = 1000;
-            int maxhandles = 65;
             try
             {
-                m_whisperdistance = config.Configs["Chat"].GetInt(
-                        "whisper_distance", m_whisperdistance);
-                m_saydistance = config.Configs["Chat"].GetInt(
-                        "say_distance", m_saydistance);
-                m_shoutdistance = config.Configs["Chat"].GetInt(
-                        "shout_distance", m_shoutdistance);
-                maxlisteners = config.Configs["LL-Functions"].GetInt(
-                        "max_listens_per_region", maxlisteners);
-                maxhandles = config.Configs["LL-Functions"].GetInt(
-                        "max_listens_per_script", maxhandles);
+                m_whisperdistance = config.Configs["Chat"].GetInt("whisper_distance", m_whisperdistance);
+                m_saydistance = config.Configs["Chat"].GetInt("say_distance", m_saydistance);
+                m_shoutdistance = config.Configs["Chat"].GetInt("shout_distance", m_shoutdistance);
+                m_maxlisteners = config.Configs["LL-Functions"].GetInt("max_listens_per_region", m_maxlisteners);
+                m_maxhandles = config.Configs["LL-Functions"].GetInt("max_listens_per_script", m_maxhandles);
             }
             catch (Exception)
             {
@@ -135,16 +130,14 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
             m_saydistance *= m_saydistance;
             m_shoutdistance *= m_shoutdistance;
 
-            if (maxlisteners < 1)
-                maxlisteners = int.MaxValue;
-            if (maxhandles < 1)
-                maxhandles = int.MaxValue;
+            if (m_maxlisteners < 1)
+                m_maxlisteners = int.MaxValue;
+            if (m_maxhandles < 1)
+                m_maxhandles = int.MaxValue;
 
-            if (maxlisteners < maxhandles)
-                maxlisteners = maxhandles;
+            if (m_maxlisteners < m_maxhandles)
+                m_maxlisteners = m_maxhandles;
 
-            m_listenerManager = new ListenerManager(maxlisteners, maxhandles);
-            m_pending = new ConcurrentQueue<ListenerInfo>();
         }
 
         public void PostInitialise()
@@ -186,14 +179,6 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
 
         #region IWorldComm Members
 
-        public int ListenerCount
-        {
-            get
-            {
-                return m_listenerManager.ListenerCount;
-            }
-        }
-
         /// <summary>
         /// Create a listen event callback with the specified filters.
         /// The parameters localID,itemID are needed to uniquely identify
@@ -210,11 +195,10 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         /// </param>
         /// <param name="msg">msg to filter on</param>
         /// <returns>number of the scripts handle</returns>
-        public int Listen(uint localID, UUID itemID, UUID hostID, int channel,
-                string name, UUID id, string msg)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int Listen(UUID itemID, UUID hostID, int channel, string name, UUID id, string msg)
         {
-            return m_listenerManager.AddListener(localID, itemID, hostID,
-                channel, name, id, msg);
+            return Listen(itemID, hostID, channel, name, id, msg, 0);
         }
 
         /// <summary>
@@ -223,7 +207,6 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         /// the script during 'peek' time. Parameter hostID is needed to
         /// determine the position of the script.
         /// </summary>
-        /// <param name="localID">localID of the script engine</param>
         /// <param name="itemID">UUID of the script engine</param>
         /// <param name="hostID">UUID of the SceneObjectPart</param>
         /// <param name="channel">channel to listen on</param>
@@ -236,11 +219,44 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         /// Bitfield indicating which strings should be processed as regex.
         /// </param>
         /// <returns>number of the scripts handle</returns>
-        public int Listen(uint localID, UUID itemID, UUID hostID, int channel,
+        public int Listen(UUID itemID, UUID hostID, int channel,
                 string name, UUID id, string msg, int regexBitfield)
         {
-            return m_listenerManager.AddListener(localID, itemID, hostID,
-                    channel, name, id, msg, regexBitfield);
+            // do we already have a match on this particular filter event?
+            List<ListenerInfo> coll = GetListeners(itemID, channel, name, id, msg);
+
+            if (coll.Count > 0)
+            {
+                // special case, called with same filter settings, return same
+                // handle (2008-05-02, tested on 1.21.1 server, still holds)
+                return coll[0].Handle;
+            }
+
+            lock (mainLock)
+            {
+                if (m_curlisteners < m_maxlisteners)
+                {
+                    int newHandle = GetNewHandle(itemID);
+
+                    if (newHandle > 0)
+                    {
+                        ListenerInfo li = new ListenerInfo(newHandle,
+                                itemID, hostID, channel, name, id, msg,
+                                regexBitfield);
+
+                        if (!m_listenersByChannel.TryGetValue(channel, out List<ListenerInfo> listeners))
+                        {
+                            listeners = new List<ListenerInfo>();
+                            m_listenersByChannel.Add(channel, listeners);
+                        }
+                        listeners.Add(li);
+                        m_curlisteners++;
+
+                        return newHandle;
+                    }
+                }
+            }
+            return -1;
         }
 
         /// <summary>
@@ -252,10 +268,23 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         /// <param name="active">temp. activate or deactivate the Listen()</param>
         public void ListenControl(UUID itemID, int handle, int active)
         {
-            if (active == 1)
-                m_listenerManager.Activate(itemID, handle);
-            else if (active == 0)
-                m_listenerManager.Dectivate(itemID, handle);
+            lock (mainLock)
+            {
+                foreach (KeyValuePair<int, List<ListenerInfo>> lis in m_listenersByChannel)
+                {
+                    foreach (ListenerInfo li in lis.Value)
+                    {
+                        if (handle == li.Handle && itemID.Equals(li.ItemID))
+                        {
+                            if (active == 0)
+                                li.Deactivate();
+                            else
+                                li.Activate();
+                            return;
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -265,38 +294,70 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         /// <param name="handle">handle returned by Listen()</param>
         public void ListenRemove(UUID itemID, int handle)
         {
-            m_listenerManager.Remove(itemID, handle);
+            lock (mainLock)
+            {
+                foreach (KeyValuePair<int, List<ListenerInfo>> lis in m_listenersByChannel)
+                {
+                    foreach (ListenerInfo li in lis.Value)
+                    {
+                        if (handle == li.Handle && itemID.Equals(li.ItemID))
+                        {
+                            lis.Value.Remove(li);
+                            m_curlisteners--;
+                            if (lis.Value.Count == 0)
+                                m_listenersByChannel.Remove(lis.Key); // bailing of loop so this does not smoke
+                                                                        // there should be only one, so we bail out early
+                            return;
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary>
-        /// Removes all listen event callbacks for the given itemID
-        /// (script engine)
+        /// Removes all listen event callbacks for the given scriptID
         /// </summary>
-        /// <param name="itemID">UUID of the script engine</param>
-        public void DeleteListener(UUID itemID)
+        /// <param name="scriptID">UUID of the script</param>
+        public void DeleteListener(UUID scriptID)
         {
-            m_listenerManager.DeleteListener(itemID);
+            List<int> emptyChannels = new List<int>();
+            List<ListenerInfo> removedListeners = new List<ListenerInfo>();
+            lock (mainLock)
+            {
+                foreach (KeyValuePair<int, List<ListenerInfo>> lis in m_listenersByChannel)
+                {
+                    foreach (ListenerInfo li in lis.Value)
+                    {
+                        if (scriptID.Equals(li.ItemID))
+                            removedListeners.Add(li);
+                    }
+                    foreach (ListenerInfo li in removedListeners)
+                    {
+                        lis.Value.Remove(li);
+                         m_curlisteners--;
+                         if (lis.Value.Count == 0)
+                            emptyChannels.Add(lis.Key);
+                    }
+                }
+                foreach (int key in emptyChannels)
+                    m_listenersByChannel.Remove(key);
+            }
         }
-
-
-        protected static Vector3 CenterOfRegion = new Vector3(128, 128, 20);
 
         public void DeliverMessage(ChatTypeEnum type, int channel, string name, UUID id, string msg)
         {
-            Vector3 position;
+            if (type == ChatTypeEnum.Region)
+            {
+                TryEnqueueMessage(channel, name, id, msg);
+                return;
+            }
+
             SceneObjectPart source;
             ScenePresence avatar;
-
             if ((source = m_scene.GetSceneObjectPart(id)) != null)
-                position = source.AbsolutePosition;
+                DeliverMessage(type, channel, name, id, msg, source.AbsolutePosition);
             else if ((avatar = m_scene.GetScenePresence(id)) != null)
-                position = avatar.AbsolutePosition;
-            else if (ChatTypeEnum.Region == type)
-                position = CenterOfRegion;
-            else
-                return;
-
-            DeliverMessage(type, channel, name, id, msg, position);
+                DeliverMessage(type, channel, name, id, msg, avatar.AbsolutePosition);
         }
 
         /// <summary>
@@ -335,38 +396,14 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                     break;
 
                 case ChatTypeEnum.Region:
-                    maxDistanceSQ = -1f;
-                    break;
+                    TryEnqueueMessage(channel, name, id, msg);
+                    return;
 
                 default:
                     return;
             }
 
-            // Determine which listen event filters match the given set of arguments, this results
-            // in a limited set of listeners, each belonging a host. If the host is in range, add them
-            // to the pending queue.
-
-            UUID hostID;
-            foreach (ListenerInfo li in m_listenerManager.GetListeners(UUID.Zero, channel, name, id, msg))
-            {
-                hostID = li.GetHostID();
-                // Dont process if this message is from yourself!
-                if (id == hostID)
-                    continue;
-
-                if(maxDistanceSQ < 0)
-                {
-                    QueueMessage(new ListenerInfo(li, name, id, msg));
-                    continue;
-                }
-
-                SceneObjectPart sPart = m_scene.GetSceneObjectPart(hostID);
-                if (sPart == null)
-                    continue;
-
-                if(maxDistanceSQ > Vector3.DistanceSquared(sPart.AbsolutePosition, position))
-                    QueueMessage(new ListenerInfo(li, name, id, msg));
-            }
+            TryEnqueueMessage(channel, position, maxDistanceSQ, name, id, msg);
         }
 
         /// <summary>
@@ -392,7 +429,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
             if (channel == DEBUG_CHANNEL)
                 return;
 
-            if(target == UUID.Zero)
+            if(target.IsZero())
                 return;
 
             // Is target an avatar?
@@ -403,7 +440,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                 if (channel == 0)
                 {
                    // Channel 0 goes to viewer ONLY
-                    m_scene.SimChat(Utils.StringToBytes(msg), ChatTypeEnum.Direct, 0, pos, name, id, target, false, false);
+                    m_scene.SimChat(msg, ChatTypeEnum.Direct, 0, pos, name, id, target, false, false);
                     return;
                 }
 
@@ -417,7 +454,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                     return;
 
                 // Get uuid of attachments
-                List<UUID> targets = new List<UUID>();
+                HashSet<UUID> targets = new HashSet<UUID>();
                 foreach (SceneObjectGroup sog in attachments)
                 {
                     if (!sog.IsDeleted)
@@ -428,18 +465,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                     }
                 }
 
-                foreach (ListenerInfo li in m_listenerManager.GetListeners(UUID.Zero, channel, name, id, msg))
-                {
-                    UUID liHostID = li.GetHostID();
-                    if (liHostID.Equals(id))
-                        continue;
-                    if (m_scene.GetSceneObjectPart(liHostID) == null)
-                        continue;
-
-                    if (targets.Contains(liHostID))
-                        QueueMessage(new ListenerInfo(li, name, id, msg));
-                }
-
+                TryEnqueueMessage(channel, targets, name, id, msg);
                 return;
             }
 
@@ -447,86 +473,45 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
             if (part == null) // Not even an object
                 return; // No error
 
-            foreach (ListenerInfo li in m_listenerManager.GetListeners(UUID.Zero, channel, name, id, msg))
-            {
-                UUID liHostID = li.GetHostID();
-                // Dont process if this message is from yourself!
-                if (liHostID.Equals(id))
-                    continue;
-                if (!liHostID.Equals(target))
-                    continue;
-                if (m_scene.GetSceneObjectPart(liHostID) == null)
-                    continue;
-
-                QueueMessage(new ListenerInfo(li, name, id, msg));
-            }
-        }
-
-        protected void QueueMessage(ListenerInfo li)
-        {
-            m_pending.Enqueue(li);
-        }
-
-        /// <summary>
-        /// Are there any listen events ready to be dispatched?
-        /// </summary>
-        /// <returns>boolean indication</returns>
-        public bool HasMessages()
-        {
-            return (m_pending.Count > 0);
-        }
-
-        /// <summary>
-        /// Pop the first availlable listen event from the queue
-        /// </summary>
-        /// <returns>ListenerInfo with filter filled in</returns>
-        public IWorldCommListenerInfo GetNextMessage()
-        {
-            m_pending.TryDequeue(out ListenerInfo li);
-            return li;
+            TryEnqueueMessage(channel, target, name, id, msg);
         }
 
         #endregion
 
-        /********************************************************************
-         *
-         * Listener Stuff
-         *
-         * *****************************************************************/
-
         private void DeliverClientMessage(Object sender, OSChatMessage e)
         {
-            if (null != e.Sender)
+            // validate type and set range
+            float maxDistanceSQ;
+            switch (e.Type)
             {
-                DeliverMessage(e.Type, e.Channel, e.Sender.Name,
-                        e.Sender.AgentId, e.Message, e.Position);
+                case ChatTypeEnum.Whisper:
+                    maxDistanceSQ = m_whisperdistance;
+                    break;
+
+                case ChatTypeEnum.Say:
+                    maxDistanceSQ = m_saydistance;
+                    break;
+
+                case ChatTypeEnum.Shout:
+                    maxDistanceSQ = m_shoutdistance;
+                    break;
+
+                case ChatTypeEnum.Region:
+                    if (e.Sender == null)
+                        TryEnqueueMessage(e.Channel, e.From, UUID.Zero, e.Message);
+                    else
+                        TryEnqueueMessage(e.Channel, e.Sender.Name, e.Sender.AgentId, e.Message);
+                    return;
+
+                default:
+                    return;
             }
+
+            if (e.Sender == null)
+                TryEnqueueMessage(e.Channel, e.Position, maxDistanceSQ, e.From, UUID.Zero, e.Message);
             else
-            {
-                DeliverMessage(e.Type, e.Channel, e.From, UUID.Zero,
-                        e.Message, e.Position);
-            }
+                TryEnqueueMessage(e.Channel, e.Position, maxDistanceSQ, e.Sender.Name, e.Sender.AgentId, e.Message);
         }
-
-        public Object[] GetSerializationData(UUID itemID)
-        {
-            return m_listenerManager.GetSerializationData(itemID);
-        }
-
-        public void CreateFromData(uint localID, UUID itemID, UUID hostID,
-                Object[] data)
-        {
-            m_listenerManager.AddFromData(localID, itemID, hostID, data);
-        }
-    }
-
-    public class ListenerManager
-    {
-        private object mainLock = new object();
-        private Dictionary<int, List<ListenerInfo>> m_listenersByChannel = new Dictionary<int, List<ListenerInfo>>();
-        private int m_maxlisteners;
-        private int m_maxhandles;
-        private int m_curlisteners;
 
         /// <summary>
         /// Total number of listeners
@@ -536,151 +521,8 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
             get
             {
                 lock (mainLock)
-                    return m_listenersByChannel.Count;
-            }
-        }
-
-        public ListenerManager(int maxlisteners, int maxhandles)
-        {
-            m_maxlisteners = maxlisteners;
-            m_maxhandles = maxhandles;
-            m_curlisteners = 0;
-        }
-
-        public int AddListener(uint localID, UUID itemID, UUID hostID,
-                int channel, string name, UUID id, string msg)
-        {
-            return AddListener(localID, itemID, hostID, channel, name, id,
-                    msg, 0);
-        }
-
-        public int AddListener(uint localID, UUID itemID, UUID hostID,
-                int channel, string name, UUID id, string msg,
-                int regexBitfield)
-        {
-            // do we already have a match on this particular filter event?
-            List<ListenerInfo> coll = GetListeners(itemID, channel, name, id, msg);
-
-            if (coll.Count > 0)
-            {
-                // special case, called with same filter settings, return same
-                // handle (2008-05-02, tested on 1.21.1 server, still holds)
-                return coll[0].GetHandle();
-            }
-
-            lock (mainLock)
-            {
-                if (m_curlisteners < m_maxlisteners)
                 {
-                    int newHandle = GetNewHandle(itemID);
-
-                    if (newHandle > 0)
-                    {
-                        ListenerInfo li = new ListenerInfo(newHandle, localID,
-                                itemID, hostID, channel, name, id, msg,
-                                regexBitfield);
-
-                        if (!m_listenersByChannel.TryGetValue(channel, out List<ListenerInfo> listeners))
-                        {
-                            listeners = new List<ListenerInfo>();
-                            m_listenersByChannel.Add(channel, listeners);
-                        }
-                        listeners.Add(li);
-                        m_curlisteners++;
-
-                        return newHandle;
-                    }
-                }
-            }
-            return -1;
-        }
-
-        public void Remove(UUID itemID, int handle)
-        {
-            lock (mainLock)
-            {
-                foreach (KeyValuePair<int, List<ListenerInfo>> lis in m_listenersByChannel)
-                {
-                    foreach (ListenerInfo li in lis.Value)
-                    {
-                        if (handle == li.GetHandle() && itemID == li.GetItemID())
-                        {
-                            lis.Value.Remove(li);
-                            m_curlisteners--;
-                            if (lis.Value.Count == 0)
-                                m_listenersByChannel.Remove(lis.Key); // bailing of loop so this does not smoke
-                            // there should be only one, so we bail out early
-                            return;
-                        }
-                    }
-                }
-            }
-        }
-
-        public void DeleteListener(UUID itemID)
-        {
-            List<int> emptyChannels = new List<int>();
-            List<ListenerInfo> removedListeners = new List<ListenerInfo>();
-
-            lock (mainLock)
-            {
-                foreach (KeyValuePair<int, List<ListenerInfo>> lis in m_listenersByChannel)
-                {
-                    foreach (ListenerInfo li in lis.Value)
-                    {
-                        if (itemID == li.GetItemID())
-                            removedListeners.Add(li);
-                    }
-
-                    foreach (ListenerInfo li in removedListeners)
-                    {
-                        lis.Value.Remove(li);
-                        m_curlisteners--;
-                    }
-
-                    removedListeners.Clear();
-                    if (lis.Value.Count == 0)
-                        emptyChannels.Add(lis.Key);
-                }
-                foreach (int channel in emptyChannels)
-                {
-                    m_listenersByChannel.Remove(channel);
-                }
-            }
-        }
-
-        public void Activate(UUID itemID, int handle)
-        {
-            lock (mainLock)
-            {
-                foreach (KeyValuePair<int, List<ListenerInfo>> lis in m_listenersByChannel)
-                {
-                    foreach (ListenerInfo li in lis.Value)
-                    {
-                        if (handle == li.GetHandle() && itemID == li.GetItemID())
-                        {
-                            li.Activate();
-                            return;
-                        }
-                    }
-                }
-            }
-        }
-
-        public void Dectivate(UUID itemID, int handle)
-        {
-            lock (mainLock)
-            {
-                foreach (KeyValuePair<int, List<ListenerInfo>> lis in m_listenersByChannel)
-                {
-                    foreach (ListenerInfo li in lis.Value)
-                    {
-                        if (handle == li.GetHandle() && itemID == li.GetItemID())
-                        {
-                            li.Deactivate();
-                            return;
-                        }
-                    }
+                    return m_curlisteners;
                 }
             }
         }
@@ -700,8 +542,8 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
             {
                 foreach (ListenerInfo li in lis.Value)
                 {
-                    if (itemID == li.GetItemID())
-                        handles.Add(li.GetHandle());
+                    if (itemID == li.ItemID)
+                        handles.Add(li.Handle);
                 }
             }
 
@@ -734,6 +576,12 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
 
         #endregion
 
+        public bool HasListeners(int channel)
+        {
+            lock (mainLock)
+                return m_listenersByChannel.TryGetValue(channel, out List<ListenerInfo> listeners) && listeners.Count > 0;
+        }
+
         /// <summary>
         /// Get listeners matching the input parameters.
         /// </summary>
@@ -747,55 +595,53 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         /// <param name="id"></param>
         /// <param name="msg"></param>
         /// <returns></returns>
-        public List<ListenerInfo> GetListeners(UUID itemID, int channel,
-                string name, UUID id, string msg)
+        public List<ListenerInfo> GetListeners(UUID itemID, int channel, string name, UUID id, string msg)
         {
             List<ListenerInfo> collection = new List<ListenerInfo>();
 
             lock (mainLock)
             {
-                List<ListenerInfo> listeners;
-                if (!m_listenersByChannel.TryGetValue(channel, out listeners))
+                if (!m_listenersByChannel.TryGetValue(channel, out List<ListenerInfo> listeners))
                 {
                     return collection;
                 }
 
-                bool itemIDNotZero = itemID != UUID.Zero;
+                bool itemIDNotZero = itemID.IsNotZero();
                 foreach (ListenerInfo li in listeners)
                 {
-                    if (!li.IsActive())
+                    if (!li.IsActive)
                         continue;
 
-                    if (itemIDNotZero && itemID != li.GetItemID())
+                    if (itemIDNotZero && itemID.NotEqual(li.ItemID))
                         continue;
 
-                    if (li.GetID() != UUID.Zero && id != li.GetID())
+                    if (li.ID.IsNotZero() && id.NotEqual(li.ID))
                         continue;
 
-                    if (li.GetName().Length > 0)
+                    if (li.Name.Length > 0)
                     {
-                        if((li.RegexBitfield & OS_LISTEN_REGEX_NAME) == OS_LISTEN_REGEX_NAME)
+                        if ((li.RegexBitfield & OS_LISTEN_REGEX_NAME) == OS_LISTEN_REGEX_NAME)
                         {
-                            if (!Regex.IsMatch(name, li.GetName()))
+                            if (!Regex.IsMatch(name, li.Name))
                                 continue;
                         }
                         else
                         {
-                            if (!li.GetName().Equals(name))
+                            if (!name.Equals(li.Name, StringComparison.InvariantCulture))
                                 continue;
                         }
                     }
 
-                    if (li.GetMessage().Length > 0)
+                    if (li.Message.Length > 0)
                     {
-                        if((li.RegexBitfield & OS_LISTEN_REGEX_MESSAGE) == OS_LISTEN_REGEX_MESSAGE)
+                        if ((li.RegexBitfield & OS_LISTEN_REGEX_MESSAGE) == OS_LISTEN_REGEX_MESSAGE)
                         {
-                            if(!Regex.IsMatch(msg, li.GetMessage()))
+                            if (!Regex.IsMatch(msg, li.Message))
                                 continue;
                         }
                         else
                         {
-                            if(!li.GetMessage().Equals(msg))
+                            if (!msg.Equals(li.Message, StringComparison.InvariantCulture))
                                 continue;
                         }
                     }
@@ -803,6 +649,224 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                 }
             }
             return collection;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void TryEnqueueMessage(int channel, Vector3 position, float maxDistanceSQ, string name, UUID id, string msg)
+        {
+            lock (mainLock)
+            {
+                if (!m_listenersByChannel.TryGetValue(channel, out List<ListenerInfo> listeners))
+                    return;
+
+                foreach (ListenerInfo li in listeners)
+                {
+                    if (!li.IsActive)
+                        continue;
+
+                    if (id.Equals(li.HostID))
+                        continue;
+
+                    if (li.ID.IsNotZero() && id.NotEqual(li.ID))
+                        continue;
+
+                    if (li.Name.Length > 0)
+                    {
+                        if ((li.RegexBitfield & OS_LISTEN_REGEX_NAME) != 0)
+                        {
+                            if (!Regex.IsMatch(name, li.Name))
+                                continue;
+                        }
+                        else
+                        {
+                            if (!name.Equals(li.Name, StringComparison.InvariantCulture))
+                                continue;
+                        }
+                    }
+
+                    if (li.Message.Length > 0)
+                    {
+                        if ((li.RegexBitfield & OS_LISTEN_REGEX_MESSAGE) != 0)
+                        {
+                            if (!Regex.IsMatch(msg, li.Message))
+                                continue;
+                        }
+                        else
+                        {
+                            if (!msg.Equals(li.Message, StringComparison.InvariantCulture))
+                                continue;
+                        }
+                    }
+
+                    SceneObjectPart sPart = m_scene.GetSceneObjectPart(li.HostID);
+                    if (sPart == null)
+                        return;
+
+                    if (maxDistanceSQ > Vector3.DistanceSquared(sPart.AbsolutePosition, position))
+                    {
+                        m_scene.EventManager.TriggerScriptListen(li.ItemID, channel, name, id, msg);
+                    }
+                }
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void TryEnqueueMessage(int channel, string name, UUID id, string msg)
+        {
+            lock (mainLock)
+            {
+                if (!m_listenersByChannel.TryGetValue(channel, out List<ListenerInfo> listeners))
+                    return;
+
+                foreach (ListenerInfo li in listeners)
+                {
+                    if (!li.IsActive)
+                        continue;
+
+                    if (id.Equals(li.HostID))
+                        continue;
+
+                    if (li.ID.IsNotZero() && id.NotEqual(li.ID))
+                        continue;
+
+                    if (li.Name.Length > 0)
+                    {
+                        if ((li.RegexBitfield & OS_LISTEN_REGEX_NAME) != 0)
+                        {
+                            if (!Regex.IsMatch(name, li.Name))
+                                continue;
+                        }
+                        else
+                        {
+                            if (!name.Equals(li.Name, StringComparison.InvariantCulture))
+                                continue;
+                        }
+                    }
+
+                    if (li.Message.Length > 0)
+                    {
+                        if ((li.RegexBitfield & OS_LISTEN_REGEX_MESSAGE) != 0)
+                        {
+                            if (!Regex.IsMatch(msg, li.Message))
+                                continue;
+                        }
+                        else
+                        {
+                            if (!msg.Equals(li.Message, StringComparison.InvariantCulture))
+                                continue;
+                        }
+                    }
+                    m_scene.EventManager.TriggerScriptListen(li.ItemID, channel, name, id, msg);
+                }
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void TryEnqueueMessage(int channel, UUID target, string name, UUID id, string msg)
+        {
+            lock (mainLock)
+            {
+                if (!m_listenersByChannel.TryGetValue(channel, out List<ListenerInfo> listeners))
+                    return;
+
+                foreach (ListenerInfo li in listeners)
+                {
+                    if (!li.IsActive)
+                        continue;
+
+                    if (id.Equals(li.HostID))
+                        continue;
+
+                    if (target.NotEqual(li.HostID))
+                        continue;
+
+                    if (li.ID.IsNotZero() && id.NotEqual(li.ID))
+                        continue;
+
+                    if (li.Name.Length > 0)
+                    {
+                        if ((li.RegexBitfield & OS_LISTEN_REGEX_NAME) != 0)
+                        {
+                            if (!Regex.IsMatch(name, li.Name))
+                                continue;
+                        }
+                        else
+                        {
+                            if (!name.Equals(li.Name, StringComparison.InvariantCulture))
+                                continue;
+                        }
+                    }
+
+                    if (li.Message.Length > 0)
+                    {
+                        if ((li.RegexBitfield & OS_LISTEN_REGEX_MESSAGE) != 0)
+                        {
+                            if (!Regex.IsMatch(msg, li.Message))
+                                continue;
+                        }
+                        else
+                        {
+                            if (!msg.Equals(li.Message, StringComparison.InvariantCulture))
+                                continue;
+                        }
+                    }
+                    m_scene.EventManager.TriggerScriptListen(li.ItemID, channel, name, id, msg);
+                }
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void TryEnqueueMessage(int channel, HashSet<UUID> targets, string name, UUID id, string msg)
+        {
+            lock (mainLock)
+            {
+                if (!m_listenersByChannel.TryGetValue(channel, out List<ListenerInfo> listeners))
+                    return;
+
+                foreach (ListenerInfo li in listeners)
+                {
+                    if (!li.IsActive)
+                        continue;
+
+                    if (id.Equals(li.HostID))
+                        continue;
+
+                    if (!targets.Contains(li.HostID))
+                        continue;
+
+                    if (li.ID.IsNotZero() && id.NotEqual(li.ID))
+                        continue;
+
+                    if (li.Name.Length > 0)
+                    {
+                        if ((li.RegexBitfield & OS_LISTEN_REGEX_NAME) != 0)
+                        {
+                            if (!Regex.IsMatch(name, li.Name))
+                                continue;
+                        }
+                        else
+                        {
+                            if (!name.Equals(li.Name, StringComparison.InvariantCulture))
+                                continue;
+                        }
+                    }
+
+                    if (li.Message.Length > 0)
+                    {
+                        if ((li.RegexBitfield & OS_LISTEN_REGEX_MESSAGE) != 0)
+                        {
+                            if (!Regex.IsMatch(msg, li.Message))
+                                continue;
+                        }
+                        else
+                        {
+                            if (!msg.Equals(li.Message, StringComparison.InvariantCulture))
+                                continue;
+                        }
+                    }
+                    m_scene.EventManager.TriggerScriptListen(li.ItemID, channel, name, id, msg);
+                }
+            }
         }
 
         public Object[] GetSerializationData(UUID itemID)
@@ -815,16 +879,15 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                 {
                     foreach (ListenerInfo l in list)
                     {
-                        if (l.GetItemID() == itemID)
+                        if (itemID.Equals(l.ItemID))
                             data.AddRange(l.GetSerializationData());
                     }
                 }
             }
-            return (Object[])data.ToArray();
+            return data.ToArray();
         }
 
-        public void AddFromData(uint localID, UUID itemID, UUID hostID,
-                Object[] data)
+        public void CreateFromData(UUID itemID, UUID hostID, Object[] data)
         {
             int idx = 0;
             Object[] item = new Object[6];
@@ -836,8 +899,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                 item = new Object[dataItemLength];
                 Array.Copy(data, idx, item, 0, dataItemLength);
 
-                ListenerInfo info =
-                        ListenerInfo.FromData(localID, itemID, hostID, item);
+                ListenerInfo info = ListenerInfo.FromData(itemID, hostID, item);
 
                 lock (mainLock)
                 {
@@ -858,91 +920,100 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         /// <summary>
         /// Listener is active or not
         /// </summary>
-        private bool m_active;
+        public bool IsActive { get; private set; }
 
         /// <summary>
         /// Assigned handle of this listener
         /// </summary>
-        private int m_handle;
-
-        /// <summary>
-        /// Local ID from script engine
-        /// </summary>
-        private uint m_localID;
+        public int Handle { get; private set; }
 
         /// <summary>
         /// ID of the host script engine
         /// </summary>
-        private UUID m_itemID;
+        public UUID ItemID { get; private set; }
 
         /// <summary>
         /// ID of the host/scene part
         /// </summary>
-        private UUID m_hostID;
+        public UUID HostID { get; private set; }
 
         /// <summary>
         /// Channel
         /// </summary>
-        private int m_channel;
+        public int Channel { get; private set; }
 
         /// <summary>
         /// ID to filter messages from
         /// </summary>
-        private UUID m_id;
+        public UUID ID { get; private set; }
 
         /// <summary>
         /// Object name to filter messages from
         /// </summary>
-        private string m_name;
+        public string Name { get; private set; }
 
         /// <summary>
         /// The message
         /// </summary>
-        private string m_message;
+        public string Message { get; private set; }
+        public int RegexBitfield { get; private set; }
 
-        public ListenerInfo(int handle, uint localID, UUID ItemID,
+        public ListenerInfo()
+        {       
+        }
+
+        public ListenerInfo(int handle, UUID _ItemID,
                 UUID hostID, int channel, string name, UUID id,
                 string message)
         {
-            Initialise(handle, localID, ItemID, hostID, channel, name, id,
-                    message, 0);
+            IsActive = true;
+            Handle = handle;
+            ItemID = _ItemID;
+            HostID = hostID;
+            Channel = channel;
+            Name = name;
+            ID = id;
+            Message = message;
+            RegexBitfield = 0;
         }
 
-        public ListenerInfo(int handle, uint localID, UUID ItemID,
+        public ListenerInfo(int handle, UUID _ItemID,
                 UUID hostID, int channel, string name, UUID id,
                 string message, int regexBitfield)
         {
-            Initialise(handle, localID, ItemID, hostID, channel, name, id,
-                    message, regexBitfield);
+            IsActive = true;
+            Handle = handle;
+            ItemID = _ItemID;
+            HostID = hostID;
+            Channel = channel;
+            Name = name;
+            ID = id;
+            Message = message;
+            RegexBitfield = regexBitfield;
         }
 
-        public ListenerInfo(ListenerInfo li, string name, UUID id,
-                string message)
+        public ListenerInfo(ListenerInfo li, string name, UUID id, string message)
         {
-            Initialise(li.m_handle, li.m_localID, li.m_itemID, li.m_hostID,
-                    li.m_channel, name, id, message, 0);
+            IsActive = true;
+            Handle = li.Handle;
+            ItemID = li.ItemID;
+            HostID = li.HostID;
+            Channel = li.Channel;
+            Name = name;
+            ID = id;
+            Message = message;
         }
 
-        public ListenerInfo(ListenerInfo li, string name, UUID id,
-                string message, int regexBitfield)
+        public ListenerInfo(ListenerInfo li, string name, UUID id, string message, int regexBitfield)
         {
-            Initialise(li.m_handle, li.m_localID, li.m_itemID, li.m_hostID,
-                    li.m_channel, name, id, message, regexBitfield);
-        }
-
-        private void Initialise(int handle, uint localID, UUID ItemID,
-                UUID hostID, int channel, string name, UUID id,
-                string message, int regexBitfield)
-        {
-            m_active = true;
-            m_handle = handle;
-            m_localID = localID;
-            m_itemID = ItemID;
-            m_hostID = hostID;
-            m_channel = channel;
-            m_name = name;
-            m_id = id;
-            m_message = message;
+            IsActive = true;
+            Handle = li.Handle;
+            ItemID = li.ItemID;
+            HostID = li.HostID;
+            Channel = li.Channel;
+            Name = name;
+            ID = id;
+            Message = message;
             RegexBitfield = regexBitfield;
         }
 
@@ -950,87 +1021,41 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         {
             Object[] data = new Object[7];
 
-            data[0] = m_active;
-            data[1] = m_handle;
-            data[2] = m_channel;
-            data[3] = m_name;
-            data[4] = m_id;
-            data[5] = m_message;
+            data[0] = IsActive;
+            data[1] = Handle;
+            data[2] = Channel;
+            data[3] = Name;
+            data[4] = ID;
+            data[5] = Message;
             data[6] = RegexBitfield;
 
             return data;
         }
 
-        public static ListenerInfo FromData(uint localID, UUID ItemID,
-                UUID hostID, Object[] data)
+        public static ListenerInfo FromData(UUID _ItemID, UUID hostID, Object[] data)
         {
-            ListenerInfo linfo = new ListenerInfo((int)data[1], localID,
-                    ItemID, hostID, (int)data[2], (string)data[3],
-                    (UUID)data[4], (string)data[5]);
-            linfo.m_active = (bool)data[0];
-            if (data.Length >= 7)
+            return new ListenerInfo()
             {
-                linfo.RegexBitfield = (int)data[6];
-            }
-
-            return linfo;
-        }
-
-        public UUID GetItemID()
-        {
-            return m_itemID;
-        }
-
-        public UUID GetHostID()
-        {
-            return m_hostID;
-        }
-
-        public int GetChannel()
-        {
-            return m_channel;
-        }
-
-        public uint GetLocalID()
-        {
-            return m_localID;
-        }
-
-        public int GetHandle()
-        {
-            return m_handle;
-        }
-
-        public string GetMessage()
-        {
-            return m_message;
-        }
-
-        public string GetName()
-        {
-            return m_name;
-        }
-
-        public bool IsActive()
-        {
-            return m_active;
-        }
-
-        public void Deactivate()
-        {
-            m_active = false;
+                IsActive = (bool)data[0],
+                Handle = (int)data[1],
+                ItemID = _ItemID,
+                HostID = hostID,
+                Channel = (int)data[2],
+                Name = (string)data[3],
+                ID = (UUID)data[4],
+                Message = (string)data[5],
+                RegexBitfield = (data.Length > 6) ? (int)data[6] : 0
+            };
         }
 
         public void Activate()
         {
-            m_active = true;
+            IsActive = true;
         }
 
-        public UUID GetID()
+        public void Deactivate()
         {
-            return m_id;
+            IsActive = false;
         }
-
-        public int RegexBitfield { get; private set; }
     }
 }

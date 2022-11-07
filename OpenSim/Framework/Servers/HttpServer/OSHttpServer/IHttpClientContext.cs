@@ -1,7 +1,6 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading.Tasks;
 
 namespace OSHttpServer
 {
@@ -72,7 +71,7 @@ namespace OSHttpServer
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         bool Send(byte[] buffer, int offset, int size);
-        Task<bool> SendAsync(byte[] buffer, int offset, int size);
+        bool SendAsyncStart(byte[] buffer, int offset, int size);
 
         /// <summary>
         /// Closes the streams and disposes of the unmanaged resources
@@ -95,7 +94,7 @@ namespace OSHttpServer
         HTTPNetworkContext GiveMeTheNetworkStreamIKnowWhatImDoing();
 
         void StartSendResponse(HttpResponse response);
-        void ContinueSendResponse(bool notThrottled);
+        void ContinueSendResponse();
         void EndSendResponse(uint requestID, ConnectionType connection);
         bool TrySendResponse(int limit);
     }

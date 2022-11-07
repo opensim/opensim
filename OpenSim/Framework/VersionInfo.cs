@@ -1,3 +1,9 @@
+﻿
+
+
+
+
+
 /*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
@@ -25,12 +31,15 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+ // THIS CS FILE IS AUTO GENERATED FROM A T4 TEMPLATE. MODIFY THE TEMPLATE, NOT THE CS FILE!
+
 namespace OpenSim
 {
     public class VersionInfo
     {
-        public const string PackageVersionNumber = "0.9.2-202108";
-        public const string AssemblyVersionNumber = "0.9.2.0";
+        public const string BuildNumber = "8342";
+        public const string VersionNumber = "0.9.2."+BuildNumber;
+        public const string AssemblyVersionNumber = "0.9.2."+BuildNumber;
 
         public const Flavour VERSION_FLAVOUR = Flavour.Dev;
 
@@ -53,7 +62,7 @@ namespace OpenSim
 
         public static string GetVersionString(string versionNumber, Flavour flavour)
         {
-            string versionString = "OpenSim-NGC " + versionNumber + " Yeti " + flavour;
+            string versionString = "OpenSim-NGC " + versionNumber + " Tranquillity " + flavour;
             return versionString.PadRight(VERSIONINFO_VERSION_LENGTH);
         }
 

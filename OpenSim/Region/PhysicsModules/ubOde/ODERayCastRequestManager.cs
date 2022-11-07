@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using OpenSim.Framework;
 using OpenSim.Region.PhysicsModules.SharedBase;
@@ -51,12 +52,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         /// <summary>
         /// Scene that created this object.
         /// </summary>
-        private ODEScene m_scene;
+        private readonly ODEScene m_scene;
+        private readonly SafeNativeMethods.ContactGeom[] m_contacts;
 
         IntPtr ray; // the ray. we only need one for our lifetime
-        IntPtr Sphere;
-        IntPtr Box;
-        IntPtr Plane;
 
         private int CollisionContactGeomsPerTest = 25;
         private const int DefaultMaxCount = 25;
@@ -65,26 +64,23 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         /// <summary>
         /// ODE near callback delegate
         /// </summary>
-        private SafeNativeMethods.NearCallback nearCallback;
+        private readonly SafeNativeMethods.NearCallback nearCallback;
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private List<ContactResult> m_contactResults = new List<ContactResult>();
+        private readonly List<ContactResult> m_contactResults = new List<ContactResult>();
         private RayFilterFlags CurrentRayFilter;
         private int CurrentMaxCount;
+        ContactResult SharedCollisionResult = new ContactResult();
 
         public ODERayCastRequestManager(ODEScene pScene)
         {
             m_scene = pScene;
+            m_contacts = pScene.m_contacts;
             nearCallback = near;
             ray = SafeNativeMethods.CreateRay(IntPtr.Zero, 1.0f);
             SafeNativeMethods.GeomSetCategoryBits(ray, 0);
-            Box = SafeNativeMethods.CreateBox(IntPtr.Zero, 1.0f, 1.0f, 1.0f);
-            SafeNativeMethods.GeomSetCategoryBits(Box, 0);
-            Sphere = SafeNativeMethods.CreateSphere(IntPtr.Zero,1.0f);
-            SafeNativeMethods.GeomSetCategoryBits(Sphere, 0);
-            Plane = SafeNativeMethods.CreatePlane(IntPtr.Zero, 0f,0f,1f,1f);
-            SafeNativeMethods.GeomSetCategoryBits(Sphere, 0);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void QueueRequest(ODERayRequest req)
         {
             if (req.Count == 0)
@@ -96,172 +92,90 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         /// <summary>
         /// Process all queued raycast requests
         /// </summary>
-        /// <returns>Time in MS the raycasts took to process.</returns>
-        public int ProcessQueuedRequests()
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void ProcessQueuedRequests()
         {
-
-            if (m_PendingRequests.Count <= 0)
-                return 0;
-
-            if (m_scene.ContactgeomsArray == IntPtr.Zero || ray == IntPtr.Zero)
-                // oops something got wrong or scene isn't ready still
-            {
-                m_PendingRequests.Clear();
-                return 0;
-            }
+            if (m_PendingRequests.Count == 0)
+                return ;
 
             int time = Util.EnvironmentTickCount();
-
-            ODERayRequest req;
-            int closestHit;
-            int backfacecull;
-            CollisionCategories catflags;
-
-            while (m_PendingRequests.Dequeue(out req))
+            while (m_PendingRequests.Dequeue(out ODERayRequest req))
             {
-                if (req.callbackMethod != null)
+                if(req.length <= 0)
                 {
-                    IntPtr geom = IntPtr.Zero;
-                    if (req.actor != null)
+                    NoContacts(req);
+                    continue;
+                }
+
+                IntPtr geom = IntPtr.Zero;
+                if (req.actor != null)
+                {
+                    if (m_scene.haveActor(req.actor))
                     {
-                        if (m_scene.haveActor(req.actor))
-                        {
-                            if (req.actor is OdePrim)
-                                geom = ((OdePrim)req.actor).prim_geom;
-                            else if (req.actor is OdeCharacter)
-                                geom = ((OdePrim)req.actor).prim_geom;
-                        }
-                        if (geom == IntPtr.Zero)
-                        {
-                            NoContacts(req);
-                            continue;
-                        }
+                        if (req.actor is OdePrim)
+                            geom = ((OdePrim)req.actor).m_prim_geom;
+                        else if (req.actor is OdeCharacter)
+                            geom = ((OdeCharacter)req.actor).collider;
                     }
-
-                    CurrentRayFilter = req.filter;
-                    CurrentMaxCount = req.Count;
-
-                    CollisionContactGeomsPerTest = req.Count & 0xffff;
-
-                    closestHit = ((CurrentRayFilter & RayFilterFlags.ClosestHit) == 0 ? 0 : 1);
-                    backfacecull = ((CurrentRayFilter & RayFilterFlags.BackFaceCull) == 0 ? 0 : 1);
-
-                    if (req.callbackMethod is ProbeBoxCallback)
-                    {
-                        if (CollisionContactGeomsPerTest > 80)
-                            CollisionContactGeomsPerTest = 80;
-                        SafeNativeMethods.GeomBoxSetLengths(Box, req.Normal.X, req.Normal.Y, req.Normal.Z);
-                        SafeNativeMethods.GeomSetPosition(Box, req.Origin.X, req.Origin.Y, req.Origin.Z);
-                        SafeNativeMethods.Quaternion qtmp;
-                        qtmp.X = req.orientation.X;
-                        qtmp.Y = req.orientation.Y;
-                        qtmp.Z = req.orientation.Z;
-                        qtmp.W = req.orientation.W;
-                        SafeNativeMethods.GeomSetQuaternion(Box, ref qtmp);
-                    }
-                    else if (req.callbackMethod is ProbeSphereCallback)
-                    {
-                        if (CollisionContactGeomsPerTest > 80)
-                            CollisionContactGeomsPerTest = 80;
-
-                        SafeNativeMethods.GeomSphereSetRadius(Sphere, req.length);
-                        SafeNativeMethods.GeomSetPosition(Sphere, req.Origin.X, req.Origin.Y, req.Origin.Z);
-                    }
-                    else if (req.callbackMethod is ProbePlaneCallback)
-                    {
-                        if (CollisionContactGeomsPerTest > 80)
-                            CollisionContactGeomsPerTest = 80;
-
-                        SafeNativeMethods.GeomPlaneSetParams(Plane, req.Normal.X, req.Normal.Y, req.Normal.Z, req.length);
-                    }
-
-                    else
-                    {
-                        if (CollisionContactGeomsPerTest > 25)
-                            CollisionContactGeomsPerTest = 25;
-
-                        SafeNativeMethods.GeomRaySetLength(ray, req.length);
-                        SafeNativeMethods.GeomRaySet(ray, req.Origin.X, req.Origin.Y, req.Origin.Z, req.Normal.X, req.Normal.Y, req.Normal.Z);
-                        SafeNativeMethods.GeomRaySetParams(ray, 0, backfacecull);
-
-                        if (req.callbackMethod is RaycastCallback)
-                        {
-                            // if we only want one get only one per Collision pair saving memory
-                            CurrentRayFilter |= RayFilterFlags.ClosestHit;
-                            SafeNativeMethods.GeomRaySetClosestHit(ray, 1);
-                        }
-                        else
-                            SafeNativeMethods.GeomRaySetClosestHit(ray, closestHit);
-                    }
-
-                    if ((CurrentRayFilter & RayFilterFlags.ContactsUnImportant) != 0)
-                        unchecked
-                        {
-                            CollisionContactGeomsPerTest |= (int)SafeNativeMethods.CONTACTS_UNIMPORTANT;
-                        }
-
                     if (geom == IntPtr.Zero)
                     {
-                        // translate ray filter to Collision flags
-                        catflags = 0;
-                        if ((CurrentRayFilter & RayFilterFlags.volumedtc) != 0)
-                            catflags |= CollisionCategories.VolumeDtc;
-                        if ((CurrentRayFilter & RayFilterFlags.phantom) != 0)
-                            catflags |= CollisionCategories.Phantom;
-                        if ((CurrentRayFilter & RayFilterFlags.agent) != 0)
-                            catflags |= CollisionCategories.Character;
-                        if ((CurrentRayFilter & RayFilterFlags.PrimsNonPhantom) != 0)
-                            catflags |= CollisionCategories.Geom;
-                        if ((CurrentRayFilter & RayFilterFlags.land) != 0)
-                            catflags |= CollisionCategories.Land;
-                        if ((CurrentRayFilter & RayFilterFlags.water) != 0)
-                            catflags |= CollisionCategories.Water;
-
-                        if (catflags != 0)
-                        {
-                            if (req.callbackMethod is ProbeBoxCallback)
-                            {
-                                catflags |= CollisionCategories.Space;
-                                SafeNativeMethods.GeomSetCollideBits(Box, (uint)catflags);
-                                SafeNativeMethods.GeomSetCategoryBits(Box, (uint)catflags);
-                                doProbe(req, Box);
-                            }
-                            else if (req.callbackMethod is ProbeSphereCallback)
-                            {
-                                catflags |= CollisionCategories.Space;
-                                SafeNativeMethods.GeomSetCollideBits(Sphere, (uint)catflags);
-                                SafeNativeMethods.GeomSetCategoryBits(Sphere, (uint)catflags);
-                                doProbe(req, Sphere);
-                            }
-                            else if (req.callbackMethod is ProbePlaneCallback)
-                            {
-                                catflags |= CollisionCategories.Space;
-                                SafeNativeMethods.GeomSetCollideBits(Plane, (uint)catflags);
-                                SafeNativeMethods.GeomSetCategoryBits(Plane, (uint)catflags);
-                                doPlane(req,IntPtr.Zero);
-                            }
-                            else
-                            {
-                                SafeNativeMethods.GeomSetCollideBits(ray, (uint)catflags);
-                                doSpaceRay(req);
-                            }
-                        }
+                        NoContacts(req);
+                        continue;
                     }
-                    else
+                }
+
+                CurrentRayFilter = req.filter;
+                CurrentMaxCount = req.Count;
+                if (CurrentMaxCount > 25)
+                    CurrentMaxCount = 25;
+
+                unchecked
+                {
+                    CollisionContactGeomsPerTest = ((CurrentRayFilter & RayFilterFlags.ContactsUnImportant) != 0) ?
+                        CurrentMaxCount | (int)SafeNativeMethods.CONTACTS_UNIMPORTANT : CurrentMaxCount;
+                }
+
+                int backfacecull = ((CurrentRayFilter & RayFilterFlags.BackFaceCull) == 0 ? 0 : 1);
+                SafeNativeMethods.GeomRaySetParams(ray, 0, backfacecull);
+
+                if (req.callbackMethod is RaycastCallback)
+                {
+                    // if we only want one get only one per Collision pair saving memory
+                    CurrentRayFilter |= RayFilterFlags.ClosestHit;
+                    SafeNativeMethods.GeomRaySetClosestHit(ray, 1);
+                }
+                else
+                {
+                    int closestHit = ((CurrentRayFilter & RayFilterFlags.ClosestHit) == 0 ? 0 : 1);
+                    SafeNativeMethods.GeomRaySetClosestHit(ray, closestHit);
+                }
+
+                if (geom == IntPtr.Zero)
+                {
+                    // translate ray filter to Collision flags
+                    CollisionCategories catflags = 0;
+                    if ((CurrentRayFilter & RayFilterFlags.volumedtc) != 0)
+                        catflags |= CollisionCategories.VolumeDtc;
+                    if ((CurrentRayFilter & RayFilterFlags.phantom) != 0)
+                        catflags |= CollisionCategories.Phantom;
+                    if ((CurrentRayFilter & RayFilterFlags.agent) != 0)
+                        catflags |= CollisionCategories.Character;
+                    if ((CurrentRayFilter & RayFilterFlags.PrimsNonPhantom) != 0)
+                        catflags |= CollisionCategories.Geom;
+                    if ((CurrentRayFilter & RayFilterFlags.land) != 0)
+                        catflags |= CollisionCategories.Land;
+
+                    if (catflags != 0)
                     {
-                        // if we select a geom don't use filters
-
-                        if (req.callbackMethod is ProbePlaneCallback)
-                        {
-                            SafeNativeMethods.GeomSetCollideBits(Plane, (uint)CollisionCategories.All);
-                            doPlane(req,geom);
-                        }
-                        else
-                        {
-                            SafeNativeMethods.GeomSetCollideBits(ray, (uint)CollisionCategories.All);
-                            doGeomRay(req,geom);
-                        }
+                        SafeNativeMethods.GeomSetCollideBits(ray, (uint)catflags);
+                        doSpaceRay(req);
                     }
+                }
+                else
+                {
+                    // if we select a geom don't use filters
+                    SafeNativeMethods.GeomSetCollideBits(ray, (uint)CollisionCategories.All);
+                    doGeomRay(req,geom);
                 }
 
                 if (Util.EnvironmentTickCountSubtract(time) > MaxTimePerCallMS)
@@ -270,8 +184,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             lock (m_contactResults)
                 m_contactResults.Clear();
-
-            return Util.EnvironmentTickCountSubtract(time);
         }
         /// <summary>
         /// Method that actually initiates the raycast with spaces
@@ -279,6 +191,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         /// <param name="req"></param>
         ///
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void NoContacts(ODERayRequest req)
         {
             if (req.callbackMethod is RaycastCallback)
@@ -286,30 +199,77 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 ((RaycastCallback)req.callbackMethod)(false, Vector3.Zero, 0, 0, Vector3.Zero);
                 return;
             }
-            List<ContactResult> cresult = new List<ContactResult>();
-
             if (req.callbackMethod is RayCallback)
-                ((RayCallback)req.callbackMethod)(cresult);
-            else if (req.callbackMethod is ProbeBoxCallback)
-                ((ProbeBoxCallback)req.callbackMethod)(cresult);
-            else if (req.callbackMethod is ProbeSphereCallback)
-                ((ProbeSphereCallback)req.callbackMethod)(cresult);
+                ((RayCallback)req.callbackMethod)(new List<ContactResult>());
         }
 
-        private const RayFilterFlags FilterActiveSpace = RayFilterFlags.agent | RayFilterFlags.physical | RayFilterFlags.LSLPhantom;
-//        private const RayFilterFlags FilterStaticSpace = RayFilterFlags.water | RayFilterFlags.land | RayFilterFlags.nonphysical | RayFilterFlags.LSLPhanton;
-        private const RayFilterFlags FilterStaticSpace = RayFilterFlags.water | RayFilterFlags.nonphysical | RayFilterFlags.LSLPhantom;
+        private const RayFilterFlags FilterActiveSpace = RayFilterFlags.physical | RayFilterFlags.LSLPhantom;
+        private const RayFilterFlags FilterStaticSpace = RayFilterFlags.nonphysical | RayFilterFlags.LSLPhantom;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void doSpaceRay(ODERayRequest req)
         {
+            /*
+            float endx;
+            float endy;
+
+            if (req.Normal.X <= 0)
+            {
+                if (req.Origin.X <= 0)
+                {
+                    NoContacts(req);
+                    return;
+                }
+
+                endx = req.Origin.X - req.length;
+                if (endx < 0)
+                {
+                    req.length += endx;
+                    endx = 0;
+                }
+            }
+            else
+            {
+                if (req.Origin.X < 0)
+                {
+                    req.length += req.Origin.X;
+                    if (req.length <= 0)
+                    {
+                        NoContacts(req);
+                        return;
+                    }
+                    req.Origin.X = 0;
+                }
+
+                endx = req.Origin.X + req.length;
+                if (endx < 0)
+                {
+                    req.length += endx;
+                    endx = 0;
+                }
+            }
+            */
+
+            SafeNativeMethods.GeomRaySetLength(ray, req.length);
+            SafeNativeMethods.GeomRaySet(ray, req.Origin.X, req.Origin.Y, req.Origin.Z, req.Normal.X, req.Normal.Y, req.Normal.Z);
+
             // Collide tests
             if ((CurrentRayFilter & FilterActiveSpace) != 0)
-            {
                 SafeNativeMethods.SpaceCollide2(ray, m_scene.ActiveSpace, IntPtr.Zero, nearCallback);
-                SafeNativeMethods.SpaceCollide2(ray, m_scene.CharsSpace, IntPtr.Zero, nearCallback);
+
+            if ((CurrentRayFilter & RayFilterFlags.agent) != 0)
+            {
+                foreach(OdeCharacter chr in m_scene._charactersList)
+                {
+                    if (m_contactResults.Count >= CurrentMaxCount)
+                            break;
+                    collideRayAvatar(chr);
+                }
             }
+
             if ((CurrentRayFilter & FilterStaticSpace) != 0 && (m_contactResults.Count < CurrentMaxCount))
                 SafeNativeMethods.SpaceCollide2(ray, m_scene.StaticSpace, IntPtr.Zero, nearCallback);
+
             if ((CurrentRayFilter & RayFilterFlags.land) != 0 && (m_contactResults.Count < CurrentMaxCount))
             {
                 // current ode land to ray collisions is very bad
@@ -326,7 +286,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     }
 
                 }
-                SafeNativeMethods.SpaceCollide2(ray, m_scene.GroundSpace, IntPtr.Zero, nearCallback);
+                collideRayTerrain(m_scene.TerrainGeom);
             }
 
             if (req.callbackMethod is RaycastCallback)
@@ -370,67 +330,16 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
         }
 
-        private void doProbe(ODERayRequest req, IntPtr probe)
-        {
-            // Collide tests
-            if ((CurrentRayFilter & FilterActiveSpace) != 0)
-            {
-                SafeNativeMethods.SpaceCollide2(probe, m_scene.ActiveSpace, IntPtr.Zero, nearCallback);
-                SafeNativeMethods.SpaceCollide2(probe, m_scene.CharsSpace, IntPtr.Zero, nearCallback);
-            }
-            if ((CurrentRayFilter & FilterStaticSpace) != 0 && (m_contactResults.Count < CurrentMaxCount))
-                SafeNativeMethods.SpaceCollide2(probe, m_scene.StaticSpace, IntPtr.Zero, nearCallback);
-            if ((CurrentRayFilter & RayFilterFlags.land) != 0 && (m_contactResults.Count < CurrentMaxCount))
-                SafeNativeMethods.SpaceCollide2(probe, m_scene.GroundSpace, IntPtr.Zero, nearCallback);
-
-            List<ContactResult> cresult = new List<ContactResult>(m_contactResults.Count);
-            lock (m_PendingRequests)
-            {
-                cresult.AddRange(m_contactResults);
-                m_contactResults.Clear();
-            }
-            if (req.callbackMethod is ProbeBoxCallback)
-                ((ProbeBoxCallback)req.callbackMethod)(cresult);
-            else if (req.callbackMethod is ProbeSphereCallback)
-                ((ProbeSphereCallback)req.callbackMethod)(cresult);
-        }
-
-        private void doPlane(ODERayRequest req,IntPtr geom)
-        {
-            // Collide tests
-            if (geom == IntPtr.Zero)
-            {
-                if ((CurrentRayFilter & FilterActiveSpace) != 0)
-                {
-                    SafeNativeMethods.SpaceCollide2(Plane, m_scene.ActiveSpace, IntPtr.Zero, nearCallback);
-                    SafeNativeMethods.SpaceCollide2(Plane, m_scene.CharsSpace, IntPtr.Zero, nearCallback);
-                }
-                if ((CurrentRayFilter & FilterStaticSpace) != 0 && (m_contactResults.Count < CurrentMaxCount))
-                    SafeNativeMethods.SpaceCollide2(Plane, m_scene.StaticSpace, IntPtr.Zero, nearCallback);
-                if ((CurrentRayFilter & RayFilterFlags.land) != 0 && (m_contactResults.Count < CurrentMaxCount))
-                    SafeNativeMethods.SpaceCollide2(Plane, m_scene.GroundSpace, IntPtr.Zero, nearCallback);
-            }
-            else
-            {
-                SafeNativeMethods.SpaceCollide2(Plane, geom, IntPtr.Zero, nearCallback);
-            }
-
-            List<ContactResult> cresult = new List<ContactResult>(m_contactResults.Count);
-            lock (m_PendingRequests)
-            {
-                cresult.AddRange(m_contactResults);
-                m_contactResults.Clear();
-            }
-
-            ((ProbePlaneCallback)req.callbackMethod)(cresult);
-        }
-
         /// <summary>
         /// Method that actually initiates the raycast with a geom
         /// </summary>
         /// <param name="req"></param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void doGeomRay(ODERayRequest req, IntPtr geom)
         {
+            SafeNativeMethods.GeomRaySetLength(ray, req.length);
+            SafeNativeMethods.GeomRaySet(ray, req.Origin.X, req.Origin.Y, req.Origin.Z, req.Normal.X, req.Normal.Y, req.Normal.Z);
+
             // Collide test
             SafeNativeMethods.SpaceCollide2(ray, geom, IntPtr.Zero, nearCallback); // still do this to have full AABB pre test
 
@@ -476,24 +385,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
         }
 
-        private bool GetCurContactGeom(int index, ref SafeNativeMethods.ContactGeom newcontactgeom)
-        {
-            IntPtr ContactgeomsArray = m_scene.ContactgeomsArray;
-            if (ContactgeomsArray == IntPtr.Zero || index >= CollisionContactGeomsPerTest)
-                return false;
-
-            IntPtr contactptr = new IntPtr(ContactgeomsArray.ToInt64() + (Int64)(index * SafeNativeMethods.ContactGeom.unmanagedSizeOf));
-            newcontactgeom = (SafeNativeMethods.ContactGeom)Marshal.PtrToStructure(contactptr, typeof(SafeNativeMethods.ContactGeom));
-            return true;
-        }
-
         // This is the standard Near. g1 is the ray
-        private void near(IntPtr space, IntPtr g1, IntPtr g2)
+        private void near(IntPtr dummy, IntPtr g1, IntPtr g2)
         {
-             if (g2 == IntPtr.Zero || g1 == g2)
+            if (g2 == IntPtr.Zero)
                 return;
 
-             if (m_contactResults.Count >= CurrentMaxCount)
+            if (m_contactResults.Count >= CurrentMaxCount)
                 return;
 
             if (SafeNativeMethods.GeomIsSpace(g2))
@@ -522,21 +420,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             if (count == 0)
                 return;
-/*
-            uint cat1 = d.GeomGetCategoryBits(g1);
-            uint cat2 = d.GeomGetCategoryBits(g2);
-            uint col1 = d.GeomGetCollideBits(g1);
-            uint col2 = d.GeomGetCollideBits(g2);
-*/
 
-            uint ID = 0;
-            PhysicsActor p2 = null;
-
-            m_scene.actor_name_map.TryGetValue(g2, out p2);
+            m_scene.actor_name_map.TryGetValue(g2, out PhysicsActor p2);
 
             if (p2 == null)
                 return;
 
+            uint ID = 0;
             switch (p2.PhysicsActorType)
             {
                 case (int)ActorTypes.Prim:
@@ -560,31 +450,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     ID = ((OdePrim)p2).LocalID;
                     break;
 
-                case (int)ActorTypes.Agent:
-
-                    if ((CurrentRayFilter & RayFilterFlags.agent) == 0)
-                        return;
-                    else
-                        ID = ((OdeCharacter)p2).LocalID;
-                    break;
-
-                case (int)ActorTypes.Ground:
-
-                    if ((CurrentRayFilter & RayFilterFlags.land) == 0)
-                        return;
-                    break;
-
-                case (int)ActorTypes.Water:
-
-                    if ((CurrentRayFilter & RayFilterFlags.water) == 0)
-                        return;
-                    break;
-
                 default:
-                    break;
+                    return;
+//                    break;
             }
-
-            SafeNativeMethods.ContactGeom curcontact = new SafeNativeMethods.ContactGeom();
 
             // closestHit for now only works for meshs, so must do it for others
             if ((CurrentRayFilter & RayFilterFlags.ClosestHit) == 0)
@@ -592,21 +461,15 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 // Loop all contacts, build results.
                 for (int i = 0; i < count; i++)
                 {
-                    if (!GetCurContactGeom(i, ref curcontact))
-                        break;
-
-                    ContactResult collisionresult = new ContactResult();
-                    collisionresult.ConsumerID = ID;
-                    collisionresult.Pos.X = curcontact.pos.X;
-                    collisionresult.Pos.Y = curcontact.pos.Y;
-                    collisionresult.Pos.Z = curcontact.pos.Z;
-                    collisionresult.Depth = curcontact.depth;
-                    collisionresult.Normal.X = curcontact.normal.X;
-                    collisionresult.Normal.Y = curcontact.normal.Y;
-                    collisionresult.Normal.Z = curcontact.normal.Z;
                     lock (m_contactResults)
                     {
-                        m_contactResults.Add(collisionresult);
+                        m_contactResults.Add(new ContactResult
+                        {
+                            ConsumerID = ID,
+                            Pos = new Vector3(m_contacts[i].pos.X, m_contacts[i].pos.Y, m_contacts[i].pos.Z),
+                            Normal = new Vector3(m_contacts[i].normal.X, m_contacts[i].normal.Y, m_contacts[i].normal.Z),
+                            Depth = m_contacts[i].depth
+                        });
                         if (m_contactResults.Count >= CurrentMaxCount)
                             return;
                     }
@@ -615,31 +478,162 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             else
             {
                 // keep only closest contact
-                ContactResult collisionresult = new ContactResult();
-                collisionresult.ConsumerID = ID;
-                collisionresult.Depth = float.MaxValue;
+                SharedCollisionResult.ConsumerID = ID;
+                SharedCollisionResult.Depth = float.MaxValue;
 
                 for (int i = 0; i < count; i++)
                 {
-                    if (!GetCurContactGeom(i, ref curcontact))
-                        break;
-
-                    if (curcontact.depth < collisionresult.Depth)
+                    if (m_contacts[i].depth < SharedCollisionResult.Depth)
                     {
-                        collisionresult.Pos.X = curcontact.pos.X;
-                        collisionresult.Pos.Y = curcontact.pos.Y;
-                        collisionresult.Pos.Z = curcontact.pos.Z;
-                        collisionresult.Depth = curcontact.depth;
-                        collisionresult.Normal.X = curcontact.normal.X;
-                        collisionresult.Normal.Y = curcontact.normal.Y;
-                        collisionresult.Normal.Z = curcontact.normal.Z;
+                        SharedCollisionResult.Pos.X = m_contacts[i].pos.X;
+                        SharedCollisionResult.Pos.Y = m_contacts[i].pos.Y;
+                        SharedCollisionResult.Pos.Z = m_contacts[i].pos.Z;
+                        SharedCollisionResult.Normal.X = m_contacts[i].normal.X;
+                        SharedCollisionResult.Normal.Y = m_contacts[i].normal.Y;
+                        SharedCollisionResult.Normal.Z = m_contacts[i].normal.Z;
+                        SharedCollisionResult.Depth = m_contacts[i].depth;
                     }
                 }
 
-                if (collisionresult.Depth != float.MaxValue)
+                if (SharedCollisionResult.Depth != float.MaxValue)
                 {
                     lock (m_contactResults)
-                        m_contactResults.Add(collisionresult);
+                        m_contactResults.Add(SharedCollisionResult);
+                }
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void collideRayAvatar(OdeCharacter chr)
+        {
+            if (chr.collider == IntPtr.Zero)
+                return;
+
+            int count = 0;
+            try
+            {
+                count = SafeNativeMethods.CollidePtr(ray, chr.collider, CollisionContactGeomsPerTest, m_scene.ContactgeomsArray, SafeNativeMethods.ContactGeom.unmanagedSizeOf);
+                if (count == 0)
+                    return;
+            }
+            catch (Exception e)
+            {
+                m_log.WarnFormat("[PHYSICS Ray]: Unable to collide test an object: {0}", e.Message);
+                return;
+            }
+
+            // closestHit for now only works for meshs, so must do it for others
+            if ((CurrentRayFilter & RayFilterFlags.ClosestHit) == 0)
+            {
+                uint id = chr.LocalID;
+                // Loop all contacts, build results.
+                for (int i = 0; i < count; i++)
+                {
+                    lock (m_contactResults)
+                    {
+                        m_contactResults.Add(new ContactResult
+                        {
+                            ConsumerID = id,
+                            Pos = new Vector3(m_contacts[i].pos.X, m_contacts[i].pos.Y, m_contacts[i].pos.Z),
+                            Normal = new Vector3(m_contacts[i].normal.X, m_contacts[i].normal.Y, m_contacts[i].normal.Z),
+                            Depth = m_contacts[i].depth
+                        });
+                        if (m_contactResults.Count >= CurrentMaxCount)
+                            return;
+                    }
+                }
+            }
+            else
+            {
+                // keep only closest contact
+                SharedCollisionResult.ConsumerID = chr.LocalID;
+                SharedCollisionResult.Depth = float.MaxValue;
+
+                for (int i = 0; i < count; i++)
+                {
+                    if (m_contacts[i].depth < SharedCollisionResult.Depth)
+                    {
+                        SharedCollisionResult.Pos.X = m_contacts[i].pos.X;
+                        SharedCollisionResult.Pos.Y = m_contacts[i].pos.Y;
+                        SharedCollisionResult.Pos.Z = m_contacts[i].pos.Z;
+                        SharedCollisionResult.Normal.X = m_contacts[i].normal.X;
+                        SharedCollisionResult.Normal.Y = m_contacts[i].normal.Y;
+                        SharedCollisionResult.Normal.Z = m_contacts[i].normal.Z;
+                        SharedCollisionResult.Depth = m_contacts[i].depth;
+                    }
+                }
+
+                if (SharedCollisionResult.Depth != float.MaxValue)
+                {
+                    lock (m_contactResults)
+                        m_contactResults.Add(SharedCollisionResult);
+                }
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void collideRayTerrain(IntPtr terrain)
+        {
+            if (terrain == IntPtr.Zero)
+                return;
+
+            int count = 0;
+            try
+            {
+                count = SafeNativeMethods.CollidePtr(ray, terrain, CollisionContactGeomsPerTest, m_scene.ContactgeomsArray, SafeNativeMethods.ContactGeom.unmanagedSizeOf);
+                if (count == 0)
+                    return;
+            }
+            catch (Exception e)
+            {
+                m_log.WarnFormat("[PHYSICS Ray]: Unable to collide test an object: {0}", e.Message);
+                return;
+            }
+
+            // closestHit for now only works for meshs, so must do it for others
+            if ((CurrentRayFilter & RayFilterFlags.ClosestHit) == 0)
+            {
+                // Loop all contacts, build results.
+                for (int i = 0; i < count; i++)
+                {
+                    lock (m_contactResults)
+                    {
+                        m_contactResults.Add(new ContactResult
+                        {
+                            ConsumerID = 0,
+                            Pos = new Vector3(m_contacts[i].pos.X, m_contacts[i].pos.Y, m_contacts[i].pos.Z),
+                            Normal = new Vector3(m_contacts[i].normal.X, m_contacts[i].normal.Y, m_contacts[i].normal.Z),
+                            Depth = m_contacts[i].depth
+                        });
+                        if (m_contactResults.Count >= CurrentMaxCount)
+                            return;
+                    }
+                }
+            }
+            else
+            {
+                // keep only closest contact
+                SharedCollisionResult.ConsumerID = 0;
+                SharedCollisionResult.Depth = float.MaxValue;
+
+                for (int i = 0; i < count; i++)
+                {
+                    if (m_contacts[i].depth < SharedCollisionResult.Depth)
+                    {
+                        SharedCollisionResult.Pos.X = m_contacts[i].pos.X;
+                        SharedCollisionResult.Pos.Y = m_contacts[i].pos.Y;
+                        SharedCollisionResult.Pos.Z = m_contacts[i].pos.Z;
+                        SharedCollisionResult.Normal.X = m_contacts[i].normal.X;
+                        SharedCollisionResult.Normal.Y = m_contacts[i].normal.Y;
+                        SharedCollisionResult.Normal.Z = m_contacts[i].normal.Z;
+                        SharedCollisionResult.Depth = m_contacts[i].depth;
+                    }
+                }
+
+                if (SharedCollisionResult.Depth != float.MaxValue)
+                {
+                    lock (m_contactResults)
+                        m_contactResults.Add(SharedCollisionResult);
                 }
             }
         }
@@ -649,39 +643,23 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         /// </summary>
         internal void Dispose()
         {
-            m_scene = null;
             if (ray != IntPtr.Zero)
             {
                 SafeNativeMethods.GeomDestroy(ray);
                 ray = IntPtr.Zero;
             }
-            if (Box != IntPtr.Zero)
-            {
-                SafeNativeMethods.GeomDestroy(Box);
-                Box = IntPtr.Zero;
-            }
-            if (Sphere != IntPtr.Zero)
-            {
-                SafeNativeMethods.GeomDestroy(Sphere);
-                Sphere = IntPtr.Zero;
-            }
-            if (Plane != IntPtr.Zero)
-            {
-                SafeNativeMethods.GeomDestroy(Plane);
-                Plane = IntPtr.Zero;
-            }
         }
     }
 
-    public struct ODERayRequest
+
+    public class ODERayRequest
     {
-        public PhysicsActor actor;
         public Vector3 Origin;
         public Vector3 Normal;
+        public object callbackMethod;
+        public PhysicsActor actor;
         public int Count;
         public float length;
-        public object callbackMethod;
         public RayFilterFlags filter;
-        public Quaternion orientation;
     }
 }

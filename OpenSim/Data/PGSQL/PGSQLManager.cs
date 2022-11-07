@@ -148,7 +148,7 @@ namespace OpenSim.Data.PGSQL
 
         internal NpgsqlDbType DbtypeFromString(Type type, string PGFieldType)
         {
-            if (PGFieldType == "")
+            if (PGFieldType.Length == 0)
             {
                 return DbtypeFromType(type);
             }

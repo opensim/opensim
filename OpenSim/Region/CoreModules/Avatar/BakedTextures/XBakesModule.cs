@@ -35,7 +35,6 @@ using System.Xml.Serialization;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Threading.Tasks;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.ServiceAuth;
@@ -65,7 +64,7 @@ namespace OpenSim.Region.CoreModules.Avatar.BakedTextures
                 return;
 
             m_URL = config.GetString("URL", String.Empty);
-            if (m_URL == String.Empty)
+            if (m_URL.Length == 0)
                 return;
 
             m_enabled = true;
@@ -108,7 +107,7 @@ namespace OpenSim.Region.CoreModules.Avatar.BakedTextures
 
         public WearableCacheItem[] Get(UUID id)
         {
-            if (m_URL == String.Empty)
+            if (m_URL.Length == 0)
                 return null;
 
             using (RestClient rc = new RestClient(m_URL))
@@ -123,6 +122,7 @@ namespace OpenSim.Region.CoreModules.Avatar.BakedTextures
                     {
                         using(XmlTextReader sr = new XmlTextReader(s))
                         {
+                            sr.DtdProcessing = DtdProcessing.Ignore;
                             sr.ReadStartElement("BakedAppearance");
                             while (sr.LocalName == "BakedTexture")
                             {
@@ -186,9 +186,9 @@ namespace OpenSim.Region.CoreModules.Avatar.BakedTextures
         {
         }
 
-        public async Task Store(UUID agentId, WearableCacheItem[] data)
+        public void Store(UUID agentId, WearableCacheItem[] data)
         {
-            if (m_URL == String.Empty)
+            if (m_URL.Length == 0)
                 return;
 
             int numberWears = 0;
@@ -237,18 +237,18 @@ namespace OpenSim.Region.CoreModules.Avatar.BakedTextures
 
                 uploadData = bakeStream.ToArray();
             }
-            //Util.FireAndForget(
-            //  delegate
-            //  {
+            Util.FireAndForget(
+              delegate
+              {
                     using(RestClient rc = new RestClient(m_URL))
                     {
                         rc.AddResourcePath("bakes/" + agentId.ToString());
-                        await rc.AsyncPOSTRequest(uploadData, m_Auth).ConfigureAwait(false);
+                        rc.POSTRequest(uploadData, m_Auth);
                         m_log.DebugFormat("[XBakes]: stored {0} textures for user {1}", numberWears, agentId);
                     }
                     uploadData = null;
-            //    }, null, "XBakesModule.Store"
-            //);
+                }, null, "XBakesModule.Store"
+            );
         }
     }
 }

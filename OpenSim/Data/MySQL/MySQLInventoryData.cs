@@ -723,7 +723,7 @@ namespace OpenSim.Data.MySQL
 
                         if (parentFolder.Count >= 1)   // No result means parent folder does not exist
                         {
-                            if (parentFolder[0].ParentID == UUID.Zero) // We are querying the root folder
+                            if (parentFolder[0].ParentID.IsZero()) // We are querying the root folder
                             {
                                 /* Get all of the agent's folders from the database, put them in a list and return it */
                                 using (MySqlCommand result = new MySqlCommand("SELECT * FROM inventoryfolders WHERE agentID = ?uuid", dbcon))

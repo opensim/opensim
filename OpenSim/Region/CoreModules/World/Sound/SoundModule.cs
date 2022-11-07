@@ -215,6 +215,58 @@ namespace OpenSim.Region.CoreModules.World.Sound
             });
         }
 
+        public virtual void TriggerCollisionSound(
+            UUID soundId, UUID ownerID, UUID objectID, UUID parentID, double gain, Vector3 position, UInt64 handle)
+        {
+            float radius;
+            SceneObjectPart part;
+            ScenePresence ssp = null;
+            if (!m_scene.TryGetSceneObjectPart(objectID, out part))
+            {
+                if (!m_scene.TryGetScenePresence(ownerID, out ssp))
+                    return;
+                if (!ssp.ParcelAllowThisAvatarSounds)
+                    return;
+
+                radius = MaxDistance;
+            }
+            else
+            {
+                SceneObjectGroup grp = part.ParentGroup;
+
+                if (grp.IsAttachment)
+                {
+                    if (!m_scene.TryGetScenePresence(grp.AttachedAvatar, out ssp))
+                        return;
+
+                    if (!ssp.ParcelAllowThisAvatarSounds)
+                        return;
+
+                }
+
+                radius = (float)part.SoundRadius;
+                if (radius == 0)
+                {
+                    radius = MaxDistance;
+                    part.SoundRadius = MaxDistance;
+                }
+            }
+
+            radius *= radius;
+            m_scene.ForEachRootScenePresence(delegate (ScenePresence sp)
+            {
+                if(sp.MuteCollisions)
+                    return;
+
+                if (Vector3.DistanceSquared(sp.AbsolutePosition, position) > radius) // Max audio distance
+                    return;
+
+                sp.ControllingClient.SendTriggeredSound(soundId, ownerID,
+                        objectID, parentID, handle, position,
+                        (float)gain);
+            });
+        }
+
         public virtual void StopSound(UUID objectID)
         {
             SceneObjectPart m_host;
@@ -236,8 +288,7 @@ namespace OpenSim.Region.CoreModules.World.Sound
         public virtual void PreloadSound(UUID objectID, UUID soundID)
         {
             SceneObjectPart part;
-            if (soundID == UUID.Zero
-                    || !m_scene.TryGetSceneObjectPart(objectID, out part))
+            if (soundID.IsZero() || !m_scene.TryGetSceneObjectPart(objectID, out part))
             {
                 return;
             }
@@ -295,14 +346,14 @@ namespace OpenSim.Region.CoreModules.World.Sound
                 bool triggered, byte flags, bool useMaster,
                 bool isMaster)
         {
-            if (soundID == UUID.Zero)
+            if (soundID.IsZero())
                 return;
 
             SceneObjectPart part;
             if (!m_scene.TryGetSceneObjectPart(objectID, out part))
                 return;
 
-            volume = Util.Clip((float)volume, 0, 1);
+            volume = Utils.Clamp(volume, 0, 1);
 
             UUID parentID = part.ParentGroup.UUID;
 
@@ -327,7 +378,7 @@ namespace OpenSim.Region.CoreModules.World.Sound
         public void TriggerSoundLimited(UUID objectID, UUID sound,
                 double volume, Vector3 min, Vector3 max)
         {
-            if (sound == UUID.Zero)
+            if (sound.IsZero())
                 return;
 
             SceneObjectPart part;

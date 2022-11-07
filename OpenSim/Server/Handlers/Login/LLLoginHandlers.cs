@@ -76,22 +76,22 @@ namespace OpenSim.Server.Handlers.Login
             {
                 // Debug code to show exactly what login parameters the viewer is sending us.
                 // TODO: Extract into a method that can be generally applied if one doesn't already exist.
-//                foreach (string key in requestData.Keys)
-//                {
-//                    object value = requestData[key];
-//                    Console.WriteLine("{0}:{1}", key, value);
-//                    if (value is ArrayList)
-//                    {
-//                        ICollection col = value as ICollection;
-//                        foreach (object item in col)
-//                            Console.WriteLine("  {0}", item);
-//                    }
-//                }
+                // foreach (string key in requestData.Keys)
+                // {
+                //     object value = requestData[key];
+                //     Console.WriteLine("{0}:{1}", key, value);
+                //     if (value is ArrayList)
+                //     {
+                //         ICollection col = value as ICollection;
+                //         foreach (object item in col)
+                //             Console.WriteLine("  {0}", item);
+                //     }
+                // }
 
                 if (requestData.ContainsKey("first") && requestData["first"] != null &&
                     requestData.ContainsKey("last") && requestData["last"] != null && (
                         (requestData.ContainsKey("passwd") && requestData["passwd"] != null) ||
-                        (!requestData.ContainsKey("passwd") && requestData.ContainsKey("web_login_key") && requestData["web_login_key"] != null && requestData["web_login_key"].ToString() != UUID.Zero.ToString())
+                        (!requestData.ContainsKey("passwd") && requestData.ContainsKey("web_login_key") && requestData["web_login_key"] != null && requestData["web_login_key"].ToString() != UUID.ZeroString)
                     ))
                 {
                     string first = requestData["first"].ToString();
@@ -189,7 +189,6 @@ namespace OpenSim.Server.Handlers.Login
             Hashtable failHash = new Hashtable();
             failHash["success"] = "false";
             failResponse.Value = failHash;
-
             return failResponse;
 
         }
@@ -199,26 +198,31 @@ namespace OpenSim.Server.Handlers.Login
             if (request.Type == OSDType.Map)
             {
                 OSDMap map = (OSDMap)request;
-
-                if (map.ContainsKey("first") && map.ContainsKey("last") && map.ContainsKey("passwd"))
+                if (map.TryGetValue("first", out OSD ofirst) &&
+                    map.TryGetValue("last", out OSD olast) &&
+                    map.TryGetValue("passwd", out OSD opass))
                 {
-                    string startLocation = string.Empty;
+                    string first = ofirst.AsString();
+                    string last = olast.AsString();
+                    string passwd = opass.AsString();
 
-                    if (map.ContainsKey("start"))
-                        startLocation = map["start"].AsString();
+                    string startLocation = string.Empty;
+                    OSD otmp;
+                    if (map.TryGetValue("start", out otmp))
+                        startLocation = otmp.AsString();
 
                     UUID scopeID = UUID.Zero;
 
-                    if (map.ContainsKey("scope_id"))
-                        scopeID = new UUID(map["scope_id"].AsString());
+                    if (map.TryGetValue("scope_id", out otmp))
+                        scopeID = new UUID(otmp.AsString());
 
-                    m_log.Info("[LOGIN]: LLSD Login Requested for: '" + map["first"].AsString() + "' '" + map["last"].AsString() + "' / " + startLocation);
+                    m_log.Info("[LOGIN]: LLSD Login Requested for: '" + first + "' '" + last + "' / " + startLocation);
 
                     LoginResponse reply = null;
-                    reply = m_LocalService.Login(map["first"].AsString(), map["last"].AsString(), map["passwd"].AsString(), startLocation, scopeID,
-                        map["version"].AsString(), map["channel"].AsString(), map["mac"].AsString(), map["id0"].AsString(), remoteClient);
+                    reply = m_LocalService.Login(first, last, passwd, startLocation, scopeID,
+                        map["version"].AsString(), map["channel"].AsString(), map["mac"].AsString(),
+                        map["id0"].AsString(), remoteClient);
                     return reply.ToOSDMap();
-
                 }
             }
 

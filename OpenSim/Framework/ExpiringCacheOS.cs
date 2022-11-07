@@ -41,6 +41,7 @@ namespace OpenSim.Framework
         private ReaderWriterLockSlim m_rwLock;
         private readonly Dictionary<TKey1, int> m_expireControl;
         private readonly Dictionary<TKey1, TValue1> m_values;
+        TValue1[] valuesArrayCache = null;
         private readonly double m_startTS;
         private readonly int m_expire;
 
@@ -142,6 +143,7 @@ namespace OpenSim.Framework
                             gotWriteLock = true;
                         }
 
+                        valuesArrayCache = null;
                         foreach (TKey1 key in expired)
                         {
                             m_expireControl.Remove(key);
@@ -190,6 +192,7 @@ namespace OpenSim.Framework
 
                 m_expireControl[key] = now;
                 m_values[key] = val;
+                valuesArrayCache = null;
                 CheckTimer();
             }
             finally
@@ -234,6 +237,7 @@ namespace OpenSim.Framework
 
                 m_expireControl[key] = now;
                 m_values[key] = val;
+                valuesArrayCache = null;
                 CheckTimer();
             }
             finally
@@ -258,7 +262,9 @@ namespace OpenSim.Framework
                 }
                 success = m_expireControl.Remove(key);
                 success |= m_values.Remove(key);
-                if(m_expireControl.Count == 0)
+                if(success)
+                    valuesArrayCache = null;
+                if (m_expireControl.Count == 0)
                     DisposeTimer();
             }
             finally
@@ -285,6 +291,7 @@ namespace OpenSim.Framework
                 DisposeTimer();
                 m_expireControl.Clear();
                 m_values.Clear();
+                valuesArrayCache = null;
             }
             finally
             {
@@ -381,9 +388,7 @@ namespace OpenSim.Framework
 
         public bool TryGetValue(TKey1 key, out TValue1 value)
         {
-            bool success;
             bool gotLock = false;
-
             try
             {
                 try {}
@@ -393,15 +398,13 @@ namespace OpenSim.Framework
                     gotLock = true;
                 }
 
-                success = m_values.TryGetValue(key, out value);
+                return m_values.TryGetValue(key, out value);
             }
             finally
             {
                 if (gotLock)
                     m_rwLock.ExitReadLock();
             }
-
-            return success;
         }
 
         public bool TryGetValue(TKey1 key, int expireMS, out TValue1 value)
@@ -457,7 +460,7 @@ namespace OpenSim.Framework
             return success;
         }
 
-        public ICollection<TValue1> Values
+        public TValue1[] Values
         {
             get
             {
@@ -470,7 +473,12 @@ namespace OpenSim.Framework
                         m_rwLock.EnterUpgradeableReadLock();
                         gotLock = true;
                     }
-                    return m_values.Values;
+                    if(valuesArrayCache == null)
+                    {
+                        valuesArrayCache = new TValue1[m_values.Count];
+                        m_values.Values.CopyTo(valuesArrayCache, 0);
+                    }
+                    return valuesArrayCache;
                 }
                 finally
                 {
@@ -480,6 +488,7 @@ namespace OpenSim.Framework
             }
         }
 
+        /*
         public ICollection<TKey1> Keys
         {
             get
@@ -502,5 +511,6 @@ namespace OpenSim.Framework
                 }
             }
         }
+        */
     }
 }

@@ -112,8 +112,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             AgentUpdateArgs moveArgs = new AgentUpdateArgs();
             //moveArgs.BodyRotation = Quaternion.CreateFromEulers(Vector3.Zero);
             moveArgs.BodyRotation = Quaternion.CreateFromEulers(new Vector3(0, 0, (float)-(Math.PI / 2)));
-            moveArgs.ControlFlags = (uint)AgentManager.ControlFlags.AGENT_CONTROL_AT_POS;
-            moveArgs.SessionID = acd.SessionID;
+            moveArgs.ControlFlags = (uint)(AgentManager.ControlFlags.AGENT_CONTROL_AT_POS | AgentManager.ControlFlags.AGENT_CONTROL_FAST_AT);
 
             originalSp.HandleAgentUpdate(originalSp.ControllingClient, moveArgs);
 
@@ -208,8 +207,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             AgentUpdateArgs moveArgs = new AgentUpdateArgs();
             //moveArgs.BodyRotation = Quaternion.CreateFromEulers(Vector3.Zero);
             moveArgs.BodyRotation = Quaternion.CreateFromEulers(new Vector3(0, 0, (float)-(Math.PI / 2)));
-            moveArgs.ControlFlags = (uint)AgentManager.ControlFlags.AGENT_CONTROL_AT_POS;
-            moveArgs.SessionID = acd.SessionID;
+            moveArgs.ControlFlags = (uint)(AgentManager.ControlFlags.AGENT_CONTROL_AT_POS | AgentManager.ControlFlags.AGENT_CONTROL_FAST_AT);
 
             originalSp.HandleAgentUpdate(originalSp.ControllingClient, moveArgs);
 

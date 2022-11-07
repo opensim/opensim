@@ -73,32 +73,36 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
         }
 
         private Dictionary<string,TimerInfo> Timers = new Dictionary<string,TimerInfo>();
+        private List<TimerInfo> TimersCache = null;
         private object TimerListLock = new object();
 
-        public void SetTimerEvent(uint m_localID, UUID m_itemID, double sec)
+        public void SetTimerEvent(uint _localID, UUID _itemID, double sec)
         {
             if (sec == 0) // Disabling timer
             {
-                UnSetTimerEvents(m_localID, m_itemID);
+                UnSetTimerEvents(_localID, _itemID);
                 return;
             }
 
-            // Add to timer
-            TimerInfo ts = new TimerInfo();
-            ts.localID = m_localID;
-            ts.itemID = m_itemID;
-            ts.interval = Convert.ToInt64(sec * 10000000); // How many 100 nanoseconds (ticks) should we wait
-            //       2193386136332921 ticks
-            //       219338613 seconds
-
-            //ts.next = DateTime.Now.ToUniversalTime().AddSeconds(ts.interval);
-            ts.next = DateTime.Now.Ticks + ts.interval;
-
-            string key = MakeTimerKey(m_localID, m_itemID);
+            string key = MakeTimerKey(_localID, _itemID);
             lock (TimerListLock)
             {
-                // Adds if timer doesn't exist, otherwise replaces with new timer
-                Timers[key] = ts;
+                Timers.TryGetValue(key, out TimerInfo ts);
+                if(ts == null)
+                {
+                    ts = new TimerInfo();
+                    ts.localID = _localID;
+                    ts.itemID = _itemID;
+                    ts.interval = (long)(sec * 10000000);
+                    ts.next = DateTime.Now.Ticks + ts.interval;
+                    Timers[key] = ts;
+                    TimersCache = null;
+                }
+                else
+                {
+                    ts.interval = (long)(sec * 10000000);
+                    ts.next = DateTime.Now.Ticks + ts.interval;
+                }
             }
         }
 
@@ -112,27 +116,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 {
                     m_CmdManager.m_ScriptEngine.CancelScriptEvent(ts.itemID, "timer");
                     Timers.Remove(key);
+                    TimersCache = null;
                 }
             }
         }
 
         public void CheckTimerEvents()
         {
-            // Nothing to do here?
-            if (Timers.Count == 0)
-                return;
-
             List<TimerInfo> tvals;
             lock (TimerListLock)
             {
-                // Go through all timers
-                tvals = new List<TimerInfo>(Timers.Values);
+                if (Timers.Count == 0)
+                    return;
+                if (TimersCache == null)
+                    TimersCache = new List<TimerInfo>(Timers.Values);
+                tvals = TimersCache;
             }
 
+            long now = DateTime.Now.Ticks;
             foreach (TimerInfo ts in tvals)
             {
                 // Time has passed?
-                if (ts.next < DateTime.Now.Ticks)
+                if (ts.next <= now)
                 {
                     //m_log.Debug("Time has passed: Now: " + DateTime.Now.Ticks + ", Passed: " + ts.next);
                     // Add it to queue
@@ -140,9 +145,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                             new EventParams("timer", new Object[0],
                             new DetectParams[0]));
                     // set next interval
-
-                    //ts.next = DateTime.Now.ToUniversalTime().AddSeconds(ts.interval);
-                    ts.next = DateTime.Now.Ticks + ts.interval;
+                    ts.next = now + ts.interval;
                 }
             }
         }
@@ -151,23 +154,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
         {
             List<Object> data = new List<Object>();
 
+            List<TimerInfo> tvals;
             lock (TimerListLock)
             {
-                Dictionary<string, TimerInfo>.ValueCollection tvals = Timers.Values;
-                foreach (TimerInfo ts in tvals)
+                if (Timers.Count == 0)
+                    return new object[0];
+                if (TimersCache == null)
+                    TimersCache = new List<TimerInfo>(Timers.Values);
+                tvals = TimersCache;
+            }
+
+            foreach (TimerInfo ts in tvals)
+            {
+                if (ts.itemID.Equals(itemID))
                 {
-                    if (ts.itemID == itemID)
-                    {
-                        data.Add(ts.interval);
-                        data.Add(ts.next-DateTime.Now.Ticks);
-                    }
+                    data.Add(ts.interval);
+                    data.Add(ts.next-DateTime.Now.Ticks);
                 }
             }
+
             return data.ToArray();
         }
 
-        public void CreateFromData(uint localID, UUID itemID, UUID objectID,
-                                   Object[] data)
+        public void CreateFromData(uint localID, UUID itemID, UUID objectID, Object[] data)
         {
             int idx = 0;
 
@@ -180,10 +189,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 ts.interval = (long)data[idx];
                 ts.next = DateTime.Now.Ticks + (long)data[idx+1];
                 idx += 2;
+                string tskey = MakeTimerKey(localID, itemID);
 
                 lock (TimerListLock)
                 {
-                    Timers.Add(MakeTimerKey(localID, itemID), ts);
+                    Timers.Add(tskey, ts);
+                    TimersCache = null;
                 }
             }
         }
@@ -191,12 +202,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
         public List<TimerInfo> GetTimersInfo()
         {
             List<TimerInfo> retList = new List<TimerInfo>();
-
+            List<TimerInfo> tvals;
             lock (TimerListLock)
             {
-                foreach (TimerInfo i in Timers.Values)
-                    retList.Add(i.Clone());
+                if (Timers.Count == 0)
+                    return retList;
+                if (TimersCache == null)
+                    TimersCache = new List<TimerInfo>(Timers.Values);
+                tvals = TimersCache;
             }
+
+            foreach (TimerInfo i in tvals)
+                retList.Add(i.Clone());
 
             return retList;
         }

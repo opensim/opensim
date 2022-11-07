@@ -12,18 +12,6 @@
       <HintPath>..\..\..\bin\CSJ2K.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="DotNetOpenMail">
-      <HintPath>..\..\..\bin\DotNetOpenMail.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Ionic.Zip">
-      <HintPath>..\..\..\bin\Ionic.Zip.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="log4net">
-      <HintPath>..\..\..\bin\log4net.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Microsoft.CSharp">
       <Private>False</Private>
     </Reference>
@@ -113,7 +101,12 @@
     <EmbeddedResource Include="Resources\OpenSim.Region.CoreModules.addin.xml" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="MySql.Data" Version="8.0.26" />
-    <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
+    <PackageReference Include="Ionic.Zlib.Core" Version="1.0.0" />
+    <PackageReference Include="log4net" Version="2.0.15" />
+    <PackageReference Include="MailKit" Version="3.4.2" />
+    <PackageReference Include="MimeKit" Version="3.4.2" />
+    <PackageReference Include="Mono.Addins" Version="1.4.1" />
+    <PackageReference Include="MySql.Data" Version="8.0.31" />
+    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
   </ItemGroup>
 </Project>

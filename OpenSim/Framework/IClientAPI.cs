@@ -85,8 +85,7 @@ namespace OpenSim.Framework
     public delegate void TeleportLocationRequest(
         IClientAPI remoteClient, ulong regionHandle, Vector3 position, Vector3 lookAt, uint flags);
 
-    public delegate void TeleportLandmarkRequest(
-        IClientAPI remoteClient, AssetLandmark lm);
+    public delegate void TeleportLandmarkRequest(IClientAPI remoteClient, AssetLandmark lm);
 
     public delegate void TeleportCancel(IClientAPI remoteClient);
 
@@ -94,7 +93,7 @@ namespace OpenSim.Framework
 
     public delegate void RequestAvatarProperties(IClientAPI remoteClient, UUID avatarID);
 
-    public delegate void UpdateAvatarProperties(IClientAPI remoteClient, UserProfileData ProfileData);
+    public delegate void UpdateAvatarProperties(IClientAPI remoteClient, UserProfileProperties ProfileData);
 
     public delegate void SetAlwaysRun(IClientAPI remoteClient, bool SetAlwaysRun);
 
@@ -758,6 +757,7 @@ namespace OpenSim.Framework
         event DeRezObject OnDeRezObject;
         event RezRestoreToWorld OnRezRestoreToWorld;
         event Action<IClientAPI> OnRegionHandShakeReply;
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1009:DeclareEventHandlersCorrectly")]
         event GenericCall1 OnRequestWearables;
         event Action<IClientAPI, bool> OnCompleteMovementToRegion;
 
@@ -1087,7 +1087,6 @@ namespace OpenSim.Framework
         void SendLayerData(int[] map);
 
         void SendWindData(int version, Vector2[] windSpeeds);
-        void SendCloudData(int version, float[] cloudCover);
 
         /// <summary>
         /// Sent when an agent completes its movement into a region.

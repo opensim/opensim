@@ -144,69 +144,52 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 */
         public virtual void OnInstantMessage(IClientAPI client, GridInstantMessage im)
         {
-            byte dialog = im.dialog;
-
-            if (dialog != (byte)InstantMessageDialog.MessageFromAgent
-                && dialog != (byte)InstantMessageDialog.StartTyping
-                && dialog != (byte)InstantMessageDialog.StopTyping
-                && dialog != (byte)InstantMessageDialog.BusyAutoResponse
-                && dialog != (byte)InstantMessageDialog.MessageFromObject)
-            {
+            if (m_TransferModule == null)
                 return;
+
+            switch(im.dialog)
+            {
+                case (byte)InstantMessageDialog.MessageFromAgent:
+                case (byte)InstantMessageDialog.StartTyping:
+                case (byte)InstantMessageDialog.StopTyping:
+                case (byte)InstantMessageDialog.BusyAutoResponse:
+                case (byte)InstantMessageDialog.MessageFromObject:
+                    break;
+                default:
+                    return;
             }
 
-            //DateTime dt = DateTime.UtcNow;
-
-            // Ticks from UtcNow, but make it look like local. Evil, huh?
-            //dt = DateTime.SpecifyKind(dt, DateTimeKind.Local);
-
-            //try
-            //{
-            //    // Convert that to the PST timezone
-            //    TimeZoneInfo timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("America/Los_Angeles");
-            //    dt = TimeZoneInfo.ConvertTime(dt, timeZoneInfo);
-            //}
-            //catch
-            //{
-            //    //m_log.Info("[OFFLINE MESSAGING]: No PST timezone found on this machine. Saving with local timestamp.");
-            //}
-
-            //// And make it look local again to fool the unix time util
-            //dt = DateTime.SpecifyKind(dt, DateTimeKind.Utc);
-
-            // If client is null, this message comes from storage and IS offline
             if (client != null)
                 im.offline = 0;
 
             if (im.offline == 0)
                 im.timestamp = (uint)Util.UnixTimeSinceEpoch();
 
-            if (m_TransferModule != null)
-            {
-                m_TransferModule.SendInstantMessage(im,
-                    delegate(bool success)
-                    {
-                        if (dialog == (uint)InstantMessageDialog.StartTyping ||
-                            dialog == (uint)InstantMessageDialog.StopTyping ||
-                            dialog == (uint)InstantMessageDialog.MessageFromObject)
-                        {
-                            return;
-                        }
+            m_TransferModule.SendInstantMessage(im,
+                delegate(bool success)
+                {
+                    if(success || client == null)
+                        return;
 
-                        if ((client != null) && !success)
-                        {
-                            client.SendInstantMessage(
-                                    new GridInstantMessage(
-                                    null, new UUID(im.fromAgentID), "System",
-                                    new UUID(im.toAgentID),
-                                    (byte)InstantMessageDialog.BusyAutoResponse,
-                                    "Unable to send instant message. "+
-                                    "User is not logged in.", false,
-                                    new Vector3()));
-                        }
+                    switch (im.dialog)
+                    {
+                        case (byte)InstantMessageDialog.StartTyping:
+                        case (byte)InstantMessageDialog.StopTyping:
+                        case (byte)InstantMessageDialog.MessageFromObject:
+                            return;
+                        default:
+                            break;
                     }
-                );
-            }
+
+                    client.SendInstantMessage(new GridInstantMessage(                              
+                            null, new UUID(im.fromAgentID), "System",
+                            new UUID(im.toAgentID),
+                            (byte)InstantMessageDialog.BusyAutoResponse,
+                            "Unable to send instant message. User is not logged in.",
+                            false, new Vector3())
+                        );
+                }
+            );
         }
 
         /// <summary>

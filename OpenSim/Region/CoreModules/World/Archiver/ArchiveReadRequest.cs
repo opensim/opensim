@@ -118,6 +118,17 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// </value>
         protected bool m_skipAssets;
 
+        /// <summary>
+        /// Should we look up and resolve aliases (uuids) for foreign
+        /// users to a local user id when present?
+        /// </summary>
+        protected bool m_lookupAliases;
+
+        /// <summary>
+        /// Should we reassign unknown ids to the region owner?
+        /// </summary>
+        protected bool m_allowReassign;
+
         /// <value>
         /// Displacement added to each object as it is added to the world
         /// </value>
@@ -156,6 +167,16 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// Used to cache lookups for valid uuids.
         /// </summary>
         private IDictionary<UUID, bool> m_validUserUuids = new Dictionary<UUID, bool>();
+
+        /// <summary>
+        /// Used to cache aliased Id Lookups, aliasID -> local userID
+        /// </summary>
+        private IDictionary<UUID, UUID> m_aliasedUserUuids = new Dictionary<UUID, UUID>();
+
+        /// <summary>
+        /// Used to cache lookups for aliased uuids. Have we seen this before?
+        /// </summary>
+        private IDictionary<UUID, bool> m_aliasedUser = new Dictionary<UUID, bool>();
 
         private IUserManagement m_UserMan;
         private IUserManagement UserManager
@@ -216,6 +237,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_mergeParcels = options.ContainsKey("merge-parcels");
             m_noObjects = options.ContainsKey("no-objects");
             m_skipAssets = options.ContainsKey("skipAssets");
+            m_lookupAliases = options.ContainsKey("lookupAliases");
+            m_allowReassign = options.ContainsKey("allowReassign");
             m_requestId = requestId;
             m_displacement = options.ContainsKey("displacement") ? (Vector3)options["displacement"] : Vector3.Zero;
             m_rotation = options.ContainsKey("rotation") ? (float)options["rotation"] : 0f;
@@ -272,6 +295,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_loadPath = null;
             m_loadStream = loadStream;
             m_skipAssets = options.ContainsKey("skipAssets");
+            m_lookupAliases = options.ContainsKey("lookupAliases");
+            m_allowReassign = options.ContainsKey("allowReassign");
             m_merge = options.ContainsKey("merge");
             m_mergeReplaceObjects = options.ContainsKey("mReplaceObjects");
             m_requestId = requestId;
@@ -641,8 +666,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             IRegionSerialiserModule serialiser = scene.RequestModuleInterface<IRegionSerialiserModule>();
             int sceneObjectsLoadedCount = 0;
             Vector3 boundingExtent = new Vector3(m_boundingOrigin.X + m_boundingSize.X, m_boundingOrigin.Y + m_boundingSize.Y, m_boundingOrigin.Z + m_boundingSize.Z);
-
             int mergeskip = 0;
+            
             foreach (string serialisedSceneObject in serialisedSceneObjects)
             {
                 SceneObjectGroup sceneObject = serialiser.DeserializeGroupFromXml2(serialisedSceneObject);
@@ -695,7 +720,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         pos.X -= m_boundingOrigin.X;
                         pos.Y -= m_boundingOrigin.Y;
                     }
-                    if (m_displacement != Vector3.Zero)
+                    if (!m_displacement.IsZero())
                     {
                         pos += m_displacement;
                         if (pos.X < 0 || pos.X >= scene.RegionInfo.RegionSizeX
@@ -712,7 +737,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 if (m_debug)
                     m_log.DebugFormat("[ARCHIVER]: Placing object from OAR in scene at position {0}.  ", pos.ToString());
 
-                bool isTelehub = (sceneObject.UUID == oldTelehubUUID) && (oldTelehubUUID != UUID.Zero);
+                bool isTelehub = (sceneObject.UUID.Equals(oldTelehubUUID)) && (!oldTelehubUUID.IsZero());
 
                 // For now, give all incoming scene objects new uuids.  This will allow scenes to be cloned
                 // on the same region server and multiple examples a single object archive to be imported
@@ -752,7 +777,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             if (ignoredObjects > 0)
                 m_log.WarnFormat("[ARCHIVER]:     Ignored {0} possible out of bounds", ignoredObjects);
 
-            if (oldTelehubUUID != UUID.Zero)
+            if (!oldTelehubUUID.IsZero())
             {
                 m_log.WarnFormat("[ARCHIVER]: Telehub object not found: {0}", oldTelehubUUID);
                 scene.RegionInfo.RegionSettings.TelehubObject = UUID.Zero;
@@ -767,67 +792,147 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         private void ModifySceneObject(Scene scene, SceneObjectGroup sceneObject)
         {
             // Try to retain the original creator/owner/lastowner if their uuid is present on this grid
-            // or creator data is present.  Otherwise, use the estate owner instead.
+            // If not and we are resolving aliases try that next.  If an alias is found use that and
+            // clear creatorData since its not relevant.  Finally if we still don't know who the user
+            // and there is no creatorData (for a HG user) assign the default user if allowReassign is true.
             foreach (SceneObjectPart part in sceneObject.Parts)
             {
-                if (string.IsNullOrEmpty(part.CreatorData))
+                if (ResolveUserUuid(scene, part.CreatorID) == false)
                 {
-                    if (!ResolveUserUuid(scene, part.CreatorID))
+                    if ((m_lookupAliases == true) &&
+                        (ResolveUserAlias(scene, part.CreatorID, out UUID userID) == true))
+                    {
+                        part.CreatorID = userID;
+                        part.CreatorData = null;
+                    }
+                    else if ((m_allowReassign == true) && string.IsNullOrEmpty(part.CreatorData))
+                    {
                         part.CreatorID = m_defaultUser;
+                    }
                 }
-                if (UserManager != null)
+
+                // If the userid is not null (bad data happens) and there is CreatorData
+                // Add the user to the GridUsers creator table.
+                if ((UserManager != null) && 
+                    ((part.CreatorID != UUID.Zero) && (part.CreatorData != null)))
+                {
                     UserManager.AddCreatorUser(part.CreatorID, part.CreatorData);
+                }
 
-                if (!(ResolveUserUuid(scene, part.OwnerID) || ResolveGroupUuid(part.OwnerID)))
-                    part.OwnerID = m_defaultUser;
+                // If the Owner isnt a local user or group resolve aliases and
+                // reassignment as needed.
+                if ((ResolveUserUuid(scene, part.OwnerID) == false) &&
+                    (ResolveGroupUuid(part.OwnerID) == false))
+                {
+                    if ((m_lookupAliases == true) &&
+                        (ResolveUserAlias(scene, part.OwnerID, out UUID userID) == true))
+                    {
+                        part.OwnerID = userID;
+                    }
+                    else if (m_allowReassign == true)
+                    {
+                        part.OwnerID = m_defaultUser;
+                    }
+                }
+                // If the LastOwner isnt a local user or group resolve aliases and
+                // reassignment as needed.
+                if ((ResolveUserUuid(scene, part.LastOwnerID) == false) &&
+                    (ResolveGroupUuid(part.LastOwnerID) == false))
+                {
+                    if ((m_lookupAliases == true) &&
+                        (ResolveUserAlias(scene, part.LastOwnerID, out UUID userID) == true))
+                    {
+                        part.LastOwnerID = userID;
+                    }
+                    else if (m_allowReassign == true)
+                    {
+                        part.LastOwnerID = m_defaultUser;
+                    }
+                }
 
-                if (!(ResolveUserUuid(scene, part.LastOwnerID) || ResolveGroupUuid(part.LastOwnerID)))
-                    part.LastOwnerID = m_defaultUser;
-
+                // If we can't find a local group just zero it
                 if (!ResolveGroupUuid(part.GroupID))
+                {
                     part.GroupID = UUID.Zero;
+                }
 
-                // And zap any troublesome sit target information
-                //                    part.SitTargetOrientation = new Quaternion(0, 0, 0, 1);
-                //                    part.SitTargetPosition    = new Vector3(0, 0, 0);
-
-                // Fix ownership/creator of inventory items
-                // Not doing so results in inventory items
-                // being no copy/no mod for everyone
+                // Handle the stuff in Task Inventory
                 lock (part.TaskInventory)
                 {
-/* avination code disabled for opensim
-                    // And zap any troublesome sit target information
-                    part.SitTargetOrientation = new Quaternion(0, 0, 0, 1);
-                    part.SitTargetPosition = new Vector3(0, 0, 0);
-*/
                     // Fix ownership/creator of inventory items
                     // Not doing so results in inventory items
                     // being no copy/no mod for everyone
                     part.TaskInventory.LockItemsForRead(true);
-
                     TaskInventoryDictionary inv = part.TaskInventory;
+
                     foreach (KeyValuePair<UUID, TaskInventoryItem> kvp in inv)
                     {
-                        if (!(ResolveUserUuid(scene, kvp.Value.OwnerID) || ResolveGroupUuid(kvp.Value.OwnerID)))
+                        // Try to retain the original creator/owner/lastowner if their uuid is present on this grid
+                        // If not and we are resolving aliases try that next.  If an alias is found use that and
+                        // clear creatorData since its not relevant.  Finally if we still don't know who the user
+                        // and there is no creatorData (for a HG user) assign the default user if allowReassign is true.
+                        if (ResolveUserUuid(scene, kvp.Value.CreatorID) == false)
                         {
-                            kvp.Value.OwnerID = m_defaultUser;
-                        }
-
-                        if (string.IsNullOrEmpty(kvp.Value.CreatorData))
-                        {
-                            if (!ResolveUserUuid(scene, kvp.Value.CreatorID))
+                            if ((m_lookupAliases == true) &&
+                                (ResolveUserAlias(scene, kvp.Value.CreatorID, out UUID userID) == true))
+                            {
+                                kvp.Value.CreatorID = userID;
+                                kvp.Value.CreatorData = null;
+                            }
+                            else if ((m_allowReassign == true) && string.IsNullOrEmpty(kvp.Value.CreatorData))
+                            {
                                 kvp.Value.CreatorID = m_defaultUser;
+                            }
                         }
 
-                        if (UserManager != null)
+                        // If the userid is not null (bad data happens) and there is CreatorData
+                        // Add the user to the GridUsers creator table.
+                        if ((UserManager != null) &&
+                            ((kvp.Value.CreatorID != UUID.Zero) && (kvp.Value.CreatorData != null)))
+                        {
                             UserManager.AddCreatorUser(kvp.Value.CreatorID, kvp.Value.CreatorData);
+                        }
 
+                        // If the Owner isnt a local user or group resolve aliases and
+                        // reassignment as needed.
+                        if ((ResolveUserUuid(scene, kvp.Value.OwnerID) == false) &&
+                            (ResolveGroupUuid(kvp.Value.OwnerID) == false))
+                        {
+                            if ((m_lookupAliases == true) &&
+                                (ResolveUserAlias(scene, kvp.Value.OwnerID, out UUID userID) == true))
+                            {
+                                kvp.Value.OwnerID = userID;
+                            }
+                            else if (m_allowReassign == true)
+                            {
+                                kvp.Value.OwnerID = m_defaultUser;
+                            }
+                        }
+
+                        // If the LastOwner isnt a local user or group resolve aliases and
+                        // reassignment as needed.
+                        if ((ResolveUserUuid(scene, kvp.Value.LastOwnerID) == false) &&
+                            (ResolveGroupUuid(kvp.Value.LastOwnerID) == false))
+                        {
+                            if ((m_lookupAliases == true) &&
+                                (ResolveUserAlias(scene, kvp.Value.LastOwnerID, out UUID userID) == true))
+                            {
+                                kvp.Value.LastOwnerID = userID;
+                            }
+                            else if (m_allowReassign == true)
+                            {
+                                kvp.Value.LastOwnerID = m_defaultUser;
+                            }
+                        }
+
+                        // Local group isn't found set it to zero
                         if (!ResolveGroupUuid(kvp.Value.GroupID))
+                        {
                             kvp.Value.GroupID = UUID.Zero;
+                        }
                     }
-                    part.TaskInventory.LockItemsForRead(false);
 
+                    part.TaskInventory.LockItemsForRead(false);
                 }
             }
         }
@@ -933,15 +1038,15 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                 if (parcel.IsGroupOwned)
                 {
-                    if (parcel.GroupID != UUID.Zero)
-                    {
-                        // In group-owned parcels, OwnerID=GroupID. This should already be the case, but let's make sure.
-                        parcel.OwnerID = parcel.GroupID;
-                    }
-                    else
+                    if (parcel.GroupID.IsZero())
                     {
                         parcel.OwnerID = m_rootScene.RegionInfo.EstateSettings.EstateOwner;
                         parcel.IsGroupOwned = false;
+                    }
+                    else
+                    {
+                        // In group-owned parcels, OwnerID=GroupID. This should already be the case, but let's make sure.
+                        parcel.OwnerID = parcel.GroupID;
                     }
                 }
                 else
@@ -1006,6 +1111,47 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 }
 
                 return m_validUserUuids[uuid];
+            }
+        }
+
+        /// <summary>
+        /// Resolve a userid to an on local grid alias user.  Look up the uuid and if
+        /// there is an alias to a local user return the local id in aliasID.
+        /// </summary>
+        /// <param name="scene">The scene being loaded, provides context</param>
+        /// <param name="aliasID">The UUID presumed to be an alias for a local user</param>
+        /// <param name="userID">The local id that uuid is aliased to.</param>
+        /// <returns>True if an Alias Exists, False otherwize</returns>
+        private bool ResolveUserAlias(Scene scene, UUID aliasID, out UUID userID)
+        {
+            userID = UUID.Zero;
+
+            lock (m_aliasedUserUuids)
+            {
+                if (!m_aliasedUser.ContainsKey(aliasID))
+                {
+                    var alias = scene.UserAliasService.GetUserForAlias(aliasID);
+                    m_aliasedUser.Add(aliasID, alias != null);
+
+                    m_log.DebugFormat("[ARCHIVER]: GetUserForAlias {0} returned {1}", 
+                        aliasID.ToString(), alias == null ? "null" : alias.UserID.ToString());
+
+                    if (alias != null)
+                    {
+                        m_aliasedUserUuids.Add(aliasID, alias.UserID);
+                    }
+                }
+
+                if (m_aliasedUser[aliasID] == true)
+                {
+                    userID = m_aliasedUserUuids[aliasID];
+                    return true;
+                }
+                else
+                {
+                    userID = UUID.Zero;
+                    return false;
+                }
             }
         }
 
@@ -1164,7 +1310,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             ITerrainModule terrainModule = scene.RequestModuleInterface<ITerrainModule>();
             using (MemoryStream ms = new MemoryStream(data))
             {
-                if (m_displacement != Vector3.Zero || m_rotation != 0f || m_boundingBox)
+               if (!m_displacement.IsZero() || m_rotation != 0f || m_boundingBox)
                 {
                     Vector2 boundingOrigin = new Vector2(m_boundingOrigin.X, m_boundingOrigin.Y);
                     Vector2 boundingSize = new Vector2(m_boundingSize.X, m_boundingSize.Y);
@@ -1192,6 +1338,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             XmlNamespaceManager nsmgr = new XmlNamespaceManager(new NameTable());
             XmlParserContext context = new XmlParserContext(null, nsmgr, null, XmlSpace.None);
             XmlTextReader xtr = new XmlTextReader(Encoding.ASCII.GetString(data), XmlNodeType.Document, context);
+            xtr.DtdProcessing = DtdProcessing.Ignore;
 
             // Loaded metadata will be empty if no information exists in the archive
             dearchivedScenes.LoadedCreationDateTime = 0;

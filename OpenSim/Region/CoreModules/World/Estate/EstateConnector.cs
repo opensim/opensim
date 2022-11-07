@@ -142,7 +142,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             List<UUID> regions = m_EstateModule.Scenes[0].GetEstateRegions((int)EstateID);
 
             // Don't send to the same instance twice
-            List<string> done = new List<string>();
+            HashSet<string> done = new HashSet<string>();
 
             // Handle local regions locally
             lock (m_EstateModule.Scenes)
@@ -187,35 +187,31 @@ namespace OpenSim.Region.CoreModules.World.Estate
         private bool Call(GridRegion region, Dictionary<string, object> sendData)
         {
             string reqString = ServerUtils.BuildQueryString(sendData);
-            // m_log.DebugFormat("[XESTATE CONNECTOR]: queryString = {0}", reqString);
+            // m_log.DebugFormat("[ESTATE CONNECTOR]: queryString = {0}", reqString);
             try
             {
-                string url = "";
-                if(region.HttpPort != 0)
-                    url = "http://" + region.ExternalHostName + ":" + region.HttpPort + "/";
-                else
-                    url = region.ServerURI;
+                //string url = "";
+                //if(region.HttpPort != 0)
+                //    url = "http://" + region.ExternalHostName + ":" + region.HttpPort + "/";
+                //else
+                //    url = region.ServerURI;
 
                 string reply = SynchronousRestFormsRequester.MakeRequest("POST",
-                        url + "estate",
+                //        url + "estate",
+                        region.ServerURI + "estate",
                         reqString);
 
-                if (reply != string.Empty)
+                if (!string.IsNullOrEmpty(reply))
                 {
-                    if (reply != string.Empty)
-                    {
                         int indx = reply.IndexOf("true", StringComparison.InvariantCultureIgnoreCase);
-                        if (indx > 0)
-                            return true;
-                        return false;
-                    }
+                        return indx > 0;
                 }
                 else
-                    m_log.DebugFormat("[XESTATE CONNECTOR]: received empty reply");
+                    m_log.DebugFormat("[ESTATE CONNECTOR]: received empty reply");
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[XESTATE CONNECTOR]: Exception when contacting remote sim: {0}", e.Message);
+                m_log.DebugFormat("[ESTATE CONNECTOR]: Exception when contacting remote sim: {0}", e.Message);
             }
 
             return false;

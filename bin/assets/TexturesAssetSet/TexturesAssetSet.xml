@@ -898,4 +898,12 @@
      <Key Name="fileName" Value="moon.jp2"/>
   </Section>
 
+  <Section Name = "DefaultSun">
+    <Key Name = "assetID" Value = "32bfbcea-24b1-fb9d-1ef9-48a28a63730f" />
+    <Key Name = "name" Value = "DefaultSun" />
+    <Key Name = "description" Value = "DefaultSun" />
+    <Key Name = "assetType" Value = "0" />
+    <Key Name = "fileName" Value = "32bfbcea-24b1-fb9d-1ef9-48a28a63730f.dat" />
+  </Section>
+
 </Nini>

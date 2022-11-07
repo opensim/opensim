@@ -679,7 +679,10 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 get
                 {
                     if (m_data == null)
+                    {
                         m_data=new object[0];
+                        return 0;
+                    }
                     return m_data.Length;
                 }
             }
@@ -691,7 +694,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     if (m_data == null)
                         return 0;
 
-                    int size = 0;
+                    int size = IntPtr.Size * m_data.Length;
 
                     foreach (object o in m_data)
                     {
@@ -700,7 +703,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                         else if (o is LSL_Types.LSLFloat)
                             size += 8;
                         else if (o is LSL_Types.LSLString)
-                            size += ((LSL_Types.LSLString)o).m_string == null ? 0 : ((LSL_Types.LSLString)o).m_string.Length;
+                            size += ((LSL_Types.LSLString)o).m_string == null ? 0 : ((LSL_Types.LSLString)o).m_string.Length * sizeof(char);
                         else if (o is LSL_Types.key)
                             size += ((LSL_Types.key)o).value.Length;
                         else if (o is LSL_Types.Vector3)
@@ -712,7 +715,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                         else if (o is uint)
                             size += 4;
                         else if (o is string)
-                            size += ((string)o).Length;
+                            size += ((string)o).Length * sizeof(char);
                         else if (o is float)
                             size += 8;
                         else if (o is double)
@@ -923,26 +926,16 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public static bool operator ==(list a, list b)
             {
-                int la = -1;
-                int lb = -1;
-                try { la = a.Length; }
-                catch (NullReferenceException) { }
-                try { lb = b.Length; }
-                catch (NullReferenceException) { }
-
-                return la == lb;
+                if (b is null)
+                    return (a is null);
+                return (a is null) ? false : a.Length == b.Length;
             }
 
             public static bool operator !=(list a, list b)
             {
-                int la = -1;
-                int lb = -1;
-                try { la = a.Length; }
-                catch (NullReferenceException) { }
-                try { lb = b.Length; }
-                catch (NullReferenceException) { }
-
-                return la != lb;
+                if (b is null)
+                    return !(a is null);
+                return (a is null) ? true : a.Length != b.Length;
             }
 
             public void Add(object o)
@@ -1871,11 +1864,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public static bool operator ==(key k1, key k2)
             {
-                return k1.value == k2.value;
+                return k1.value.Equals(k2.value);
             }
             public static bool operator !=(key k1, key k2)
             {
-                return k1.value != k2.value;
+                return !k1.value.Equals(k2.value);
             }
 
             #endregion
@@ -2093,7 +2086,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 // Leading plus sign is allowed, but ignored
                 v = v.Replace("+", "");
 
-                if (v == String.Empty)
+                if (v.Length == 0)
                 {
                     value = 0;
                 }
@@ -2436,7 +2429,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
                 v = v.Trim();
 
-                if (v == String.Empty || v == null)
+                if (v.Length == 0 || v == null)
                     v = "0.0";
                 else
                     if (!v.Contains(".") && !v.ToLower().Contains("e"))

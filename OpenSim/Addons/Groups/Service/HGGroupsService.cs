@@ -100,7 +100,7 @@ namespace OpenSim.Groups
                     return false;
             }
 
-            if (grec.Data["Location"] == string.Empty)
+            if (grec.Data["Location"].Length == 0)
             {
                 reason = "Cannot add proxy membership to non-proxy group";
                 return false;
@@ -161,7 +161,7 @@ namespace OpenSim.Groups
                 return null;
 
             ExtendedGroupRecord grec;
-            if (GroupID == UUID.Zero)
+            if (GroupID.IsZero())
                 grec = GetGroupRecord(RequestingAgentID, groupName);
             else
                 grec = GetGroupRecord(RequestingAgentID, GroupID);
@@ -234,7 +234,7 @@ namespace OpenSim.Groups
             }
 
             // check that the group is remote
-            if (grec.ServiceLocation == string.Empty)
+            if (grec.ServiceLocation.Length == 0)
             {
                 m_log.DebugFormat("[Groups.HGGroupsService]: attempt at adding notice to local (non-proxy) group");
                 return false;

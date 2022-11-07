@@ -71,16 +71,16 @@ namespace OpenSim.Services.AuthenticationService
                 {
                     m_log.DebugFormat("[AUTH SERVICE]: Attempting web key authentication for PrincipalID {0}", principalID);
                     result = m_svcChecks["web_login_key"].Authenticate(principalID, password, lifetime, out realID);
-                    if (result == String.Empty)
+                    if (result.Length == 0)
                     {
                         m_log.DebugFormat("[AUTH SERVICE]: Web Login failed for PrincipalID {0}", principalID);
                     }
                 }
-                if (result == string.Empty && data.Data.ContainsKey("passwordHash") && data.Data.ContainsKey("passwordSalt"))
+                if (result.Length == 0 && data.Data.ContainsKey("passwordHash") && data.Data.ContainsKey("passwordSalt"))
                 {
                     m_log.DebugFormat("[AUTH SERVICE]: Attempting password authentication for PrincipalID {0}", principalID);
                     result = m_svcChecks["password"].Authenticate(principalID, password, lifetime, out realID);
-                    if (result == String.Empty)
+                    if (result.Length == 0)
                     {
                         m_log.DebugFormat("[AUTH SERVICE]: Password login failed for PrincipalID {0}", principalID);
                     }
@@ -88,7 +88,7 @@ namespace OpenSim.Services.AuthenticationService
 
 
 
-                if (result == string.Empty)
+                if (result.Length == 0)
                 {
                     m_log.DebugFormat("[AUTH SERVICE]: Both password and webLoginKey-based authentication failed for PrincipalID {0}", principalID);
                 }

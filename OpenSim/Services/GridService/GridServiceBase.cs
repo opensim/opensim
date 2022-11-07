@@ -52,9 +52,9 @@ namespace OpenSim.Services.GridService
             IConfig dbConfig = config.Configs["DatabaseService"];
             if (dbConfig != null)
             {
-                if (dllName == String.Empty)
+                if (dllName.Length == 0)
                     dllName = dbConfig.GetString("StorageProvider", String.Empty);
-                if (connString == String.Empty)
+                if (connString.Length == 0)
                     connString = dbConfig.GetString("ConnectionString", String.Empty);
             }
 
@@ -72,7 +72,7 @@ namespace OpenSim.Services.GridService
             //
             // We tried, but this doesn't exist. We can't proceed.
             //
-            if (dllName.Equals(String.Empty))
+            if (string.IsNullOrEmpty(dllName))
                 throw new Exception("No StorageProvider configured");
 
             m_Database = LoadPlugin<IRegionData>(dllName, new Object[] { connString, realm });

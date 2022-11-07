@@ -186,7 +186,7 @@ namespace OpenSim.Groups
 
                 }
 
-                if (grec.GroupID != UUID.Zero)
+                if (!grec.GroupID.IsZero())
                 {
                     grec = m_GroupsService.GetGroupRecord(RequestingAgentID, grec.GroupID);
                     if (grec == null)
@@ -314,7 +314,7 @@ namespace OpenSim.Groups
                 if (!all)
                 {
                     ExtendedGroupMembershipData membership = null;
-                    if (groupID == UUID.Zero)
+                    if (groupID.IsZero())
                     {
                         membership = m_GroupsService.GetAgentActiveMembership(requestingAgentID, agentID);
                     }

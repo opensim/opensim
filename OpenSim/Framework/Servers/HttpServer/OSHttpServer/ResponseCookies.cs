@@ -21,9 +21,9 @@ namespace OSHttpServer
             // Verifies the parameter
             if (cookie == null)
                 throw new ArgumentNullException("cookie");
-            if (cookie.Name == null || cookie.Name.Trim() == string.Empty)
+            if (cookie.Name == null || cookie.Name.Trim().Length == 0)
                 throw new ArgumentException("Name must be specified.");
-            if (cookie.Value == null || cookie.Value.Trim() == string.Empty)
+            if (cookie.Value == null || cookie.Value.Trim().Length == 0)
                 throw new ArgumentException("Content must be specified.");
 
             if (_items.ContainsKey(cookie.Name))

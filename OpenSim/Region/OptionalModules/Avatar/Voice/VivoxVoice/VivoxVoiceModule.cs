@@ -711,6 +711,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
             response.RawBuffer = Util.UTF8.GetBytes("<llsd><undef /></llsd>");
         }
 
+        /*
         /// <summary>
         /// Callback for a client request for a private chat channel
         /// </summary>
@@ -736,6 +737,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
             response.RawBuffer = Util.UTF8.GetBytes("<llsd>true</llsd>");
             response.StatusCode = (int)HttpStatusCode.OK;
         }
+        */
 
         private string RegionGetOrCreateChannel(Scene scene, LandData land)
         {
@@ -1183,7 +1185,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                     using (HttpWebResponse rsp = (HttpWebResponse)req.GetResponse())
                     using (Stream s = rsp.GetResponseStream())
                     using (XmlTextReader rdr = new XmlTextReader(s))
-                            doc.Load(rdr);
+                    {
+                        rdr.DtdProcessing = DtdProcessing.Ignore;
+                        doc.Load(rdr);
+                    }
                 }
                 catch (Exception e)
                 {
@@ -1298,7 +1303,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
         /// </summary>
         private bool XmlFind(XmlElement root, string tag, int nth, out string result)
         {
-            if (root == null || tag == null || tag == String.Empty)
+            if (root == null || string.IsNullOrEmpty(tag))
             {
                 result = String.Empty;
                 return false;
@@ -1309,7 +1314,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
         private bool XmlFind(XmlElement root, string tag, out string result)
         {
             int nth = 0;
-            if (root == null || tag == null || tag == String.Empty)
+            if (root == null || string.IsNullOrEmpty(tag))
             {
                 result = String.Empty;
                 return false;

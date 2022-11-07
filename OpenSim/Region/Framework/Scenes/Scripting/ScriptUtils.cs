@@ -46,9 +46,9 @@ namespace OpenSim.Region.Framework.Scenes.Scripting
         /// <param name='type'></param>
         public static UUID GetAssetIdFromItemName(SceneObjectPart part, string name, int type)
         {
-            TaskInventoryItem item = part.Inventory.GetInventoryItem(name);
+            TaskInventoryItem item = part.Inventory.GetInventoryItem(name, type);
 
-            if (item != null && item.Type == type)
+            if (item != null)
                 return item.AssetID;
             else
                 return UUID.Zero;
@@ -64,6 +64,9 @@ namespace OpenSim.Region.Framework.Scenes.Scripting
         /// <returns></returns>
         public static UUID GetAssetIdFromKeyOrItemName(SceneObjectPart part, string identifier)
         {
+            if(string.IsNullOrEmpty(identifier))
+                return UUID.Zero;
+
             // if we can parse the string as a key, use it.
             // else try to locate the name in inventory of object. found returns key,
             // not found returns UUID.Zero
@@ -95,8 +98,8 @@ namespace OpenSim.Region.Framework.Scenes.Scripting
 
             if (part.Inventory != null)
             {
-                TaskInventoryItem item = part.Inventory.GetInventoryItem(identifier);
-                if (item != null && item.Type == (int)type)
+                TaskInventoryItem item = part.Inventory.GetInventoryItem(identifier, (int)type);
+                if (item != null)
                     return item.AssetID;
             }
 
@@ -111,15 +114,15 @@ namespace OpenSim.Region.Framework.Scenes.Scripting
             TaskInventoryItem item;
             if (part.Inventory != null)
             {
-                item = part.Inventory.GetInventoryItem(identifier);
-                if (item != null && item.Type == (int)type)
+                item = part.Inventory.GetInventoryItem(identifier, (int)type);
+                if (item != null)
                     return item.AssetID;
             }
 
             if (part.LocalId != host.LocalId && host.Inventory != null)
             {
-                item = host.Inventory.GetInventoryItem(identifier);
-                if (item != null && item.Type == (int)type)
+                item = host.Inventory.GetInventoryItem(identifier, (int)type);
+                if (item != null)
                     return item.AssetID;
             }
             return UUID.Zero;

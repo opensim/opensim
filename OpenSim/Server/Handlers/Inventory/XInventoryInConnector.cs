@@ -67,7 +67,7 @@ namespace OpenSim.Server.Handlers.Inventory
             string inventoryService = serverConfig.GetString("LocalServiceModule",
                     String.Empty);
 
-            if (inventoryService == String.Empty)
+            if (inventoryService.Length == 0)
                 throw new Exception("No InventoryService in config file");
 
             Object[] args = new Object[] { config, m_ConfigName };

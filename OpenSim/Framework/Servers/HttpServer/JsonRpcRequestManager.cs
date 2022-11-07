@@ -97,34 +97,30 @@ namespace OpenSim.Framework.Servers.HttpServer
                 return false;
             }
 
-            if (!response.ContainsKey("_Result"))
+            OSD osdtmp;
+            if (!response.TryGetValue("_Result", out osdtmp) || !(osdtmp is OSDMap))
             {
                 m_log.DebugFormat("JsonRpc request '{0}' to {1} returned an invalid response: {2}",
                     method, uri, OSDParser.SerializeJsonString(response));
                 return false;
             }
-            response = (OSDMap)response["_Result"];
 
-            OSD data;
-
-            if (response.ContainsKey("error"))
+            response = osdtmp as OSDMap;
+            if (response.TryGetValue("error", out osdtmp))
             {
-                data = response["error"];
                 m_log.DebugFormat("JsonRpc request '{0}' to {1} returned an error: {2}",
-                    method, uri, OSDParser.SerializeJsonString(data));
+                    method, uri, OSDParser.SerializeJsonString(osdtmp));
                 return false;
             }
 
-            if (!response.ContainsKey("result"))
+            if (!response.TryGetValue("result", out osdtmp) || !(osdtmp is OSDMap))
             {
                 m_log.DebugFormat("JsonRpc request '{0}' to {1} returned an invalid response: {2}",
                     method, uri, OSDParser.SerializeJsonString(response));
                 return false;
             }
 
-            data = response["result"];
-            OSD.DeserializeMembers(ref parameters, (OSDMap)data);
-
+            OSD.DeserializeMembers(ref parameters, (OSDMap)osdtmp);
             return true;
         }
 
@@ -168,26 +164,25 @@ namespace OpenSim.Framework.Servers.HttpServer
                 return false;
             }
 
-            if (!response.ContainsKey("_Result"))
+            OSD osdtmp;
+            if (!response.TryGetValue("_Result", out osdtmp) || !(osdtmp is OSDMap))
             {
                 m_log.DebugFormat("JsonRpc request '{0}' to {1} returned an invalid response: {2}",
                     method, uri, OSDParser.SerializeJsonString(response));
                 return false;
             }
-            response = (OSDMap)response["_Result"];
+            response = osdtmp as OSDMap;
 
-            if (response.ContainsKey("error"))
+            if (response.TryGetValue("error", out osdtmp))
             {
-                data = response["error"];
+                data = osdtmp;
                 m_log.DebugFormat("JsonRpc request '{0}' to {1} returned an error: {2}",
-                    method, uri, OSDParser.SerializeJsonString(data));
+                    method, uri, OSDParser.SerializeJsonString(osdtmp));
                 return false;
             }
 
             data = response;
-
             return true;
         }
-
     }
 }

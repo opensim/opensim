@@ -42,6 +42,11 @@ namespace OpenSim.Region.ClientStack.Linden
             UpdateInventoryItemAsset(httpRequest, httpResponse, map, (byte)AssetType.Settings);
         }
 
+        public void UpdateMaterialItemAsset(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, OSDMap map)
+        {
+            UpdateInventoryItemAsset(httpRequest, httpResponse, map, (byte)AssetType.Material);
+        }
+
         public void UpdateGestureItemAsset(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, OSDMap map)
         {
             UpdateInventoryItemAsset(httpRequest, httpResponse, map, (byte)AssetType.Gesture);
@@ -65,7 +70,7 @@ namespace OpenSim.Region.ClientStack.Linden
             }
             catch { }
 
-            if (itemID == UUID.Zero)
+            if (itemID.IsZero())
             {
                 LLSDAssetUploadError error = new LLSDAssetUploadError();
                 error.message = "failed to recode request";
@@ -74,7 +79,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 return;
             }
 
-            if (objectID != UUID.Zero)
+            if (!objectID.IsZero())
             {
                 SceneObjectPart sop = m_Scene.GetSceneObjectPart(objectID);
                 if (sop == null)
@@ -166,7 +171,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 }
                 catch { }
 
-                if (itemID == UUID.Zero || objectID == UUID.Zero)
+                if (itemID.IsZero() || objectID.IsZero())
                 {
                     LLSDAssetUploadError error = new LLSDAssetUploadError();
                     error.message = "failed to recode request";
@@ -312,7 +317,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 UUID assetID = OnUpLoad(m_inventoryItemID, m_objectID, data);
 
-                if (assetID == UUID.Zero)
+                if (assetID.IsZero())
                 {
                     LLSDAssetUploadError uperror = new LLSDAssetUploadError();
                     uperror.message = "Failed to update inventory item asset";

@@ -68,7 +68,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
             httpResponse.StatusCode = (int)HttpStatusCode.OK;
 
-            // m_log.DebugFormat("[XESTATE HANDLER]: query String: {0}", body);
+            // m_log.DebugFormat("[ESTATE HANDLER]: query String: {0}", body);
 
             try
             {
@@ -138,7 +138,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             }
             catch (Exception e)
             {
-                m_log.Debug("[XESTATE]: Exception {0}" + e.ToString());
+                m_log.Debug("[ESTATE]: Exception {0}" + e.ToString());
             }
 
             httpResponse.RawBuffer = FailureResult();

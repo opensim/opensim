@@ -88,10 +88,10 @@ namespace OpenSim.Server.Handlers.MapImage
             {
                 httpResponse.StatusCode = (int)HttpStatusCode.ServiceUnavailable;
                 httpResponse.AddHeader("Retry-After", "10");
-                return new byte[0];
+                return Array.Empty<byte>();
             }
 
-            byte[] result = new byte[0];
+            byte[] result = Array.Empty<byte>();
             string format = string.Empty;
 
             //UUID scopeID = new UUID("07f8d88e-cd5e-4239-a0ed-843f75d09992");
@@ -119,7 +119,7 @@ namespace OpenSim.Server.Handlers.MapImage
             {
                 httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
                 httpResponse.ContentType = "text/plain";
-                return new byte[0];
+                return Array.Empty<byte>();
             }
 
             result = m_MapService.GetMapTile(path, scopeID, out format);

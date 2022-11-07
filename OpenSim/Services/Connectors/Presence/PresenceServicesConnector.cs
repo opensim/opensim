@@ -73,7 +73,7 @@ namespace OpenSim.Services.Connectors
             string serviceURI = gridConfig.GetString("PresenceServerURI",
                     String.Empty);
 
-            if (serviceURI == String.Empty)
+            if (serviceURI.Length == 0)
             {
                 m_log.Error("[PRESENCE CONNECTOR]: No Server URI named in section PresenceService");
                 throw new Exception("Presence connector init error");
@@ -267,7 +267,7 @@ namespace OpenSim.Services.Connectors
                         uri,
                         reqString,
                         m_Auth);
-                if (reply == null || (reply != null && reply == string.Empty))
+                if (string.IsNullOrEmpty(reply))
                 {
                     m_log.DebugFormat("[PRESENCE CONNECTOR]: GetAgent received null or empty reply");
                     return null;
@@ -324,7 +324,7 @@ namespace OpenSim.Services.Connectors
                         uri,
                         reqString,
                         m_Auth);
-                if (reply == null || (reply != null && reply == string.Empty))
+                if (string.IsNullOrEmpty(reply))
                 {
                     m_log.DebugFormat("[PRESENCE CONNECTOR]: GetAgents received null or empty reply");
                     return null;

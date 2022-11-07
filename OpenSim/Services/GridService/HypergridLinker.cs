@@ -205,7 +205,7 @@ namespace OpenSim.Services.GridService
             if (!m_GatekeeperConnector.LinkRegion(regInfo, out regionID, out handle, out externalName, out imageURL, out string reason, out sizeX, out sizeY))
                 return false;
 
-            if (regionID == UUID.Zero)
+            if (regionID.IsZero())
             {
                 m_log.Warn("[HYPERGRID LINKER]: Unable to link region: " + reason);
                 return false;
@@ -224,7 +224,7 @@ namespace OpenSim.Services.GridService
             regInfo.RegionSizeX = sizeX;
             regInfo.RegionSizeY = sizeY;
 
-            if (externalName == string.Empty)
+            if (externalName.Length == 0)
                 regInfo.RegionName = regInfo.ServerURI;
             else
                 regInfo.RegionName = externalName;
@@ -369,7 +369,7 @@ namespace OpenSim.Services.GridService
             if (!m_GatekeeperConnector.LinkRegion(regInfo, out regionID, out handle, out externalName, out imageURL, out reason, out sizeX, out sizeY))
                 return false;
 
-            if (regionID == UUID.Zero)
+            if (regionID.IsZero())
             {
                 m_log.Warn("[HYPERGRID LINKER]: Unable to link region");
                 reason = "Remote region could not be found";
@@ -402,7 +402,7 @@ namespace OpenSim.Services.GridService
             regInfo.RegionSizeX = sizeX;
             regInfo.RegionSizeY = sizeY;
 
-            if (externalName == string.Empty)
+            if (externalName.Length == 0)
                 regInfo.RegionName = regInfo.ServerURI;
              else
                 regInfo.RegionName = externalName;

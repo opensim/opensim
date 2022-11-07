@@ -155,31 +155,19 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
 
             if (m_firstEmptyCompileQueue || m_oarFileLoading)
             {
-                OSChatMessage c = new OSChatMessage();
-                if (m_firstEmptyCompileQueue)
-                    c.Message = "server_startup,";
-                else
-                    c.Message = "oar_file_load,";
+                OSChatMessage c = new OSChatMessage
+                {
+                    From = "RegionReady",
+                    Message = (m_firstEmptyCompileQueue ? "server_startup," : ("oar_file_load," + (m_lastOarLoadedOk ? "1," : "0,"))) +
+                        numScriptsFailed.ToString() + "," + message,
+                    Channel = m_channelNotify,
+                    Type = ChatTypeEnum.Region,
+                    Scene = m_scene
+                };
+
                 m_firstEmptyCompileQueue = false;
                 m_oarFileLoading = false;
-
                 m_scene.Backup(false);
-
-                c.From = "RegionReady";
-                if (m_lastOarLoadedOk)
-                    c.Message += "1,";
-                else
-                    c.Message += "0,";
-                c.Channel = m_channelNotify;
-                c.Message += numScriptsFailed.ToString() + "," + message;
-                c.Type = ChatTypeEnum.Region;
-                if (m_scene != null)
-                    c.Position = new Vector3((m_scene.RegionInfo.RegionSizeX * 0.5f), (m_scene.RegionInfo.RegionSizeY * 0.5f), 30);
-                else
-                    c.Position = new Vector3(((int)Constants.RegionSize * 0.5f), ((int)Constants.RegionSize * 0.5f), 30);
-                c.Sender = null;
-                c.SenderUUID = UUID.Zero;
-                c.Scene = m_scene;
 
                 m_log.DebugFormat("[RegionReady]: Region \"{0}\" is ready: \"{1}\" on channel {2}",
                                  m_scene.RegionInfo.RegionName, c.Message, m_channelNotify);
@@ -194,7 +182,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
         {
             m_oarFileLoading = true;
 
-            if (message==String.Empty)
+            if (message.Length == 0)
             {
                 m_lastOarLoadedOk = true;
             }

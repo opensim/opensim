@@ -92,52 +92,46 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         private String m_InitialTerrain = "pinhead-island";
 
         // If true, send terrain patch updates to clients based on their view distance
-        private bool m_sendTerrainUpdatesByViewDistance = true;
+        private bool m_sendTerrainUpdatesByViewDistance = false;
 
         // Class to keep the per client collection of terrain patches that must be sent.
         // A patch is set to 'true' meaning it should be sent to the client. Once the
         //    patch packet is queued to the client, the bit for that patch is set to 'false'.
         private class PatchUpdates
         {
-            private BitArray updated;    // for each patch, whether it needs to be sent to this client
-            private int updateCount;    // number of patches that need to be sent
+            public TerrainTaintsArray taints;    // for each patch, whether it needs to be sent to this client
             public ScenePresence Presence;   // a reference to the client to send to
             public bool sendAll;
-            public int sendAllcurrentX;
-            public int sendAllcurrentY;
-            private int xsize;
-            private int ysize;
+            public int sendAllIndex;
+            public int xsize;
+            public int ysize;
 
             public PatchUpdates(TerrainData terrData, ScenePresence pPresence)
             {
                 xsize = terrData.SizeX / Constants.TerrainPatchSize;
                 ysize = terrData.SizeY / Constants.TerrainPatchSize;
-                updated = new BitArray(xsize * ysize, true);
-                updateCount = xsize * ysize;
+                taints = new TerrainTaintsArray(xsize * ysize, true);
                 Presence = pPresence;
                 // Initially, send all patches to the client
                 sendAll = true;
-                sendAllcurrentX = 0;
-                sendAllcurrentY = 0;
+                sendAllIndex = 0;
             }
 
             public PatchUpdates(TerrainData terrData, ScenePresence pPresence, bool defaultState)
             {
                 xsize = terrData.SizeX / Constants.TerrainPatchSize;
                 ysize = terrData.SizeY / Constants.TerrainPatchSize;
-                updated = new BitArray(xsize * ysize, true);
-                updateCount = defaultState ? xsize * ysize : 0;
+                taints = new TerrainTaintsArray(xsize * ysize, true);
                 Presence = pPresence;
                 sendAll = defaultState;
-                sendAllcurrentX = 0;
-                sendAllcurrentY = 0;
+                sendAllIndex = 0;
             }
 
             // Returns 'true' if there are any patches marked for sending
             [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
             public bool HasUpdates()
             {
-                return (updateCount > 0);
+                return (taints.IsTaited());
             }
 
             [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -149,121 +143,65 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
             public bool GetByPatch(int patchX, int patchY)
             {
-                return updated[patchX + xsize * patchY];
+                return taints[patchX + xsize * patchY];
             }
 
             [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
             public bool GetByPatch(int indx)
             {
-                return updated[indx];
+                return taints.Get(indx);
             }
 
             [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
             public bool GetByPatchAndClear(int patchX, int patchY)
             {
-                int indx = patchX + xsize * patchY;
-                if(updated[indx])
-                {
-                    updated[indx] = false;
-                    --updateCount;
-                    return true;
-                }
-                return false;
+                return (taints.GetAndClear(patchX + xsize * patchY));
             }
 
             [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
             public void SetByPatch(int patchX, int patchY, bool state)
             {
                 int indx = patchX + xsize * patchY;
-                bool prevState = updated[indx];
-                updated[indx] = state;
-                if (state)
-                {
-                    if (!prevState)
-                        ++updateCount;
-                }
-                else
-                {
-                    if (prevState)
-                        --updateCount;
-                }
+                taints.Set(indx, state);
             }
 
             [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
             public void SetTrueByPatch(int patchX, int patchY)
             {
                 int indx = patchX + xsize * patchY;
-                if (!updated[indx])
-                {
-                    updated[indx] = true;
-                    ++updateCount;
-                }
+                taints.Set(indx, true);
             }
 
             [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
             public void SetTrueByPatch(int indx)
             {
-                if (!updated[indx])
-                {
-                    updated[indx] = true;
-                    ++updateCount;
-                }
+                taints.Set(indx, true);
             }
 
             [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
             public void SetFalseByPatch(int patchX, int patchY)
             {
                 int indx = patchX + xsize * patchY;
-                if (updated[indx])
-                {
-                    updated[indx] = false;
-                    --updateCount;
-                }
+                taints.Set(indx, false);
             }
 
             [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
             public void SetFalseByPatch(int indx)
             {
-                if (updated[indx])
-                {
-                    updated[indx] = false;
-                    --updateCount;
-                }
+                taints.Set(indx, false);
             }
 
             public void SetAll(bool state)
             {
-                updated.SetAll(state);
-
-                if (state)
-                {
-                    sendAll = true;
-                    updateCount = xsize * ysize;
-                }
-                else updateCount = 0;
-
-                sendAllcurrentX = 0;
-                sendAllcurrentY = 0;
+                taints.SetAll(state);
+                sendAll = state;
+                sendAllIndex = 0;
             }
 
             // Logically OR's the terrain data's patch taint map into this client's update map.
             public void SetAll(TerrainData terrData)
             {
-                if (xsize != (terrData.SizeX / Constants.TerrainPatchSize)
-                    || ysize != (terrData.SizeY / Constants.TerrainPatchSize))
-                {
-                    throw new Exception(
-                        String.Format("{0} PatchUpdates.SetAll: patch array not same size as terrain. arr=<{1},{2}>, terr=<{3},{4}>",
-                                LogHeader, xsize, ysize,
-                                terrData.SizeX / Constants.TerrainPatchSize, terrData.SizeY / Constants.TerrainPatchSize)
-                    );
-                }
-
-                for (int indx = 0; indx < updated.Length; ++indx)
-                {
-                    if (terrData.IsTaintedAtPatch(indx))
-                        SetTrueByPatch(indx);
-                }
+                taints.Or(terrData.GetTaints());
             }
         }
 
@@ -299,9 +237,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             if (terrainConfig != null)
             {
                 m_InitialTerrain = terrainConfig.GetString("InitialTerrain", m_InitialTerrain);
-                m_sendTerrainUpdatesByViewDistance =
-                    terrainConfig.GetBoolean(
-                        "SendTerrainUpdatesByViewDistance",m_sendTerrainUpdatesByViewDistance);
+                m_sendTerrainUpdatesByViewDistance = terrainConfig.GetBoolean("SendTerrainUpdatesByViewDistance",m_sendTerrainUpdatesByViewDistance);
             }
         }
 
@@ -940,8 +876,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         /// doing it async, since currently this is 2 heavy for heartbeat
         private void EventManager_TerrainCheckUpdates()
         {
-            Util.FireAndForget(
-                EventManager_TerrainCheckUpdatesAsync);
+            Util.FireAndForget(EventManager_TerrainCheckUpdatesAsync);
         }
 
         object TerrainCheckUpdatesLock = new object();
@@ -954,17 +889,14 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 TerrainData terrData = m_channel.GetTerrainData();
                 bool shouldTaint = false;
 
-                int sx = terrData.SizeX / Constants.TerrainPatchSize;
-                for (int y = 0, py = 0; y < terrData.SizeY / Constants.TerrainPatchSize; y++, py += sx)
+                if(terrData.IsTainted())
                 {
-                    for (int x = 0; x < sx; x++)
+                    int nextChanged = 0;
+                    while((nextChanged = terrData.GetAndClearNextTaint(nextChanged)) >= 0)
                     {
-                        if (terrData.IsTaintedAtPatchWithClear(x + py))
-                        {
-                            // Found a patch that was modified. Push this flag into the clients.
-                            SendToClients(terrData, x, y);
-                            shouldTaint = true;
-                        }
+                        SendToClients(terrData, nextChanged);
+                        ++nextChanged;
+                        shouldTaint = true;
                     }
                 }
 
@@ -1145,7 +1077,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         /// <param name="serialised">A copy of the terrain as a 1D float array of size w*h</param>
         /// <param name="px">x patch coords</param>
         /// <param name="py">y patch coords</param>
-        private void SendToClients(TerrainData terrData, int px, int py)
+        private void SendToClients(TerrainData terrData, int patchIndex)
         {
             if (m_sendTerrainUpdatesByViewDistance)
             {
@@ -1154,13 +1086,15 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 {
                     m_scene.ForEachScenePresence(presence =>
                         {
+                            if(presence.IsNPC)
+                                return;
                             if (!m_perClientPatchUpdates.TryGetValue(presence.UUID, out PatchUpdates thisClientUpdates))
                             {
                                 // There is a ScenePresence without a send patch map. Create one. should not happen
                                 thisClientUpdates = new PatchUpdates(terrData, presence, false);
                                 m_perClientPatchUpdates.Add(presence.UUID, thisClientUpdates);
                             }
-                            thisClientUpdates.SetTrueByPatch(px, py);
+                            thisClientUpdates.SetTrueByPatch(patchIndex);
                         }
                     );
                 }
@@ -1170,6 +1104,9 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 // Legacy update sending where the update is sent out as soon as noticed
                 // We know the actual terrain data that is passed is ignored so this passes a dummy heightmap.
                 //float[] heightMap = terrData.GetFloatsSerialized();
+                int sx = terrData.SizeX / Constants.TerrainPatchSize;
+                int py = patchIndex / sx;
+                int px = patchIndex - py * sx;
                 int[] map = new int[]{px, py};
                 m_scene.ForEachClient(
                     delegate (IClientAPI controller)
@@ -1238,66 +1175,43 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         }
         private void SendAllModifiedPatchs(PatchUpdates pups)
         {
-            if (!pups.sendAll) // sanity
+            if (!pups.sendAll || !pups.HasUpdates())
                 return;
 
-            int limitX = (int)m_scene.RegionInfo.RegionSizeX / Constants.TerrainPatchSize;
-            int limitY = (int)m_scene.RegionInfo.RegionSizeY / Constants.TerrainPatchSize;
-
-            if (pups.sendAllcurrentX >= limitX && pups.sendAllcurrentY >= limitY)
-            {
-                pups.sendAll = false;
-                pups.sendAllcurrentX = 0;
-                pups.sendAllcurrentY = 0;
-                return;
-            }
+            int next = pups.sendAllIndex;
+            if (pups.sendAllIndex >= pups.taints.Length)
+                next = 0;
 
             int npatchs = 0;
-            List<PatchesToSend> patchs = new List<PatchesToSend>();
-            int x = pups.sendAllcurrentX;
-            int y = pups.sendAllcurrentY;
-            // send it in the order viewer draws it
-            // even if not best for memory scan
-            for (; y < limitY; y++)
+            List<int> patchs = new List<int>(128);
+            while ((next = pups.taints.GetAndClearNextTrue(next)) >= 0)
             {
-                for (; x < limitX; x++)
-                {
-                    if (pups.GetByPatchAndClear(x, y))
-                    {
-                        patchs.Add(new PatchesToSend(x, y, 0));
-                        if (++npatchs >= 128)
-                        {
-                            x++;
-                            break;
-                        }
-                    }
-                }
-                if (npatchs >= 128)
+                patchs.Add(next);
+                ++next;
+                if(++npatchs >= 128)
                     break;
-                x = 0;
             }
 
-            if (x >= limitX && y >= limitY)
-            {
-                pups.sendAll = false;
-                pups.sendAllcurrentX = 0;
-                pups.sendAllcurrentY = 0;
+            if(next < 0)
+            {               
+                pups.sendAll = pups.HasUpdates();
+                pups.sendAllIndex = 0;
             }
             else
-            {
-                pups.sendAllcurrentX = x;
-                pups.sendAllcurrentY = y;
-            }
+                pups.sendAllIndex = next;
 
             npatchs = patchs.Count;
             if (npatchs > 0)
             {
-                int[] patchPieces = new int[npatchs * 2];
-                int pieceIndex = 0;
-                foreach (PatchesToSend pts in patchs)
+                int sx = pups.xsize;
+                int[] patchPieces = new int[2 * npatchs];
+                for(int i = 0, pieceIndex = 0; i < patchs.Count; ++i)
                 {
-                    patchPieces[pieceIndex++] = pts.PatchX;
-                    patchPieces[pieceIndex++] = pts.PatchY;
+                    int patchIndex = patchs[i];
+                    int py = patchIndex / sx;
+                    int px = patchIndex - py * sx;
+                    patchPieces[pieceIndex++] = px;
+                    patchPieces[pieceIndex++] = py;
                 }
                 pups.Presence.ControllingClient.SendLayerData(patchPieces);
             }
@@ -1306,11 +1220,11 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         private List<PatchesToSend> GetModifiedPatchesInViewDistance(PatchUpdates pups)
         {
             List<PatchesToSend> ret = new List<PatchesToSend>();
-
-            int npatchs = 0;
+            if (!pups.HasUpdates())
+                return ret;
 
             ScenePresence presence = pups.Presence;
-            if (presence == null)
+            if (presence == null || presence.IsDeleted)
                 return ret;
 
             float minz = presence.AbsolutePosition.Z;
@@ -1321,9 +1235,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             if (minz > 1500f)
                 return ret;
 
-            int DrawDistance = (int)presence.DrawDistance;
-
-            DrawDistance = DrawDistance / Constants.TerrainPatchSize;
+            int DrawDistance = (int)presence.DrawDistance / Constants.TerrainPatchSize;
 
             int testposX;
             int testposY;
@@ -1339,8 +1251,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 testposX = (int)presence.AbsolutePosition.X / Constants.TerrainPatchSize;
                 testposY = (int)presence.AbsolutePosition.Y / Constants.TerrainPatchSize;
             }
-            int limitX = (int)m_scene.RegionInfo.RegionSizeX / Constants.TerrainPatchSize;
-            int limitY = (int)m_scene.RegionInfo.RegionSizeY / Constants.TerrainPatchSize;
+            int limitX = pups.xsize;
+            int limitY = pups.ysize;
 
             // Compute the area of patches within our draw distance
             int startX = testposX - DrawDistance;
@@ -1373,6 +1285,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
             DrawDistance *= DrawDistance;
 
+            int npatchs = 0;
             for (int y = startY, py = startY * limitX; y < endY; y++, py += limitX)
             {
                 distysq = y - testposY;
@@ -1387,12 +1300,12 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                         distxsq *= distxsq;
                         if (distxsq < distlimitsq)
                         {
-                            pups.SetFalseByPatch(x + py);
+                            pups.SetFalseByPatch(indx);
                             ret.Add(new PatchesToSend(x, y, distxsq + distysq));
                             if (npatchs++ > 1024)
                             {
                                 y = endY;
-                                x = endX;
+                                break;
                             }
                         }
                     }
@@ -2026,7 +1939,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                     result = operation.ModifyTerrain(m_channel, cmd);
                 }
 
-                if (result == String.Empty)
+                if (result.Length == 0)
                 {
                     result = "Modified terrain";
                     m_log.DebugFormat("Performed terrain operation {0}", operationType);

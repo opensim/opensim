@@ -50,18 +50,20 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name='targetID'></param>
         /// <param name='fromAgent'></param>
         /// <param name='broadcast'></param>
-        public void SimChat(byte[] message, ChatTypeEnum type, int channel, Vector3 fromPos, string fromName,
+        public void SimChat(string message, ChatTypeEnum type, int channel, Vector3 fromPos, string fromName,
                                UUID fromID, UUID targetID, bool fromAgent, bool broadcast)
         {
-            OSChatMessage args = new OSChatMessage();
-
-            args.Message = Utils.BytesToString(message);
-            args.Channel = channel;
-            args.Type = type;
-            args.Position = fromPos;
-            args.SenderUUID = fromID;
-            args.Scene = this;
-            args.Destination = targetID;
+            OSChatMessage args = new OSChatMessage
+            {
+                Message = message,
+                Channel = channel,
+                Type = type,
+                Position = fromPos,
+                SenderUUID = fromID,
+                Scene = this,
+                Destination = targetID,
+                From = fromName
+            };
 
             if (fromAgent)
             {
@@ -75,12 +77,9 @@ namespace OpenSim.Region.Framework.Scenes
                 args.SenderObject = obj;
             }
 
-            args.From = fromName;
-            //args.
-
-//            m_log.DebugFormat(
-//                "[SCENE]: Sending message {0} on channel {1}, type {2} from {3}, broadcast {4}",
-//                args.Message.Replace("\n", "\\n"), args.Channel, args.Type, fromName, broadcast);
+            //m_log.DebugFormat(
+            //    "[SCENE]: Sending message {0} on channel {1}, type {2} from {3}, broadcast {4}",
+            //    args.Message.Replace("\n", "\\n"), args.Channel, args.Type, fromName, broadcast);
 
             if (broadcast)
                 EventManager.TriggerOnChatBroadcast(this, args);
@@ -89,6 +88,12 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         protected void SimChat(byte[] message, ChatTypeEnum type, int channel, Vector3 fromPos, string fromName,
+                               UUID fromID, bool fromAgent, bool broadcast)
+        {
+            SimChat(Utils.BytesToString(message), type, channel, fromPos, fromName, fromID, UUID.Zero, fromAgent, broadcast);
+        }
+
+        protected void SimChat(string message, ChatTypeEnum type, int channel, Vector3 fromPos, string fromName,
                                UUID fromID, bool fromAgent, bool broadcast)
         {
             SimChat(message, type, channel, fromPos, fromName, fromID, UUID.Zero, fromAgent, broadcast);
@@ -105,17 +110,23 @@ namespace OpenSim.Region.Framework.Scenes
         public void SimChat(byte[] message, ChatTypeEnum type, int channel, Vector3 fromPos, string fromName,
                             UUID fromID, bool fromAgent)
         {
-            SimChat(message, type, channel, fromPos, fromName, fromID, fromAgent, false);
+            SimChat(Utils.BytesToString(message), type, channel, fromPos, fromName, fromID, UUID.Zero, fromAgent, false);
+        }
+
+        public void SimChat(string message, ChatTypeEnum type, int channel, Vector3 fromPos, string fromName,
+                            UUID fromID, bool fromAgent)
+        {
+            SimChat(message, type, channel, fromPos, fromName, fromID, UUID.Zero, fromAgent, false);
         }
 
         public void SimChat(string message, ChatTypeEnum type, Vector3 fromPos, string fromName, UUID fromID, bool fromAgent)
         {
-            SimChat(Utils.StringToBytes(message), type, 0, fromPos, fromName, fromID, fromAgent);
+            SimChat(message, type, 0, fromPos, fromName, fromID, UUID.Zero, fromAgent, false);
         }
 
         public void SimChat(string message, string fromName)
         {
-            SimChat(message, ChatTypeEnum.Broadcast, Vector3.Zero, fromName, UUID.Zero, false);
+            SimChat(message, ChatTypeEnum.Broadcast, 0, Vector3.Zero, fromName, UUID.Zero, UUID.Zero, false, false);
         }
 
         /// <summary>
@@ -126,10 +137,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="fromPos"></param>
         /// <param name="fromName"></param>
         /// <param name="fromAgentID"></param>
-        public void SimChatBroadcast(byte[] message, ChatTypeEnum type, int channel, Vector3 fromPos, string fromName,
+        public void SimChatBroadcast(string message, ChatTypeEnum type, int channel, Vector3 fromPos, string fromName,
                                      UUID fromID, bool fromAgent)
         {
-            SimChat(message, type, channel, fromPos, fromName, fromID, fromAgent, true);
+            SimChat(message, type, channel, fromPos, fromName, fromID, UUID.Zero, fromAgent, true);
         }
 
         /// <summary>
@@ -143,6 +154,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="fromAgentID"></param>
         /// <param name="targetID"></param>
         public void SimChatToAgent(UUID targetID, byte[] message, int channel, Vector3 fromPos, string fromName, UUID fromID, bool fromAgent)
+        {
+            SimChat(Utils.BytesToString(message), ChatTypeEnum.Region, channel, fromPos, fromName, fromID, targetID, fromAgent, false);
+        }
+
+        public void SimChatToAgent(UUID targetID, string message, int channel, Vector3 fromPos, string fromName, UUID fromID, bool fromAgent)
         {
             SimChat(message, ChatTypeEnum.Region, channel, fromPos, fromName, fromID, targetID, fromAgent, false);
         }
@@ -224,7 +240,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // XXX: Might be better to get rid of this special casing and have GetMembershipData return something
             // reasonable for a UUID.Zero group.
-            if (groupID != UUID.Zero)
+            if (!groupID.IsZero())
             {
                 GroupMembershipData gmd = m_groupsModule.GetMembershipData(groupID, remoteClient.AgentId);
 
@@ -548,7 +564,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                "[USER INVENTORY]: HandleFetchInventoryDescendents() for {0}, folder={1}, fetchFolders={2}, fetchItems={3}, sortOrder={4}",
 //                remoteClient.Name, folderID, fetchFolders, fetchItems, sortOrder);
 
-            if (folderID == UUID.Zero)
+            if (folderID.IsZero())
                 return;
 
             // FIXME MAYBE: We're not handling sortOrder!
@@ -637,10 +653,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// Handle a client request to update the inventory folder
         /// </summary>
         ///
-        /// FIXME: We call add new inventory folder because in the data layer, we happen to use an SQL REPLACE
-        /// so this will work to rename an existing folder.  Needless to say, to rely on this is very confusing,
-        /// and needs to be changed.
-        ///
         /// <param name="remoteClient"></param>
         /// <param name="folderID"></param>
         /// <param name="type"></param>
@@ -684,8 +696,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        delegate void PurgeFolderDelegate(UUID userID, UUID folder);
-
         /// <summary>
         /// This should delete all the items and folders in the given directory.
         /// </summary>
@@ -693,10 +703,14 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="folderID"></param>
         public void HandlePurgeInventoryDescendents(IClientAPI remoteClient, UUID folderID)
         {
-            PurgeFolderDelegate d = PurgeFolderAsync;
             try
             {
-                d.BeginInvoke(remoteClient.AgentId, folderID, PurgeFolderCompleted, d);
+                UUID agent = remoteClient.AgentId;
+                UUID folder = folderID;
+                Util.FireAndForget(delegate
+                {
+                    PurgeFolderAsync(agent, folder);
+                });
             }
             catch (Exception e)
             {
@@ -719,12 +733,6 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_log.WarnFormat("[AGENT INVENTORY]: Exception on async purge folder for user {0}: {1}", userID, e.Message);
             }
-        }
-
-        private void PurgeFolderCompleted(IAsyncResult iar)
-        {
-            PurgeFolderDelegate d = (PurgeFolderDelegate)iar.AsyncState;
-            d.EndInvoke(iar);
         }
     }
 }

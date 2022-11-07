@@ -5,11 +5,11 @@ BEGIN;
 
 CREATE TABLE IF NOT EXISTS `prims` (
   `CreationDate` int(11) DEFAULT NULL,
-  `Name` varchar(255) DEFAULT NULL,
-  `Text` varchar(255) DEFAULT NULL,
-  `Description` varchar(255) DEFAULT NULL,
-  `SitName` varchar(255) DEFAULT NULL,
-  `TouchName` varchar(255) DEFAULT NULL,
+  `Name` varchar(255) CHARACTER SET utf8 DEFAULT NULL,
+  `Text` varchar(255) CHARACTER SET utf8 DEFAULT NULL,
+  `Description` varchar(255) CHARACTER SET utf8 DEFAULT NULL,
+  `SitName` varchar(255) CHARACTER SET utf8 DEFAULT NULL,
+  `TouchName` varchar(255) CHARACTER SET utf8 DEFAULT NULL,
   `ObjectFlags` int(11) DEFAULT NULL,
   `OwnerMask` int(11) DEFAULT NULL,
   `NextOwnerMask` int(11) DEFAULT NULL,

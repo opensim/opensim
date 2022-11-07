@@ -56,6 +56,8 @@ namespace Amib.Threading
         /// </summary>
         string Name { get; set; }
 
+        int localID { get; set; }
+
         /// <summary>
         /// Get/Set the maximum number of workitem that execute cocurrency on the thread pool
         /// </summary>
