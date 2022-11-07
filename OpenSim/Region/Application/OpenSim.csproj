@@ -55,7 +55,7 @@
     </Content>
   </ItemGroup>-->
   <ItemGroup>
-	<Content Include="OpenSim.addin.xml">
+	<Content Include="Resources/OpenSim.addin.xml">
 	  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	</Content>
   </ItemGroup>
