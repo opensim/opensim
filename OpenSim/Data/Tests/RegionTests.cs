@@ -45,13 +45,13 @@ using System.Threading;
 using MySql.Data.MySqlClient;
 using OpenSim.Data.MySQL;
 
-using Mono.Data.Sqlite;
+using System.Data.SQLite;
 using OpenSim.Data.SQLite;
 
 namespace OpenSim.Data.Tests
 {
     [TestFixture(Description = "Region store tests (SQLite)")]
-    public class SQLiteRegionTests : RegionTests<SqliteConnection, SQLiteSimulationData>
+    public class SQLiteRegionTests : RegionTests<SQLiteConnection, SQLiteSimulationData>
     {
     }
 
