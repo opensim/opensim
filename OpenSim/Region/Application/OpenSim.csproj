@@ -49,10 +49,15 @@
     <ProjectReference Include="..\..\Services\Interfaces\OpenSim.Services.Interfaces.csproj" />
     <ProjectReference Include="..\..\Services\UserAccountService\OpenSim.Services.UserAccountService.csproj" />
   </ItemGroup>
-  <ItemGroup>
+  <!--<ItemGroup>
     <Content Include="$(SolutionDir)\bin\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>-->
+  <ItemGroup>
+	<Content Include="OpenSim.addin.xml">
+	  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	</Content>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="log4net" Version="2.0.15" />
