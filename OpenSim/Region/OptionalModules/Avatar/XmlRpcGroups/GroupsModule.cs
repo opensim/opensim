@@ -404,7 +404,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 m_log.DebugFormat("[xmlGROUPS]: OnInstantMessage called for {0}, message type {1}",
                          remoteClient.Name, (InstantMessageDialog)im.dialog);
 
-            if (remoteClient == null || !remoteClient.IsActive || remoteClient.AgentId == UUID.Zero)
+            if (remoteClient == null || !remoteClient.IsActive || remoteClient.AgentId.IsZero())
                 return;
 
             Scene scene = (Scene)remoteClient.Scene;
@@ -454,7 +454,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                         msg.ParentEstateID = 0;
                         msg.Position = Vector3.Zero;
                         msg.RegionID = UUID.Zero.Guid;
-                        msg.binaryBucket = new byte[0];
+                        msg.binaryBucket = Array.Empty<byte>();
 
                         OutgoingInstantMessage(msg, inviteInfo.AgentID);
 
@@ -527,7 +527,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                         return;
                     }
 
-                    if(itemID != UUID.Zero && ownerID != UUID.Zero)
+                    if(!itemID.IsZero() && !ownerID.IsZero())
                     {
                         item = scene.InventoryService.GetItem(ownerID, itemID);
                         if (item != null)
@@ -623,7 +623,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 if (m_debugEnabled)
                     m_log.DebugFormat("[xmlGROUPS]: Accepted notice {0} for {1}", noticeID, remoteClient.AgentId);
 
-                if (noticeID == UUID.Zero)
+                if (noticeID.IsZero())
                     return;
 
                 UUID folderID = UUID.Zero;
@@ -691,7 +691,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 if (m_debugEnabled)
                     m_log.DebugFormat("[xmlGROUPS]: Accepted notice {0} for {1}", noticeID, remoteAgentID);
 
-                if (noticeID == UUID.Zero)
+                if (noticeID.IsZero())
                     return;
 
                 GroupNoticeInfo notice = m_groupData.GetGroupNotice(remoteAgentID, noticeID);
@@ -1222,7 +1222,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 msg.timestamp = (uint)Util.UnixTimeSinceEpoch();
                 msg.fromAgentName = string.Empty;
                 msg.message = string.Empty;
-                msg.binaryBucket = new byte[0];
+                msg.binaryBucket = Array.Empty<byte>();
             }
 
             return msg;
@@ -1321,7 +1321,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             if (groupInfo == null)
                 return;
 
-
             IClientAPI ejecteeClient = GetActiveRootClient(ejecteeID);
 
             // Send Message to Ejectee
@@ -1366,7 +1365,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             msg.ParentEstateID = 0;
             msg.Position = Vector3.Zero;
             msg.RegionID = regionInfo.RegionID.Guid;
-            msg.binaryBucket = new byte[0];
+            msg.binaryBucket = Array.Empty<byte>();
             OutgoingInstantMessage(msg, ejecteeID);
 
             // Message to ejector
@@ -1387,7 +1386,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             msg.ParentEstateID = 0;
             msg.Position = Vector3.Zero;
             msg.RegionID = regionInfo.RegionID.Guid;
-            msg.binaryBucket = new byte[0];
+            msg.binaryBucket = Array.Empty<byte>();
             OutgoingInstantMessage(msg, agentID);
         }
 

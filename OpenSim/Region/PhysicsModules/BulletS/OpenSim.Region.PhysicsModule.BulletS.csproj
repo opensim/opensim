@@ -11,10 +11,6 @@
       <HintPath>..\..\..\..\bin\BulletXNA.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="log4net.dll">
-      <HintPath>..\..\..\..\bin\log4net.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Nini.dll">
       <HintPath>..\..\..\..\bin\Nini.dll</HintPath>
       <Private>False</Private>
@@ -40,5 +36,9 @@
     <Compile Remove="Tests\HullCreation.cs" />
     <Compile Remove="Tests\Raycast.cs" />
     <Compile Remove="Tests\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="log4net" Version="2.0.15" />
+    <PackageReference Include="Mono.Addins" Version="1.4.1" />
   </ItemGroup>
 </Project>

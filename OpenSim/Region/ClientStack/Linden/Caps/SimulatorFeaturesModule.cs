@@ -148,7 +148,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 typesMap["prim"] = true;
                 m_features["PhysicsShapeTypes"] = typesMap;
 
-                if(m_doScriptSyntax && m_scriptSyntaxID != UUID.Zero)
+                if(m_doScriptSyntax && !m_scriptSyntaxID.IsZero())
                     m_features["LSLSyntaxId"] = OSD.FromUUID(m_scriptSyntaxID);
 
                 OSDMap meshAnim = new OSDMap();
@@ -161,11 +161,10 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_features["MaxAgentGroupsPremium"] = OSD.FromInteger(Constants.MaxAgentGroups);
 
                 // Extra information for viewers that want to use it
-                // TODO: Take these out of here into their respective modules, like map-server-url
                 OSDMap extrasMap;
-                if(m_features.ContainsKey("OpenSimExtras"))
+                if(m_features.TryGetValue("OpenSimExtras", out OSD oe))
                 {
-                    extrasMap = (OSDMap)m_features["OpenSimExtras"];
+                    extrasMap = oe as OSDMap;
                 }
                 else
                     extrasMap = new OSDMap();
@@ -180,8 +179,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 if (m_ExportSupported)
                     extrasMap["ExportSupported"] = true;
-                if (extrasMap.Count > 0)
-                    m_features["OpenSimExtras"] = extrasMap;
+                m_features["OpenSimExtras"] = extrasMap;
             }
         }
 
@@ -194,7 +192,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         HandleSimulatorFeaturesRequest(request, response, agentID);
                     }));
 
-            if (m_doScriptSyntax && m_scriptSyntaxID != UUID.Zero && m_scriptSyntaxXML != null)
+            if (m_doScriptSyntax && !m_scriptSyntaxID.IsZero() && m_scriptSyntaxXML != null)
             {
                 caps.RegisterSimpleHandler("LSLSyntax",
                     new SimpleStreamHandler("/" + UUID.Random(), HandleSyntaxRequest));
@@ -259,14 +257,14 @@ namespace OpenSim.Region.ClientStack.Linden
             // This isn't the cheapest way of doing this but the rate
             // of occurrence is low (on sim entry only) and it's a sure
             // way to get a true deep copy.
-            OSD copy = OSDParser.DeserializeLLSDXml(OSDParser.SerializeLLSDXmlString(m_features));
+            OSD copy = OSDParser.DeserializeLLSDXml(OSDParser.SerializeLLSDXmlToBytes(m_features));
 
             return (OSDMap)copy;
         }
 
         private void HandleSimulatorFeaturesRequest(IOSHttpRequest request, IOSHttpResponse response, UUID agentID)
         {
-            //            m_log.DebugFormat("[SIMULATOR FEATURES MODULE]: SimulatorFeatures request");
+            // m_log.DebugFormat("[SIMULATOR FEATURES MODULE]: SimulatorFeatures request");
 
             if (request.HttpMethod != "GET")
             {
@@ -274,6 +272,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 return;
             }
 
+            /*
             ScenePresence sp = m_scene.GetScenePresence(agentID);
             if (sp == null)
             {
@@ -281,17 +280,31 @@ namespace OpenSim.Region.ClientStack.Linden
                 response.AddHeader("Retry-After", "5");
                 return;
             }
+            */
 
             OSDMap copy = DeepCopy();
 
             // Let's add the agentID to the destination guide, if it is expecting that.
-            if (copy.ContainsKey("OpenSimExtras") && ((OSDMap)(copy["OpenSimExtras"])).ContainsKey("destination-guide-url"))
-                ((OSDMap)copy["OpenSimExtras"])["destination-guide-url"] = Replace(((OSDMap)copy["OpenSimExtras"])["destination-guide-url"], "[USERID]", agentID.ToString());
+            if(copy.TryGetValue("OpenSimExtras", out OSD oe))
+            {
+                if(((OSDMap)oe).TryGetValue("destination-guide-url", out OSD dgl))
+                {
+                    ((OSDMap)oe)["destination-guide-url"] = Replace(dgl.AsString(), "[USERID]", agentID.ToString());
+                }
+            }
 
-            OnSimulatorFeaturesRequest?.Invoke(agentID, ref copy);
+            if(OnSimulatorFeaturesRequest != null)
+            {
+                foreach(SimulatorFeaturesRequestDelegate sd in OnSimulatorFeaturesRequest.GetInvocationList())
+                try
+                {
+                    sd?.Invoke(agentID, ref copy);
+                }
+                catch { }
+            }
 
             //Send back data
-            response.RawBuffer = Util.UTF8.GetBytes(OSDParser.SerializeLLSDXmlString(copy));
+            response.RawBuffer = OSDParser.SerializeLLSDXmlToBytes(copy);
             response.StatusCode = (int)HttpStatusCode.OK;
         }
 
@@ -358,20 +371,20 @@ namespace OpenSim.Region.ClientStack.Linden
                         case "destination-guide-url":
                             ginfo.DestinationGuideURL = val;
                             break;
-                        /* keep this local to avoid issues with diferent modules
                         case "currency-base-uri":
-                            ginfo.EconomyURL = val;
+                            // keep this local to avoid issues with diferent modules
+                            // ginfo.EconomyURL = val;
                             break;
-                        */
                         default:
-                            extrasMap[key] = val;
                             if (key == "ExportSupported")
                             {
                                 bool.TryParse(val, out m_ExportSupported);
+                                extrasMap[key] = m_ExportSupported;
                             }
+                            else
+                                extrasMap[key] = val;
                             break;
                     }
-
                 }
                 m_features["OpenSimExtras"] = extrasMap;
             }
@@ -389,7 +402,7 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             lock(m_scriptSyntaxLock)
             {
-                if(!m_doScriptSyntax || m_scriptSyntaxID != UUID.Zero)
+                if(!m_doScriptSyntax || !m_scriptSyntaxID.IsZero())
                     return;
 
                 if(!File.Exists("ScriptSyntax.xml"))

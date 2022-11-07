@@ -203,14 +203,15 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                 m_primMesher = RenderingLoader.LoadRenderer(renderers[0]);
             }
 
+            viewWitdh = (int)m_scene.RegionInfo.RegionSizeX;
+            viewHeight = (int)m_scene.RegionInfo.RegionSizeY;
+
             cameraPos = new Vector3(
-                            (m_scene.RegionInfo.RegionSizeX) * 0.5f,
-                            (m_scene.RegionInfo.RegionSizeY) * 0.5f,
+                            viewWitdh * 0.5f,
+                            viewHeight * 0.5f,
                             m_cameraHeight);
 
             cameraDir = -Vector3.UnitZ;
-            viewWitdh = (int)m_scene.RegionInfo.RegionSizeX;
-            viewHeight = (int)m_scene.RegionInfo.RegionSizeY;
             orto = true;
 
             Bitmap tile = GenImage();
@@ -341,9 +342,8 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             int bitWidth;
             int bitHeight;
 
-            const double log2inv = 1.4426950408889634073599246810019;
-            bitWidth = (int)Math.Ceiling((Math.Log(terrain.Width) * log2inv));
-            bitHeight = (int)Math.Ceiling((Math.Log(terrain.Height) * log2inv));
+            bitWidth = Util.intLog2((uint)terrain.Width);
+            bitHeight = Util.intLog2((uint)terrain.Height);
 
             if (bitWidth > 8) // more than 256 is very heavy :(
                 bitWidth = 8;
@@ -521,7 +521,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
             if (m_renderMeshes)
             {
-                if (omvPrim.Sculpt != null && omvPrim.Sculpt.SculptTexture != UUID.Zero)
+                if (omvPrim.Sculpt != null && !omvPrim.Sculpt.SculptTexture.IsZero())
                 {
                     // Try fetchinng the asset
                     AssetBase sculptAsset = m_scene.AssetService.Get(omvPrim.Sculpt.SculptTexture.ToString());
@@ -687,7 +687,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             int color;
             Color4 ctmp = Color4.White;
 
-            if (face.TextureID == UUID.Zero)
+            if (face.TextureID.IsZero())
                 return warp_Color.White;
 
             if (!m_colors.TryGetValue(face.TextureID, out color))
@@ -788,7 +788,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         private warp_Texture GetTexture(UUID id, SceneObjectPart sop)
         {
             warp_Texture ret = null;
-            if (id == UUID.Zero)
+            if (id.IsZero())
                 return ret;
             if (m_warpTextures.TryGetValue(id, out ret))
                 return ret;

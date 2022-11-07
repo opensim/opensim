@@ -127,7 +127,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             ltc.Add("exception object", TypeCastExc2Object);
             ltc.Add("exception string", TypeCastExc2String);
             ltc.Add("float bool", TypeCastFloat2Bool);
-            ltc.Add("float integer", TypeCastFloat2Integer);
+            ltc.Add("float*integer", TypeCastFloat2Integer);
             ltc.Add("float list", TypeCastFloat2List);
             ltc.Add("float object", TypeCastFloat2Object);
             ltc.Add("float string", TypeCastFloat2String);
@@ -155,12 +155,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             ltc.Add("rotation object", TypeCastRotation2Object);
             ltc.Add("rotation string", TypeCastRotation2String);
             ltc.Add("string bool", TypeCastString2Bool);
-            ltc.Add("string float", TypeCastString2Float);
-            ltc.Add("string integer", TypeCastString2Integer);
+            ltc.Add("string*float", TypeCastString2Float);
+            ltc.Add("string*integer", TypeCastString2Integer);
             ltc.Add("string list", TypeCastString2List);
             ltc.Add("string object", TypeCastString2Object);
-            ltc.Add("string rotation", TypeCastString2Rotation);
-            ltc.Add("string vector", TypeCastString2Vector);
+            ltc.Add("string*rotation", TypeCastString2Rotation);
+            ltc.Add("string*vector", TypeCastString2Vector);
             ltc.Add("vector bool", TypeCastVector2Bool);
             ltc.Add("vector list", TypeCastVector2List);
             ltc.Add("vector object", TypeCastVector2Object);
@@ -504,17 +504,18 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public static void LSLUnwrap(IScriptCodeGen scg, Token errorAt, TokenType type)
         {
-            if(type.ToLSLWrapType() == typeof(LSL_Float))
+            Type t = type.ToLSLWrapType();
+            if (t == typeof(LSL_String))
             {
-                scg.ilGen.Emit(errorAt, OpCodes.Ldfld, lslFloatValueFieldInfo);
+                scg.ilGen.Emit(errorAt, OpCodes.Ldfld, lslStringValueFieldInfo);
             }
-            if(type.ToLSLWrapType() == typeof(LSL_Integer))
+            else if(t == typeof(LSL_Integer))
             {
                 scg.ilGen.Emit(errorAt, OpCodes.Ldfld, lslIntegerValueFieldInfo);
             }
-            if(type.ToLSLWrapType() == typeof(LSL_String))
+            else if (t == typeof(LSL_Float))
             {
-                scg.ilGen.Emit(errorAt, OpCodes.Ldfld, lslStringValueFieldInfo);
+                scg.ilGen.Emit(errorAt, OpCodes.Ldfld, lslFloatValueFieldInfo);
             }
         }
 
@@ -523,17 +524,18 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private static void LSLWrap(IScriptCodeGen scg, Token errorAt, TokenType type)
         {
-            if(type.ToLSLWrapType() == typeof(LSL_Float))
+            Type t = type.ToLSLWrapType();
+            if (t == typeof(LSL_String))
             {
-                scg.ilGen.Emit(errorAt, OpCodes.Newobj, lslFloatConstructorInfo);
+                scg.ilGen.Emit(errorAt, OpCodes.Newobj, lslStringConstructorInfo);
             }
-            if(type.ToLSLWrapType() == typeof(LSL_Integer))
+            else if (t == typeof(LSL_Integer))
             {
                 scg.ilGen.Emit(errorAt, OpCodes.Newobj, lslIntegerConstructorInfo);
             }
-            if(type.ToLSLWrapType() == typeof(LSL_String))
+            else if (t == typeof(LSL_Float))
             {
-                scg.ilGen.Emit(errorAt, OpCodes.Newobj, lslStringConstructorInfo);
+                scg.ilGen.Emit(errorAt, OpCodes.Newobj, lslFloatConstructorInfo);
             }
         }
 

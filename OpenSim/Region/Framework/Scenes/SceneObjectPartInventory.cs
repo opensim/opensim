@@ -47,8 +47,8 @@ namespace OpenSim.Region.Framework.Scenes
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private byte[] m_inventoryFileData = new byte[0];
-        private byte[] m_inventoryFileNameBytes = new byte[0];
+        private byte[] m_inventoryFileData = Array.Empty<byte>();
+        private byte[] m_inventoryFileNameBytes = Array.Empty<byte>();
         private string m_inventoryFileName = "";
         private uint m_inventoryFileNameSerial = 0;
         private bool m_inventoryPrivileged = false;
@@ -530,10 +530,8 @@ namespace OpenSim.Region.Framework.Scenes
             m_part.ParentGroup.Scene.EventManager.TriggerRezScript(
                 m_part.LocalId, itemID, script, startParam, postOnRez, engine, stateSource);
             StoreScriptErrors(itemID, null);
-            if (!item.ScriptRunning)
-                m_part.ParentGroup.Scene.EventManager.TriggerStopScript(m_part.LocalId, itemID);
-            m_part.ParentGroup.AddActiveScriptCount(1);
-            m_part.ScheduleFullUpdate();
+            //if (item.ScriptRunning)
+                m_part.ParentGroup.AddActiveScriptCount(1);
 
             return true;
         }
@@ -1010,7 +1008,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected void AddInventoryItem(string name, TaskInventoryItem item, bool allowedDrop)
         {
             name = FindAvailableInventoryName(name);
-            if (name == String.Empty)
+            if (name.Length == 0)
                 return;
 
             item.ParentID = m_part.UUID;
@@ -1087,6 +1085,22 @@ namespace OpenSim.Region.Framework.Scenes
             foreach (TaskInventoryItem item in m_items.Values)
             {
                 if (item.Name == name)
+                {
+                    m_items.LockItemsForRead(false);
+                    return item;
+                }
+            }
+            m_items.LockItemsForRead(false);
+
+            return null;
+        }
+
+        public TaskInventoryItem GetInventoryItem(string name, int type)
+        {
+            m_items.LockItemsForRead(true);
+            foreach (TaskInventoryItem item in m_items.Values)
+            {
+                if (item.Type == type && item.Name == name)
                 {
                     m_items.LockItemsForRead(false);
                     return item;
@@ -1240,10 +1254,10 @@ namespace OpenSim.Region.Framework.Scenes
                 if (item.GroupPermissions != (uint)PermissionMask.None)
                     item.GroupID = m_part.GroupID;
 
-                if(item.OwnerID == UUID.Zero) // viewer to internal enconding of group owned
+                if(item.OwnerID.IsZero()) // viewer to internal enconding of group owned
                     item.OwnerID = item.GroupID; 
 
-                if (item.AssetID == UUID.Zero)
+                if (item.AssetID.IsZero())
                     item.AssetID = m_items[item.ItemID].AssetID;
 
                 m_items[item.ItemID] = item;
@@ -1352,14 +1366,14 @@ namespace OpenSim.Region.Framework.Scenes
                 if (m_inventorySerial == 0) // No inventory
                 {
                     m_items.LockItemsForRead(false);
-                    client.SendTaskInventory(m_part.UUID, 0, new byte[0]);
+                    client.SendTaskInventory(m_part.UUID, 0, Array.Empty<byte>());
                     return;
                 }
 
                 if (m_items.Count == 0) // No inventory
                 {
                     m_items.LockItemsForRead(false);
-                    client.SendTaskInventory(m_part.UUID, 0, new byte[0]);
+                    client.SendTaskInventory(m_part.UUID, 0, Array.Empty<byte>());
                     return;
                 }
 
@@ -1422,9 +1436,9 @@ namespace OpenSim.Region.Framework.Scenes
                     invString.AddNameValueLine("last_owner_id", item.LastOwnerID.ToString());
 
                     invString.AddNameValueLine("group_id",groupID.ToString());
-                    if(groupID != UUID.Zero && ownerID == groupID)
+                    if(!groupID.IsZero() && ownerID.Equals(groupID))
                     {
-                        invString.AddNameValueLine("owner_id", UUID.Zero.ToString());
+                        invString.AddNameValueLine("owner_id", UUID.ZeroString);
                         invString.AddNameValueLine("group_owned","1");
                     }
                     else
@@ -1468,7 +1482,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
                 }
 
-                client.SendTaskInventory(m_part.UUID, 0, new byte[0]);
+                client.SendTaskInventory(m_part.UUID, 0, Array.Empty<byte>());
             }
         }
 

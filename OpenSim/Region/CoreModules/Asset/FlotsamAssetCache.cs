@@ -596,7 +596,7 @@ namespace OpenSim.Region.CoreModules.Asset
 
             m_Requests++;
 
-            if (id.Equals(Util.UUIDZeroString))
+            if (id.Equals(UUID.ZeroString))
                 return false;
 
             if (m_negativeCache.ContainsKey(id))
@@ -1255,7 +1255,7 @@ namespace OpenSim.Region.CoreModules.Asset
                                 Primitive.TextureEntryFace face = FaceTextures[idx];
                                 if (face == null)
                                     continue;
-                                if (face.TextureID == UUID.Zero || face.TextureID == AppearanceManager.DEFAULT_AVATAR_TEXTURE)
+                                if (face.TextureID.IsZero() || face.TextureID.Equals(AppearanceManager.DEFAULT_AVATAR_TEXTURE))
                                     continue;
                                 gatherer.AddGathered(face.TextureID, (sbyte)AssetType.Texture);
                             }
@@ -1656,7 +1656,6 @@ namespace OpenSim.Region.CoreModules.Asset
 
         public void Get(string id, string ForeignAssetService, bool StoreOnLocalGrid, SimpleAssetRetrieved callBack)
         {
-            return;
         }
 
         public bool[] AssetsExist(string[] ids)
@@ -1673,7 +1672,7 @@ namespace OpenSim.Region.CoreModules.Asset
 
         public string Store(AssetBase asset)
         {
-            if (asset.FullID == UUID.Zero)
+            if (asset.FullID.IsZero())
             {
                 asset.FullID = UUID.Random();
             }

@@ -8,11 +8,13 @@
     ; SQLite
     Include-Storage = "config-include/storage/SQLiteStandalone.ini";
 
-    ; MySql
-    ; Uncomment these lines if you want to use mysql storage
-    ; Change the connection string to your db detail
-    ; Remove SslMode=None if you need secure connection to the local mysql
-    ; In most cases ssl is just a pure waste of resources, specially when mySql is on same machine, and closed to outside
+    ; MySQL
+    ; Uncomment these lines if you want to use MySQL storage
+    ; Change the connection string to your db details
+    ; Remove SslMode=None if you need secure connection to the local MySQL
+    ; In most cases ssl is just a pure waste of resources, specially when MySQL is on same machine, and closed to outside
+    ; If using MySQL 8.0.4 or later, check that default-authentication-plugin=mysql_native_password
+    ;   rather than caching_sha2_password is set in /etc/mysql/mysql.conf.d/mysqld.cnf (not applicable to MariaDB).
     ;StorageProvider = "OpenSim.Data.MySQL.dll"
     ;ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=***;Old Guids=true;SslMode=None;"
 
@@ -109,7 +111,7 @@
     ;; Persistent       When the simulator is shutdown, the region is signalled as offline but left registered on the grid.
     ;;
     ;; For example:
-    Region_Welcome_Area = "DefaultRegion, FallbackRegion"
+    Region_Welcome_Area = "DefaultRegion, DefaultHGRegion"
 
     ;; Allow supporting viewers to export content
     ;; Set to false to prevent export
@@ -150,23 +152,30 @@
     ;; Set minimum fee to publish classified
     ; ClassifiedFee = 0
 
+    ;; If the region requested at login is not found and there are no default or fallback regions
+    ;; online or defined in section [GridService], try to send user to any region online
+    ;; this similar to legacy (was disabled on 0.9.2.0)
+    ;; you should set this to false and define  regions with Default and possible Fallback flags
+    ;; With this option set to true, users maybe sent to regions they where not supposed to be, or even know about
+    ;AllowLoginFallbackToAnyRegion = true
+
     ; Basic Login Service Dos Protection Tweaks
-    ; ;
-    ; ; Some Grids/Users use a transparent proxy that makes use of the X-Forwarded-For HTTP Header, If you do, set this to true
-    ; ; If you set this to true and you don't have a transparent proxy, it may allow attackers to put random things in the X-Forwarded-For header to
-    ; ;     get around this basic DOS protection.
+
+    ;; Some Grids/Users use a transparent proxy that makes use of the X-Forwarded-For HTTP Header, If you do, set this to true
+    ;; If you set this to true and you don't have a transparent proxy, it may allow attackers to put random things in the X-Forwarded-For header to
+    ;;     get around this basic DOS protection.
     ; DOSAllowXForwardedForHeader = false
-    ; ;
-    ; ; The protector adds up requests during this rolling period of time, default 10 seconds
+
+    ;; The protector adds up requests during this rolling period of time, default 10 seconds
     ; DOSRequestTimeFrameMS = 10000
-    ; ;
-    ; ; The amount of requests in the above timeframe from the same endpoint that triggers protection
+    ;;
+    ;; The amount of requests in the above timeframe from the same endpoint that triggers protection
     ; DOSMaxRequestsInTimeFrame = 5
-    ; ;
-    ; ; The amount of time that a specific endpoint is blocked.    Default 2 minutes.
+    ;;
+    ;; The amount of time that a specific endpoint is blocked.    Default 2 minutes.
     ; DOSForgiveClientAfterMS = 120000
-    ; ;
-    ; ; To turn off basic dos protection, set the DOSMaxRequestsInTimeFrame to 0.
+
+    ;; To turn off basic dos protection, set the DOSMaxRequestsInTimeFrame to 0.
 
 [FreeswitchService]
     ;; If FreeSWITCH is not being used then you don't need to set any of these parameters

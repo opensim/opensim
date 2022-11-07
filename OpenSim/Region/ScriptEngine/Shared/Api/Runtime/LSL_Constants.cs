@@ -35,7 +35,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
     public partial class ScriptBaseClass
     {
         // SCRIPTS CONSTANTS
-        public static readonly LSLInteger OS_APIVERSION = 18;
+        public static readonly LSLInteger OS_APIVERSION = 20;
 
         public static readonly LSLInteger TRUE = 1;
         public static readonly LSLInteger FALSE = 0;
@@ -285,12 +285,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         /// <summary>
         /// Instructs osMessageAttachements to send the message to attachments
         ///     on every point.
+        /// Note that is to be present on selected attachment points list, not options
         /// </summary>
         /// <remarks>
-        /// One might expect this to be named OS_ATTACH_ALL, but then one might
-        ///     also expect functions designed to attach or detach or get
-        ///     attachments to work with it too. Attaching a no-copy item to
-        ///     many attachments could be dangerous.
         /// when combined with OS_ATTACH_MSG_INVERT_POINTS, will prevent the
         ///     message from being sent.
         /// if combined with OS_ATTACH_MSG_OBJECT_CREATOR or
@@ -458,6 +455,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         //ApiDesc not supported
         public const int PRIM_SCRIPTED_SIT_ONLY = 40; // experiences related. unsupported
         public const int PRIM_SIT_TARGET = 41;
+        public const int PRIM_PROJECTOR = 42;
 
 
         // parameters
@@ -672,6 +670,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int OBJECT_SIT_COUNT = 38;
         public const int OBJECT_ANIMATED_COUNT = 39;
         public const int OBJECT_ANIMATED_SLOTS_AVAILABLE = 40;
+        public const int OBJECT_ACCOUNT_LEVEL = 41;
+        public const int OBJECT_MATERIAL = 42;
+        public const int OBJECT_MASS = 43;
+        public const int OBJECT_TEXT = 44;
+        public const int OBJECT_REZ_TIME = 45;
+        public const int OBJECT_LINK_NUMBER = 46;
+        public const int OBJECT_SCALE = 47;
+        public const int OBJECT_TEXT_COLOR = 48;
+        public const int OBJECT_TEXT_ALPHA = 49;
 
 
         // Pathfinding types

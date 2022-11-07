@@ -63,10 +63,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if(Constants.TerrainPatchSize != 16)
                 throw new Exception("Terrain patch size must be 16m x 16m");
 
-            // Initialize the decompression tables
-            BuildDequantizeTable16();
+            // Initialize the compression tables
+            BuildQuantizeTables16();
             BuildCopyMatrix16();
-            BuildQuantizeTable16();
         }
 
         // Used to send cloud and wind patches
@@ -138,14 +137,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             float sub = 0.5f * header.Range + header.DCOffset;
 
             int wordsize = (prequant - 2) & 0x0f;
-            header.QuantWBits = wordsize;
-            header.QuantWBits |= wordsize << 4;
+            header.QuantWBits = wordsize | (wordsize << 4);
 
             int k = 0;
-            for (int j = 0; j < 16; j++)
+            for (int j = 0; j < 256 ; j += 16)
             {
-                for (int i = 0; i < 16; i++)
-                    block[k++] = (patchData[j * 16 + i] - sub) * premult;
+                int nj =  j + 16;
+                for (int i = j; i < nj; ++i)
+                    block[k++] = (patchData[i] - sub) * premult;
             }
 
             wbits = (prequant >> 1);
@@ -153,87 +152,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             dct16x16(block, iout, ref wbits);
         }
 
-/*
-        // new using terrain data and patchs indexes
-        public static List<LayerDataPacket> CreateLayerDataPackets(TerrainData terrData, int[] map)
-        {
-            List<LayerDataPacket> ret = new List<LayerDataPacket>();
-
-            int numberPatchs = map.Length / 2;
-            byte[] data = new byte[numberPatchs * 256 * 2];
-
-            //create packet and global header
-            LayerDataPacket layer = new LayerDataPacket();
-
-            byte landPacketType;
-            if (terrData.SizeX > Constants.RegionSize || terrData.SizeY > Constants.RegionSize)
-                landPacketType = (byte)TerrainPatch.LayerType.LandExtended;
-            else
-                landPacketType = (byte)TerrainPatch.LayerType.Land;
-
-            layer.LayerID.Type = landPacketType;
-
-            BitPack bitpack = new BitPack(data, 0);
-            bitpack.PackBits(STRIDE, 16);
-            bitpack.PackBitsFromByte(16);
-            bitpack.PackBitsFromByte(landPacketType);
-
-            int s;
-            for (int i = 0; i < numberPatchs; i++)
-            {
-                s = 2 * i;
-                CreatePatchFromTerrainData(bitpack, terrData, map[s], map[s + 1]);
-
-                if (bitpack.BytePos > 950 && i != numberPatchs - 1)
-                {
-                    //finish this packet
-                    bitpack.PackBitsFromByte(END_OF_PATCHES);
-
-                    layer.LayerData.Data = new byte[bitpack.BytePos + 1];
-                    Buffer.BlockCopy(bitpack.Data, 0, layer.LayerData.Data, 0, bitpack.BytePos + 1);
-                    ret.Add(layer);
-
-                    // start another
-                    layer = new LayerDataPacket();
-                    layer.LayerID.Type = landPacketType;
-
-                    bitpack = new BitPack(data, 0);
-                    bitpack.PackBits(STRIDE, 16);
-                    bitpack.PackBitsFromByte(16);
-                    bitpack.PackBitsFromByte(landPacketType);
-                }
-            }
-
-            bitpack.PackBitsFromByte(END_OF_PATCHES);
-
-            layer.LayerData.Data = new byte[bitpack.BytePos + 1];
-            Buffer.BlockCopy(bitpack.Data, 0, layer.LayerData.Data, 0, bitpack.BytePos + 1);
-            ret.Add(layer);
-
-            return ret;
-        }
-*/
-
         public unsafe static void CreatePatchFromTerrainData(BitPack output, TerrainData terrData, int patchX, int patchY)
         {
-            float frange;
-
-            TerrainPatch.Header header = PrescanPatch(terrData, patchX, patchY, out frange);
+            TerrainPatch.Header header = PrescanPatch(terrData, patchX, patchY, out float frange);
             header.QuantWBits = 130;
 
-            bool largeRegion = false;
-            // If larger than legacy region size, pack patch X and Y info differently.
-            if (terrData.SizeX > Constants.RegionSize || terrData.SizeY > Constants.RegionSize)
-            {
-                header.PatchIDs = (patchY & 0xFFFF);
-                header.PatchIDs += (patchX << 16);
-                largeRegion = true;
-            }
-            else
-            {
-                header.PatchIDs = (patchY & 0x1F);
-                header.PatchIDs += (patchX << 5);
-            }
+            bool largeRegion = terrData.SizeX > Constants.RegionSize || terrData.SizeY > Constants.RegionSize;
 
             if (Math.Round(frange, 2) == 1.0)
             {
@@ -243,18 +167,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 output.PackBitsFromByte(1); //range low
                 output.PackBitsFromByte(0); //range high
                 if (largeRegion)
-                    output.PackBits(header.PatchIDs, 32);
+                    output.PackBits((patchX << 16) | (patchY & 0xFFFF), 32);
                 else
-                    output.PackBits(header.PatchIDs, 10);
+                    output.PackBits((patchX << 5) | (patchY & 0x1F) , 10);
 
                 // and thats all
                 output.PackBits(ZERO_EOB, 2);
                 return;
             }
 
-            int wbits;
+            header.PatchIDs = largeRegion ?
+                        (patchX << 16) | (patchY & 0xFFFF) :
+                        (patchX << 5) | (patchY & 0x1F);
+
             int* patch = stackalloc int[256];
-            CompressPatch(terrData, patchX, patchY, header, 10, out wbits, patch);
+            CompressPatch(terrData, patchX, patchY, header, 10, out int wbits, patch);
             EncodePatchHeader(output, header, largeRegion, ref wbits);
             EncodePatch(output, patch, 0, wbits);
         }
@@ -262,16 +189,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         // Scan the height info we're returning and return a patch packet header for this patch.
         private static TerrainPatch.Header PrescanPatch(TerrainData terrData, int patchX, int patchY, out float frange)
         {
-            TerrainPatch.Header header = new TerrainPatch.Header();
-            float zmax = float.MinValue;
-            float zmin = float.MaxValue;
-
-            terrData.GetPatchMinMax(patchX, patchY, out zmin, out zmax);
-
-            header.DCOffset = zmin;
+            terrData.GetPatchMinMax(patchX, patchY, out float zmin, out float zmax);
             frange = ((zmax - zmin) + 1.0f);
-            header.Range = (int)frange;
 
+            TerrainPatch.Header header = new TerrainPatch.Header()
+            {
+                DCOffset = zmin,
+                Range = (int)frange
+            };
             return header;
         }
 
@@ -367,49 +292,36 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                                int prequant, out int wbits, int* iout)
         {
             float* block = stackalloc float[256];
-
-            float oozrange = 1.0f / header.Range;
-            float invprequat = (1 << prequant);
-            float premult = oozrange * invprequat;
-
-            float sub = 0.5f * header.Range + header.DCOffset;
-
-            int wordsize = (prequant - 2) & 0x0f;
-            header.QuantWBits = wordsize;
-            header.QuantWBits |= wordsize << 4;
-
+            float sub = header.Range;
+            float premult = (1 << prequant) / sub;
+            sub = 0.5f * sub + header.DCOffset;
             terrData.GetPatchBlock(block, patchX, patchY, sub, premult);
 
-            wbits = (prequant >> 1);
+            int wordsize = (prequant - 2) & 0x0f;
+            header.QuantWBits = wordsize | (wordsize << 4);
 
+            wbits = (prequant >> 1);
             dct16x16(block, iout, ref wbits);
         }
 
         #region Initialization
 
-        private static void BuildDequantizeTable16()
-        {
-            for (int j = 0; j < 16; j++)
-            {
-                int c = j * 16;
-                for (int i = 0; i < 16; i++)
-                {
-                    DequantizeTable16[c + i] = 1.0f + 2.0f * (i + j);
-                }
-            }
-        }
-
-        private unsafe static void BuildQuantizeTable16()
+         private unsafe static void BuildQuantizeTables16()
         {
             const float oosob = 2.0f / 16;
-            fixed(float* fQuantizeTable16 = QuantizeTable16)
+            float tmp;
+            fixed(float* fQuantizeTable16 = QuantizeTable16, fDeQuantizeTable16 = DequantizeTable16)
             {
+                float* dqptr = fDeQuantizeTable16;
+                float* qptr = fQuantizeTable16;
+
                 for (int j = 0; j < 16; j++)
                 {
-                    int c = j * 16;
                     for (int i = 0; i < 16; i++)
                     {
-                        fQuantizeTable16[c + i] = oosob / (1.0f + 2.0f * (i + j));
+                        tmp = 1.0f + 2.0f * (i + j);
+                        *dqptr++ = tmp;
+                        *qptr++ = oosob / tmp;
                     }
                 }
             }

@@ -58,24 +58,27 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private void InitEvents()
         {
             m_log.Info("[YEngine] Hooking up to server events");
-            this.World.EventManager.OnAttach += attach;
-            this.World.EventManager.OnObjectGrab += touch_start;
-            this.World.EventManager.OnObjectGrabbing += touch;
-            this.World.EventManager.OnObjectDeGrab += touch_end;
-            this.World.EventManager.OnScriptChangedEvent += changed;
-            this.World.EventManager.OnScriptAtTargetEvent += at_target;
-            this.World.EventManager.OnScriptNotAtTargetEvent += not_at_target;
-            this.World.EventManager.OnScriptAtRotTargetEvent += at_rot_target;
-            this.World.EventManager.OnScriptNotAtRotTargetEvent += not_at_rot_target;
-            this.World.EventManager.OnScriptMovingStartEvent += moving_start;
-            this.World.EventManager.OnScriptMovingEndEvent += moving_end;
-            this.World.EventManager.OnScriptControlEvent += control;
-            this.World.EventManager.OnScriptColliderStart += collision_start;
-            this.World.EventManager.OnScriptColliding += collision;
-            this.World.EventManager.OnScriptCollidingEnd += collision_end;
-            this.World.EventManager.OnScriptLandColliderStart += land_collision_start;
-            this.World.EventManager.OnScriptLandColliding += land_collision;
-            this.World.EventManager.OnScriptLandColliderEnd += land_collision_end;
+            EventManager eManager = this.World.EventManager;
+            eManager.OnAttach += attach;
+            eManager.OnObjectGrab += touch_start;
+            eManager.OnObjectGrabbing += touch;
+            eManager.OnObjectDeGrab += touch_end;
+            eManager.OnScriptChangedEvent += changed;
+            eManager.OnScriptAtTargetEvent += at_target;
+            eManager.OnScriptNotAtTargetEvent += not_at_target;
+            eManager.OnScriptAtRotTargetEvent += at_rot_target;
+            eManager.OnScriptNotAtRotTargetEvent += not_at_rot_target;
+            eManager.OnScriptMovingStartEvent += moving_start;
+            eManager.OnScriptMovingEndEvent += moving_end;
+            eManager.OnScriptControlEvent += control;
+            eManager.OnScriptColliderStart += collision_start;
+            eManager.OnScriptColliding += collision;
+            eManager.OnScriptCollidingEnd += collision_end;
+            eManager.OnScriptLandColliderStart += land_collision_start;
+            eManager.OnScriptLandColliding += land_collision;
+            eManager.OnScriptLandColliderEnd += land_collision_end;
+            eManager.OnScriptListenEvent += script_listen;
+
             IMoneyModule money = this.World.RequestModuleInterface<IMoneyModule>();
             if(money != null)
             {
@@ -209,12 +212,24 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
         }
 
+        public void script_listen(UUID scriptID, int channel, string name, UUID id, string message)
+        {
+            object[] resobj = new object[]
+            {
+                new LSL_Types.LSLInteger(channel),
+                new LSL_Types.LSLString(name),
+                new LSL_Types.LSLString(id.ToString()),
+                new LSL_Types.LSLString(message)
+            };
+            PostScriptEvent(scriptID, new EventParams("listen", resobj, new DetectParams[0]));
+        }
+
         // state_entry: not processed here
         // state_exit: not processed here
 
         public void money(uint localID, UUID agentID, int amount, DetectParams[] det)
         {
-            this.PostObjectEvent(localID, new EventParams(
+            PostObjectEvent(localID, new EventParams(
                     "money", new object[] {
                     agentID.ToString(),
                     amount },

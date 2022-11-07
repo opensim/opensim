@@ -99,7 +99,7 @@ namespace OpenSim
                 m_startupCommandsFile = startupConfig.GetString("startup_console_commands_file", "startup_commands.txt");
                 m_shutdownCommandsFile = startupConfig.GetString("shutdown_console_commands_file", "shutdown_commands.txt");
 
-                if (startupConfig.GetString("console", String.Empty) == String.Empty)
+                if (startupConfig.GetString("console", String.Empty).Length == 0)
                     m_gui = startupConfig.GetBoolean("gui", false);
                 else
                     m_consoleType= startupConfig.GetString("console", String.Empty);
@@ -299,6 +299,9 @@ namespace OpenSim
                                             + "  --mergeReplaceObjects if scene as a object with same id, replace it\n"
                                             + "       without this option, skip loading that object\n"
                                             + "--skip-assets will load the OAR but ignore the assets it contains.\n"
+                                            + "--lookup-aliases will lookup aliases for local users and update creator/owner/last owner information accordingly.\n"
+                                            + "--allow-reassign allow reassignment of creator/owner/lastowner to the region owner/default user\n"
+                                            + "       if no local user (or alias) is found. Default is false\n"
                                             + "--default-user will use this user for any objects with an owner whose UUID is not found in the grid.\n"
                                             + "--no-objects suppresses the addition of any objects (good for loading only the terrain).\n"
                                             + "--rotation specified rotation to be applied to the oar. Specified in degrees.\n"
@@ -559,11 +562,13 @@ namespace OpenSim
         {
             if (File.Exists(fileName))
             {
-                StreamReader readFile = File.OpenText(fileName);
-                string currentLine;
-                while ((currentLine = readFile.ReadLine()) != null)
+                using(StreamReader readFile = File.OpenText(fileName))
                 {
-                    m_log.Info("[!]" + currentLine);
+                    string currentLine;
+                    while ((currentLine = readFile.ReadLine()) != null)
+                    {
+                        m_log.Info("[!]" + currentLine);
+                    }
                 }
             }
         }
@@ -1320,7 +1325,7 @@ namespace OpenSim
                     // send it off for processing.
                     IEstateModule estateModule = scene.RequestModuleInterface<IEstateModule>();
                     response = estateModule.CreateEstate(estateName, userID);
-                    if (response == String.Empty)
+                    if (response.Length == 0)
                     {
                         List<int> estates = scene.EstateDataService.GetEstates(estateName);
                         response = String.Format("Estate {0} created as \"{1}\"", estates.ElementAt(0), estateName);
@@ -1391,7 +1396,7 @@ namespace OpenSim
                         if (account != null)
                             response = estateModule.SetEstateOwner(estateId, account);
 
-                        if (response == String.Empty)
+                        if (response.Length == 0)
                         {
                             response = String.Format("Estate owner changed to {0} ({1} {2})", account.PrincipalID, account.FirstName, account.LastName);
                         }
@@ -1439,7 +1444,7 @@ namespace OpenSim
                         // send it off for processing.
                         response = estateModule.SetEstateName(estateId, estateName);
 
-                        if (response == String.Empty)
+                        if (response.Length == 0)
                         {
                             response = String.Format("Estate {0} renamed to \"{1}\"", estateId, estateName);
                         }
@@ -1490,7 +1495,7 @@ namespace OpenSim
             // send it off for processing.
             IEstateModule estateModule = scene.RequestModuleInterface<IEstateModule>();
             response = estateModule.SetRegionEstate(scene.RegionInfo, estateId);
-            if (response == String.Empty)
+            if (response.Length == 0)
             {
                 estateModule.TriggerRegionInfoChange();
                 estateModule.sendRegionHandshakeToAll();

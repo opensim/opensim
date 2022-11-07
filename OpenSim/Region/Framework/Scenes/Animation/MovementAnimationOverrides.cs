@@ -55,7 +55,7 @@ namespace OpenSim.Region.Framework.Scenes
         private Dictionary<string, UUID> m_overrides = new Dictionary<string, UUID>();
         public void SetOverride(string state, UUID animID)
         {
-            if (animID == UUID.Zero)
+            if (animID.IsZero())
             {
                 if (state == "ALL")
                     m_overrides.Clear();
@@ -79,6 +79,12 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             return UUID.Zero;
+        }
+
+        public bool TryGetOverriddenAnimation(string state, out UUID animID)
+        {
+            lock (MAOLock)
+                return m_overrides.TryGetValue(state, out animID);
         }
 
         public Dictionary<string, UUID> CloneAOPairs()

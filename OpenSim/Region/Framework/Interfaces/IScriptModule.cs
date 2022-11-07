@@ -70,7 +70,6 @@ namespace OpenSim.Region.Framework.Interfaces
         /// e.g. for http_request this will be an object array of key request_id, string method, string body
         /// </param>
         bool PostScriptEvent(UUID itemID, string name, Object[] args);
-
         bool PostObjectEvent(UUID itemID, string name, Object[] args);
 
         /// <summary>

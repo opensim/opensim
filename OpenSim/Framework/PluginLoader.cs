@@ -39,9 +39,9 @@ namespace OpenSim.Framework
     /// </summary>
     public class PluginConstraintViolatedException : Exception
     {
-        public PluginConstraintViolatedException () : base() {}
-        public PluginConstraintViolatedException (string msg) : base(msg) {}
-        public PluginConstraintViolatedException (string msg, Exception e) : base(msg, e) {}
+        public PluginConstraintViolatedException() : base() { }
+        public PluginConstraintViolatedException(string msg) : base(msg) { }
+        public PluginConstraintViolatedException(string msg, Exception e) : base(msg, e) { }
     }
 
     /// <summary>
@@ -66,7 +66,7 @@ namespace OpenSim.Framework
     /// <summary>
     /// Generic Plugin Loader
     /// </summary>
-    public class PluginLoader <T> : IDisposable where T : IPlugin
+    public class PluginLoader<T> : IDisposable where T : IPlugin
     {
         private const int max_loadable_plugins = 10000;
 
@@ -74,11 +74,11 @@ namespace OpenSim.Framework
         private List<string> extpoints = new List<string>();
         private PluginInitialiserBase initialiser;
 
-        private Dictionary<string,IPluginConstraint> constraints
-            = new Dictionary<string,IPluginConstraint>();
+        private Dictionary<string, IPluginConstraint> constraints
+            = new Dictionary<string, IPluginConstraint>();
 
-        private Dictionary<string,IPluginFilter> filters
-            = new Dictionary<string,IPluginFilter>();
+        private Dictionary<string, IPluginFilter> filters
+            = new Dictionary<string, IPluginFilter>();
 
         private static readonly ILog log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -96,7 +96,7 @@ namespace OpenSim.Framework
 
         public T Plugin
         {
-            get { return (loaded.Count == 1)? loaded [0] : default (T); }
+            get { return (loaded.Count == 1) ? loaded[0] : default(T); }
         }
 
         public PluginLoader()
@@ -217,16 +217,16 @@ namespace OpenSim.Framework
             AddinManager.AddinLoadError += OnLoaderError;
             AddinManager.AddinLoaded += OnLoad;
             AddinManager.AddinUnloaded += OnUnload;
+            AddinManager.ExtensionChanged += OnExtensionChanged;
 
+            //suppress_console_output_(true);
             AddinManager.Initialize(dir);
             AddinManager.Registry.Update(null);
-
-            AddinManager.ExtensionChanged += OnExtensionChanged;
         }
 
         private void OnLoad(object sender, AddinEventArgs args)
         {
-            log.Info ("[PLUGINS]: Plugin Loaded: " + args.AddinId);
+            log.Info("[PLUGINS]: Plugin Loaded: " + args.AddinId);
         }
 
         private void OnUnload(object sender, AddinEventArgs args)
@@ -237,54 +237,19 @@ namespace OpenSim.Framework
         private void OnLoaderError(object sender, AddinErrorEventArgs args)
         {
             if (args.Exception == null)
-                log.Error ("[PLUGINS]: Plugin Error: "
+                log.Error("[PLUGINS]: Plugin Error: "
                         + args.Message);
             else
-                log.Error ("[PLUGINS]: Plugin Error: "
+                log.Error("[PLUGINS]: Plugin Error: "
                         + args.Exception.Message + "\n"
                         + args.Exception.StackTrace);
         }
-
+        
         private void OnExtensionChanged(object sender, ExtensionEventArgs args)
         {
             log.Info ("[PLUGINS]: Extension Changed: " + args.Path);
         }
-
-        private void clear_registry_(string dir)
-        {
-            // The Mono addin manager (in Mono.Addins.dll version 0.2.0.0)
-            // occasionally seems to corrupt its addin cache
-            // Hence, as a temporary solution we'll remove it before each startup
-
-            string customDir = Environment.GetEnvironmentVariable ("MONO_ADDINS_REGISTRY");
-            string v0 = "addin-db-000";
-            string v1 = "addin-db-001";
-            if (customDir != null && customDir != String.Empty)
-            {
-                v0 = Path.Combine(customDir, v0);
-                v1 = Path.Combine(customDir, v1);
-            }
-            try
-            {
-                if (Directory.Exists(v0))
-                    Directory.Delete(v0, true);
-
-                if (Directory.Exists(v1))
-                    Directory.Delete(v1, true);
-
-            }
-            catch (IOException)
-            {
-                // If multiple services are started simultaneously, they may
-                // each test whether the directory exists at the same time, and
-                // attempt to delete the directory at the same time. However,
-                // one of the services will likely succeed first, causing the
-                // second service to throw an IOException. We catch it here and
-                // continue on our merry way.
-                // Mike 2008.08.01, patch from Zaki
-            }
-        }
-
+        
         private static TextWriter prev_console_;
         public void suppress_console_output_(bool save)
         {
@@ -367,7 +332,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public bool Apply (string extpoint)
+        public bool Apply(string extpoint)
         {
             int count = AddinManager.GetExtensionNodes(extpoint).Count;
 
@@ -407,7 +372,7 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="plugin"></param>
         /// <returns>true if the plugin's name matched one of the filters, false otherwise.</returns>
-        public bool Apply (PluginExtensionNode plugin)
+        public bool Apply(PluginExtensionNode plugin)
         {
             for (int i = 0; i < m_filters.Length; i++)
             {
@@ -449,7 +414,7 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="plugin">PluginExtensionNode instance to check whether it passes the filter.</param>
         /// <returns>true if the plugin's ID matches one of the filters, false otherwise.</returns>
-        public bool Apply (PluginExtensionNode plugin)
+        public bool Apply(PluginExtensionNode plugin)
         {
             for (int i = 0; i < m_filters.Length; i++)
             {

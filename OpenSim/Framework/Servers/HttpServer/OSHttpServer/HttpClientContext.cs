@@ -4,11 +4,11 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
 using OSHttpServer.Exceptions;
 using OSHttpServer.Parser;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
+using OpenMetaverse;
 
 namespace OSHttpServer
 {
@@ -112,12 +112,12 @@ namespace OSHttpServer
             LocalIPEndPoint = remoteEndPoint;
             m_log = m_logWriter;
             m_isClosing = false;
+            m_currentRequest = new HttpRequest(this);
             m_parser = new HttpRequestParser(m_log);
             m_parser.RequestCompleted += OnRequestCompleted;
             m_parser.RequestLineReceived += OnRequestLine;
             m_parser.HeaderReceived += OnHeaderReceived;
             m_parser.BodyBytesReceived += OnBodyBytesReceived;
-            m_currentRequest = new HttpRequest(this);
             IsSecured = secured;
             m_stream = stream;
             m_sock = sock;
@@ -166,6 +166,7 @@ namespace OSHttpServer
             m_currentRequest.AddToBody(e.Buffer, e.Offset, e.Count);
         }
 
+        private static readonly byte[] OSUTF8expect = osUTF8.GetASCIIBytes("expect");
         /// <summary>
         /// 
         /// </summary>
@@ -173,7 +174,7 @@ namespace OSHttpServer
         /// <param name="e"></param>
         protected virtual void OnHeaderReceived(object sender, HeaderEventArgs e)
         {
-            if (string.Compare(e.Name, "expect", true) == 0 && e.Value.Contains("100-continue"))
+            if (e.Name.ACSIILowerEquals(OSUTF8expect) && e.Value.Contains("100-continue"))
             {
                 lock (m_requestsLock)
                 {
@@ -181,7 +182,7 @@ namespace OSHttpServer
                         Respond("HTTP/1.1", HttpStatusCode.Continue, null);
                 }
             }
-            m_currentRequest.AddHeader(e.Name, e.Value);
+            m_currentRequest.AddHeader(e.Name.ToString(), e.Value);
         }
 
         private void OnRequestLine(object sender, RequestLineEventArgs e)
@@ -215,7 +216,6 @@ namespace OSHttpServer
             {
                 LogWriter.Write(this, LogPrio.Debug, err.ToString());
             }
-            //Task.Run(async () => await ReceiveLoop()).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -248,9 +248,9 @@ namespace OSHttpServer
                     HttpRequest req = m_requests.Dequeue();
                     req.Clear();
                 }
+                m_requests = null;
             }
-            m_requests.Clear();
-            m_requests = null;
+
             m_parser.Clear();
 
             FirstRequestLineReceived = false;
@@ -420,91 +420,12 @@ namespace OSHttpServer
                 //Disconnect(SocketError.NoRecovery);
                 Disconnect(SocketError.Success); // try to flush
             }
-            catch (IOException err)
+            catch (HttpException err)
             {
-                LogWriter.Write(this, LogPrio.Debug, "Failed to end receive: " + err.Message);
-                if (err.InnerException is SocketException)
-                    Disconnect((SocketError)((SocketException)err.InnerException).ErrorCode);
-                else
-                    Disconnect(SocketError.ConnectionReset);
-            }
-            catch (ObjectDisposedException err)
-            {
-                LogWriter.Write(this, LogPrio.Debug, "Failed to end receive : " + err.Message);
-                Disconnect(SocketError.NotSocket);
-            }
-            catch (NullReferenceException err)
-            {
-                LogWriter.Write(this, LogPrio.Debug, "Failed to end receive : NullRef: " + err.Message);
-                Disconnect(SocketError.NoRecovery);
-            }
-            catch (Exception err)
-            {
-                LogWriter.Write(this, LogPrio.Debug, "Failed to end receive: " + err.Message);
-                Disconnect(SocketError.NoRecovery);
-            }
-        }
-
-        /*
-        private async Task ReceiveLoop()
-        {
-            m_ReceiveBytesLeft = 0;
-            try
-            {
-                while(true)
-                {
-                    if (m_stream == null || !m_stream.CanRead)
-                        return;
-
-                    int bytesRead = await m_stream.ReadAsync(m_ReceiveBuffer, m_ReceiveBytesLeft, m_ReceiveBuffer.Length - m_ReceiveBytesLeft).ConfigureAwait(false);
-
-                    if (bytesRead == 0)
-                    {
-                        Disconnect(SocketError.Success);
-                        return;
-                    }
-
-                    if(m_isClosing)
-                        continue;
-
-                    m_ReceiveBytesLeft += bytesRead;
-
-                    int offset = m_parser.Parse(m_ReceiveBuffer, 0, m_ReceiveBytesLeft);
-                    if (m_stream == null)
-                        return; // "Connection: Close" in effect.
-
-                    while (offset != 0)
-                    {
-                        int nextBytesleft = m_ReceiveBytesLeft - offset;
-                        if(nextBytesleft <= 0)
-                            break;
-
-                        int nextOffset = m_parser.Parse(m_ReceiveBuffer, offset, nextBytesleft);
-
-                        if (m_stream == null)
-                            return; // "Connection: Close" in effect.
-
-                        if (nextOffset == 0)
-                            break;
-
-                        offset = nextOffset;
-                    }
-
-                    // copy unused bytes to the beginning of the array
-                    if (offset > 0 && m_ReceiveBytesLeft > offset)
-                        Buffer.BlockCopy(m_ReceiveBuffer, offset, m_ReceiveBuffer, 0, m_ReceiveBytesLeft - offset);
-
-                    m_ReceiveBytesLeft -= offset;
-                    if (StreamPassedOff)
-                        return; //?
-                }
-            }
-            catch (BadRequestException err)
-            {
-                LogWriter.Write(this, LogPrio.Warning, "Bad request, responding with it. Error: " + err);
+                LogWriter.Write(this, LogPrio.Warning, "Bad request, responding with it. Error: " + err.Message);
                 try
                 {
-                    Respond("HTTP/1.1", HttpStatusCode.BadRequest, err.Message);
+                    Respond("HTTP/1.1", err.HttpStatusCode, err.Message);
                 }
                 catch (Exception err2)
                 {
@@ -537,7 +458,6 @@ namespace OSHttpServer
                 Disconnect(SocketError.NoRecovery);
             }
         }
-        */
 
         private void OnRequestCompleted(object source, EventArgs args)
         {
@@ -546,7 +466,7 @@ namespace OSHttpServer
             FullRequestReceived = true;
             LastActivityTimeMS = ContextTimeoutManager.EnvironmentTickCount();
 
-            if (m_maxRequests == 0)
+            if (m_maxRequests <= 0 || RequestReceived == null)
                 return;
 
             if (--m_maxRequests == 0)
@@ -573,22 +493,20 @@ namespace OSHttpServer
 
             m_currentRequest.Body.Seek(0, SeekOrigin.Begin);
 
-            bool donow = true;
+            HttpRequest currentRequest = m_currentRequest;
+            m_currentRequest = new HttpRequest(this);
+
             lock (m_requestsLock)
             {
                 if(m_waitingResponse)
                 {
-                    m_requests.Enqueue(m_currentRequest);
-                    donow = false;
+                    m_requests.Enqueue(currentRequest);
+                    return;
                 }
                 else
                     m_waitingResponse = true;
             }
-
-            if(donow)
-                RequestReceived?.Invoke(this, new RequestEventArgs(m_currentRequest));
-
-            m_currentRequest = new HttpRequest(this);
+            RequestReceived?.Invoke(this, new RequestEventArgs(currentRequest));
         }
 
         public void StartSendResponse(HttpResponse response)
@@ -601,24 +519,31 @@ namespace OSHttpServer
 
         public bool TrySendResponse(int bytesLimit)
         {
-            if(m_currentResponse == null)
+            if (m_currentResponse == null)
                 return false;
-            if (m_currentResponse.Sent)
-                return false;
+            try
+            {
+                if (m_currentResponse.Sent)
+                    return false;
 
-            if(!CanSend())
-                return false;
+                if(!CanSend())
+                    return false;
 
-            LastActivityTimeMS = ContextTimeoutManager.EnvironmentTickCount();
-            m_currentResponse?.SendNextAsync(bytesLimit);
-            return false;
+                LastActivityTimeMS = ContextTimeoutManager.EnvironmentTickCount();
+                return m_currentResponse.SendNextAsync(bytesLimit);
+            }
+            catch 
+            {
+                return false;
+            }
         }
 
-        public void ContinueSendResponse(bool notThrottled)
+        public void ContinueSendResponse()
         {
             if(m_currentResponse == null)
                 return;
-            ContextTimeoutManager.EnqueueSend(this, m_currentResponse.Priority, notThrottled);
+            LastActivityTimeMS = ContextTimeoutManager.EnvironmentTickCount();
+            ContextTimeoutManager.EnqueueSend(this, m_currentResponse.Priority);
         }
 
         public void EndSendResponse(uint requestID, ConnectionType ctype)
@@ -641,10 +566,10 @@ namespace OSHttpServer
             }
             else
             {
-                LastActivityTimeMS = ContextTimeoutManager.EnvironmentTickCount();
                 if (Stream == null || !Stream.CanWrite)
                     return;
 
+                LastActivityTimeMS = ContextTimeoutManager.EnvironmentTickCount();
                 HttpRequest nextRequest = null;
                 lock (m_requestsLock)
                 {
@@ -661,6 +586,7 @@ namespace OSHttpServer
                 if (nextRequest != null)
                     RequestReceived?.Invoke(this, new RequestEventArgs(nextRequest));
             }
+            ContextTimeoutManager.PulseWaitSend();
         }
 
         /// <summary>
@@ -761,7 +687,27 @@ namespace OSHttpServer
             return ok;
         }
 
-        public async Task<bool> SendAsync(byte[] buffer, int offset, int size)
+        private void SendAsyncEnd(IAsyncResult res)
+        {
+            bool didleave = false;
+            try
+            {
+                m_stream.EndWrite(res);
+                ContextTimeoutManager.ContextLeaveActiveSend();
+                didleave = true;
+                m_currentResponse.CheckSendNextAsyncContinue();
+            }
+            catch (Exception e)
+            {
+                e.GetHashCode();
+                if (m_stream != null)
+                    Disconnect(SocketError.NoRecovery);
+            }
+            if(!didleave)
+                ContextTimeoutManager.ContextLeaveActiveSend();
+        }
+
+        public bool SendAsyncStart(byte[] buffer, int offset, int size)
         {
             if (m_stream == null || m_sock == null || !m_sock.Connected)
                 return false;
@@ -773,14 +719,14 @@ namespace OSHttpServer
             ContextTimeoutManager.ContextEnterActiveSend();
             try
             {
-                await m_stream.WriteAsync(buffer, offset, size).ConfigureAwait(false);
+                m_stream.BeginWrite(buffer, offset, size, SendAsyncEnd, null);
             }
-            catch
+            catch (Exception e)
             {
+                e.GetHashCode();
+                ContextTimeoutManager.ContextLeaveActiveSend();
                 ok = false;
             }
-
-            ContextTimeoutManager.ContextLeaveActiveSend();
 
             if (!ok && m_stream != null)
                 Disconnect(SocketError.NoRecovery);

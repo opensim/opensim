@@ -26,9 +26,7 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -47,18 +45,22 @@ namespace OpenSim.Capabilities.Handlers
 {
     public class FetchInvDescHandler
     {
-        private static readonly ILog m_log =
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private static byte[] EmptyResponse = Util.UTF8NBGetbytes("<llsd><map><key>folders</key><array /></map></llsd>");
-        private IInventoryService m_InventoryService;
-        private ILibraryService m_LibraryService;
-        private IScene m_Scene;
+        private static readonly byte[] EmptyResponse = Util.UTF8NBGetbytes("<llsd><map><key>folders</key><array /></map></llsd>");
+        private readonly IInventoryService m_InventoryService;
+        private readonly ILibraryService m_LibraryService;
+        private readonly UUID libOwner;
+        private readonly IScene m_Scene;
 
         public FetchInvDescHandler(IInventoryService invService, ILibraryService libService, IScene s)
         {
             m_InventoryService = invService;
-            m_LibraryService = libService;
+            if(libService != null && libService.LibraryRootFolder != null)
+            {
+                m_LibraryService = libService;
+                libOwner = libService.LibraryRootFolder.Owner;
+            }
             m_Scene = s;
         }
 
@@ -167,24 +169,16 @@ namespace OpenSim.Capabilities.Handlers
                 return;
             }
 
-            int total_folders = 0;
-            int total_items = 0;
-
             UUID requester = folders[0].owner_id;
 
-            List<InventoryCollection> invcollSet = Fetch(folders, bad_folders, ref total_folders, ref total_items);
+            List<InventoryCollection> invcollSet = Fetch(folders, bad_folders);
             //m_log.DebugFormat("[XXX]: Got {0} folders from a request of {1}", invcollSet.Count, folders.Count);
 
             int invcollSetCount = 0;
             if (invcollSet != null)
                 invcollSetCount = invcollSet.Count;
 
-            int mem = 8192 + ((256 * invcollSetCount +
-                                384 * total_folders +
-                                1024 * total_items +
-                                128 * bad_folders.Count) & 0x7ffff000);
-
-            osUTF8 lastresponse = LLSDxmlEncode2.Start(mem);
+            osUTF8 lastresponse = LLSDxmlEncode2.Start();
 
             if (invcollSetCount > 0)
             {
@@ -197,9 +191,11 @@ namespace OpenSim.Capabilities.Handlers
                     invcollSet[i] = null;
 
                     LLSDxmlEncode2.AddMap(lastresponse);
-                    LLSDxmlEncode2.AddElem_agent_id(thiscoll.OwnerID, lastresponse);
-                    LLSDxmlEncode2.AddElem("descendents", thiscoll.Descendents, lastresponse);
                     LLSDxmlEncode2.AddElem_folder_id(thiscoll.FolderID, lastresponse);
+                    LLSDxmlEncode2.AddElem_agent_id(thiscoll.OwnerID, lastresponse);
+                    LLSDxmlEncode2.AddElem_owner_id(thiscoll.OwnerID, lastresponse);
+                    LLSDxmlEncode2.AddElem("descendents", thiscoll.Descendents, lastresponse);
+                    LLSDxmlEncode2.AddElem_version(thiscoll.Version, lastresponse);
 
                     if (thiscoll.Folders == null || thiscoll.Folders.Count == 0)
                         LLSDxmlEncode2.AddEmptyArray("categories", lastresponse);
@@ -210,12 +206,11 @@ namespace OpenSim.Capabilities.Handlers
                         {
                             LLSDxmlEncode2.AddMap(lastresponse);
 
-                            LLSDxmlEncode2.AddElem_folder_id(invFolder.ID, lastresponse);
+                            LLSDxmlEncode2.AddElem_category_id(invFolder.ID, lastresponse);
                             LLSDxmlEncode2.AddElem_parent_id(invFolder.ParentID, lastresponse);
                             LLSDxmlEncode2.AddElem_name(invFolder.Name, lastresponse);
-                            LLSDxmlEncode2.AddElem("type", invFolder.Type, lastresponse);
-                            LLSDxmlEncode2.AddElem("preferred_type", (int)-1, lastresponse);
-                            LLSDxmlEncode2.AddElem("version", invFolder.Version, lastresponse);
+                            LLSDxmlEncode2.AddElem("type_default", invFolder.Type, lastresponse);
+                            LLSDxmlEncode2.AddElem_version( invFolder.Version, lastresponse);
 
                             LLSDxmlEncode2.AddEndMap(lastresponse);
                         }
@@ -235,8 +230,6 @@ namespace OpenSim.Capabilities.Handlers
                         LLSDxmlEncode2.AddEndArray(lastresponse);
                     }
 
-                    LLSDxmlEncode2.AddElem_owner_id(thiscoll.OwnerID, lastresponse);
-                    LLSDxmlEncode2.AddElem("version", thiscoll.Version, lastresponse);
 
                     LLSDxmlEncode2.AddEndMap(lastresponse);
                     invcollSet[i] = null;
@@ -281,7 +274,7 @@ namespace OpenSim.Capabilities.Handlers
             httpResponse.RawBuffer = LLSDxmlEncode2.EndToBytes(lastresponse);
         }
 
-        private void AddLibraryFolders(List<LLSDFetchInventoryDescendents> libFolders, List<InventoryCollection> result, ref int total_folders, ref int total_items)
+        private void AddLibraryFolders(List<LLSDFetchInventoryDescendents> libFolders, List<InventoryCollection> result)
         {
             InventoryFolderImpl fold;
             if (m_LibraryService == null || m_LibraryService.LibraryRootFolder == null)
@@ -300,8 +293,6 @@ namespace OpenSim.Capabilities.Handlers
                     Collection.Version = fold.Version;
 
                     Collection.Descendents = Collection.Items.Count + Collection.Folders.Count;
-                    total_folders += Collection.Folders.Count;
-                    total_items += Collection.Items.Count;
                     result.Add(Collection);
 
                     //m_log.DebugFormat("[XXX]: Added libfolder {0} ({1}) {2}", ret.Collection.FolderID, ret.Collection.OwnerID);
@@ -309,7 +300,7 @@ namespace OpenSim.Capabilities.Handlers
             }
         }
 
-        private List<InventoryCollection> Fetch(List<LLSDFetchInventoryDescendents> fetchFolders, List<UUID> bad_folders, ref int total_folders, ref int total_items)
+        private List<InventoryCollection> Fetch(List<LLSDFetchInventoryDescendents> fetchFolders, List<UUID> bad_folders)
         {
             //m_log.DebugFormat(
             //    "[WEB FETCH INV DESC HANDLER]: Fetching {0} folders for owner {1}", fetchFolders.Count, fetchFolders[0].owner_id);
@@ -322,10 +313,7 @@ namespace OpenSim.Capabilities.Handlers
             HashSet<UUID> libIDs = new HashSet<UUID>();
             HashSet<UUID> otherIDs = new HashSet<UUID>();
 
-            bool dolib = (m_LibraryService != null && m_LibraryService.LibraryRootFolder != null);
-            UUID libOwner = UUID.Zero;
-            if(dolib)
-                libOwner = m_LibraryService.LibraryRootFolder.Owner;
+            bool dolib = m_LibraryService != null;
 
             // Filter folder Zero right here. Some viewers (Firestorm) send request for folder Zero, which doesn't make sense
             // and can kill the sim (all root folders have parent_id Zero)
@@ -333,7 +321,7 @@ namespace OpenSim.Capabilities.Handlers
             bool doneZeroID = false;
             foreach(LLSDFetchInventoryDescendents f in fetchFolders)
             {
-                if (f.folder_id == UUID.Zero)
+                if (f.folder_id.IsZero())
                 {
                     if(doneZeroID)
                         continue;
@@ -346,7 +334,7 @@ namespace OpenSim.Capabilities.Handlers
                     result.Add(Collection);
                     continue;
                 }
-                if(dolib && f.owner_id == libOwner)
+                if(dolib && f.owner_id.Equals(libOwner))
                 {
                     if(libIDs.Contains(f.folder_id))
                         continue;
@@ -365,8 +353,6 @@ namespace OpenSim.Capabilities.Handlers
 
             if(otherFolders.Count > 0)
             { 
-                int i = 0;
-
                 //m_log.DebugFormat("[XXX]: {0}", string.Join(",", fids));
 
                 InventoryCollection[] fetchedContents = m_InventoryService.GetMultipleFoldersContent(otherFolders[0].owner_id, otherIDs.ToArray());
@@ -381,7 +367,7 @@ namespace OpenSim.Capabilities.Handlers
                 }
                 else
                 {
-                    i = 0;
+                    int i = 0;
                     // Do some post-processing. May need to fetch more from inv server for links
                     foreach (InventoryCollection contents in fetchedContents)
                     {
@@ -403,17 +389,13 @@ namespace OpenSim.Capabilities.Handlers
                         // Next: link management
                         ProcessLinks(freq, contents);
 
-                        total_folders += contents.Folders.Count;
-                        total_items += contents.Items.Count;
                         result.Add(contents);
                     }
                 }
             }
 
-            if(dolib && libFolders.Count > 0)
-            {
-                AddLibraryFolders(libFolders, result, ref total_folders, ref total_items);           
-            }
+            if(libFolders.Count > 0)
+                AddLibraryFolders(libFolders, result);
 
             return result;
         }
@@ -428,7 +410,7 @@ namespace OpenSim.Capabilities.Handlers
 
             // The inventory server isn't sending FolderID in the collection...
             // Must fetch it individually
-            if (contents.FolderID == UUID.Zero)
+            if (contents.FolderID.IsZero())
             {
                 InventoryFolderBase containingFolder = m_InventoryService.GetFolder(freq.owner_id, freq.folder_id);
                 if (containingFolder == null)

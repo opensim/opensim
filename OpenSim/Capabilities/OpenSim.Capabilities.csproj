@@ -7,10 +7,6 @@
     <Copyright>OpenSimulator developers</Copyright>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="log4net">
-      <HintPath>..\..\bin\log4net.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Nini">
       <HintPath>..\..\bin\Nini.dll</HintPath>
       <Private>False</Private>
@@ -40,6 +36,8 @@
     <Compile Remove="Handlers\FetchInventory\FetchInvDescServerConnector.cs" />
     <Compile Remove="Handlers\FetchInventory\FetchInventory2Handler.cs" />
     <Compile Remove="Handlers\FetchInventory\FetchInventory2ServerConnector.cs" />
+	<Compile Remove="Handlers\FetchInventory\FetchLib2Handler.cs" />
+	<Compile Remove="Handlers\FetchInventory\FetchLibDescHandler.cs" />
     <Compile Remove="Handlers\GetAssets\GetAssetsHandler.cs" />
     <Compile Remove="Handlers\GetMesh\GetMeshHandler.cs" />
     <Compile Remove="Handlers\GetMesh\GetMeshServerConnector.cs" />
@@ -51,5 +49,8 @@
     <Compile Remove="Handlers\FetchInventory\Tests\FetchInventoryDescendents2HandlerTests.cs" />
     <Compile Remove="Handlers\GetTexture\Tests\GetTextureHandlerTests.cs" />
     <Compile Remove="Handlers\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="log4net" Version="2.0.15" />
   </ItemGroup>
 </Project>

@@ -1216,11 +1216,10 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                     m_log.InfoFormat("[RADMIN]: CreateUser: User {0} {1} created, UUID {2}", firstName, lastName, account.PrincipalID);
                 }
-                catch (Exception e)
+                catch
                 {
                     responseData["avatar_uuid"] = UUID.Zero.ToString();
-
-                    throw e;
+                    throw;
                 }
 
                 m_log.Info("[RADMIN]: CreateUser: request complete");
@@ -1446,11 +1445,10 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                                      firstName, lastName,
                                      account.PrincipalID);
                 }
-                catch (Exception e)
+                catch
                 {
                     responseData["avatar_uuid"] = UUID.Zero.ToString();
-
-                    throw e;
+                    throw;
                 }
 
                 m_log.Info("[RADMIN]: UpdateUserAccount: request complete");
@@ -1583,7 +1581,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 {
                     responseData["success"] = false;
                     responseData["error"] = e.Message;
-                    throw e;
+                    throw;
                 }
 
                 m_log.Info("[RADMIN]: AuthenticateUser: request complete");
@@ -1647,6 +1645,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                     bool mergeOar = false;
                     bool skipAssets = false;
+                    bool lookupAliases = false;
+                    bool allowReassign = false;
 
                     if ((string)requestData["merge"] == "true")
                     {
@@ -1656,11 +1656,23 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     {
                         skipAssets = true;
                     }
+                    if ((string)requestData["lookup-aliases"] == "true")
+                    {
+                        lookupAliases = true;
+                    }
+                    if ((string)requestData["allow-reassign"] == "true")
+                    {
+                        allowReassign = true;
+                    }
 
                     IRegionArchiverModule archiver = scene.RequestModuleInterface<IRegionArchiverModule>();
                     Dictionary<string, object> archiveOptions = new Dictionary<string, object>();
+
                     if (mergeOar) archiveOptions.Add("merge", null);
                     if (skipAssets) archiveOptions.Add("skipAssets", null);
+                    if (lookupAliases) archiveOptions.Add("lookupAliases", null);
+                    if (allowReassign) archiveOptions.Add("allowReassign", null);
+
                     if (archiver != null)
                         archiver.DearchiveRegion(filename, Guid.Empty, archiveOptions);
                     else
@@ -1668,11 +1680,10 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                     responseData["loaded"] = true;
                 }
-                catch (Exception e)
+                catch
                 {
                     responseData["loaded"] = false;
-
-                    throw e;
+                    throw;
                 }
 
                 m_log.Info("[RADMIN]: Load OAR Administrator Request complete");
@@ -1792,11 +1803,10 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 responseData["saved"] = true;
             }
-            catch (Exception e)
+            catch
             {
                 responseData["saved"] = false;
-
-                throw e;
+                throw;
             }
 
             m_log.Info("[RADMIN]: Save OAR Request complete");
@@ -1856,12 +1866,11 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                     responseData["loaded"] = true;
                 }
-                catch (Exception e)
+                catch
                 {
                     responseData["loaded"] = false;
                     responseData["switched"] = false;
-
-                    throw e;
+                    throw;
                 }
 
                 m_log.Info("[RADMIN]: Load XML Administrator Request complete");
@@ -1909,12 +1918,11 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 responseData["saved"] = true;
             }
-            catch (Exception e)
+            catch
             {
                 responseData["saved"] = false;
                 responseData["switched"] = false;
-
-                throw e;
+                throw;
             }
 
             m_log.Info("[RADMIN]: Save XML Administrator Request complete");
@@ -2873,7 +2881,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             for (int i = 0; i<wearables.Length; i++)
             {
                 wearable = wearables[i];
-                if (wearable[0].ItemID != UUID.Zero)
+                if (!wearable[0].ItemID.IsZero())
                 {
                     // Get inventory item and copy it
                     InventoryItemBase item = inventoryService.GetItem(source, wearable[0].ItemID);
@@ -2926,7 +2934,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 int attachpoint = attachment.AttachPoint;
                 UUID itemID = attachment.ItemID;
 
-                if (itemID != UUID.Zero)
+                if (!itemID.IsZero())
                 {
                     // Get inventory item and copy it
                     InventoryItemBase item = inventoryService.GetItem(source, itemID);

@@ -248,10 +248,7 @@ namespace Amib.Threading.Internal
             _workItemCompletedRefCount = 0;
             _waitingOnQueueStopwatch = new Stopwatch();
             _processingStopwatch = new Stopwatch();
-            _expirationTime =
-                _workItemInfo.Timeout > 0 ?
-                DateTime.UtcNow.Ticks + _workItemInfo.Timeout * TimeSpan.TicksPerMillisecond :
-                long.MaxValue;
+            _expirationTime = _workItemInfo.Timeout > 0 ? DateTime.UtcNow.Ticks + _workItemInfo.Timeout * TimeSpan.TicksPerMillisecond :  long.MaxValue;
         }
 
         internal bool WasQueuedBy(IWorkItemsGroup workItemsGroup)
@@ -426,10 +423,10 @@ namespace Amib.Threading.Internal
             // We must treat the ThreadAbortException or else it will be stored in the exception variable
             catch (ThreadAbortException tae)
             {
-                tae.GetHashCode();
                 // Check if the work item was cancelled
                 // If we got a ThreadAbortException and the STP is not shutting down, it means the 
                 // work items was cancelled.
+                tae.GetHashCode();
                 if (!SmartThreadPool.CurrentThreadEntry.AssociatedSmartThreadPool.IsShuttingdown)
                 {
                     Thread.ResetAbort();
@@ -653,24 +650,18 @@ namespace Amib.Threading.Internal
                 {
                     return _workItemState;
                 }
-
-                long nowTicks = DateTime.UtcNow.Ticks;
-
-                if (WorkItemState.Canceled != _workItemState && nowTicks > _expirationTime)
+                if (WorkItemState.Canceled != _workItemState && DateTime.UtcNow.Ticks > _expirationTime)
                 {
                     _workItemState = WorkItemState.Canceled;
-                }
-
-                if (WorkItemState.InProgress == _workItemState)
-                {
                     return _workItemState;
                 }
-
-                if (CanceledSmartThreadPool.IsCanceled || CanceledWorkItemsGroup.IsCanceled)
+                if(WorkItemState.InProgress != _workItemState)
                 {
-                    return WorkItemState.Canceled;
+                    if (CanceledSmartThreadPool.IsCanceled || CanceledWorkItemsGroup.IsCanceled)
+                    {
+                        return WorkItemState.Canceled;
+                    }
                 }
-
                 return _workItemState;
             }
         }

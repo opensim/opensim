@@ -126,7 +126,7 @@ namespace OpenSim.Services.UserAccountService
             MainConsole.Instance.Output("Users online: {0}", onlineRecentlyCount);
         }
 
-        private static ExpiringCacheOS<string, GridUserData> cache = new ExpiringCacheOS<string, GridUserData>(00000);
+        private static ExpiringCacheOS<string, GridUserData> cache = new ExpiringCacheOS<string, GridUserData>(100000);
         private GridUserData GetGridUserData(string userID)
         {
             if (userID.Length > 36)
@@ -174,53 +174,39 @@ namespace OpenSim.Services.UserAccountService
 
         private GridUserInfo ToInfo(GridUserData d)
         {
-            GridUserInfo info = new GridUserInfo();
-            info.UserID = d.UserID;
-            Dictionary<string, string> kvp = d.Data;
+            GridUserInfo info = new GridUserInfo() { UserID = d.UserID };
+
             string tmpstr;
+            Dictionary<string, string> kvp = d.Data;
 
             if (kvp.TryGetValue("HomeRegionID", out tmpstr))
-                info.HomeRegionID = new UUID(tmpstr);
-            else
-                info.HomeRegionID = UUID.Zero;
+                UUID.TryParse(tmpstr, out info.HomeRegionID);
 
             if (kvp.TryGetValue("HomePosition", out tmpstr))
-                info.HomePosition = Vector3.Parse(tmpstr);
-            else
-                info.HomePosition = Vector3.Zero;
+                Vector3.TryParse(tmpstr, out info.HomePosition);
 
             if (kvp.TryGetValue("HomeLookAt", out tmpstr))
-                info.HomeLookAt = Vector3.Parse(tmpstr);
-            else
-                info.HomeLookAt = Vector3.Zero;
+                Vector3.TryParse(tmpstr, out info.HomeLookAt);
 
             if (kvp.TryGetValue("LastRegionID", out tmpstr))
-                info.LastRegionID = new UUID(tmpstr);
-            else
-                info.LastRegionID = UUID.Zero;
+                UUID.TryParse(tmpstr, out info.LastRegionID);
 
             if (kvp.TryGetValue("LastPosition", out tmpstr))
-                info.LastPosition = Vector3.Parse(tmpstr);
-            else
-                info.LastPosition = Vector3.Zero;
+                Vector3.TryParse(tmpstr, out info.LastPosition);
 
             if (kvp.TryGetValue("LastLookAt", out tmpstr))
-                info.LastLookAt = Vector3.Parse(tmpstr);
-            else
-                info.LastLookAt = Vector3.Zero;
-
+                Vector3.TryParse(tmpstr, out info.LastLookAt);
+                
             if (kvp.TryGetValue("Online", out tmpstr))
-                info.Online = bool.Parse(tmpstr);
-            else
-                info.Online = false;
+                bool.TryParse(tmpstr, out info.Online);
 
-            if (kvp.TryGetValue("Login", out tmpstr))
-                info.Login = Util.ToDateTime(Convert.ToInt32(tmpstr));
+            if (kvp.TryGetValue("Login", out tmpstr) && Int32.TryParse(tmpstr, out int login))
+                info.Login = Util.ToDateTime(login);
             else
                 info.Login = Util.UnixEpoch;
 
-            if (kvp.TryGetValue("Logout", out tmpstr))
-                info.Logout = Util.ToDateTime(Convert.ToInt32(tmpstr));
+            if (kvp.TryGetValue("Logout", out tmpstr) && Int32.TryParse(tmpstr, out int logout))
+                info.Logout = Util.ToDateTime(logout);
             else
                 info.Logout = Util.UnixEpoch;
 
@@ -287,10 +273,13 @@ namespace OpenSim.Services.UserAccountService
             d.Data["LastPosition"] = lastPosition.ToString();
             d.Data["LastLookAt"] = lastLookAt.ToString();
 
-            bool ret = m_Database.Store(d);
-            if (ret && userID.Length >= 36)
-                cache.Add(userID.Substring(0, 36), d, 300000);
-            return ret;
+            if(m_Database.Store(d))
+            {
+                if (userID.Length >= 36)
+                    cache.Add(userID.Substring(0, 36), d, 300000);
+                return true;
+            }
+            return false;
         }
 
         public bool SetHome(string userID, UUID homeID, Vector3 homePosition, Vector3 homeLookAt)
@@ -307,10 +296,13 @@ namespace OpenSim.Services.UserAccountService
             d.Data["HomePosition"] = homePosition.ToString();
             d.Data["HomeLookAt"] = homeLookAt.ToString();
 
-            bool ret = m_Database.Store(d);
-            if (ret && userID.Length >= 36)
-                cache.Add(userID.Substring(0, 36), d, 300000);
-            return ret;
+            if(m_Database.Store(d))
+            {
+                if (userID.Length >= 36)
+                    cache.Add(userID.Substring(0, 36), d, 300000);
+                return true;
+            }
+            return false;
         }
 
         public bool SetLastPosition(string userID, UUID sessionID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt)
@@ -329,10 +321,13 @@ namespace OpenSim.Services.UserAccountService
             d.Data["LastPosition"] = lastPosition.ToString();
             d.Data["LastLookAt"] = lastLookAt.ToString();
 
-            bool ret = m_Database.Store(d);
-            if (ret && userID.Length >= 36)
-                cache.Add(userID.Substring(0, 36), d, 300000);
-            return ret;
+            if(m_Database.Store(d))
+            {
+                if (userID.Length >= 36)
+                    cache.Add(userID.Substring(0, 36), d, 300000);
+                return true;
+            }
+            return false;
         }
     }
 }

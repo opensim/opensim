@@ -237,7 +237,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             if (liss != null)
             {
                 foreach (LSL_List lis in liss)
-                    newheapuse += HeapTrackerList.Size(lis);
+                {
+                    if(!(lis is null))
+                        newheapuse += lis.Size;
+                }
                 iarLists = liss;
             }
             else
@@ -322,7 +325,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             if(iarLists != null)
             {
                 foreach(LSL_List lis in iarLists)
-                    newheapuse -= HeapTrackerList.Size(lis);
+                {
+                    if (!(lis is null))
+                        newheapuse += lis.Size;
+                }
                 iarLists = null;
             }
             if(iarObjects != null)
@@ -507,32 +513,25 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         protected int heapLimit;
         public int m_localsHeapUsed;
-        public int m_arraysHeapUsed;
 
         public virtual int UpdateLocalsHeapUse(int olduse, int newuse)
         {
             int newtotal = Interlocked.Add(ref m_localsHeapUsed, newuse - olduse);
             if (newtotal + glblVars.arraysHeapUse > heapLimit)
-                throw new OutOfHeapException(m_arraysHeapUsed + newtotal + olduse - newuse, newtotal, heapLimit);
+                throw new OutOfHeapException(glblVars.arraysHeapUse + newtotal + olduse - newuse, newtotal + glblVars.arraysHeapUse, heapLimit);
             return newuse;
         }
         // not in use
         public virtual int UpdateArraysHeapUse(int olduse, int newuse)
         {
-            //int newtotal = Interlocked.Add(ref m_arraysheapUsed, newuse - olduse);
             if(newuse + glblVars.arraysHeapUse > heapLimit)
-                throw new OutOfHeapException(m_arraysHeapUsed + newuse + olduse - newuse, newuse, heapLimit);
+                throw new OutOfHeapException(glblVars.arraysHeapUse, glblVars.arraysHeapUse + newuse, heapLimit);
             return newuse;
         }
 
         public virtual void AddLocalsHeapUse(int delta)
         {
             Interlocked.Add(ref m_localsHeapUsed, delta);
-        }
-
-        public virtual void AddArraysHeapUse(int delta)
-        {
-            Interlocked.Add(ref m_arraysHeapUsed, delta);
         }
 
         public int xmrHeapLeft()
@@ -1304,7 +1303,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             foreach(string st in stlines)
             {
                 string stline = st.Trim();
-                if(stline == "")
+                if(stline.Length == 0)
                     continue;
 
                 // strip 'at' off the front of line
@@ -2050,7 +2049,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
     public class OutOfHeapException: Exception
     {
         public OutOfHeapException(int oldtotal, int newtotal, int limit)
-                : base("oldtotal=" + oldtotal + ", newtotal=" + newtotal + ", limit=" + limit)
+                : base("(OWNER)oldtotal=" + oldtotal + ", newtotal=" + newtotal + ", limit=" + limit)
         {
         }
     }

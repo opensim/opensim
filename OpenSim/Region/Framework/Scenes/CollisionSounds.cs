@@ -265,7 +265,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             int thisMatScaled = thisMaterial * MaxMaterials;
 
-            //            bool doneownsound = false;
+            // bool doneownsound = false;
 
             CollisionForSoundInfo colInfo;
             uint id;

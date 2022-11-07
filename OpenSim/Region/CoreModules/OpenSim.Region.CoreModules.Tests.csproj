@@ -3,14 +3,6 @@
     <TargetFramework>net48</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DotNetOpenMail">
-      <HintPath>..\..\..\bin\DotNetOpenMail.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="log4net">
-      <HintPath>..\..\..\bin\log4net.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Nini">
       <HintPath>..\..\..\bin\Nini.dll</HintPath>
       <Private>False</Private>
@@ -167,6 +159,8 @@
     <Compile Remove="ServiceConnectorsOut\UserAccounts\LocalUserAccountServiceConnector.cs" />
     <Compile Remove="ServiceConnectorsOut\UserAccounts\RemoteUserAccountServiceConnector.cs" />
     <Compile Remove="ServiceConnectorsOut\UserAccounts\UserAccountCache.cs" />
+	  <Compile Remove="ServiceConnectorsOut\UserAliases\LocalUserAliasServicesConnector.cs" />
+	  <Compile Remove="ServiceConnectorsOut\UserAliases\RemoteUserAliasServicesConnector.cs" />
     <Compile Remove="World\Access\AccessModule.cs" />
     <Compile Remove="World\Archiver\ArchiveHelpers.cs" />
     <Compile Remove="World\Archiver\ArchiveReadRequest.cs" />
@@ -277,9 +271,10 @@
     <Compile Remove="World\Wind\Plugins\SimpleRandomWind.cs" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="log4net" Version="2.0.15" />
     <PackageReference Include="NUnit" Version="2.7.1" />
     <PackageReference Include="NUnitTestAdapter" Version="2.3.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
-    <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
+    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
   </ItemGroup>
 </Project>

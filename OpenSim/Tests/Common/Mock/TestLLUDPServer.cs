@@ -43,8 +43,8 @@ namespace OpenSim.Tests.Common
     {
         public List<Packet> PacketsSent { get; private set; }
 
-        public TestLLUDPServer(IPAddress listenIP, ref uint port, int proxyPortOffsetParm, IConfigSource configSource, AgentCircuitManager circuitManager)
-            : base(listenIP, ref port, proxyPortOffsetParm, configSource, circuitManager)
+        public TestLLUDPServer(IPAddress listenIP, uint port, int proxyPortOffsetParm, IConfigSource configSource, AgentCircuitManager circuitManager)
+            : base(listenIP, port, proxyPortOffsetParm, configSource, circuitManager)
         {
             PacketsSent = new List<Packet>();
         }

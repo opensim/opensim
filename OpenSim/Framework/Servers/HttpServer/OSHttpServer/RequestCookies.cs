@@ -82,9 +82,9 @@ namespace OSHttpServer
             // Verifies the parameter
             if (cookie == null)
                 throw new ArgumentNullException("cookie");
-            if (cookie.Name == null || cookie.Name.Trim() == string.Empty)
+            if (cookie.Name == null || cookie.Name.Trim().Length == 0)
                 throw new ArgumentException("Name must be specified.");
-            if (cookie.Value == null || cookie.Value.Trim() == string.Empty)
+            if (cookie.Value == null || cookie.Value.Trim().Length == 0)
                 throw new ArgumentException("Content must be specified.");
 
             if (_items.ContainsKey(cookie.Name))
@@ -146,10 +146,10 @@ namespace OSHttpServer
 
         #endregion
 
-		/// <summary>
-		/// Remove a cookie from the collection.
-		/// </summary>
-		/// <param name="cookieName">Name of cookie.</param>
+        /// <summary>
+        /// Remove a cookie from the collection.
+        /// </summary>
+        /// <param name="cookieName">Name of cookie.</param>
         public void Remove(string cookieName)
         {
             lock (_items)

@@ -7,22 +7,6 @@
     <Copyright>Copyright ©  2012</Copyright>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DotNetOpenMail">
-      <HintPath>..\..\..\bin\DotNetOpenMail.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Ionic.Zip">
-      <HintPath>..\..\..\bin\Ionic.Zip.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="log4net">
-      <HintPath>..\..\..\bin\log4net.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Mono.Data.SqliteClient">
-      <HintPath>..\..\..\bin\Mono.Data.SqliteClient.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="NDesk.Options">
       <HintPath>..\..\..\bin\NDesk.Options.dll</HintPath>
       <Private>False</Private>
@@ -82,6 +66,10 @@
     <Compile Remove="World\NPC\Tests\NPCModuleTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
+    <PackageReference Include="Ionic.Zlib.Core" Version="1.0.0" />
+    <PackageReference Include="log4net" Version="2.0.15" />
+    <PackageReference Include="Mono.Addins" Version="1.4.1" />
+    <PackageReference Include="System.Data.SQLite" Version="1.0.116" />
+    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
   </ItemGroup>
 </Project>

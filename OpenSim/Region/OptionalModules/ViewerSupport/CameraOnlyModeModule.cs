@@ -128,17 +128,13 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
             m_log.DebugFormat("[CAMERA-ONLY MODE]: OnSimulatorFeaturesRequest in {0}", m_scene.RegionInfo.RegionName);
             if (m_Helper.UserLevel(agentID) <= m_UserLevel)
             {
-                OSDMap extrasMap;
-                if (features.ContainsKey("OpenSimExtras"))
-                {
-                    extrasMap = (OSDMap)features["OpenSimExtras"];
-                }
-                else
+                if (!features.TryGetValue("OpenSimExtras", out OSD extrasMap))
                 {
                     extrasMap = new OSDMap();
                     features["OpenSimExtras"] = extrasMap;
                 }
-                extrasMap["camera-only-mode"] = OSDMap.FromString("true");
+
+                ((OSDMap)extrasMap)["camera-only-mode"] = OSDMap.FromString("true");
                 m_log.DebugFormat("[CAMERA-ONLY MODE]: Sent in {0}", m_scene.RegionInfo.RegionName);
             }
             else

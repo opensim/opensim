@@ -58,6 +58,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
             using (XmlTextReader reader = new XmlTextReader(path))
             {
+                reader.DtdProcessing = DtdProcessing.Ignore;
                 XmlDocument doc = new XmlDocument();
                 doc.Load(reader);
 //                if (doc.DocumentElement != null)

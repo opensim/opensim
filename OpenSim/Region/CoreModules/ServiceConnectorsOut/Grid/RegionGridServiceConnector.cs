@@ -189,7 +189,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         public string RegisterRegion(UUID scopeID, GridRegion regionInfo)
         {
             string msg = m_LocalGridService.RegisterRegion(scopeID, regionInfo);
-            if (msg == string.Empty && m_RemoteGridService != null)
+            if (msg.Length == 0 && m_RemoteGridService != null)
                 return m_RemoteGridService.RegisterRegion(scopeID, regionInfo);
 
             return msg;
@@ -452,7 +452,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         {
             List<GridRegion> rinfo = m_LocalGridService.GetFallbackRegions(scopeID, x, y);
             //m_log.DebugFormat("[REMOTE GRID CONNECTOR]: Local GetFallbackRegions {0} found {1} regions", name, rinfo.Count);
-            if(m_RemoteGridService != null)
+            if (m_RemoteGridService != null)
             {
                 List<GridRegion> grinfo = m_RemoteGridService.GetFallbackRegions(scopeID, x, y);
 
@@ -462,7 +462,29 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                     foreach (GridRegion r in grinfo)
                     {
                         m_RegionInfoCache.Cache(r);
-                        if (rinfo.Find(delegate(GridRegion gr) { return gr.RegionID == r.RegionID; }) == null)
+                        if (rinfo.Find(delegate (GridRegion gr) { return gr.RegionID == r.RegionID; }) == null)
+                            rinfo.Add(r);
+                    }
+                }
+            }
+            return rinfo;
+        }
+
+        public List<GridRegion> GetOnlineRegions(UUID scopeID, int x, int y, int maxCount)
+        {
+            List<GridRegion> rinfo = m_LocalGridService.GetOnlineRegions(scopeID, x, y, maxCount);
+            //m_log.DebugFormat("[REMOTE GRID CONNECTOR]: Local GetFallbackRegions {0} found {1} regions", name, rinfo.Count);
+            if (m_RemoteGridService != null)
+            {
+                List<GridRegion> grinfo = m_RemoteGridService.GetOnlineRegions(scopeID, x, y, maxCount);
+
+                if (grinfo != null)
+                {
+                    //m_log.DebugFormat("[REMOTE GRID CONNECTOR]: Remote GetOnlineRegions {0} found {1} regions", name, grinfo.Count);
+                    foreach (GridRegion r in grinfo)
+                    {
+                        m_RegionInfoCache.Cache(r);
+                        if (rinfo.Find(delegate (GridRegion gr) { return gr.RegionID == r.RegionID; }) == null)
                             rinfo.Add(r);
                     }
                 }

@@ -111,6 +111,38 @@ namespace OpenSim.Region.Framework.Interfaces
                 string[] buttonlabels);
 
         /// <summary>
+        /// Send a dialog box to a particular user.
+        /// </summary>
+        /// <param name="avatarID">
+        /// UUID of the avatar representing the user.
+        /// </param>
+        /// <param name="objectName">
+        /// Name of the object sending the dialog.
+        /// </param>
+        /// <param name="objectID">
+        /// UUID of the object sending the dialog.
+        /// </param>
+        /// <param name="ownerID">
+        /// UUID of the user that owns the object.
+        /// </param>
+        /// <param name="ownerFirstName">
+        /// first name of owner of the object, empty if group
+        /// </param>
+        /// <param name="ownerLastName">
+        /// last name of owner of the object or group name
+        /// </param>
+        /// <param name="message">Message text to send to the user.</param>
+        /// <param name="textureID">
+        /// Texture UUID to pass along with the dialog.
+        /// </param>
+        /// <param name="ch">
+        /// Channel on which the selected button text should be broadcast.
+        /// </param>
+        /// <param name="buttonlabels">Dialog button text.</param>
+        void SendDialogToUser(UUID avatarID, string objectName,
+                        UUID objectID, UUID ownerID, string ownerFirstName, string ownerLastName, string message, UUID textureID,
+                        int ch, string[] buttonlabels);
+        /// <summary>
         /// Send a url to a particular user.
         /// </summary>
         /// <param name="avatarID">
@@ -168,5 +200,31 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </param>
         void SendTextBoxToUser(UUID avatarid, string message, int chatChannel,
                 string name, UUID objectid, UUID ownerid);
+
+        /// <summary>
+        /// Send a textbox entry for the client to respond to
+        /// </summary>
+        /// <param name="avatarID">
+        /// UUID of the avatar representing the user.
+        /// </param>
+        /// <param name="message">Message text to send to the user.</param>
+        /// <param name="chatChannel">
+        /// Chat channel that the user's input should be broadcast on.
+        /// </param>
+        /// <param name="name">Name of the object sending the dialog.</param>
+        /// <param name="objectid">
+        /// UUID of the object sending the dialog.
+        /// </param>
+        /// <param name="ownerid">
+        /// UUID of the user that owns the object.
+        /// </param>
+        /// <param name="ownerFirstName">
+        /// first name of owner of the object, empty if group
+        /// </param>
+        /// <param name="ownerLastName">
+        /// last name of owner of the object or group name
+        /// </param>
+        void SendTextBoxToUser(UUID avatarid, string message,
+                int chatChannel, string name, UUID objectid, string ownerFirstName, string ownerLastName, UUID ownerID);
     }
 }

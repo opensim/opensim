@@ -99,6 +99,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
                 = TaskInventoryHelpers.AddNotecard(
                     m_scene.AssetService, grp1.RootPart, "ncItem", TestHelpers.ParseTail(0x800), TestHelpers.ParseTail(0x900), "Hello World!");
             grp1Item.PermsMask |= ScriptBaseClass.PERMISSION_CHANGE_LINKS;
+            grp1Item.PermsGranter = ownerId;
 
             SceneObjectGroup grp2 = SceneHelpers.CreateSceneObject(2, ownerId, "grp2-", 0x20);
             grp2.AbsolutePosition = new Vector3(20, 20, 20);

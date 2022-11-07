@@ -34,16 +34,16 @@ namespace OpenSim.Framework
 {
     public class UserClassifiedAdd
     {
-        public UUID ClassifiedId = UUID.Zero;
-        public UUID CreatorId = UUID.Zero;
-        public int CreationDate = 0;
-        public int ExpirationDate = 0;
-        public int Category = 0;
+        public UUID ClassifiedId;
+        public UUID CreatorId;
+        public int CreationDate;
+        public int ExpirationDate;
+        public int Category;
         public string Name = string.Empty;
         public string Description = string.Empty;
-        public UUID ParcelId = UUID.Zero;
+        public UUID ParcelId;
         public int ParentEstate = 0;
-        public UUID SnapshotId = UUID.Zero;
+        public UUID SnapshotId;
         public string SimName = string.Empty;
         public string GlobalPos = "<0,0,0>";
         public string ParcelName = string.Empty;
@@ -53,32 +53,32 @@ namespace OpenSim.Framework
 
     public class UserProfileProperties
     {
-        public UUID UserId = UUID.Zero;
-        public UUID PartnerId = UUID.Zero;
-        public bool PublishProfile = false;
-        public bool PublishMature = false;
+        public UUID UserId;
+        public UUID PartnerId;
+        public bool PublishProfile;
+        public bool PublishMature;
         public string WebUrl = string.Empty;
         public int WantToMask = 0;
         public string WantToText = string.Empty;
         public int SkillsMask = 0;
         public string SkillsText = string.Empty;
         public string Language = string.Empty;
-        public UUID ImageId = UUID.Zero;
+        public UUID ImageId;
         public string AboutText = string.Empty;
-        public UUID FirstLifeImageId = UUID.Zero;
+        public UUID FirstLifeImageId;
         public string FirstLifeText = string.Empty;
     }
 
     public class UserProfilePick
     {
-        public UUID PickId = UUID.Zero;
-        public UUID CreatorId = UUID.Zero;
-        public bool TopPick = false;
+        public UUID PickId;
+        public UUID CreatorId;
+        public bool TopPick;
         public string Name = string.Empty;
         public string OriginalName = string.Empty;
         public string Desc = string.Empty;
-        public UUID ParcelId = UUID.Zero;
-        public UUID SnapshotId = UUID.Zero;
+        public UUID ParcelId;
+        public UUID SnapshotId;
         public string ParcelName = string.Empty;
         public string SimName = string.Empty;
         public string GlobalPos = "<0,0,0>";
@@ -97,8 +97,8 @@ namespace OpenSim.Framework
     public class UserPreferences
     {
         public UUID UserId;
-        public bool IMViaEmail = false;
-        public bool Visible = false;
+        public bool IMViaEmail;
+        public bool Visible;
         public string EMail = string.Empty;
     }
 

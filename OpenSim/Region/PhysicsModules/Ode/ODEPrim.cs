@@ -2593,6 +2593,8 @@ Console.WriteLine(" JointCreateFixed");
             set { _acceleration = value; }
         }
 
+        public override void AvatarJump(float forceZ) { }
+
         public override void AddForce(Vector3 force, bool pushforce)
         {
             if (force.IsFinite())
@@ -2667,9 +2669,9 @@ Console.WriteLine(" JointCreateFixed");
 
             SafeNativeMethods.AllocateODEDataForThread(0);
 
-            _position.X = Util.Clip(_position.X, 0.5f, _parent_scene.WorldExtents.X - 0.5f);
-            _position.Y = Util.Clip(_position.Y, 0.5f, _parent_scene.WorldExtents.Y - 0.5f);
-            _position.Z = Util.Clip(_position.Z + 0.2f, -100f, 50000f);
+            _position.X = Utils.Clamp(_position.X, 0.5f, _parent_scene.WorldExtents.X - 0.5f);
+            _position.Y = Utils.Clamp(_position.Y, 0.5f, _parent_scene.WorldExtents.Y - 0.5f);
+            _position.Z = Utils.Clamp(_position.Z + 0.2f, -100f, 50000f);
 
             m_lastposition = _position;
             _velocity.X = 0;
@@ -3163,7 +3165,7 @@ Console.WriteLine(" JointCreateFixed");
 
         private void CheckMeshAsset()
         {
-            if (_pbs.SculptEntry && !m_assetFailed && _pbs.SculptTexture != UUID.Zero)
+            if (_pbs.SculptEntry && !m_assetFailed && !_pbs.SculptTexture.IsZero())
             {
                 m_assetFailed = true;
                 Util.FireAndForget(delegate

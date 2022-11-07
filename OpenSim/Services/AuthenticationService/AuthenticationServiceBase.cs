@@ -81,16 +81,16 @@ namespace OpenSim.Services.AuthenticationService
             IConfig dbConfig = config.Configs["DatabaseService"];
             if (dbConfig != null)
             {
-                if (dllName == String.Empty)
+                if (dllName.Length == 0)
                     dllName = dbConfig.GetString("StorageProvider", String.Empty);
-                if (connString == String.Empty)
+                if (connString.Length == 0)
                     connString = dbConfig.GetString("ConnectionString", String.Empty);
             }
 
             //
             // We tried, but this doesn't exist. We can't proceed.
             //
-            if (dllName == String.Empty || realm == String.Empty)
+            if (dllName.Length == 0 || realm.Length == 0)
                 throw new Exception("No StorageProvider configured");
 
             m_Database = LoadPlugin<IAuthenticationData>(dllName,

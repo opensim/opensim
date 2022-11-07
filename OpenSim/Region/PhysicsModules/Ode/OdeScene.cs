@@ -261,7 +261,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
         private uint m_regionWidth = Constants.RegionSize;
         private uint m_regionHeight = Constants.RegionSize;
 
-        private float ODE_STEPSIZE = 0.0178f;
+        public float ODE_STEPSIZE = 0.0178f;
         private float metersInSpace = 29.9f;
         private float m_timeDilation = 1.0f;
 
@@ -404,34 +404,8 @@ namespace OpenSim.Region.PhysicsModule.ODE
         /// </remarks>
         private readonly List<OdeCharacter> defects = new List<OdeCharacter>();
 
-        private bool m_NINJA_physics_joints_enabled = false;
-        //private Dictionary<String, IntPtr> jointpart_name_map = new Dictionary<String,IntPtr>();
-        private readonly Dictionary<String, List<PhysicsJoint>> joints_connecting_actor = new Dictionary<String, List<PhysicsJoint>>();
         private SafeNativeMethods.ContactGeom[] contacts;
 
-        /// <summary>
-        /// Lock only briefly. accessed by external code (to request new joints) and by OdeScene.Simulate() to move those joints into pending/active
-        /// </summary>
-        private readonly List<PhysicsJoint> requestedJointsToBeCreated = new List<PhysicsJoint>();
-
-        /// <summary>
-        /// can lock for longer. accessed only by OdeScene.
-        /// </summary>
-        private readonly List<PhysicsJoint> pendingJoints = new List<PhysicsJoint>();
-
-        /// <summary>
-        /// can lock for longer. accessed only by OdeScene.
-        /// </summary>
-        private readonly List<PhysicsJoint> activeJoints = new List<PhysicsJoint>();
-
-        /// <summary>
-        /// lock only briefly. accessed by external code (to request deletion of joints) and by OdeScene.Simulate() to move those joints out of pending/active
-        /// </summary>
-        private readonly List<string> requestedJointsToBeDeleted = new List<string>();
-
-        private Object externalJointRequestsLock = new Object();
-        private readonly Dictionary<String, PhysicsJoint> SOPName_to_activeJoint = new Dictionary<String, PhysicsJoint>();
-        private readonly Dictionary<String, PhysicsJoint> SOPName_to_pendingJoint = new Dictionary<String, PhysicsJoint>();
         private readonly DoubleDictionary<Vector3, IntPtr, IntPtr> RegionTerrain = new DoubleDictionary<Vector3, IntPtr, IntPtr>();
         private readonly Dictionary<IntPtr,float[]> TerrainHeightFieldHeights = new Dictionary<IntPtr, float[]>();
 
@@ -519,7 +493,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
         }
 
-         public void RegionLoaded()
+        public void RegionLoaded()
         {
             mesher = m_frameWorkScene.RequestModuleInterface<IMesher>();
             if (mesher == null)
@@ -644,7 +618,6 @@ namespace OpenSim.Region.PhysicsModule.ODE
                     physics_logging_interval = physicsconfig.GetInt("physics_logging_interval", 0);
                     physics_logging_append_existing_logfile = physicsconfig.GetBoolean("physics_logging_append_existing_logfile", false);
 
-//                    m_NINJA_physics_joints_enabled = physicsconfig.GetBoolean("use_NINJA_physics_joints", false);
                     minimumGroundFlightOffset = physicsconfig.GetFloat("minimum_ground_flight_offset", 3f);
                     maximumMassObject = physicsconfig.GetFloat("maximum_mass_object", 10000.01f);
                 }
@@ -1821,357 +1794,6 @@ namespace OpenSim.Region.PhysicsModule.ODE
             get { return m_timeDilation; }
         }
 
-        public override bool SupportsNINJAJoints
-        {
-            get { return m_NINJA_physics_joints_enabled; }
-        }
-
-        // internal utility function: must be called within a lock (OdeLock)
-        private void InternalAddActiveJoint(PhysicsJoint joint)
-        {
-            activeJoints.Add(joint);
-            SOPName_to_activeJoint.Add(joint.ObjectNameInScene, joint);
-        }
-
-        // internal utility function: must be called within a lock (OdeLock)
-        private void InternalAddPendingJoint(OdePhysicsJoint joint)
-        {
-            pendingJoints.Add(joint);
-            SOPName_to_pendingJoint.Add(joint.ObjectNameInScene, joint);
-        }
-
-        // internal utility function: must be called within a lock (OdeLock)
-        private void InternalRemovePendingJoint(PhysicsJoint joint)
-        {
-            pendingJoints.Remove(joint);
-            SOPName_to_pendingJoint.Remove(joint.ObjectNameInScene);
-        }
-
-        // internal utility function: must be called within a lock (OdeLock)
-        private void InternalRemoveActiveJoint(PhysicsJoint joint)
-        {
-            activeJoints.Remove(joint);
-            SOPName_to_activeJoint.Remove(joint.ObjectNameInScene);
-        }
-
-        public override void DumpJointInfo()
-        {
-            string hdr = "[NINJA] JOINTINFO: ";
-            foreach (PhysicsJoint j in pendingJoints)
-            {
-                m_log.Debug(hdr + " pending joint, Name: " + j.ObjectNameInScene + " raw parms:" + j.RawParams);
-            }
-            m_log.Debug(hdr + pendingJoints.Count + " total pending joints");
-            foreach (string jointName in SOPName_to_pendingJoint.Keys)
-            {
-                m_log.Debug(hdr + " pending joints dict contains Name: " + jointName);
-            }
-            m_log.Debug(hdr + SOPName_to_pendingJoint.Keys.Count + " total pending joints dict entries");
-            foreach (PhysicsJoint j in activeJoints)
-            {
-                m_log.Debug(hdr + " active joint, Name: " + j.ObjectNameInScene + " raw parms:" + j.RawParams);
-            }
-            m_log.Debug(hdr + activeJoints.Count + " total active joints");
-            foreach (string jointName in SOPName_to_activeJoint.Keys)
-            {
-                m_log.Debug(hdr + " active joints dict contains Name: " + jointName);
-            }
-            m_log.Debug(hdr + SOPName_to_activeJoint.Keys.Count + " total active joints dict entries");
-
-            m_log.Debug(hdr + " Per-body joint connectivity information follows.");
-            m_log.Debug(hdr + joints_connecting_actor.Keys.Count + " bodies are connected by joints.");
-            foreach (string actorName in joints_connecting_actor.Keys)
-            {
-                m_log.Debug(hdr + " Actor " + actorName + " has the following joints connecting it");
-                foreach (PhysicsJoint j in joints_connecting_actor[actorName])
-                {
-                    m_log.Debug(hdr + " * joint Name: " + j.ObjectNameInScene + " raw parms:" + j.RawParams);
-                }
-                m_log.Debug(hdr + joints_connecting_actor[actorName].Count + " connecting joints total for this actor");
-            }
-        }
-
-        public override void RequestJointDeletion(string ObjectNameInScene)
-        {
-            lock (externalJointRequestsLock)
-            {
-                if (!requestedJointsToBeDeleted.Contains(ObjectNameInScene)) // forbid same deletion request from entering twice to prevent spurious deletions processed asynchronously
-                {
-                    requestedJointsToBeDeleted.Add(ObjectNameInScene);
-                }
-            }
-        }
-
-        private void DeleteRequestedJoints()
-        {
-            List<string> myRequestedJointsToBeDeleted;
-            lock (externalJointRequestsLock)
-            {
-                // make a local copy of the shared list for processing (threading issues)
-                myRequestedJointsToBeDeleted = new List<string>(requestedJointsToBeDeleted);
-            }
-
-            foreach (string jointName in myRequestedJointsToBeDeleted)
-            {
-                lock (OdeLock)
-                {
-                    //m_log.Debug("[NINJA] trying to deleting requested joint " + jointName);
-                    if (SOPName_to_activeJoint.ContainsKey(jointName) || SOPName_to_pendingJoint.ContainsKey(jointName))
-                    {
-                        OdePhysicsJoint joint = null;
-                        if (SOPName_to_activeJoint.ContainsKey(jointName))
-                        {
-                            joint = SOPName_to_activeJoint[jointName] as OdePhysicsJoint;
-                            InternalRemoveActiveJoint(joint);
-                        }
-                        else if (SOPName_to_pendingJoint.ContainsKey(jointName))
-                        {
-                            joint = SOPName_to_pendingJoint[jointName] as OdePhysicsJoint;
-                            InternalRemovePendingJoint(joint);
-                        }
-
-                        if (joint != null)
-                        {
-                            //m_log.Debug("joint.BodyNames.Count is " + joint.BodyNames.Count + " and contents " + joint.BodyNames);
-                            for (int iBodyName = 0; iBodyName < 2; iBodyName++)
-                            {
-                                string bodyName = joint.BodyNames[iBodyName];
-                                if (bodyName != "NULL")
-                                {
-                                    joints_connecting_actor[bodyName].Remove(joint);
-                                    if (joints_connecting_actor[bodyName].Count == 0)
-                                    {
-                                        joints_connecting_actor.Remove(bodyName);
-                                    }
-                                }
-                            }
-
-                            DoJointDeactivated(joint);
-                            if (joint.jointID != IntPtr.Zero)
-                            {
-                                SafeNativeMethods.JointDestroy(joint.jointID);
-                                joint.jointID = IntPtr.Zero;
-                                //DoJointErrorMessage(joint, "successfully destroyed joint " + jointName);
-                            }
-                            else
-                            {
-                                //m_log.Warn("[NINJA] Ignoring re-request to destroy joint " + jointName);
-                            }
-                        }
-                        else
-                        {
-                            // DoJointErrorMessage(joint, "coult not find joint to destroy based on name " + jointName);
-                        }
-                    }
-                    else
-                    {
-                        // DoJointErrorMessage(joint, "WARNING - joint removal failed, joint " + jointName);
-                    }
-                }
-            }
-
-            // remove processed joints from the shared list
-            lock (externalJointRequestsLock)
-            {
-                foreach (string jointName in myRequestedJointsToBeDeleted)
-                {
-                    requestedJointsToBeDeleted.Remove(jointName);
-                }
-            }
-        }
-
-        // for pending joints we don't know if their associated bodies exist yet or not.
-        // the joint is actually created during processing of the taints
-        private void CreateRequestedJoints()
-        {
-            List<PhysicsJoint> myRequestedJointsToBeCreated;
-            lock (externalJointRequestsLock)
-            {
-                // make a local copy of the shared list for processing (threading issues)
-                myRequestedJointsToBeCreated = new List<PhysicsJoint>(requestedJointsToBeCreated);
-            }
-
-            foreach (PhysicsJoint joint in myRequestedJointsToBeCreated)
-            {
-                lock (OdeLock)
-                {
-                    if (SOPName_to_pendingJoint.ContainsKey(joint.ObjectNameInScene) && SOPName_to_pendingJoint[joint.ObjectNameInScene] != null)
-                    {
-                        DoJointErrorMessage(joint, "WARNING: ignoring request to re-add already pending joint Name:" + joint.ObjectNameInScene + " type:" + joint.Type + " parms: " + joint.RawParams + " pos: " + joint.Position + " rot:" + joint.Rotation);
-                        continue;
-                    }
-                    if (SOPName_to_activeJoint.ContainsKey(joint.ObjectNameInScene) && SOPName_to_activeJoint[joint.ObjectNameInScene] != null)
-                    {
-                        DoJointErrorMessage(joint, "WARNING: ignoring request to re-add already active joint Name:" + joint.ObjectNameInScene + " type:" + joint.Type + " parms: " + joint.RawParams + " pos: " + joint.Position + " rot:" + joint.Rotation);
-                        continue;
-                    }
-
-                    InternalAddPendingJoint(joint as OdePhysicsJoint);
-
-                    if (joint.BodyNames.Count >= 2)
-                    {
-                        for (int iBodyName = 0; iBodyName < 2; iBodyName++)
-                        {
-                            string bodyName = joint.BodyNames[iBodyName];
-                            if (bodyName != "NULL")
-                            {
-                                if (!joints_connecting_actor.ContainsKey(bodyName))
-                                {
-                                    joints_connecting_actor.Add(bodyName, new List<PhysicsJoint>());
-                                }
-                                joints_connecting_actor[bodyName].Add(joint);
-                            }
-                        }
-                    }
-                }
-            }
-
-            // remove processed joints from shared list
-            lock (externalJointRequestsLock)
-            {
-                foreach (PhysicsJoint joint in myRequestedJointsToBeCreated)
-                {
-                    requestedJointsToBeCreated.Remove(joint);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Add a request for joint creation.
-        /// </summary>
-        /// <remarks>
-        /// this joint will just be added to a waiting list that is NOT processed during the main
-        /// Simulate() loop (to avoid deadlocks). After Simulate() is finished, we handle unprocessed joint requests.
-        /// </remarks>
-        /// <param name="objectNameInScene"></param>
-        /// <param name="jointType"></param>
-        /// <param name="position"></param>
-        /// <param name="rotation"></param>
-        /// <param name="parms"></param>
-        /// <param name="bodyNames"></param>
-        /// <param name="trackedBodyName"></param>
-        /// <param name="localRotation"></param>
-        /// <returns></returns>
-        public override PhysicsJoint RequestJointCreation(
-            string objectNameInScene, PhysicsJointType jointType, Vector3 position,
-            Quaternion rotation, string parms, List<string> bodyNames, string trackedBodyName, Quaternion localRotation)
-        {
-            OdePhysicsJoint joint = new OdePhysicsJoint();
-            joint.ObjectNameInScene = objectNameInScene;
-            joint.Type = jointType;
-            joint.Position = position;
-            joint.Rotation = rotation;
-            joint.RawParams = parms;
-            joint.BodyNames = new List<string>(bodyNames);
-            joint.TrackedBodyName = trackedBodyName;
-            joint.LocalRotation = localRotation;
-            joint.jointID = IntPtr.Zero;
-            joint.ErrorMessageCount = 0;
-
-            lock (externalJointRequestsLock)
-            {
-                if (!requestedJointsToBeCreated.Contains(joint)) // forbid same creation request from entering twice
-                {
-                    requestedJointsToBeCreated.Add(joint);
-                }
-            }
-
-            return joint;
-        }
-
-        private void RemoveAllJointsConnectedToActor(PhysicsActor actor)
-        {
-            //m_log.Debug("RemoveAllJointsConnectedToActor: start");
-            if (actor.SOPName != null && joints_connecting_actor.ContainsKey(actor.SOPName) && joints_connecting_actor[actor.SOPName] != null)
-            {
-                List<PhysicsJoint> jointsToRemove = new List<PhysicsJoint>();
-                //TODO: merge these 2 loops (originally it was needed to avoid altering a list being iterated over, but it is no longer needed due to the joint request queue mechanism)
-                foreach (PhysicsJoint j in joints_connecting_actor[actor.SOPName])
-                {
-                    jointsToRemove.Add(j);
-                }
-                foreach (PhysicsJoint j in jointsToRemove)
-                {
-                    //m_log.Debug("RemoveAllJointsConnectedToActor: about to request deletion of " + j.ObjectNameInScene);
-                    RequestJointDeletion(j.ObjectNameInScene);
-                    //m_log.Debug("RemoveAllJointsConnectedToActor: done request deletion of " + j.ObjectNameInScene);
-                    j.TrackedBodyName = null; // *IMMEDIATELY* prevent any further movement of this joint (else a deleted actor might cause spurious tracking motion of the joint for a few frames, leading to the joint proxy object disappearing)
-                }
-            }
-        }
-
-        public override void RemoveAllJointsConnectedToActorThreadLocked(PhysicsActor actor)
-        {
-            //m_log.Debug("RemoveAllJointsConnectedToActorThreadLocked: start");
-            lock (OdeLock)
-            {
-                //m_log.Debug("RemoveAllJointsConnectedToActorThreadLocked: got lock");
-                RemoveAllJointsConnectedToActor(actor);
-            }
-        }
-
-        // normally called from within OnJointMoved, which is called from within a lock (OdeLock)
-        public override Vector3 GetJointAnchor(PhysicsJoint joint)
-        {
-            Debug.Assert(joint.IsInPhysicsEngine);
-            SafeNativeMethods.Vector3 pos = new SafeNativeMethods.Vector3();
-
-            if (!(joint is OdePhysicsJoint))
-            {
-                DoJointErrorMessage(joint, "warning: non-ODE joint requesting anchor: " + joint.ObjectNameInScene);
-            }
-            else
-            {
-                OdePhysicsJoint odeJoint = (OdePhysicsJoint)joint;
-                switch (odeJoint.Type)
-                {
-                    case PhysicsJointType.Ball:
-                        SafeNativeMethods.JointGetBallAnchor(odeJoint.jointID, out pos);
-                        break;
-                    case PhysicsJointType.Hinge:
-                        SafeNativeMethods.JointGetHingeAnchor(odeJoint.jointID, out pos);
-                        break;
-                }
-            }
-            return new Vector3(pos.X, pos.Y, pos.Z);
-        }
-
-        /// <summary>
-        /// Get joint axis.
-        /// </summary>
-        /// <remarks>
-        /// normally called from within OnJointMoved, which is called from within a lock (OdeLock)
-        /// WARNING: ODE sometimes returns <0,0,0> as the joint axis! Therefore this function
-        /// appears to be unreliable. Fortunately we can compute the joint axis ourselves by
-        /// keeping track of the joint's original orientation relative to one of the involved bodies.
-        /// </remarks>
-        /// <param name="joint"></param>
-        /// <returns></returns>
-        public override Vector3 GetJointAxis(PhysicsJoint joint)
-        {
-            Debug.Assert(joint.IsInPhysicsEngine);
-            SafeNativeMethods.Vector3 axis = new SafeNativeMethods.Vector3();
-
-            if (!(joint is OdePhysicsJoint))
-            {
-                DoJointErrorMessage(joint, "warning: non-ODE joint requesting anchor: " + joint.ObjectNameInScene);
-            }
-            else
-            {
-                OdePhysicsJoint odeJoint = (OdePhysicsJoint)joint;
-                switch (odeJoint.Type)
-                {
-                    case PhysicsJointType.Ball:
-                        DoJointErrorMessage(joint, "warning - axis requested for ball joint: " + joint.ObjectNameInScene);
-                        break;
-                    case PhysicsJointType.Hinge:
-                        SafeNativeMethods.JointGetHingeAxis(odeJoint.jointID, out axis);
-                        break;
-                }
-            }
-            return new Vector3(axis.X, axis.Y, axis.Z);
-        }
-
         /// <summary>
         /// Stop this prim being subject to physics
         /// </summary>
@@ -2240,10 +1862,6 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
                     lock (_prims)
                         _prims.Remove(prim);
-
-
-                    if (SupportsNINJAJoints)
-                        RemoveAllJointsConnectedToActorThreadLocked(prim);
                 }
             }
         }
@@ -2709,18 +2327,11 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 m_collisionEventActorsChanges.Clear();
             }
 
-            if (SupportsNINJAJoints)
-            {
-                DeleteRequestedJoints(); // this must be outside of the lock (OdeLock) to avoid deadlocks
-                CreateRequestedJoints(); // this must be outside of the lock (OdeLock) to avoid deadlocks
-            }
-
-
             lock (OdeLock)
             {
                 SafeNativeMethods.AllocateODEDataForThread(~0U);
 
-                 while (step_time > HalfOdeStep)
+                while (step_time > HalfOdeStep)
                 {
                     try
                     {
@@ -2765,9 +2376,6 @@ namespace OpenSim.Region.PhysicsModule.ODE
                                 // timing the heartbeat out we will need to uncomment it
                                 //Watchdog.UpdateThread();
                             }
-
-                            if (SupportsNINJAJoints)
-                                SimulatePendingNINJAJoints();
 
                             _taintedPrims.Clear();
                         }
@@ -2926,9 +2534,6 @@ namespace OpenSim.Region.PhysicsModule.ODE
                     if (prim.IsPhysical && (SafeNativeMethods.BodyIsEnabled(prim.Body) || !prim._zeroFlag))
                     {
                         prim.UpdatePositionAndVelocity();
-
-                        if (SupportsNINJAJoints)
-                            SimulateActorPendingJoints(prim);
                     }
                 }
 
@@ -2981,229 +2586,6 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
             fps *= 1.0f/timeStep;
             return fps;
-        }
-
-        /// <summary>
-        /// Simulate pending NINJA joints.
-        /// </summary>
-        /// <remarks>
-        /// Called by the main Simulate() loop if NINJA joints are active.  Should not be called from anywhere else.
-        /// </remarks>
-        private void SimulatePendingNINJAJoints()
-        {
-            // Create pending joints, if possible
-
-            // joints can only be processed after ALL bodies are processed (and exist in ODE), since creating
-            // a joint requires specifying the body id of both involved bodies
-            if (pendingJoints.Count > 0)
-            {
-                List<PhysicsJoint> successfullyProcessedPendingJoints = new List<PhysicsJoint>();
-                //DoJointErrorMessage(joints_connecting_actor, "taint: " + pendingJoints.Count + " pending joints");
-                foreach (PhysicsJoint joint in pendingJoints)
-                {
-                    //DoJointErrorMessage(joint, "taint: time to create joint with parms: " + joint.RawParams);
-                    string[] jointParams = joint.RawParams.Split(" ".ToCharArray(), System.StringSplitOptions.RemoveEmptyEntries);
-                    List<IntPtr> jointBodies = new List<IntPtr>();
-                    bool allJointBodiesAreReady = true;
-                    foreach (string jointParam in jointParams)
-                    {
-                        if (jointParam == "NULL")
-                        {
-                            //DoJointErrorMessage(joint, "attaching NULL joint to world");
-                            jointBodies.Add(IntPtr.Zero);
-                        }
-                        else
-                        {
-                            //DoJointErrorMessage(joint, "looking for prim name: " + jointParam);
-                            bool foundPrim = false;
-                            lock (_prims)
-                            {
-                                foreach (OdePrim prim in _prims) // FIXME: inefficient
-                                {
-                                    if (prim.SOPName == jointParam)
-                                    {
-                                        //DoJointErrorMessage(joint, "found for prim name: " + jointParam);
-                                        if (prim.IsPhysical && prim.Body != IntPtr.Zero)
-                                        {
-                                            jointBodies.Add(prim.Body);
-                                            foundPrim = true;
-                                            break;
-                                        }
-                                        else
-                                        {
-                                            DoJointErrorMessage(joint, "prim name " + jointParam +
-                                                " exists but is not (yet) physical; deferring joint creation. " +
-                                                "IsPhysical property is " + prim.IsPhysical +
-                                                " and body is " + prim.Body);
-                                            foundPrim = false;
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                            if (foundPrim)
-                            {
-                                // all is fine
-                            }
-                            else
-                            {
-                                allJointBodiesAreReady = false;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (allJointBodiesAreReady)
-                    {
-                        //DoJointErrorMessage(joint, "allJointBodiesAreReady for " + joint.ObjectNameInScene + " with parms " + joint.RawParams);
-                        if (jointBodies[0] == jointBodies[1])
-                        {
-                            DoJointErrorMessage(joint, "ERROR: joint cannot be created; the joint bodies are the same, body1==body2. Raw body is " + jointBodies[0] + ". raw parms: " + joint.RawParams);
-                        }
-                        else
-                        {
-                            switch (joint.Type)
-                            {
-                                case PhysicsJointType.Ball:
-                                    {
-                                        IntPtr odeJoint;
-                                        //DoJointErrorMessage(joint, "ODE creating ball joint ");
-                                        odeJoint = SafeNativeMethods.JointCreateBall(world, IntPtr.Zero);
-                                        //DoJointErrorMessage(joint, "ODE attaching ball joint: " + odeJoint + " with b1:" + jointBodies[0] + " b2:" + jointBodies[1]);
-                                        SafeNativeMethods.JointAttach(odeJoint, jointBodies[0], jointBodies[1]);
-                                        //DoJointErrorMessage(joint, "ODE setting ball anchor: " + odeJoint + " to vec:" + joint.Position);
-                                        SafeNativeMethods.JointSetBallAnchor(odeJoint,
-                                                            joint.Position.X,
-                                                            joint.Position.Y,
-                                                            joint.Position.Z);
-                                        //DoJointErrorMessage(joint, "ODE joint setting OK");
-                                        //DoJointErrorMessage(joint, "The ball joint's bodies are here: b0: ");
-                                        //DoJointErrorMessage(joint, "" + (jointBodies[0] != IntPtr.Zero ? "" + d.BodyGetPosition(jointBodies[0]) : "fixed environment"));
-                                        //DoJointErrorMessage(joint, "The ball joint's bodies are here: b1: ");
-                                        //DoJointErrorMessage(joint, "" + (jointBodies[1] != IntPtr.Zero ? "" + d.BodyGetPosition(jointBodies[1]) : "fixed environment"));
-
-                                        if (joint is OdePhysicsJoint)
-                                        {
-                                            ((OdePhysicsJoint)joint).jointID = odeJoint;
-                                        }
-                                        else
-                                        {
-                                            DoJointErrorMessage(joint, "WARNING: non-ode joint in ODE!");
-                                        }
-                                    }
-                                    break;
-                                case PhysicsJointType.Hinge:
-                                    {
-                                        IntPtr odeJoint;
-                                        //DoJointErrorMessage(joint, "ODE creating hinge joint ");
-                                        odeJoint = SafeNativeMethods.JointCreateHinge(world, IntPtr.Zero);
-                                        //DoJointErrorMessage(joint, "ODE attaching hinge joint: " + odeJoint + " with b1:" + jointBodies[0] + " b2:" + jointBodies[1]);
-                                        SafeNativeMethods.JointAttach(odeJoint, jointBodies[0], jointBodies[1]);
-                                        //DoJointErrorMessage(joint, "ODE setting hinge anchor: " + odeJoint + " to vec:" + joint.Position);
-                                        SafeNativeMethods.JointSetHingeAnchor(odeJoint,
-                                                              joint.Position.X,
-                                                              joint.Position.Y,
-                                                              joint.Position.Z);
-                                        // We use the orientation of the x-axis of the joint's coordinate frame
-                                        // as the axis for the hinge.
-
-                                        // Therefore, we must get the joint's coordinate frame based on the
-                                        // joint.Rotation field, which originates from the orientation of the
-                                        // joint's proxy object in the scene.
-
-                                        // The joint's coordinate frame is defined as the transformation matrix
-                                        // that converts a vector from joint-local coordinates into world coordinates.
-                                        // World coordinates are defined as the XYZ coordinate system of the sim,
-                                        // as shown in the top status-bar of the viewer.
-
-                                        // Once we have the joint's coordinate frame, we extract its X axis (AtAxis)
-                                        // and use that as the hinge axis.
-
-                                        //joint.Rotation.Normalize();
-                                        Matrix4 proxyFrame = Matrix4.CreateFromQuaternion(joint.Rotation);
-
-                                        // Now extract the X axis of the joint's coordinate frame.
-
-                                        // Do not try to use proxyFrame.AtAxis or you will become mired in the
-                                        // tar pit of transposed, inverted, and generally messed-up orientations.
-                                        // (In other words, Matrix4.AtAxis() is borked.)
-                                        // Vector3 jointAxis = proxyFrame.AtAxis; <--- this path leadeth to madness
-
-                                        // Instead, compute the X axis of the coordinate frame by transforming
-                                        // the (1,0,0) vector. At least that works.
-
-                                        //m_log.Debug("PHY: making axis: complete matrix is " + proxyFrame);
-                                        Vector3 jointAxis = Vector3.Transform(Vector3.UnitX, proxyFrame);
-                                        //m_log.Debug("PHY: making axis: hinge joint axis is " + jointAxis);
-                                        //DoJointErrorMessage(joint, "ODE setting hinge axis: " + odeJoint + " to vec:" + jointAxis);
-                                        SafeNativeMethods.JointSetHingeAxis(odeJoint,
-                                                            jointAxis.X,
-                                                            jointAxis.Y,
-                                                            jointAxis.Z);
-                                        //d.JointSetHingeParam(odeJoint, (int)dParam.CFM, 0.1f);
-                                        if (joint is OdePhysicsJoint)
-                                        {
-                                            ((OdePhysicsJoint)joint).jointID = odeJoint;
-                                        }
-                                        else
-                                        {
-                                            DoJointErrorMessage(joint, "WARNING: non-ode joint in ODE!");
-                                        }
-                                    }
-                                    break;
-                            }
-                            successfullyProcessedPendingJoints.Add(joint);
-                        }
-                    }
-                    else
-                    {
-                        DoJointErrorMessage(joint, "joint could not yet be created; still pending");
-                    }
-                }
-
-                foreach (PhysicsJoint successfullyProcessedJoint in successfullyProcessedPendingJoints)
-                {
-                    //DoJointErrorMessage(successfullyProcessedJoint, "finalizing succesfully procsssed joint " + successfullyProcessedJoint.ObjectNameInScene + " parms " + successfullyProcessedJoint.RawParams);
-                    //DoJointErrorMessage(successfullyProcessedJoint, "removing from pending");
-                    InternalRemovePendingJoint(successfullyProcessedJoint);
-                    //DoJointErrorMessage(successfullyProcessedJoint, "adding to active");
-                    InternalAddActiveJoint(successfullyProcessedJoint);
-                    //DoJointErrorMessage(successfullyProcessedJoint, "done");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Simulate the joint proxies of a NINJA actor.
-        /// </summary>
-        /// <remarks>
-        /// Called as part of the Simulate() loop if NINJA physics is active.  Must only be called from there.
-        /// </remarks>
-        /// <param name="actor"></param>
-        private void SimulateActorPendingJoints(OdePrim actor)
-        {
-            // If an actor moved, move its joint proxy objects as well.
-            // There seems to be an event PhysicsActor.OnPositionUpdate that could be used
-            // for this purpose but it is never called! So we just do the joint
-            // movement code here.
-
-            if (actor.SOPName != null &&
-                joints_connecting_actor.ContainsKey(actor.SOPName) &&
-                joints_connecting_actor[actor.SOPName] != null &&
-                joints_connecting_actor[actor.SOPName].Count > 0)
-            {
-                foreach (PhysicsJoint affectedJoint in joints_connecting_actor[actor.SOPName])
-                {
-                    if (affectedJoint.IsInPhysicsEngine)
-                    {
-                        DoJointMoved(affectedJoint);
-                    }
-                    else
-                    {
-                        DoJointErrorMessage(affectedJoint, "a body connected to a joint was moved, but the joint doesn't exist yet! this will lead to joint error. joint was: " + affectedJoint.ObjectNameInScene + " parms:" + affectedJoint.RawParams);
-                    }
-                }
-            }
         }
 
         public override void SetTerrain(float[] heightMap)

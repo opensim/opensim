@@ -238,8 +238,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
             {
                 // replacing ChatModule: need to redistribute
                 // ChatFromClient to interested subscribers
-                c = FixPositionOfChatMessage(c);
-
                 Scene scene = (Scene)c.Scene;
                 scene.EventManager.TriggerOnChatFromClient(sender, c);
 
@@ -519,31 +517,32 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
 
         protected void AnnounceToAgentsRegion(IScene scene, string msg)
         {
-            OSChatMessage c = new OSChatMessage();
-            c.Message = msg;
-            c.Type = ChatTypeEnum.Say;
-            c.Channel = 0;
-            c.Position = PosOfGod;
-            c.From = m_whoami;
-            c.Sender = null;
-            c.SenderUUID = UUID.Zero;
-            c.Scene = scene;
-
-            if (scene is Scene)
-                (scene as Scene).EventManager.TriggerOnChatBroadcast(this, c);
+            if(scene is Scene)
+            {
+                OSChatMessage c = new OSChatMessage()
+                {
+                    Message = msg,
+                    Type = ChatTypeEnum.Say,
+                    Channel = 0,
+                    Position = PosOfGod,
+                    From = m_whoami,
+                    Scene = scene
+                };
+                (scene as Scene)?.EventManager.TriggerOnChatBroadcast(this, c);
+            }
         }
 
         protected void AnnounceToAgent(ScenePresence agent, string msg)
         {
-            OSChatMessage c = new OSChatMessage();
-            c.Message = msg;
-            c.Type = ChatTypeEnum.Say;
-            c.Channel = 0;
-            c.Position = PosOfGod;
-            c.From = m_whoami;
-            c.Sender = null;
-            c.SenderUUID = UUID.Zero;
-            c.Scene = agent.Scene;
+            OSChatMessage c = new OSChatMessage
+            {
+                Message = msg,
+                Type = ChatTypeEnum.Say,
+                Channel = 0,
+                Position = PosOfGod,
+                From = m_whoami,
+                Scene = agent.Scene
+            };
 
             agent.ControllingClient.SendChatMessage(
                 msg, (byte) ChatTypeEnum.Say, PosOfGod, m_whoami, UUID.Zero, UUID.Zero,

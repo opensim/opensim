@@ -42,11 +42,11 @@ namespace OpenSim.Region.Framework.Scenes.Animation
     [Serializable]
     public class AnimationSet
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private OpenSim.Framework.Animation m_implicitDefaultAnimation = new OpenSim.Framework.Animation();
         private OpenSim.Framework.Animation m_defaultAnimation = new OpenSim.Framework.Animation();
-        private List<OpenSim.Framework.Animation> m_animations = new List<OpenSim.Framework.Animation>();
+        private readonly List<OpenSim.Framework.Animation> m_animations = new List<OpenSim.Framework.Animation>();
 
         public OpenSim.Framework.Animation DefaultAnimation
         {
@@ -71,12 +71,12 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
         public bool HasAnimation(UUID animID)
         {
-            if (m_defaultAnimation.AnimID == animID)
+            if (m_defaultAnimation.AnimID.Equals(animID))
                 return true;
 
             for (int i = 0; i < m_animations.Count; ++i)
             {
-                if (m_animations[i].AnimID == animID)
+                if (m_animations[i].AnimID.Equals(animID))
                     return true;
             }
 
@@ -108,7 +108,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         {
             lock (m_animations)
             {
-                if (m_defaultAnimation.AnimID == animID)
+                if (m_defaultAnimation.AnimID.Equals(animID))
                 {
                     if (allowNoDefault)
                         m_defaultAnimation = new OpenSim.Framework.Animation(UUID.Zero, 1, UUID.Zero);
@@ -119,7 +119,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 {
                     for (int i = 0; i < m_animations.Count; i++)
                     {
-                        if (m_animations[i].AnimID == animID)
+                        if (m_animations[i].AnimID.Equals(animID))
                         {
                             m_animations.RemoveAt(i);
                             return true;
@@ -142,13 +142,14 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         /// </summary>
         public bool SetDefaultAnimation(UUID animID, int sequenceNum, UUID objectID)
         {
-            if (m_defaultAnimation.AnimID != animID)
+            if (m_defaultAnimation.AnimID.NotEqual(animID))
             {
                 m_defaultAnimation = new OpenSim.Framework.Animation(animID, sequenceNum, objectID);
                 m_implicitDefaultAnimation = m_defaultAnimation;
-                return true;
+                //return true;
             }
-            return false;
+            //return false;
+            return true;
         }
 
         // Called from serialization only
@@ -167,9 +168,9 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         /// </summary>
         public bool TrySetDefaultAnimation(string anim, int sequenceNum, UUID objectID)
         {
-//            m_log.DebugFormat(
-//                "[ANIMATION SET]: Setting default animation {0}, sequence number {1}, object id {2}",
-//                anim, sequenceNum, objectID);
+            //m_log.DebugFormat(
+            //    "[ANIMATION SET]: Setting default animation {0}, sequence number {1}, object id {2}",
+            //    anim, sequenceNum, objectID);
 
             if (DefaultAvatarAnimations.AnimsUUIDbyName.TryGetValue(anim, out UUID id))
             {
@@ -178,18 +179,39 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             return false;
         }
 
+        public void GetAnimationIDsArray(out UUID[] animIDs)
+        {
+            lock (m_animations)
+            {
+                int j = m_defaultAnimation.AnimID.IsZero() ? 0 : 1;
+
+                int defaultSize = m_animations.Count + j;
+                animIDs = new UUID[defaultSize];
+
+                if (j > 0)
+                {
+                    animIDs[0] = m_defaultAnimation.AnimID;
+                }
+
+                for (int i = 0; i < m_animations.Count; ++i, ++j)
+                {
+                    animIDs[j] = m_animations[i].AnimID;
+                }
+            }
+        }
+
         public void GetArrays(out UUID[] animIDs, out int[] sequenceNums, out UUID[] objectIDs)
         {
             lock (m_animations)
             {
-                int j = m_defaultAnimation.AnimID == UUID.Zero ? 0 : 1;
+                int j = m_defaultAnimation.AnimID.IsZero() ? 0 : 1;
 
                 int defaultSize = m_animations.Count + j;
                 animIDs = new UUID[defaultSize];
                 sequenceNums = new int[defaultSize];
                 objectIDs = new UUID[defaultSize];
 
-                if (m_defaultAnimation.AnimID != UUID.Zero)
+                if (j > 0)
                 {
                     animIDs[0] = m_defaultAnimation.AnimID;
                     sequenceNums[0] = m_defaultAnimation.SequenceNum;

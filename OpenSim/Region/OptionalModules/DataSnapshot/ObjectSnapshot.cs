@@ -219,9 +219,9 @@ namespace OpenSim.Region.DataSnapshot.Providers
                 if (textures != null)
                 {
                     if (textures.DefaultTexture != null &&
-                        textures.DefaultTexture.TextureID != UUID.Zero &&
-                        textures.DefaultTexture.TextureID != m_DefaultImage &&
-                        textures.DefaultTexture.TextureID != m_BlankImage &&
+                        !textures.DefaultTexture.TextureID.IsZero() &&
+                        textures.DefaultTexture.TextureID.NotEqual(m_DefaultImage) &&
+                        textures.DefaultTexture.TextureID.NotEqual(m_BlankImage) &&
                         textures.DefaultTexture.RGBA.A < 50f)
                     {
                         counts[textures.DefaultTexture.TextureID] = 8;

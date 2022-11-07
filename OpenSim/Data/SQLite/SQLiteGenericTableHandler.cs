@@ -30,11 +30,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
 using log4net;
-#if CSharpSqlite
-    using Community.CsharpSqlite.Sqlite;
-#else
-    using Mono.Data.Sqlite;
-#endif
+using System.Data.SQLite;
+
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
@@ -52,7 +49,7 @@ namespace OpenSim.Data.SQLite
         protected string m_Realm;
         protected FieldInfo m_DataField = null;
 
-        protected static SqliteConnection m_Connection;
+        protected static SQLiteConnection m_Connection;
         private static bool m_initialized;
 
         protected virtual Assembly Assembly
@@ -67,14 +64,14 @@ namespace OpenSim.Data.SQLite
 
             if (!m_initialized)
             {
-                m_Connection = new SqliteConnection(connectionString);
+                m_Connection = new SQLiteConnection(connectionString);
                 //Console.WriteLine(string.Format("OPENING CONNECTION FOR {0} USING {1}", storeName, connectionString));
                 m_Connection.Open();
 
                 if (storeName != String.Empty)
                 {
-                    //SqliteConnection newConnection =
-                    //        (SqliteConnection)((ICloneable)m_Connection).Clone();
+                    //SQLiteConnection newConnection =
+                    //        (SQLiteConnection)((ICloneable)m_Connection).Clone();
                     //newConnection.Open();
 
                     //Migration m = new Migration(newConnection, Assembly, storeName);
@@ -132,11 +129,11 @@ namespace OpenSim.Data.SQLite
 
             List<string> terms = new List<string>();
 
-            using (SqliteCommand cmd = new SqliteCommand())
+            using (SQLiteCommand cmd = new SQLiteCommand())
             {
                 for (int i = 0 ; i < fields.Length ; i++)
                 {
-                    cmd.Parameters.Add(new SqliteParameter(":" + fields[i], keys[i]));
+                    cmd.Parameters.Add(new SQLiteParameter(":" + fields[i], keys[i]));
                     terms.Add("`" + fields[i] + "` = :" + fields[i]);
                 }
 
@@ -151,7 +148,7 @@ namespace OpenSim.Data.SQLite
             }
         }
 
-        protected T[] DoQuery(SqliteCommand cmd)
+        protected T[] DoQuery(SQLiteCommand cmd)
         {
             IDataReader reader = ExecuteReader(cmd, m_Connection);
             if (reader == null)
@@ -215,7 +212,7 @@ namespace OpenSim.Data.SQLite
 
         public virtual T[] Get(string where)
         {
-            using (SqliteCommand cmd = new SqliteCommand())
+            using (SQLiteCommand cmd = new SQLiteCommand())
             {
                 string query = String.Format("select * from {0} where {1}",
                         m_Realm, where);
@@ -228,7 +225,7 @@ namespace OpenSim.Data.SQLite
 
         public virtual bool Store(T row)
         {
-            using (SqliteCommand cmd = new SqliteCommand())
+            using (SQLiteCommand cmd = new SQLiteCommand())
             {
                 string query = "";
                 List<String> names = new List<String>();
@@ -238,7 +235,7 @@ namespace OpenSim.Data.SQLite
                 {
                     names.Add(fi.Name);
                     values.Add(":" + fi.Name);
-                    cmd.Parameters.Add(new SqliteParameter(":" + fi.Name, fi.GetValue(row).ToString()));
+                    cmd.Parameters.Add(new SQLiteParameter(":" + fi.Name, fi.GetValue(row).ToString()));
                 }
 
                 if (m_DataField != null)
@@ -250,7 +247,7 @@ namespace OpenSim.Data.SQLite
                     {
                         names.Add(kvp.Key);
                         values.Add(":" + kvp.Key);
-                        cmd.Parameters.Add(new SqliteParameter(":" + kvp.Key, kvp.Value));
+                        cmd.Parameters.Add(new SQLiteParameter(":" + kvp.Key, kvp.Value));
                     }
                 }
 
@@ -277,11 +274,11 @@ namespace OpenSim.Data.SQLite
 
             List<string> terms = new List<string>();
 
-            using (SqliteCommand cmd = new SqliteCommand())
+            using (SQLiteCommand cmd = new SQLiteCommand())
             {
                 for (int i = 0 ; i < fields.Length ; i++)
                 {
-                    cmd.Parameters.Add(new SqliteParameter(":" + fields[i], keys[i]));
+                    cmd.Parameters.Add(new SQLiteParameter(":" + fields[i], keys[i]));
                     terms.Add("`" + fields[i] + "` = :" + fields[i]);
                 }
 

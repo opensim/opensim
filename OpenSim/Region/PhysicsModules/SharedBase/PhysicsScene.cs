@@ -27,10 +27,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Reflection;
-
-using log4net;
-using Nini.Config;
+using System.Runtime.CompilerServices;
 
 using OpenSim.Framework;
 using OpenMetaverse;
@@ -41,9 +38,6 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
 
     public delegate void RaycastCallback(bool hitYN, Vector3 collisionPoint, uint localid, float distance, Vector3 normal);
     public delegate void RayCallback(List<ContactResult> list);
-    public delegate void ProbeBoxCallback(List<ContactResult> list);
-    public delegate void ProbeSphereCallback(List<ContactResult> list);
-    public delegate void ProbePlaneCallback(List<ContactResult> list);
     public delegate void SitAvatarCallback(int status, uint partID, Vector3 offset, Quaternion Orientation);
 
     public delegate void JointMoved(PhysicsJoint joint);
@@ -88,16 +82,14 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
     public struct ContactResult
     {
         public Vector3 Pos;
+        public Vector3 Normal;
         public float Depth;
         public uint ConsumerID;
-        public Vector3 Normal;
     }
-
-
 
     public abstract class PhysicsScene
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// A unique identifying string for this instance of the physics engine.
@@ -228,68 +220,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
             get { return 1.0f; }
         }
 
-        public virtual bool SupportsNINJAJoints
-        {
-            get { return false; }
-        }
-
-        public virtual PhysicsJoint RequestJointCreation(string objectNameInScene, PhysicsJointType jointType, Vector3 position,
-                                            Quaternion rotation, string parms, List<string> bodyNames, string trackedBodyName, Quaternion localRotation)
-        { return null; }
-
-        public virtual void RequestJointDeletion(string objectNameInScene)
-        { return; }
-
-        public virtual void RemoveAllJointsConnectedToActorThreadLocked(PhysicsActor actor)
-        { return; }
-
-        public virtual void DumpJointInfo()
-        { return; }
-
-        public event JointMoved OnJointMoved;
-
-        protected virtual void DoJointMoved(PhysicsJoint joint)
-        {
-            // We need this to allow subclasses (but not other classes) to invoke the event; C# does
-            // not allow subclasses to invoke the parent class event.
-            if (OnJointMoved != null)
-            {
-                OnJointMoved(joint);
-            }
-        }
-
-        public event JointDeactivated OnJointDeactivated;
-
-        protected virtual void DoJointDeactivated(PhysicsJoint joint)
-        {
-            // We need this to allow subclasses (but not other classes) to invoke the event; C# does
-            // not allow subclasses to invoke the parent class event.
-            if (OnJointDeactivated != null)
-            {
-                OnJointDeactivated(joint);
-            }
-        }
-
-        public event JointErrorMessage OnJointErrorMessage;
-
-        protected virtual void DoJointErrorMessage(PhysicsJoint joint, string message)
-        {
-            // We need this to allow subclasses (but not other classes) to invoke the event; C# does
-            // not allow subclasses to invoke the parent class event.
-            if (OnJointErrorMessage != null)
-            {
-                OnJointErrorMessage(joint, message);
-            }
-        }
-
-        public virtual Vector3 GetJointAnchor(PhysicsJoint joint)
-        { return Vector3.Zero; }
-
-        public virtual Vector3 GetJointAxis(PhysicsJoint joint)
-        { return Vector3.Zero; }
-
         public abstract void AddPhysicsActorTaint(PhysicsActor prim);
-
 
         public virtual void ProcessPreSimulation() { }
 
@@ -348,14 +279,12 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         /// <param name="retMethod">Method to call when the raycast is complete</param>
         public virtual void RaycastWorld(Vector3 position, Vector3 direction, float length, RaycastCallback retMethod)
         {
-            if (retMethod != null)
-                retMethod(false, Vector3.Zero, 0, 999999999999f, Vector3.Zero);
+            retMethod?.Invoke(false, Vector3.Zero, 0, 999999999999f, Vector3.Zero);
         }
 
         public virtual void RaycastWorld(Vector3 position, Vector3 direction, float length, int Count, RayCallback retMethod)
         {
-            if (retMethod != null)
-                retMethod(new List<ContactResult>());
+            retMethod?.Invoke(new List<ContactResult>());
         }
 
         public virtual List<ContactResult> RaycastWorld(Vector3 position, Vector3 direction, float length, int Count)

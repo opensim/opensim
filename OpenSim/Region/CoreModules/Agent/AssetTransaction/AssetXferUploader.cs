@@ -247,7 +247,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 //                "[ASSET XFER UPLOADER]: Requesting Xfer of asset {0}, type {1}, transfer id {2} from {3}",
 //                m_asset.FullID, m_asset.Type, XferID, ourClient.Name);
 
-            ourClient.SendXferRequest(XferID, m_asset.Type, m_asset.FullID, 0, new byte[0]);
+            ourClient.SendXferRequest(XferID, m_asset.Type, m_asset.FullID, 0, Array.Empty<byte>());
         }
 
         protected void SendCompleteMessage()
@@ -428,7 +428,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             else
             {
                 m_Scene.AssetService.Store(m_asset);
-                if (m_asset.FullID != UUID.Zero)
+                if (!m_asset.FullID.IsZero())
                 {
                     item.AssetID = m_asset.FullID;
                     m_Scene.InventoryService.UpdateItem(item);
@@ -477,24 +477,25 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 
             m_Scene.AssetService.Store(m_asset);
 
-            InventoryItemBase item = new InventoryItemBase();
-            item.Owner = ourClient.AgentId;
-            item.CreatorId = ourClient.AgentId.ToString();
-            item.ID = UUID.Random();
-            item.AssetID = m_asset.FullID;
-            item.Description = m_description;
-            item.Name = m_name;
-            item.AssetType = type;
-            item.InvType = invType;
-            item.Folder = InventFolder;
-            item.BasePermissions = (uint)(PermissionMask.All | PermissionMask.Export);
-            item.CurrentPermissions = item.BasePermissions;
-            item.GroupPermissions=0;
-            item.EveryOnePermissions=0;
-            item.NextPermissions = nextPerm;
-            item.Flags = (uint) wearableType;
-            item.CreationDate = Util.UnixTimeSinceEpoch();
-
+            InventoryItemBase item = new InventoryItemBase
+            {
+                Owner = ourClient.AgentId,
+                CreatorId = ourClient.AgentId.ToString(),
+                ID = UUID.Random(),
+                AssetID = m_asset.FullID,
+                Description = m_description,
+                Name = m_name,
+                AssetType = type,
+                InvType = invType,
+                Folder = InventFolder,
+                BasePermissions = (uint)(PermissionMask.All | PermissionMask.Export),
+                CurrentPermissions = (uint)(PermissionMask.All | PermissionMask.Export),
+                GroupPermissions =0,
+                EveryOnePermissions=0,
+                NextPermissions = nextPerm,
+                Flags = wearableType,
+                CreationDate = Util.UnixTimeSinceEpoch()
+            };
             m_log.DebugFormat("[XFER]: Created item {0} with asset {1}",
                     item.ID, item.AssetID);
 
@@ -556,7 +557,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                             UUID tx = new UUID(parts[1]);
                             int id = Convert.ToInt32(parts[0]);
 
-                            if (defaultIDs.Contains(tx) || tx == UUID.Zero ||
+                            if (defaultIDs.Contains(tx) || tx.IsZero() ||
                                 (allowed.ContainsKey(id) && allowed[id] == tx))
                             {
                                 continue;

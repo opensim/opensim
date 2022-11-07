@@ -322,6 +322,16 @@ namespace OpenSim.Framework.Servers.HttpServer
         }
 
         /// <summary>
+        /// Set response as a http redirect
+        /// </summary>
+        /// <param name="url">redirection target url</param>
+        /// <param name="redirStatusCode">the response Status, must be Found, Redirect, Moved,MovedPermanently,RedirectKeepVerb, RedirectMethod, TemporaryRedirect. Defaults to Redirect</param>
+        public void Redirect(string url, HttpStatusCode redirStatusCode = HttpStatusCode.Redirect)
+        {
+            _httpResponse.Redirect(url, redirStatusCode);
+        }
+
+        /// <summary>
         /// Add a header field and content to the response.
         /// </summary>
         /// <param name="key">string containing the header field

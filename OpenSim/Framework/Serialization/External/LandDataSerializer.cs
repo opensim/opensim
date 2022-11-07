@@ -119,6 +119,13 @@ namespace OpenSim.Framework.Serialization.External
             m_ldProcessors.Add(
                 "OtherCleanTime",   (ld, xtr) => ld.OtherCleanTime = Convert.ToInt32(xtr.ReadElementString("OtherCleanTime")));
 
+            m_ldProcessors.Add(
+                "SeeAVs", (ld, xtr) => ld.SeeAVs = xtr.ReadElementString("SeeAVs") == "1");
+            m_ldProcessors.Add(
+                "AnyAVSnds", (ld, xtr) => ld.AnyAVSounds = xtr.ReadElementString("AnyAVSnds") == "1");
+            m_ldProcessors.Add(
+                "GrpAVSnds", (ld, xtr) => ld.GroupAVSounds = xtr.ReadElementString("GrpAVSnds") == "1");
+
             // LandAccessEntryProcessors
             m_laeProcessors.Add(
                 "AgentID",          (lae, xtr) => lae.AgentID = UUID.Parse(xtr.ReadElementString("AgentID")));
@@ -187,6 +194,7 @@ namespace OpenSim.Framework.Serialization.External
 
             using (XmlTextReader reader = new XmlTextReader(new StringReader(serializedLandData)))
             {
+                reader.DtdProcessing = DtdProcessing.Ignore;
                 reader.ReadStartElement("LandData");
 
                 ExternalRepresentationUtils.ExecuteReadProcessors<LandData>(landData, m_ldProcessors, reader);
@@ -210,7 +218,7 @@ namespace OpenSim.Framework.Serialization.External
         {
             StringWriter sw = new StringWriter();
             XmlTextWriter xtw = new XmlTextWriter(sw);
-            xtw.Formatting = Formatting.Indented;
+            xtw.Formatting = Formatting.None;
 
             xtw.WriteStartDocument();
             xtw.WriteStartElement("LandData");
@@ -264,7 +272,11 @@ namespace OpenSim.Framework.Serialization.External
             xtw.WriteElementString("Dwell",           "0");
             xtw.WriteElementString("OtherCleanTime",  Convert.ToString(landData.OtherCleanTime));
 
-            if(landData.Environment != null)
+            xtw.WriteElementString("SeeAVs",          landData.SeeAVs ? "1" : "0");
+            xtw.WriteElementString("AnyAVSnds",       landData.AnyAVSounds ? "1" : "0");
+            xtw.WriteElementString("GrpAVSnds",       landData.GroupAVSounds ? "1" : "0");
+
+            if (landData.Environment != null)
             {
                 try
                 {

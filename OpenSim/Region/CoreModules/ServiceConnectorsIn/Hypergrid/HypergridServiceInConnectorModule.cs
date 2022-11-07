@@ -71,7 +71,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Hypergrid
                     if (fconfig != null)
                     {
                         m_LocalServiceDll = fconfig.GetString("LocalServiceModule", m_LocalServiceDll);
-                        if (m_LocalServiceDll == string.Empty)
+                        if (m_LocalServiceDll.Length == 0)
                             m_log.WarnFormat("[HGGRID IN CONNECTOR]: Friends LocalServiceModule config missing");
                     }
                 }

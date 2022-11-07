@@ -106,7 +106,7 @@ namespace OpenSim.Framework.Tests
         {
             UUID Random1 = UUID.Random();
             UUID Random2 = UUID.Random();
-            byte[] data = new byte[0];
+            byte[] data = Array.Empty<byte>();
             CacheItemBase cb1 = new CacheItemBase(Random1.ToString(), DateTime.Now + TimeSpan.FromDays(1));
             CacheItemBase cb2 = new CacheItemBase(Random2.ToString(), DateTime.Now + TimeSpan.FromDays(1));
             CacheItemBase cb3 = new CacheItemBase(Random1.ToString(), DateTime.Now + TimeSpan.FromDays(1));

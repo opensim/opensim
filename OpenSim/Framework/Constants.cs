@@ -47,12 +47,26 @@ namespace OpenSim.Framework
         public const int MinRegionSize = 256;
         public const int TerrainPatchSize = 16;
 
+        public const int LandUnit = 4; // parcels only have sizes multiple of this
+
         public const float MinSimulationHeight = -100f;
         public const float MaxSimulationHeight = 50000f;
         public const float MinTerrainHeightmap = -100f;
         public const float MaxTerrainHeightmap = 4000f;
+        public const float MinWaterHeight = 0;
+        public const float MaxWaterHeight = 8000f;
 
-        public const string DefaultTexture = "89556747-24cb-43ed-920b-47caed15465f";
+        public static readonly string DefaultTexture = "89556747-24cb-43ed-920b-47caed15465f"; //plywood
+        public static readonly UUID DefaultTextureID = new UUID(DefaultTexture);
+
+        public static readonly string DefaultScript = "2074003b-8d5f-40e5-8b20-581c1c50aedb"; // must be on default assets and cache
+        public static readonly UUID DefaultScriptID = new UUID(DefaultScript);
+        public static readonly string DefaultScriptText = "default\n{\n    state_entry()\n    {\n        llSay(0, \"Script running\");\n    }\n}";
+        public static readonly byte[] DefaultScriptData = osUTF8.GetASCIIBytes(DefaultScriptText);
+
+        public static readonly string EmptyNotecard = "4b6a777d-7bcd-4fc4-b06f-929b21e32925";
+        public static readonly UUID EmptyNotecardID = new UUID(EmptyNotecard);
+        public static readonly byte[] EmptyNotecardData = osUTF8.GetASCIIBytes("Linden text version 2\n{\nLLEmbeddedItems version 1\n{\ncount 0\n}\nText length 0\n}\n\0");
 
         public static readonly string m_MrOpenSimIDString = "11111111-1111-0000-0000-000100bba000";
         public static readonly UUID m_MrOpenSimID = new UUID(m_MrOpenSimIDString);

@@ -148,7 +148,6 @@ namespace OpenSim.Services.MapImageService
                 }
                 catch (Exception e)
                 {
-
                     m_log.WarnFormat("[MAP IMAGE SERVICE]: Unable to save delete file {0}: {1}", fileName, e);
                     reason = e.Message;
                     return false;
@@ -156,7 +155,6 @@ namespace OpenSim.Services.MapImageService
             }
             return UpdateMultiResolutionFiles(x, y, scopeID, out reason);
         }
-
 
         // When large varregions start up, they can send piles of new map tiles. This causes
         //    this multi-resolution routine to be called a zillion times an causes much CPU
@@ -256,7 +254,7 @@ namespace OpenSim.Services.MapImageService
                 else
                 {
                     //m_log.DebugFormat("[MAP IMAGE SERVICE]: unable to get file {0}", fileName);
-                    return new byte[0];
+                    return Array.Empty<byte>();
                 }
             }
         }
@@ -361,22 +359,16 @@ namespace OpenSim.Services.MapImageService
                 ntiles++;
             }
 
-            // Write the modified output
-            if (ntiles == 0)
-                File.Delete(outputFile);
-
-            else
+            try
             {
-
-                try
-                {
+                File.Delete(outputFile);
+                if (ntiles > 0)
                     output.Save(outputFile, ImageFormat.Jpeg);
-                }
-                catch (Exception e)
-                {
-                    m_log.WarnFormat("[MAP IMAGE SERVICE]: Oops on saving {0} {1}", outputFile, e);
-                }
-            }            // Save also as png?
+            }
+            catch (Exception e)
+            {
+                m_log.WarnFormat("[MAP IMAGE SERVICE]: Oops on saving {0} {1}", outputFile, e);
+            }
 
             output.Dispose();
             return true;

@@ -43,7 +43,7 @@ namespace OpenSim.Data.Tests
     /// [TestConnections]
     /// MySqlConnection="..."
     /// SqlConnection="..."
-    /// SqliteConnection="..."
+    /// SQLiteConnection="..."
     ///
     /// Note that the conn string may also be set explicitly in the [TestCase()] attribute of test classes
     /// based on BasicDataServiceTest.cs.

@@ -109,7 +109,7 @@ namespace OpenSim.Framework
 
         public void SetAnimation(string index, string name, UUID anim)
         {
-            if (anim == UUID.Zero)
+            if (anim.IsZero())
             {
                 m_animations.Remove(index);
                 return;

@@ -27,13 +27,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
+
 using System.IO;
 using System.Reflection;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
+using System.Runtime.CompilerServices;
 using log4net;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
@@ -109,12 +109,12 @@ namespace OpenSim.Framework
         private ProfileShape _profileShape;
         private HollowShape _hollowShape;
 
-        // Sculpted
+        //extra parameters Sculpted
         [XmlIgnore] private UUID _sculptTexture;
         [XmlIgnore] private byte _sculptType;
         [XmlIgnore] private byte[] _sculptData = Utils.EmptyBytes;
 
-        // Flexi
+        //extra parameters Flexi
         [XmlIgnore] private int _flexiSoftness;
         [XmlIgnore] private float _flexiTension;
         [XmlIgnore] private float _flexiDrag;
@@ -124,7 +124,7 @@ namespace OpenSim.Framework
         [XmlIgnore] private float _flexiForceY;
         [XmlIgnore] private float _flexiForceZ;
 
-        //Bright n sparkly
+        //extra parameters light
         [XmlIgnore] private float _lightColorR;
         [XmlIgnore] private float _lightColorG;
         [XmlIgnore] private float _lightColorB;
@@ -134,13 +134,13 @@ namespace OpenSim.Framework
         [XmlIgnore] private float _lightFalloff;
         [XmlIgnore] private float _lightIntensity = 1.0f;
 
-
-        // Light Projection Filter
+        //extra parameters Projection
         [XmlIgnore] private UUID _projectionTextureID;
         [XmlIgnore] private float _projectionFOV;
         [XmlIgnore] private float _projectionFocus;
         [XmlIgnore] private float _projectionAmb;
 
+        //extra parameters extramesh/flag
         [XmlIgnore] private uint _meshFlags;
 
         [XmlIgnore] private bool _flexiEntry;
@@ -149,10 +149,19 @@ namespace OpenSim.Framework
         [XmlIgnore] private bool _projectionEntry;
         [XmlIgnore] private bool _meshFlagsEntry;
 
+        //extra parameters extramesh/flag
+        [XmlIgnore]
+        public Primitive.ReflectionProbe ReflectionProbe = null;
+
+        //extra parameters extramesh/flag
+        [XmlIgnore]
+        public Primitive.RenderMaterials RenderMaterials = null;
+
         public bool MeshFlagEntry
         {
             get { return _meshFlagsEntry;}
         }
+
         public byte ProfileCurve
         {
             get { return (byte)((byte)HollowShape | (byte)ProfileShape); }
@@ -890,6 +899,7 @@ namespace OpenSim.Framework
             }
         }
 
+        // only means we do have flexi data
         public bool FlexiEntry {
             get {
                 return _flexiEntry;
@@ -992,24 +1002,19 @@ namespace OpenSim.Framework
 
             // TODO: Separate scale out from the primitive shape data (after
             // scaling is supported at the physics engine level)
-            byte[] scaleBytes = size.GetBytes();
-            for (int i = 0; i < scaleBytes.Length; i++)
-                hash = djb2(hash, scaleBytes[i]);
+            hash = djb2(hash, size.X);
+            hash = djb2(hash, size.Y);
+            hash = djb2(hash, size.Z);
 
             // Include LOD in hash, accounting for endianness
+            hash = djb2(hash, lod);
+
             byte[] lodBytes = new byte[4];
-            Buffer.BlockCopy(BitConverter.GetBytes(lod), 0, lodBytes, 0, 4);
-            if (!BitConverter.IsLittleEndian)
-            {
-                Array.Reverse(lodBytes, 0, 4);
-            }
-            for (int i = 0; i < lodBytes.Length; i++)
-                hash = djb2(hash, lodBytes[i]);
 
             // include sculpt UUID
             if (this.SculptEntry)
             {
-                scaleBytes = this.SculptTexture.GetBytes();
+                byte[] scaleBytes = this.SculptTexture.GetBytes();
                 for (int i = 0; i < scaleBytes.Length; i++)
                     hash = djb2(hash, scaleBytes[i]);
             }
@@ -1022,18 +1027,27 @@ namespace OpenSim.Framework
 
         private ulong djb2(ulong hash, byte c)
         {
-            return ((hash << 5) + hash) + (ulong)c;
+            //return ((hash << 5) + hash) + (ulong)c;
+            return 33 * hash + (ulong)c;
         }
 
         private ulong djb2(ulong hash, ushort c)
         {
-            hash = ((hash << 5) + hash) + (ulong)((byte)c);
-            return ((hash << 5) + hash) + (ulong)(c >> 8);
+            //hash = ((hash << 5) + hash) + (ulong)((byte)c);
+            //return ((hash << 5) + hash) + (ulong)(c >> 8);
+            return 33 * hash + c;
         }
 
-        public byte[] ExtraParamsToBytes()
+        private ulong djb2(ulong hash, float c)
         {
-//            m_log.DebugFormat("[EXTRAPARAMS]: Called ExtraParamsToBytes()");
+            //hash = ((hash << 5) + hash) + (ulong)((byte)c);
+            //return ((hash << 5) + hash) + (ulong)(c >> 8);
+            return 33 * hash + (ulong)c.GetHashCode();
+        }
+
+        public unsafe byte[] ExtraParamsToBytes()
+        {
+            //m_log.DebugFormat("[EXTRAPARAMS]: Called ExtraParamsToBytes()");
 
             const byte FlexiEP = 0x10;
             const byte LightEP = 0x20;
@@ -1041,6 +1055,8 @@ namespace OpenSim.Framework
             const byte ProjectionEP = 0x40;
             //const byte MeshEP = 0x60;
             const byte MeshFlagsEP = 0x70;
+            const byte MaterialsEP = 0x80;
+            const byte ReflectionProbeEP = 0x90;
 
             int TotalBytesLength = 1; // ExtraParamsNum
 
@@ -1074,92 +1090,129 @@ namespace OpenSim.Framework
                 ExtraParamsNum++;
                 TotalBytesLength += 4 + 2 + 4; // data
             }
-            byte[] returnBytes = new byte[TotalBytesLength];
 
-            returnBytes[0] = (byte)ExtraParamsNum;
-
-            if(ExtraParamsNum == 0)
-                return returnBytes;
-
-            int i = 1;
-
-            if (_flexiEntry)
+            if (ReflectionProbe != null)
             {
-                returnBytes[i] = FlexiEP; // 2 bytes id code
-                i += 2;
-                returnBytes[i] = 16; // 4 bytes size
-                i += 4;
-
-                // Softness is packed in the upper bits of tension and drag
-                returnBytes[i] = (byte)((_flexiSoftness & 2) << 6);
-                returnBytes[i + 1] = (byte)((_flexiSoftness & 1) << 7);
-
-                returnBytes[i++] |= (byte)((byte)(_flexiTension * 10.01f) & 0x7F);
-                returnBytes[i++] |= (byte)((byte)(_flexiDrag * 10.01f) & 0x7F);
-                returnBytes[i++] = (byte)((_flexiGravity + 10.0f) * 10.01f);
-                returnBytes[i++] = (byte)(_flexiWind * 10.01f);
-                Utils.FloatToBytes(_flexiForceX, returnBytes, i);
-                Utils.FloatToBytes(_flexiForceY, returnBytes, i + 4);
-                Utils.FloatToBytes(_flexiForceZ, returnBytes, i + 8);
-                i += 12;
+                ExtraParamsNum++;
+                TotalBytesLength += 9 + 2 + 4; // data
             }
 
-            if (_lightEntry)
+            if (RenderMaterials != null)
             {
-                returnBytes[i] = LightEP;
-                i += 2;
-                returnBytes[i] = 16;
-                i += 4;
-
-                // Alpha channel in color is intensity
-                Color4 tmpColor = new Color4(_lightColorR, _lightColorG, _lightColorB, _lightIntensity);
-                tmpColor.GetBytes().CopyTo(returnBytes, i);
-                Utils.FloatToBytes(_lightRadius, returnBytes, i + 4);
-                Utils.FloatToBytes(_lightCutoff, returnBytes, i + 8);
-                Utils.FloatToBytes(_lightFalloff, returnBytes, i + 12);
-                i += 16;
+                ExtraParamsNum++;
+                if (RenderMaterials.entries == null || RenderMaterials.entries.Length == 0)
+                    TotalBytesLength++;
+                else
+                {
+                    TotalBytesLength += 1 + 17 * RenderMaterials.entries.Length + 2 + 4; // data
+                }
             }
 
-            if (_sculptEntry)
+            byte[] safeReturnBytes = new byte[TotalBytesLength];
+            if(TotalBytesLength == 1)
             {
-                //if(_sculptType == 5)
-                //    returnBytes[i] = MeshEP;
-                //else
-                    returnBytes[i] = SculptEP;
-                i += 2;
-                returnBytes[i] = 17;
-                i += 4;
-
-                _sculptTexture.GetBytes().CopyTo(returnBytes, i);
-                i += 16;
-                returnBytes[i++] = _sculptType;
+                safeReturnBytes[0] = 0;
+                return safeReturnBytes;
             }
 
-            if (_projectionEntry)
+            fixed(byte* breturnBytes = &safeReturnBytes[0])
             {
-                returnBytes[i] = ProjectionEP;
-                i += 2;
-                returnBytes[i] = 28;
-                i += 4;
+                byte* returnBytes = breturnBytes;
 
-                _projectionTextureID.GetBytes().CopyTo(returnBytes, i);
-                Utils.FloatToBytes(_projectionFOV, returnBytes, i + 16);
-                Utils.FloatToBytes(_projectionFocus, returnBytes, i + 20);
-                Utils.FloatToBytes(_projectionAmb, returnBytes, i + 24);
-                i += 28;
+                *returnBytes++ = (byte)ExtraParamsNum;
+
+                if (_flexiEntry)
+                {
+                    *returnBytes = FlexiEP; returnBytes += 2;// 2 bytes id code
+                    *returnBytes = 16; returnBytes += 4;// 4 bytes size
+
+
+                    // Softness is packed in the upper bits of tension and drag
+                    *returnBytes++ = (byte)(((_flexiSoftness & 2) << 6) | ((byte)(_flexiTension * 10.01f) & 0x7F));
+                    *returnBytes++ = (byte)(((_flexiSoftness & 1) << 7) | ((byte)(_flexiDrag * 10.01f) & 0x7F));
+                    *returnBytes++ = (byte)((_flexiGravity + 10.0f) * 10.01f);
+                    *returnBytes++ = (byte)(_flexiWind * 10.01f);
+                    Utils.FloatToBytes(_flexiForceX, returnBytes); returnBytes += 4;
+                    Utils.FloatToBytes(_flexiForceY, returnBytes); returnBytes += 4;
+                    Utils.FloatToBytes(_flexiForceZ, returnBytes); returnBytes += 4;
+                }
+
+                if (_lightEntry)
+                {
+                    *returnBytes = LightEP; returnBytes += 2;
+                    *returnBytes = 16; returnBytes += 4;
+
+                    // Alpha channel in color is intensity
+                    *returnBytes++ = Utils.FloatZeroOneToByte(_lightColorR);
+                    *returnBytes++ = Utils.FloatZeroOneToByte(_lightColorG);
+                    *returnBytes++ = Utils.FloatZeroOneToByte(_lightColorB);
+                    *returnBytes++ = Utils.FloatZeroOneToByte(_lightIntensity);
+
+                    Utils.FloatToBytes(_lightRadius, returnBytes); returnBytes += 4;
+                    Utils.FloatToBytes(_lightCutoff, returnBytes); returnBytes += 4;
+                    Utils.FloatToBytes(_lightFalloff, returnBytes); returnBytes += 4;
+                }
+
+                if (_sculptEntry)
+                {
+                    //if(_sculptType == 5)
+                    //    *returnBytes = MeshEP; returnBytes += 2;
+                    //else
+                    *returnBytes = SculptEP; returnBytes += 2;
+                    *returnBytes = 17; returnBytes += 4;
+
+                    _sculptTexture.ToBytes(returnBytes); returnBytes += 16;
+                    *returnBytes++ = _sculptType;
+                }
+
+                if (_projectionEntry)
+                {
+                    *returnBytes = ProjectionEP; returnBytes += 2;
+                    *returnBytes = 28; returnBytes += 4;
+
+                    _projectionTextureID.ToBytes(returnBytes); returnBytes += 16;
+                    Utils.FloatToBytes(_projectionFOV, returnBytes); returnBytes += 4;
+                    Utils.FloatToBytes(_projectionFocus, returnBytes); returnBytes += 4;
+                    Utils.FloatToBytes(_projectionAmb, returnBytes); returnBytes += 4;
+                }
+
+                if (_meshFlagsEntry)
+                {
+                    *returnBytes = MeshFlagsEP; returnBytes += 2;
+                    *returnBytes = 4; returnBytes += 4;
+                    Utils.UIntToBytes(_meshFlags, returnBytes); returnBytes += 4;
+                }
+
+                if (ReflectionProbe != null)
+                {
+                    *returnBytes = ReflectionProbeEP; returnBytes += 2;
+                    *returnBytes = 9; returnBytes += 4;
+
+                    Utils.FloatToBytes(ReflectionProbe.Ambiance, returnBytes); returnBytes += 4;
+                    Utils.FloatToBytes(ReflectionProbe.ClipDistance, returnBytes); returnBytes += 4;
+                    *returnBytes++ = ReflectionProbe.Flags;
+                }
+
+                if (RenderMaterials != null && RenderMaterials.entries != null && RenderMaterials.entries.Length > 0)
+                {
+                    *returnBytes = MaterialsEP; returnBytes += 2;
+
+                    int len = 1 + 17 * RenderMaterials.entries.Length;
+                    *returnBytes++ = (byte)len;
+                    *returnBytes++ = (byte)(len >> 8);
+                    *returnBytes++ = (byte)(len >> 16);
+                    *returnBytes++ = (byte)(len >> 24);
+
+                    *returnBytes++ = (byte)RenderMaterials.entries.Length;
+
+                    for (int j = 0; j < RenderMaterials.entries.Length; ++j)
+                    {
+                        *returnBytes++ = RenderMaterials.entries[j].te_index;
+                        RenderMaterials.entries[j].id.ToBytes(returnBytes); returnBytes += 16;
+                    }
+                }
             }
-
-            if (_meshFlagsEntry)
-            {
-                returnBytes[i] = MeshFlagsEP;
-                i += 2;
-                returnBytes[i] = 4;
-                i += 4;
-                Utils.UIntToBytes(_meshFlags, returnBytes, i);
-            }
-
-            return returnBytes;
-
+            return safeReturnBytes;
         }
 
         public void ReadInUpdateExtraParam(ushort type, bool inUse, byte[] data)
@@ -1170,6 +1223,8 @@ namespace OpenSim.Framework
             const ushort ProjectionEP = 0x40;
             const ushort MeshEP = 0x60;
             const ushort MeshFlagsEP = 0x70;
+            const ushort MaterialsEP = 0x80;
+            const ushort ReflectionProbeEP = 0x90;
 
             switch (type)
             {
@@ -1216,6 +1271,22 @@ namespace OpenSim.Framework
                     }
                     ReadMeshFlagsData(data, 0);
                     break;
+                case ReflectionProbeEP:
+                    if (!inUse)
+                    {
+                        ReflectionProbe = null;
+                        return;
+                    }
+                    ReadReflectionProbe(data, 0);
+                    break;
+                case MaterialsEP:
+                    if (!inUse)
+                    {
+                        RenderMaterials = null;
+                        return;
+                    }
+                    ReadRenderMaterials(data, 0, data.Length);
+                    break;
             }
         }
 
@@ -1229,6 +1300,8 @@ namespace OpenSim.Framework
             _sculptEntry = false;
             _projectionEntry = false;
             _meshFlagsEntry = false;
+            RenderMaterials = null;
+            ReflectionProbe = null;
 
             if (data.Length == 1)
                 return;
@@ -1239,45 +1312,68 @@ namespace OpenSim.Framework
             const byte ProjectionEP = 0x40;
             const byte MeshEP = 0x60;
             const byte MeshFlagsEP = 0x70;
+            const byte MaterialsEP = 0x80;
+            const byte ReflectionProbeEP = 0x90;
 
             byte extraParamCount = data[0];
             int i = 1;
             for (int k = 0; k < extraParamCount; ++k)
             {
                 byte epType = data[i];
-                i += 6;
 
                 switch (epType)
                 {
                     case FlexiEP:
+                        i += 6;
                         ReadFlexiData(data, i);
                         i += 16;
                         break;
 
                     case LightEP:
+                        i += 6;
                         ReadLightData(data, i);
                         i += 16;
                         break;
 
                     case MeshEP:
                     case SculptEP:
+                        i += 6;
                         ReadSculptData(data, i);
                         i += 17;
                         break;
 
                     case ProjectionEP:
+                        i += 6;
                         ReadProjectionData(data, i);
                         i += 28;
                         break;
 
                     case MeshFlagsEP:
+                        i += 6;
                         ReadMeshFlagsData(data, i);
                         i += 4;
+                        break;
+
+                    case ReflectionProbeEP:
+                        i += 6;
+                        ReadReflectionProbe(data, i);
+                        i += 9;
+                        break;
+
+                    case MaterialsEP:
+                        i += 2;
+                        if (data.Length - i >= 4)
+                        {
+                            int size = Utils.BytesToInt(data, i);
+                            i += 4;
+                            i += ReadRenderMaterials(data, i, size);
+                        }
                         break;
                 }
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ReadSculptData(byte[] data, int pos)
         {
             if (data.Length-pos >= 17)
@@ -1294,6 +1390,7 @@ namespace OpenSim.Framework
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ReadFlexiData(byte[] data, int pos)
         {
             if (data.Length-pos >= 16)
@@ -1324,6 +1421,7 @@ namespace OpenSim.Framework
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ReadLightData(byte[] data, int pos)
         {
             if (data.Length - pos >= 16)
@@ -1354,6 +1452,7 @@ namespace OpenSim.Framework
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ReadProjectionData(byte[] data, int pos)
         {
             if (data.Length - pos >= 28)
@@ -1374,6 +1473,7 @@ namespace OpenSim.Framework
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ReadMeshFlagsData(byte[] data, int pos)
         {
             if (data.Length - pos >= 4)
@@ -1388,10 +1488,50 @@ namespace OpenSim.Framework
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void ReadReflectionProbe(byte[] data, int pos)
+        {
+            if (data.Length - pos >= 9)
+            {
+                ReflectionProbe = new Primitive.ReflectionProbe
+                {
+                    Ambiance = Utils.Clamp(Utils.BytesToFloat(data, pos), 0, 1.0f),
+                    ClipDistance = Utils.Clamp(Utils.BytesToFloat(data, pos + 4), 0, 1024f),
+                    Flags = data[pos + 8]
+                };
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int ReadRenderMaterials(byte[] data, int pos, int size)
+        {
+            if (size > 17)
+            {
+                int count = data[pos];
+                ++pos;
+                if (size >= 1 + 17 * count)
+                {
+                    var entries = new Primitive.RenderMaterials.RenderMaterialEntry[count];
+                    for (int i = 0; i < count; ++i)
+                    {
+                        entries[i].te_index = data[pos++];
+                        entries[i].id = new UUID(data, pos);
+                        pos += 16;
+                    }
+                    RenderMaterials = new Primitive.RenderMaterials
+                    {
+                        entries = entries
+                    };
+                }
+            }
+            return size + 4; 
+        }
+
         /// <summary>
         /// Creates a OpenMetaverse.Primitive and populates it with converted PrimitiveBaseShape values
         /// </summary>
         /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Primitive ToOmvPrimitive()
         {
             // position and rotation defaults here since they are not available in PrimitiveBaseShape
@@ -1535,11 +1675,13 @@ namespace OpenSim.Framework
                 }
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void WriteXml(XmlWriter writer)
             {
                 writer.WriteRaw(ToXml());
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static MediaList FromXml(string rawXml)
             {
                 MediaList ml = new MediaList();
@@ -1557,6 +1699,7 @@ namespace OpenSim.Framework
                     {
                         using (XmlTextReader xtr = new XmlTextReader(sr))
                         {
+                            xtr.DtdProcessing = DtdProcessing.Ignore;
                             xtr.MoveToContent();
 
                             string type = xtr.GetAttribute("type");
@@ -1588,6 +1731,7 @@ namespace OpenSim.Framework
                 }
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void ReadXml(XmlReader reader)
             {
                 if (reader.IsEmptyElement)

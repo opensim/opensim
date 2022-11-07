@@ -182,7 +182,7 @@ namespace OpenSim
             // The location can also be specified in the environment. If there
             // is no location in the configuration, we must call the constructor
             // without a location parameter to allow that to happen.
-            if (registryLocation == String.Empty)
+            if (registryLocation.Length == 0)
             {
                 using (PluginLoader<IApplicationPlugin> loader = new PluginLoader<IApplicationPlugin>(new ApplicationPluginInitialiser(this)))
                 {
@@ -353,7 +353,6 @@ namespace OpenSim
             if (startupConfig == null || startupConfig.GetBoolean("JobEngineEnabled", true))
                 WorkManager.JobEngine.Start();
 
-           
             if(m_networkServersInfo.HttpUsesSSL)
             {
                 m_httpServerSSL = true;
@@ -449,6 +448,7 @@ namespace OpenSim
             Scene scene = SetupScene(regionInfo, proxyOffset, Config);
 
             m_log.Info("[REGIONMODULES]: Loading Region's modules");
+
             if (controller != null)
                 controller.AddRegionToModules(scene);
 
@@ -479,7 +479,7 @@ namespace OpenSim
                 scene.SnmpService.BootInfo("Loading prims", scene);
             }
 
-            while (regionInfo.EstateSettings.EstateOwner == UUID.Zero && MainConsole.Instance != null)
+            while (regionInfo.EstateSettings.EstateOwner.IsZero() && MainConsole.Instance != null)
                 SetUpEstateOwner(scene);
 
             scene.loadAllLandObjectsFromStorage(regionInfo.originRegionID);
@@ -638,7 +638,7 @@ namespace OpenSim
                     }
 
                     // If we've been given a zero uuid then this signals that we should use a random user id
-                    if (estateOwnerUuid == UUID.Zero)
+                    if (estateOwnerUuid.IsZero())
                         estateOwnerUuid = UUID.Random();
 
                     account
@@ -916,7 +916,6 @@ namespace OpenSim
                 httpResponse.KeepAlive = false;
                 httpResponse.RawBuffer = binmsg;
                 httpResponse.StatusCode = (int)HttpStatusCode.OK;
-                return;
             }
         }
 
@@ -1030,7 +1029,7 @@ namespace OpenSim
                 regInfo.EstateSettings = EstateDataService.LoadEstateSettings(regInfo.RegionID, false);
 
             if (regInfo.EstateSettings.EstateID != 0)
-                return false;	// estate info in the database did not change
+                return false;    // estate info in the database did not change
 
             m_log.WarnFormat("[ESTATE] Region {0} is not part of an estate.", regInfo.RegionName);
 
@@ -1161,10 +1160,10 @@ namespace OpenSim
                         MainConsole.Instance.Output("Joining the estate failed. Please try again.");
                     }
                 }
-    	    }
+            }
 
-    	    return true;	// need to update the database
-    	}
+            return true;    // need to update the database
+        }
     }
 
     public class OpenSimConfigSource

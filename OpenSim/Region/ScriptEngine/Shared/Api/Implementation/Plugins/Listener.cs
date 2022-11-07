@@ -55,37 +55,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             m_commsPlugin = m_CmdManager.m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
         }
 
-        public void CheckListeners()
-        {
-            if (m_CmdManager.m_ScriptEngine.World == null)
-                return;
-
-            if (m_commsPlugin != null)
-            {
-                while (m_commsPlugin.HasMessages())
-                {
-                    ListenerInfo lInfo = (ListenerInfo)m_commsPlugin.GetNextMessage();
-
-                    //Deliver data to prim's listen handler
-                    object[] resobj = new object[]
-                    {
-                        new LSL_Types.LSLInteger(lInfo.GetChannel()),
-                        new LSL_Types.LSLString(lInfo.GetName()),
-                        new LSL_Types.LSLString(lInfo.GetID().ToString()),
-                        new LSL_Types.LSLString(lInfo.GetMessage())
-                    };
-
-                    foreach (IScriptEngine e in m_CmdManager.ScriptEngines)
-                    {
-                        e.PostScriptEvent(
-                                lInfo.GetItemID(), new EventParams(
-                                "listen", resobj,
-                                new DetectParams[0]));
-                    }
-                }
-            }
-        }
-
         public Object[] GetSerializationData(UUID itemID)
         {
             if (m_commsPlugin != null)
@@ -94,11 +63,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 return new Object[]{};
         }
 
-        public void CreateFromData(uint localID, UUID itemID, UUID hostID,
-                Object[] data)
+        public void CreateFromData( UUID itemID, UUID hostID, Object[] data)
         {
             if (m_commsPlugin != null)
-                m_commsPlugin.CreateFromData(localID, itemID, hostID, data);
+                m_commsPlugin.CreateFromData(itemID, hostID, data);
         }
     }
 }

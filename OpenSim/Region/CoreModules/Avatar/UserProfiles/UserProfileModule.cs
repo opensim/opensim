@@ -108,7 +108,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 
                             bool ok = true;
                             bool foreign = GetUserProfileServerURI(avatarID, out serverURI);
-                            if(serverURI == string.Empty)
+                            if(serverURI.Length == 0)
                                 ok = false;
 
                             Byte[] membershipType = new Byte[1];
@@ -120,7 +120,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                                 int val_flags = acc.UserFlags;
                                 flags = (uint)(val_flags & 0xff);
 
-                                if (acc.UserTitle == "")
+                                if (acc.UserTitle.Length == 0)
                                     membershipType[0] = (byte)((val_flags & 0x0f00) >> 8);
                                 else
                                     membershipType = Utils.StringToBytes(acc.UserTitle);
@@ -505,7 +505,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             Dictionary<UUID, string> classifieds = new Dictionary<UUID, string>();
 
             UUID targetID;
-            if(!UUID.TryParse(args[0], out targetID) || targetID == UUID.Zero)
+            if(!UUID.TryParse(args[0], out targetID) || targetID.IsZero())
                 return;
 
             if (targetID ==  Constants.m_MrOpenSimID)
@@ -521,10 +521,9 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 return;
             }
 
-            UserProfileCacheEntry uce = null;
             lock(m_profilesCache)
             {
-                if(m_profilesCache.TryGetValue(targetID, out uce) && uce != null)
+                if(m_profilesCache.TryGetValue(targetID, out UserProfileCacheEntry uce) && uce != null)
                 {
                     if(uce.classifiedsLists != null)
                     {
@@ -557,26 +556,22 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 return;
             }
 
-            OSDMap parameters= new OSDMap();
-
-            parameters.Add("creatorId", OSD.FromUUID(targetID));
-            OSD Params = (OSD)parameters;
-            if(!rpc.JsonRpcRequest(ref Params, "avatarclassifiedsrequest", serverURI, UUID.Random().ToString()))
+            OSDMap parameters= new OSDMap() {{"creatorId", OSD.FromUUID(targetID) }};
+            OSD osdtmp = parameters;
+            if(!rpc.JsonRpcRequest(ref osdtmp, "avatarclassifiedsrequest", serverURI, UUID.Random().ToString()))
             {
                 remoteClient.SendAvatarClassifiedReply(targetID, classifieds);
                 return;
             }
 
-            parameters = (OSDMap)Params;
-
-            if(!parameters.ContainsKey("result") || parameters["result"] == null)
+            parameters = (OSDMap)osdtmp;
+            if(!parameters.TryGetValue("result", out osdtmp) || !(osdtmp is OSDArray))
             {
                 remoteClient.SendAvatarClassifiedReply(targetID, classifieds);
                 return;
             }
 
-            OSDArray list = (OSDArray)parameters["result"];
-
+            OSDArray list = (OSDArray)osdtmp;
             foreach(OSD map in list)
             {
                 OSDMap m = (OSDMap)map;
@@ -597,9 +592,9 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 }
             }
 
-             lock(m_profilesCache)
+            lock(m_profilesCache)
             {
-                if(!m_profilesCache.TryGetValue(targetID, out uce) || uce == null)
+                if(!m_profilesCache.TryGetValue(targetID, out UserProfileCacheEntry uce) || uce == null)
                     uce = new UserProfileCacheEntry();
                 uce.classifiedsLists = classifieds;
 
@@ -658,16 +653,16 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 return;
             }
 
-            object Ad = (object)ad;
-            if(!rpc.JsonRpcRequest(ref Ad, "classifieds_info_query", serverURI, UUID.Random().ToString()))
+            object Adobject = ad;
+            if(!rpc.JsonRpcRequest(ref Adobject, "classifieds_info_query", serverURI, UUID.Random().ToString()))
             {
                 remoteClient.SendAgentAlertMessage(
                         "Error getting classified info", false);
                 return;
             }
-            ad = (UserClassifiedAdd) Ad;
+            ad = (UserClassifiedAdd) Adobject;
 
-            if(ad.CreatorId == UUID.Zero)
+            if(ad.CreatorId.IsZero())
                 return;
 
             if(foreign)
@@ -759,13 +754,13 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             }
 
             OSDMap parameters = new OSDMap {{"creatorId", OSD.FromUUID(creatorId)}};
-            OSD Params = (OSD)parameters;
-            if (!rpc.JsonRpcRequest(ref Params, "avatarclassifiedsrequest", serverURI, UUID.Random().ToString()))
+            OSD osdtmp = parameters;
+            if (!rpc.JsonRpcRequest(ref osdtmp, "avatarclassifiedsrequest", serverURI, UUID.Random().ToString()))
             {
                 remoteClient.SendAgentAlertMessage("Error fetching classifieds", false);
                 return;
             }
-            parameters = (OSDMap)Params;
+            parameters = (OSDMap)osdtmp;
             OSDArray list = (OSDArray)parameters["result"];
             bool exists = list.Cast<OSDMap>().Where(map => map.ContainsKey("classifieduuid"))
               .Any(map => map["classifieduuid"].AsUUID().Equals(queryclassifiedID));
@@ -783,7 +778,6 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                             remoteClient.SendAvatarClassifiedReply(remoteClient.AgentId, uce.classifiedsLists);
                         return;
                     }
-//                    money.ApplyCharge(remoteClient.AgentId, queryclassifiedPrice, MoneyTransactionType.ClassifiedCharge);
                 }
             }
 
@@ -804,9 +798,6 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             ad.ParcelId = p.currentParcelUUID;
 
             object Ad = ad;
-
-            OSD.SerializeMembers(Ad);
-
             if(!rpc.JsonRpcRequest(ref Ad, "classified_update", serverURI, UUID.Random().ToString()))
             {
                 remoteClient.SendAgentAlertMessage("Error updating classified", false);
@@ -828,7 +819,6 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                     uce.classifiedsLists = null;
                 }
             }
-
         }
 
         /// <summary>
@@ -842,7 +832,6 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         /// </param>
         public void ClassifiedDelete(UUID queryClassifiedID, IClientAPI remoteClient)
         {
-
             string serverURI = string.Empty;
             bool foreign = GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
             if(string.IsNullOrWhiteSpace(serverURI))
@@ -858,13 +847,11 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             if(!UUID.TryParse(queryClassifiedID.ToString(), out classifiedId))
                 return;
 
-            OSDMap parameters= new OSDMap();
-            parameters.Add("classifiedId", OSD.FromUUID(classifiedId));
-            OSD Params = (OSD)parameters;
+            OSD Params = new OSDMap() {{ "classifiedId", OSD.FromUUID(classifiedId) }};
             if(!rpc.JsonRpcRequest(ref Params, "classified_delete", serverURI, UUID.Random().ToString()))
             {
                 remoteClient.SendAgentAlertMessage(
-                        "Error classified delete", false);
+                        "Error deleting classified", false);
                 return;
             }
 
@@ -878,8 +865,6 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                     uce.classifiedsLists = null;
                 }
             }
-
-            parameters = (OSDMap)Params;
         }
         #endregion Classified
 
@@ -943,23 +928,22 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 return;
             }
 
-            OSDMap parameters= new OSDMap();
-            parameters.Add("creatorId", OSD.FromUUID(targetId));
-            OSD Params = (OSD)parameters;
-            if(!rpc.JsonRpcRequest(ref Params, "avatarpicksrequest", serverURI, UUID.Random().ToString()))
+            OSDMap parameters= new OSDMap() {{"creatorId", OSD.FromUUID(targetId)}};
+            OSD osdtmp = parameters;
+            if(!rpc.JsonRpcRequest(ref osdtmp, "avatarpicksrequest", serverURI, UUID.Random().ToString()))
             {
                 remoteClient.SendAvatarPicksReply(targetId, picks);
                 return;
             }
 
-            parameters = (OSDMap)Params;
-            if(!parameters.ContainsKey("result") || parameters["result"] == null)
+            parameters = (OSDMap)osdtmp;
+            if(!parameters.TryGetValue("result", out osdtmp) || !(osdtmp is OSDArray))
             {
                 remoteClient.SendAvatarPicksReply(targetId, picks);
                 return;
             }
-            OSDArray list = (OSDArray)parameters["result"];
 
+            OSDArray list = (OSDArray)osdtmp;
             foreach(OSD map in list)
             {
                 OSDMap m = (OSDMap)map;
@@ -1086,7 +1070,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 }
             }
 
-            m_log.DebugFormat("[PROFILES]: PickInfoRequest: {0} : {1}", pick.Name.ToString(), pick.SnapshotId.ToString());
+            //m_log.DebugFormat("[PROFILES]: PickInfoRequest: {0} : {1}", pick.Name.ToString(), pick.SnapshotId.ToString());
 
             lock(m_profilesCache)
             {
@@ -1137,7 +1121,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         /// </param>
         public void PickInfoUpdate(IClientAPI remoteClient, UUID pickID, UUID creatorID, bool topPick, string name, string desc, UUID snapshotID, int sortOrder, bool enabled)
         {
-            m_log.DebugFormat("[PROFILES]: Start PickInfoUpdate Name: {0} PickId: {1} SnapshotId: {2}", name, pickID.ToString(), snapshotID.ToString());
+            //m_log.DebugFormat("[PROFILES]: Start PickInfoUpdate Name: {0} PickId: {1} SnapshotId: {2}", name, pickID.ToString(), snapshotID.ToString());
 
             UserProfilePick pick = new UserProfilePick();
             string serverURI = string.Empty;
@@ -1217,7 +1201,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                                            pick.Desc,pick.SnapshotId,pick.ParcelName,pick.OriginalName,pick.SimName,
                                            posGlobal,pick.SortOrder,pick.Enabled);
 
-            m_log.DebugFormat("[PROFILES]: Finish PickInfoUpdate {0} {1}", pick.Name, pick.PickId.ToString());
+            //m_log.DebugFormat("[PROFILES]: Finish PickInfoUpdate {0} {1}", pick.Name, pick.PickId.ToString());
         }
 
         /// <summary>
@@ -1448,22 +1432,20 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         /// </param>
         public void AvatarInterestsUpdate(IClientAPI remoteClient, uint wantmask, string wanttext, uint skillsmask, string skillstext, string languages)
         {
-
-            UserProfileProperties prop = new UserProfileProperties();
-
-            prop.UserId = remoteClient.AgentId;
-            prop.WantToMask = (int)wantmask;
-            prop.WantToText = wanttext;
-            prop.SkillsMask = (int)skillsmask;
-            prop.SkillsText = skillstext;
-            prop.Language = languages;
-
-            string serverURI = string.Empty;
-            GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
-            if(string.IsNullOrWhiteSpace(serverURI))
+            GetUserProfileServerURI(remoteClient.AgentId, out string serverURI);
+            if (string.IsNullOrWhiteSpace(serverURI))
                 return;
 
-            object Param = prop;
+            object Param = new UserProfileProperties()
+            {
+                UserId = remoteClient.AgentId,
+                WantToMask = (int)wantmask,
+                WantToText = wanttext,
+                SkillsMask = (int)skillsmask,
+                SkillsText = skillstext,
+                Language = languages
+            };
+
             if(!rpc.JsonRpcRequest(ref Param, "avatar_interests_update", serverURI, UUID.Random().ToString()))
             {
                 remoteClient.SendAgentAlertMessage(
@@ -1472,27 +1454,27 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             }
 
             // flush cache
-            UserProfileCacheEntry uce = null;
             lock(m_profilesCache)
             {
-                if(m_profilesCache.TryGetValue(remoteClient.AgentId, out uce) && uce != null)
+                if(m_profilesCache.TryGetValue(remoteClient.AgentId, out UserProfileCacheEntry uce) && uce != null)
                 {
                     uce.props = null;
+                    uce.ClientsWaitingProps = null;
                 }
             }
-
+            RequestAvatarProperties(remoteClient, remoteClient.AgentId);
         }
 
         public void RequestAvatarProperties(IClientAPI remoteClient, UUID avatarID)
         {
-            if (avatarID == UUID.Zero)
+            if (avatarID.IsZero())
             {
                 // Looking for a reason that some viewers are sending null Id's
                 m_log.Debug("[PROFILES]: got request of null ID");
                 return;
             }
 
-            if (avatarID == Constants.m_MrOpenSimID)
+            if (avatarID.Equals(Constants.m_MrOpenSimID))
             {
                 remoteClient.SendAvatarProperties(avatarID, "Creator of OpenSimulator shared assets library", Constants.m_MrOpenSimBorn.ToString(),
                       Utils.StringToBytes("System agent"), "MrOpenSim has no life", 0x10,
@@ -1512,10 +1494,9 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 return;
             }
             UserProfileProperties props;
-            UserProfileCacheEntry uce = null;
             lock(m_profilesCache)
             {
-                if(m_profilesCache.TryGetValue(avatarID, out uce) && uce != null)
+                if(m_profilesCache.TryGetValue(avatarID, out UserProfileCacheEntry uce) && uce != null)
                 {
                     if(uce.props != null)
                     {
@@ -1594,7 +1575,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 
             if (null != account)
             {
-                if (account.UserTitle == "")
+                if (account.UserTitle.Length == 0)
                     membershipType[0] = (Byte)((account.UserFlags & 0xf00) >> 8);
                 else
                     membershipType = Utils.StringToBytes(account.UserTitle);
@@ -1607,7 +1588,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             {
                 if (GetUserAccountData(avatarID, out userInfo) == true)
                 {
-                    if ((string)userInfo["user_title"] == "")
+                    if ((string)userInfo["user_title"].Length == 0)
                         membershipType[0] = (Byte)(((Byte)userInfo["user_flags"] & 0xf00) >> 8);
                     else
                         membershipType = Utils.StringToBytes((string)userInfo["user_title"]);
@@ -1689,46 +1670,33 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         /// <param name='newProfile'>
         /// New profile.
         /// </param>
-        public void AvatarPropertiesUpdate(IClientAPI remoteClient, UserProfileData newProfile)
+        public void AvatarPropertiesUpdate(IClientAPI remoteClient, UserProfileProperties newProfile)
         {
-            if (remoteClient.AgentId == newProfile.ID)
+            GetUserProfileServerURI(remoteClient.AgentId, out string serverURI);
+            if (string.IsNullOrWhiteSpace(serverURI))
+                return;
+
+            if (!m_allowUserProfileWebURLs)
+                newProfile.WebUrl = string.Empty;
+
+            object Prop = newProfile;
+            if(!rpc.JsonRpcRequest(ref Prop, "avatar_properties_update", serverURI, UUID.Random().ToString()))
             {
-                UserProfileProperties prop = new UserProfileProperties();
-
-                prop.UserId = remoteClient.AgentId;
-                prop.WebUrl = newProfile.ProfileUrl;
-                prop.ImageId = newProfile.Image;
-                prop.AboutText = newProfile.AboutText;
-                prop.FirstLifeImageId = newProfile.FirstLifeImage;
-                prop.FirstLifeText = newProfile.FirstLifeAboutText;
-
-                if(!m_allowUserProfileWebURLs)
-                    prop.WebUrl ="";
-
-                string serverURI = string.Empty;
-                GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
-
-                object Prop = prop;
-
-                if(!rpc.JsonRpcRequest(ref Prop, "avatar_properties_update", serverURI, UUID.Random().ToString()))
-                {
-                    remoteClient.SendAgentAlertMessage(
-                            "Error updating properties", false);
-                    return;
-                }
-
-                // flush cache
-                UserProfileCacheEntry uce = null;
-                lock(m_profilesCache)
-                {
-                    if(m_profilesCache.TryGetValue(remoteClient.AgentId, out uce) && uce != null)
-                    {
-                        uce.props = null;
-                    }
-                }
-
-                RequestAvatarProperties(remoteClient, newProfile.ID);
+                remoteClient.SendAgentAlertMessage("Error updating properties", false);
+                return;
             }
+
+            // flush cache
+            lock(m_profilesCache)
+            {
+                if(m_profilesCache.TryGetValue(remoteClient.AgentId, out UserProfileCacheEntry uce) && uce != null)
+                {
+                    uce.props = null;
+                    uce.ClientsWaitingProps = null;
+                }
+            }
+
+            RequestAvatarProperties(remoteClient, remoteClient.AgentId);
         }
 
         /// <summary>
@@ -1884,7 +1852,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 
         void cacheForeignImage(UUID agent, UUID imageID)
         {
-            if(imageID == null || imageID == UUID.Zero)
+            if(imageID.IsZero())
                 return;
 
             string assetServerURI = UserManagementModule.GetUserServerURL(agent, "AssetServerURI");
