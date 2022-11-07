@@ -121,12 +121,6 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
                 m_name = id;
             else
                 m_name = id.Substring(pos + 1);
-
-            // The [Modules] section in the ini file
-            IConfig modulesConfig =
-                    m_openSim.ConfigSource.Source.Configs["Modules"];
-            if (modulesConfig == null)
-                modulesConfig = m_openSim.ConfigSource.Source.AddConfig("Modules");
                 
             // Scan modules and load all that aren't disabled
             foreach (TypeExtensionNode node in
