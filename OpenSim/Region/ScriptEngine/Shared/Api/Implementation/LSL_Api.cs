@@ -15903,7 +15903,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (rejectHostGroup && part.ParentGroup == thisgrp)
                         continue;
 
-                    if ((dataFlags & ScriptBaseClass.RC_GET_ROOT_KEY) == ScriptBaseClass.RC_GET_ROOT_KEY)
+                    if ((dataFlags & ScriptBaseClass.RC_GET_ROOT_KEY) != 0)
                         itemID = part.ParentGroup.UUID;
                     else
                         itemID = part.UUID;
@@ -15921,10 +15921,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 list.Add(new LSL_String(itemID.ToString()));
                 list.Add(new LSL_String(result.Pos.ToString()));
 
-                if ((dataFlags & ScriptBaseClass.RC_GET_LINK_NUM) == ScriptBaseClass.RC_GET_LINK_NUM)
+                if ((dataFlags & ScriptBaseClass.RC_GET_LINK_NUM) != 0)
                     list.Add(new LSL_Integer(linkNum));
 
-                if ((dataFlags & ScriptBaseClass.RC_GET_NORMAL) == ScriptBaseClass.RC_GET_NORMAL)
+                if ((dataFlags & ScriptBaseClass.RC_GET_NORMAL) != 0)
                     list.Add(new LSL_Vector(result.Normal));
 
                 values++;

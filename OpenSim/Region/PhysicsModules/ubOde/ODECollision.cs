@@ -1,16 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
-using log4net;
-using Nini.Config;
-using Mono.Addins;
-using OpenSim.Framework;
-using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.Framework.Interfaces;
-using OpenMetaverse;
-using System.Runtime.CompilerServices;
-using System.Runtime.ConstrainedExecution;
+﻿using OpenMetaverse;
 using OpenSim.Region.PhysicsModules.SharedBase;
+using System;
+using System.Runtime.CompilerServices;
 
 namespace OpenSim.Region.PhysicsModule.ubOde
 {
@@ -75,18 +66,19 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             r -= rsum;
             if (absdz < r)
             {
-                cp.Position = p1._position;
-                cp.Position.Z -= 0.5f * tt.Z;
-
                 float hd = tt.X * tt.X + tt.Y * tt.Y;
                 if (hd < 1e-6f)
                 {
+                    cp.Position = p1._position;
+                    cp.Position.Z -= 0.5f * tt.Z;
                     cp.SurfaceNormal = minusXRotateByShortQZ(p1.Orientation2D);
-                    cp.PenetrationDepth = rsum;
+                    cp.PenetrationDepth = rsum + .05f;
                     return true;
                 }
 
                 hd = MathF.Sqrt(hd);
+                if(hd > rsum)
+                    return false;
                 d = hd;
 
                 hd = 1.0f / hd;
@@ -105,6 +97,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 cp.SurfaceNormal.X = tt.X;
                 cp.SurfaceNormal.Y = tt.Y;
                 cp.SurfaceNormal.Z = 0;
+
+                cp.Position = p1._position;
+                cp.Position.Z -= 0.5f * tt.Z;
 
                 float hk = r1 - 0.5f * rhsum;
                 if (hk <= 0)
@@ -142,7 +137,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             d = MathF.Sqrt(d);
             float k = rsum - d;
-            if (k < 0.5e-3f)
+            if (k < 0.5e-4f)
                 return false;
 
             tt *= 1.0f / d;
@@ -158,7 +153,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             cp.SurfaceNormal = tt;
             cp.PenetrationDepth = k;
 
-            k = p1.CapsuleRadius - 0.5f * k; 
+            k = p1.CapsuleRadius - 0.5f * k;
             tt *= k;
             cp.Position = p1._position - tt;
             return true;
@@ -228,6 +223,141 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 SharedChrContact.CharacterFeet = feetcollision > 0;
                 p1.AddCollisionEvent(p2.ParentActor.m_baseLocalID, SharedChrContact);
             }
+        }
+
+        // if mode==1 then use the sphere exit contact, not the entry contact
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool ray_sphere_helper(Vector3 pos, Vector3 dir, float len, Vector3 sphere_pos, float radius,
+                ref ContactResult cp)
+        {
+            Vector3 q = pos - sphere_pos;
+            float B = q.Dot(dir);
+            float C = q.LengthSquared() - radius * radius;
+            // note: if C <= 0 then the start of the ray is inside the sphere
+            float k = B * B - C;
+            if (k < 1e-6f)
+                return false;
+            k = MathF.Sqrt(k);
+            float alpha;
+            if (C >= 0)
+            {
+                alpha = -B + k;
+                if (alpha < 0)
+                    return false;
+            }
+            else
+            {
+                alpha = -B - k;
+                if (alpha < 0)
+                {
+                    alpha = -B + k;
+                    if (alpha < 0)
+                        return false;
+                }
+            }
+            if (alpha > len)
+                return false;
+
+            cp.Pos = pos + dir * alpha;
+            cp.Normal = sphere_pos - cp.Pos;
+            cp.Normal.Normalize();
+            cp.Depth = alpha;
+            return true;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal bool CollideRaySimpleCapsule(OdeCharacter p1, Vector3 RayStart, Vector3 RayDirection, float RayLength,
+                    ref ContactResult cp)
+        {
+            Vector3 cs;
+            cs.Z = RayStart.Z - p1._position.Z;
+            float distZ = Math.Abs(cs.Z) - p1.CapsuleSizeZ;
+
+            if (distZ >= RayLength)
+                return false;
+
+            cs.X = RayStart.X - p1._position.X;
+            cs.Y = RayStart.Y - p1._position.Y;
+
+            float C = cs.X * cs.X + cs.Y * cs.Y - p1.CapsuleRadius * p1.CapsuleRadius;
+            if(C > RayLength * RayLength)
+                return false;
+
+            if (C <= 0.5e-4f)
+            {
+                if (distZ < 0.5e-4f)
+                    return false;
+                else
+                {
+                    cp.Pos.X = p1._position.X;
+                    cp.Pos.Y = p1._position.Y;
+                    cp.Normal.X = 0;
+                    cp.Normal.Y = 0;
+                    cp.Depth = distZ;
+                    if (cs.Z < 0)
+                    {
+                        cp.Pos.Z = p1._position.Z - p1.CapsuleSizeZ;
+                        cp.Normal.Z = -1f;
+                    }
+                    else
+                    {
+                        cp.Pos.Z = p1._position.Z + p1.CapsuleSizeZ;
+                        cp.Normal.Z = 1f;
+                    }
+                    return true;
+                }
+            }
+
+            float k;
+            float lz2 = p1.CapsuleSizeZ - p1.CapsuleRadius;
+
+            // compute ray collision with infinite cylinder, except for the case where
+            // the ray is outside the capped cylinder but within the infinite cylinder
+            // (it that case the ray can only hit endcaps)
+            float A = RayDirection.X * RayDirection.X + RayDirection.Y * RayDirection.Y;
+            // A == 0 means that the ray and ccylinder axes are parallel
+            if (A == 0)
+                goto _checkends;
+
+            float B = 2f * (cs.X * RayDirection.X + cs.Y * RayDirection.Y);
+            k = B * B - 4f * A * C;
+            if (k < 1e-6f)
+                return false;
+
+            k = MathF.Sqrt(k);
+            A = 0.5f / A;
+            float alpha = (-B - k) * A;
+            if (alpha < 0)
+            {
+                alpha = (-B + k) * A;
+                if (alpha < 0)
+                    return false;
+            }
+            if (alpha > RayLength)
+                return false;
+
+            // the ray intersects the infinite cylinder. check to see if the
+            // intersection point is between the caps
+            cp.Pos = RayStart + RayDirection * alpha;
+            Vector3 q = cp.Pos - p1._position;
+            if (q.Z >= -lz2 && q.Z <= lz2)
+            {
+                cp.Normal.X = q.X;
+                cp.Normal.Y = q.Y;
+                cp.Normal.Z = 0;
+ 
+                cp.Normal.Normalize();
+                cp.Depth = alpha;
+                return true;
+            }
+
+            // the infinite cylinder intersection point is not between the caps.
+            // set k to cap position to check.
+_checkends:
+            k = cs.Z < 0 ? -lz2 : lz2;
+            return ray_sphere_helper(RayStart, RayDirection, RayLength,
+                new(p1._position.X, p1._position.Y, p1._position.Z + k),
+                p1.CapsuleRadius, ref cp);
         }
     }
 }

@@ -210,47 +210,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void doSpaceRay(ODERayRequest req)
         {
-            /*
-            float endx;
-            float endy;
-
-            if (req.Normal.X <= 0)
-            {
-                if (req.Origin.X <= 0)
-                {
-                    NoContacts(req);
-                    return;
-                }
-
-                endx = req.Origin.X - req.length;
-                if (endx < 0)
-                {
-                    req.length += endx;
-                    endx = 0;
-                }
-            }
-            else
-            {
-                if (req.Origin.X < 0)
-                {
-                    req.length += req.Origin.X;
-                    if (req.length <= 0)
-                    {
-                        NoContacts(req);
-                        return;
-                    }
-                    req.Origin.X = 0;
-                }
-
-                endx = req.Origin.X + req.length;
-                if (endx < 0)
-                {
-                    req.length += endx;
-                    endx = 0;
-                }
-            }
-            */
-
             SafeNativeMethods.GeomRaySetLength(ray, req.length);
             SafeNativeMethods.GeomRaySet(ray, req.Origin.X, req.Origin.Y, req.Origin.Z, req.Normal.X, req.Normal.Y, req.Normal.Z);
 
@@ -264,7 +223,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 {
                     if (m_contactResults.Count >= CurrentMaxCount)
                             break;
-                    CollideRayAvatar(chr);
+ 
+                    if(m_scene.CollideRaySimpleCapsule(chr, req.Origin, req.Normal, req.length, ref SharedCollisionResult))
+                    {
+                        SharedCollisionResult.ConsumerID = chr.m_baseLocalID;
+                        m_contactResults.Add(SharedCollisionResult);
+                    }
                 }
             }
 
