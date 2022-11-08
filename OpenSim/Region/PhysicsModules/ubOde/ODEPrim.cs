@@ -773,14 +773,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
         }
 
-        public override bool FloatOnWater
-        {
-            set
-            {
-                //AddChange(changes.CollidesWater, value);
-            }
-        }
-
         public override Vector3 PIDTarget
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]

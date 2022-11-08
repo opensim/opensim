@@ -72,46 +72,55 @@ namespace OpenSim.Region.PhysicsModule.ubOde
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        internal AABB2D _AABB2D;
         internal Vector3 _position;
-        private Vector3 _zeroPosition;
-        private Vector3 _velocity;
-        private Vector3 _acceleration;
-        private Vector3 m_rotationalVelocity;
-        private Vector3 m_size;
-        private Vector3 m_lastFallVel;
-        internal Quaternion m_orientation;
+        public int Colliderfilter = 0;
+
+        public float CapsuleSizeZ;
+        public float CapsuleRadius;
         internal Vector2 Orientation2D;
+        internal float AvaSizeXsq = 0.3f;
+        internal float AvaSizeYsq = 0.2f;
+        internal float feetOff = 0;
+        internal float boneOff = 0;
+
+        public IntPtr Body = IntPtr.Zero;
+
+        public int m_bodydisablecontrol = 0;
+        private float m_scenegravityForceZ;
+        int m_colliderObjectfilter = 0;
+        int m_colliderGroundfilter = 0;
+
         private SafeNativeMethods.Quaternion m_NativeOrientation2D;
+        private Vector3 _zeroPosition;
+        internal Quaternion m_orientation;
+        private Vector3 _velocity;
+        private Vector3 m_rotationalVelocity;
+        private Vector3 _acceleration;
+        private Vector3 m_lastFallVel;
+
+        private Vector3 m_size;
+
         private float m_mass = 80f;
-        private float m_massInvTimeScaled = 1600f; 
+        private float m_massInvTimeScaled = 1600f;
         public readonly float m_density = 60f;
         private bool m_pidControllerActive = true;
 
         internal Vector3 CollideNormal;
 
-        public float CapsuleRadius;
-        public float CapsuleSizeZ;
-
         public int  _charsListIndex;
 
-        public int m_bodydisablecontrol = 0;
 
         const float basePID_D = 0.55f; // scaled for unit mass unit time (2200 /(50*80))
         const float basePID_P = 0.225f; // scaled for unit mass unit time (900 /(50*80))
+
         public float PID_D;
         public float PID_P;
 
         private readonly ODEScene m_parent_scene;
-        private readonly float m_sceneGravityZ;
-        private float m_scenegravityForceZ;
 
         private readonly float m_sceneTimeStep;
         private readonly float m_sceneInverseTimeStep;
-
-        internal float feetOff = 0;
-        internal float boneOff = 0;
-        internal float AvaSizeXsq = 0.3f;
-        internal float AvaSizeYsq = 0.2f;
 
         public readonly float m_walkMultiplier = 1.0f / 1.3f;
         public readonly float m_runMultiplier = 1.0f / 0.8f;
@@ -132,9 +141,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         // private string m_name = String.Empty;
         // other filter control
-        public int Colliderfilter = 0;
-        int m_colliderGroundfilter = 0;
-        int m_colliderObjectfilter = 0;
 
         // Default we're a Character
         private const CollisionCategories m_collisionCategories = (CollisionCategories.Character);
@@ -145,7 +151,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                                                         | CollisionCategories.VolumeDtc
                                                         );
         // we do land collisions not ode                | CollisionCategories.Land);
-        public IntPtr Body = IntPtr.Zero;
         //private IntPtr capsule = IntPtr.Zero;
         public IntPtr collider = IntPtr.Zero;
 
@@ -174,7 +179,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             m_baseLocalID = localID;
             m_parent_scene = parent_scene;
 
-            m_sceneGravityZ = parent_scene.gravityz;
             m_sceneTimeStep = parent_scene.ODE_STEPSIZE;
             m_sceneInverseTimeStep = 1.0f / m_sceneTimeStep;
 
@@ -232,7 +236,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             PID_D = basePID_D * m_massInvTimeScaled;
             PID_P = basePID_P * m_massInvTimeScaled;
 
-            m_scenegravityForceZ = m_sceneGravityZ * m_mass;
+            m_scenegravityForceZ = parent_scene.gravityz * m_mass;
 
             m_isPhysical = false; // current status: no ODE information exists
 
@@ -327,15 +331,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             set
             {
                 m_buoyancy = value;
-            }
-        }
-
-        public override bool FloatOnWater
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set
-            {
-                return;
             }
         }
 
@@ -920,7 +915,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             m_massInvTimeScaled = m_mass * m_sceneInverseTimeStep;
             PID_D = basePID_D * m_massInvTimeScaled;
             PID_P = basePID_P * m_massInvTimeScaled;
-            m_scenegravityForceZ = m_sceneGravityZ * m_mass;
+            m_scenegravityForceZ = m_parent_scene.gravityz * m_mass;
 
             Body = SafeNativeMethods.BodyCreate(m_parent_scene.world);
 
@@ -1270,19 +1265,20 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     m_haveLastFallVel = true;
                 }
 
-                Vector3 n = m_parent_scene.GetTerrainNormalAtXY(tmpX, tmpY);
+                float pidp50 = PID_P * 50;
                 float depth = terrainheight - aabbminz;
+                vec.Z = depth * pidp50;
 
-                vec.Z = depth * PID_P * 50;
-
+                Vector3 n = m_parent_scene.GetTerrainNormalAtXY(tmpX, tmpY);
                 if (!m_flying)
                 {
-                    vec.Z += -vel.Z * PID_D;
+                    vec.Z -= vel.Z * PID_D;
+
                     if (n.Z < 0.4f)
                     {
-                        vec.X = depth * PID_P * 50f - vel.X * PID_D;
+                        vec.X = depth * pidp50 - vel.X * PID_D;
                         vec.X *= n.X;
-                        vec.Y = depth * PID_P * 50f - vel.Y * PID_D;
+                        vec.Y = depth * pidp50 - vel.Y * PID_D;
                         vec.Y *= n.Y;
                         vec.Z *= n.Z;
                         if (n.Z < 0.1f)
@@ -1322,9 +1318,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                             CharacterFeet = true
                         };
                         AddCollisionEvent(0,contact);
-                        m_lastFallVel = vel;
-
-                        //vec.Z *= 0.5f;
+                        m_lastFallVel = Vector3.Zero;
                     }
                 }
 
@@ -1398,8 +1392,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             //******************************************
             if (!m_iscolliding)
                 CollideNormal.Z = 0;
-
-
 
             if (!tviszero)
             {
@@ -1567,7 +1559,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             if (m_flying || hoverPIDActive)
             {
-                vec.Z -= m_sceneGravityZ * m_mass;
+                vec.Z -= m_scenegravityForceZ;
 
                 if (!hoverPIDActive)
                 {
@@ -1912,7 +1904,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     SafeNativeMethods.MassSetBoxTotal(out ShellMass, m_mass, 2f * sx, 2f * sy, 2f * sz);
                     SafeNativeMethods.BodySetMass(Body, ref ShellMass);
 
-                    m_scenegravityForceZ = m_sceneGravityZ * m_mass;
+                    m_scenegravityForceZ = m_parent_scene.gravityz * m_mass;
 
                     _position.Z += sz - oldsz;
                     SafeNativeMethods.BodySetPosition(Body, _position.X, _position.Y, _position.Z);

@@ -272,11 +272,6 @@ namespace OpenSim.Region.PhysicsModule.ODE
             set { m_buoyancy = value; }
         }
 
-        public override bool FloatOnWater
-        {
-            set { return; }
-        }
-
         public override bool IsPhysical
         {
             get { return m_isPhysical; }

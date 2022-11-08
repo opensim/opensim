@@ -137,7 +137,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         PhysRepData,
         AddPhysRep,
 
-        CollidesWater,
         VolumeDtc,
 
         Physical,
