@@ -55,7 +55,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
     using dReal = System.Single;
 //#endif
 
-    internal static class SafeNativeMethods
+    internal static class OdeNative
     {
         internal static dReal Infinity = dReal.MaxValue;
         internal static int NTotalBodies = 0;
