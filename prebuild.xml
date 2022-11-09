@@ -1534,36 +1534,6 @@
 
     </Project>
 
-    <Project name="OpenSim.Region.PhysicsModule.Ode" path="OpenSim/Region/PhysicsModules/Ode" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="OpenMetaverseTypes" path="../../../../bin/"/>
-      <Reference name="Nini" path="../../../../bin/"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Region.PhysicsModules.SharedBase"/>
-      <Reference name="OpenSim.Region.Framework"/>
-      <Reference name="Mono.Addins" path="../../../../bin/"/>
-      <Reference name="log4net" path="../../../../bin/"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-          <Exclude name="obj" pattern="obj"/>
-          <Exclude name="Tests" pattern="Tests"/>
-        </Match>
-      </Files>
-    </Project>
-
    <Project name="OpenSim.Region.PhysicsModule.ubOde" path="OpenSim/Region/PhysicsModules/ubOde" type="Library">
       <Configuration name="Debug">
         <Options>

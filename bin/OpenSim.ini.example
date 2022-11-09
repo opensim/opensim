@@ -104,7 +104,6 @@
     ;; However, this will only log crashes within OpenSimulator that cause the
     ;; entire program to exit
     ;; It will not log crashes caused by virtual machine failures, which
-    ;; includes mono and ODE failures.
     ;; You will need to capture these native stack traces by recording the
     ;; session log itself.
     ; save_crashes = false
@@ -238,10 +237,6 @@
 
     ;; Select a mesher here.
     ;;
-    ;; Meshmerizer properly handles complex prims by using triangle meshes.
-    ;; Note that only the ODE physics engine currently deals with meshed
-    ;; prims in a satisfactory way.
-
     ;# {meshing} {} {Select mesher} {Meshmerizer ZeroMesher} Meshmerizer
     ;; ZeroMesher is faster but leaves the physics engine to model the mesh
     ;; using the basic shapes that it supports.
@@ -260,14 +255,13 @@
     ;; It continues to provide a workable physics implementation.  It does not currently support varregions.
     ;; basicphysics effectively does not model physics at all, making all objects phantom.
     ;; Default is BulletSim
-    ; physics = OpenDynamicsEngine
     ; physics = BulletSim
     ; physics = basicphysics
     ; physics = POS
     ;; alternative OpenDynamicsEngine engine. ubODEMeshmerizer meshing above MUST be selected also
     ; physics = ubODE
 
-    ; ubODE and  OpenDynamicsEngine does allocate a lot of memory on stack. On linux you may need to increase its limit
+    ; ubODE does allocate a lot of memory on stack. On linux you may need to increase its limit
     ; script opensim-ode-sh starts opensim setting that limit. You may need to increase it even more on large regions
     ; edit the line ulimit -s 262144, and change this last value
 
@@ -796,14 +790,6 @@
     ;# {AvatarToAvatarCollisionsByDefault} {[Startup]physics:BulletSim} {Should avatars collide with each other?} {true false} true
     AvatarToAvatarCollisionsByDefault = true
 
-
-[ODEPhysicsSettings]
-    ;# {mesh_sculpted_prim} {[Startup]physics:OpenDynamicsEngine} {Mesh sculpties so they collide as they look?} {true false} true
-    ;; Do we want to mesh sculpted prim to collide like they look?
-    ;; If you are seeing sculpt texture decode problems
-    ;; (messages such as "Decoded image with unhandled number of components: 0 shortly followed by a physcs exception")
-    ;; then you might want to try setting this to false.
-    ; mesh_sculpted_prim = true
 
 [RemoteAdmin]
     ;; This is the remote admin module, which uses XMLRPC requests to
