@@ -8,7 +8,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
     public partial class ODEScene
     {
         internal bool CollideSpheres(Vector3 p1, float r1, Vector3 p2, float r2,
-                ref SafeNativeMethods.ContactGeom c)
+                ref UBOdeNative.ContactGeom c)
         {
             float rsum = r1 + r2;
             Vector3 delta = p1 - p2;
@@ -17,7 +17,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 return false;
             if (d < 1e-6f)
             {
-                c.pos = Unsafe.As<Vector3, SafeNativeMethods.Vector3>(ref p1);
+                c.pos = Unsafe.As<Vector3, UBOdeNative.Vector3>(ref p1);
                 c.normal.X = 1;
                 c.normal.Y = 0;
                 c.normal.Z = 0;
@@ -30,11 +30,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             float k = r1 - 0.5f * c.depth;
 
             delta *= 1.0f / d;
-            c.normal = Unsafe.As<Vector3, SafeNativeMethods.Vector3>(ref delta);
+            c.normal = Unsafe.As<Vector3, UBOdeNative.Vector3>(ref delta);
 
             delta *= k;
             delta = p1 - delta;
-            c.pos = Unsafe.As<Vector3, SafeNativeMethods.Vector3>(ref delta);
+            c.pos = Unsafe.As<Vector3, UBOdeNative.Vector3>(ref delta);
             return true;
         }
 
@@ -187,13 +187,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             contactSharedForJoints.surface.mu = 0;
             contactSharedForJoints.surface.bounce = 0;
-            contactSharedForJoints.geom.pos = Unsafe.As<Vector3, SafeNativeMethods.Vector3>(ref SharedChrContact.Position);
-            contactSharedForJoints.geom.normal = Unsafe.As<Vector3, SafeNativeMethods.Vector3>(ref SharedChrContact.SurfaceNormal);
+            contactSharedForJoints.geom.pos = Unsafe.As<Vector3, UBOdeNative.Vector3>(ref SharedChrContact.Position);
+            contactSharedForJoints.geom.normal = Unsafe.As<Vector3, UBOdeNative.Vector3>(ref SharedChrContact.SurfaceNormal);
             contactSharedForJoints.geom.depth = SharedChrContact.PenetrationDepth;
             IntPtr Joint = CreateCharContacJoint();
             if (Joint == IntPtr.Zero)
                 return;
-            SafeNativeMethods.JointAttach(Joint, p1.Body, p2.Body);
+            UBOdeNative.JointAttach(Joint, p1.Body, p2.Body);
 
             if (p1.CollisionScore < float.MaxValue)
                 p1.CollisionScore += 1.0f;

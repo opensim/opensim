@@ -334,7 +334,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
         private bool m_filterCollisions = true;
 
-        private SafeNativeMethods.NearCallback nearCallback;
+        private OdeNative.NearCallback nearCallback;
 
         /// <summary>
         /// Avatars in the physics scene.
@@ -364,7 +364,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
         /// <summary>
         /// Keep record of contacts in the physics loop so that we can remove duplicates.
         /// </summary>
-        private readonly List<SafeNativeMethods.ContactGeom> _perloopContact = new List<SafeNativeMethods.ContactGeom>();
+        private readonly List<OdeNative.ContactGeom> _perloopContact = new List<OdeNative.ContactGeom>();
 
         /// <summary>
         /// A dictionary of actors that should receive collision events.
@@ -402,17 +402,17 @@ namespace OpenSim.Region.PhysicsModule.ODE
         /// </remarks>
         private readonly List<OdeCharacter> defects = new List<OdeCharacter>();
 
-        private SafeNativeMethods.ContactGeom[] contacts;
+        private OdeNative.ContactGeom[] contacts;
 
         private readonly DoubleDictionary<Vector3, IntPtr, IntPtr> RegionTerrain = new DoubleDictionary<Vector3, IntPtr, IntPtr>();
         private readonly Dictionary<IntPtr,float[]> TerrainHeightFieldHeights = new Dictionary<IntPtr, float[]>();
 
-        private SafeNativeMethods.Contact contact;
-        private SafeNativeMethods.Contact TerrainContact;
-        private SafeNativeMethods.Contact AvatarMovementprimContact;
-        private SafeNativeMethods.Contact AvatarMovementTerrainContact;
-        private SafeNativeMethods.Contact WaterContact;
-        private SafeNativeMethods.Contact[,] m_materialContacts;
+        private OdeNative.Contact contact;
+        private OdeNative.Contact TerrainContact;
+        private OdeNative.Contact AvatarMovementprimContact;
+        private OdeNative.Contact AvatarMovementTerrainContact;
+        private OdeNative.Contact WaterContact;
+        private OdeNative.Contact[,] m_materialContacts;
 
         private int m_physicsiterations = 10;
         private const float m_SkipFramesAtms = 0.40f; // Drop frames gracefully at a 400 ms lag
@@ -450,8 +450,8 @@ namespace OpenSim.Region.PhysicsModule.ODE
         private bool avplanted = false;
         private bool av_av_collisions_off = false;
 
-        internal SafeNativeMethods.Vector3 xyz = new SafeNativeMethods.Vector3(128.1640f, 128.3079f, 25.7600f);
-        internal SafeNativeMethods.Vector3 hpr = new SafeNativeMethods.Vector3(125.5000f, -17.0000f, 0.0000f);
+        internal OdeNative.Vector3 xyz = new OdeNative.Vector3(128.1640f, 128.3079f, 25.7600f);
+        internal OdeNative.Vector3 hpr = new OdeNative.Vector3(125.5000f, -17.0000f, 0.0000f);
 
         private volatile int m_global_contactcount = 0;
 
@@ -470,7 +470,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
         public OdeScene(Scene pscene, IConfigSource psourceconfig, string pname, string pversion)
         {
-            SafeNativeMethods.AllocateODEDataForThread(~0U);
+            OdeNative.AllocateODEDataForThread(~0U);
 
             m_config = psourceconfig;
             m_frameWorkScene = pscene;
@@ -516,11 +516,11 @@ namespace OpenSim.Region.PhysicsModule.ODE
             m_rayCastManager = new ODERayCastRequestManager(this);
 
             // Create the world and the first space
-            world = SafeNativeMethods.WorldCreate();
-            space = SafeNativeMethods.HashSpaceCreate(IntPtr.Zero);
-            contactgroup = SafeNativeMethods.JointGroupCreate(0);
+            world = OdeNative.WorldCreate();
+            space = OdeNative.HashSpaceCreate(IntPtr.Zero);
+            contactgroup = OdeNative.JointGroupCreate(0);
 
-            SafeNativeMethods.WorldSetAutoDisableFlag(world, false);
+            OdeNative.WorldSetAutoDisableFlag(world, false);
         }
 
         // Initialize from configs
@@ -621,7 +621,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 }
             }
 
-            contacts = new SafeNativeMethods.ContactGeom[contactsPerCollision];
+            contacts = new OdeNative.ContactGeom[contactsPerCollision];
 
             spacesPerMeterX = 1.0f / metersInSpace;
             spacesPerMeterY = 1.0f / metersInSpace;
@@ -650,7 +650,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
             // Centeral contact friction and bounce
             // ckrinke 11/10/08 Enabling soft_erp but not soft_cfm until I figure out why
             // an avatar falls through in Z but not in X or Y when walking on a prim.
-            contact.surface.mode |= SafeNativeMethods.ContactFlags.SoftERP;
+            contact.surface.mode |= OdeNative.ContactFlags.SoftERP;
             contact.surface.mu = nmAvatarObjectContactFriction;
             contact.surface.bounce = nmAvatarObjectContactBounce;
             contact.surface.soft_cfm = 0.010f;
@@ -659,12 +659,12 @@ namespace OpenSim.Region.PhysicsModule.ODE
             // Terrain contact friction and Bounce
             // This is the *non* moving version.   Use this when an avatar
             // isn't moving to keep it in place better
-            TerrainContact.surface.mode |= SafeNativeMethods.ContactFlags.SoftERP;
+            TerrainContact.surface.mode |= OdeNative.ContactFlags.SoftERP;
             TerrainContact.surface.mu = nmTerrainContactFriction;
             TerrainContact.surface.bounce = nmTerrainContactBounce;
             TerrainContact.surface.soft_erp = nmTerrainContactERP;
 
-            WaterContact.surface.mode |= (SafeNativeMethods.ContactFlags.SoftERP | SafeNativeMethods.ContactFlags.SoftCFM);
+            WaterContact.surface.mode |= (OdeNative.ContactFlags.SoftERP | OdeNative.ContactFlags.SoftCFM);
             WaterContact.surface.mu = 0f; // No friction
             WaterContact.surface.bounce = 0.0f; // No bounce
             WaterContact.surface.soft_cfm = 0.010f;
@@ -679,7 +679,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
             // Terrain contact friction bounce and various error correcting calculations
             // Use this when an avatar is in contact with the terrain and moving.
-            AvatarMovementTerrainContact.surface.mode |= SafeNativeMethods.ContactFlags.SoftERP;
+            AvatarMovementTerrainContact.surface.mode |= OdeNative.ContactFlags.SoftERP;
             AvatarMovementTerrainContact.surface.mu = mTerrainContactFriction;
             AvatarMovementTerrainContact.surface.bounce = mTerrainContactBounce;
             AvatarMovementTerrainContact.surface.soft_erp = mTerrainContactERP;
@@ -701,38 +701,38 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 Rubber = 6
              */
 
-            m_materialContacts = new SafeNativeMethods.Contact[7,2];
+            m_materialContacts = new OdeNative.Contact[7,2];
 
-            m_materialContacts[(int)Material.Stone, 0] = new SafeNativeMethods.Contact();
-            m_materialContacts[(int)Material.Stone, 0].surface.mode |= SafeNativeMethods.ContactFlags.SoftERP;
+            m_materialContacts[(int)Material.Stone, 0] = new OdeNative.Contact();
+            m_materialContacts[(int)Material.Stone, 0].surface.mode |= OdeNative.ContactFlags.SoftERP;
             m_materialContacts[(int)Material.Stone, 0].surface.mu = nmAvatarObjectContactFriction;
             m_materialContacts[(int)Material.Stone, 0].surface.bounce = nmAvatarObjectContactBounce;
             m_materialContacts[(int)Material.Stone, 0].surface.soft_cfm = 0.010f;
             m_materialContacts[(int)Material.Stone, 0].surface.soft_erp = 0.010f;
 
-            m_materialContacts[(int)Material.Stone, 1] = new SafeNativeMethods.Contact();
-            m_materialContacts[(int)Material.Stone, 1].surface.mode |= SafeNativeMethods.ContactFlags.SoftERP;
+            m_materialContacts[(int)Material.Stone, 1] = new OdeNative.Contact();
+            m_materialContacts[(int)Material.Stone, 1].surface.mode |= OdeNative.ContactFlags.SoftERP;
             m_materialContacts[(int)Material.Stone, 1].surface.mu = mAvatarObjectContactFriction;
             m_materialContacts[(int)Material.Stone, 1].surface.bounce = mAvatarObjectContactBounce;
             m_materialContacts[(int)Material.Stone, 1].surface.soft_cfm = 0.010f;
             m_materialContacts[(int)Material.Stone, 1].surface.soft_erp = 0.010f;
 
-            m_materialContacts[(int)Material.Metal, 0] = new SafeNativeMethods.Contact();
-            m_materialContacts[(int)Material.Metal, 0].surface.mode |= SafeNativeMethods.ContactFlags.SoftERP;
+            m_materialContacts[(int)Material.Metal, 0] = new OdeNative.Contact();
+            m_materialContacts[(int)Material.Metal, 0].surface.mode |= OdeNative.ContactFlags.SoftERP;
             m_materialContacts[(int)Material.Metal, 0].surface.mu = nmAvatarObjectContactFriction;
             m_materialContacts[(int)Material.Metal, 0].surface.bounce = nmAvatarObjectContactBounce;
             m_materialContacts[(int)Material.Metal, 0].surface.soft_cfm = 0.010f;
             m_materialContacts[(int)Material.Metal, 0].surface.soft_erp = 0.010f;
 
-            m_materialContacts[(int)Material.Metal, 1] = new SafeNativeMethods.Contact();
-            m_materialContacts[(int)Material.Metal, 1].surface.mode |= SafeNativeMethods.ContactFlags.SoftERP;
+            m_materialContacts[(int)Material.Metal, 1] = new OdeNative.Contact();
+            m_materialContacts[(int)Material.Metal, 1].surface.mode |= OdeNative.ContactFlags.SoftERP;
             m_materialContacts[(int)Material.Metal, 1].surface.mu = mAvatarObjectContactFriction;
             m_materialContacts[(int)Material.Metal, 1].surface.bounce = mAvatarObjectContactBounce;
             m_materialContacts[(int)Material.Metal, 1].surface.soft_cfm = 0.010f;
             m_materialContacts[(int)Material.Metal, 1].surface.soft_erp = 0.010f;
 
-            m_materialContacts[(int)Material.Glass, 0] = new SafeNativeMethods.Contact();
-            m_materialContacts[(int)Material.Glass, 0].surface.mode |= SafeNativeMethods.ContactFlags.SoftERP;
+            m_materialContacts[(int)Material.Glass, 0] = new OdeNative.Contact();
+            m_materialContacts[(int)Material.Glass, 0].surface.mode |= OdeNative.ContactFlags.SoftERP;
             m_materialContacts[(int)Material.Glass, 0].surface.mu = 1f;
             m_materialContacts[(int)Material.Glass, 0].surface.bounce = 0.5f;
             m_materialContacts[(int)Material.Glass, 0].surface.soft_cfm = 0.010f;
@@ -745,83 +745,83 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 private float mAvatarObjectContactFriction = 75f;
                 private float mAvatarObjectContactBounce = 0.1f;
             */
-            m_materialContacts[(int)Material.Glass, 1] = new SafeNativeMethods.Contact();
-            m_materialContacts[(int)Material.Glass, 1].surface.mode |= SafeNativeMethods.ContactFlags.SoftERP;
+            m_materialContacts[(int)Material.Glass, 1] = new OdeNative.Contact();
+            m_materialContacts[(int)Material.Glass, 1].surface.mode |= OdeNative.ContactFlags.SoftERP;
             m_materialContacts[(int)Material.Glass, 1].surface.mu = 1f;
             m_materialContacts[(int)Material.Glass, 1].surface.bounce = 0.5f;
             m_materialContacts[(int)Material.Glass, 1].surface.soft_cfm = 0.010f;
             m_materialContacts[(int)Material.Glass, 1].surface.soft_erp = 0.010f;
 
-            m_materialContacts[(int)Material.Wood, 0] = new SafeNativeMethods.Contact();
-            m_materialContacts[(int)Material.Wood, 0].surface.mode |= SafeNativeMethods.ContactFlags.SoftERP;
+            m_materialContacts[(int)Material.Wood, 0] = new OdeNative.Contact();
+            m_materialContacts[(int)Material.Wood, 0].surface.mode |= OdeNative.ContactFlags.SoftERP;
             m_materialContacts[(int)Material.Wood, 0].surface.mu = nmAvatarObjectContactFriction;
             m_materialContacts[(int)Material.Wood, 0].surface.bounce = nmAvatarObjectContactBounce;
             m_materialContacts[(int)Material.Wood, 0].surface.soft_cfm = 0.010f;
             m_materialContacts[(int)Material.Wood, 0].surface.soft_erp = 0.010f;
 
-            m_materialContacts[(int)Material.Wood, 1] = new SafeNativeMethods.Contact();
-            m_materialContacts[(int)Material.Wood, 1].surface.mode |= SafeNativeMethods.ContactFlags.SoftERP;
+            m_materialContacts[(int)Material.Wood, 1] = new OdeNative.Contact();
+            m_materialContacts[(int)Material.Wood, 1].surface.mode |= OdeNative.ContactFlags.SoftERP;
             m_materialContacts[(int)Material.Wood, 1].surface.mu = mAvatarObjectContactFriction;
             m_materialContacts[(int)Material.Wood, 1].surface.bounce = mAvatarObjectContactBounce;
             m_materialContacts[(int)Material.Wood, 1].surface.soft_cfm = 0.010f;
             m_materialContacts[(int)Material.Wood, 1].surface.soft_erp = 0.010f;
 
-            m_materialContacts[(int)Material.Flesh, 0] = new SafeNativeMethods.Contact();
-            m_materialContacts[(int)Material.Flesh, 0].surface.mode |= SafeNativeMethods.ContactFlags.SoftERP;
+            m_materialContacts[(int)Material.Flesh, 0] = new OdeNative.Contact();
+            m_materialContacts[(int)Material.Flesh, 0].surface.mode |= OdeNative.ContactFlags.SoftERP;
             m_materialContacts[(int)Material.Flesh, 0].surface.mu = nmAvatarObjectContactFriction;
             m_materialContacts[(int)Material.Flesh, 0].surface.bounce = nmAvatarObjectContactBounce;
             m_materialContacts[(int)Material.Flesh, 0].surface.soft_cfm = 0.010f;
             m_materialContacts[(int)Material.Flesh, 0].surface.soft_erp = 0.010f;
 
-            m_materialContacts[(int)Material.Flesh, 1] = new SafeNativeMethods.Contact();
-            m_materialContacts[(int)Material.Flesh, 1].surface.mode |= SafeNativeMethods.ContactFlags.SoftERP;
+            m_materialContacts[(int)Material.Flesh, 1] = new OdeNative.Contact();
+            m_materialContacts[(int)Material.Flesh, 1].surface.mode |= OdeNative.ContactFlags.SoftERP;
             m_materialContacts[(int)Material.Flesh, 1].surface.mu = mAvatarObjectContactFriction;
             m_materialContacts[(int)Material.Flesh, 1].surface.bounce = mAvatarObjectContactBounce;
             m_materialContacts[(int)Material.Flesh, 1].surface.soft_cfm = 0.010f;
             m_materialContacts[(int)Material.Flesh, 1].surface.soft_erp = 0.010f;
 
-            m_materialContacts[(int)Material.Plastic, 0] = new SafeNativeMethods.Contact();
-            m_materialContacts[(int)Material.Plastic, 0].surface.mode |= SafeNativeMethods.ContactFlags.SoftERP;
+            m_materialContacts[(int)Material.Plastic, 0] = new OdeNative.Contact();
+            m_materialContacts[(int)Material.Plastic, 0].surface.mode |= OdeNative.ContactFlags.SoftERP;
             m_materialContacts[(int)Material.Plastic, 0].surface.mu = nmAvatarObjectContactFriction;
             m_materialContacts[(int)Material.Plastic, 0].surface.bounce = nmAvatarObjectContactBounce;
             m_materialContacts[(int)Material.Plastic, 0].surface.soft_cfm = 0.010f;
             m_materialContacts[(int)Material.Plastic, 0].surface.soft_erp = 0.010f;
 
-            m_materialContacts[(int)Material.Plastic, 1] = new SafeNativeMethods.Contact();
-            m_materialContacts[(int)Material.Plastic, 1].surface.mode |= SafeNativeMethods.ContactFlags.SoftERP;
+            m_materialContacts[(int)Material.Plastic, 1] = new OdeNative.Contact();
+            m_materialContacts[(int)Material.Plastic, 1].surface.mode |= OdeNative.ContactFlags.SoftERP;
             m_materialContacts[(int)Material.Plastic, 1].surface.mu = mAvatarObjectContactFriction;
             m_materialContacts[(int)Material.Plastic, 1].surface.bounce = mAvatarObjectContactBounce;
             m_materialContacts[(int)Material.Plastic, 1].surface.soft_cfm = 0.010f;
             m_materialContacts[(int)Material.Plastic, 1].surface.soft_erp = 0.010f;
 
-            m_materialContacts[(int)Material.Rubber, 0] = new SafeNativeMethods.Contact();
-            m_materialContacts[(int)Material.Rubber, 0].surface.mode |= SafeNativeMethods.ContactFlags.SoftERP;
+            m_materialContacts[(int)Material.Rubber, 0] = new OdeNative.Contact();
+            m_materialContacts[(int)Material.Rubber, 0].surface.mode |= OdeNative.ContactFlags.SoftERP;
             m_materialContacts[(int)Material.Rubber, 0].surface.mu = nmAvatarObjectContactFriction;
             m_materialContacts[(int)Material.Rubber, 0].surface.bounce = nmAvatarObjectContactBounce;
             m_materialContacts[(int)Material.Rubber, 0].surface.soft_cfm = 0.010f;
             m_materialContacts[(int)Material.Rubber, 0].surface.soft_erp = 0.010f;
 
-            m_materialContacts[(int)Material.Rubber, 1] = new SafeNativeMethods.Contact();
-            m_materialContacts[(int)Material.Rubber, 1].surface.mode |= SafeNativeMethods.ContactFlags.SoftERP;
+            m_materialContacts[(int)Material.Rubber, 1] = new OdeNative.Contact();
+            m_materialContacts[(int)Material.Rubber, 1].surface.mode |= OdeNative.ContactFlags.SoftERP;
             m_materialContacts[(int)Material.Rubber, 1].surface.mu = mAvatarObjectContactFriction;
             m_materialContacts[(int)Material.Rubber, 1].surface.bounce = mAvatarObjectContactBounce;
             m_materialContacts[(int)Material.Rubber, 1].surface.soft_cfm = 0.010f;
             m_materialContacts[(int)Material.Rubber, 1].surface.soft_erp = 0.010f;
 
-            SafeNativeMethods.HashSpaceSetLevels(space, HashspaceLow, HashspaceHigh);
+            OdeNative.HashSpaceSetLevels(space, HashspaceLow, HashspaceHigh);
 
             // Set the gravity,, don't disable things automatically (we set it explicitly on some things)
 
-            SafeNativeMethods.WorldSetGravity(world, gravityx, gravityy, gravityz);
-            SafeNativeMethods.WorldSetContactSurfaceLayer(world, contactsurfacelayer);
+            OdeNative.WorldSetGravity(world, gravityx, gravityy, gravityz);
+            OdeNative.WorldSetContactSurfaceLayer(world, contactsurfacelayer);
 
-            SafeNativeMethods.WorldSetLinearDamping(world, 256f);
-            SafeNativeMethods.WorldSetAngularDamping(world, 256f);
-            SafeNativeMethods.WorldSetAngularDampingThreshold(world, 256f);
-            SafeNativeMethods.WorldSetLinearDampingThreshold(world, 256f);
-            SafeNativeMethods.WorldSetMaxAngularSpeed(world, 256f);
+            OdeNative.WorldSetLinearDamping(world, 256f);
+            OdeNative.WorldSetAngularDamping(world, 256f);
+            OdeNative.WorldSetAngularDampingThreshold(world, 256f);
+            OdeNative.WorldSetLinearDampingThreshold(world, 256f);
+            OdeNative.WorldSetMaxAngularSpeed(world, 256f);
 
-            SafeNativeMethods.WorldSetQuickStepNumIterations(world, m_physicsiterations);
+            OdeNative.WorldSetQuickStepNumIterations(world, m_physicsiterations);
             //d.WorldSetContactMaxCorrectingVel(world, 1000.0f);
 
             for (int i = 0; i < staticPrimspace.GetLength(0); i++)
@@ -847,7 +847,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
         /// <param name='contactsArray'></param>
         /// <param name='contactGeomSize'></param>
         private int CollideGeoms(
-            IntPtr geom1, IntPtr geom2, int maxContacts, SafeNativeMethods.ContactGeom[] contactsArray, int contactGeomSize)
+            IntPtr geom1, IntPtr geom2, int maxContacts, OdeNative.ContactGeom[] contactsArray, int contactGeomSize)
         {
             int count;
 
@@ -857,7 +857,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 if (CollectStats)
                     m_nativeCollisionStartTick = Util.EnvironmentTickCount();
 
-                count = SafeNativeMethods.Collide(geom1, geom2, maxContacts, contactsArray, contactGeomSize);
+                count = OdeNative.Collide(geom1, geom2, maxContacts, contactsArray, contactGeomSize);
             }
 
             // We do this outside the lock so that any waiting threads aren't held up, though the effect is probably
@@ -883,7 +883,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 m_nativeCollisionStartTick = Util.EnvironmentTickCount();
             }
 
-            SafeNativeMethods.SpaceCollide2(space1, space2, data, nearCallback);
+            OdeNative.SpaceCollide2(space1, space2, data, nearCallback);
 
             if (CollectStats && m_inCollisionTiming)
             {
@@ -914,7 +914,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
             // Test if we're colliding a geom with a space.
             // If so we have to drill down into the space recursively
 
-            if (SafeNativeMethods.GeomIsSpace(g1) || SafeNativeMethods.GeomIsSpace(g2))
+            if (OdeNative.GeomIsSpace(g1) || OdeNative.GeomIsSpace(g2))
             {
                 if (g1 == IntPtr.Zero || g2 == IntPtr.Zero)
                     return;
@@ -943,8 +943,8 @@ namespace OpenSim.Region.PhysicsModule.ODE
             if (g1 == IntPtr.Zero || g2 == IntPtr.Zero)
                 return;
 
-            IntPtr b1 = SafeNativeMethods.GeomGetBody(g1);
-            IntPtr b2 = SafeNativeMethods.GeomGetBody(g2);
+            IntPtr b1 = OdeNative.GeomGetBody(g1);
+            IntPtr b2 = OdeNative.GeomGetBody(g2);
 
             // d.GeomClassID id = d.GeomGetClass(g1);
 
@@ -971,10 +971,10 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 if (g1 == g2)
                     return; // Can't collide with yourself
 
-                if (b1 != IntPtr.Zero && b2 != IntPtr.Zero && SafeNativeMethods.AreConnectedExcluding(b1, b2, SafeNativeMethods.JointType.Contact))
+                if (b1 != IntPtr.Zero && b2 != IntPtr.Zero && OdeNative.AreConnectedExcluding(b1, b2, OdeNative.JointType.Contact))
                     return;
 
-                count = CollideGeoms(g1, g2, contacts.Length, contacts, SafeNativeMethods.ContactGeom.unmanagedSizeOf);
+                count = CollideGeoms(g1, g2, contacts.Length, contacts, OdeNative.ContactGeom.unmanagedSizeOf);
 
                 // All code after this is only relevant if we have any collisions
                 if (count <= 0)
@@ -1022,7 +1022,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
             for (int i = 0; i < count; i++)
             {
-                SafeNativeMethods.ContactGeom curContact = contacts[i];
+                OdeNative.ContactGeom curContact = contacts[i];
 
                 if (curContact.depth > maxDepthContact.PenetrationDepth)
                 {
@@ -1099,7 +1099,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                                     curContact.depth = 0.00000003f;
                                     p2.Velocity = p2.Velocity + new Vector3(0f, 0f, 0.5f);
                                     curContact.pos =
-                                        new SafeNativeMethods.Vector3(curContact.pos.X + (p1.Size.X/2),
+                                        new OdeNative.Vector3(curContact.pos.X + (p1.Size.X/2),
                                                       curContact.pos.Y + (p1.Size.Y/2),
                                                       curContact.pos.Z + (p1.Size.Z/2));
                                     character.SetPidStatus(true);
@@ -1116,7 +1116,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                                     curContact.depth = 0.00000003f;
                                     p1.Velocity = p1.Velocity + new Vector3(0f, 0f, 0.5f);
                                     curContact.pos =
-                                        new SafeNativeMethods.Vector3(curContact.pos.X + (p1.Size.X/2),
+                                        new OdeNative.Vector3(curContact.pos.X + (p1.Size.X/2),
                                                       curContact.pos.Y + (p1.Size.Y/2),
                                                       curContact.pos.Z + (p1.Size.Z/2));
                                     character.SetPidStatus(true);
@@ -1168,7 +1168,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
                             if (m_global_contactcount < maxContactsbeforedeath)
                             {
-                                joint = SafeNativeMethods.JointCreateContact(world, contactgroup, ref AvatarMovementTerrainContact);
+                                joint = OdeNative.JointCreateContact(world, contactgroup, ref AvatarMovementTerrainContact);
                                 m_global_contactcount++;
                             }
                         }
@@ -1182,7 +1182,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
                                 if (m_global_contactcount < maxContactsbeforedeath)
                                 {
-                                    joint = SafeNativeMethods.JointCreateContact(world, contactgroup, ref TerrainContact);
+                                    joint = OdeNative.JointCreateContact(world, contactgroup, ref TerrainContact);
                                     m_global_contactcount++;
                                 }
                             }
@@ -1217,7 +1217,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
                                     if (m_global_contactcount < maxContactsbeforedeath)
                                     {
-                                        joint = SafeNativeMethods.JointCreateContact(world, contactgroup, ref m_materialContacts[material, movintYN]);
+                                        joint = OdeNative.JointCreateContact(world, contactgroup, ref m_materialContacts[material, movintYN]);
                                         m_global_contactcount++;
                                     }
                                 }
@@ -1243,7 +1243,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
                                     if (m_global_contactcount < maxContactsbeforedeath)
                                     {
-                                        joint = SafeNativeMethods.JointCreateContact(world, contactgroup, ref m_materialContacts[material, movintYN]);
+                                        joint = OdeNative.JointCreateContact(world, contactgroup, ref m_materialContacts[material, movintYN]);
                                         m_global_contactcount++;
                                     }
                                 }
@@ -1277,7 +1277,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
                         if (m_global_contactcount < maxContactsbeforedeath)
                         {
-                            joint = SafeNativeMethods.JointCreateContact(world, contactgroup, ref WaterContact);
+                            joint = OdeNative.JointCreateContact(world, contactgroup, ref WaterContact);
                             m_global_contactcount++;
                         }
                         //m_log.Info("[PHYSICS]: Prim Water Contact" + contact.depth);
@@ -1294,7 +1294,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
                                 if (m_global_contactcount < maxContactsbeforedeath)
                                 {
-                                    joint = SafeNativeMethods.JointCreateContact(world, contactgroup, ref AvatarMovementprimContact);
+                                    joint = OdeNative.JointCreateContact(world, contactgroup, ref AvatarMovementprimContact);
                                     m_global_contactcount++;
                                 }
                             }
@@ -1305,7 +1305,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
                                 if (m_global_contactcount < maxContactsbeforedeath)
                                 {
-                                    joint = SafeNativeMethods.JointCreateContact(world, contactgroup, ref contact);
+                                    joint = OdeNative.JointCreateContact(world, contactgroup, ref contact);
                                     m_global_contactcount++;
                                 }
                             }
@@ -1326,7 +1326,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
                             if (m_global_contactcount < maxContactsbeforedeath)
                             {
-                                joint = SafeNativeMethods.JointCreateContact(world, contactgroup, ref m_materialContacts[material, 0]);
+                                joint = OdeNative.JointCreateContact(world, contactgroup, ref m_materialContacts[material, 0]);
                                 m_global_contactcount++;
                             }
                         }
@@ -1334,7 +1334,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
                     if (m_global_contactcount < maxContactsbeforedeath && joint != IntPtr.Zero) // stack collide!
                     {
-                        SafeNativeMethods.JointAttach(joint, b1, b2);
+                        OdeNative.JointAttach(joint, b1, b2);
                         m_global_contactcount++;
                     }
                 }
@@ -1354,7 +1354,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
             }
         }
 
-        private bool checkDupe(SafeNativeMethods.ContactGeom contactGeom, int atype)
+        private bool checkDupe(OdeNative.ContactGeom contactGeom, int atype)
         {
             if (!m_filterCollisions)
                 return false;
@@ -1363,7 +1363,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
             ActorTypes at = (ActorTypes)atype;
 
-            foreach (SafeNativeMethods.ContactGeom contact in _perloopContact)
+            foreach (OdeNative.ContactGeom contact in _perloopContact)
             {
                 //if ((contact.g1 == contactGeom.g1 && contact.g2 == contactGeom.g2))
                 //{
@@ -1550,7 +1550,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
             List<OdePrim> removeprims = null;
             foreach (OdePrim chr in _activeprims)
             {
-                if (chr.Body != IntPtr.Zero && SafeNativeMethods.BodyIsEnabled(chr.Body) && (!chr.m_disabled))
+                if (chr.Body != IntPtr.Zero && OdeNative.BodyIsEnabled(chr.Body) && (!chr.m_disabled))
                 {
                     try
                     {
@@ -1676,7 +1676,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
         public override PhysicsActor AddAvatar(string avName, Vector3 position, Vector3 velocity, Vector3 size, bool isFlying)
         {
-            SafeNativeMethods.AllocateODEDataForThread(0);
+            OdeNative.AllocateODEDataForThread(0);
 
             OdeCharacter newAv
                 = new OdeCharacter(
@@ -1699,7 +1699,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
             lock (OdeLock)
             {
-                SafeNativeMethods.AllocateODEDataForThread(0);
+                OdeNative.AllocateODEDataForThread(0);
 
                 ((OdeCharacter) actor).Destroy();
             }
@@ -1756,7 +1756,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
             OdePrim newPrim;
             lock (OdeLock)
             {
-                SafeNativeMethods.AllocateODEDataForThread(0);
+                OdeNative.AllocateODEDataForThread(0);
                 newPrim = new OdePrim(name, this, pos, siz, rot, pbs, isphysical);
 
                 lock (_prims)
@@ -1914,12 +1914,12 @@ namespace OpenSim.Region.PhysicsModule.ODE
                //{
                     //int adfadf = 0;
                 //}
-                if (SafeNativeMethods.SpaceQuery(currentspace, geom) && currentspace != IntPtr.Zero)
+                if (OdeNative.SpaceQuery(currentspace, geom) && currentspace != IntPtr.Zero)
                 {
-                    if (SafeNativeMethods.GeomIsSpace(currentspace))
+                    if (OdeNative.GeomIsSpace(currentspace))
                     {
 //                        waitForSpaceUnlock(currentspace);
-                        SafeNativeMethods.SpaceRemove(currentspace, geom);
+                        OdeNative.SpaceRemove(currentspace, geom);
                     }
                     else
                     {
@@ -1929,13 +1929,13 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 }
                 else
                 {
-                    IntPtr sGeomIsIn = SafeNativeMethods.GeomGetSpace(geom);
+                    IntPtr sGeomIsIn = OdeNative.GeomGetSpace(geom);
                     if (sGeomIsIn != IntPtr.Zero)
                     {
-                        if (SafeNativeMethods.GeomIsSpace(currentspace))
+                        if (OdeNative.GeomIsSpace(currentspace))
                         {
 //                            waitForSpaceUnlock(sGeomIsIn);
-                            SafeNativeMethods.SpaceRemove(sGeomIsIn, geom);
+                            OdeNative.SpaceRemove(sGeomIsIn, geom);
                         }
                         else
                         {
@@ -1946,13 +1946,13 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 }
 
                 //If there are no more geometries in the sub-space, we don't need it in the main space anymore
-                if (SafeNativeMethods.SpaceGetNumGeoms(currentspace) == 0)
+                if (OdeNative.SpaceGetNumGeoms(currentspace) == 0)
                 {
                     if (currentspace != IntPtr.Zero)
                     {
-                        if (SafeNativeMethods.GeomIsSpace(currentspace))
+                        if (OdeNative.GeomIsSpace(currentspace))
                         {
-                            SafeNativeMethods.SpaceRemove(space, currentspace);
+                            OdeNative.SpaceRemove(space, currentspace);
                             // free up memory used by the space.
 
                             resetSpaceArrayItemToZero(currentspace);
@@ -1970,12 +1970,12 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 // this is a physical object that got disabled. ;.;
                 if (currentspace != IntPtr.Zero && geom != IntPtr.Zero)
                 {
-                    if (SafeNativeMethods.SpaceQuery(currentspace, geom))
+                    if (OdeNative.SpaceQuery(currentspace, geom))
                     {
-                        if (SafeNativeMethods.GeomIsSpace(currentspace))
+                        if (OdeNative.GeomIsSpace(currentspace))
                         {
 //                            waitForSpaceUnlock(currentspace);
-                            SafeNativeMethods.SpaceRemove(currentspace, geom);
+                            OdeNative.SpaceRemove(currentspace, geom);
                         }
                         else
                         {
@@ -1985,13 +1985,13 @@ namespace OpenSim.Region.PhysicsModule.ODE
                     }
                     else
                     {
-                        IntPtr sGeomIsIn = SafeNativeMethods.GeomGetSpace(geom);
+                        IntPtr sGeomIsIn = OdeNative.GeomGetSpace(geom);
                         if (sGeomIsIn != IntPtr.Zero)
                         {
-                            if (SafeNativeMethods.GeomIsSpace(sGeomIsIn))
+                            if (OdeNative.GeomIsSpace(sGeomIsIn))
                             {
 //                                waitForSpaceUnlock(sGeomIsIn);
-                                SafeNativeMethods.SpaceRemove(sGeomIsIn, geom);
+                                OdeNative.SpaceRemove(sGeomIsIn, geom);
                             }
                             else
                             {
@@ -2012,7 +2012,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
             if (newspace == IntPtr.Zero)
             {
                 newspace = createprimspace(iprimspaceArrItem[0], iprimspaceArrItem[1]);
-                SafeNativeMethods.HashSpaceSetLevels(newspace, HashspaceLow, HashspaceHigh);
+                OdeNative.HashSpaceSetLevels(newspace, HashspaceLow, HashspaceHigh);
             }
 
             return newspace;
@@ -2027,11 +2027,11 @@ namespace OpenSim.Region.PhysicsModule.ODE
         internal IntPtr createprimspace(int iprimspaceArrItemX, int iprimspaceArrItemY)
         {
             // creating a new space for prim and inserting it into main space.
-            staticPrimspace[iprimspaceArrItemX, iprimspaceArrItemY] = SafeNativeMethods.HashSpaceCreate(IntPtr.Zero);
-            SafeNativeMethods.GeomSetCategoryBits(staticPrimspace[iprimspaceArrItemX, iprimspaceArrItemY], (int)CollisionCategories.Space);
+            staticPrimspace[iprimspaceArrItemX, iprimspaceArrItemY] = OdeNative.HashSpaceCreate(IntPtr.Zero);
+            OdeNative.GeomSetCategoryBits(staticPrimspace[iprimspaceArrItemX, iprimspaceArrItemY], (int)CollisionCategories.Space);
 //            waitForSpaceUnlock(space);
-            SafeNativeMethods.SpaceSetSublevel(space, 1);
-            SafeNativeMethods.SpaceAdd(space, staticPrimspace[iprimspaceArrItemX, iprimspaceArrItemY]);
+            OdeNative.SpaceSetSublevel(space, 1);
+            OdeNative.SpaceAdd(space, staticPrimspace[iprimspaceArrItemX, iprimspaceArrItemY]);
 
             return staticPrimspace[iprimspaceArrItemX, iprimspaceArrItemY];
         }
@@ -2251,7 +2251,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                     m_log.InfoFormat("[Ode] start processing pending actor operations");
                     int tstart = Util.EnvironmentTickCount();
 
-                    SafeNativeMethods.AllocateODEDataForThread(0);
+                    OdeNative.AllocateODEDataForThread(0);
 
                     lock (_taintedPrims)
                     {
@@ -2327,7 +2327,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
             lock (OdeLock)
             {
-                SafeNativeMethods.AllocateODEDataForThread(~0U);
+                OdeNative.AllocateODEDataForThread(~0U);
 
                 while (step_time > HalfOdeStep)
                 {
@@ -2476,12 +2476,12 @@ namespace OpenSim.Region.PhysicsModule.ODE
                         }
 
                         lock(SimulationLock)
-                            SafeNativeMethods.WorldQuickStep(world, ODE_STEPSIZE);
+                            OdeNative.WorldQuickStep(world, ODE_STEPSIZE);
 
                         if (CollectStats)
                             m_stats[ODENativeStepFrameMsStatName] += Util.EnvironmentTickCountSubtract(tempTick);
 
-                        SafeNativeMethods.JointGroupEmpty(contactgroup);
+                        OdeNative.JointGroupEmpty(contactgroup);
                     }
                     catch (Exception e)
                     {
@@ -2529,7 +2529,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
                 foreach (OdePrim prim in _activeprims)
                 {
-                    if (prim.IsPhysical && (SafeNativeMethods.BodyIsEnabled(prim.Body) || !prim._zeroFlag))
+                    if (prim.IsPhysical && (OdeNative.BodyIsEnabled(prim.Body) || !prim._zeroFlag))
                     {
                         prim.UpdatePositionAndVelocity();
                     }
@@ -2556,7 +2556,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                         fwriter.Close();
                     }
 
-                    SafeNativeMethods.WorldExportDIF(world, fname, physics_logging_append_existing_logfile, prefix);
+                    OdeNative.WorldExportDIF(world, fname, physics_logging_append_existing_logfile, prefix);
                 }
 
                 latertickcount = Util.EnvironmentTickCountSubtract(tickCountFrameRun);
@@ -2668,7 +2668,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
             lock (OdeLock)
             {
-                SafeNativeMethods.AllocateODEDataForThread(~0U);
+                OdeNative.AllocateODEDataForThread(~0U);
 
                 IntPtr GroundGeom = IntPtr.Zero;
                 if (RegionTerrain.TryGetValue(pOffset, out GroundGeom))
@@ -2680,29 +2680,29 @@ namespace OpenSim.Region.PhysicsModule.ODE
                         {
                             TerrainHeightFieldHeights.Remove(GroundGeom);
                         }
-                        SafeNativeMethods.SpaceRemove(space, GroundGeom);
-                        SafeNativeMethods.GeomDestroy(GroundGeom);
+                        OdeNative.SpaceRemove(space, GroundGeom);
+                        OdeNative.GeomDestroy(GroundGeom);
                     }
 
                 }
-                IntPtr HeightmapData = SafeNativeMethods.GeomHeightfieldDataCreate();
-                SafeNativeMethods.GeomHeightfieldDataBuildSingle(HeightmapData, _heightmap, 0,
+                IntPtr HeightmapData = OdeNative.GeomHeightfieldDataCreate();
+                OdeNative.GeomHeightfieldDataBuildSingle(HeightmapData, _heightmap, 0,
                             heightmapWidth, heightmapHeight,
                             (int)heightmapWidthSamples,
                             (int)heightmapHeightSamples,
                             scale, offset, thickness, wrap);
 
-                SafeNativeMethods.GeomHeightfieldDataSetBounds(HeightmapData, hfmin - 1, hfmax + 1);
-                GroundGeom = SafeNativeMethods.CreateHeightfield(space, HeightmapData, 1);
+                OdeNative.GeomHeightfieldDataSetBounds(HeightmapData, hfmin - 1, hfmax + 1);
+                GroundGeom = OdeNative.CreateHeightfield(space, HeightmapData, 1);
                 if (GroundGeom != IntPtr.Zero)
                 {
-                    SafeNativeMethods.GeomSetCategoryBits(GroundGeom, (int)(CollisionCategories.Land));
-                    SafeNativeMethods.GeomSetCollideBits(GroundGeom, (int)(CollisionCategories.Space));
+                    OdeNative.GeomSetCategoryBits(GroundGeom, (int)(CollisionCategories.Land));
+                    OdeNative.GeomSetCollideBits(GroundGeom, (int)(CollisionCategories.Space));
 
                 }
                 geom_name_map[GroundGeom] = "Terrain";
 
-                SafeNativeMethods.Matrix3 R = new SafeNativeMethods.Matrix3();
+                OdeNative.Matrix3 R = new OdeNative.Matrix3();
 
                 Quaternion q1 = Quaternion.CreateFromAxisAngle(new Vector3(1, 0, 0), 1.5707f);
                 Quaternion q2 = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), 1.5707f);
@@ -2712,9 +2712,9 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 float angle;
                 q1.GetAxisAngle(out v3, out angle);
 
-                SafeNativeMethods.RFromAxisAndAngle(out R, v3.X, v3.Y, v3.Z, angle);
-                SafeNativeMethods.GeomSetRotation(GroundGeom, ref R);
-                SafeNativeMethods.GeomSetPosition(GroundGeom, pOffset.X + regionsizeX * 0.5f, pOffset.Y + regionsizeY * 0.5f, 0.0f);
+                OdeNative.RFromAxisAndAngle(out R, v3.X, v3.Y, v3.Z, angle);
+                OdeNative.GeomSetRotation(GroundGeom, ref R);
+                OdeNative.GeomSetPosition(GroundGeom, pOffset.X + regionsizeX * 0.5f, pOffset.Y + regionsizeY * 0.5f, 0.0f);
                 IntPtr testGround = IntPtr.Zero;
                 if (RegionTerrain.TryGetValue(pOffset, out testGround))
                 {
@@ -2752,7 +2752,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
                 _worldInitialized = false;
 
-                SafeNativeMethods.AllocateODEDataForThread(~0U);
+                OdeNative.AllocateODEDataForThread(~0U);
 
                 if (m_rayCastManager != null)
                 {
@@ -2780,13 +2780,13 @@ namespace OpenSim.Region.PhysicsModule.ODE
                     {
                         if (TerrainHeightFieldHeights.ContainsKey(GroundGeom))
                             TerrainHeightFieldHeights.Remove(GroundGeom);
-                        SafeNativeMethods.GeomDestroy(GroundGeom);
+                        OdeNative.GeomDestroy(GroundGeom);
                     }
                  }
 
                 try
                 {
-                    SafeNativeMethods.WorldDestroy(world);
+                    OdeNative.WorldDestroy(world);
                     world = IntPtr.Zero;
                 }
                 catch (AccessViolationException e)

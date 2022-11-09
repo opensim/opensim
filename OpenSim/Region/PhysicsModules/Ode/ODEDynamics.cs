@@ -93,7 +93,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
         private float m_linearMotorDecayTimescale = 0;
         private float m_linearMotorTimescale = 0;
         private Vector3 m_lastLinearVelocityVector = Vector3.Zero;
-        private SafeNativeMethods.Vector3 m_lastPositionVector = new SafeNativeMethods.Vector3();
+        private OdeNative.Vector3 m_lastPositionVector = new OdeNative.Vector3();
         // private bool m_LinearMotorSetLastFrame = false;
         // private Vector3 m_linearMotorOffset = Vector3.Zero;
 
@@ -611,7 +611,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
         {
             m_lastLinearVelocityVector = Vector3.Zero;
             m_lastAngularVelocity = Vector3.Zero;
-            m_lastPositionVector = SafeNativeMethods.BodyGetPosition(Body);
+            m_lastPositionVector = OdeNative.BodyGetPosition(Body);
         }
 
         internal void Step(float pTimestep,  OdeScene pParentScene)
@@ -631,8 +631,8 @@ namespace OpenSim.Region.PhysicsModule.ODE
         {
             if (!m_linearMotorDirection.ApproxEquals(Vector3.Zero, 0.01f))  // requested m_linearMotorDirection is significant
             {
-                 if (!SafeNativeMethods.BodyIsEnabled(Body))
-                     SafeNativeMethods.BodyEnable(Body);
+                 if (!OdeNative.BodyIsEnabled(Body))
+                     OdeNative.BodyEnable(Body);
 
                 // add drive to body
                 Vector3 addAmount = m_linearMotorDirection/(m_linearMotorTimescale/pTimestep);
@@ -662,7 +662,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
             // convert requested object velocity to world-referenced vector
             m_dir = m_lastLinearVelocityVector;
-            SafeNativeMethods.Quaternion rot = SafeNativeMethods.BodyGetQuaternion(Body);
+            OdeNative.Quaternion rot = OdeNative.BodyGetQuaternion(Body);
             Quaternion rotq = new Quaternion(rot.X, rot.Y, rot.Z, rot.W);    // rotq = rotation of object
             m_dir *= rotq;                            // apply obj rotation to velocity vector
 
@@ -673,15 +673,15 @@ namespace OpenSim.Region.PhysicsModule.ODE
             Vector3 grav = Vector3.Zero;
             // There is some gravity, make a gravity force vector
             // that is applied after object velocity.
-            SafeNativeMethods.Mass objMass;
-            SafeNativeMethods.BodyGetMass(Body, out objMass);
+            OdeNative.Mass objMass;
+            OdeNative.BodyGetMass(Body, out objMass);
             // m_VehicleBuoyancy: -1=2g; 0=1g; 1=0g;
             grav.Z = _pParentScene.gravityz * objMass.mass * (1f - m_VehicleBuoyancy);
             // Preserve the current Z velocity
-            SafeNativeMethods.Vector3 vel_now = SafeNativeMethods.BodyGetLinearVel(Body);
+            OdeNative.Vector3 vel_now = OdeNative.BodyGetLinearVel(Body);
             m_dir.Z = vel_now.Z;        // Preserve the accumulated falling velocity
 
-            SafeNativeMethods.Vector3 pos = SafeNativeMethods.BodyGetPosition(Body);
+            OdeNative.Vector3 pos = OdeNative.BodyGetPosition(Body);
 //            Vector3 accel = new Vector3(-(m_dir.X - m_lastLinearVelocityVector.X / 0.1f), -(m_dir.Y - m_lastLinearVelocityVector.Y / 0.1f), m_dir.Z - m_lastLinearVelocityVector.Z / 0.1f);
             Vector3 posChange = new Vector3();
             posChange.X = pos.X - m_lastPositionVector.X;
@@ -693,33 +693,33 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 if (pos.X >= (m_BlockingEndPoint.X - (float)1))
                 {
                     pos.X -= posChange.X + 1;
-                    SafeNativeMethods.BodySetPosition(Body, pos.X, pos.Y, pos.Z);
+                    OdeNative.BodySetPosition(Body, pos.X, pos.Y, pos.Z);
                 }
                 if (pos.Y >= (m_BlockingEndPoint.Y - (float)1))
                 {
                     pos.Y -= posChange.Y + 1;
-                    SafeNativeMethods.BodySetPosition(Body, pos.X, pos.Y, pos.Z);
+                    OdeNative.BodySetPosition(Body, pos.X, pos.Y, pos.Z);
                 }
                 if (pos.Z >= (m_BlockingEndPoint.Z - (float)1))
                 {
                     pos.Z -= posChange.Z + 1;
-                    SafeNativeMethods.BodySetPosition(Body, pos.X, pos.Y, pos.Z);
+                    OdeNative.BodySetPosition(Body, pos.X, pos.Y, pos.Z);
                 }
                 if (pos.X <= 0)
                 {
                     pos.X += posChange.X + 1;
-                    SafeNativeMethods.BodySetPosition(Body, pos.X, pos.Y, pos.Z);
+                    OdeNative.BodySetPosition(Body, pos.X, pos.Y, pos.Z);
                 }
                 if (pos.Y <= 0)
                 {
                     pos.Y += posChange.Y + 1;
-                    SafeNativeMethods.BodySetPosition(Body, pos.X, pos.Y, pos.Z);
+                    OdeNative.BodySetPosition(Body, pos.X, pos.Y, pos.Z);
                 }
             }
             if (pos.Z < _pParentScene.GetTerrainHeightAtXY(pos.X, pos.Y))
             {
                 pos.Z = _pParentScene.GetTerrainHeightAtXY(pos.X, pos.Y) + 2;
-                SafeNativeMethods.BodySetPosition(Body, pos.X, pos.Y, pos.Z);
+                OdeNative.BodySetPosition(Body, pos.X, pos.Y, pos.Z);
             }
 
             // Check if hovering
@@ -748,7 +748,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 {
                     if ((pos.Z - m_VhoverTargetHeight) > .2 || (pos.Z - m_VhoverTargetHeight) < -.2)
                     {
-                        SafeNativeMethods.BodySetPosition(Body, pos.X, pos.Y, m_VhoverTargetHeight);
+                        OdeNative.BodySetPosition(Body, pos.X, pos.Y, m_VhoverTargetHeight);
                     }
                 }
                 else
@@ -815,12 +815,12 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 m_dir.Z = 0;
             }
 
-            m_lastPositionVector = SafeNativeMethods.BodyGetPosition(Body);
+            m_lastPositionVector = OdeNative.BodyGetPosition(Body);
 
             // Apply velocity
-            SafeNativeMethods.BodySetLinearVel(Body, m_dir.X, m_dir.Y, m_dir.Z);
+            OdeNative.BodySetLinearVel(Body, m_dir.X, m_dir.Y, m_dir.Z);
             // apply gravity force
-            SafeNativeMethods.BodyAddForce(Body, grav.X, grav.Y, grav.Z);
+            OdeNative.BodyAddForce(Body, grav.X, grav.Y, grav.Z);
 
 
             // apply friction
@@ -841,7 +841,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
             */
 
             // Get what the body is doing, this includes 'external' influences
-            SafeNativeMethods.Vector3 angularVelocity = SafeNativeMethods.BodyGetAngularVel(Body);
+            OdeNative.Vector3 angularVelocity = OdeNative.BodyGetAngularVel(Body);
    //         Vector3 angularVelocity = Vector3.Zero;
 
             if (m_angularMotorApply > 0)
@@ -874,7 +874,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
             {
                 float VAservo = 0.2f / (m_verticalAttractionTimescale * pTimestep);
                 // get present body rotation
-                SafeNativeMethods.Quaternion rot = SafeNativeMethods.BodyGetQuaternion(Body);
+                OdeNative.Quaternion rot = OdeNative.BodyGetQuaternion(Body);
                 Quaternion rotq = new Quaternion(rot.X, rot.Y, rot.Z, rot.W);
                 // make a vector pointing up
                 Vector3 verterr = Vector3.Zero;
@@ -923,7 +923,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
             if (!m_lastAngularVelocity.ApproxEquals(Vector3.Zero, 0.01f))
             {
-                if (!SafeNativeMethods.BodyIsEnabled (Body))  SafeNativeMethods.BodyEnable (Body);
+                if (!OdeNative.BodyIsEnabled (Body))  OdeNative.BodyEnable (Body);
             }
             else
             {
@@ -935,14 +935,14 @@ namespace OpenSim.Region.PhysicsModule.ODE
             m_lastAngularVelocity -= m_lastAngularVelocity * decayamount;
 
             // Apply to the body
-            SafeNativeMethods.BodySetAngularVel (Body, m_lastAngularVelocity.X, m_lastAngularVelocity.Y, m_lastAngularVelocity.Z);
+            OdeNative.BodySetAngularVel (Body, m_lastAngularVelocity.X, m_lastAngularVelocity.Y, m_lastAngularVelocity.Z);
 
         } //end MoveAngular
         internal void LimitRotation(float timestep)
         {
-            SafeNativeMethods.Quaternion rot = SafeNativeMethods.BodyGetQuaternion(Body);
+            OdeNative.Quaternion rot = OdeNative.BodyGetQuaternion(Body);
             Quaternion rotq = new Quaternion(rot.X, rot.Y, rot.Z, rot.W);    // rotq = rotation of object
-            SafeNativeMethods.Quaternion m_rot = new SafeNativeMethods.Quaternion();
+            OdeNative.Quaternion m_rot = new OdeNative.Quaternion();
             bool changed = false;
             m_rot.X = rotq.X;
             m_rot.Y = rotq.Y;
@@ -975,7 +975,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 changed = true;
             }
             if (changed)
-                SafeNativeMethods.BodySetQuaternion(Body, ref m_rot);
+                OdeNative.BodySetQuaternion(Body, ref m_rot);
         }
     }
 }

@@ -56,7 +56,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 //#endif
 
     [SuppressUnmanagedCodeSecurityAttribute]
-    internal static class SafeNativeMethods
+    internal static class UBOdeNative
     {
         internal static dReal Infinity = dReal.MaxValue;
         internal static int NTotalBodies = 0;
@@ -529,7 +529,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             unsafe
             {
                 Vector3* vtmp = BodyGetAngularVelUnsafe(body);
-                return Unsafe.As<SafeNativeMethods.Vector3, OMV.Vector3>(ref *vtmp);
+                return Unsafe.As<UBOdeNative.Vector3, OMV.Vector3>(ref *vtmp);
             }
         }
 
@@ -539,7 +539,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             unsafe
             {
                 Vector3* vtmp = BodyGetAngularVelUnsafe(body);
-                return Unsafe.As<SafeNativeMethods.Vector3, OMV.Vector3>(ref *vtmp);
+                return Unsafe.As<UBOdeNative.Vector3, OMV.Vector3>(ref *vtmp);
             }
         }
 
@@ -581,7 +581,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             unsafe
             {
                 Vector3* vtmp = BodyGetLinearVelUnsafe(body);
-                return Unsafe.As<SafeNativeMethods.Vector3, OMV.Vector3>(ref *vtmp);
+                return Unsafe.As<UBOdeNative.Vector3, OMV.Vector3>(ref *vtmp);
             }
         }
 
@@ -607,7 +607,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             unsafe
             {
                 Vector3* vtmp = BodyGetPositionUnsafe(body);
-                return Unsafe.As<SafeNativeMethods.Vector3, OMV.Vector3>(ref *vtmp);
+                return Unsafe.As<UBOdeNative.Vector3, OMV.Vector3>(ref *vtmp);
             }
         }
 
@@ -1064,7 +1064,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             unsafe
             {
                 Vector3* vtmp = GeomGetPositionUnsafe(geom);
-                return Unsafe.As<SafeNativeMethods.Vector3, OMV.Vector3>(ref *vtmp);
+                return Unsafe.As<UBOdeNative.Vector3, OMV.Vector3>(ref *vtmp);
             }
         }
 
