@@ -400,9 +400,8 @@ namespace OpenSim.Server.Base
             {
                 if (kvp.Value is List<string> l)
                 {
-                    int llen = l.Count;
                     string nkey = System.Web.HttpUtility.UrlEncode(kvp.Key);
-                    for (int i = 0; i < llen; ++i)
+                    for (int i = 0; i < l.Count; ++i)
                     {
                         if (sb.Length != 0)
                             sb.Append('&');
@@ -414,19 +413,13 @@ namespace OpenSim.Server.Base
                 else if (kvp.Value is Dictionary<string, object>)
                 {
                     // encode complex structures as JSON
-                    // needed for estate bans with the encoding used on xml
-                    // encode can be here because object does contain the structure information
-                    // but decode needs to be on estateSettings (or other user)
                     string js;
                     try
                     {
-                        // bypass libovm, we dont need even more useless high level maps
-                        // this should only be called once.. but no problem, i hope
-                        // (other uses may need more..)
                         LitJson.JsonMapper.RegisterExporter<UUID>((uuid, writer) => writer.Write(uuid.ToString()));
                         js = LitJson.JsonMapper.ToJson(kvp.Value);
                     }
-                    //                   catch(Exception e)
+                    //catch(Exception e)
                     catch
                     {
                         continue;
@@ -534,21 +527,29 @@ namespace OpenSim.Server.Base
             return ret;
         }
 
+        private static readonly XmlReaderSettings ParseXmlStringResponseXmlReaderSettings = new()
+        {
+            IgnoreWhitespace = true,
+            IgnoreComments = true,
+            ConformanceLevel = ConformanceLevel.Fragment,
+            CloseInput = true,
+            MaxCharactersInDocument = 50_000_000
+        };
+
+        private static readonly XmlParserContext ParseXmlResponseXmlParserContext = new(null, null, null, XmlSpace.None)
+        {
+            Encoding = Util.UTF8NoBomEncoding
+        };
+
         public static Dictionary<string, object> ParseXmlResponse(string data)
         {
-            //m_log.DebugFormat("[XXX]: received xml string: {0}", data);
-
             try
             {
-                XmlReaderSettings xset = new XmlReaderSettings() { IgnoreWhitespace = true, IgnoreComments = true, ConformanceLevel = ConformanceLevel.Fragment, CloseInput = true };
-                XmlParserContext xpc = new XmlParserContext(null, null, null, XmlSpace.None);
-                xpc.Encoding = Util.UTF8NoBomEncoding;
-                using (XmlReader xr = XmlReader.Create(new StringReader(data), xset, xpc))
-                {
-                    if (!xr.ReadToFollowing("ServerResponse"))
-                        return new Dictionary<string, object>();
-                    return ScanXmlResponse(xr);
-                }
+                using XmlReader xr = XmlReader.Create(new StringReader(data), 
+                    ParseXmlStringResponseXmlReaderSettings, ParseXmlResponseXmlParserContext);
+                if (!xr.ReadToFollowing("ServerResponse"))
+                    return new Dictionary<string, object>();
+                return ScanXmlResponse(xr);
             }
             catch (Exception e)
             {
@@ -557,26 +558,21 @@ namespace OpenSim.Server.Base
             return new Dictionary<string, object>();
         }
 
+        private static readonly XmlReaderSettings ParseXmlStreamResponseXmlReaderSettings = new()
+        {
+            IgnoreWhitespace = true,
+            IgnoreComments = true,
+            ConformanceLevel = ConformanceLevel.Fragment,
+            CloseInput = true,
+            MaxCharactersInDocument = 50_000_000
+        };
+
         public static Dictionary<string, object> ParseXmlResponse(Stream src)
         {
-            //m_log.DebugFormat("[XXX]: received xml string: {0}", data);
-
-            try
-            {
-                XmlReaderSettings xset = new XmlReaderSettings() { IgnoreWhitespace = true, IgnoreComments = true, ConformanceLevel = ConformanceLevel.Fragment, CloseInput = true };
-                XmlParserContext xpc = new XmlParserContext(null, null, null, XmlSpace.None);
-                xpc.Encoding = Util.UTF8NoBomEncoding;
-                using (XmlReader xr = XmlReader.Create(src, xset, xpc))
-                {
-                    if (!xr.ReadToFollowing("ServerResponse"))
-                        return new Dictionary<string, object>();
-                    return ScanXmlResponse(xr);
-                }
-            }
-            catch (Exception e)
-            {
-                m_log.DebugFormat("[serverUtils.ParseXmlResponse]: failed error: {0}", e.Message);
-            }
+            using XmlReader xr = XmlReader.Create(src, 
+                ParseXmlStreamResponseXmlReaderSettings, ParseXmlResponseXmlParserContext);
+            if (xr.ReadToFollowing("ServerResponse"))
+                return ScanXmlResponse(xr);
             return new Dictionary<string, object>();
         }
 
