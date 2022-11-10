@@ -166,7 +166,6 @@ namespace Prebuild.Core.Targets
         Kernel m_Kernel;
         XmlDocument autotoolsDoc;
         XmlUrlResolver xr;
-        System.Security.Policy.Evidence e;
         readonly Dictionary<string, SystemPackage> assemblyPathToPackage = new Dictionary<string, SystemPackage>();
         readonly Dictionary<string, string> assemblyFullNameToPath = new Dictionary<string, string>();
         readonly Dictionary<string, SystemPackage> packagesHash = new Dictionary<string, SystemPackage>();
@@ -969,9 +968,7 @@ namespace Prebuild.Core.Targets
             RunInitialization();
 
             const string streamName = "autotools.xml";
-            string fqStreamName = String.Format("Prebuild.data.{0}",
-                                                streamName
-                                                );
+            string fqStreamName = String.Format("Prebuild.data.{0}", streamName );
 
             // Retrieve stream for the autotools template XML
             Stream autotoolsStream = Assembly.GetExecutingAssembly()
@@ -979,7 +976,6 @@ namespace Prebuild.Core.Targets
 
             if (autotoolsStream == null)
             {
-
                 /* 
                  * try without the default namespace prepended, in
                  * case prebuild.exe assembly was compiled with
@@ -992,9 +988,7 @@ namespace Prebuild.Core.Targets
                 {
                     string errStr =
                       String.Format("Could not find embedded resource file:\n" +
-                                    "'{0}' or '{1}'",
-                                    streamName, fqStreamName
-                                    );
+                                    "'{0}' or '{1}'", streamName, fqStreamName );
 
                     m_Kernel.Log.Write(errStr);
 
@@ -1005,9 +999,6 @@ namespace Prebuild.Core.Targets
             // Create an XML URL Resolver with default credentials
             xr = new System.Xml.XmlUrlResolver();
             xr.Credentials = CredentialCache.DefaultCredentials;
-
-            // Create a default evidence - no need to limit access
-            e = new System.Security.Policy.Evidence();
 
             // Load the autotools XML
             autotoolsDoc = new XmlDocument();
