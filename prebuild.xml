@@ -4,7 +4,7 @@
   <Solution activeConfig="Debug" name="OpenSim" path="./" version="0.5.0-$Rev$" frameworkVersion="net6_0">
   <Configuration name="Debug" >
       <Options>
-        <CompilerDefines>TRACE;DEBUG</CompilerDefines>
+        <CompilerDefines>TRACE</CompilerDefines>
         <OptimizeCode>false</OptimizeCode>
         <CheckUnderflowOverflow>false</CheckUnderflowOverflow>
         <AllowUnsafe>true</AllowUnsafe>

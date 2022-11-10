@@ -516,7 +516,7 @@ namespace Prebuild.Core.Targets
 
                     ps.WriteLine("  </ItemGroup>");
 
-                    ps.WriteLine("  <Target Name=\"CopyFiles\">");
+                    ps.WriteLine("  <Target Name=\"CopyFiles\" AfterTargets=\"AfterBuild\">");
 
                     foreach (string destPath in project.Files.Destinations)
                     {
@@ -726,8 +726,8 @@ namespace Prebuild.Core.Targets
                         ps.WriteLine("    <DebugSymbols>{0}</DebugSymbols>", conf.Options["DebugInformation"]);
                         ps.WriteLine("    <FileAlignment>{0}</FileAlignment>", conf.Options["FileAlignment"]);
                         ps.WriteLine("    <Optimize>{0}</Optimize>", conf.Options["OptimizeCode"]);
-                        ps.WriteLine("    <TieredCompilation>false</TieredCompilation>");
-
+                        //ps.WriteLine("    <TieredCompilation>false</TieredCompilation>");
+                        ps.WriteLine("    <TieredCompilationQuickJit>false</TieredCompilationQuickJit>");
                         ps.WriteLine("    <UseCommonOutputDirectory>{0}</UseCommonOutputDirectory>", conf.Options["UseCommonOutputDirectory"].ToString());
                         ps.WriteLine("    <AppendTargetFrameworkToOutputPath>{0}</AppendTargetFrameworkToOutputPath>", conf.Options["AppendTargetFrameworkToOutputPath"].ToString());
                         ps.WriteLine("    <AppendRuntimeIdentifierToOutputPath>{0}</AppendRuntimeIdentifierToOutputPath>", conf.Options["AppendRuntimeIdentifierToOutputPath"].ToString());
