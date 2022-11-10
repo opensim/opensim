@@ -101,7 +101,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             IConfig moduleConfig = source.Configs["Modules"];
             if (moduleConfig != null)
             {
-                string name = moduleConfig.GetString("InventoryServices", "");
+                string name = moduleConfig.GetString("InventoryServices", string.Empty);
                 if (name == Name)
                 {
                     IConfig inventoryConfig = source.Configs["InventoryService"];
@@ -111,8 +111,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                         return;
                     }
 
-                    string localDll = inventoryConfig.GetString("LocalGridInventoryService",
-                            String.Empty);
+                    string localDll = inventoryConfig.GetString("LocalGridInventoryService", string.Empty);
  
                     if (localDll.Length == 0)
                     {
@@ -121,10 +120,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                         throw new Exception("Unable to proceed. Please make sure your ini files in config-include are updated according to .example's");
                     }
 
-                    Object[] args = new Object[] { source };
                     m_LocalGridInventoryService =
-                            ServerUtils.LoadPlugin<IInventoryService>(localDll,
-                            args);
+                            ServerUtils.LoadPlugin<IInventoryService>(localDll, new object[] { source });
 
                     if (m_LocalGridInventoryService == null)
                     {
@@ -211,7 +208,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                 }
             }
 
-            m_InventoryURLs.TryRemove(clientID, out string dummy);
+            m_InventoryURLs.TryRemove(clientID, out string _);
             m_Cache.RemoveAll(clientID);
         }
 
@@ -225,45 +222,39 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             if (UserManagementModule != null && !UserManagementModule.IsLocalGridUser(userID))
             {
                 // The user is not local; let's cache its service URL
-                string inventoryURL = string.Empty;
+                string inventoryURL;
                 ScenePresence sp = null;
                 foreach (Scene scene in m_Scenes)
                 {
-                    scene.TryGetScenePresence(userID, out sp);
-                    if (sp != null)
+                    if(scene.TryGetScenePresence(userID, out sp))
                     {
                         AgentCircuitData aCircuit = scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
-                        if (aCircuit == null)
+                        if (aCircuit is null)
                             return null;
-                        if (aCircuit.ServiceURLs == null)
+                        if (aCircuit.ServiceURLs is null)
                             return null;
 
-                        if (aCircuit.ServiceURLs.ContainsKey("InventoryServerURI"))
+                        if (aCircuit.ServiceURLs.TryGetValue("InventoryServerURI", out object otmp))
                         {
-                            inventoryURL = aCircuit.ServiceURLs["InventoryServerURI"].ToString();
-                            if (inventoryURL != null && inventoryURL != string.Empty)
+                            inventoryURL = otmp.ToString();
+                            if (!string.IsNullOrEmpty(inventoryURL))
                             {
-                                inventoryURL = inventoryURL.Trim(new char[] { '/' });
+                                inventoryURL = inventoryURL.Trim('/');
                                 m_InventoryURLs[userID] = inventoryURL;
-                                m_log.DebugFormat("[HG INVENTORY CONNECTOR]: Added {0} to the cache of inventory URLs", inventoryURL);
+                                //m_log.DebugFormat("[HG INVENTORY CONNECTOR]: Added {0} to the cache of inventory URLs", inventoryURL);
                                 return inventoryURL;
                             }
                         }
-//                        else
-//                        {
-//                            m_log.DebugFormat("[HG INVENTORY CONNECTOR]: User {0} does not have InventoryServerURI. OH NOES!", userID);
-//                            return;
-//                        }
                     }
                 }
-                if (sp == null)
+                if (sp is null)
                 {
                     inventoryURL = UserManagementModule.GetUserServerURL(userID, "InventoryServerURI");
                     if (!string.IsNullOrEmpty(inventoryURL))
                     {
-                        inventoryURL = inventoryURL.Trim(new char[] { '/' });
+                        inventoryURL = inventoryURL.Trim('/');
                         m_InventoryURLs[userID] = inventoryURL;
-                        m_log.DebugFormat("[HG INVENTORY CONNECTOR]: Added {0} to the cache of inventory URLs", inventoryURL);
+                        //m_log.DebugFormat("[HG INVENTORY CONNECTOR]: Added {0} to the cache of inventory URLs", inventoryURL);
                         return inventoryURL;
                     }
                 }
@@ -285,15 +276,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public bool CreateUserInventory(UUID userID)
         {
-            lock (m_Lock)
-                return m_LocalGridInventoryService.CreateUserInventory(userID);
+            return m_LocalGridInventoryService.CreateUserInventory(userID);
         }
 
         public List<InventoryFolderBase> GetInventorySkeleton(UUID userID)
         {
             string invURL = GetInventoryServiceURL(userID);
 
-            if (invURL == null) // not there, forward to local inventory connector to resolve
+            if (invURL is null) // not there, forward to local inventory connector to resolve
                 lock (m_Lock)
                     return m_LocalGridInventoryService.GetInventorySkeleton(userID);
 
@@ -306,14 +296,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         {
             //m_log.DebugFormat("[HG INVENTORY CONNECTOR]: GetRootFolder for {0}", userID);
             InventoryFolderBase root = m_Cache.GetRootFolder(userID);
-            if (root != null)
+            if (root is not null)
                 return root;
 
             string invURL = GetInventoryServiceURL(userID);
-
-            if (invURL == null) // not there, forward to local inventory connector to resolve
-                lock (m_Lock)
-                    return m_LocalGridInventoryService.GetRootFolder(userID);
+            if (invURL is null) // not there, forward to local inventory connector to resolve
+                return m_LocalGridInventoryService.GetRootFolder(userID);
 
             IInventoryService connector = GetConnector(invURL);
 
@@ -332,10 +320,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                 return f;
 
             string invURL = GetInventoryServiceURL(userID);
-
-            if (invURL == null) // not there, forward to local inventory connector to resolve
-                lock (m_Lock)
-                    return m_LocalGridInventoryService.GetFolderForType(userID, type);
+            if (invURL is null) // not there, forward to local inventory connector to resolve
+                return m_LocalGridInventoryService.GetFolderForType(userID, type);
 
             IInventoryService connector = GetConnector(invURL);
 
@@ -352,9 +338,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
             string invURL = GetInventoryServiceURL(userID);
 
-            if (invURL == null) // not there, forward to local inventory connector to resolve
-                lock (m_Lock)
-                    return m_LocalGridInventoryService.GetFolderContent(userID, folderID);
+            if (invURL is null) // not there, forward to local inventory connector to resolve
+                return m_LocalGridInventoryService.GetFolderContent(userID, folderID);
 
             InventoryCollection c = m_Cache.GetFolderContent(userID, folderID);
             if (c != null)
@@ -372,19 +357,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         {
             string invURL = GetInventoryServiceURL(userID);
 
-            if (invURL == null) // not there, forward to local inventory connector to resolve
-                lock (m_Lock)
-                    return m_LocalGridInventoryService.GetMultipleFoldersContent(userID, folderIDs);
+            if (invURL is null) // not there, forward to local inventory connector to resolve
+                return m_LocalGridInventoryService.GetMultipleFoldersContent(userID, folderIDs);
 
-            else
-            {
-                InventoryCollection[] coll = new InventoryCollection[folderIDs.Length];
-                int i = 0;
-                foreach (UUID fid in folderIDs)
-                    coll[i++] = GetFolderContent(userID, fid);
+            InventoryCollection[] coll = new InventoryCollection[folderIDs.Length];
+            int i = 0;
+            foreach (UUID fid in folderIDs)
+                coll[i++] = GetFolderContent(userID, fid);
 
-                return coll;
-            }
+            return coll;
         }
 
         public List<InventoryItemBase> GetFolderItems(UUID userID, UUID folderID)
@@ -393,9 +374,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
             string invURL = GetInventoryServiceURL(userID);
 
-            if (invURL == null) // not there, forward to local inventory connector to resolve
-                lock (m_Lock)
-                    return m_LocalGridInventoryService.GetFolderItems(userID, folderID);
+            if (invURL is null) // not there, forward to local inventory connector to resolve
+                return m_LocalGridInventoryService.GetFolderItems(userID, folderID);
 
             List<InventoryItemBase> items = m_Cache.GetFolderItems(userID, folderID);
             if (items != null)
@@ -418,9 +398,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
             string invURL = GetInventoryServiceURL(folder.Owner);
 
-            if (invURL == null) // not there, forward to local inventory connector to resolve
-                lock (m_Lock)
-                    return m_LocalGridInventoryService.AddFolder(folder);
+            if (invURL is null) // not there, forward to local inventory connector to resolve
+                return m_LocalGridInventoryService.AddFolder(folder);
 
             IInventoryService connector = GetConnector(invURL);
 
@@ -436,9 +415,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
             string invURL = GetInventoryServiceURL(folder.Owner);
 
-            if (invURL == null) // not there, forward to local inventory connector to resolve
-                lock (m_Lock)
-                    return m_LocalGridInventoryService.UpdateFolder(folder);
+            if (invURL is null) // not there, forward to local inventory connector to resolve
+                return m_LocalGridInventoryService.UpdateFolder(folder);
 
             IInventoryService connector = GetConnector(invURL);
 
@@ -456,9 +434,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
             string invURL = GetInventoryServiceURL(ownerID);
 
-            if (invURL == null) // not there, forward to local inventory connector to resolve
-                lock (m_Lock)
-                    return m_LocalGridInventoryService.DeleteFolders(ownerID, folderIDs);
+            if (invURL is null) // not there, forward to local inventory connector to resolve
+                return m_LocalGridInventoryService.DeleteFolders(ownerID, folderIDs);
 
             IInventoryService connector = GetConnector(invURL);
 
@@ -474,9 +451,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
             string invURL = GetInventoryServiceURL(folder.Owner);
 
-            if (invURL == null) // not there, forward to local inventory connector to resolve
-                lock (m_Lock)
-                    return m_LocalGridInventoryService.MoveFolder(folder);
+            if (invURL is null) // not there, forward to local inventory connector to resolve
+                return m_LocalGridInventoryService.MoveFolder(folder);
 
             IInventoryService connector = GetConnector(invURL);
 
@@ -492,9 +468,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
             string invURL = GetInventoryServiceURL(folder.Owner);
 
-            if (invURL == null) // not there, forward to local inventory connector to resolve
-                lock (m_Lock)
-                    return m_LocalGridInventoryService.PurgeFolder(folder);
+            if (invURL is null) // not there, forward to local inventory connector to resolve
+                return m_LocalGridInventoryService.PurgeFolder(folder);
 
             IInventoryService connector = GetConnector(invURL);
 
@@ -510,9 +485,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
             string invURL = GetInventoryServiceURL(item.Owner);
 
-            if (invURL == null) // not there, forward to local inventory connector to resolve
-                lock (m_Lock)
-                    return m_LocalGridInventoryService.AddItem(item);
+            if (invURL is null) // not there, forward to local inventory connector to resolve
+                return m_LocalGridInventoryService.AddItem(item);
 
             IInventoryService connector = GetConnector(invURL);
 
@@ -528,9 +502,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
             string invURL = GetInventoryServiceURL(item.Owner);
 
-            if (invURL == null) // not there, forward to local inventory connector to resolve
-                lock (m_Lock)
-                    return m_LocalGridInventoryService.UpdateItem(item);
+            if (invURL is null) // not there, forward to local inventory connector to resolve
+                return m_LocalGridInventoryService.UpdateItem(item);
 
             IInventoryService connector = GetConnector(invURL);
 
@@ -548,9 +521,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
             string invURL = GetInventoryServiceURL(ownerID);
 
-            if (invURL == null) // not there, forward to local inventory connector to resolve
-                lock (m_Lock)
-                    return m_LocalGridInventoryService.MoveItems(ownerID, items);
+            if (invURL is null) // not there, forward to local inventory connector to resolve
+                return m_LocalGridInventoryService.MoveItems(ownerID, items);
 
             IInventoryService connector = GetConnector(invURL);
 
@@ -568,9 +540,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
             string invURL = GetInventoryServiceURL(ownerID);
 
-            if (invURL == null) // not there, forward to local inventory connector to resolve
-                lock (m_Lock)
-                    return m_LocalGridInventoryService.DeleteItems(ownerID, itemIDs);
+            if (invURL is null) // not there, forward to local inventory connector to resolve
+                return m_LocalGridInventoryService.DeleteItems(ownerID, itemIDs);
 
             IInventoryService connector = GetConnector(invURL);
 
@@ -583,9 +554,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
             string invURL = GetInventoryServiceURL(principalID);
 
-            if (invURL == null) // not there, forward to local inventory connector to resolve
-                lock (m_Lock)
-                    return m_LocalGridInventoryService.GetItem(principalID, itemID);
+            if (invURL is null) // not there, forward to local inventory connector to resolve
+                return m_LocalGridInventoryService.GetItem(principalID, itemID);
 
             IInventoryService connector = GetConnector(invURL);
 
@@ -594,18 +564,19 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public InventoryItemBase[] GetMultipleItems(UUID userID, UUID[] itemIDs)
         {
-            if (itemIDs == null)
-                return new InventoryItemBase[0];
-            //m_log.Debug("[HG INVENTORY CONNECTOR]: GetItem " + item.ID);
+            if (itemIDs is null || itemIDs.Length == 0)
+                return Array.Empty<InventoryItemBase>();
+
+            //m_log.Debug("[HG INVENTORY CONNECTOR]: GetMultipleItems " + item.ID);
 
             string invURL = GetInventoryServiceURL(userID);
 
-            if (invURL == null) // not there, forward to local inventory connector to resolve
-                lock (m_Lock)
-                    return m_LocalGridInventoryService.GetMultipleItems(userID, itemIDs);
+            if (invURL is null) // not there, forward to local inventory connector to resolve
+                return m_LocalGridInventoryService.GetMultipleItems(userID, itemIDs);
 
             IInventoryService connector = GetConnector(invURL);
-
+            if (connector is null)
+                return Array.Empty<InventoryItemBase>();
             return connector.GetMultipleItems(userID, itemIDs);
         }
 
@@ -615,9 +586,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
             string invURL = GetInventoryServiceURL(principalID);
 
-            if (invURL == null) // not there, forward to local inventory connector to resolve
-                lock (m_Lock)
-                    return m_LocalGridInventoryService.GetFolder(principalID, folderID);
+            if (invURL is null) // not there, forward to local inventory connector to resolve
+                return m_LocalGridInventoryService.GetFolder(principalID, folderID);
 
             IInventoryService connector = GetConnector(invURL);
 

@@ -507,8 +507,8 @@ namespace OpenSim.Server.Handlers.Inventory
         {
             List<string> idlist = (List<string>)request["IDLIST"];
             List<string> destlist = (List<string>)request["DESTLIST"];
-            UUID principal = UUID.Zero;
-            UUID.TryParse(request["PRINCIPAL"].ToString(), out principal);
+
+            UUID.TryParse(request["PRINCIPAL"].ToString(), out UUID principal);
 
             List<InventoryItemBase> items = new List<InventoryItemBase>();
             int n = 0;
