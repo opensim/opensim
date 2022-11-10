@@ -182,14 +182,14 @@ namespace OSHttpServer
                         Respond("HTTP/1.1", HttpStatusCode.Continue, null);
                 }
             }
-            m_currentRequest.AddHeader(e.Name.ToString(), e.Value);
+            m_currentRequest.AddHeader(e.Name.ToString(), e.Value.ToString());
         }
 
         private void OnRequestLine(object sender, RequestLineEventArgs e)
         {
-            m_currentRequest.Method = e.HttpMethod;
-            m_currentRequest.HttpVersion = e.HttpVersion;
-            m_currentRequest.UriPath = e.UriPath;
+            m_currentRequest.Method = e.HttpMethod.ToString();
+            m_currentRequest.HttpVersion = e.HttpVersion.ToString();
+            m_currentRequest.UriPath = e.UriPath.ToString();
             m_currentRequest.AddHeader("remote_addr", LocalIPEndPoint.Address.ToString());
             m_currentRequest.AddHeader("remote_port", LocalIPEndPoint.Port.ToString());
             m_currentRequest.ArrivalTS = ContextTimeoutManager.GetTimeStamp();
@@ -212,7 +212,7 @@ namespace OSHttpServer
             {
                 m_stream.BeginRead(m_ReceiveBuffer, 0, m_ReceiveBuffer.Length, OnReceive, null);
             }
-            catch (IOException err)
+            catch (Exception err)
             {
                 LogWriter.Write(this, LogPrio.Debug, err.ToString());
             }
@@ -353,7 +353,7 @@ namespace OSHttpServer
             try
             {
                 int bytesRead = 0;
-                if (m_stream == null)
+                if (m_stream is null)
                     return;
                 try
                 {
@@ -377,24 +377,24 @@ namespace OSHttpServer
                 m_ReceiveBytesLeft += bytesRead;
 
                 int offset = m_parser.Parse(m_ReceiveBuffer, 0, m_ReceiveBytesLeft);
-                if (m_stream == null)
+                if (m_stream is null)
                     return; // "Connection: Close" in effect.
 
-                while (offset != 0)
+                if(offset > 0)
                 {
-                    int nextBytesleft = m_ReceiveBytesLeft - offset;
-                    if (nextBytesleft <= 0)
-                        break;
+                    int nextBytesleft, nextOffset;
+                    while ((nextBytesleft = m_ReceiveBytesLeft - offset) > 0)
+                    {
+                        nextOffset = m_parser.Parse(m_ReceiveBuffer, offset, nextBytesleft);
 
-                    int nextOffset = m_parser.Parse(m_ReceiveBuffer, offset, nextBytesleft);
+                        if (m_stream is null)
+                            return; // "Connection: Close" in effect.
 
-                    if (m_stream == null)
-                        return; // "Connection: Close" in effect.
+                        if (nextOffset == 0)
+                            break;
 
-                    if (nextOffset == 0)
-                        break;
-
-                    offset = nextOffset;
+                        offset = nextOffset;
+                    }
                 }
 
                 // copy unused bytes to the beginning of the array
@@ -472,7 +472,7 @@ namespace OSHttpServer
             if (--m_maxRequests == 0)
                 m_currentRequest.Connection = ConnectionType.Close;
 
-            if(m_currentRequest.Uri == null)
+            if(m_currentRequest.Uri is null)
             {
                 // should not happen
                 try
@@ -488,7 +488,7 @@ namespace OSHttpServer
             }
 
             // load cookies if they exist
-            if(m_currentRequest.Headers["cookie"] != null)
+            if(m_currentRequest.Headers["cookie"] is not null)
                 m_currentRequest.SetCookies(new RequestCookies(m_currentRequest.Headers["cookie"]));
 
             m_currentRequest.Body.Seek(0, SeekOrigin.Begin);
@@ -519,7 +519,7 @@ namespace OSHttpServer
 
         public bool TrySendResponse(int bytesLimit)
         {
-            if (m_currentResponse == null)
+            if (m_currentResponse is null)
                 return false;
             try
             {
@@ -540,7 +540,7 @@ namespace OSHttpServer
 
         public void ContinueSendResponse()
         {
-            if(m_currentResponse == null)
+            if(m_currentResponse is null)
                 return;
             LastActivityTimeMS = ContextTimeoutManager.EnvironmentTickCount();
             ContextTimeoutManager.EnqueueSend(this, m_currentResponse.Priority);
@@ -566,16 +566,16 @@ namespace OSHttpServer
             }
             else
             {
-                if (Stream == null || !Stream.CanWrite)
+                if (Stream is null || !Stream.CanWrite)
                     return;
 
                 LastActivityTimeMS = ContextTimeoutManager.EnvironmentTickCount();
                 HttpRequest nextRequest = null;
                 lock (m_requestsLock)
                 {
-                    if (m_requests != null && m_requests.Count > 0)
+                    if (m_requests is not  null && m_requests.Count > 0)
                         nextRequest = m_requests.Dequeue();
-                    if (nextRequest != null && RequestReceived != null)
+                    if (nextRequest is not null && RequestReceived is not null)
                     {
                         m_waitingResponse = true;
                         TriggerKeepalive = false;
@@ -583,7 +583,7 @@ namespace OSHttpServer
                     else
                         TriggerKeepalive = true;
                 }
-                if (nextRequest != null)
+                if (nextRequest is not null)
                     RequestReceived?.Invoke(this, new RequestEventArgs(nextRequest));
             }
             ContextTimeoutManager.PulseWaitSend();
@@ -659,7 +659,7 @@ namespace OSHttpServer
 
         public bool Send(byte[] buffer, int offset, int size)
         {
-            if (m_stream == null || m_sock == null || !m_sock.Connected)
+            if (m_stream is null || m_sock is null || !m_sock.Connected)
                 return false;
 
             if (offset + size > buffer.Length)
@@ -682,7 +682,7 @@ namespace OSHttpServer
             }
 
             ContextTimeoutManager.ContextLeaveActiveSend();
-            if (!ok && m_stream != null)
+            if (!ok && m_stream is not null)
                 Disconnect(SocketError.NoRecovery);
             return ok;
         }
@@ -693,6 +693,7 @@ namespace OSHttpServer
             try
             {
                 m_stream.EndWrite(res);
+
                 ContextTimeoutManager.ContextLeaveActiveSend();
                 didleave = true;
                 m_currentResponse.CheckSendNextAsyncContinue();
@@ -700,7 +701,7 @@ namespace OSHttpServer
             catch (Exception e)
             {
                 e.GetHashCode();
-                if (m_stream != null)
+                if (m_stream is not null)
                     Disconnect(SocketError.NoRecovery);
             }
             if(!didleave)
@@ -709,7 +710,7 @@ namespace OSHttpServer
 
         public bool SendAsyncStart(byte[] buffer, int offset, int size)
         {
-            if (m_stream == null || m_sock == null || !m_sock.Connected)
+            if (m_stream is null || m_sock is null || !m_sock.Connected)
                 return false;
 
             if (offset + size > buffer.Length)
@@ -728,7 +729,7 @@ namespace OSHttpServer
                 ok = false;
             }
 
-            if (!ok && m_stream != null)
+            if (!ok && m_stream is not null)
                 Disconnect(SocketError.NoRecovery);
             return ok;
         }

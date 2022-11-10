@@ -1,5 +1,4 @@
 using System;
-using System.Text;
 using OSHttpServer.Exceptions;
 using OpenMetaverse;
 
@@ -102,7 +101,7 @@ namespace OSHttpServer.Parser
         /// <param name="value"></param>
         /// <exception cref="BadRequestException">If line is incorrect</exception>
         /// <remarks>Expects the following format: "Method SP Request-URI SP HTTP-Version CRLF"</remarks>
-        protected void OnFirstLine(string value)
+        protected void OnFirstLine(osUTF8Slice value)
         {
             //
             //todo: In the interest of robustness, servers SHOULD ignore any empty line(s) received where a Request-Line is expected. 
@@ -111,7 +110,7 @@ namespace OSHttpServer.Parser
             m_log.Write(this, LogPrio.Debug, $"Got request: {value}");
 
             //Request-Line   = Method SP Request-URI SP HTTP-Version CRLF
-            int pos = value.IndexOf(' ');
+            int pos = value.IndexOf((byte)' ');
             int oldPos = pos + 1;
             if (pos == -1 || oldPos >= value.Length)
             {
@@ -119,18 +118,20 @@ namespace OSHttpServer.Parser
                 throw new BadRequestException($"Invalid request line, missing Method. Line: {value}");
             }
 
-            string method = value[..pos].ToUpper();
-            pos = value.IndexOf(' ', oldPos);
+            osUTF8Slice method = value.SubUTF8(0, pos);
+            value.SubUTF8Self(oldPos);
+            pos = value.IndexOf((byte)' ');
             if (pos == -1)
             {
-                m_log.Write(this, LogPrio.Warning, "Invalid request line, missing URI. Line: " + value);
-                throw new BadRequestException("Invalid request line, missing URI. Line: " + value);
+                m_log.Write(this, LogPrio.Warning, "Invalid request line, missing URI");
+                throw new BadRequestException("Invalid request line, missing URI");
             }
-            string path = value[oldPos..pos];
-            if (path.Length > 4196)
-                throw new BadRequestException("Too long URI.");
-            if (path == "*")
-                throw new BadRequestException("Not supported URI.");
+            if(pos > 4196)
+                throw new BadRequestException("URI too long");
+
+            osUTF8Slice path = value.SubUTF8(0, pos);
+            if (path.ACSIILowerEquals("*"))
+                throw new BadRequestException("URI not supported");
 
             oldPos = pos + 1;
             if (oldPos >= value.Length)
@@ -139,20 +140,21 @@ namespace OSHttpServer.Parser
                 throw new BadRequestException($"Invalid request line, missing HTTP-Version. Line: {value}");
             }
 
-            string version = value[oldPos..];
-            if (version.Length < 4 || string.Compare(version[..4], "HTTP", true) != 0)
+            osUTF8Slice version = value.SubUTF8(oldPos);
+            if (version.Length < 4 || !version.SubUTF8(0,4).ACSIILowerEquals("http"))
             {
                 m_log.Write(this, LogPrio.Warning, $"Invalid HTTP version in request line. Line: {value}");
                 throw new BadRequestException($"Invalid HTTP version in Request line. Line: {value}");
             }
 
-            if(RequestLineReceived != null)
+            if(RequestLineReceived is not null)
             {
+                method.ToASCIIUpperSelf();
                 m_requestLineArgs.HttpMethod = method;
                 m_requestLineArgs.HttpVersion = version;
                 m_requestLineArgs.UriPath = path;
                 RequestLineReceived?.Invoke(this, m_requestLineArgs);
-            }
+             }
         }
 
         private static readonly byte[] OSUTF8contentlength = osUTF8.GetASCIIBytes("content-length");
@@ -175,7 +177,7 @@ namespace OSHttpServer.Parser
             if (HeaderReceived != null)
             {
                 m_headerArgs.Name = m_curHeaderName;
-                m_headerArgs.Value = m_curHeaderValue.ToString();
+                m_headerArgs.Value = m_curHeaderValue;
                 HeaderReceived?.Invoke(this, m_headerArgs);
             }
 
@@ -256,7 +258,7 @@ namespace OSHttpServer.Parser
                         else if(ch == '\r' || ch == '\n')
                         {
                             int size = GetLineBreakSize(buffer, currentPos);
-                            OnFirstLine(Encoding.UTF8.GetString(buffer, startPos, currentPos - startPos));
+                            OnFirstLine(new osUTF8Slice(buffer, startPos, currentPos - startPos));
                             currentPos += size - 1;
                             handledBytes = currentPos + 1;
                             startPos = -1;
