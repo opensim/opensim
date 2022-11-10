@@ -513,7 +513,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             stackFrames = null;
             m_DetectParams = null;
 
-            if (m_Part == null || m_Part.Inventory == null)
+            if (m_Part is null || m_Part.Inventory is null || m_Part.ParentGroup is null)
             {
                 //we are gone and don't know it still
                 m_SleepUntil = DateTime.MaxValue;

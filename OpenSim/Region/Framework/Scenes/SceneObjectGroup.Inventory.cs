@@ -91,7 +91,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
-                parts[i].Inventory.RemoveScriptInstances(sceneObjectBeingDeleted);
+                parts[i]?.Inventory?.RemoveScriptInstances(sceneObjectBeingDeleted);
         }
 
         /// <summary>
@@ -101,7 +101,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             SceneObjectPart[] parts = m_parts.GetArray();
             for(int i = 0; i < parts.Length; ++i)
-                parts[i].Inventory.StopScriptInstances();
+                parts[i]?.Inventory?.StopScriptInstances();
         }
 
         public void SendReleaseScriptsControl()
