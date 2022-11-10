@@ -72,10 +72,12 @@ namespace OSHttpServer
         /// <see cref="Method"/>
         string Method { get; set; }
 
+        /*
         /// <summary>
         /// Gets parameter from <see cref="QueryString"/> or <see cref="Form"/>.
         /// </summary>
         HttpParam Param { get; }
+        */
 
         /// <summary>
         /// Gets variables sent in the query string

@@ -22,8 +22,8 @@ namespace OSHttpServer
         public static readonly char[] UriSplitters = new[] { '/' };
         public static uint baseID = 0;
 
-        private readonly NameValueCollection m_headers = new NameValueCollection();
-        private readonly HttpParam m_param = new HttpParam(HttpInput.Empty, HttpInput.Empty);
+        private readonly NameValueCollection m_headers = new();
+        //private readonly HttpParam m_param = new(HttpInput.Empty, HttpInput.Empty);
         private Stream m_body = new MemoryStream();
         private int m_bodyBytesLeft;
         private ConnectionType m_connection = ConnectionType.KeepAlive;
@@ -151,9 +151,9 @@ namespace OSHttpServer
         {
             get
             {
-                if(m_queryString == null)
+                if(m_queryString is null)
                 {
-                    if(m_uri == null || m_uri.Query.Length == 0)
+                    if(m_uri is null || m_uri.Query.Length == 0)
                         m_queryString = new NameValueCollection();
                     else
                     {
@@ -169,7 +169,7 @@ namespace OSHttpServer
             }
         }
 
-        public static readonly Uri EmptyUri = new Uri("http://localhost/");
+        public static readonly Uri EmptyUri = new("http://localhost/");
         /// <summary>
         /// Gets or sets requested URI.
         /// </summary>
@@ -179,6 +179,7 @@ namespace OSHttpServer
             set { m_uri = value ?? EmptyUri; } // not safe
         }
 
+        /*
         /// <summary>
         /// Gets parameter from <see cref="QueryString"/> or <see cref="Form"/>.
         /// </summary>
@@ -186,6 +187,7 @@ namespace OSHttpServer
         {
             get { return m_param; }
         }
+        */
 
         /// <summary>
         /// Gets form parameters.
@@ -219,16 +221,18 @@ namespace OSHttpServer
         {
             // this method was mainly created for testing.
             // dont use it that much...
-            var request = new HttpRequest(Context);
-            request.Method = m_method;
+            var request = new HttpRequest(Context)
+            {
+                Method = m_method,
+                m_httpVersion = m_httpVersion,
+                m_queryString = m_queryString,
+                Uri = m_uri
+            };
             if (AcceptTypes != null)
             {
                 request.AcceptTypes = new string[AcceptTypes.Length];
                 AcceptTypes.CopyTo(request.AcceptTypes, 0);
             }
-            request.m_httpVersion = m_httpVersion;
-            request.m_queryString = m_queryString;
-            request.Uri = m_uri;
 
             var buffer = new byte[m_body.Length];
             m_body.Read(buffer, 0, (int)m_body.Length);
@@ -296,8 +300,7 @@ namespace OSHttpServer
                         }
                     }
                 }
-                if (m_remoteIPEndPoint == null)
-                    m_remoteIPEndPoint = m_context.LocalIPEndPoint;
+                m_remoteIPEndPoint ??= m_context.LocalIPEndPoint;
 
                 return m_remoteIPEndPoint;
             }
@@ -375,7 +378,7 @@ namespace OSHttpServer
                             int indx = s.IndexOf("=", 3);
                             if(indx < 0 || indx >= s.Length - 1)
                                 continue;
-                            s = s.Substring(indx);
+                            s = s[indx..];
                             addr = s.Trim();
                         }
                     }

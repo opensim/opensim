@@ -11,8 +11,8 @@ namespace OSHttpServer
     {
         private const string DefaultContentType = "text/html;charset=UTF-8";
         private readonly IHttpClientContext m_context;
-        private readonly ResponseCookies m_cookies = new ResponseCookies();
-        private readonly NameValueCollection m_headers = new NameValueCollection();
+        private readonly ResponseCookies m_cookies = new();
+        private readonly NameValueCollection m_headers = new();
         private string m_httpVersion;
         private Stream m_body;
         private long m_contentLength;
@@ -86,8 +86,7 @@ namespace OSHttpServer
         {
             get
             { 
-                if(m_body == null)
-                    m_body = new MemoryStream();
+                m_body ??= new MemoryStream();
                 return m_body;
             }
         }
@@ -245,13 +244,13 @@ namespace OSHttpServer
             sb.AppendFormat("Date: {0}\r\n", DateTime.Now.ToString("r"));
 
             long len = 0;
-            if(m_body!= null)
+            if(m_body is not null)
                 len = m_body.Length;
-            if (RawBuffer != null && RawBufferLen > 0)
+            if (RawBuffer is not null && RawBufferLen > 0)
                 len += RawBufferLen;
             sb.AppendFormat("Content-Length: {0}\r\n", len);
 
-            if (m_headers["Content-Type"] == null)
+            if (m_headers["Content-Type"] is null)
                 sb.AppendFormat("Content-Type: {0}\r\n", m_contentType ?? DefaultContentType);
 
             switch(Status)
@@ -295,7 +294,7 @@ namespace OSHttpServer
                         continue;
                 }
                 string[] values = m_headers.GetValues(i);
-                if (values == null) continue;
+                if (values is null) continue;
                 foreach (string value in values)
                     sb.AppendFormat("{0}: {1}\r\n", headerName, value);
             }
@@ -331,7 +330,7 @@ namespace OSHttpServer
                     m_context.TimeoutKeepAlive = m_keepAlive * 1000;
             }
 
-            if (RawBuffer != null)
+            if (RawBuffer is not null)
             {
                 if (RawBufferStart > RawBuffer.Length)
                     return;
@@ -348,7 +347,7 @@ namespace OSHttpServer
 
             m_headerBytes = GetHeaders();
 
-            if (RawBuffer != null && RawBufferLen > 0)
+            if (RawBuffer is not null && RawBufferLen > 0)
             {
                 int tlen = m_headerBytes.Length + RawBufferLen;
                 if(tlen < 8 * 1024)
@@ -366,13 +365,13 @@ namespace OSHttpServer
                     RawBuffer = null;
             }
 
-            if (m_body != null && m_body.Length == 0)
+            if (m_body is not null && m_body.Length == 0)
             {
                 m_body.Dispose();
                 m_body = null;
             }
 
-            if (m_headerBytes == null && RawBuffer == null && m_body == null)
+            if (m_headerBytes is null && RawBuffer is null && m_body is null)
             {
                 Sent = true;
                 m_context.EndSendResponse(requestID, Connection);
@@ -383,14 +382,14 @@ namespace OSHttpServer
 
         public bool SendNextAsync(int bytesLimit)
         {
-            if (m_headerBytes != null)
+            if (m_headerBytes is not null)
             {
                 byte[] b = m_headerBytes;
                 m_headerBytes = null;
 
                 if (!m_context.SendAsyncStart(b, 0, b.Length))
                 {
-                    if (m_body != null)
+                    if (m_body is not null)
                     {
                         m_body.Dispose();
                         m_body = null;
@@ -403,7 +402,7 @@ namespace OSHttpServer
             }
 
             bool sendRes;
-            if (RawBuffer != null)
+            if (RawBuffer is not null)
             {
                 if(RawBufferLen > 0)
                 {
@@ -429,7 +428,7 @@ namespace OSHttpServer
                     if (!sendRes)
                     {
                         RawBuffer = null;
-                        if(m_body != null)
+                        if(m_body is not null)
                         {
                             m_body.Dispose();
                             m_body = null;
@@ -443,7 +442,7 @@ namespace OSHttpServer
                     RawBuffer = null;
             }
 
-            if (m_body != null)
+            if (m_body is not null)
             {
                 if(m_body.Length != 0)
                 {
@@ -500,7 +499,7 @@ namespace OSHttpServer
 
         public void CheckSendNextAsyncContinue()
         {
-            if(m_headerBytes == null && RawBuffer == null && m_body == null)
+            if(m_headerBytes is null && RawBuffer is null && m_body is null)
             {
                 Sent = true;
                 m_context.EndSendResponse(requestID, Connection);
@@ -513,8 +512,12 @@ namespace OSHttpServer
 
         public void Clear()
         {
-            if(m_body != null && m_body.CanRead)
+            if(m_body is not null && m_body.CanRead)
+            {
                 m_body.Dispose();
+                m_body = null;
+            }
+            RawBuffer = null;
         }
         #endregion
     }

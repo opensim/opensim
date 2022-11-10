@@ -26,7 +26,7 @@ namespace OSHttpServer
         static private int basecontextID;
 
         Queue<HttpRequest> m_requests;
-        object m_requestsLock = new object();
+        readonly object m_requestsLock = new();
         public int m_maxRequests = MAXREQUESTS;
         public bool m_waitingResponse; 
 
@@ -130,10 +130,10 @@ namespace OSHttpServer
             {
                 SslStream _ssl = (SslStream)m_stream;
                 X509Certificate _cert1 = _ssl.RemoteCertificate;
-                if (_cert1 != null)
+                if (_cert1 is not null)
                 {
-                    X509Certificate2 _cert2 = new X509Certificate2(_cert1);
-                    if (_cert2 != null)
+                    X509Certificate2 _cert2 = new(_cert1);
+                    if (_cert2 is not null)
                         SSLCommonName = _cert2.GetNameInfo(X509NameType.SimpleName, false);
                 }
             }
@@ -150,7 +150,7 @@ namespace OSHttpServer
             if (contextID < 0 || m_isClosing)
                 return false;
 
-            if (m_stream == null || m_sock == null || !m_sock.Connected)
+            if (m_stream is null || m_sock is null || !m_sock.Connected)
                 return false;
 
             return true;
@@ -230,7 +230,7 @@ namespace OSHttpServer
 
             contextID = -100;
 
-            if (m_stream != null)
+            if (m_stream is not null)
             {
                 m_stream.Close();
                 m_stream = null;
@@ -322,7 +322,7 @@ namespace OSHttpServer
             {
                 try
                 {
-                    if (m_stream != null)
+                    if (m_stream is not null)
                     {
                         if (error == SocketError.Success)
                         {
@@ -437,8 +437,8 @@ namespace OSHttpServer
             catch (IOException err)
             {
                 LogWriter.Write(this, LogPrio.Debug, "Failed to end receive: " + err.Message);
-                if (err.InnerException is SocketException)
-                    Disconnect((SocketError)((SocketException)err.InnerException).ErrorCode);
+                if (err.InnerException is SocketException exception)
+                    Disconnect((SocketError)exception.ErrorCode);
                 else
                     Disconnect(SocketError.ConnectionReset);
             }
@@ -466,7 +466,7 @@ namespace OSHttpServer
             FullRequestReceived = true;
             LastActivityTimeMS = ContextTimeoutManager.EnvironmentTickCount();
 
-            if (m_maxRequests <= 0 || RequestReceived == null)
+            if (m_maxRequests <= 0 || RequestReceived is null)
                 return;
 
             if (--m_maxRequests == 0)
@@ -477,7 +477,7 @@ namespace OSHttpServer
                 // should not happen
                 try
                 {
-                    Uri uri = new Uri(m_currentRequest.Secure ? "https://" : "http://" + m_currentRequest.UriPath);
+                    Uri uri = new(m_currentRequest.Secure ? "https://" : "http://" + m_currentRequest.UriPath);
                     m_currentRequest.Uri = uri;
                     m_currentRequest.UriPath = uri.AbsolutePath;
                 }
@@ -641,7 +641,7 @@ namespace OSHttpServer
         /// <exception cref="ArgumentNullException"></exception>
         public bool Send(byte[] buffer)
         {
-            if (buffer == null)
+            if (buffer is null)
                 throw new ArgumentNullException("buffer");
             return Send(buffer, 0, buffer.Length);
         }
@@ -655,7 +655,7 @@ namespace OSHttpServer
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
 
-        private object sendLock = new object();
+        private readonly object sendLock = new();
 
         public bool Send(byte[] buffer, int offset, int size)
         {
@@ -759,7 +759,7 @@ namespace OSHttpServer
             m_currentRequest = null;
             m_currentResponse?.Clear();
             m_currentResponse = null;
-            if (m_requests != null)
+            if (m_requests is not null)
             {
                 while (m_requests.Count > 0)
                 {
