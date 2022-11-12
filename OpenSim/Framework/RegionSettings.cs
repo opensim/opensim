@@ -49,7 +49,7 @@ namespace OpenSim.Framework
             // Next we need to rotate this vector into the spawn point's
             // coordinate system
             rot.W = -rot.W;
-            offset = offset * rot;
+            offset *= rot;
 
             Vector3 dir = Vector3.Normalize(offset);
 
@@ -92,10 +92,12 @@ namespace OpenSim.Framework
             if (parts.Length != 3)
                 throw new ArgumentException("Invalid string: " + str);
 
-            SpawnPoint sp = new SpawnPoint();
-            sp.Yaw = float.Parse(parts[0]);
-            sp.Pitch = float.Parse(parts[1]);
-            sp.Distance = float.Parse(parts[2]);
+            SpawnPoint sp = new()
+            {
+                Yaw = float.Parse(parts[0]),
+                Pitch = float.Parse(parts[1]),
+                Distance = float.Parse(parts[2])
+            };
             return sp;
         }
     }
@@ -109,15 +111,14 @@ namespace OpenSim.Framework
         /// <value>
         /// These appear to be terrain textures that are shipped with the client.
         /// </value>
-        public static readonly UUID DEFAULT_TERRAIN_TEXTURE_1 = new UUID("b8d3965a-ad78-bf43-699b-bff8eca6c975");
-        public static readonly UUID DEFAULT_TERRAIN_TEXTURE_2 = new UUID("abb783e6-3e93-26c0-248a-247666855da3");
-        public static readonly UUID DEFAULT_TERRAIN_TEXTURE_3 = new UUID("179cdabd-398a-9b6b-1391-4dc333ba321f");
-        public static readonly UUID DEFAULT_TERRAIN_TEXTURE_4 = new UUID("beb169c7-11ea-fff2-efe5-0f24dc881df2");
+        public static readonly UUID DEFAULT_TERRAIN_TEXTURE_1 = new("b8d3965a-ad78-bf43-699b-bff8eca6c975");
+        public static readonly UUID DEFAULT_TERRAIN_TEXTURE_2 = new("abb783e6-3e93-26c0-248a-247666855da3");
+        public static readonly UUID DEFAULT_TERRAIN_TEXTURE_3 = new("179cdabd-398a-9b6b-1391-4dc333ba321f");
+        public static readonly UUID DEFAULT_TERRAIN_TEXTURE_4 = new("beb169c7-11ea-fff2-efe5-0f24dc881df2");
 
         public void Save()
         {
-            if (OnSave != null)
-                OnSave(this);
+            OnSave?.Invoke(this);
         }
 
         private UUID m_RegionUUID = UUID.Zero;
@@ -426,7 +427,7 @@ namespace OpenSim.Framework
         {
             get
             {
-                TimeSpan ts = new TimeSpan(0, 0, LoadedCreationDateTime);
+                TimeSpan ts = new(0, 0, LoadedCreationDateTime);
                 DateTime stamp = new DateTime(1970, 1, 1) + ts;
                 return stamp.ToLongDateString();
             }
@@ -436,7 +437,7 @@ namespace OpenSim.Framework
         {
             get
             {
-                TimeSpan ts = new TimeSpan(0, 0, LoadedCreationDateTime);
+                TimeSpan ts = new(0, 0, LoadedCreationDateTime);
                 DateTime stamp = new DateTime(1970, 1, 1) + ts;
                 return stamp.ToLongTimeString();
             }
@@ -479,7 +480,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// Our connected Telehub's SpawnPoints
         /// </summary>
-        public List<SpawnPoint> l_SpawnPoints = new List<SpawnPoint>();
+        public List<SpawnPoint> l_SpawnPoints = new();
 
         // Add a SpawnPoint
         // ** These are not region coordinates **

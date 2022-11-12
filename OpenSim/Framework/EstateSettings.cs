@@ -249,7 +249,7 @@ namespace OpenSim.Framework
 
         // All those lists...
         //
-        private List<UUID> l_EstateManagers = new List<UUID>();
+        private List<UUID> l_EstateManagers = new();
 
         public UUID[] EstateManagers
         {
@@ -257,7 +257,7 @@ namespace OpenSim.Framework
             set { l_EstateManagers = new List<UUID>(value); }
         }
 
-        private List<EstateBan> l_EstateBans = new List<EstateBan>();
+        private List<EstateBan> l_EstateBans = new();
 
         public EstateBan[] EstateBans
         {
@@ -265,14 +265,14 @@ namespace OpenSim.Framework
             set { l_EstateBans = new List<EstateBan>(value); }
         }
 
-        private List<UUID> l_EstateAccess = new List<UUID>();
+        private List<UUID> l_EstateAccess = new();
         public UUID[] EstateAccess
         {
             get { return l_EstateAccess.ToArray(); }
             set { l_EstateAccess = new List<UUID>(value); }
         }
 
-        private List<UUID> l_EstateGroups = new List<UUID>();
+        private List<UUID> l_EstateGroups = new();
         public UUID[] EstateGroups
         {
             get { return l_EstateGroups.ToArray(); }
@@ -288,8 +288,7 @@ namespace OpenSim.Framework
 
         public void Save()
         {
-            if (OnSave != null)
-                OnSave(this);
+            OnSave?.Invoke(this);
         }
 
         public int EstateUsersCount()
@@ -448,11 +447,11 @@ namespace OpenSim.Framework
 
         public void SetFromFlags(ulong regionFlags)
         {
-            ResetHomeOnTeleport = ((regionFlags & (ulong)OpenMetaverse.RegionFlags.ResetHomeOnTeleport) == (ulong)OpenMetaverse.RegionFlags.ResetHomeOnTeleport);
-            BlockDwell = ((regionFlags & (ulong)OpenMetaverse.RegionFlags.BlockDwell) == (ulong)OpenMetaverse.RegionFlags.BlockDwell);
-            AllowLandmark = ((regionFlags & (ulong)OpenMetaverse.RegionFlags.AllowLandmark) == (ulong)OpenMetaverse.RegionFlags.AllowLandmark);
-            AllowParcelChanges = ((regionFlags & (ulong)OpenMetaverse.RegionFlags.AllowParcelChanges) == (ulong)OpenMetaverse.RegionFlags.AllowParcelChanges);
-            AllowSetHome = ((regionFlags & (ulong)OpenMetaverse.RegionFlags.AllowSetHome) == (ulong)OpenMetaverse.RegionFlags.AllowSetHome);
+            ResetHomeOnTeleport = (regionFlags & (ulong)OpenMetaverse.RegionFlags.ResetHomeOnTeleport) != 0;
+            BlockDwell = (regionFlags & (ulong)OpenMetaverse.RegionFlags.BlockDwell) != 0;
+            AllowLandmark = (regionFlags & (ulong)OpenMetaverse.RegionFlags.AllowLandmark) != 0;
+            AllowParcelChanges = (regionFlags & (ulong)OpenMetaverse.RegionFlags.AllowParcelChanges) != 0;
+            AllowSetHome = (regionFlags & (ulong)OpenMetaverse.RegionFlags.AllowSetHome) != 0;
         }
 
         public bool GroupAccess(UUID groupID)
@@ -462,7 +461,7 @@ namespace OpenSim.Framework
 
         public Dictionary<string, object> ToMap()
         {
-            Dictionary<string, object> map = new Dictionary<string, object>();
+            Dictionary<string, object> map = new();
             PropertyInfo[] properties = this.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
             foreach (PropertyInfo p in properties)
             {
@@ -471,7 +470,7 @@ namespace OpenSim.Framework
                     continue;
 
                 object value = p.GetValue(this, null);
-                if (value != null)
+                if (value is not null)
                 {
                     if (p.PropertyType.IsArray) // of UUIDs
                     {
@@ -492,7 +491,7 @@ namespace OpenSim.Framework
             // EstateBans are special
             if (EstateBans.Length > 0)
             {
-                Dictionary<string, object> bans = new Dictionary<string, object>();
+                Dictionary<string, object> bans = new();
                 int i = 0;
                 foreach (EstateBan ban in EstateBans)
                     bans["ban" + i++] = ban.ToMap();
@@ -531,7 +530,7 @@ namespace OpenSim.Framework
             foreach (KeyValuePair<string, object> kvp in map)
             {
                 PropertyInfo p = this.GetType().GetProperty(kvp.Key, BindingFlags.Public | BindingFlags.Instance);
-                if (p == null)
+                if (p is null)
                     continue;
 
                 // EstateBans is a complex type, let's treat it as special
@@ -562,19 +561,19 @@ namespace OpenSim.Framework
             }
 
             // EstateBans are special
-            if (map.ContainsKey("EstateBans"))
+            if (map.TryGetValue("EstateBans", out object oEstateBans))
             {               
-                if(map["EstateBans"] is string)
+                if(oEstateBans is string bansmap)
                 {
                     // JSON encoded bans map
-                    Dictionary<string, EstateBan> bdata = new Dictionary<string, EstateBan>();
+                    Dictionary<string, EstateBan> bdata = new();
                     try
                     {
                         // bypass libovm, we dont need even more useless high level maps
                         // this should only be called once.. but no problem, i hope
                         // (other uses may need more..)
                         LitJson.JsonMapper.RegisterImporter<string, UUID>((input) => new UUID(input));
-                        bdata = LitJson.JsonMapper.ToObject<Dictionary<string,EstateBan>>((string)map["EstateBans"]);
+                        bdata = LitJson.JsonMapper.ToObject<Dictionary<string,EstateBan>>(bansmap);
                     }
  //                   catch(Exception e)
                     catch
