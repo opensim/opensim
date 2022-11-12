@@ -926,6 +926,13 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             if (item == null)
                 return null;
 
+            if (attachment && (item.Flags & (uint)InventoryItemFlags.ObjectHasMultipleItems) != 0)
+            {
+                if (remoteClient != null && remoteClient.IsActive)
+                    remoteClient.SendAlertMessage("You can't attach multiple objects to one spot");
+                return null;
+            }
+
             item.Owner = remoteClient.AgentId;
 
             return RezObject(

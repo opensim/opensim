@@ -322,6 +322,13 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             if (item == null || item.AssetID.IsZero())
                 return null;
 
+            if (attachment && (item.Flags & (uint)InventoryItemFlags.ObjectHasMultipleItems) != 0)
+            {
+                if (remoteClient != null && remoteClient.IsActive)
+                    remoteClient.SendAlertMessage("You can't attach multiple objects to one spot");
+                return null;
+            }
+
             string userAssetServer;
             if (IsForeignUser(remoteClient.AgentId, out userAssetServer))
             {

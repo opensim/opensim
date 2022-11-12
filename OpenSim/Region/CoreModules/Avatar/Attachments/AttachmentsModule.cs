@@ -118,6 +118,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 return;
 
             m_invAccessModule = m_scene.RequestModuleInterface<IInventoryAccessModule>();
+            if(m_invAccessModule is null)
+            {
+                Enabled = false;
+                m_scene.UnregisterModuleInterface<IAttachmentsModule>(this);
+                m_scene.EventManager.OnNewClient -= SubscribeToClientEvents;
+                m_scene.EventManager.OnStartScript -= OnScriptStarted;
+                m_scene.EventManager.OnStopScript -= OnScriptStopped;
+                m_log.WarnFormat("[ATTACHMENTS MODULE]: InventoryService unvailable!. Module disabled");
+                return;
+            }
+
             m_regionConsole = scene.RequestModuleInterface<IRegionConsole>();
             if (m_regionConsole != null)
             {
