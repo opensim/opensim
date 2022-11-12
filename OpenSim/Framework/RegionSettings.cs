@@ -287,56 +287,56 @@ namespace OpenSim.Framework
         public double Elevation2NW
         {
             get { return m_Elevation2NW; }
-            set { m_Elevation2NW = Utils.Clamp(value, Constants.MinTerrainHeightmap, Constants.MaxTerrainHeightmap); ; }
+            set { m_Elevation2NW = Utils.Clamp(value, Constants.MinTerrainHeightmap, Constants.MaxTerrainHeightmap);}
         }
 
         private double m_Elevation1NE = 10;
         public double Elevation1NE
         {
             get { return m_Elevation1NE; }
-            set { m_Elevation1NE = Utils.Clamp(value, Constants.MinTerrainHeightmap, Constants.MaxTerrainHeightmap); ; }
+            set { m_Elevation1NE = Utils.Clamp(value, Constants.MinTerrainHeightmap, Constants.MaxTerrainHeightmap);}
         }
 
         private double m_Elevation2NE = 60;
         public double Elevation2NE
         {
             get { return m_Elevation2NE; }
-            set { m_Elevation2NE = Utils.Clamp(value, Constants.MinTerrainHeightmap, Constants.MaxTerrainHeightmap); ; }
+            set { m_Elevation2NE = Utils.Clamp(value, Constants.MinTerrainHeightmap, Constants.MaxTerrainHeightmap);}
         }
 
         private double m_Elevation1SE = 10;
         public double Elevation1SE
         {
             get { return m_Elevation1SE; }
-            set { m_Elevation1SE = Utils.Clamp(value, Constants.MinTerrainHeightmap, Constants.MaxTerrainHeightmap); ; }
+            set { m_Elevation1SE = Utils.Clamp(value, Constants.MinTerrainHeightmap, Constants.MaxTerrainHeightmap);}
         }
 
         private double m_Elevation2SE = 60;
         public double Elevation2SE
         {
             get { return m_Elevation2SE; }
-            set { m_Elevation2SE = Utils.Clamp(value, Constants.MinTerrainHeightmap, Constants.MaxTerrainHeightmap); ; }
+            set { m_Elevation2SE = Utils.Clamp(value, Constants.MinTerrainHeightmap, Constants.MaxTerrainHeightmap);}
         }
 
         private double m_Elevation1SW = 10;
         public double Elevation1SW
         {
             get { return m_Elevation1SW; }
-            set { m_Elevation1SW = Utils.Clamp(value, Constants.MinTerrainHeightmap, Constants.MaxTerrainHeightmap); ; }
+            set { m_Elevation1SW = Utils.Clamp(value, Constants.MinTerrainHeightmap, Constants.MaxTerrainHeightmap);}
         }
 
         private double m_Elevation2SW = 60;
         public double Elevation2SW
         {
             get { return m_Elevation2SW; }
-            set { m_Elevation2SW = Utils.Clamp(value, Constants.MinTerrainHeightmap, Constants.MaxTerrainHeightmap); ; }
+            set { m_Elevation2SW = Utils.Clamp(value, Constants.MinTerrainHeightmap, Constants.MaxTerrainHeightmap);}
         }
 
         private double m_WaterHeight = 20;
         public double WaterHeight
         {
             get { return m_WaterHeight; }
-            set { m_WaterHeight = Utils.Clamp(value, Constants.MinWaterHeight, Constants.MaxWaterHeight); }
+            set { m_WaterHeight = Utils.Clamp(value, Constants.MinWaterHeight, Constants.MaxWaterHeight);}
         }
 
         private double m_TerrainRaiseLimit = 100;

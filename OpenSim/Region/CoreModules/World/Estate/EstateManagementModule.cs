@@ -826,7 +826,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
                         thisSettings.AddEstateUser(user);
                         thisSettings.RemoveBan(user);
-                        changed[thisEstateID] = thisSettings;;
+                        changed[thisEstateID] = thisSettings;
 
                         if(needReply)
                             sendAllowedOrBanList[remote_client] = invoice;
@@ -847,7 +847,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     }
 
                     thisSettings.RemoveEstateUser(user);
-                    changed[thisEstateID] = thisSettings;;
+                    changed[thisEstateID] = thisSettings;
 
                     if(needReply)
                         sendAllowedOrBanList[remote_client] = invoice;
@@ -1419,11 +1419,11 @@ namespace OpenSim.Region.CoreModules.World.Estate
             }
 
             if (reportType != 0)
-                remoteClient.SendLandStatReply(reportType, requestFlags, 0, new LandStatReportItem[0]); ;
+                remoteClient.SendLandStatReply(reportType, requestFlags, 0, new LandStatReportItem[0]);
 
             IScriptModule scriptModule = Scene.RequestModuleInterface<IScriptModule>();
             if (scriptModule == null)
-                remoteClient.SendLandStatReply(reportType, requestFlags, 0, new LandStatReportItem[0]); ;
+                remoteClient.SendLandStatReply(reportType, requestFlags, 0, new LandStatReportItem[0]);
 
             ICollection<ScriptTopStatsData>  sceneData = scriptModule.GetTopObjectStats(
                     0.001f, 1024, out float totaltime, out float totalmemory);

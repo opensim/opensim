@@ -1999,7 +1999,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 ulong regionHandle = region.RegionHandle;
                 m_knownChildRegions[regionHandle] = capsPath;
-                m_knownChildRegionsSizeInfo[regionHandle] = new spRegionSizeInfo(region.RegionSizeX, region.RegionSizeY); ;
+                m_knownChildRegionsSizeInfo[regionHandle] = new spRegionSizeInfo(region.RegionSizeX, region.RegionSizeY);
             }
         }
 
@@ -2365,8 +2365,8 @@ namespace OpenSim.Region.Framework.Scenes
                         if (p == this)
                             continue;
 
-                    if (ParcelHideThisAvatar && currentParcelUUID.NotEqual(p.currentParcelUUID) && !p.IsViewerUIGod)
-                        continue;
+                        if (ParcelHideThisAvatar && currentParcelUUID.NotEqual(p.currentParcelUUID) && !p.IsViewerUIGod)
+                            continue;
 
                         SendAppearanceToAgentNF(p);
                         if (haveAnims)
@@ -3097,7 +3097,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (!Flying)
                     shouldfly = noFly ? false : (pos.Z > terrainHeight + Appearance.AvatarHeight);
-                LandAtTarget = landAtTarget & shouldfly;
+                LandAtTarget = landAtTarget && shouldfly;
             }
             else
             {   
@@ -4110,7 +4110,7 @@ namespace OpenSim.Region.Framework.Scenes
                 else
                 {
                     //bool cacheCulling = (flags & 1) != 0;
-                    bool cacheEmpty = (flags & 2) != 0;;
+                    bool cacheEmpty = (flags & 2) != 0;
 
                     EntityBase[] entities = Scene.Entities.GetEntities();
                     if(cacheEmpty)
@@ -6125,7 +6125,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             // forcing telehubs on any tp that reachs this
             if ((m_teleportFlags & TeleHubTPFlags) != 0 ||
-                (m_scene.TelehubAllowLandmarks == true ? false : ((m_teleportFlags & TeleportFlags.ViaLandmark) != 0 )))
+                (m_scene.TelehubAllowLandmarks ? false : ((m_teleportFlags & TeleportFlags.ViaLandmark) != 0 )))
             {
                 ILandObject land;
                 Vector3 teleHubPosition = telehub.AbsolutePosition;

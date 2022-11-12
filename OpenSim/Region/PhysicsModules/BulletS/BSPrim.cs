@@ -1380,7 +1380,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                                     break;
 
                                 case HollowShape.Circle:
-                                    hollowVolume *= 0.78539816339f;;
+                                    hollowVolume *= 0.78539816339f;
                                     break;
 
                                 case HollowShape.Triangle:

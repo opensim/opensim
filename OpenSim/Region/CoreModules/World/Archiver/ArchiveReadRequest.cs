@@ -1159,7 +1159,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             {
                 Vector2 boundingOrigin = new(m_boundingOrigin.X, m_boundingOrigin.Y);
                 Vector2 boundingSize = new(m_boundingSize.X, m_boundingSize.Y);
-                terrainModule.LoadFromStream(terrainPath, m_displacement, m_rotation, boundingOrigin, boundingSize, ms); ;
+                terrainModule.LoadFromStream(terrainPath, m_displacement, m_rotation, boundingOrigin, boundingSize, ms);
             }
             else
             {

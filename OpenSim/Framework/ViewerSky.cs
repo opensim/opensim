@@ -232,7 +232,7 @@ namespace OpenSim.Framework
             map["ambient"] = new Vector4(ambient.X, ambient.Y, ambient.Z, 1);
             map["blue_density"] = new Vector4(blue_density.X, blue_density.Y, blue_density.Z, 1);
             map["blue_horizon"] = new Vector4(blue_horizon.X, blue_horizon.Y, blue_horizon.Z, 1);
-            map["cloud_color"] = new Vector4(cloud_color.X, cloud_color.Y, cloud_color.Z, 1);;
+            map["cloud_color"] = new Vector4(cloud_color.X, cloud_color.Y, cloud_color.Z, 1);
             map["cloud_pos_density1"] = new Vector4(cloud_pos_density1.X, cloud_pos_density1.Y, cloud_pos_density1.Z, 1);
             map["cloud_pos_density2"] = new Vector4(cloud_pos_density2.X, cloud_pos_density2.Y, cloud_pos_density2.Z, 1);
             map["cloud_scale"] = new Vector4(cloud_scale, 0, 0, 1);

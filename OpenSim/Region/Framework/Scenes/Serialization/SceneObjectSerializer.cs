@@ -695,7 +695,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessOffsetPosition(SceneObjectPart obj, XmlReader reader)
         {
-            obj.OffsetPosition = Util.ReadVector(reader, "OffsetPosition"); ;
+            obj.OffsetPosition = Util.ReadVector(reader, "OffsetPosition");
         }
 
         private static void ProcessRotationOffset(SceneObjectPart obj, XmlReader reader)

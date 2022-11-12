@@ -56,7 +56,7 @@ namespace OpenSim.Server.Handlers.AgentPreferences
             Object[] args = new Object[] { config };
             m_AgentPreferencesService = ServerUtils.LoadPlugin<IAgentPreferencesService>(service, args);
 
-            IServiceAuth auth = ServiceAuth.Create(config, m_ConfigName); ;
+            IServiceAuth auth = ServiceAuth.Create(config, m_ConfigName);
 
             server.AddStreamHandler(new AgentPreferencesServerPostHandler(m_AgentPreferencesService, auth));
         }

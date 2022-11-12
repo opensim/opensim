@@ -2315,7 +2315,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
             if (!httpRequest.QueryAsDictionary.TryGetValue("method", out string method) || string.IsNullOrWhiteSpace(method))
             {
-                httpResponse.StatusCode = (int)HttpStatusCode.NotFound; ;
+                httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
                 return;
             }
 

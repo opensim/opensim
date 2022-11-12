@@ -459,7 +459,7 @@ namespace OpenSim.Groups
 
         public GroupInviteInfo GetAgentToGroupInvite(string RequestingAgentID, UUID inviteID)
         {
-            return m_LocalGroupsConnector.GetAgentToGroupInvite(AgentUUI(RequestingAgentID), inviteID); ;
+            return m_LocalGroupsConnector.GetAgentToGroupInvite(AgentUUI(RequestingAgentID), inviteID);
         }
 
         public void RemoveAgentToGroupInvite(string RequestingAgentID, UUID inviteID)

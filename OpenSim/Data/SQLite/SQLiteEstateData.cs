@@ -241,7 +241,7 @@ namespace OpenSim.Data.SQLite
 
             using (SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand())
             {
-                cmd.CommandText = "update estate_settings set " + String.Join(", ", terms.ToArray()) + " where EstateID = :EstateID"; ;
+                cmd.CommandText = "update estate_settings set " + String.Join(", ", terms.ToArray()) + " where EstateID = :EstateID";
                 cmd.Parameters.AddWithValue(":EstateID", es.EstateID);
 
                 foreach (string name in FieldList)
@@ -286,7 +286,7 @@ namespace OpenSim.Data.SQLite
             {
                 EstateBan eb = new EstateBan();
 
-                eb.BannedUserID = DBGuid.FromDB(r["bannedUUID"]); ;
+                eb.BannedUserID = DBGuid.FromDB(r["bannedUUID"]);
                 eb.BannedHostAddress = "0.0.0.0";
                 eb.BannedHostIPMask = "0.0.0.0";
                 eb.BanningUserID = DBGuid.FromDB(r["banningUUID"]);

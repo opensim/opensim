@@ -2125,7 +2125,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if ((!isPhantom || isPhysical || _VolumeDetectActive)
                     && !ParentGroup.IsAttachmentCheckFull()
-                    && !(Shape.PathCurve == (byte)Extrusion.Flexible))
+                    && (Shape.PathCurve != (byte)Extrusion.Flexible))
             {
                 AddToPhysics(isPhysical, isPhantom, building, isPhysical);
                 UpdatePhysicsSubscribedEvents(); // not sure if appliable here
@@ -3433,10 +3433,10 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             if (!AbsolutePosition.ApproxEquals(m_lastPosition, POSITION_TOLERANCE))
                                 break;
-                            if (    Math.Abs(m_lastVelocity.X) > 1e-4 ||
-                                    Math.Abs(m_lastVelocity.Y) > 1e-4 ||
-                                    Math.Abs(m_lastVelocity.Z) > 1e-4
-                                    )
+                            if (Math.Abs(m_lastVelocity.X) > 1e-4 ||
+                                Math.Abs(m_lastVelocity.Y) > 1e-4 ||
+                                Math.Abs(m_lastVelocity.Z) > 1e-4
+                                )
                             break;
                         }
 
@@ -3445,11 +3445,11 @@ namespace OpenSim.Region.Framework.Scenes
                         if (!angvel.ApproxEquals(tmp, ANGVELOCITY_TOLERANCE))
                             break;
 
-                        if (    Math.Abs(AngularVelocity.X) < 1e-4 && 
-                                Math.Abs(AngularVelocity.Y) < 1e-4 &&
-                                Math.Abs(AngularVelocity.Z) < 1e-4 &&
-                                !RotationOffset.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE)
-                                )
+                        if (Math.Abs(AngularVelocity.X) < 1e-4 && 
+                            Math.Abs(AngularVelocity.Y) < 1e-4 &&
+                            Math.Abs(AngularVelocity.Z) < 1e-4 &&
+                            !RotationOffset.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE)
+                            )
                             break;
 
                         return;
@@ -4747,8 +4747,8 @@ namespace OpenSim.Region.Framework.Scenes
                         DoPhysicsPropertyUpdate(UsePhysics, false); // Update physical status.
 
                         if(UsePhysics && !SetPhantom &&  m_localId == ParentGroup.RootPart.LocalId &&
-                            m_vehicleParams != null && m_vehicleParams.CameraDecoupled)
-                        AddFlag(PrimFlags.CameraDecoupled);
+                                m_vehicleParams != null && m_vehicleParams.CameraDecoupled)
+                            AddFlag(PrimFlags.CameraDecoupled);
                         else
                             RemFlag(PrimFlags.CameraDecoupled);
 
@@ -4786,7 +4786,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             PhysicsActor pa;
             Vector3 velocity = Velocity;
-            Vector3 rotationalVelocity = AngularVelocity; ;
+            Vector3 rotationalVelocity = AngularVelocity;
 
             try
             {

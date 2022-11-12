@@ -3630,7 +3630,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             reply.Data.Flags = (byte)Util.ConvertAccessLevelToMaturity((byte)info.AccessLevel);
             if((land.Flags & (uint)ParcelFlags.ForSale) != 0)
-                reply.Data.Flags |= (byte)((1 << 7));
+                reply.Data.Flags |= (1 << 7);
 
             if (land.IsGroupOwned)
                 reply.Data.Flags |= 0x04;
@@ -6504,7 +6504,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             LLSDxmlEncode2.AddElem("RegionDenyIdentified", false, sb);
             LLSDxmlEncode2.AddElem("RegionDenyTransacted", false, sb);
             LLSDxmlEncode2.AddElem("RegionPushOverride", (regionFlags & (uint)RegionFlags.RestrictPushObject) != 0, sb);
-            LLSDxmlEncode2.AddElem("RentPrice", (int) 0, sb);;
+            LLSDxmlEncode2.AddElem("RentPrice", (int) 0, sb);
             LLSDxmlEncode2.AddElem("RequestResult", request_result, sb);
             LLSDxmlEncode2.AddElem("SalePrice", landData.SalePrice, sb);
             LLSDxmlEncode2.AddElem("SelectedPrims", pc.Selected, sb);
@@ -10514,7 +10514,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return; // only do inventory not assets
 
             if (updatetask.AgentData.SessionID.NotEqual(m_sessionId) || updatetask.AgentData.AgentID.NotEqual(m_agentId))
-            return;
+                return;
 
             TaskInventoryItem newTaskItem = new TaskInventoryItem
             {
@@ -11803,7 +11803,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (eventInfoRequestPacket.AgentData.SessionID.NotEqual(m_sessionId) || eventInfoRequestPacket.AgentData.AgentID.NotEqual(m_agentId))
                 return;
 
-                OnEventInfoRequest?.Invoke(this, eventInfoRequestPacket.EventData.EventID);
+            OnEventInfoRequest?.Invoke(this, eventInfoRequestPacket.EventData.EventID);
         }
 
         #endregion
@@ -12367,7 +12367,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private void HandleStartLure(Packet Pack)
         {
             if(OnStartLure is null)
-            return;
+                return;
 
             StartLurePacket startLureRequest = (StartLurePacket)Pack;
             if (startLureRequest.AgentData.SessionID.NotEqual(m_sessionId) || startLureRequest.AgentData.AgentID.NotEqual(m_agentId))
@@ -12648,7 +12648,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (packet.Type == PacketType.LogoutRequest)
             {
                 if (((LogoutRequestPacket)packet).AgentData.SessionID.NotEqual(m_sessionId))
-                return;
+                    return;
             }
             Logout(this);
         }

@@ -124,7 +124,7 @@ namespace OpenSim.Framework
                 return;
             try
             {
-                while(m_jobQueue.TryTake(out object dummy));
+                while(m_jobQueue.TryTake(out _));
                 m_cancelSource.Cancel();
             }
             catch { }

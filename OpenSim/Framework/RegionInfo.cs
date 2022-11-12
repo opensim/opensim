@@ -717,7 +717,7 @@ namespace OpenSim.Framework
             if (DefaultLandingPoint.Z < 0f)
                 DefaultLandingPoint.Z = 0f;
 
-            if (ValuesCapped == true)
+            if (ValuesCapped)
                 m_log.WarnFormat("[RegionInfo]: The default landing location for {0} has been capped to {1}", RegionName, DefaultLandingPoint);
         }
 

@@ -673,7 +673,7 @@ namespace OpenSim.Services.LLLoginService
                 map["inventory-skeleton"] = ArrayListToOSDArray(agentInventory);
 
                 map["inventory-skel-lib"] = ArrayListToOSDArray(inventoryLibrary);
-                map["inventory-root"] = ArrayListToOSDArray(inventoryRoot); ;
+                map["inventory-root"] = ArrayListToOSDArray(inventoryRoot);
                 map["inventory-lib-root"] = ArrayListToOSDArray(inventoryLibRoot);
                 map["inventory-lib-owner"] = ArrayListToOSDArray(inventoryLibraryOwner);
 

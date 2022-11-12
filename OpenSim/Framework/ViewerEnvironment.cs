@@ -215,7 +215,7 @@ namespace OpenSim.Framework
             sky.sunlight_color = ls.sunMoonColor * 3.0f;
             sky.ambient = new Vector3(ls.ambient.X * 3.0f, ls.ambient.Y * 3.0f, ls.ambient.Z * 3.0f);
             sky.blue_horizon = new Vector3(ls.horizon.X * 2.0f, ls.horizon.Y * 2.0f, ls.horizon.Z * 2.0f);
-            sky.blue_density = new Vector3(ls.blueDensity.X * 2.0f, ls.blueDensity.Y * 2.0f, ls.blueDensity.Z * 2.0f);;
+            sky.blue_density = new Vector3(ls.blueDensity.X * 2.0f, ls.blueDensity.Y * 2.0f, ls.blueDensity.Z * 2.0f);
             sky.haze_horizon = ls.hazeHorizon;
             sky.haze_density = ls.hazeDensity;
             sky.cloud_shadow = ls.cloudCoverage;

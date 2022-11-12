@@ -313,7 +313,7 @@ namespace OpenSim
                                             + "1: Rotation (around the incoming OARs region center)\n"
                                             + "2: Cropping (a bounding cube with origin and size)\n"
                                             + "3: Displacement (setting offset coordinates within the destination region)",
-                                          LoadOar); ;
+                                          LoadOar);
 
             m_console.Commands.AddCommand("Archiving", false, "save oar",
                                           //"save oar [-v|--version=<N>] [-p|--profile=<url>] [<OAR path>]",

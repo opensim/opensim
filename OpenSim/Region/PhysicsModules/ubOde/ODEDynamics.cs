@@ -870,7 +870,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     }
                 }
                 else if (t > m_VhoverHeight)
-                        perr = t - pos.Z; ;
+                        perr = t - pos.Z;
 
                 if ((m_flags & VehicleFlag.HOVER_UP_ONLY) == 0 || perr > -0.1)
                 {

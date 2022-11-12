@@ -3990,7 +3990,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             float smass = part.mass;
             theobj.mass -= smass;
 
-            smass *= 1.0f / (theobj.mass); ;
+            smass *= 1.0f / (theobj.mass);
 
             theobj.c.X -= part.c.X * smass;
             theobj.c.Y -= part.c.Y * smass;

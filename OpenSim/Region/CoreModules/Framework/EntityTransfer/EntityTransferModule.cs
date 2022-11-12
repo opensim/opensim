@@ -1122,7 +1122,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (OutSideViewRange && agentCircuit.ChildrenCapSeeds != null)
                 agentCircuit.ChildrenCapSeeds.Remove(sp.RegionHandle);
 
-            string capsPath = finalDestination.ServerURI + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);;
+            string capsPath = finalDestination.ServerURI + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);
 
             // Let's create an agent there if one doesn't exist yet.
             // NOTE: logout will always be false for a non-HG teleport.
@@ -2446,7 +2446,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             private void DoExpiration()
             {
-                List<ulong> m_toRemove = new List<ulong>();;
+                List<ulong> m_toRemove = new List<ulong>();
                 DateTime now = DateTime.UtcNow;
                 lock (m_notFoundLocations)
                 {

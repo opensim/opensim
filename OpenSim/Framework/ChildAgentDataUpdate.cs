@@ -463,7 +463,7 @@ namespace OpenSim.Framework
                 args["god_data"] = GodData;
                 OSDMap g = (OSDMap)GodData;
                 if (g.ContainsKey("ViewerUiIsGod"))
-                    args["god_level"] = g["ViewerUiIsGod"].AsBoolean() ? 200 : 0;;
+                    args["god_level"] = g["ViewerUiIsGod"].AsBoolean() ? 200 : 0;
             }
             args["always_run"] = OSD.FromBoolean(AlwaysRun);
             args["prey_agent"] = OSD.FromUUID(PreyAgent);

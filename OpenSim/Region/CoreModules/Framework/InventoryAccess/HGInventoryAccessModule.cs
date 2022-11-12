@@ -492,7 +492,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                 // items directly under the root folder
                 foreach (InventoryItemBase it in content.Items)
-                    it.Name = it.Name + " (Unavailable)"; ;
+                    it.Name = it.Name + " (Unavailable)";
 
                 // Send the new names
                 client.SendBulkUpdateInventory(keep.ToArray(), content.Items.ToArray());

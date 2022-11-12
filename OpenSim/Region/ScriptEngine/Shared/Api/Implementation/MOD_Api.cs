@@ -343,7 +343,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (!m_MODFunctionsEnabled)
             {
                 MODShoutError("Module command functions not enabled");
-                return UUID.Zero.ToString();;
+                return UUID.Zero.ToString();
             }
 
             UUID req = UUID.Random();

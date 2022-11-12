@@ -373,8 +373,10 @@ namespace OpenSim.Framework
             if (!IsEstateManagerOrOwner(avatarID))
             {
                 foreach (EstateBan ban in l_EstateBans)
-                    if (ban.BannedUserID == avatarID)
+                {
+                    if (ban.BannedUserID.Equals(avatarID))
                         return true;
+                }
             }
             return false;
         }
@@ -384,8 +386,10 @@ namespace OpenSim.Framework
             if (!IsEstateManagerOrOwner(avatarID))
             {
                 foreach (EstateBan ban in l_EstateBans)
-                if (ban.BannedUserID == avatarID)
-                    return true;
+                {
+                    if (ban.BannedUserID.Equals(avatarID))
+                        return true;
+                }
 
                 if (!HasAccess(avatarID))
                 {
@@ -415,7 +419,7 @@ namespace OpenSim.Framework
 
         public void AddBan(EstateBan ban)
         {
-            if (ban == null)
+            if (ban is null)
                 return;
             if (!IsBanned(ban.BannedUserID, 32) &&
                 (l_EstateBans.Count < (int)Constants.EstateAccessLimits.EstateBans)) //Ignore age-based bans

@@ -2173,7 +2173,7 @@ namespace OpenSim.Data.SQLite
             if (prim.KeyframeMotion != null)
                 row["KeyframeMotion"] = prim.KeyframeMotion.Serialize();
             else
-                row["KeyframeMotion"] = Array.Empty<byte>(); ;
+                row["KeyframeMotion"] = Array.Empty<byte>();
 
             row["PassTouches"] = prim.PassTouches;
             row["PassCollisions"] = prim.PassCollisions;
@@ -2866,10 +2866,6 @@ namespace OpenSim.Data.SQLite
             else if (type == typeof(Byte))
             {
                 return DbType.Byte;
-            }
-            else if (type == typeof(Double))
-            {
-                return DbType.Double;
             }
             else if (type == typeof(Byte[]))
             {

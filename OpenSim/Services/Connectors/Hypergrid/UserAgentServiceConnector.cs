@@ -180,7 +180,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
                 throw new Exception(string.Format("[USER AGENT CONNECTOR]: {0} call to {1} returned null", methodName, m_ServerURL));
             }
 
-            return (Hashtable)response.Value; ;
+            return (Hashtable)response.Value;
         }
 
         public GridRegion GetHomeRegion(UUID userID, out Vector3 position, out Vector3 lookAt)

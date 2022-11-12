@@ -2367,7 +2367,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
 
                 NotecardCache.Cache(assetID, a.Data);
-            };
+            }
 
             return assetID;
         }

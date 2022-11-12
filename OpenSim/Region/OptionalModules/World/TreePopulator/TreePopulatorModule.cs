@@ -739,7 +739,7 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
 
                 float minscale = 0;
                 if(!low && m_allowGrow)
-                    minscale = copse.m_maximum_scale.Z * 0.75f;;
+                    minscale = copse.m_maximum_scale.Z * 0.75f;
 
                 int i = 0;
                 UUID[] current = copse.m_trees.ToArray();

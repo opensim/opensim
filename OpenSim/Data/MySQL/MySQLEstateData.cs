@@ -301,7 +301,7 @@ namespace OpenSim.Data.MySQL
                         while (r.Read())
                         {
                             EstateBan eb = new EstateBan();
-                            eb.BannedUserID = DBGuid.FromDB(r["bannedUUID"]); ;
+                            eb.BannedUserID = DBGuid.FromDB(r["bannedUUID"]);
                             eb.BannedHostAddress = "0.0.0.0";
                             eb.BannedHostIPMask = "0.0.0.0";
                             eb.BanningUserID = DBGuid.FromDB(r["banningUUID"]);
