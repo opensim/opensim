@@ -17900,7 +17900,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             sb.Append(",");
                     }
                     sb.Append("]");
-                    return (LSL_String)sb.ToString();;
+                    return (LSL_String)sb.ToString();
                 }
                 else if (type == ScriptBaseClass.JSON_OBJECT)
                 {

@@ -76,7 +76,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         {
                             if(evc == ScriptEventCode.state_entry && m_EventQueue.Count == 0)
                             {
-                                LinkedListNode<EventParams> llns = new LinkedListNode<EventParams>(evt);
+                                LinkedListNode<EventParams> llns = new(evt);
                                 m_EventQueue.AddFirst(llns);
                             }
                         }
@@ -139,7 +139,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
                     m_EventCounts[(int)evc]++;
 
-                    LinkedListNode<EventParams> lln = new LinkedListNode<EventParams>(evt);
+                    LinkedListNode<EventParams> lln = new(evt);
                     switch (evc)
                     {
                          // These need to go first.  The only time we manually
@@ -159,14 +159,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                             if (evt.Params[0].ToString().Equals(UUID.ZeroString))
                             {
                                 LinkedListNode<EventParams> lln2 = null;
-                                for(lln2 = m_EventQueue.First; lln2 != null; lln2 = lln2.Next)
+                                for(lln2 = m_EventQueue.First; lln2 is not null; lln2 = lln2.Next)
                                 {
                                     EventParams evt2 = lln2.Value;
                                     m_eventCodeMap.TryGetValue(evt2.EventName, out ScriptEventCode evc2);
                                     if((evc2 != ScriptEventCode.state_entry) && (evc2 != ScriptEventCode.attach))
                                         break;
                                 }
-                                if(lln2 == null)
+                                if(lln2 is null)
                                     m_EventQueue.AddLast(lln);
                                 else
                                     m_EventQueue.AddBefore(lln2, lln);
@@ -234,7 +234,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     return;
 
                 LinkedListNode<EventParams> lln2 = null;
-                for (lln2 = m_EventQueue.First; lln2 != null; lln2 = lln2.Next)
+                for (lln2 = m_EventQueue.First; lln2 is not null; lln2 = lln2.Next)
                 {
                     EventParams evt2 = lln2.Value;
                     if(evt2.EventName.Equals(eventName))
@@ -288,7 +288,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 CheckRunLockInvariants(true);
 
                  // Maybe it has been Disposed()
-                if(m_Part == null || m_Part.Inventory == null)
+                if(m_Part is null || m_Part.Inventory is null)
                 {
                     //m_RunOnePhase = "runone saw it disposed";
                     return XMRInstState.DISPOSED;
@@ -350,7 +350,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         }
 
                         //m_RunOnePhase = "dequeue event";
-                        if(m_EventQueue.First != null)
+                        if(m_EventQueue.First is not null)
                         {
                             evt = m_EventQueue.First.Value;
                             m_eventCodeMap.TryGetValue(evt.EventName, out evc);
@@ -376,7 +376,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
                          // If there is no event to dequeue, don't run this script
                          // until another event gets queued.
-                        if(evt == null)
+                        if(evt is null)
                         {
                             if(m_DetachQuantum > 0)
                             {
@@ -440,7 +440,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
              // If not executing any event handler, there shouldn't be any saved stack frames.
              // If executing an event handler, there should be some saved stack frames.
-            bool active = (stackFrames != null);
+            bool active = (stackFrames is not null);
             if((active && (eventCode == ScriptEventCode.None)) ||
                 (!active && (eventCode != ScriptEventCode.None)))
             {
@@ -560,16 +560,16 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         private void SendScriptErrorMessage(Exception e, ScriptEventCode ev)
         {
-            StringBuilder msg = new StringBuilder();
+            StringBuilder msg = new();
             bool toowner = false;
             msg.Append("YEngine: ");
             string evMessage = null;
-            if (e != null && !string.IsNullOrEmpty(e.Message))
+            if (e is not null && !string.IsNullOrEmpty(e.Message))
             {
                 evMessage = e.Message;
                 if (evMessage.StartsWith("(OWNER)"))
                 {
-                    evMessage = evMessage.Substring(7);
+                    evMessage = evMessage[7..];
                     toowner = true;
                 }
                 if (e is OutOfHeapException)
@@ -594,7 +594,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             string msgst = msg.ToString();
             if (msgst.Length > 1000)
-                msgst = msgst.Substring(0, 1000);
+                msgst = msgst[..1000];
 
             if (toowner)
             {
@@ -627,7 +627,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private void SendErrorMessage(Exception e)
         {
-            StringBuilder msg = new StringBuilder();
+            StringBuilder msg = new();
 
             msg.Append("[YEngine]: Exception while running ");
             msg.Append(m_ItemID);
@@ -635,7 +635,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
              // Add exception message.
             string des = e.Message;
-            des = (des == null) ? "" : (": " + des);
+            des = (des is null) ? "" : (": " + des);
             msg.Append(e.GetType().Name + des + "\n");
 
              // Tell script owner what to do.
@@ -666,16 +666,15 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             if(!msgst.EndsWith("\n"))
                 msgst += '\n';
             int j = 0;
-            StringBuilder imstr = new StringBuilder();
             for(int i = 0; (i = msgst.IndexOf('\n', i)) >= 0; j = ++i)
             {
-                string line = msgst.Substring(j, i - j);
+                string line = msgst[j..i];
                 if(line.StartsWith("at "))
                 {
                     if(line.StartsWith("at (wrapper"))
                         continue;  // at (wrapper ...
                     int k = line.LastIndexOf(".cs:");  // ... .cs:linenumber
-                    if(Int32.TryParse(line.Substring(k + 4), out k))
+                    if(Int32.TryParse(line.AsSpan(k + 4), out _))
                         continue;
                 }
                 this.llOwnerSay(line);
@@ -868,13 +867,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             ReleaseControlsOrPermissions(true);
             m_Part.CollisionSound = UUID.Zero;
 
-            if (m_XMRLSLApi != null)
-                m_XMRLSLApi.llResetTime();
+            m_XMRLSLApi?.llResetTime();
 
             //m_RunOnePhase = "ResetLocked: removing script";
             IUrlModule urlModule = m_Engine.World.RequestModuleInterface<IUrlModule>();
-            if(urlModule != null)
-                urlModule.ScriptRemoved(m_ItemID);
+            urlModule?.ScriptRemoved(m_ItemID);
 
             AsyncCommandManager.RemoveScript(m_Engine, m_LocalID, m_ItemID);
 
@@ -912,7 +909,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         private void ReleaseControlsOrPermissions(bool fullPermissions)
         {
-            if(m_Part != null && m_Part.TaskInventory != null)
+            if(m_Part is not null && m_Part.TaskInventory is not null)
             {
                 int permsMask;
                 UUID permsGranter;
@@ -936,8 +933,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 if ((permsMask & ScriptBaseClass.PERMISSION_TAKE_CONTROLS) != 0)
                 {
                     ScenePresence presence = m_Engine.World.GetScenePresence(permsGranter);
-                    if (presence != null)
-                        presence.UnRegisterControlEventsToScript(m_LocalID, m_ItemID);
+                    presence?.UnRegisterControlEventsToScript(m_LocalID, m_ItemID);
                 }
             }
         }
