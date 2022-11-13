@@ -30,15 +30,11 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
-using System.Text;
 using System.Xml;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Serialization.External;
-using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.Framework.Scenes;
-using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.Framework.Scenes.Serialization
 {
@@ -61,7 +57,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         public static SceneObjectGroup FromOriginalXmlFormat(string xmlData)
         {
             string fixedData = ExternalRepresentationUtils.SanitizeXml(xmlData);
-            using (XmlTextReader wrappedReader = new XmlTextReader(fixedData, XmlNodeType.Element, null))
+            using (XmlTextReader wrappedReader = new(fixedData, XmlNodeType.Element, null))
             {
                 using (XmlReader reader = XmlReader.Create(wrappedReader, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment, DtdProcessing = DtdProcessing.Ignore }))
                 {
@@ -120,7 +116,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             reader.ReadToFollowing("RootPart");
             reader.ReadToFollowing("SceneObjectPart");
-            SceneObjectGroup sceneObject = new SceneObjectGroup(SceneObjectPart.FromXml(reader));
+            SceneObjectGroup sceneObject = new(SceneObjectPart.FromXml(reader));
             reader.ReadToFollowing("OtherParts");
 
             if (reader.ReadToDescendant("Part"))
@@ -176,9 +172,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         /// <returns></returns>
         public static string ToOriginalXmlFormat(SceneObjectGroup sceneObject, bool doScriptStates)
         {
-            using (StringWriter sw = new StringWriter())
+            using (StringWriter sw = new())
             {
-                using (XmlTextWriter writer = new XmlTextWriter(sw))
+                using (XmlTextWriter writer = new(sw))
                 {
                     ToOriginalXmlFormat(sceneObject, writer, doScriptStates);
                 }
@@ -199,11 +195,11 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         public static string ToOriginalXmlFormat(SceneObjectGroup sceneObject, string scriptedState)
         {
-            using (StringWriter sw = new StringWriter())
+            using (StringWriter sw = new())
             {
-                using (XmlTextWriter writer = new XmlTextWriter(sw))
+                using (XmlTextWriter writer = new(sw))
                 {
-                    writer.WriteStartElement(String.Empty, "SceneObjectGroup", String.Empty);
+                    writer.WriteStartElement(string.Empty, "SceneObjectGroup", string.Empty);
 
                     ToOriginalXmlFormat(sceneObject, writer, false, true);
 
@@ -229,12 +225,12 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 //            int time = System.Environment.TickCount;
 
             if (!noRootElement)
-                writer.WriteStartElement(String.Empty, "SceneObjectGroup", String.Empty);
+                writer.WriteStartElement(string.Empty, "SceneObjectGroup", string.Empty);
 
-            writer.WriteStartElement(String.Empty, "RootPart", String.Empty);
+            writer.WriteStartElement(string.Empty, "RootPart", string.Empty);
             ToXmlFormat(sceneObject.RootPart, writer);
             writer.WriteEndElement();
-            writer.WriteStartElement(String.Empty, "OtherParts", String.Empty);
+            writer.WriteStartElement(string.Empty, "OtherParts", string.Empty);
 
             SceneObjectPart[] parts = sceneObject.Parts;
             for (int i = 0; i < parts.Length; i++)
@@ -242,7 +238,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 SceneObjectPart part = parts[i];
                 if (part.UUID != sceneObject.RootPart.UUID)
                 {
-                    writer.WriteStartElement(String.Empty, "Part", String.Empty);
+                    writer.WriteStartElement(string.Empty, "Part", string.Empty);
                     ToXmlFormat(part, writer);
                     writer.WriteEndElement();
                 }
@@ -252,9 +248,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             if (sceneObject.RootPart.KeyframeMotion != null)
             {
-                Byte[] data = sceneObject.RootPart.KeyframeMotion.Serialize();
+                byte[] data = sceneObject.RootPart.KeyframeMotion.Serialize();
 
-                writer.WriteStartElement(String.Empty, "KeyframeMotion", String.Empty);
+                writer.WriteStartElement(string.Empty, "KeyframeMotion", string.Empty);
                 writer.WriteBase64(data, 0, data.Length);
                 writer.WriteEndElement();
             }
@@ -280,7 +276,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             try
             {
-                XmlDocument doc = new XmlDocument();
+                XmlDocument doc = new();
                 doc.LoadXml(xmlData);
 
                 XmlNodeList parts = doc.GetElementsByTagName("SceneObjectPart");
@@ -293,9 +289,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 }
 
                 SceneObjectGroup sceneObject;
-                using(StringReader sr = new StringReader(parts[0].OuterXml))
+                using(StringReader sr = new(parts[0].OuterXml))
                 {
-                    using(XmlTextReader reader = new XmlTextReader(sr))
+                    using(XmlTextReader reader = new(sr))
                     {
                         reader.DtdProcessing = DtdProcessing.Ignore;
                         sceneObject = new SceneObjectGroup(SceneObjectPart.FromXml(reader));
@@ -306,9 +302,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 SceneObjectPart part;
                 for (int i = 1; i < parts.Count; i++)
                 {
-                    using(StringReader sr = new StringReader(parts[i].OuterXml))
+                    using(StringReader sr = new(parts[i].OuterXml))
                     {
-                        using(XmlTextReader reader = new XmlTextReader(sr))
+                        using(XmlTextReader reader = new(sr))
                         {
                             reader.DtdProcessing = DtdProcessing.Ignore;
                             part = SceneObjectPart.FromXml(reader);
@@ -353,9 +349,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         /// <returns></returns>
         public static string ToXml2Format(SceneObjectGroup sceneObject)
         {
-            using (StringWriter sw = new StringWriter())
+            using (StringWriter sw = new())
             {
-                using (XmlTextWriter writer = new XmlTextWriter(sw))
+                using (XmlTextWriter writer = new(sw))
                 {
                     SOGToXml2(writer, sceneObject, new Dictionary<string,object>());
                 }
@@ -380,11 +376,10 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         /// <returns>The new serialized object's data, or null if an error occurred</returns>
         public static byte[] ModifySerializedObject(UUID assetId, byte[] data, SceneObjectModifier modifier)
         {
-            List<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();
-            CoalescedSceneObjects coa = null;
+            List<SceneObjectGroup> sceneObjects = new();
 
             string xmlData = ExternalRepresentationUtils.SanitizeXml(Utils.BytesToString(data));
-            if (CoalescedSceneObjectsSerializer.TryFromXml(xmlData, out coa))
+            if (CoalescedSceneObjectsSerializer.TryFromXml(xmlData, out CoalescedSceneObjects coa))
             {
                 // m_log.DebugFormat("[SERIALIZER]: Loaded coalescence {0} has {1} objects", assetId, coa.Count);
 
@@ -400,7 +395,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             {
                 SceneObjectGroup deserializedObject = FromOriginalXmlFormat(xmlData);
 
-                if (deserializedObject != null)
+                if (deserializedObject is not null)
                 {
                     sceneObjects.Add(deserializedObject);
                 }
@@ -420,7 +415,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             if (modified)
             {
-                if (coa != null)
+                if (coa is not null)
                     data = Utils.StringToBytes(CoalescedSceneObjectsSerializer.ToXml(coa));
                 else
                     data = Utils.StringToBytes(ToOriginalXmlFormat(sceneObjects[0]));
@@ -431,191 +426,180 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         #region manual serialization
 
-        private static Dictionary<string, Action<SceneObjectPart, XmlReader>> m_SOPXmlProcessors
-            = new Dictionary<string, Action<SceneObjectPart, XmlReader>>();
-
-        private static Dictionary<string, Action<TaskInventoryItem, XmlReader>> m_TaskInventoryXmlProcessors
-            = new Dictionary<string, Action<TaskInventoryItem, XmlReader>>();
-
-        private static Dictionary<string, Action<PrimitiveBaseShape, XmlReader>> m_ShapeXmlProcessors
-            = new Dictionary<string, Action<PrimitiveBaseShape, XmlReader>>();
-
-        static SceneObjectSerializer()
+        private static readonly Dictionary<string, Action<SceneObjectPart, XmlReader>> m_SOPXmlProcessors = new()
         {
-            #region SOPXmlProcessors initialization
-            m_SOPXmlProcessors.Add("AllowedDrop", ProcessAllowedDrop);
-            m_SOPXmlProcessors.Add("CreatorID", ProcessCreatorID);
-            m_SOPXmlProcessors.Add("CreatorData", ProcessCreatorData);
-            m_SOPXmlProcessors.Add("FolderID", ProcessFolderID);
-            m_SOPXmlProcessors.Add("InventorySerial", ProcessInventorySerial);
-            m_SOPXmlProcessors.Add("TaskInventory", ProcessTaskInventory);
-            m_SOPXmlProcessors.Add("UUID", ProcessUUID);
-            m_SOPXmlProcessors.Add("LocalId", ProcessLocalId);
-            m_SOPXmlProcessors.Add("Name", ProcessName);
-            m_SOPXmlProcessors.Add("Material", ProcessMaterial);
-            m_SOPXmlProcessors.Add("PassTouches", ProcessPassTouches);
-            m_SOPXmlProcessors.Add("PassCollisions", ProcessPassCollisions);
-            m_SOPXmlProcessors.Add("RegionHandle", ProcessRegionHandle);
-            m_SOPXmlProcessors.Add("ScriptAccessPin", ProcessScriptAccessPin);
-            m_SOPXmlProcessors.Add("GroupPosition", ProcessGroupPosition);
-            m_SOPXmlProcessors.Add("OffsetPosition", ProcessOffsetPosition);
-            m_SOPXmlProcessors.Add("RotationOffset", ProcessRotationOffset);
-            m_SOPXmlProcessors.Add("Velocity", ProcessVelocity);
-            m_SOPXmlProcessors.Add("AngularVelocity", ProcessAngularVelocity);
-            m_SOPXmlProcessors.Add("Acceleration", ProcessAcceleration);
-            m_SOPXmlProcessors.Add("Description", ProcessDescription);
-            m_SOPXmlProcessors.Add("Color", ProcessColor);
-            m_SOPXmlProcessors.Add("Text", ProcessText);
-            m_SOPXmlProcessors.Add("SitName", ProcessSitName);
-            m_SOPXmlProcessors.Add("TouchName", ProcessTouchName);
-            m_SOPXmlProcessors.Add("LinkNum", ProcessLinkNum);
-            m_SOPXmlProcessors.Add("ClickAction", ProcessClickAction);
-            m_SOPXmlProcessors.Add("Shape", ProcessShape);
-            m_SOPXmlProcessors.Add("Scale", ProcessScale);
-            m_SOPXmlProcessors.Add("SitTargetOrientation", ProcessSitTargetOrientation);
-            m_SOPXmlProcessors.Add("SitTargetPosition", ProcessSitTargetPosition);
-            m_SOPXmlProcessors.Add("SitTargetPositionLL", ProcessSitTargetPositionLL);
-            m_SOPXmlProcessors.Add("SitTargetOrientationLL", ProcessSitTargetOrientationLL);
-            m_SOPXmlProcessors.Add("StandTarget", ProcessStandTarget);
-            m_SOPXmlProcessors.Add("ParentID", ProcessParentID);
-            m_SOPXmlProcessors.Add("CreationDate", ProcessCreationDate);
-            m_SOPXmlProcessors.Add("Category", ProcessCategory);
-            m_SOPXmlProcessors.Add("SalePrice", ProcessSalePrice);
-            m_SOPXmlProcessors.Add("ObjectSaleType", ProcessObjectSaleType);
-            m_SOPXmlProcessors.Add("OwnershipCost", ProcessOwnershipCost);
-            m_SOPXmlProcessors.Add("GroupID", ProcessGroupID);
-            m_SOPXmlProcessors.Add("OwnerID", ProcessOwnerID);
-            m_SOPXmlProcessors.Add("LastOwnerID", ProcessLastOwnerID);
-            m_SOPXmlProcessors.Add("RezzerID", ProcessRezzerID);
-            m_SOPXmlProcessors.Add("BaseMask", ProcessBaseMask);
-            m_SOPXmlProcessors.Add("OwnerMask", ProcessOwnerMask);
-            m_SOPXmlProcessors.Add("GroupMask", ProcessGroupMask);
-            m_SOPXmlProcessors.Add("EveryoneMask", ProcessEveryoneMask);
-            m_SOPXmlProcessors.Add("NextOwnerMask", ProcessNextOwnerMask);
-            m_SOPXmlProcessors.Add("Flags", ProcessFlags);
-            m_SOPXmlProcessors.Add("CollisionSound", ProcessCollisionSound);
-            m_SOPXmlProcessors.Add("CollisionSoundVolume", ProcessCollisionSoundVolume);
-            m_SOPXmlProcessors.Add("MediaUrl", ProcessMediaUrl);
-            m_SOPXmlProcessors.Add("AttachedPos", ProcessAttachedPos);
-            m_SOPXmlProcessors.Add("DynAttrs", ProcessDynAttrs);
-            m_SOPXmlProcessors.Add("TextureAnimation", ProcessTextureAnimation);
-            m_SOPXmlProcessors.Add("ParticleSystem", ProcessParticleSystem);
-            m_SOPXmlProcessors.Add("PayPrice0", ProcessPayPrice0);
-            m_SOPXmlProcessors.Add("PayPrice1", ProcessPayPrice1);
-            m_SOPXmlProcessors.Add("PayPrice2", ProcessPayPrice2);
-            m_SOPXmlProcessors.Add("PayPrice3", ProcessPayPrice3);
-            m_SOPXmlProcessors.Add("PayPrice4", ProcessPayPrice4);
+            {"AllowedDrop", ProcessAllowedDrop },
+            {"CreatorID", ProcessCreatorID },
+            {"CreatorData", ProcessCreatorData },
+            {"FolderID", ProcessFolderID },
+            {"InventorySerial", ProcessInventorySerial },
+            {"TaskInventory", ProcessTaskInventory },
+            {"UUID", ProcessUUID },
+            {"LocalId", ProcessLocalId },
+            {"Name", ProcessName },
+            {"Material", ProcessMaterial },
+            {"PassTouches", ProcessPassTouches },
+            {"PassCollisions", ProcessPassCollisions },
+            {"RegionHandle", ProcessRegionHandle },
+            {"ScriptAccessPin", ProcessScriptAccessPin },
+            {"GroupPosition", ProcessGroupPosition },
+            {"OffsetPosition", ProcessOffsetPosition },
+            {"RotationOffset", ProcessRotationOffset },
+            {"Velocity", ProcessVelocity },
+            {"AngularVelocity", ProcessAngularVelocity },
+            {"Acceleration", ProcessAcceleration },
+            {"Description", ProcessDescription },
+            {"Color", ProcessColor },
+            {"Text", ProcessText },
+            {"SitName", ProcessSitName },
+            {"TouchName", ProcessTouchName },
+            {"LinkNum", ProcessLinkNum },
+            {"ClickAction", ProcessClickAction },
+            {"Shape", ProcessShape },
+            {"Scale", ProcessScale },
+            {"SitTargetOrientation", ProcessSitTargetOrientation },
+            {"SitTargetPosition", ProcessSitTargetPosition },
+            {"SitTargetPositionLL", ProcessSitTargetPositionLL },
+            {"SitTargetOrientationLL", ProcessSitTargetOrientationLL },
+            {"StandTarget", ProcessStandTarget },
+            {"ParentID", ProcessParentID },
+            {"CreationDate", ProcessCreationDate },
+            {"Category", ProcessCategory },
+            {"SalePrice", ProcessSalePrice },
+            {"ObjectSaleType", ProcessObjectSaleType },
+            {"OwnershipCost", ProcessOwnershipCost },
+            {"GroupID", ProcessGroupID },
+            {"OwnerID", ProcessOwnerID },
+            {"LastOwnerID", ProcessLastOwnerID },
+            {"RezzerID", ProcessRezzerID },
+            {"BaseMask", ProcessBaseMask },
+            {"OwnerMask", ProcessOwnerMask },
+            {"GroupMask", ProcessGroupMask },
+            {"EveryoneMask", ProcessEveryoneMask },
+            {"NextOwnerMask", ProcessNextOwnerMask },
+            {"Flags", ProcessFlags },
+            {"CollisionSound", ProcessCollisionSound },
+            {"CollisionSoundVolume", ProcessCollisionSoundVolume },
+            {"MediaUrl", ProcessMediaUrl },
+            {"AttachedPos", ProcessAttachedPos },
+            {"DynAttrs", ProcessDynAttrs },
+            {"TextureAnimation", ProcessTextureAnimation },
+            {"ParticleSystem", ProcessParticleSystem },
+            {"PayPrice0", ProcessPayPrice0 },
+            {"PayPrice1", ProcessPayPrice1 },
+            {"PayPrice2", ProcessPayPrice2 },
+            {"PayPrice3", ProcessPayPrice3 },
+            {"PayPrice4", ProcessPayPrice4 },
 
-            m_SOPXmlProcessors.Add("Buoyancy", ProcessBuoyancy);
-            m_SOPXmlProcessors.Add("Force", ProcessForce);
-            m_SOPXmlProcessors.Add("Torque", ProcessTorque);
-            m_SOPXmlProcessors.Add("VolumeDetectActive", ProcessVolumeDetectActive);
+            {"Buoyancy", ProcessBuoyancy },
+            {"Force", ProcessForce },
+            {"Torque", ProcessTorque },
+            {"VolumeDetectActive", ProcessVolumeDetectActive },
 
-            m_SOPXmlProcessors.Add("Vehicle", ProcessVehicle);
+            {"Vehicle", ProcessVehicle },
 
-            m_SOPXmlProcessors.Add("PhysicsInertia", ProcessPhysicsInertia);
+            {"PhysicsInertia", ProcessPhysicsInertia },
 
-            m_SOPXmlProcessors.Add("RotationAxisLocks", ProcessRotationAxisLocks);
-            m_SOPXmlProcessors.Add("PhysicsShapeType", ProcessPhysicsShapeType);
-            m_SOPXmlProcessors.Add("Density", ProcessDensity);
-            m_SOPXmlProcessors.Add("Friction", ProcessFriction);
-            m_SOPXmlProcessors.Add("Bounce", ProcessBounce);
-            m_SOPXmlProcessors.Add("GravityModifier", ProcessGravityModifier);
-            m_SOPXmlProcessors.Add("CameraEyeOffset", ProcessCameraEyeOffset);
-            m_SOPXmlProcessors.Add("CameraAtOffset", ProcessCameraAtOffset);
+            {"RotationAxisLocks", ProcessRotationAxisLocks },
+            {"PhysicsShapeType", ProcessPhysicsShapeType },
+            {"Density", ProcessDensity },
+            {"Friction", ProcessFriction },
+            {"Bounce", ProcessBounce },
+            {"GravityModifier", ProcessGravityModifier },
+            {"CameraEyeOffset", ProcessCameraEyeOffset },
+            {"CameraAtOffset", ProcessCameraAtOffset },
 
-            m_SOPXmlProcessors.Add("SoundID", ProcessSoundID);
-            m_SOPXmlProcessors.Add("SoundGain", ProcessSoundGain);
-            m_SOPXmlProcessors.Add("SoundFlags", ProcessSoundFlags);
-            m_SOPXmlProcessors.Add("SoundRadius", ProcessSoundRadius);
-            m_SOPXmlProcessors.Add("SoundQueueing", ProcessSoundQueueing);
+            {"SoundID", ProcessSoundID },
+            {"SoundGain", ProcessSoundGain },
+            {"SoundFlags", ProcessSoundFlags },
+            {"SoundRadius", ProcessSoundRadius },
+            {"SoundQueueing", ProcessSoundQueueing },
 
-            m_SOPXmlProcessors.Add("SOPAnims", ProcessSOPAnims);
+            {"SOPAnims", ProcessSOPAnims },
 
-            m_SOPXmlProcessors.Add("SitActRange", ProcessSitActRange);
+            {"SitActRange", ProcessSitActRange }
+        };
 
-            #endregion
+        private static readonly Dictionary<string, Action<TaskInventoryItem, XmlReader>> m_TaskInventoryXmlProcessors = new()
+        {
+            {"AssetID", ProcessTIAssetID },
+            {"BasePermissions", ProcessTIBasePermissions },
+            {"CreationDate", ProcessTICreationDate },
+            {"CreatorID", ProcessTICreatorID },
+            {"CreatorData", ProcessTICreatorData },
+            {"Description", ProcessTIDescription },
+            {"EveryonePermissions", ProcessTIEveryonePermissions },
+            {"Flags", ProcessTIFlags },
+            {"GroupID", ProcessTIGroupID },
+            {"GroupPermissions", ProcessTIGroupPermissions },
+            {"InvType", ProcessTIInvType },
+            {"ItemID", ProcessTIItemID },
+            {"OldItemID", ProcessTIOldItemID },
+            {"LastOwnerID", ProcessTILastOwnerID },
+            {"Name", ProcessTIName },
+            {"NextPermissions", ProcessTINextPermissions },
+            {"OwnerID", ProcessTIOwnerID },
+            {"CurrentPermissions", ProcessTICurrentPermissions },
+            {"ParentID", ProcessTIParentID },
+            {"ParentPartID", ProcessTIParentPartID },
+            {"PermsGranter", ProcessTIPermsGranter },
+            {"PermsMask", ProcessTIPermsMask },
+            {"Type", ProcessTIType },
+            {"OwnerChanged", ProcessTIOwnerChanged }
+        };
 
-            #region TaskInventoryXmlProcessors initialization
-            m_TaskInventoryXmlProcessors.Add("AssetID", ProcessTIAssetID);
-            m_TaskInventoryXmlProcessors.Add("BasePermissions", ProcessTIBasePermissions);
-            m_TaskInventoryXmlProcessors.Add("CreationDate", ProcessTICreationDate);
-            m_TaskInventoryXmlProcessors.Add("CreatorID", ProcessTICreatorID);
-            m_TaskInventoryXmlProcessors.Add("CreatorData", ProcessTICreatorData);
-            m_TaskInventoryXmlProcessors.Add("Description", ProcessTIDescription);
-            m_TaskInventoryXmlProcessors.Add("EveryonePermissions", ProcessTIEveryonePermissions);
-            m_TaskInventoryXmlProcessors.Add("Flags", ProcessTIFlags);
-            m_TaskInventoryXmlProcessors.Add("GroupID", ProcessTIGroupID);
-            m_TaskInventoryXmlProcessors.Add("GroupPermissions", ProcessTIGroupPermissions);
-            m_TaskInventoryXmlProcessors.Add("InvType", ProcessTIInvType);
-            m_TaskInventoryXmlProcessors.Add("ItemID", ProcessTIItemID);
-            m_TaskInventoryXmlProcessors.Add("OldItemID", ProcessTIOldItemID);
-            m_TaskInventoryXmlProcessors.Add("LastOwnerID", ProcessTILastOwnerID);
-            m_TaskInventoryXmlProcessors.Add("Name", ProcessTIName);
-            m_TaskInventoryXmlProcessors.Add("NextPermissions", ProcessTINextPermissions);
-            m_TaskInventoryXmlProcessors.Add("OwnerID", ProcessTIOwnerID);
-            m_TaskInventoryXmlProcessors.Add("CurrentPermissions", ProcessTICurrentPermissions);
-            m_TaskInventoryXmlProcessors.Add("ParentID", ProcessTIParentID);
-            m_TaskInventoryXmlProcessors.Add("ParentPartID", ProcessTIParentPartID);
-            m_TaskInventoryXmlProcessors.Add("PermsGranter", ProcessTIPermsGranter);
-            m_TaskInventoryXmlProcessors.Add("PermsMask", ProcessTIPermsMask);
-            m_TaskInventoryXmlProcessors.Add("Type", ProcessTIType);
-            m_TaskInventoryXmlProcessors.Add("OwnerChanged", ProcessTIOwnerChanged);
-
-            #endregion
-
-            #region ShapeXmlProcessors initialization
-            m_ShapeXmlProcessors.Add("ProfileCurve", ProcessShpProfileCurve);
-            m_ShapeXmlProcessors.Add("TextureEntry", ProcessShpTextureEntry);
-            m_ShapeXmlProcessors.Add("ExtraParams", ProcessShpExtraParams);
-            m_ShapeXmlProcessors.Add("PathBegin", ProcessShpPathBegin);
-            m_ShapeXmlProcessors.Add("PathCurve", ProcessShpPathCurve);
-            m_ShapeXmlProcessors.Add("PathEnd", ProcessShpPathEnd);
-            m_ShapeXmlProcessors.Add("PathRadiusOffset", ProcessShpPathRadiusOffset);
-            m_ShapeXmlProcessors.Add("PathRevolutions", ProcessShpPathRevolutions);
-            m_ShapeXmlProcessors.Add("PathScaleX", ProcessShpPathScaleX);
-            m_ShapeXmlProcessors.Add("PathScaleY", ProcessShpPathScaleY);
-            m_ShapeXmlProcessors.Add("PathShearX", ProcessShpPathShearX);
-            m_ShapeXmlProcessors.Add("PathShearY", ProcessShpPathShearY);
-            m_ShapeXmlProcessors.Add("PathSkew", ProcessShpPathSkew);
-            m_ShapeXmlProcessors.Add("PathTaperX", ProcessShpPathTaperX);
-            m_ShapeXmlProcessors.Add("PathTaperY", ProcessShpPathTaperY);
-            m_ShapeXmlProcessors.Add("PathTwist", ProcessShpPathTwist);
-            m_ShapeXmlProcessors.Add("PathTwistBegin", ProcessShpPathTwistBegin);
-            m_ShapeXmlProcessors.Add("PCode", ProcessShpPCode);
-            m_ShapeXmlProcessors.Add("ProfileBegin", ProcessShpProfileBegin);
-            m_ShapeXmlProcessors.Add("ProfileEnd", ProcessShpProfileEnd);
-            m_ShapeXmlProcessors.Add("ProfileHollow", ProcessShpProfileHollow);
-            m_ShapeXmlProcessors.Add("Scale", ProcessShpScale);
-            m_ShapeXmlProcessors.Add("LastAttachPoint", ProcessShpLastAttach);
-            m_ShapeXmlProcessors.Add("State", ProcessShpState);
-            m_ShapeXmlProcessors.Add("ProfileShape", ProcessShpProfileShape);
-            m_ShapeXmlProcessors.Add("HollowShape", ProcessShpHollowShape);
-            m_ShapeXmlProcessors.Add("SculptTexture", ProcessShpSculptTexture);
-            m_ShapeXmlProcessors.Add("SculptType", ProcessShpSculptType);
+        private static readonly Dictionary<string, Action<PrimitiveBaseShape, XmlReader>> m_ShapeXmlProcessors = new()
+        {
+            {"ProfileCurve", ProcessShpProfileCurve },
+            {"TextureEntry", ProcessShpTextureEntry },
+            {"ExtraParams", ProcessShpExtraParams },
+            {"PathBegin", ProcessShpPathBegin },
+            {"PathCurve", ProcessShpPathCurve },
+            {"PathEnd", ProcessShpPathEnd },
+            {"PathRadiusOffset", ProcessShpPathRadiusOffset },
+            {"PathRevolutions", ProcessShpPathRevolutions },
+            {"PathScaleX", ProcessShpPathScaleX },
+            {"PathScaleY", ProcessShpPathScaleY },
+            {"PathShearX", ProcessShpPathShearX },
+            {"PathShearY", ProcessShpPathShearY },
+            {"PathSkew", ProcessShpPathSkew },
+            {"PathTaperX", ProcessShpPathTaperX },
+            {"PathTaperY", ProcessShpPathTaperY },
+            {"PathTwist", ProcessShpPathTwist },
+            {"PathTwistBegin", ProcessShpPathTwistBegin },
+            {"PCode", ProcessShpPCode },
+            {"ProfileBegin", ProcessShpProfileBegin },
+            {"ProfileEnd", ProcessShpProfileEnd },
+            {"ProfileHollow", ProcessShpProfileHollow },
+            {"Scale", ProcessShpScale },
+            {"LastAttachPoint", ProcessShpLastAttach },
+            {"State", ProcessShpState },
+            {"ProfileShape", ProcessShpProfileShape },
+            {"HollowShape", ProcessShpHollowShape },
+            {"SculptTexture", ProcessShpSculptTexture },
+            {"SculptType", ProcessShpSculptType },
             // Ignore "SculptData"; this element is deprecated
-            m_ShapeXmlProcessors.Add("FlexiSoftness", ProcessShpFlexiSoftness);
-            m_ShapeXmlProcessors.Add("FlexiTension", ProcessShpFlexiTension);
-            m_ShapeXmlProcessors.Add("FlexiDrag", ProcessShpFlexiDrag);
-            m_ShapeXmlProcessors.Add("FlexiGravity", ProcessShpFlexiGravity);
-            m_ShapeXmlProcessors.Add("FlexiWind", ProcessShpFlexiWind);
-            m_ShapeXmlProcessors.Add("FlexiForceX", ProcessShpFlexiForceX);
-            m_ShapeXmlProcessors.Add("FlexiForceY", ProcessShpFlexiForceY);
-            m_ShapeXmlProcessors.Add("FlexiForceZ", ProcessShpFlexiForceZ);
-            m_ShapeXmlProcessors.Add("LightColorR", ProcessShpLightColorR);
-            m_ShapeXmlProcessors.Add("LightColorG", ProcessShpLightColorG);
-            m_ShapeXmlProcessors.Add("LightColorB", ProcessShpLightColorB);
-            m_ShapeXmlProcessors.Add("LightColorA", ProcessShpLightColorA);
-            m_ShapeXmlProcessors.Add("LightRadius", ProcessShpLightRadius);
-            m_ShapeXmlProcessors.Add("LightCutoff", ProcessShpLightCutoff);
-            m_ShapeXmlProcessors.Add("LightFalloff", ProcessShpLightFalloff);
-            m_ShapeXmlProcessors.Add("LightIntensity", ProcessShpLightIntensity);
-            m_ShapeXmlProcessors.Add("FlexiEntry", ProcessShpFlexiEntry);
-            m_ShapeXmlProcessors.Add("LightEntry", ProcessShpLightEntry);
-            m_ShapeXmlProcessors.Add("SculptEntry", ProcessShpSculptEntry);
-            m_ShapeXmlProcessors.Add("Media", ProcessShpMedia);
-            #endregion
-        }
+            {"FlexiSoftness", ProcessShpFlexiSoftness },
+            {"FlexiTension", ProcessShpFlexiTension },
+            {"FlexiDrag", ProcessShpFlexiDrag },
+            {"FlexiGravity", ProcessShpFlexiGravity },
+            {"FlexiWind", ProcessShpFlexiWind },
+            {"FlexiForceX", ProcessShpFlexiForceX },
+            {"FlexiForceY", ProcessShpFlexiForceY },
+            {"FlexiForceZ", ProcessShpFlexiForceZ },
+            {"LightColorR", ProcessShpLightColorR },
+            {"LightColorG", ProcessShpLightColorG },
+            {"LightColorB", ProcessShpLightColorB },
+            {"LightColorA", ProcessShpLightColorA },
+            {"LightRadius", ProcessShpLightRadius },
+            {"LightCutoff", ProcessShpLightCutoff },
+            {"LightFalloff", ProcessShpLightFalloff },
+            {"LightIntensity", ProcessShpLightIntensity },
+            {"FlexiEntry", ProcessShpFlexiEntry },
+            {"LightEntry", ProcessShpLightEntry },
+            {"SculptEntry", ProcessShpSculptEntry },
+            {"Media", ProcessShpMedia }
+        };
 
         #region SOPXmlProcessors
         private static void ProcessAllowedDrop(SceneObjectPart obj, XmlReader reader)
@@ -630,7 +614,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessCreatorData(SceneObjectPart obj, XmlReader reader)
         {
-            obj.CreatorData = reader.ReadElementContentAsString("CreatorData", String.Empty);
+            obj.CreatorData = reader.ReadElementContentAsString("CreatorData", string.Empty);
         }
 
         private static void ProcessFolderID(SceneObjectPart obj, XmlReader reader)
@@ -640,7 +624,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessInventorySerial(SceneObjectPart obj, XmlReader reader)
         {
-            obj.InventorySerial = (uint)reader.ReadElementContentAsInt("InventorySerial", String.Empty);
+            obj.InventorySerial = (uint)reader.ReadElementContentAsInt("InventorySerial", string.Empty);
         }
 
         private static void ProcessTaskInventory(SceneObjectPart obj, XmlReader reader)
@@ -655,7 +639,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessLocalId(SceneObjectPart obj, XmlReader reader)
         {
-            obj.LocalId = (uint)reader.ReadElementContentAsLong("LocalId", String.Empty);
+            obj.LocalId = (uint)reader.ReadElementContentAsLong("LocalId", string.Empty);
         }
 
         private static void ProcessName(SceneObjectPart obj, XmlReader reader)
@@ -665,7 +649,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessMaterial(SceneObjectPart obj, XmlReader reader)
         {
-            obj.Material = (byte)reader.ReadElementContentAsInt("Material", String.Empty);
+            obj.Material = (byte)reader.ReadElementContentAsInt("Material", string.Empty);
         }
 
         private static void ProcessPassTouches(SceneObjectPart obj, XmlReader reader)
@@ -680,12 +664,12 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessRegionHandle(SceneObjectPart obj, XmlReader reader)
         {
-            obj.RegionHandle = (ulong)reader.ReadElementContentAsLong("RegionHandle", String.Empty);
+            obj.RegionHandle = (ulong)reader.ReadElementContentAsLong("RegionHandle", string.Empty);
         }
 
         private static void ProcessScriptAccessPin(SceneObjectPart obj, XmlReader reader)
         {
-            obj.ScriptAccessPin = reader.ReadElementContentAsInt("ScriptAccessPin", String.Empty);
+            obj.ScriptAccessPin = reader.ReadElementContentAsInt("ScriptAccessPin", string.Empty);
         }
 
         private static void ProcessGroupPosition(SceneObjectPart obj, XmlReader reader)
@@ -695,7 +679,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessOffsetPosition(SceneObjectPart obj, XmlReader reader)
         {
-            obj.OffsetPosition = Util.ReadVector(reader, "OffsetPosition");
+            obj.OffsetPosition = Util.ReadVector(reader, "OffsetPosition"); ;
         }
 
         private static void ProcessRotationOffset(SceneObjectPart obj, XmlReader reader)
@@ -728,10 +712,10 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             reader.ReadStartElement("Color");
             if (reader.Name == "R")
             {
-                float r = reader.ReadElementContentAsFloat("R", String.Empty);
-                float g = reader.ReadElementContentAsFloat("G", String.Empty);
-                float b = reader.ReadElementContentAsFloat("B", String.Empty);
-                float a = reader.ReadElementContentAsFloat("A", String.Empty);
+                float r = reader.ReadElementContentAsFloat("R", string.Empty);
+                float g = reader.ReadElementContentAsFloat("G", string.Empty);
+                float b = reader.ReadElementContentAsFloat("B", string.Empty);
+                float a = reader.ReadElementContentAsFloat("A", string.Empty);
                 obj.Color = Color.FromArgb((int)a, (int)r, (int)g, (int)b);
                 reader.ReadEndElement();
             }
@@ -739,57 +723,57 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessText(SceneObjectPart obj, XmlReader reader)
         {
-            obj.Text = reader.ReadElementString("Text", String.Empty);
+            obj.Text = reader.ReadElementString("Text", string.Empty);
         }
 
         private static void ProcessSitName(SceneObjectPart obj, XmlReader reader)
         {
-            obj.SitName = reader.ReadElementString("SitName", String.Empty);
+            obj.SitName = reader.ReadElementString("SitName", string.Empty);
         }
 
         private static void ProcessTouchName(SceneObjectPart obj, XmlReader reader)
         {
-            obj.TouchName = reader.ReadElementString("TouchName", String.Empty);
+            obj.TouchName = reader.ReadElementString("TouchName", string.Empty);
         }
 
         private static void ProcessLinkNum(SceneObjectPart obj, XmlReader reader)
         {
-            obj.LinkNum = reader.ReadElementContentAsInt("LinkNum", String.Empty);
+            obj.LinkNum = reader.ReadElementContentAsInt("LinkNum", string.Empty);
         }
 
         private static void ProcessClickAction(SceneObjectPart obj, XmlReader reader)
         {
-            obj.ClickAction = (byte)reader.ReadElementContentAsInt("ClickAction", String.Empty);
+            obj.ClickAction = (byte)reader.ReadElementContentAsInt("ClickAction", string.Empty);
         }
 
         private static void ProcessRotationAxisLocks(SceneObjectPart obj, XmlReader reader)
         {
-            obj.RotationAxisLocks = (byte)reader.ReadElementContentAsInt("RotationAxisLocks", String.Empty);
+            obj.RotationAxisLocks = (byte)reader.ReadElementContentAsInt("RotationAxisLocks", string.Empty);
         }
 
         private static void ProcessPhysicsShapeType(SceneObjectPart obj, XmlReader reader)
         {
-            obj.PhysicsShapeType = (byte)reader.ReadElementContentAsInt("PhysicsShapeType", String.Empty);
+            obj.PhysicsShapeType = (byte)reader.ReadElementContentAsInt("PhysicsShapeType", string.Empty);
         }
 
         private static void ProcessDensity(SceneObjectPart obj, XmlReader reader)
         {
-            obj.Density = reader.ReadElementContentAsFloat("Density", String.Empty);
+            obj.Density = reader.ReadElementContentAsFloat("Density", string.Empty);
         }
 
         private static void ProcessFriction(SceneObjectPart obj, XmlReader reader)
         {
-            obj.Friction = reader.ReadElementContentAsFloat("Friction", String.Empty);
+            obj.Friction = reader.ReadElementContentAsFloat("Friction", string.Empty);
         }
 
         private static void ProcessBounce(SceneObjectPart obj, XmlReader reader)
         {
-            obj.Restitution = reader.ReadElementContentAsFloat("Bounce", String.Empty);
+            obj.Restitution = reader.ReadElementContentAsFloat("Bounce", string.Empty);
         }
 
         private static void ProcessGravityModifier(SceneObjectPart obj, XmlReader reader)
         {
-            obj.GravityModifier = reader.ReadElementContentAsFloat("GravityModifier", String.Empty);
+            obj.GravityModifier = reader.ReadElementContentAsFloat("GravityModifier", string.Empty);
         }
 
         private static void ProcessCameraEyeOffset(SceneObjectPart obj, XmlReader reader)
@@ -809,17 +793,17 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessSoundGain(SceneObjectPart obj, XmlReader reader)
         {
-            obj.SoundGain = reader.ReadElementContentAsDouble("SoundGain", String.Empty);
+            obj.SoundGain = reader.ReadElementContentAsDouble("SoundGain", string.Empty);
         }
 
         private static void ProcessSoundFlags(SceneObjectPart obj, XmlReader reader)
         {
-            obj.SoundFlags = (byte)reader.ReadElementContentAsInt("SoundFlags", String.Empty);
+            obj.SoundFlags = (byte)reader.ReadElementContentAsInt("SoundFlags", string.Empty);
         }
 
         private static void ProcessSoundRadius(SceneObjectPart obj, XmlReader reader)
         {
-            obj.SoundRadius = reader.ReadElementContentAsDouble("SoundRadius", String.Empty);
+            obj.SoundRadius = reader.ReadElementContentAsDouble("SoundRadius", string.Empty);
         }
 
         private static void ProcessSoundQueueing(SceneObjectPart obj, XmlReader reader)
@@ -829,7 +813,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessSitActRange(SceneObjectPart obj, XmlReader reader)
         {
-            obj.SitActiveRange = reader.ReadElementContentAsFloat("SitActRange", String.Empty);
+            obj.SitActiveRange = reader.ReadElementContentAsFloat("SitActRange", string.Empty);
         }
 
         private static void ProcessVehicle(SceneObjectPart obj, XmlReader reader)
@@ -889,8 +873,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessShape(SceneObjectPart obj, XmlReader reader)
         {
-            List<string> errorNodeNames;
-            obj.Shape = ReadShape(reader, "Shape", out errorNodeNames, obj);
+            obj.Shape = ReadShape(reader, "Shape", out List<string> errorNodeNames, obj);
 
             if (errorNodeNames != null)
             {
@@ -932,33 +915,33 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessParentID(SceneObjectPart obj, XmlReader reader)
         {
-            string str = reader.ReadElementContentAsString("ParentID", String.Empty);
+            string str = reader.ReadElementContentAsString("ParentID", string.Empty);
             obj.ParentID = Convert.ToUInt32(str);
         }
 
         private static void ProcessCreationDate(SceneObjectPart obj, XmlReader reader)
         {
-            obj.CreationDate = reader.ReadElementContentAsInt("CreationDate", String.Empty);
+            obj.CreationDate = reader.ReadElementContentAsInt("CreationDate", string.Empty);
         }
 
         private static void ProcessCategory(SceneObjectPart obj, XmlReader reader)
         {
-            obj.Category = (uint)reader.ReadElementContentAsInt("Category", String.Empty);
+            obj.Category = (uint)reader.ReadElementContentAsInt("Category", string.Empty);
         }
 
         private static void ProcessSalePrice(SceneObjectPart obj, XmlReader reader)
         {
-            obj.SalePrice = reader.ReadElementContentAsInt("SalePrice", String.Empty);
+            obj.SalePrice = reader.ReadElementContentAsInt("SalePrice", string.Empty);
         }
 
         private static void ProcessObjectSaleType(SceneObjectPart obj, XmlReader reader)
         {
-            obj.ObjectSaleType = (byte)reader.ReadElementContentAsInt("ObjectSaleType", String.Empty);
+            obj.ObjectSaleType = (byte)reader.ReadElementContentAsInt("ObjectSaleType", string.Empty);
         }
 
         private static void ProcessOwnershipCost(SceneObjectPart obj, XmlReader reader)
         {
-            obj.OwnershipCost = reader.ReadElementContentAsInt("OwnershipCost", String.Empty);
+            obj.OwnershipCost = reader.ReadElementContentAsInt("OwnershipCost", string.Empty);
         }
 
         private static void ProcessGroupID(SceneObjectPart obj, XmlReader reader)
@@ -983,27 +966,27 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessBaseMask(SceneObjectPart obj, XmlReader reader)
         {
-            obj.BaseMask = (uint)reader.ReadElementContentAsInt("BaseMask", String.Empty);
+            obj.BaseMask = (uint)reader.ReadElementContentAsInt("BaseMask", string.Empty);
         }
 
         private static void ProcessOwnerMask(SceneObjectPart obj, XmlReader reader)
         {
-            obj.OwnerMask = (uint)reader.ReadElementContentAsInt("OwnerMask", String.Empty);
+            obj.OwnerMask = (uint)reader.ReadElementContentAsInt("OwnerMask", string.Empty);
         }
 
         private static void ProcessGroupMask(SceneObjectPart obj, XmlReader reader)
         {
-            obj.GroupMask = (uint)reader.ReadElementContentAsInt("GroupMask", String.Empty);
+            obj.GroupMask = (uint)reader.ReadElementContentAsInt("GroupMask", string.Empty);
         }
 
         private static void ProcessEveryoneMask(SceneObjectPart obj, XmlReader reader)
         {
-            obj.EveryoneMask = (uint)reader.ReadElementContentAsInt("EveryoneMask", String.Empty);
+            obj.EveryoneMask = (uint)reader.ReadElementContentAsInt("EveryoneMask", string.Empty);
         }
 
         private static void ProcessNextOwnerMask(SceneObjectPart obj, XmlReader reader)
         {
-            obj.NextOwnerMask = (uint)reader.ReadElementContentAsInt("NextOwnerMask", String.Empty);
+            obj.NextOwnerMask = (uint)reader.ReadElementContentAsInt("NextOwnerMask", string.Empty);
         }
 
         private static void ProcessFlags(SceneObjectPart obj, XmlReader reader)
@@ -1018,12 +1001,12 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessCollisionSoundVolume(SceneObjectPart obj, XmlReader reader)
         {
-            obj.CollisionSoundVolume = reader.ReadElementContentAsFloat("CollisionSoundVolume", String.Empty);
+            obj.CollisionSoundVolume = reader.ReadElementContentAsFloat("CollisionSoundVolume", string.Empty);
         }
 
         private static void ProcessMediaUrl(SceneObjectPart obj, XmlReader reader)
         {
-            obj.MediaUrl = reader.ReadElementContentAsString("MediaUrl", String.Empty);
+            obj.MediaUrl = reader.ReadElementContentAsString("MediaUrl", string.Empty);
         }
 
         private static void ProcessAttachedPos(SceneObjectPart obj, XmlReader reader)
@@ -1033,7 +1016,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessDynAttrs(SceneObjectPart obj, XmlReader reader)
         {
-            DAMap waste = new DAMap();
+            DAMap waste = new();
             waste.ReadXml(reader);
             if(waste.CountNamespaces > 0)
                 obj.DynAttrs = waste;
@@ -1043,42 +1026,42 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessTextureAnimation(SceneObjectPart obj, XmlReader reader)
         {
-            obj.TextureAnimation = Convert.FromBase64String(reader.ReadElementContentAsString("TextureAnimation", String.Empty));
+            obj.TextureAnimation = Convert.FromBase64String(reader.ReadElementContentAsString("TextureAnimation", string.Empty));
         }
 
         private static void ProcessParticleSystem(SceneObjectPart obj, XmlReader reader)
         {
-            obj.ParticleSystem = Convert.FromBase64String(reader.ReadElementContentAsString("ParticleSystem", String.Empty));
+            obj.ParticleSystem = Convert.FromBase64String(reader.ReadElementContentAsString("ParticleSystem", string.Empty));
         }
 
         private static void ProcessPayPrice0(SceneObjectPart obj, XmlReader reader)
         {
-            obj.PayPrice[0] = (int)reader.ReadElementContentAsInt("PayPrice0", String.Empty);
+            obj.PayPrice[0] = (int)reader.ReadElementContentAsInt("PayPrice0", string.Empty);
         }
 
         private static void ProcessPayPrice1(SceneObjectPart obj, XmlReader reader)
         {
-            obj.PayPrice[1] = (int)reader.ReadElementContentAsInt("PayPrice1", String.Empty);
+            obj.PayPrice[1] = (int)reader.ReadElementContentAsInt("PayPrice1", string.Empty);
         }
 
         private static void ProcessPayPrice2(SceneObjectPart obj, XmlReader reader)
         {
-            obj.PayPrice[2] = (int)reader.ReadElementContentAsInt("PayPrice2", String.Empty);
+            obj.PayPrice[2] = (int)reader.ReadElementContentAsInt("PayPrice2", string.Empty);
         }
 
         private static void ProcessPayPrice3(SceneObjectPart obj, XmlReader reader)
         {
-            obj.PayPrice[3] = (int)reader.ReadElementContentAsInt("PayPrice3", String.Empty);
+            obj.PayPrice[3] = (int)reader.ReadElementContentAsInt("PayPrice3", string.Empty);
         }
 
         private static void ProcessPayPrice4(SceneObjectPart obj, XmlReader reader)
         {
-            obj.PayPrice[4] = (int)reader.ReadElementContentAsInt("PayPrice4", String.Empty);
+            obj.PayPrice[4] = (int)reader.ReadElementContentAsInt("PayPrice4", string.Empty);
         }
 
         private static void ProcessBuoyancy(SceneObjectPart obj, XmlReader reader)
         {
-            obj.Buoyancy = (float)reader.ReadElementContentAsFloat("Buoyancy", String.Empty);
+            obj.Buoyancy = (float)reader.ReadElementContentAsFloat("Buoyancy", string.Empty);
         }
 
         private static void ProcessForce(SceneObjectPart obj, XmlReader reader)
@@ -1105,12 +1088,12 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessTIBasePermissions(TaskInventoryItem item, XmlReader reader)
         {
-            item.BasePermissions = (uint)reader.ReadElementContentAsInt("BasePermissions", String.Empty);
+            item.BasePermissions = (uint)reader.ReadElementContentAsInt("BasePermissions", string.Empty);
         }
 
         private static void ProcessTICreationDate(TaskInventoryItem item, XmlReader reader)
         {
-            item.CreationDate = (uint)reader.ReadElementContentAsInt("CreationDate", String.Empty);
+            item.CreationDate = (uint)reader.ReadElementContentAsInt("CreationDate", string.Empty);
         }
 
         private static void ProcessTICreatorID(TaskInventoryItem item, XmlReader reader)
@@ -1120,22 +1103,22 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessTICreatorData(TaskInventoryItem item, XmlReader reader)
         {
-            item.CreatorData = reader.ReadElementContentAsString("CreatorData", String.Empty);
+            item.CreatorData = reader.ReadElementContentAsString("CreatorData", string.Empty);
         }
 
         private static void ProcessTIDescription(TaskInventoryItem item, XmlReader reader)
         {
-            item.Description = reader.ReadElementContentAsString("Description", String.Empty);
+            item.Description = reader.ReadElementContentAsString("Description", string.Empty);
         }
 
         private static void ProcessTIEveryonePermissions(TaskInventoryItem item, XmlReader reader)
         {
-            item.EveryonePermissions = (uint)reader.ReadElementContentAsInt("EveryonePermissions", String.Empty);
+            item.EveryonePermissions = (uint)reader.ReadElementContentAsInt("EveryonePermissions", string.Empty);
         }
 
         private static void ProcessTIFlags(TaskInventoryItem item, XmlReader reader)
         {
-            item.Flags = (uint)reader.ReadElementContentAsInt("Flags", String.Empty);
+            item.Flags = (uint)reader.ReadElementContentAsInt("Flags", string.Empty);
         }
 
         private static void ProcessTIGroupID(TaskInventoryItem item, XmlReader reader)
@@ -1145,12 +1128,12 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessTIGroupPermissions(TaskInventoryItem item, XmlReader reader)
         {
-            item.GroupPermissions = (uint)reader.ReadElementContentAsInt("GroupPermissions", String.Empty);
+            item.GroupPermissions = (uint)reader.ReadElementContentAsInt("GroupPermissions", string.Empty);
         }
 
         private static void ProcessTIInvType(TaskInventoryItem item, XmlReader reader)
         {
-            item.InvType = reader.ReadElementContentAsInt("InvType", String.Empty);
+            item.InvType = reader.ReadElementContentAsInt("InvType", string.Empty);
         }
 
         private static void ProcessTIItemID(TaskInventoryItem item, XmlReader reader)
@@ -1170,12 +1153,12 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessTIName(TaskInventoryItem item, XmlReader reader)
         {
-            item.Name = reader.ReadElementContentAsString("Name", String.Empty);
+            item.Name = reader.ReadElementContentAsString("Name", string.Empty);
         }
 
         private static void ProcessTINextPermissions(TaskInventoryItem item, XmlReader reader)
         {
-            item.NextPermissions = (uint)reader.ReadElementContentAsInt("NextPermissions", String.Empty);
+            item.NextPermissions = (uint)reader.ReadElementContentAsInt("NextPermissions", string.Empty);
         }
 
         private static void ProcessTIOwnerID(TaskInventoryItem item, XmlReader reader)
@@ -1185,7 +1168,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessTICurrentPermissions(TaskInventoryItem item, XmlReader reader)
         {
-            item.CurrentPermissions = (uint)reader.ReadElementContentAsInt("CurrentPermissions", String.Empty);
+            item.CurrentPermissions = (uint)reader.ReadElementContentAsInt("CurrentPermissions", string.Empty);
         }
 
         private static void ProcessTIParentID(TaskInventoryItem item, XmlReader reader)
@@ -1205,12 +1188,12 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessTIPermsMask(TaskInventoryItem item, XmlReader reader)
         {
-            item.PermsMask = reader.ReadElementContentAsInt("PermsMask", String.Empty);
+            item.PermsMask = reader.ReadElementContentAsInt("PermsMask", string.Empty);
         }
 
         private static void ProcessTIType(TaskInventoryItem item, XmlReader reader)
         {
-            item.Type = reader.ReadElementContentAsInt("Type", String.Empty);
+            item.Type = reader.ReadElementContentAsInt("Type", string.Empty);
         }
 
         private static void ProcessTIOwnerChanged(TaskInventoryItem item, XmlReader reader)
@@ -1223,7 +1206,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         #region ShapeXmlProcessors
         private static void ProcessShpProfileCurve(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.ProfileCurve = (byte)reader.ReadElementContentAsInt("ProfileCurve", String.Empty);
+            shp.ProfileCurve = (byte)reader.ReadElementContentAsInt("ProfileCurve", string.Empty);
         }
 
         private static void ProcessShpTextureEntry(PrimitiveBaseShape shp, XmlReader reader)
@@ -1239,92 +1222,92 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessShpPathBegin(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.PathBegin = (ushort)reader.ReadElementContentAsInt("PathBegin", String.Empty);
+            shp.PathBegin = (ushort)reader.ReadElementContentAsInt("PathBegin", string.Empty);
         }
 
         private static void ProcessShpPathCurve(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.PathCurve = (byte)reader.ReadElementContentAsInt("PathCurve", String.Empty);
+            shp.PathCurve = (byte)reader.ReadElementContentAsInt("PathCurve", string.Empty);
         }
 
         private static void ProcessShpPathEnd(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.PathEnd = (ushort)reader.ReadElementContentAsInt("PathEnd", String.Empty);
+            shp.PathEnd = (ushort)reader.ReadElementContentAsInt("PathEnd", string.Empty);
         }
 
         private static void ProcessShpPathRadiusOffset(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.PathRadiusOffset = (sbyte)reader.ReadElementContentAsInt("PathRadiusOffset", String.Empty);
+            shp.PathRadiusOffset = (sbyte)reader.ReadElementContentAsInt("PathRadiusOffset", string.Empty);
         }
 
         private static void ProcessShpPathRevolutions(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.PathRevolutions = (byte)reader.ReadElementContentAsInt("PathRevolutions", String.Empty);
+            shp.PathRevolutions = (byte)reader.ReadElementContentAsInt("PathRevolutions", string.Empty);
         }
 
         private static void ProcessShpPathScaleX(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.PathScaleX = (byte)reader.ReadElementContentAsInt("PathScaleX", String.Empty);
+            shp.PathScaleX = (byte)reader.ReadElementContentAsInt("PathScaleX", string.Empty);
         }
 
         private static void ProcessShpPathScaleY(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.PathScaleY = (byte)reader.ReadElementContentAsInt("PathScaleY", String.Empty);
+            shp.PathScaleY = (byte)reader.ReadElementContentAsInt("PathScaleY", string.Empty);
         }
 
         private static void ProcessShpPathShearX(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.PathShearX = (byte)reader.ReadElementContentAsInt("PathShearX", String.Empty);
+            shp.PathShearX = (byte)reader.ReadElementContentAsInt("PathShearX", string.Empty);
         }
 
         private static void ProcessShpPathShearY(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.PathShearY = (byte)reader.ReadElementContentAsInt("PathShearY", String.Empty);
+            shp.PathShearY = (byte)reader.ReadElementContentAsInt("PathShearY", string.Empty);
         }
 
         private static void ProcessShpPathSkew(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.PathSkew = (sbyte)reader.ReadElementContentAsInt("PathSkew", String.Empty);
+            shp.PathSkew = (sbyte)reader.ReadElementContentAsInt("PathSkew", string.Empty);
         }
 
         private static void ProcessShpPathTaperX(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.PathTaperX = (sbyte)reader.ReadElementContentAsInt("PathTaperX", String.Empty);
+            shp.PathTaperX = (sbyte)reader.ReadElementContentAsInt("PathTaperX", string.Empty);
         }
 
         private static void ProcessShpPathTaperY(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.PathTaperY = (sbyte)reader.ReadElementContentAsInt("PathTaperY", String.Empty);
+            shp.PathTaperY = (sbyte)reader.ReadElementContentAsInt("PathTaperY", string.Empty);
         }
 
         private static void ProcessShpPathTwist(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.PathTwist = (sbyte)reader.ReadElementContentAsInt("PathTwist", String.Empty);
+            shp.PathTwist = (sbyte)reader.ReadElementContentAsInt("PathTwist", string.Empty);
         }
 
         private static void ProcessShpPathTwistBegin(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.PathTwistBegin = (sbyte)reader.ReadElementContentAsInt("PathTwistBegin", String.Empty);
+            shp.PathTwistBegin = (sbyte)reader.ReadElementContentAsInt("PathTwistBegin", string.Empty);
         }
 
         private static void ProcessShpPCode(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.PCode = (byte)reader.ReadElementContentAsInt("PCode", String.Empty);
+            shp.PCode = (byte)reader.ReadElementContentAsInt("PCode", string.Empty);
         }
 
         private static void ProcessShpProfileBegin(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.ProfileBegin = (ushort)reader.ReadElementContentAsInt("ProfileBegin", String.Empty);
+            shp.ProfileBegin = (ushort)reader.ReadElementContentAsInt("ProfileBegin", string.Empty);
         }
 
         private static void ProcessShpProfileEnd(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.ProfileEnd = (ushort)reader.ReadElementContentAsInt("ProfileEnd", String.Empty);
+            shp.ProfileEnd = (ushort)reader.ReadElementContentAsInt("ProfileEnd", string.Empty);
         }
 
         private static void ProcessShpProfileHollow(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.ProfileHollow = (ushort)reader.ReadElementContentAsInt("ProfileHollow", String.Empty);
+            shp.ProfileHollow = (ushort)reader.ReadElementContentAsInt("ProfileHollow", string.Empty);
         }
 
         private static void ProcessShpScale(PrimitiveBaseShape shp, XmlReader reader)
@@ -1334,12 +1317,12 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessShpState(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.State = (byte)reader.ReadElementContentAsInt("State", String.Empty);
+            shp.State = (byte)reader.ReadElementContentAsInt("State", string.Empty);
         }
 
         private static void ProcessShpLastAttach(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.LastAttachPoint = (byte)reader.ReadElementContentAsInt("LastAttachPoint", String.Empty);
+            shp.LastAttachPoint = (byte)reader.ReadElementContentAsInt("LastAttachPoint", string.Empty);
         }
 
         private static void ProcessShpProfileShape(PrimitiveBaseShape shp, XmlReader reader)
@@ -1359,87 +1342,87 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessShpSculptType(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.SculptType = (byte)reader.ReadElementContentAsInt("SculptType", String.Empty);
+            shp.SculptType = (byte)reader.ReadElementContentAsInt("SculptType", string.Empty);
         }
 
         private static void ProcessShpFlexiSoftness(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.FlexiSoftness = reader.ReadElementContentAsInt("FlexiSoftness", String.Empty);
+            shp.FlexiSoftness = reader.ReadElementContentAsInt("FlexiSoftness", string.Empty);
         }
 
         private static void ProcessShpFlexiTension(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.FlexiTension = reader.ReadElementContentAsFloat("FlexiTension", String.Empty);
+            shp.FlexiTension = reader.ReadElementContentAsFloat("FlexiTension", string.Empty);
         }
 
         private static void ProcessShpFlexiDrag(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.FlexiDrag = reader.ReadElementContentAsFloat("FlexiDrag", String.Empty);
+            shp.FlexiDrag = reader.ReadElementContentAsFloat("FlexiDrag", string.Empty);
         }
 
         private static void ProcessShpFlexiGravity(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.FlexiGravity = reader.ReadElementContentAsFloat("FlexiGravity", String.Empty);
+            shp.FlexiGravity = reader.ReadElementContentAsFloat("FlexiGravity", string.Empty);
         }
 
         private static void ProcessShpFlexiWind(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.FlexiWind = reader.ReadElementContentAsFloat("FlexiWind", String.Empty);
+            shp.FlexiWind = reader.ReadElementContentAsFloat("FlexiWind", string.Empty);
         }
 
         private static void ProcessShpFlexiForceX(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.FlexiForceX = reader.ReadElementContentAsFloat("FlexiForceX", String.Empty);
+            shp.FlexiForceX = reader.ReadElementContentAsFloat("FlexiForceX", string.Empty);
         }
 
         private static void ProcessShpFlexiForceY(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.FlexiForceY = reader.ReadElementContentAsFloat("FlexiForceY", String.Empty);
+            shp.FlexiForceY = reader.ReadElementContentAsFloat("FlexiForceY", string.Empty);
         }
 
         private static void ProcessShpFlexiForceZ(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.FlexiForceZ = reader.ReadElementContentAsFloat("FlexiForceZ", String.Empty);
+            shp.FlexiForceZ = reader.ReadElementContentAsFloat("FlexiForceZ", string.Empty);
         }
 
         private static void ProcessShpLightColorR(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.LightColorR = reader.ReadElementContentAsFloat("LightColorR", String.Empty);
+            shp.LightColorR = reader.ReadElementContentAsFloat("LightColorR", string.Empty);
         }
 
         private static void ProcessShpLightColorG(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.LightColorG = reader.ReadElementContentAsFloat("LightColorG", String.Empty);
+            shp.LightColorG = reader.ReadElementContentAsFloat("LightColorG", string.Empty);
         }
 
         private static void ProcessShpLightColorB(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.LightColorB = reader.ReadElementContentAsFloat("LightColorB", String.Empty);
+            shp.LightColorB = reader.ReadElementContentAsFloat("LightColorB", string.Empty);
         }
 
         private static void ProcessShpLightColorA(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.LightColorA = reader.ReadElementContentAsFloat("LightColorA", String.Empty);
+            shp.LightColorA = reader.ReadElementContentAsFloat("LightColorA", string.Empty);
         }
 
         private static void ProcessShpLightRadius(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.LightRadius = reader.ReadElementContentAsFloat("LightRadius", String.Empty);
+            shp.LightRadius = reader.ReadElementContentAsFloat("LightRadius", string.Empty);
         }
 
         private static void ProcessShpLightCutoff(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.LightCutoff = reader.ReadElementContentAsFloat("LightCutoff", String.Empty);
+            shp.LightCutoff = reader.ReadElementContentAsFloat("LightCutoff", string.Empty);
         }
 
         private static void ProcessShpLightFalloff(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.LightFalloff = reader.ReadElementContentAsFloat("LightFalloff", String.Empty);
+            shp.LightFalloff = reader.ReadElementContentAsFloat("LightFalloff", string.Empty);
         }
 
         private static void ProcessShpLightIntensity(PrimitiveBaseShape shp, XmlReader reader)
         {
-            shp.LightIntensity = reader.ReadElementContentAsFloat("LightIntensity", String.Empty);
+            shp.LightIntensity = reader.ReadElementContentAsFloat("LightIntensity", string.Empty);
         }
 
         private static void ProcessShpFlexiEntry(PrimitiveBaseShape shp, XmlReader reader)
@@ -1459,11 +1442,11 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessShpMedia(PrimitiveBaseShape shp, XmlReader reader)
         {
-            string value = String.Empty;
+            string value;
             try
             {
                 // The STANDARD content of Media elemet is escaped XML string (with &gt; etc).
-                value = reader.ReadElementContentAsString("Media", String.Empty);
+                value = reader.ReadElementContentAsString("Media", string.Empty);
                 shp.Media = PrimitiveBaseShape.MediaList.FromXml(value);
             }
             catch (XmlException)
@@ -1488,9 +1471,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         public static void SOGToXml2(XmlTextWriter writer, SceneObjectGroup sog, Dictionary<string, object>options)
         {
-            writer.WriteStartElement(String.Empty, "SceneObjectGroup", String.Empty);
+            writer.WriteStartElement(string.Empty, "SceneObjectGroup", string.Empty);
             SOPToXml2(writer, sog.RootPart, options);
-            writer.WriteStartElement(String.Empty, "OtherParts", String.Empty);
+            writer.WriteStartElement(string.Empty, "OtherParts", string.Empty);
 
             sog.ForEachPart(delegate(SceneObjectPart sop)
             {
@@ -1504,7 +1487,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             {
                 Byte[] data = sog.RootPart.KeyframeMotion.Serialize();
 
-                writer.WriteStartElement(String.Empty, "KeyframeMotion", String.Empty);
+                writer.WriteStartElement(string.Empty, "KeyframeMotion", string.Empty);
                 writer.WriteBase64(data, 0, data.Length);
                 writer.WriteEndElement();
             }
@@ -1525,12 +1508,11 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             if (!string.IsNullOrEmpty(sop.CreatorData))
                 writer.WriteElementString("CreatorData", sop.CreatorData);
-            else if (options.ContainsKey("home"))
+            else if (options.TryGetValue("home", out object ohome))
             {
-                if (m_UserManagement == null)
-                    m_UserManagement = sop.ParentGroup.Scene.RequestModuleInterface<IUserManagement>();
+                m_UserManagement ??= sop.ParentGroup.Scene.RequestModuleInterface<IUserManagement>();
                 string name = m_UserManagement.GetUserName(sop.CreatorID);
-                writer.WriteElementString("CreatorData", ExternalRepresentationUtils.CalcCreatorData((string)options["home"], name));
+                writer.WriteElementString("CreatorData", ExternalRepresentationUtils.CalcCreatorData((string)ohome, name));
             }
 
             WriteUUID(writer, "FolderID", sop.FolderID, options);
@@ -1577,7 +1559,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             WriteVector(writer, "SitTargetPosition", sop.SitTargetPosition);
             WriteVector(writer, "SitTargetPositionLL", sop.SitTargetPositionLL);
             WriteQuaternion(writer, "SitTargetOrientationLL", sop.SitTargetOrientationLL);
-            if(!sop.StandOffset.IsZero())
+            if(sop.StandOffset.IsNotZero())
                 WriteVector(writer, "StandTarget", sop.StandOffset);
             writer.WriteElementString("ParentID", sop.ParentID.ToString());
             writer.WriteElementString("CreationDate", sop.CreationDate.ToString());
@@ -1632,11 +1614,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             writer.WriteElementString("VolumeDetectActive", sop.VolumeDetectActive.ToString().ToLower());
 
-            if (sop.VehicleParams != null)
-                sop.VehicleParams.ToXml2(writer);
+            sop.VehicleParams?.ToXml2(writer);
 
-            if (sop.PhysicsInertia != null)
-                sop.PhysicsInertia.ToXml2(writer);
+            sop.PhysicsInertia?.ToXml2(writer);
 
             if(sop.RotationAxisLocks != 0)
                 writer.WriteElementString("RotationAxisLocks", sop.RotationAxisLocks.ToString().ToLower());
@@ -1738,12 +1718,11 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
                     if (!string.IsNullOrEmpty(item.CreatorData))
                         writer.WriteElementString("CreatorData", item.CreatorData);
-                    else if (options.ContainsKey("home"))
+                    else if (options.TryGetValue("home", out object ohome))
                     {
-                        if (m_UserManagement == null)
-                            m_UserManagement = scene.RequestModuleInterface<IUserManagement>();
+                        m_UserManagement ??= scene.RequestModuleInterface<IUserManagement>();
                         string name = m_UserManagement.GetUserName(item.CreatorID);
-                        writer.WriteElementString("CreatorData", ExternalRepresentationUtils.CalcCreatorData((string)options["home"], name));
+                        writer.WriteElementString("CreatorData", ExternalRepresentationUtils.CalcCreatorData((string)ohome, name));
                     }
 
                     writer.WriteElementString("Description", item.Description);
@@ -1774,7 +1753,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                     writer.WriteElementString("PermsMask", item.PermsMask.ToString());
                     writer.WriteElementString("Type", item.Type.ToString());
 
-                    bool ownerChanged = options.ContainsKey("wipe-owners") ? false : item.OwnerChanged;
+                    bool ownerChanged = !options.ContainsKey("wipe-owners") && item.OwnerChanged;
                     writer.WriteElementString("OwnerChanged", ownerChanged.ToString().ToLower());
 
                     writer.WriteEndElement(); // TaskInventoryItem
@@ -1869,7 +1848,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         public static SceneObjectPart Xml2ToSOP(XmlReader reader)
         {
-            SceneObjectPart obj = new SceneObjectPart();
+            SceneObjectPart obj = new();
 
             reader.ReadStartElement("SceneObjectPart");
 
@@ -1894,15 +1873,15 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         public static TaskInventoryDictionary ReadTaskInventory(XmlReader reader, string name)
         {
-            TaskInventoryDictionary tinv = new TaskInventoryDictionary();
+            TaskInventoryDictionary tinv = new();
 
-            reader.ReadStartElement(name, String.Empty);
+            reader.ReadStartElement(name, string.Empty);
 
             while (reader.Name == "TaskInventoryItem")
             {
-                reader.ReadStartElement("TaskInventoryItem", String.Empty); // TaskInventory
+                reader.ReadStartElement("TaskInventoryItem", string.Empty); // TaskInventory
 
-                TaskInventoryItem item = new TaskInventoryItem();
+                TaskInventoryItem item = new();
 
                 ExternalRepresentationUtils.ExecuteReadProcessors(
                     item,
@@ -1931,7 +1910,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         {
             List<string> internalErrorNodeNames = null;
 
-            PrimitiveBaseShape shape = new PrimitiveBaseShape();
+            PrimitiveBaseShape shape = new();
 
             if (reader.IsEmptyElement)
             {
@@ -1940,7 +1919,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 return shape;
             }
 
-            reader.ReadStartElement(name, String.Empty); // Shape
+            reader.ReadStartElement(name, string.Empty); // Shape
 
             ExternalRepresentationUtils.ExecuteReadProcessors(
                 shape,
@@ -1950,8 +1929,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                     m_log.Debug(string.Format("[SceneObjectSerializer]: Error while parsing element {0} in Shape property of object {1} {2} ",
                         nodeName, obj.Name, obj.UUID), e);
 
-                    if (internalErrorNodeNames == null)
-                            internalErrorNodeNames = new List<string>();
+                    internalErrorNodeNames ??= new List<string>();
                     internalErrorNodeNames.Add(nodeName);
                 });
 

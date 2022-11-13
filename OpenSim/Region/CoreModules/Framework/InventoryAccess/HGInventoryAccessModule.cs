@@ -30,12 +30,8 @@ using System.Collections.Generic;
 using System.Reflection;
 
 using OpenSim.Framework;
-using OpenSim.Framework.Client;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Services.Connectors.Hypergrid;
-using OpenSim.Services.Interfaces;
-using OpenSim.Server.Base;
 
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
@@ -249,11 +245,13 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             // We need to construct this here to satisfy the calling convention.
             // Better this in two places than five formal params in all others.
-            InventoryItemBase item = new InventoryItemBase();
-            item.Owner = remoteClient.AgentId;
-            item.AssetType = (int)AssetType.Unknown;
-            item.AssetID = newAssetID;
-            item.Name = String.Empty;
+            InventoryItemBase item = new InventoryItemBase
+            {
+                Owner = remoteClient.AgentId,
+                AssetType = (int)AssetType.Unknown,
+                AssetID = newAssetID,
+                Name = String.Empty
+            };
 
             PostInventoryAsset(item, 0);
 
@@ -281,11 +279,13 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         {
             if (!assetID.Equals(UUID.Zero))
             {
-                InventoryItemBase item = new InventoryItemBase();
-                item.Owner = agentID;
-                item.AssetType = (int)AssetType.Unknown;
-                item.AssetID = assetID;
-                item.Name = String.Empty;
+                InventoryItemBase item = new()
+                {
+                    Owner = agentID,
+                    AssetType = (int)AssetType.Unknown,
+                    AssetID = assetID,
+                    Name = String.Empty
+                };
 
                 PostInventoryAsset(item, 0);
             }
@@ -341,8 +341,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
         public override void TransferInventoryAssets(InventoryItemBase item, UUID sender, UUID receiver)
         {
-            string senderAssetServer = string.Empty;
-            string receiverAssetServer = string.Empty;
+            string senderAssetServer;
+            string receiverAssetServer;
             bool isForeignSender, isForeignReceiver;
             isForeignSender = IsForeignUser(sender, out senderAssetServer);
             isForeignReceiver = IsForeignUser(receiver, out receiverAssetServer);
@@ -499,7 +499,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                 // items directly under the root folder
                 foreach (InventoryItemBase it in content.Items)
-                    it.Name = it.Name + " (Unavailable)";
+                    it.Name += " (Unavailable)";
 
                 // Send the new names
                 client.SendBulkUpdateInventory(keep.ToArray(), content.Items.ToArray());
