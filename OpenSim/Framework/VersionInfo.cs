@@ -1,4 +1,10 @@
-﻿/*
+﻿
+
+
+
+
+
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -31,7 +37,7 @@ namespace OpenSim
 {
     public class VersionInfo
     {
-        public const string BuildNumber = "8346";
+        public const string BuildNumber = "8348";
         public const string VersionNumber = "0.9.2."+BuildNumber;
         public const string AssemblyVersionNumber = "0.9.2."+BuildNumber;
 

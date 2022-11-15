@@ -2,7 +2,6 @@
 
 <Addin id="OpenSim" isroot="true" version="0.5">
 	<Runtime>
-		<Import assembly="OpenSim.Base.dll"/>
 		<Import assembly="OpenSim.Framework.dll"/>
 		<Import assembly="OpenSim.Region.Framework.dll"/>
 		<Import assembly="Mono.Addins.dll"/>

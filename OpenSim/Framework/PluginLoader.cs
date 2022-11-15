@@ -102,19 +102,19 @@ namespace OpenSim.Framework
         public PluginLoader()
         {
             Initialiser = new PluginInitialiserBase();
-            initialise_plugin_dir_(".");
+            initialise_plugin_dir(".");
         }
 
         public PluginLoader(PluginInitialiserBase init)
         {
             Initialiser = init;
-            initialise_plugin_dir_(".");
+            initialise_plugin_dir(".");
         }
 
         public PluginLoader(PluginInitialiserBase init, string dir)
         {
             Initialiser = init;
-            initialise_plugin_dir_(dir);
+            initialise_plugin_dir(dir);
         }
 
         public void Add(string extpoint)
@@ -207,20 +207,20 @@ namespace OpenSim.Framework
             AddinManager.AddinLoaded -= OnLoad;
         }
 
-        private void initialise_plugin_dir_(string dir)
+        private void initialise_plugin_dir(string dir)
         {
             if (AddinManager.IsInitialized == true)
                 return;
 
             log.Info("[PLUGINS]: Initializing addin manager");
 
+            AddinManager.Initialize(dir);
+
             AddinManager.AddinLoadError += OnLoaderError;
             AddinManager.AddinLoaded += OnLoad;
             AddinManager.AddinUnloaded += OnUnload;
             AddinManager.ExtensionChanged += OnExtensionChanged;
 
-            //suppress_console_output_(true);
-            AddinManager.Initialize(dir);
             AddinManager.Registry.Update(null);
         }
 
@@ -248,21 +248,6 @@ namespace OpenSim.Framework
         private void OnExtensionChanged(object sender, ExtensionEventArgs args)
         {
             log.Info ("[PLUGINS]: Extension Changed: " + args.Path);
-        }
-        
-        private static TextWriter prev_console_;
-        public void suppress_console_output_(bool save)
-        {
-            if (save)
-            {
-                prev_console_ = System.Console.Out;
-                System.Console.SetOut(new StreamWriter(Stream.Null));
-            }
-            else
-            {
-                if (prev_console_ != null)
-                    System.Console.SetOut(prev_console_);
-            }
         }
     }
 
