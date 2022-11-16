@@ -2308,15 +2308,17 @@ namespace OpenSim.Framework
             //return os;
         }
 
-        public static string GetRuntimeInformation()
-        {
-            return RuntimeInformation.ProcessArchitecture.ToString() + "/" + Environment.OSVersion.Platform switch
+         public static readonly string RuntimeInformationStr = RuntimeInformation.ProcessArchitecture.ToString() + "/" + Environment.OSVersion.Platform switch
             {
-                PlatformID.MacOSX => "OSX/DotNet",
-                PlatformID.Unix => "Unix/DotNet",
+                PlatformID.MacOSX or PlatformID.Unix => RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "OSX/DotNet" : "Unix/DotNet",
                 _ => "Win/DotNet",
             };
-        }
+
+        public static readonly string RuntimePlatformStr = Environment.OSVersion.Platform switch
+            {
+                PlatformID.MacOSX or PlatformID.Unix => RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "OSX/DotNet" : "Unix/DotNet",
+                _ => "Win/DotNet",
+            };
 
         /// <summary>
         /// Is the given string a UUID?

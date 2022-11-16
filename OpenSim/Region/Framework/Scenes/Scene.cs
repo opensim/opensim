@@ -875,7 +875,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             PhysicsEnabled = !RegionInfo.RegionSettings.DisablePhysics;
 
-            m_simulatorVersion = simulatorVersion + " (" + Util.GetRuntimeInformation() + ")";
+            m_simulatorVersion = simulatorVersion + " (" + Util.RuntimeInformationStr + ")";
 
             #region Region Config
 
