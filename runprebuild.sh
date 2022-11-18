@@ -19,6 +19,8 @@ case "$1" in
   *)
 
     dotnet bin/prebuild.dll /target vs2022 /targetframework net6_0 /excludedir = "obj | bin" /file prebuild.xml
+    echo "dotnet build -c Release OpenSim.sln" > compile.sh
+    chmod +x compile.sh
 
   ;;
 
