@@ -55,7 +55,6 @@ using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using Amib.Threading;
 using System.Collections.Concurrent;
-using System.Reflection.Metadata;
 
 namespace OpenSim.Framework
 {
@@ -1098,7 +1097,7 @@ namespace OpenSim.Framework
 
             m_log.Debug($"[UTIL]: Loading native Windows library at {nativeLibraryPath}");
 
-            if (Util.LoadLibrary(nativeLibraryPath) == IntPtr.Zero)
+            if (!NativeLibrary.TryLoad(nativeLibraryPath, out _))
             {
                 m_log.Error($"[UTIL]: Couldn't find native Windows library at {nativeLibraryPath}");
                 return false;
