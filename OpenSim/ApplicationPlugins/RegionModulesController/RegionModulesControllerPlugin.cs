@@ -29,8 +29,8 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
-using Mono.Addins;
 using Nini.Config;
+using Mono.Addins;
 using OpenSim;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
@@ -38,7 +38,6 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.ApplicationPlugins.RegionModulesController
 {
-    [Extension(Path = "/OpenSim/Startup", Id = "LoadRegions", NodeName = "Plugin")]
     public class RegionModulesControllerPlugin : IRegionModulesController,
             IApplicationPlugin
     {
@@ -210,7 +209,7 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
 #region IPlugin implementation
 
         // We don't do that here
-        //
+        //OpenSim.ApplicationPlugins.LoadRegions
         public void Initialise ()
         {
             throw new System.NotImplementedException();

@@ -29,7 +29,6 @@ using log4net;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Mono.Addins;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Monitoring;
@@ -41,7 +40,6 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "RemoteXInventoryServicesConnector")]
     public class RemoteXInventoryServicesConnector : ISharedRegionModule, IInventoryService
     {
         private static readonly ILog m_log =

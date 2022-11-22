@@ -1,14 +1,139 @@
-<Addin id="OpenSim.Region.CoreModules" isroot="true" version="0.9.2.0">
+<Addin id="OpenSim.Region.CoreModules" version="0.5">
     
     <Runtime>
+        <Import assembly="OpenSim.dll" />
         <Import assembly="OpenSim.Region.Framework.dll" />
+        <Import assembly="OpenSim.Region.CoreModules.dll"/>
     </Runtime>
 
+    <Dependencies>
+        <Addin id="OpenSim" version="0.5" />
+    </Dependencies>
+    
     <ExtensionPoint path = "/OpenSim/RegionModules">
         <ExtensionNode name="RegionModule" objectType="OpenSim.Region.Framework.Interfaces.IRegionModuleBase" />
     </ExtensionPoint>
 
 	<Extension path = "/OpenSim/RegionModules">
-		<RegionModule class="OpenSim.Region.CoreModules.World.Permissions.DefaultPermissionsModule" />
+		<RegionModule id="DefaultPermissionsModule" class="OpenSim.Region.CoreModules.World.Permissions.DefaultPermissionsModule" />  
+        <RegionModule id="RemoteXInventoryServicesConnector" class="OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory.RemoteXInventoryServicesConnector" />
+        <RegionModule id="UserCommandsModule" class="UserCommandsModule">
+        <RegionModule id="XCallingCard" class="XCallingCard">
+        <RegionModule id="HGFriendsModule" class="HGFriendsModule">
+        <RegionModule id="FriendsModule" class="FriendsModule">
+        <RegionModule id="DialogModule" class="DialogModule">
+        <RegionModule id="GroupsModule" class="GroupsModule">
+        <RegionModule id="ChatModule" class="ChatModule">
+        <RegionModule id="MessageTransferModule" class="MessageTransferModule">
+        <RegionModule id="OfflineMessageModule" class="OfflineMessageModule">
+        <RegionModule id="InstantMessageModule" class="InstantMessageModule">
+        <RegionModule id="PresenceModule" class="PresenceModule">
+        <RegionModule id="HGMessageTransferModule" class="HGMessageTransferModule">
+        <RegionModule id="MuteListModule" class="MuteListModule">
+        <RegionModule id="XBakes.Module" class="XBakes.Module">
+        <RegionModule id="CombatModule" class="CombatModule">
+        <RegionModule id="InventoryArchiverModule" class="InventoryArchiverModule">
+        <RegionModule id="InventoryTransferModule" class="InventoryTransferModule">
+        <RegionModule id="BasicProfileModule" class="BasicProfileModule">
+        <RegionModule id="AvatarFactoryModule" class="AvatarFactoryModule">
+        <RegionModule id="GodsModule" class="GodsModule">
+        <RegionModule id="AttachmentsModule" class="AttachmentsModule">
+        <RegionModule id="LureModule" class="LureModule">
+        <RegionModule id="HGLureModule" class="HGLureModule">
+        <RegionModule id="UserProfilesModule" class="UserProfilesModule">
+        <RegionModule id="GesturesModule" class="GesturesModule">
+        <RegionModule id="EnvironmentModule" class="EnvironmentModule">
+        <RegionModule id="EstateManagementModule" class="EstateManagementModule">
+        <RegionModule id="EstateModule" class="EstateModule">
+        <RegionModule id="ArchiverModule" class="ArchiverModule">
+        <RegionModule id="SoundModule" class="SoundModule">
+        <RegionModule id="PrimCountModule" class="PrimCountModule">
+        <RegionModule id="DefaultDwellModule" class="DefaultDwellModule">
+        <RegionModule id="LandManagementModule" class="LandManagementModule">
+        <RegionModule id="VegetationModule" class="VegetationModule">
+        <RegionModule id="MoapModule" class="MoapModule">
+        <RegionModule id="WindModule" class="WindModule">
+        <RegionModule id="ConfigurableWind" class="ConfigurableWind">
+        <RegionModule id="SimpleRandomWind" class="SimpleRandomWind">
+        <RegionModule id="RestartModule" class="RestartModule">
+        <RegionModule id="RegionCommandsModule" class="RegionCommandsModule">
+        <RegionModule id="MapSearchModule" class="MapSearchModule">
+        <RegionModule id="HGWorldMapModule" class="HGWorldMapModule">
+        <RegionModule id="WorldMapModule" class="WorldMapModule">
+        <RegionModule id="SerialiserModule" class="SerialiserModule">
+        <RegionModule id="MapImageModule" class="MapImageModule">
+        <RegionModule id="AccessModule" class="AccessModule">
+        <RegionModule id="BuySellModule" class="BuySellModule">
+        <RegionModule id="ObjectCommandsModule" class="ObjectCommandsModule">
+        <RegionModule id="Warp3DImageModule" class="Warp3DImageModule">
+        <RegionModule id="DefaultPermissionsModule" class="DefaultPermissionsModule">
+        <RegionModule id="TerrainModule" class="TerrainModule">
+        <RegionModule id="LoadImageURLModule" class="LoadImageURLModule">
+        <RegionModule id="VectorRenderModule" class="VectorRenderModule">
+        <RegionModule id="HttpRequestModule" class="HttpRequestModule">
+        <RegionModule id="XMLRPCModule" class="XMLRPCModule">
+        <RegionModule id="EmailModule" class="EmailModule">
+        <RegionModule id="DynamicTextureModule" class="DynamicTextureModule">
+        <RegionModule id="UrlModule" class="UrlModule">
+        <RegionModule id="ScriptModuleCommsModule" class="ScriptModuleCommsModule">
+        <RegionModule id="SimulationServiceInConnectorModule" class="SimulationServiceInConnectorModule">
+        <RegionModule id="LandServiceInConnectorModule" class="LandServiceInConnectorModule">
+        <RegionModule id="MapImageServiceInConnectorModule" class="MapImageServiceInConnectorModule">
+        <RegionModule id="LLLoginServiceInConnectorModule" class="LLLoginServiceInConnectorModule">
+        <RegionModule id="HypergridServiceInConnectorModule" class="HypergridServiceInConnectorModule">
+        <RegionModule id="AuthenticationServiceInConnectorModule" class="AuthenticationServiceInConnectorModule">
+        <RegionModule id="NeighbourServiceInConnectorModule" class="NeighbourServiceInConnectorModule">
+        <RegionModule id="InventoryServiceInConnectorModule" class="InventoryServiceInConnectorModule">
+        <RegionModule id="AssetServiceInConnectorModule" class="AssetServiceInConnectorModule">
+        <RegionModule id="GridInfoServiceInConnectorModule" class="GridInfoServiceInConnectorModule">
+        <RegionModule id="LocalUserProfilesServicesConnector" class="LocalUserProfilesServicesConnector">
+        <RegionModule id="RemoteUserAccountServicesConnector" class="RemoteUserAccountServicesConnector">
+        <RegionModule id="LocalUserAccountServicesConnector" class="LocalUserAccountServicesConnector">
+        <RegionModule id="RemoteSimulationConnectorModule" class="RemoteSimulationConnectorModule">
+        <RegionModule id="LocalSimulationConnectorModule" class="LocalSimulationConnectorModule">
+        <RegionModule id="RemoteLandServicesConnector" class="RemoteLandServicesConnector">
+        <RegionModule id="LocalLandServicesConnector" class="LocalLandServicesConnector">
+        <RegionModule id="MapImageServiceModule" class="MapImageServiceModule">
+        <RegionModule id="LocalPresenceServicesConnector" class="LocalPresenceServicesConnector">
+        <RegionModule id="RemotePresenceServicesConnector" class="RemotePresenceServicesConnector">
+        <RegionModule id="RemoteAvatarServicesConnector" class="RemoteAvatarServicesConnector">
+        <RegionModule id="LocalAvatarServicesConnector" class="LocalAvatarServicesConnector">
+        <RegionModule id="LocalAuthenticationServicesConnector" class="LocalAuthenticationServicesConnector">
+        <RegionModule id="RemoteAuthenticationServicesConnector" class="RemoteAuthenticationServicesConnector">
+        <RegionModule id="LocalAuthorizationServicesConnector" class="LocalAuthorizationServicesConnector">
+        <RegionModule id="RemoteAuthorizationServicesConnector" class="RemoteAuthorizationServicesConnector">
+        <RegionModule id="RemoteMuteListServicesConnector" class="RemoteMuteListServicesConnector">
+        <RegionModule id="LocalMuteListServicesConnector" class="LocalMuteListServicesConnector">
+        <RegionModule id="LocalGridUserServicesConnector" class="LocalGridUserServicesConnector">
+        <RegionModule id="RemoteGridUserServicesConnector" class="RemoteGridUserServicesConnector">
+        <RegionModule id="RemoteAgentPreferencesServicesConnector" class="RemoteAgentPreferencesServicesConnector">
+        <RegionModule id="LocalAgentPreferencesServicesConnector" class="LocalAgentPreferencesServicesConnector">
+        <RegionModule id="NeighbourServicesOutConnector" class="NeighbourServicesOutConnector">
+        <RegionModule id="LocalInventoryServicesConnector" class="LocalInventoryServicesConnector">
+        <RegionModule id="HGInventoryBroker" class="HGInventoryBroker">
+        <RegionModule id="LocalAssetServicesConnector" class="LocalAssetServicesConnector">
+        <RegionModule id="RegionAssetConnector" class="RegionAssetConnector">
+        <RegionModule id="LocalUserAliasServicesConnector" class="LocalUserAliasServicesConnector">
+        <RegionModule id="RemoteUserAliasServicesConnector" class="RemoteUserAliasServicesConnector">
+        <RegionModule id="RegionGridServicesConnector" class="RegionGridServicesConnector">
+        <RegionModule id="HGEntityTransferModule" class="HGEntityTransferModule">
+        <RegionModule id="EntityTransferModule" class="EntityTransferModule">
+        <RegionModule id="CapabilitiesModule" class="CapabilitiesModule">
+        <RegionModule id="MonitorModule" class="MonitorModule">
+        <RegionModule id="HGUserManagementModule" class="HGUserManagementModule">
+        <RegionModule id="UserManagementModule" class="UserManagementModule">
+        <RegionModule id="BasicSearchModule" class="BasicSearchModule">
+        <RegionModule id="DAExampleModule" class="DAExampleModule">
+        <RegionModule id="DOExampleModule" class="DOExampleModule">
+        <RegionModule id="HGInventoryAccessModule" class="HGInventoryAccessModule">
+        <RegionModule id="BasicInventoryAccessModule" class="BasicInventoryAccessModule">
+        <RegionModule id="GridServiceThrottleModule" class="GridServiceThrottleModule">
+        <RegionModule id="LibraryModule" class="LibraryModule">
+        <RegionModule id="FlotsamAssetCache" class="FlotsamAssetCache">
+        <RegionModule id="IPBanModule" class="IPBanModule">
+        <RegionModule id="AssetTransactionModule" class="AssetTransactionModule">
+        <RegionModule id="XferModule" class="XferModule">
+        <RegionModule id="J2KDecoderModule" class="J2KDecoderModule">
 	</Extension>
+  
 </Addin>
