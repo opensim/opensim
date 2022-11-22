@@ -55,6 +55,7 @@ using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using Amib.Threading;
 using System.Collections.Concurrent;
+using System.Reflection.Metadata;
 
 namespace OpenSim.Framework
 {
@@ -178,6 +179,14 @@ namespace OpenSim.Framework
         public static readonly char[] SplitSemicolonArray = new char[] { ';' };
         public static readonly char[] SplitSlashArray = new char[] { '/' };
 
+        public static readonly XmlReaderSettings SharedXmlReaderSettings = new()
+        {
+            IgnoreWhitespace = true,
+            ConformanceLevel = ConformanceLevel.Fragment,
+            DtdProcessing = DtdProcessing.Ignore,
+            MaxCharactersInDocument = 10_000_000
+        };
+
         /// <summary>
         /// Thread pool used for Util.FireAndForget if FireAndForgetMethod.SmartThreadPool is used
         /// </summary>
@@ -213,38 +222,16 @@ namespace OpenSim.Framework
             return Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         }
 
-        // next should be replaced using .net5 system numerics bitoperations log2
-        // this is just log2 + 1
-        private static readonly byte[] nBitsLookup =
-         {
-            01, 10, 02, 11, 14, 22, 03, 30, 12, 15, 17, 19, 23, 26, 04, 31,
-            09, 13, 21, 29, 16, 18, 25, 08, 20, 28, 24, 07, 27, 06, 05, 32
-        };
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int NumberBits(uint n)
         {
-            n |= (n >> 1);
-            n |= (n >> 2);
-            n |= (n >> 4);
-            n |= (n >> 8);
-            n |= (n >> 16);
-            return nBitsLookup[(n * 0x07C4ACDDu) >> 27];
+            return System.Numerics.BitOperations.Log2(n) + 1;
         }
 
-        private static readonly byte[] intLog2Lookup =
-         {
-            00, 09, 01, 10, 13, 21, 02, 29, 11, 14, 16, 18, 22, 25, 03, 30,
-            08, 12, 20, 28, 15, 17, 24, 07, 19, 27, 23, 06, 26, 05, 04, 31
-        };
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int intLog2(uint n)
         {
-            n |= (n >> 1);
-            n |= (n >> 2);
-            n |= (n >> 4);
-            n |= (n >> 8);
-            n |= (n >> 16);
-            return intLog2Lookup[(n * 0x07C4ACDDu) >> 27];
+            return System.Numerics.BitOperations.Log2(n);
         }
 
         /// <summary>
@@ -2311,13 +2298,13 @@ namespace OpenSim.Framework
          public static readonly string RuntimeInformationStr = RuntimeInformation.ProcessArchitecture.ToString() + "/" + Environment.OSVersion.Platform switch
             {
                 PlatformID.MacOSX or PlatformID.Unix => RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "OSX/DotNet" : "Unix/DotNet",
-                _ => "Win/DotNet",
+                _ => "Win/DotNet"
             };
 
         public static readonly string RuntimePlatformStr = Environment.OSVersion.Platform switch
             {
                 PlatformID.MacOSX or PlatformID.Unix => RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "OSX/DotNet" : "Unix/DotNet",
-                _ => "Win/DotNet",
+                _ => "Win/DotNet"
             };
 
         /// <summary>
