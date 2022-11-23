@@ -733,9 +733,9 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                     return false;
                 }
             }
-            catch (DllNotFoundException)
+            catch (DllNotFoundException e)
             {
-                m_log.Error("[PHYSICS]: OpenJpeg is not installed correctly on this system. Physics Proxy generation failed.  Often times this is because of an old version of GLIBC.  You must have version 2.4 or above!");
+                m_log.Error($"[PHYSICS]: OpenJpeg problem: {e.Message}");
                 return false;
             }
             catch (IndexOutOfRangeException)
