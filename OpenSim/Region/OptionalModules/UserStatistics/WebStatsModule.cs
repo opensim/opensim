@@ -91,8 +91,7 @@ namespace OpenSim.Region.UserStatistics
             if (!enabled)
                 return;
 
-            if (Util.IsWindows())
-                Util.LoadArchSpecificWindowsDll("sqlite3.dll");
+            DllmapConfigHelper.RegisterAssembly(typeof(WebStatsModule).Assembly);
 
             //IConfig startupConfig = config.Configs["Startup"];
 

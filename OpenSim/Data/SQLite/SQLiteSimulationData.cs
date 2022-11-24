@@ -113,8 +113,7 @@ namespace OpenSim.Data.SQLite
         {
             try
             {
-                if (Util.IsWindows())
-                    Util.LoadArchSpecificWindowsDll("sqlite3.dll");
+                DllmapConfigHelper.RegisterAssembly(typeof(SQLiteSimulationData).Assembly);
 
                 m_connectionString = connectionString;
 
