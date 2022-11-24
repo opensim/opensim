@@ -143,15 +143,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
         public BSAPIUnman(string paramName, BSScene physScene)
         {
+            DllmapConfigHelper.RegisterAssembly(typeof(BSAPIUnman).Assembly);
             PhysicsScene = physScene;
-
-            // Do something fancy with the paramName to get the right DLL implementation
-            //     like "Bullet-2.80-OpenCL-Intel" loading the version for Intel based OpenCL implementation, etc.
-            if (Util.IsWindows())
-                Util.LoadArchSpecificWindowsDll("BulletSim.dll");
-            // If not Windows, loading is performed by the
-            // Mono loader as specified in
-            // "bin/Physics/OpenSim.Region.Physics.BulletSPlugin.dll.config".
         }
 
         // Initialization and simulation

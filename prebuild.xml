@@ -1611,6 +1611,7 @@
       </Configuration>
 
       <ReferencePath>../../../../bin/</ReferencePath>
+      <Reference name="OpenMetaverse" path="../../../../bin/"/>
       <Reference name="OpenMetaverseTypes" path="../../../../bin/"/>
       <Reference name="Nini" path="../../../../bin/"/>
       <Reference name="OpenSim.Framework"/>
