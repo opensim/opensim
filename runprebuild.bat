@@ -12,3 +12,7 @@ if exist "bin\addin-db-002" (
 	del /F/Q/S bin\addin-db-002 > NUL
 	rmdir /Q/S bin\addin-db-002
 	)
+if exist "bin\addin-db-004" (
+	del /F/Q/S bin\addin-db-004 > NUL
+	rmdir /Q/S bin\addin-db-004
+	)	
