@@ -275,6 +275,10 @@
     ;ConnectionString = ""
     ;Realm = "fsassets"
 
+    ;; FSAssets uses a folder structure to reduce file access times. By default that structure is 00/00/00
+    ;; Setting this to true will switch to an older 000/000 format, which can cause issues with long file lists
+    ;UseOsgridFormat = false
+
     ;; The following are common to both the default asset service and FSAsset service
 
     ;; Common asset service options
