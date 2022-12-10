@@ -91,7 +91,7 @@ namespace OpenSim.Region.UserStatistics
             if (!enabled)
                 return;
 
-            DllmapConfigHelper.RegisterAssembly(typeof(WebStatsModule).Assembly);
+            DllmapConfigHelper.RegisterAssembly(typeof(SqliteConnection).Assembly);
 
             //IConfig startupConfig = config.Configs["Startup"];
 

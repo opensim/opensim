@@ -48,7 +48,7 @@ namespace OpenSim.Data.SQLite
 
         protected SQLiteFramework(string connectionString)
         {
-            DllmapConfigHelper.RegisterAssembly(typeof(SQLiteFramework).Assembly);
+            DllmapConfigHelper.RegisterAssembly(typeof(SqliteConnection).Assembly);
         }
 
         //////////////////////////////////////////////////////////////

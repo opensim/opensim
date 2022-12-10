@@ -113,7 +113,7 @@ namespace OpenSim.Data.SQLite
         {
             try
             {
-                DllmapConfigHelper.RegisterAssembly(typeof(SQLiteSimulationData).Assembly);
+                DllmapConfigHelper. RegisterAssembly(typeof(SqliteConnection).Assembly);
 
                 m_connectionString = connectionString;
 
