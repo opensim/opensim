@@ -203,10 +203,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             if (base.SendFriendsOnlineIfNeeded(client))
             {
                 AgentCircuitData aCircuit = ((Scene)client.Scene).AuthenticateHandler.GetAgentCircuitData(client.AgentId);
-                if (aCircuit != null && (aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) != 0)
+                if (aCircuit is not null && (aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) != 0)
                 {
                     UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(client.Scene.RegionInfo.ScopeID, client.AgentId);
-                    if (account == null) // foreign
+                    if (account is null) // foreign
                     {
                         FriendInfo[] friends = GetFriendsFromCache(client.AgentId);
                         foreach (FriendInfo f in friends)

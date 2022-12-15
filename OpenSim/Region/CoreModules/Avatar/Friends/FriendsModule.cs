@@ -372,41 +372,37 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         public virtual bool SendFriendsOnlineIfNeeded(IClientAPI client)
         {
-            if (client == null)
+            if (client is null)
                 return false;
-
-            UUID agentID = client.AgentId;
 
             // Check if the online friends list is needed
             lock (m_NeedsListOfOnlineFriends)
             {
-                if (!m_NeedsListOfOnlineFriends.Remove(agentID))
+                if (!m_NeedsListOfOnlineFriends.Remove(client.AgentId))
                     return false;
             }
 
             // Send the friends online
-            List<UUID> online = GetOnlineFriends(agentID);
+            List<UUID> online = GetOnlineFriends(client.AgentId);
 
             if (online.Count > 0)
                 client.SendAgentOnline(online.ToArray());
 
             // Send outstanding friendship offers
             List<string> outstanding = new List<string>();
-            FriendInfo[] friends = GetFriendsFromCache(agentID);
+            FriendInfo[] friends = GetFriendsFromCache(client.AgentId);
             foreach (FriendInfo fi in friends)
             {
                 if (fi.TheirFlags == -1)
                     outstanding.Add(fi.Friend);
             }
 
-            GridInstantMessage im = new GridInstantMessage(client.Scene, UUID.Zero, String.Empty, agentID, (byte)InstantMessageDialog.FriendshipOffered,
+            GridInstantMessage im = new GridInstantMessage(client.Scene, UUID.Zero, String.Empty, client.AgentId, (byte)InstantMessageDialog.FriendshipOffered,
                 "Will you be my friend?", true, Vector3.Zero);
 
             foreach (string fid in outstanding)
             {
-                UUID fromAgentID;
-                string firstname = "Unknown", lastname = "UserFMSFOIN";
-                if (!GetAgentInfo(client.Scene.RegionInfo.ScopeID, fid, out fromAgentID, out firstname, out lastname))
+                if (!GetAgentInfo(client.Scene.RegionInfo.ScopeID, fid, out UUID fromAgentID, out string firstname, out string lastname))
                 {
                     m_log.DebugFormat("[FRIENDS MODULE]: skipping malformed friend {0}", fid);
                     continue;
@@ -418,7 +414,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 im.imSessionID = im.fromAgentID;
                 im.message = FriendshipMessage(fid);
 
-                LocalFriendshipOffered(agentID, im);
+                LocalFriendshipOffered(client.AgentId, im);
             }
 
             return true;

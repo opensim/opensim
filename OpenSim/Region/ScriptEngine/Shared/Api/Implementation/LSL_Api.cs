@@ -3467,7 +3467,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Integer llGiveMoney(LSL_Key destination, LSL_Integer amount)
         {
-
             if (m_item.PermsGranter.IsZero())
                 return 0;
 
@@ -3484,17 +3483,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             IMoneyModule money = World.RequestModuleInterface<IMoneyModule>();
-            if (money == null)
+            if (money is null)
             {
                 NotImplemented("llGiveMoney");
                 return 0;
             }
 
-            Action<string> act = dontcare =>
+            void act(string _)
             {
                 money.ObjectGiveMoney(m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID,
-                                        toID, amount,UUID.Zero, out string reason);
-            };
+                                        toID, amount, UUID.Zero, out _);
+            }
 
             m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, act);
             return 0;

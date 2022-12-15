@@ -5144,10 +5144,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // It leaves the types in retStr/argStrs for resolution after
              // all definitions have been read from the object file in case
              // there are forward references.
-            if(retType == null)
-            {
-                retType = MakeTypeToken(retStr);
-            }
+            retType ??= MakeTypeToken(retStr);
             if(argTypes == null)
             {
                 nArgs = argStrs.Length;
@@ -5196,16 +5193,16 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // Name it after the whole signature string.
             StringBuilder sb = new StringBuilder("$inline");
             sb.Append(retType.ToString());
-            sb.Append("(");
+            sb.Append('(');
             bool first = true;
             foreach(TokenType at in argTypes)
             {
                 if(!first)
-                    sb.Append(",");
+                    sb.Append(',');
                 sb.Append(at.ToString());
                 first = false;
             }
-            sb.Append(")");
+            sb.Append(')');
             string inlname = sb.ToString();
             if(!inlines.TryGetValue(inlname, out decldel))
             {
@@ -5505,16 +5502,16 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // No such luck, create a new anonymous declaration.
             StringBuilder sb = new StringBuilder("$anondel$");
             sb.Append(retType.ToString());
-            sb.Append("(");
+            sb.Append('(');
             bool first = true;
             foreach(TokenType at in argTypes)
             {
                 if(!first)
-                    sb.Append(",");
+                    sb.Append(',');
                 sb.Append(at.ToString());
                 first = false;
             }
-            sb.Append(")");
+            sb.Append(')');
             TokenName name = new TokenName(t, sb.ToString());
             decldel = new TokenDeclSDTypeDelegate(name);
             decldel.SetRetArgTypes(retType, argTypes);
@@ -5666,10 +5663,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private string argSig = null;
         public string GetArgSig()
         {
-            if(argSig == null)
-            {
-                argSig = ScriptCodeGen.ArgSigString(types);
-            }
+            argSig ??= ScriptCodeGen.ArgSigString(types);
             return argSig;
         }
     }
@@ -6688,7 +6682,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 t.DebString(sb);
                 first = false;
             }
-            sb.Append(")");
+            sb.Append(')');
         }
     }
 
@@ -7934,7 +7928,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             sb.Append("if ");
             testRVal.DebString(sb);
-            sb.Append(" ");
+            sb.Append(' ');
             trueStmt.DebString(sb);
             if(elseStmt != null)
             {

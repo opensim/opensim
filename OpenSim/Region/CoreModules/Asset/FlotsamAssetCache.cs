@@ -1160,8 +1160,7 @@ namespace OpenSim.Region.CoreModules.Asset
                 gatherer.AddGathered(s.RegionInfo.RegionSettings.TerrainTexture4, (sbyte)AssetType.Texture);
                 gatherer.AddGathered(s.RegionInfo.RegionSettings.TerrainImageID, (sbyte)AssetType.Texture);
 
-                if (s.RegionEnvironment is not null)
-                    s.RegionEnvironment.GatherAssets(gatheredids);
+                s.RegionEnvironment?.GatherAssets(gatheredids);
 
                 if (s.LandChannel is not null)
                 {

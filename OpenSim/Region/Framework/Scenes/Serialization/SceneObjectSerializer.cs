@@ -59,7 +59,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             string fixedData = ExternalRepresentationUtils.SanitizeXml(xmlData);
             using (XmlTextReader wrappedReader = new(fixedData, XmlNodeType.Element, null))
             {
-                using (XmlReader reader = XmlReader.Create(wrappedReader, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment, DtdProcessing = DtdProcessing.Ignore }))
+                using (XmlReader reader = XmlReader.Create(wrappedReader, Util.SharedXmlReaderSettings))
                 {
                     try
                     {

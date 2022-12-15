@@ -38,8 +38,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private string sig;  // rettype(arg1type,arg2type,...), eg, "void(list,string,integer)"
         private Type type;   // resultant delegate type
 
-        private static Dictionary<string, DelegateCommon> delegateCommons = new Dictionary<string, DelegateCommon>();
-        private static Dictionary<Type, DelegateCommon> delegateCommonsBySysType = new Dictionary<Type, DelegateCommon>();
+        private readonly static Dictionary<string, DelegateCommon> delegateCommons = new();
+        private readonly static Dictionary<Type, DelegateCommon> delegateCommonsBySysType = new();
         private static ModuleBuilder delegateModuleBuilder = null;
         public static Type[] constructorArgTypes = new Type[] { typeof(object), typeof(IntPtr) };
 
@@ -54,9 +54,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                 if(!delegateCommons.TryGetValue(sig, out dc))
                 {
-                    dc = new DelegateCommon();
-                    dc.sig = sig;
-                    dc.type = CreateDelegateType(sig, ret, args);
+                    dc = new DelegateCommon
+                    {
+                        sig = sig,
+                        type = CreateDelegateType(sig, ret, args)
+                    };
                     delegateCommons.Add(sig, dc);
                     delegateCommonsBySysType.Add(dc.type, dc);
                 }
@@ -72,7 +74,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 if(!delegateCommons.TryGetValue(sig, out dc))
                     dc = null;
             }
-            return (dc == null) ? null : dc.type;
+            return dc?.type;
         }
 
         public static string TryGetName(Type t)
@@ -83,7 +85,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 if(!delegateCommonsBySysType.TryGetValue(t, out dc))
                     dc = null;
             }
-            return (dc == null) ? null : dc.sig;
+            return dc?.sig;
         }
 
         // http://blog.bittercoder.com/PermaLink,guid,a770377a-b1ad-4590-9145-36381757a52b.aspx
@@ -91,8 +93,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             if(delegateModuleBuilder == null)
             {
-                AssemblyName assembly = new AssemblyName();
-                assembly.Name = "CustomDelegateAssembly";
+                AssemblyName assembly = new()
+                {
+                    Name = "CustomDelegateAssembly"
+                };
                 AssemblyBuilder assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assembly, AssemblyBuilderAccess.Run);
                 delegateModuleBuilder = assemblyBuilder.DefineDynamicModule("CustomDelegateModule");
             }
