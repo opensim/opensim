@@ -28,7 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
+using System.Text;
 using System.Reflection;
 using log4net;
 using MySql.Data.MySqlClient;
@@ -44,6 +44,7 @@ namespace OpenSim.Data.MySQL
     {
         private MySqlFolderHandler m_Folders;
         private MySqlItemHandler m_Items;
+
 
         public MySQLXInventoryData(string conn, string realm)
         {
@@ -61,6 +62,16 @@ namespace OpenSim.Data.MySQL
         public XInventoryItem[] GetItems(string[] fields, string[] vals)
         {
             return m_Items.Get(fields, vals);
+        }
+
+        public XInventoryItem[] GetItems(string field, string[] vals)
+        {
+            return m_Items.Get(field, vals);
+        }
+
+        public XInventoryItem[] GetItems(string fields, string val)
+        {
+            return m_Items.Get(fields, val);
         }
 
         public bool StoreFolder(XInventoryFolder folder)
@@ -106,6 +117,11 @@ namespace OpenSim.Data.MySQL
             return m_Items.MoveItem(id, newParent);
         }
 
+        public bool MoveItems(string[] ids, string[] newParents)
+        {
+            return m_Items.MoveItems(ids, newParents);
+        }
+
         public bool MoveFolder(string id, string newParent)
         {
             return m_Folders.MoveFolder(id, newParent);
@@ -124,7 +140,7 @@ namespace OpenSim.Data.MySQL
 
     public class MySqlItemHandler : MySqlInventoryHandler<XInventoryItem>
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public MySqlItemHandler(string c, string t, string m) :
                 base(c, t, m)
@@ -140,8 +156,7 @@ namespace OpenSim.Data.MySQL
             if (!base.Delete(field, val))
                 return false;
 
-            // Don't increment folder version here since Delete(string, string) calls Delete(string[], string[])
-//            IncrementFolderVersion(retrievedItems[0].parentFolderID);
+            IncrementFolderVersion(retrievedItems[0].parentFolderID);
 
             return true;
         }
@@ -167,7 +182,7 @@ namespace OpenSim.Data.MySQL
 
         public bool MoveItem(string id, string newParent)
         {
-            XInventoryItem[] retrievedItems = Get(new string[] { "inventoryID" }, new string[] { id });
+            XInventoryItem[] retrievedItems = Get("inventoryID", id);
             if (retrievedItems.Length == 0)
                 return false;
 
@@ -183,8 +198,188 @@ namespace OpenSim.Data.MySQL
                     return false;
             }
 
-            IncrementFolderVersion(oldParent);
             IncrementFolderVersion(newParent);
+            if(oldParent.ToString() != newParent)
+                IncrementFolderVersion(oldParent);
+
+            return true;
+        }
+
+        public bool MoveItems(string[] ids, string[] newParents)
+        {
+            int len = ids.Length;
+            if(len == 0)
+                return false;
+
+            MySqlConnection dbcon;
+            MySqlCommand cmd;
+            MySqlDataReader rdr;
+            try
+            {
+                dbcon = new MySqlConnection(m_connectionString);
+                dbcon.Open();
+            }
+            catch
+            {
+                return false;
+            }
+
+            HashSet<string> changedfolders = new HashSet<string>();
+            try
+            {
+                UUID utmp;
+
+                int flast = len - 1;
+                StringBuilder sb = new StringBuilder(1024);
+                sb.AppendFormat("select parentFolderID from {0} where inventoryID IN ('", m_Realm);
+                for (int i = 0 ; i < len ; ++i)
+                {
+                    sb.Append(ids[i]);
+                    if(i < flast)
+                        sb.Append("','");
+                    else
+                        sb.Append("')");
+                }
+
+                string[] oldparents = new string[len];
+                int l = 0;
+                using (cmd = new MySqlCommand())
+                {
+                    cmd.CommandText = sb.ToString();
+                    cmd.Connection = dbcon;
+                    rdr = cmd.ExecuteReader();
+                    while (rdr.Read() && l < len)
+                    {
+                        if(!(rdr[0] is string))
+                            oldparents[l++] = null;
+                        else
+                            oldparents[l++] = (string)rdr[0];
+                    }
+                    rdr.Close();
+                }
+
+                if(l == 0)
+                    return false;
+
+                l = 0;
+                sb = new StringBuilder(1024);
+                string sbformat = String.Format("insert into {0} (inventoryID,parentFolderID) values{1} on duplicate key update parentFolderID = values(parentFolderID)", m_Realm,"{0}");
+
+                for(int k = 0; k < len; k++)
+                {
+                    string oldid = oldparents[k];
+                    if(String.IsNullOrWhiteSpace(oldid) || !UUID.TryParse(oldid, out utmp))
+                        continue;
+
+                    string newParent = newParents[k];
+                    if(String.IsNullOrWhiteSpace(newParent) || !UUID.TryParse(newParent, out utmp))
+                        continue;
+
+                    string id = ids[k];
+                    if(id == oldid)
+                        continue;
+
+                    sb.AppendFormat("(\'{0}\',\'{1}\')",id, newParent);
+                    if(k < flast)
+                        sb.Append(",");
+                    if(!changedfolders.Contains(newParent))
+                        changedfolders.Add(newParent);
+
+                    if(!changedfolders.Contains(oldid))
+                        changedfolders.Add(oldid);
+
+                    ++l;
+                }
+
+
+                if(l == 0)
+                    return false;
+
+                oldparents = null;
+                newParents = null;
+                ids = null;
+
+                using (cmd = new MySqlCommand())
+                {
+                    using(MySqlTransaction trans = dbcon.BeginTransaction())
+                    {
+                        cmd.Connection = dbcon;
+                        cmd.Transaction = trans;
+                    
+                        try
+                        {
+                            cmd.CommandText = string.Format(sbformat,sb.ToString());
+                            int r = cmd.ExecuteNonQuery();
+
+                            if(r == 2 * l)
+                                trans.Commit();
+                            else
+                            {
+                                // we did got insertions so need to bail out
+                                trans.Rollback();
+                                return false;
+                            }
+                        }
+                        catch
+                        {
+                            trans.Rollback();
+                            return false;
+                        }
+                    }
+                }
+
+                if(changedfolders.Count == 0)
+                    return true;
+
+                sb = new StringBuilder(256);
+                sb.Append("insert into inventoryfolders (folderID) values");
+
+                l = 0;
+                flast = changedfolders.Count - 1;
+                foreach(UUID uu in changedfolders)
+                {
+                    sb.AppendFormat("(\'{0}\')",uu);
+                    if(l < flast)
+                        sb.Append(",");
+                    ++l;
+                }
+
+                changedfolders = null;
+
+                sb.Append(" on duplicate key update version = version + 1");
+                using (cmd = new MySqlCommand())
+                {
+                    using(MySqlTransaction trans = dbcon.BeginTransaction())
+                    {
+                        cmd.Connection = dbcon;
+                        cmd.Transaction = trans;
+                        cmd.CommandText = sb.ToString();
+                        try
+                        {
+                            int r = cmd.ExecuteNonQuery();
+                            if(r == 2 * l)
+                                trans.Commit();
+                            else
+                            {
+                                // we did got insertions so need to bail out
+                                trans.Rollback();
+                            }
+                        }
+                        catch
+                        {
+                            trans.Rollback();
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                return false;
+            }
+            finally
+            {
+                    dbcon.Close();
+            }    
 
             return true;
         }
@@ -223,7 +418,6 @@ namespace OpenSim.Data.MySQL
 
                     using (IDataReader reader = cmd.ExecuteReader())
                     {
-
                         int perms = 0;
 
                         if (reader.Read())
