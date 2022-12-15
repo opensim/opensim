@@ -70,6 +70,14 @@ namespace OpenSim.Data.SQLite
         {
             return m_Items.Get(fields, vals);
         }
+        public XInventoryItem[] GetItems(string field, string[] vals)
+        {
+            return m_Items.Get(field, vals);
+        }
+        public XInventoryItem[] GetItems(string field, string val)
+        {
+            return m_Items.Get(field, val);
+        }
 
         public bool StoreFolder(XInventoryFolder folder)
         {
@@ -112,6 +120,13 @@ namespace OpenSim.Data.SQLite
         public bool MoveItem(string id, string newParent)
         {
             return m_Items.MoveItem(id, newParent);
+        }
+
+        public bool MoveItems(string[] ids, string[] newParents)
+        {
+            for(int i = 0; i< ids.Length; ++i)            
+                m_Items.MoveItem(ids[i], newParents[i]);
+            return true;
         }
 
         public bool MoveFolder(string id, string newParent)
