@@ -95,7 +95,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
             XmlDocument ncAssetGetXmlDoc = new XmlDocument();
             ncAssetGetXmlDoc.LoadXml(xmlData);
 
-//            Console.WriteLine(ncAssetGetXmlDoc.OuterXml);
+            // Console.WriteLine(ncAssetGetXmlDoc.OuterXml);
 
             XmlNodeList creatorDataNodes = ncAssetGetXmlDoc.GetElementsByTagName("CreatorData");
 
@@ -122,7 +122,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
         private void RezScript(Scene scene, UUID soId, string script, string itemName, UUID userId)
         {
             InventoryItemBase itemTemplate = new InventoryItemBase();
-            //            itemTemplate.ID = itemId;
+            // itemTemplate.ID = itemId;
             itemTemplate.Name = itemName;
             itemTemplate.Folder = soId;
             itemTemplate.InvType = (int)InventoryType.LSL;
