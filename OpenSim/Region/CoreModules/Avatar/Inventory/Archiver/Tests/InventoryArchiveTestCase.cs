@@ -118,7 +118,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 
             MemoryStream archiveWriteStream = new MemoryStream();
 
-            InventoryFolderBase objects = scene.InventoryService.GetFolderForType(m_uaLL1.PrincipalID, FolderType.Object);
+            //InventoryFolderBase objects = scene.InventoryService.GetFolderForType(m_uaLL1.PrincipalID, FolderType.Object);
             // Create scene object asset
             UUID ownerId = UUID.Parse("00000000-0000-0000-0000-000000000040");
             SceneObjectGroup object1 = SceneHelpers.CreateSceneObject(1, ownerId, "Ray Gun Object", 0x50);
@@ -135,7 +135,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             item1.GroupID = UUID.Random();
             item1.CreatorId = m_uaLL1.PrincipalID.ToString();
             item1.Owner = m_uaLL1.PrincipalID;
-            item1.Folder = objects.ID;
+            //item1.Folder = objects.ID;
+            item1.Folder = scene.InventoryService.GetRootFolder(m_uaLL1.PrincipalID).ID;
             scene.AddInventoryItem(item1);
 
             // Create coalesced objects asset
@@ -158,7 +159,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             coaItem.GroupID = UUID.Random();
             coaItem.CreatorId = m_uaLL1.PrincipalID.ToString();
             coaItem.Owner = m_uaLL1.PrincipalID;
-            coaItem.Folder = objects.ID;
+            //coaItem.Folder = objects.ID;
+            coaItem.Folder = scene.InventoryService.GetRootFolder(m_uaLL1.PrincipalID).ID;
             scene.AddInventoryItem(coaItem);
 
             archiverModule.ArchiveInventory(
