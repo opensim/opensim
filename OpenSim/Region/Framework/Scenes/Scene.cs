@@ -3949,7 +3949,7 @@ namespace OpenSim.Region.Framework.Scenes
             //
             // TeleportFlags.ViaGodlikeLure - Border Crossing
             // TeleportFlags.ViaLogin - Login
-            // TeleportFlags.TeleportFlags.ViaLure - Teleport request sent by another user
+            // TeleportFlags.ViaLure - Teleport request sent by another user
             // TeleportFlags.ViaLandmark | TeleportFlags.ViaLocation | TeleportFlags.ViaLandmark | TeleportFlags.Default - Regular Teleport
 
             // Don't disable this log message - it's too helpful
@@ -3969,7 +3969,7 @@ namespace OpenSim.Region.Framework.Scenes
                 (source is null) ? "" : string.Format("From region {0} ({1}){2}", source.RegionName, source.RegionID, (source.RawServerURI is null) ? "" : " @ " + source.ServerURI)
             );
 
-//            m_log.DebugFormat("NewUserConnection stack {0}", Environment.StackTrace);
+            //m_log.DebugFormat("NewUserConnection stack {0}", Environment.StackTrace);
 
             if (!LoginsEnabled)
             {
@@ -4048,15 +4048,16 @@ namespace OpenSim.Region.Framework.Scenes
                     // vulnerable to an issue when a viewer quits a region without sending a proper logout but then
                     // re-establishes the connection on a relogin.  This could wrongly set the DoNotCloseAfterTeleport
                     // flag when no teleport had taken place (and hence no close was going to come).
-//                    if (!acd.ChildrenCapSeeds.ContainsKey(RegionInfo.RegionHandle))
-//                    {
-//                        m_log.DebugFormat(
-//                            "[SCENE]: Setting DoNotCloseAfterTeleport for child scene presence {0} in {1} because source will attempt close.",
-//                            sp.Name, Name);
-//
-//                        sp.DoNotCloseAfterTeleport = true;
-//                    }
-//                    else if (EntityTransferModule.IsInTransit(sp.UUID))
+
+                    //if (!acd.ChildrenCapSeeds.ContainsKey(RegionInfo.RegionHandle))
+                    //{
+                    //    m_log.DebugFormat(
+                    //        "[SCENE]: Setting DoNotCloseAfterTeleport for child scene presence {0} in {1} because source will attempt close.",
+                    //        sp.Name, Name);
+
+                    //    sp.DoNotCloseAfterTeleport = true;
+                    //}
+                    //else if (EntityTransferModule.IsInTransit(sp.UUID))
 
                     sp.LifecycleState = ScenePresenceState.Running;
 
@@ -6034,8 +6035,6 @@ Environment.Exit(1);
                 reason = "Region Crossing not allowed";
                 return false;
             }
-
-
 
             AgentCircuitData aCircuit = m_authenticateHandler.GetAgentCircuitData(agentID);
             // Fake AgentCircuitData to keep IAuthorizationModule smiling

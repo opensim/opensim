@@ -1565,6 +1565,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (IsClientAuthorized(uccp, out AuthenticateResponse sessionInfo))
                 {
                     AgentCircuitData aCircuit = m_circuitManager.GetAgentCircuitData(uccp.CircuitCode.Code);
+                    if(!string.IsNullOrEmpty(aCircuit.IPAddress))
+                    {
+                        try
+                        {
+                            IPAddress aIP = IPAddress.Parse(aCircuit.IPAddress);
+                            if(!endPoint.Address.Equals(aIP))
+                                m_log.Debug($"[LLUDPSERVER]: HandleUseCircuitCode IP mismatch {endPoint.Address} != {aCircuit.IPAddress}");
+                        }
+                        catch
+                        {
+                            m_log.Debug($"[LLUDPSERVER]: HandleUseCircuitCode could not compare IP {endPoint.Address} {aCircuit.IPAddress}");
+                        }
+                    }
 
                     // Begin the process of adding the client to the simulator
                     client = AddClient(
@@ -1683,11 +1696,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         protected bool IsClientAuthorized(UseCircuitCodePacket useCircuitCode, out AuthenticateResponse sessionInfo)
         {
-            UUID agentID = useCircuitCode.CircuitCode.ID;
-            UUID sessionID = useCircuitCode.CircuitCode.SessionID;
-            uint circuitCode = useCircuitCode.CircuitCode.Code;
-
-            sessionInfo = m_circuitManager.AuthenticateSession(sessionID, agentID, circuitCode);
+            UseCircuitCodePacket.CircuitCodeBlock ucb = useCircuitCode.CircuitCode;
+            sessionInfo = m_circuitManager.AuthenticateSession(ucb.SessionID, ucb.ID, ucb.Code);
             return sessionInfo.Authorised;
         }
 

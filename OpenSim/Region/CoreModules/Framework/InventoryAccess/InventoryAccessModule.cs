@@ -423,22 +423,20 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
         public virtual bool UpdateInventoryItemAsset(UUID ownerID, InventoryItemBase item, AssetBase asset)
         {
-            if (item != null && item.Owner == ownerID && asset != null)
+            if (item is not null && item.Owner.Equals(ownerID) && asset is not null)
             {
-//                m_log.DebugFormat(
-//                    "[INVENTORY ACCESS MODULE]: Updating item {0} {1} with new asset {2}",
-//                    item.Name, item.ID, asset.ID);
-
+                //m_log.DebugFormat(
+                //    "[INVENTORY ACCESS MODULE]: Updating item {0} {1} with new asset {2}",
+                //    item.Name, item.ID, asset.ID);
 
                 m_Scene.AssetService.Store(asset);
                 m_Scene.InventoryService.UpdateItem(item);
-
                 return true;
             }
             else
             {
                 m_log.ErrorFormat("[INVENTORY ACCESS MODULE]: Given invalid item for inventory update: {0}",
-                    (item == null || asset == null? "null item or asset" : "wrong owner"));
+                    (item is null || asset is null? "null item or asset" : "wrong owner"));
                 return false;
             }
         }

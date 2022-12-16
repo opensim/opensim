@@ -960,76 +960,83 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         /// <param name="saveAllScripted"></param>
         private void UpdateKnownItem(IScenePresence sp, SceneObjectGroup grp, string scriptedState)
         {
+            if(!grp.HasGroupChanged)
+            {
+                if (DebugLevel > 0)
+                {
+                    m_log.Debug(
+                        $"[ATTACHMENTS MODULE]: Don't need to update asset for unchanged attachment {grp.UUID}, attachpoint {grp.AttachmentPoint}");
+                }
+                return;
+            }
+
+            grp.HasGroupChanged = false;
+
+            if (m_invAccessModule is null)
+                return;
+
             if (grp.FromItemID.IsZero())
             {
                 // We can't save temp attachments
-                grp.HasGroupChanged = false;
                 return;
             }
 
-            if(sp.IsNPC)
-                return;
-
-            if (grp.HasGroupChanged)
+            if (sp.IsNPC)
             {
-                m_log.Debug(
-                    $"[ATTACHMENTS MODULE]: Updating asset for attachment {grp.UUID}, attachpoint {grp.AttachmentPoint}");
+                return;
+            }
+
+            m_log.Debug($"[ATTACHMENTS MODULE]: Updating asset for attachment {grp.UUID}, attachpoint {grp.AttachmentPoint}");
+
+            InventoryItemBase item = m_scene.InventoryService.GetItem(sp.UUID, grp.FromItemID);
+            if (item is not null)
+            {
+                if (item.Owner.NotEqual(sp.UUID))
+                {
+                    m_log.Debug($"[ATTACHMENTS MODULE]: Updating asset for attachment owner mismach: agent {sp.UUID}, owner{item.Owner}");
+                    return;
+                }
 
                 string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(grp, scriptedState);
 
-                InventoryItemBase item = m_scene.InventoryService.GetItem(sp.UUID, grp.FromItemID);
-                if (item is not null)
-                {
-                    // attach is rez, need to update permissions
-                    item.Flags &= ~(uint)(InventoryItemFlags.ObjectSlamPerm | InventoryItemFlags.ObjectOverwriteBase |
-                            InventoryItemFlags.ObjectOverwriteOwner | InventoryItemFlags.ObjectOverwriteGroup |
-                            InventoryItemFlags.ObjectOverwriteEveryone | InventoryItemFlags.ObjectOverwriteNextOwner);
+                // attach is rez, need to update permissions
+                item.Flags &= ~(uint)(InventoryItemFlags.ObjectSlamPerm | InventoryItemFlags.ObjectOverwriteBase |
+                        InventoryItemFlags.ObjectOverwriteOwner | InventoryItemFlags.ObjectOverwriteGroup |
+                        InventoryItemFlags.ObjectOverwriteEveryone | InventoryItemFlags.ObjectOverwriteNextOwner);
 
-                    uint permsBase = (uint)(PermissionMask.Copy | PermissionMask.Transfer |
-                                 PermissionMask.Modify | PermissionMask.Move |
-                                 PermissionMask.Export | PermissionMask.FoldedMask);
-                    
-                    permsBase &= grp.CurrentAndFoldedNextPermissions();
-                    permsBase |= (uint)PermissionMask.Move;
-                    item.BasePermissions = permsBase;
-                    item.CurrentPermissions = permsBase;
-                    item.NextPermissions = permsBase & grp.RootPart.NextOwnerMask | (uint)PermissionMask.Move;
-                    item.EveryOnePermissions = permsBase & grp.RootPart.EveryoneMask;
-                    item.GroupPermissions = permsBase & grp.RootPart.GroupMask;
-                    item.CurrentPermissions &=
-                        ((uint)PermissionMask.Copy |
-                         (uint)PermissionMask.Transfer |
-                         (uint)PermissionMask.Modify |
-                         (uint)PermissionMask.Move |
-                         (uint)PermissionMask.Export |
-                         (uint)PermissionMask.FoldedMask); // Preserve folded permissions ??
+                uint permsBase = (uint)(PermissionMask.Copy | PermissionMask.Transfer |
+                                PermissionMask.Modify | PermissionMask.Move |
+                                PermissionMask.Export | PermissionMask.FoldedMask);
 
-                    string name = grp.RootPart.Name;
-                    string desc = grp.RootPart.Description;
+                permsBase &= grp.CurrentAndFoldedNextPermissions();
+                permsBase |= (uint)PermissionMask.Move;
+                item.BasePermissions = permsBase;
+                item.CurrentPermissions = permsBase;
+                item.NextPermissions = permsBase & grp.RootPart.NextOwnerMask | (uint)PermissionMask.Move;
+                item.EveryOnePermissions = permsBase & grp.RootPart.EveryoneMask;
+                item.GroupPermissions = permsBase & grp.RootPart.GroupMask;
+                item.CurrentPermissions &=
+                    ((uint)PermissionMask.Copy |
+                        (uint)PermissionMask.Transfer |
+                        (uint)PermissionMask.Modify |
+                        (uint)PermissionMask.Move |
+                        (uint)PermissionMask.Export |
+                        (uint)PermissionMask.FoldedMask); // Preserve folded permissions ??
 
-                    AssetBase asset = m_scene.CreateAsset(
-                        name, desc,
-                        (sbyte)AssetType.Object,
-                        Utils.StringToBytes(sceneObjectXml),
-                        sp.UUID);
+                string name = grp.RootPart.Name;
+                string desc = grp.RootPart.Description;
 
-                    item.Name = name;
-                    item.Description = desc;
-                    item.AssetID = asset.FullID;
-                    item.AssetType = (int)AssetType.Object;
-                    item.InvType = (int)InventoryType.Object;
+                AssetBase asset = m_scene.CreateAsset(name, desc, (sbyte)AssetType.Object,
+                    Utils.StringToBytes(sceneObjectXml), sp.UUID);
 
-                    m_invAccessModule?.UpdateInventoryItemAsset(sp.UUID, item, asset);
-
+                item.Name = name;
+                item.Description = desc;
+                item.AssetID = asset.FullID;
+                item.AssetType = (int)AssetType.Object;
+                item.InvType = (int)InventoryType.Object;
+                   
+                if(m_invAccessModule.UpdateInventoryItemAsset(sp.UUID, item, asset))
                     sp.ControllingClient?.SendInventoryItemCreateUpdate(item, 0);
-                }
-
-                grp.HasGroupChanged = false; // Prevent it being saved over and over
-            }
-            else if (DebugLevel > 0)
-            {
-                m_log.Debug(
-                    $"[ATTACHMENTS MODULE]: Don't need to update asset for unchanged attachment {grp.UUID}, attachpoint {grp.AttachmentPoint}");
             }
         }
 

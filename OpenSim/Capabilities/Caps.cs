@@ -29,15 +29,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
-using System.IO;
 using System.Reflection;
 using System.Threading;
 using log4net;
-using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
-using OpenSim.Services.Interfaces;
 
 // using OpenSim.Region.Framework.Interfaces;
 
@@ -54,26 +51,23 @@ namespace OpenSim.Framework.Capabilities
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private string m_httpListenerHostName;
-        private uint m_httpListenPort;
+        private readonly string m_httpListenerHostName;
+        private readonly uint m_httpListenPort;
 
         /// <summary>
         /// This is the uuid portion of every CAPS path.  It is used to make capability urls private to the requester.
         /// </summary>
-        private string m_capsObjectPath;
+        private readonly string m_capsObjectPath;
         public string CapsObjectPath { get { return m_capsObjectPath; } }
 
-        private CapsHandlers m_capsHandlers;
+        private readonly CapsHandlers m_capsHandlers;
+        private readonly ConcurrentDictionary<string, PollServiceEventArgs> m_pollServiceHandlers = new ();
+        private readonly Dictionary<string, string> m_externalCapsHandlers = new ();
 
-        private ConcurrentDictionary<string, PollServiceEventArgs> m_pollServiceHandlers
-            = new ConcurrentDictionary<string, PollServiceEventArgs>();
-
-        private Dictionary<string, string> m_externalCapsHandlers = new Dictionary<string, string>();
-
-        private IHttpServer m_httpListener;
-        private UUID m_agentID;
-        private string m_regionName;
-        private ManualResetEvent m_capsActive = new ManualResetEvent(false);
+        private readonly IHttpServer m_httpListener;
+        private readonly UUID m_agentID;
+        private readonly string m_regionName;
+        private ManualResetEvent m_capsActive = new(false);
 
         public UUID AgentID
         {
@@ -142,7 +136,7 @@ namespace OpenSim.Framework.Capabilities
 
             m_httpListenPort = httpPort;
 
-            if (httpServer != null && httpServer.UseSSL)
+            if (httpServer is not null && httpServer.UseSSL)
             {
                 m_httpListenPort = httpServer.SSLPort;
                 httpListen = httpServer.SSLCommonName;
@@ -167,7 +161,7 @@ namespace OpenSim.Framework.Capabilities
             GC.SuppressFinalize(this);
         }
 
-        protected void Dispose(bool disposing)
+        public void Dispose(bool disposing)
         {
             Flags = CapsFlags.None;
             if (m_capsActive != null)
@@ -197,9 +191,9 @@ namespace OpenSim.Framework.Capabilities
 
         public void RegisterPollHandler(string capName, PollServiceEventArgs pollServiceHandler)
         {
-//            m_log.DebugFormat(
-//                "[CAPS]: Registering handler with name {0}, url {1} for {2}",
-//                capName, pollServiceHandler.Url, m_agentID, m_regionName);
+            //m_log.DebugFormat(
+            //    "[CAPS]: Registering handler with name {0}, url {1} for {2}",
+            //    capName, pollServiceHandler.Url, m_agentID, m_regionName);
 
             if(!m_pollServiceHandlers.TryAdd(capName, pollServiceHandler))
             {
@@ -211,19 +205,19 @@ namespace OpenSim.Framework.Capabilities
 
             m_httpListener.AddPollServiceHTTPHandler(pollServiceHandler);
 
-//            uint port = (MainServer.Instance == null) ? 0 : MainServer.Instance.Port;
-//            string protocol = "http";
-//            string hostName = m_httpListenerHostName;
-//
-//            if (MainServer.Instance.UseSSL)
-//            {
-//                hostName = MainServer.Instance.SSLCommonName;
-//                port = MainServer.Instance.SSLPort;
-//                protocol = "https";
-//            }
+            //uint port = (MainServer.Instance == null) ? 0 : MainServer.Instance.Port;
+            //string protocol = "http";
+            //string hostName = m_httpListenerHostName;
 
-//            RegisterHandler(
-//                capName, String.Format("{0}://{1}:{2}{3}", protocol, hostName, port, pollServiceHandler.Url));
+            //if (MainServer.Instance.UseSSL)
+            //{
+            //    hostName = MainServer.Instance.SSLCommonName;
+            //    port = MainServer.Instance.SSLPort;
+            //    protocol = "https";
+            //}
+
+            //RegisterHandler(
+            //   capName, String.Format("{0}://{1}:{2}{3}", protocol, hostName, port, pollServiceHandler.Url));
         }
 
         /// <summary>
@@ -253,7 +247,6 @@ namespace OpenSim.Framework.Capabilities
             }
             m_pollServiceHandlers.Clear();
         }
-
         public bool TryGetPollHandler(string name, out PollServiceEventArgs pollHandler)
         {
             return m_pollServiceHandlers.TryGetValue(name, out pollHandler);
@@ -281,7 +274,7 @@ namespace OpenSim.Framework.Capabilities
                         continue;
 
                         string hostName = m_httpListenerHostName;
-                        uint port = (MainServer.Instance == null) ? 0 : MainServer.Instance.Port;
+                        uint port = (MainServer.Instance is null) ? 0 : MainServer.Instance.Port;
                         string protocol = "http";
 
                         if (MainServer.Instance.UseSSL)
