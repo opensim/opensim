@@ -610,7 +610,7 @@ namespace OpenSim.Services.InventoryService
                 else
                 {
                     string u = principalID.ToString();
-                    string[] fields = new string[] { "agentID", "inventoryID" };
+                    string[] fields = new string[] { "avatarID", "inventoryID" };
                     foreach (UUID id in itemIDs)
                         m_Database.DeleteItems(
                             fields,
@@ -698,7 +698,7 @@ namespace OpenSim.Services.InventoryService
             else
             {
                 folders = m_Database.GetFolders(
-                    new string[] { "avatarID", "folderID" },
+                    new string[] { "agentID", "folderID" },
                     new string[] { principalID.ToString(), folderID.ToString() });
             }
 
