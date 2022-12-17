@@ -376,7 +376,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 for (int indx = 0; indx < ad.AttachmentObjects.Count; ++indx)
                 {
                     SceneObjectGroup sog = ad.AttachmentObjects[indx] as SceneObjectGroup;
-                    if(sog != null)
+                    if(sog != null && sog.OwnerID.Equals(sp.UUID))
                     {
                         sog.LocalId = 0;
                         sog.RootPart.ClearUpdateSchedule();

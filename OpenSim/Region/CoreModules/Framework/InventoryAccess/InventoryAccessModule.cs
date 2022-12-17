@@ -1062,13 +1062,13 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 group = objlist[i];
                 SceneObjectPart rootPart = group.RootPart;
 
-//                m_log.DebugFormat(
-//                    "[INVENTORY ACCESS MODULE]: Preparing to rez {0} {1} {2} ownermask={3:X} nextownermask={4:X} groupmask={5:X} everyonemask={6:X} for {7}",
-//                    group.Name, group.LocalId, group.UUID,
-//                    group.RootPart.OwnerMask, group.RootPart.NextOwnerMask, group.RootPart.GroupMask, group.RootPart.EveryoneMask,
-//                    remoteClient.Name);
+                //m_log.DebugFormat(
+                //    "[INVENTORY ACCESS MODULE]: Preparing to rez {0} {1} {2} ownermask={3:X} nextownermask={4:X} groupmask={5:X} everyonemask={6:X} for {7}",
+                //    group.Name, group.LocalId, group.UUID,
+                //    group.RootPart.OwnerMask, group.RootPart.NextOwnerMask, group.RootPart.GroupMask, group.RootPart.EveryoneMask,
+                //    remoteClient.Name);
 
-//                        Vector3 storedPosition = group.AbsolutePosition;
+                //Vector3 storedPosition = group.AbsolutePosition;
                 if (group.UUID.IsZero())
                 {
                     m_log.Debug("[INVENTORY ACCESS MODULE]: Object has UUID.Zero! Position 3");
@@ -1088,9 +1088,14 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     foreach (SceneObjectPart part in group.Parts)
                     {
                         // Make the rezzer the owner, as this is not necessarily set correctly in the serialized asset.
-                        part.LastOwnerID = part.OwnerID;
-                        part.OwnerID = remoteClient.AgentId;
-                        part.RezzerID = remoteClient.AgentId;
+                        if (part.OwnerID.NotEqual(remoteClient.AgentId))
+                        {
+                            if (part.OwnerID.NotEqual(part.GroupID))
+                                part.LastOwnerID = part.OwnerID;
+                            part.OwnerID = remoteClient.AgentId;
+                            part.RezzerID = remoteClient.AgentId;
+                            part.Inventory.ChangeInventoryOwner(remoteClient.AgentId);
+                        }
                     }
                 }
 
