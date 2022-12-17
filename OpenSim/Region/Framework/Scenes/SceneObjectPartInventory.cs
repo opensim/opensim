@@ -1199,9 +1199,9 @@ namespace OpenSim.Region.Framework.Scenes
 
                 foreach (SceneObjectPart part in partList)
                 {
-                    if ((part.OwnerID != NewOwner))
+                    if ((part.OwnerID.NotEqual(NewOwner)))
                     {
-                        if(part.GroupID != part.OwnerID)
+                        if(part.GroupID.NotEqual(part.OwnerID))
                             part.LastOwnerID = part.OwnerID;
                         part.OwnerID = NewOwner;
                         part.Inventory.ChangeInventoryOwner(NewOwner);

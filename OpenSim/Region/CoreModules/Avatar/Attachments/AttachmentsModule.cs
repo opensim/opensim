@@ -168,9 +168,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
         private void HandleDebugAttachmentsLog(string module, string[] args)
         {
-            int debugLevel;
-
-            if (!(args.Length == 4 && int.TryParse(args[3], out debugLevel)))
+            if (!(args.Length == 4 && int.TryParse(args[3], out int debugLevel)))
             {
                 MainConsole.Instance.Output("Usage: debug attachments log [0|1]");
             }
@@ -372,7 +370,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 int i = 0;
                 for (int indx = 0; indx < ad.AttachmentObjects.Count; ++indx)
                 {
-                    if(ad.AttachmentObjects[indx] is SceneObjectGroup sog)
+                    if(ad.AttachmentObjects[indx] is SceneObjectGroup sog && sog.OwnerID.Equals(sp.UUID))
                     {
                         sog.LocalId = 0;
                         sog.RootPart.ClearUpdateSchedule();
@@ -449,42 +447,84 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             List<AvatarAttachment> attachments = sp.Appearance.GetAttachments();
 
-            // Let's get all items at once, so they get cached
-            UUID[] items = new UUID[attachments.Count];
-            for (int i = 0; i < attachments.Count; ++i)
-                items[i] = attachments[i].ItemID;
-
-            m_scene.InventoryService.GetMultipleItems(sp.UUID, items);
-
-            for (int indx = 0; indx < attachments.Count; ++indx)
+            if(sp.IsNPC)
             {
-                AvatarAttachment attach = attachments[indx];
-                uint attachmentPt = (uint)attach.AttachPoint;
-
-                //m_log.DebugFormat(
-                //    "[ATTACHMENTS MODULE]: Doing initial rez of attachment with itemID {0}, assetID {1}, point {2} for {3} in {4}",
-                //    attach.ItemID, attach.AssetID, p, sp.Name, m_scene.RegionInfo.RegionName);
-
-                try
+                for (int indx = 0; indx < attachments.Count; ++indx)
                 {
-                    XmlDocument d = null;
-                    if (itemData.TryGetValue(attach.ItemID, out string xmlData))
+                    AvatarAttachment attach = attachments[indx];
+                    if(attach.AssetID.IsZero())
+                        continue;
+                    uint attachmentPt = (uint)attach.AttachPoint;
+
+                    //m_log.DebugFormat(
+                    //    "[ATTACHMENTS MODULE]: Doing initial rez of attachment with itemID {0}, assetID {1}, point {2} for {3} in {4}",
+                    //    attach.ItemID, attach.AssetID, p, sp.Name, m_scene.RegionInfo.RegionName);
+
+                    try
                     {
-                        d = new XmlDocument();
-                        d.LoadXml(xmlData);
-                        m_log.Info($"[ATTACHMENT]: Found saved state for item {attach.ItemID}, loading it");
-                    }
+                        XmlDocument d = null;
+                        if (itemData.TryGetValue(attach.ItemID, out string xmlData))
+                        {
+                            d = new XmlDocument();
+                            d.LoadXml(xmlData);
+                            m_log.Info($"[ATTACHMENT]: Found saved state for item {attach.ItemID}, loading it");
+                        }
 
-                    // If we're an NPC then skip all the item checks and manipulations since we don't have an
-                    // inventory right now.
-                    RezSingleAttachmentFromInventoryInternal(
-                        sp, sp.PresenceType == PresenceType.Npc ? UUID.Zero : attach.ItemID, attach.AssetID, attachmentPt, true, d);
+                        // If we're an NPC then skip all the item checks and manipulations since we don't have an
+                        // inventory right now.
+                        RezSingleAttachmentFromInventoryInternal(sp, UUID.Zero, attach.AssetID, attachmentPt, true, d);
+                    }
+                    catch (Exception e)
+                    {
+                        UUID agentId = (sp.ControllingClient is null) ? UUID.Zero : sp.ControllingClient.AgentId;
+                        m_log.ErrorFormat("[ATTACHMENTS MODULE]: Unable to rez attachment with itemID {0}, assetID {1}, point {2} for {3}: {4}\n{5}",
+                            attach.ItemID, attach.AssetID, attachmentPt, agentId, e.Message, e.StackTrace);
+                    }
                 }
-                catch (Exception e)
+            }
+            else
+            {
+                // Let's get all items at once, so they get cached
+                UUID[] items = new UUID[attachments.Count];
+                for (int i = 0; i < attachments.Count; ++i)
+                    items[i] = attachments[i].ItemID;
+
+                InventoryItemBase[] attItems = m_scene.InventoryService.GetMultipleItems(sp.UUID, items);
+                if(attItems is null)
+                    return;
+
+                for (int indx = 0; indx < attachments.Count; ++indx)
                 {
-                    UUID agentId = (sp.ControllingClient == null) ? UUID.Zero : sp.ControllingClient.AgentId;
-                    m_log.ErrorFormat("[ATTACHMENTS MODULE]: Unable to rez attachment with itemID {0}, assetID {1}, point {2} for {3}: {4}\n{5}",
-                        attach.ItemID, attach.AssetID, attachmentPt, agentId, e.Message, e.StackTrace);
+                    InventoryItemBase attItem = attItems[indx];
+                    if (attItem is null || attItem.Owner != sp.UUID)
+                        continue;
+                    AvatarAttachment attach = attachments[indx];
+                    uint attachmentPt = (uint)attach.AttachPoint;
+
+                    //m_log.DebugFormat(
+                    //    "[ATTACHMENTS MODULE]: Doing initial rez of attachment with itemID {0}, assetID {1}, point {2} for {3} in {4}",
+                    //    attach.ItemID, attach.AssetID, p, sp.Name, m_scene.RegionInfo.RegionName);
+
+                    try
+                    {
+                        XmlDocument d = null;
+                        if (itemData.TryGetValue(attach.ItemID, out string xmlData))
+                        {
+                            d = new XmlDocument();
+                            d.LoadXml(xmlData);
+                            m_log.Info($"[ATTACHMENT]: Found saved state for item {attach.ItemID}, loading it");
+                        }
+
+                        // If we're an NPC then skip all the item checks and manipulations since we don't have an
+                        // inventory right now.
+                        RezSingleAttachmentFromInventoryInternal(sp, attach.ItemID, attach.AssetID, attachmentPt, true, d);
+                    }
+                    catch (Exception e)
+                    {
+                        UUID agentId = (sp.ControllingClient is null) ? UUID.Zero : sp.ControllingClient.AgentId;
+                        m_log.ErrorFormat("[ATTACHMENTS MODULE]: Unable to rez attachment with itemID {0}, assetID {1}, point {2} for {3}: {4}\n{5}",
+                            attach.ItemID, attach.AssetID, attachmentPt, agentId, e.Message, e.StackTrace);
+                    }
                 }
             }
         }

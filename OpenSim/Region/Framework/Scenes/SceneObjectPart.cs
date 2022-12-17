@@ -2201,7 +2201,7 @@ namespace OpenSim.Region.Framework.Scenes
             dupe.LocalId = plocalID;
 
             // This may be wrong...    it might have to be applied in SceneObjectGroup to the object that's being duplicated.
-            if(OwnerID != GroupID)
+            if(OwnerID.NotEqual(GroupID))
                 dupe.LastOwnerID = OwnerID;
             else
                 dupe.LastOwnerID = LastOwnerID; // redundant ?
@@ -5366,9 +5366,9 @@ namespace OpenSim.Region.Framework.Scenes
                 GroupMask = 0; // DO NOT propagate here
             }
 
-            if (OwnerID != item.Owner)
+            if (OwnerID.NotEqual(item.Owner))
             {
-                if(OwnerID != GroupID)
+                if(OwnerID.NotEqual(GroupID))
                     LastOwnerID = OwnerID;
                 OwnerID = item.Owner;
                 Inventory.ChangeInventoryOwner(item.Owner);

@@ -4034,9 +4034,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (sp is not null && !sp.IsDeleted && sp.IsChildAgent &&
                     (sp.LifecycleState == ScenePresenceState.Running || sp.LifecycleState == ScenePresenceState.PreRemove))
                 {
-                    m_log.DebugFormat(
-                        "[SCENE]: Reusing existing child scene presence for {0}, state {1} in {2}",
-                        sp.Name, sp.LifecycleState, Name);
+                    m_log.Debug($"[SCENE]: Reusing existing child scene presence for {sp.Name}, state {sp.LifecycleState} in {Name}");
 
                     // In the case where, for example, an A B C D region layout, an avatar may
                     // teleport from A -> D, but then -> C before A has asked B to close its old child agent.  When C
@@ -4064,17 +4062,14 @@ namespace OpenSim.Region.Framework.Scenes
                     if (EntityTransferModule.IsInTransit(sp.UUID))
                     {
                         sp.DoNotCloseAfterTeleport = true;
-
-                        m_log.DebugFormat(
-                            "[SCENE]: Set DoNotCloseAfterTeleport for child scene presence {0} in {1} because this region will attempt end-of-teleport close from a previous close.",
-                            sp.Name, Name);
+                        m_log.Debug($"[SCENE]: Set DoNotCloseAfterTeleport for child scene presence {sp.Name} in {Name} because this region will attempt end-of-teleport close from a previous close.");
                     }
                 }
             }
 
             // Need to poll here in case we are currently deleting an sp.  Letting threads run over each other will
             // allow unpredictable things to happen.
-            if (sp is not null)
+            if (sp is not null && sp.LifecycleState == ScenePresenceState.Removing)
             {
                 const int polls = 10;
                 const int pollInterval = 1000;
