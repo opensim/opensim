@@ -68,7 +68,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Vector3 _position;
-        private SafeNativeMethods.Vector3 _zeroPosition;
+        private OdeNative.Vector3 _zeroPosition;
         private bool _zeroFlag = false;
         private bool m_lastUpdateSent = false;
         private Vector3 _velocity;
@@ -151,7 +151,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
         internal IntPtr Shell { get; private set; }
 
         private IntPtr Amotor = IntPtr.Zero;
-        private SafeNativeMethods.Mass ShellMass;
+        private OdeNative.Mass ShellMass;
 
         private int m_eventsubscription = 0;
         private CollisionEventUpdate CollisionEventsThisFrame = new CollisionEventUpdate();
@@ -569,12 +569,12 @@ namespace OpenSim.Region.PhysicsModule.ODE
             float yTiltComponent = -movementVector.Y * m_tiltMagnitudeWhenProjectedOnXYPlane;
 
             //m_log.Debug("[ODE CHARACTER]: changing avatar tilt");
-            SafeNativeMethods.JointSetAMotorParam(Amotor, (int)dParam.LowStop, xTiltComponent);
-            SafeNativeMethods.JointSetAMotorParam(Amotor, (int)dParam.HiStop, xTiltComponent); // must be same as lowstop, else a different, spurious tilt is introduced
-            SafeNativeMethods.JointSetAMotorParam(Amotor, (int)dParam.LoStop2, yTiltComponent);
-            SafeNativeMethods.JointSetAMotorParam(Amotor, (int)dParam.HiStop2, yTiltComponent); // same as lowstop
-            SafeNativeMethods.JointSetAMotorParam(Amotor, (int)dParam.LoStop3, 0f);
-            SafeNativeMethods.JointSetAMotorParam(Amotor, (int)dParam.HiStop3, 0f); // same as lowstop
+            OdeNative.JointSetAMotorParam(Amotor, (int)dParam.LowStop, xTiltComponent);
+            OdeNative.JointSetAMotorParam(Amotor, (int)dParam.HiStop, xTiltComponent); // must be same as lowstop, else a different, spurious tilt is introduced
+            OdeNative.JointSetAMotorParam(Amotor, (int)dParam.LoStop2, yTiltComponent);
+            OdeNative.JointSetAMotorParam(Amotor, (int)dParam.HiStop2, yTiltComponent); // same as lowstop
+            OdeNative.JointSetAMotorParam(Amotor, (int)dParam.LoStop3, 0f);
+            OdeNative.JointSetAMotorParam(Amotor, (int)dParam.HiStop3, 0f); // same as lowstop
         }
 
         /// <summary>
@@ -812,11 +812,11 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
             if (m_pidControllerActive == false)
             {
-                _zeroPosition = SafeNativeMethods.BodyGetPosition(Body);
+                _zeroPosition = OdeNative.BodyGetPosition(Body);
             }
             //PidStatus = true;
 
-            SafeNativeMethods.Vector3 localpos = SafeNativeMethods.BodyGetPosition(Body);
+            OdeNative.Vector3 localpos = OdeNative.BodyGetPosition(Body);
             Vector3 localPos = new Vector3(localpos.X, localpos.Y, localpos.Z);
 
             if (!localPos.IsFinite())
@@ -831,7 +831,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
             }
 
             Vector3 vec = Vector3.Zero;
-            SafeNativeMethods.Vector3 vel = SafeNativeMethods.BodyGetLinearVel(Body);
+            OdeNative.Vector3 vel = OdeNative.BodyGetLinearVel(Body);
 
 //            m_log.DebugFormat(
 //                "[ODE CHARACTER]: Current velocity in Move() is <{0},{1},{2}>, target {3} for {4}",
@@ -855,7 +855,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 if (!_zeroFlag)
                 {
                     _zeroFlag = true;
-                    _zeroPosition = SafeNativeMethods.BodyGetPosition(Body);
+                    _zeroPosition = OdeNative.BodyGetPosition(Body);
                 }
 
                 if (m_pidControllerActive)
@@ -865,7 +865,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                     // Avatar to Avatar collisions
                     // Prim to avatar collisions
 
-                    SafeNativeMethods.Vector3 pos = SafeNativeMethods.BodyGetPosition(Body);
+                    OdeNative.Vector3 pos = OdeNative.BodyGetPosition(Body);
                     vec.X = (_target_velocity.X - vel.X) * (PID_D) + (_zeroPosition.X - pos.X) * (PID_P * 2);
                     vec.Y = (_target_velocity.Y - vel.Y) * (PID_D) + (_zeroPosition.Y - pos.Y)* (PID_P * 2);
                     if (flying)
@@ -913,7 +913,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                     {
                         // We're colliding with something and we're not flying but we're moving
                         // This means we're walking or running.
-                        SafeNativeMethods.Vector3 pos = SafeNativeMethods.BodyGetPosition(Body);
+                        OdeNative.Vector3 pos = OdeNative.BodyGetPosition(Body);
                         vec.Z = (_target_velocity.Z - vel.Z) * PID_D + (_zeroPosition.Z - pos.Z) * PID_P;
                         vec.X = ((_target_velocity.X - vel.X) / 1.2f) * PID_D;
                         vec.Y = ((_target_velocity.Y - vel.Y) / 1.2f) * PID_D;
@@ -947,7 +947,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
             if (vec.IsFinite())
             {
                 // Apply the total force acting on this avatar
-                SafeNativeMethods.BodyAddForce(Body, vec.X, vec.Y, vec.Z);
+                OdeNative.BodyAddForce(Body, vec.X, vec.Y, vec.Z);
 
                 if (!_zeroFlag)
                     AlignAvatarTiltWithCurrentDirectionOfMovement(vec);
@@ -963,7 +963,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 return;
             }
 
-            SafeNativeMethods.Vector3 newVel = SafeNativeMethods.BodyGetLinearVel(Body);
+            OdeNative.Vector3 newVel = OdeNative.BodyGetLinearVel(Body);
             if (newVel.X >= 256 || newVel.X <= 256 || newVel.Y >= 256 || newVel.Y <= 256 || newVel.Z >= 256 || newVel.Z <= 256)
             {
 //                m_log.DebugFormat(
@@ -979,7 +979,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 else
                     newVel.Z = Util.Clamp<float>(newVel.Z, -255f, 255f);
 
-                SafeNativeMethods.BodySetLinearVel(Body, newVel.X, newVel.Y, newVel.Z);
+                OdeNative.BodySetLinearVel(Body, newVel.X, newVel.Y, newVel.Z);
             }
         }
 
@@ -992,16 +992,16 @@ namespace OpenSim.Region.PhysicsModule.ODE
         internal void UpdatePositionAndVelocity(List<OdeCharacter> defects)
         {
             //  no lock; called from Simulate() -- if you call this from elsewhere, gotta lock or do Monitor.Enter/Exit!
-            SafeNativeMethods.Vector3 newPos;
+            OdeNative.Vector3 newPos;
             try
             {
-                newPos = SafeNativeMethods.BodyGetPosition(Body);
+                newPos = OdeNative.BodyGetPosition(Body);
             }
             catch (NullReferenceException)
             {
                 bad = true;
                 defects.Add(this);
-                newPos = new SafeNativeMethods.Vector3(_position.X, _position.Y, _position.Z);
+                newPos = new OdeNative.Vector3(_position.X, _position.Y, _position.Z);
                 base.RaiseOutOfBounds(_position); // Tells ScenePresence that there's a problem!
                 m_log.WarnFormat("[ODE CHARACTER]: Avatar Null reference for Avatar {0}, physical actor {1}", Name, m_uuid);
 
@@ -1038,11 +1038,11 @@ namespace OpenSim.Region.PhysicsModule.ODE
             else
             {
                 m_lastUpdateSent = false;
-                SafeNativeMethods.Vector3 newVelocity;
+                OdeNative.Vector3 newVelocity;
 
                 try
                 {
-                    newVelocity = SafeNativeMethods.BodyGetLinearVel(Body);
+                    newVelocity = OdeNative.BodyGetLinearVel(Body);
                 }
                 catch (NullReferenceException)
                 {
@@ -1109,14 +1109,14 @@ namespace OpenSim.Region.PhysicsModule.ODE
             }
 
 //          lock (OdeScene.UniversalColliderSyncObject)
-            Shell = SafeNativeMethods.CreateCapsule(_parent_scene.space, CAPSULE_RADIUS, CAPSULE_LENGTH);
+            Shell = OdeNative.CreateCapsule(_parent_scene.space, CAPSULE_RADIUS, CAPSULE_LENGTH);
 
-            SafeNativeMethods.GeomSetCategoryBits(Shell, (uint)m_collisionCategories);
-            SafeNativeMethods.GeomSetCollideBits(Shell, (uint)m_collisionFlags);
+            OdeNative.GeomSetCategoryBits(Shell, (uint)m_collisionCategories);
+            OdeNative.GeomSetCollideBits(Shell, (uint)m_collisionFlags);
 
-            SafeNativeMethods.MassSetCapsuleTotal(out ShellMass, m_mass, 2, CAPSULE_RADIUS, CAPSULE_LENGTH);
-            Body = SafeNativeMethods.BodyCreate(_parent_scene.world);
-            SafeNativeMethods.BodySetPosition(Body, npositionX, npositionY, npositionZ);
+            OdeNative.MassSetCapsuleTotal(out ShellMass, m_mass, 2, CAPSULE_RADIUS, CAPSULE_LENGTH);
+            Body = OdeNative.BodyCreate(_parent_scene.world);
+            OdeNative.BodySetPosition(Body, npositionX, npositionY, npositionZ);
 
             _position.X = npositionX;
             _position.Y = npositionY;
@@ -1124,45 +1124,45 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
             m_taintPosition = _position;
 
-            SafeNativeMethods.BodySetMass(Body, ref ShellMass);
-            SafeNativeMethods.Matrix3 m_caprot;
+            OdeNative.BodySetMass(Body, ref ShellMass);
+            OdeNative.Matrix3 m_caprot;
             // 90 Stand up on the cap of the capped cyllinder
             if (_parent_scene.IsAvCapsuleTilted)
             {
-                SafeNativeMethods.RFromAxisAndAngle(out m_caprot, 1, 0, 1, (float)(Math.PI / 2));
+                OdeNative.RFromAxisAndAngle(out m_caprot, 1, 0, 1, (float)(Math.PI / 2));
             }
             else
             {
-                SafeNativeMethods.RFromAxisAndAngle(out m_caprot, 0, 0, 1, (float)(Math.PI / 2));
+                OdeNative.RFromAxisAndAngle(out m_caprot, 0, 0, 1, (float)(Math.PI / 2));
             }
 
-            SafeNativeMethods.GeomSetRotation(Shell, ref m_caprot);
-            SafeNativeMethods.BodySetRotation(Body, ref m_caprot);
+            OdeNative.GeomSetRotation(Shell, ref m_caprot);
+            OdeNative.BodySetRotation(Body, ref m_caprot);
 
-            SafeNativeMethods.GeomSetBody(Shell, Body);
+            OdeNative.GeomSetBody(Shell, Body);
 
             // The purpose of the AMotor here is to keep the avatar's physical
             // surrogate from rotating while moving
-            Amotor = SafeNativeMethods.JointCreateAMotor(_parent_scene.world, IntPtr.Zero);
-            SafeNativeMethods.JointAttach(Amotor, Body, IntPtr.Zero);
-            SafeNativeMethods.JointSetAMotorMode(Amotor, dAMotorEuler);
-            SafeNativeMethods.JointSetAMotorNumAxes(Amotor, 3);
-            SafeNativeMethods.JointSetAMotorAxis(Amotor, 0, 0, 1, 0, 0);
-            SafeNativeMethods.JointSetAMotorAxis(Amotor, 1, 0, 0, 1, 0);
-            SafeNativeMethods.JointSetAMotorAxis(Amotor, 2, 0, 0, 0, 1);
-            SafeNativeMethods.JointSetAMotorAngle(Amotor, 0, 0);
-            SafeNativeMethods.JointSetAMotorAngle(Amotor, 1, 0);
-            SafeNativeMethods.JointSetAMotorAngle(Amotor, 2, 0);
+            Amotor = OdeNative.JointCreateAMotor(_parent_scene.world, IntPtr.Zero);
+            OdeNative.JointAttach(Amotor, Body, IntPtr.Zero);
+            OdeNative.JointSetAMotorMode(Amotor, dAMotorEuler);
+            OdeNative.JointSetAMotorNumAxes(Amotor, 3);
+            OdeNative.JointSetAMotorAxis(Amotor, 0, 0, 1, 0, 0);
+            OdeNative.JointSetAMotorAxis(Amotor, 1, 0, 0, 1, 0);
+            OdeNative.JointSetAMotorAxis(Amotor, 2, 0, 0, 0, 1);
+            OdeNative.JointSetAMotorAngle(Amotor, 0, 0);
+            OdeNative.JointSetAMotorAngle(Amotor, 1, 0);
+            OdeNative.JointSetAMotorAngle(Amotor, 2, 0);
 
             // These lowstops and high stops are effectively (no wiggle room)
             if (_parent_scene.IsAvCapsuleTilted)
             {
-                SafeNativeMethods.JointSetAMotorParam(Amotor, (int)dParam.LowStop, -0.000000000001f);
-                SafeNativeMethods.JointSetAMotorParam(Amotor, (int)dParam.LoStop3, -0.000000000001f);
-                SafeNativeMethods.JointSetAMotorParam(Amotor, (int)dParam.LoStop2, -0.000000000001f);
-                SafeNativeMethods.JointSetAMotorParam(Amotor, (int)dParam.HiStop, 0.000000000001f);
-                SafeNativeMethods.JointSetAMotorParam(Amotor, (int)dParam.HiStop3, 0.000000000001f);
-                SafeNativeMethods.JointSetAMotorParam(Amotor, (int)dParam.HiStop2, 0.000000000001f);
+                OdeNative.JointSetAMotorParam(Amotor, (int)dParam.LowStop, -0.000000000001f);
+                OdeNative.JointSetAMotorParam(Amotor, (int)dParam.LoStop3, -0.000000000001f);
+                OdeNative.JointSetAMotorParam(Amotor, (int)dParam.LoStop2, -0.000000000001f);
+                OdeNative.JointSetAMotorParam(Amotor, (int)dParam.HiStop, 0.000000000001f);
+                OdeNative.JointSetAMotorParam(Amotor, (int)dParam.HiStop3, 0.000000000001f);
+                OdeNative.JointSetAMotorParam(Amotor, (int)dParam.HiStop2, 0.000000000001f);
             }
             else
             {
@@ -1174,18 +1174,18 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 // to be comprehended in their entirety.
                 #endregion
                 AlignAvatarTiltWithCurrentDirectionOfMovement(Vector3.Zero);
-                SafeNativeMethods.JointSetAMotorParam(Amotor, (int)dParam.LowStop, 0.08f);
-                SafeNativeMethods.JointSetAMotorParam(Amotor, (int)dParam.LoStop3, -0f);
-                SafeNativeMethods.JointSetAMotorParam(Amotor, (int)dParam.LoStop2, 0.08f);
-                SafeNativeMethods.JointSetAMotorParam(Amotor, (int)dParam.HiStop,  0.08f); // must be same as lowstop, else a different, spurious tilt is introduced
-                SafeNativeMethods.JointSetAMotorParam(Amotor, (int)dParam.HiStop3, 0f); // same as lowstop
-                SafeNativeMethods.JointSetAMotorParam(Amotor, (int)dParam.HiStop2, 0.08f); // same as lowstop
+                OdeNative.JointSetAMotorParam(Amotor, (int)dParam.LowStop, 0.08f);
+                OdeNative.JointSetAMotorParam(Amotor, (int)dParam.LoStop3, -0f);
+                OdeNative.JointSetAMotorParam(Amotor, (int)dParam.LoStop2, 0.08f);
+                OdeNative.JointSetAMotorParam(Amotor, (int)dParam.HiStop,  0.08f); // must be same as lowstop, else a different, spurious tilt is introduced
+                OdeNative.JointSetAMotorParam(Amotor, (int)dParam.HiStop3, 0f); // same as lowstop
+                OdeNative.JointSetAMotorParam(Amotor, (int)dParam.HiStop2, 0.08f); // same as lowstop
             }
 
             // Fudge factor is 1f by default, we're setting it to 0.  We don't want it to Fudge or the
             // capped cyllinder will fall over
-            SafeNativeMethods.JointSetAMotorParam(Amotor, (int)dParam.FudgeFactor, 0f);
-            SafeNativeMethods.JointSetAMotorParam(Amotor, (int)dParam.FMax, tensor);
+            OdeNative.JointSetAMotorParam(Amotor, (int)dParam.FudgeFactor, 0f);
+            OdeNative.JointSetAMotorParam(Amotor, (int)dParam.FMax, tensor);
 
             //d.Matrix3 bodyrotation = d.BodyGetRotation(Body);
             //d.QfromR(
@@ -1224,7 +1224,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
             if (Amotor != IntPtr.Zero)
             {
                 // Kill the Amotor
-                SafeNativeMethods.JointDestroy(Amotor);
+                OdeNative.JointDestroy(Amotor);
                 Amotor = IntPtr.Zero;
             }
 
@@ -1234,14 +1234,14 @@ namespace OpenSim.Region.PhysicsModule.ODE
             if (Body != IntPtr.Zero)
             {
                 //kill the body
-                SafeNativeMethods.BodyDestroy(Body);
+                OdeNative.BodyDestroy(Body);
                 Body = IntPtr.Zero;
             }
 
             if (Shell != IntPtr.Zero)
             {
 //              lock (OdeScene.UniversalColliderSyncObject)
-                SafeNativeMethods.GeomDestroy(Shell);
+                OdeNative.GeomDestroy(Shell);
 
                 _parent_scene.geom_name_map.Remove(Shell);
                 _parent_scene.actor_name_map.Remove(Shell);
@@ -1332,7 +1332,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
             {
                 if (Body != IntPtr.Zero)
                 {
-                    SafeNativeMethods.BodySetPosition(Body, m_taintPosition.X, m_taintPosition.Y, m_taintPosition.Z);
+                    OdeNative.BodySetPosition(Body, m_taintPosition.X, m_taintPosition.Y, m_taintPosition.Z);
                     _position = m_taintPosition;
                 }
             }
@@ -1344,7 +1344,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                     // FIXME: This is not a good solution since it's subject to a race condition if a force is another
                     // thread sets a new force while we're in this loop (since it could be obliterated by
                     // m_taintForce = Vector3.Zero.  Need to lock ProcessTaints() when we set a new tainted force.
-                    SafeNativeMethods.BodyAddForce(Body, m_taintForce.X, m_taintForce.Y, m_taintForce.Z);
+                    OdeNative.BodyAddForce(Body, m_taintForce.X, m_taintForce.Y, m_taintForce.Z);
                 }
 
                 m_taintForce = Vector3.Zero;

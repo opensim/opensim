@@ -297,6 +297,10 @@ namespace OpenSim.Services.InventoryService
             inventory.Folders = new List<InventoryFolderBase>();
             inventory.Items = new List<InventoryItemBase>();
 
+            InventoryFolderBase f = GetFolder(principalID, folderID);
+            if (f == null)
+                return inventory;
+
             XInventoryFolder[] folders = m_Database.GetFolders(
                     new string[] { "parentFolderID"},
                     new string[] { folderID.ToString() });
@@ -317,12 +321,8 @@ namespace OpenSim.Services.InventoryService
                 inventory.Items.Add(ConvertToOpenSim(i));
             }
 
-            InventoryFolderBase f = GetFolder(principalID, folderID);
-            if (f != null)
-            {
-                inventory.Version = f.Version;
-                inventory.OwnerID = f.Owner;
-            }
+            inventory.Version = f.Version;
+            inventory.OwnerID = f.Owner;
             inventory.FolderID = folderID;
 
             return inventory;
@@ -562,12 +562,20 @@ namespace OpenSim.Services.InventoryService
         {
             // Principal is b0rked. *sigh*
             //
-            foreach (InventoryItemBase i in items)
+            int len = items.Count;
+            if(len == 0)
+                return false;
+            string[] ids = new string[len];
+            string[] folders = new string[len];
+            int i=0;
+            foreach (InventoryItemBase it in items)
             {
-                m_Database.MoveItem(i.ID.ToString(), i.Folder.ToString());
+                ids[i] = it.ID.ToString();
+                folders[i++] = it.Folder.ToString();
+
             }
 
-            return true;
+            return m_Database.MoveItems(ids, folders);
         }
 
         public virtual bool DeleteItems(UUID principalID, List<UUID> itemIDs)
@@ -594,18 +602,39 @@ namespace OpenSim.Services.InventoryService
             {
                 // Just use the ID... *facepalms*
                 //
-                foreach (UUID id in itemIDs)
-                    m_Database.DeleteItems("inventoryID", id.ToString());
+                if(principalID.IsZero())
+                {
+                    foreach (UUID id in itemIDs)
+                        m_Database.DeleteItems("inventoryID", id.ToString());
+                }
+                else
+                {
+                    string u = principalID.ToString();
+                    string[] fields = new string[] { "avatarID", "inventoryID" };
+                    foreach (UUID id in itemIDs)
+                        m_Database.DeleteItems(
+                            fields,
+                            new string[] { u, id.ToString()});
+                }
             }
-
             return true;
         }
 
         public virtual InventoryItemBase GetItem(UUID principalID, UUID itemID)
         {
-            XInventoryItem[] items = m_Database.GetItems(
+            XInventoryItem[] items;
+            if (principalID.IsZero())
+            {
+                items = m_Database.GetItems(
                     new string[] { "inventoryID" },
                     new string[] { itemID.ToString() });
+            }
+            else
+            {
+                items = m_Database.GetItems(
+                    new string[] { "avatarID", "inventoryID" },
+                    new string[] { principalID.ToString(), itemID.ToString() });
+            }
 
             if (items.Length == 0)
                 return null;
@@ -615,19 +644,63 @@ namespace OpenSim.Services.InventoryService
 
         public virtual InventoryItemBase[] GetMultipleItems(UUID userID, UUID[] ids)
         {
-            InventoryItemBase[] items = new InventoryItemBase[ids.Length];
-            int i = 0;
-            foreach (UUID id in ids)
-                items[i++] = GetItem(userID, id);
+            int len = ids.Length;
+            if(len == 0)
+                return new InventoryItemBase[0];
 
+            string[] sids = new string[len];
+
+            int i;
+            for(i = 0; i< len; ++i)
+                sids[i] = ids[i].ToString();
+
+            XInventoryItem[] xits = m_Database.GetItems("inventoryID", sids);
+            sids = null;
+
+            len = xits.Length;
+            InventoryItemBase[] items = new InventoryItemBase[len];
+            i = 0;
+
+            if(userID.IsZero())
+            {
+                for (i = 0; i < len; ++i)
+                {
+                    if (xits[i] == null)
+                        items[i] = null;
+                    else
+                        items[i] = ConvertToOpenSim(xits[i]);
+                }
+            }
+            else
+            {
+                for (i = 0; i < len; ++i)
+                {
+                    if (xits[i] == null)
+                        items[i] = null;
+                    else if (xits[i].avatarID.Equals(userID))
+                        items[i] = ConvertToOpenSim(xits[i]);
+                    else
+                        items[i] = null;
+                }
+            }
             return items;
         }
 
         public virtual InventoryFolderBase GetFolder(UUID principalID, UUID folderID)
         {
-            XInventoryFolder[] folders = m_Database.GetFolders(
-                    new string[] { "folderID"},
+            XInventoryFolder[] folders;
+            if(principalID.IsZero())
+            {
+                folders = m_Database.GetFolders(
+                    new string[] { "folderID" },
                     new string[] { folderID.ToString() });
+            }
+            else
+            {
+                folders = m_Database.GetFolders(
+                    new string[] { "agentID", "folderID" },
+                    new string[] { principalID.ToString(), folderID.ToString() });
+            }
 
             if (folders.Length == 0)
                 return null;

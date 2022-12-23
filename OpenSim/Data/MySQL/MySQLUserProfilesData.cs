@@ -176,8 +176,6 @@ namespace OpenSim.Data.MySQL
 
             if(string.IsNullOrEmpty(ad.ParcelName))
                 ad.ParcelName = "Unknown";
-            if(ad.ParcelId == null)
-                ad.ParcelId = UUID.Zero;
             if(string.IsNullOrEmpty(ad.Description))
                 ad.Description = "No Description";
 

@@ -46,9 +46,9 @@ namespace OpenSim.Region.Framework.Scenes.Scripting
         /// <param name='type'></param>
         public static UUID GetAssetIdFromItemName(SceneObjectPart part, string name, int type)
         {
-            TaskInventoryItem item = part.Inventory.GetInventoryItem(name);
+            TaskInventoryItem item = part.Inventory.GetInventoryItem(name, type);
 
-            if (item != null && item.Type == type)
+            if (item != null)
                 return item.AssetID;
             else
                 return UUID.Zero;
@@ -98,8 +98,8 @@ namespace OpenSim.Region.Framework.Scenes.Scripting
 
             if (part.Inventory != null)
             {
-                TaskInventoryItem item = part.Inventory.GetInventoryItem(identifier);
-                if (item != null && item.Type == (int)type)
+                TaskInventoryItem item = part.Inventory.GetInventoryItem(identifier, (int)type);
+                if (item != null)
                     return item.AssetID;
             }
 
@@ -114,15 +114,15 @@ namespace OpenSim.Region.Framework.Scenes.Scripting
             TaskInventoryItem item;
             if (part.Inventory != null)
             {
-                item = part.Inventory.GetInventoryItem(identifier);
-                if (item != null && item.Type == (int)type)
+                item = part.Inventory.GetInventoryItem(identifier, (int)type);
+                if (item != null)
                     return item.AssetID;
             }
 
             if (part.LocalId != host.LocalId && host.Inventory != null)
             {
-                item = host.Inventory.GetInventoryItem(identifier);
-                if (item != null && item.Type == (int)type)
+                item = host.Inventory.GetInventoryItem(identifier, (int)type);
+                if (item != null)
                     return item.AssetID;
             }
             return UUID.Zero;

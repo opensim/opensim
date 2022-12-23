@@ -61,12 +61,12 @@ namespace OpenSim.Region.PhysicsModule.ODE
         /// <summary>
         /// ODE contact array to be filled by the collision testing
         /// </summary>
-        SafeNativeMethods.ContactGeom[] contacts = new SafeNativeMethods.ContactGeom[5];
+        OdeNative.ContactGeom[] contacts = new OdeNative.ContactGeom[5];
 
         /// <summary>
         /// ODE near callback delegate
         /// </summary>
-        private SafeNativeMethods.NearCallback nearCallback;
+        private OdeNative.NearCallback nearCallback;
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private List<ContactResult> m_contactResults = new List<ContactResult>();
 
@@ -179,14 +179,14 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 len = 100f;
 
             // Create the ray
-            IntPtr ray = SafeNativeMethods.CreateRay(m_scene.space, len);
-            SafeNativeMethods.GeomRaySet(ray, req.Origin.X, req.Origin.Y, req.Origin.Z, req.Normal.X, req.Normal.Y, req.Normal.Z);
+            IntPtr ray = OdeNative.CreateRay(m_scene.space, len);
+            OdeNative.GeomRaySet(ray, req.Origin.X, req.Origin.Y, req.Origin.Z, req.Normal.X, req.Normal.Y, req.Normal.Z);
 
             // Collide test
-            SafeNativeMethods.SpaceCollide2(m_scene.space, ray, IntPtr.Zero, nearCallback);
+            OdeNative.SpaceCollide2(m_scene.space, ray, IntPtr.Zero, nearCallback);
 
             // Remove Ray
-            SafeNativeMethods.GeomDestroy(ray);
+            OdeNative.GeomDestroy(ray);
 
             // Define default results
             bool hitYN = false;
@@ -230,14 +230,14 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 len = 100f;
 
             // Create the ray
-            IntPtr ray = SafeNativeMethods.CreateRay(m_scene.space, len);
-            SafeNativeMethods.GeomRaySet(ray, req.Origin.X, req.Origin.Y, req.Origin.Z, req.Normal.X, req.Normal.Y, req.Normal.Z);
+            IntPtr ray = OdeNative.CreateRay(m_scene.space, len);
+            OdeNative.GeomRaySet(ray, req.Origin.X, req.Origin.Y, req.Origin.Z, req.Normal.X, req.Normal.Y, req.Normal.Z);
 
             // Collide test
-            SafeNativeMethods.SpaceCollide2(m_scene.space, ray, IntPtr.Zero, nearCallback);
+            OdeNative.SpaceCollide2(m_scene.space, ray, IntPtr.Zero, nearCallback);
 
             // Remove Ray
-            SafeNativeMethods.GeomDestroy(ray);
+            OdeNative.GeomDestroy(ray);
 
             // Find closest contact and object.
             lock (m_contactResults)
@@ -258,7 +258,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 //                return;
 
             // Raytest against AABBs of spaces first, then dig into the spaces it hits for actual geoms.
-            if (SafeNativeMethods.GeomIsSpace(g1) || SafeNativeMethods.GeomIsSpace(g2))
+            if (OdeNative.GeomIsSpace(g1) || OdeNative.GeomIsSpace(g2))
             {
                 if (g1 == IntPtr.Zero || g2 == IntPtr.Zero)
                     return;
@@ -269,7 +269,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 // contact points in the space
                 try
                 {
-                    SafeNativeMethods.SpaceCollide2(g1, g2, IntPtr.Zero, nearCallback);
+                    OdeNative.SpaceCollide2(g1, g2, IntPtr.Zero, nearCallback);
                 }
                 catch (AccessViolationException)
                 {
@@ -296,7 +296,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
                 lock (contacts)
                 {
-                    count = SafeNativeMethods.Collide(g1, g2, contacts.GetLength(0), contacts, SafeNativeMethods.ContactGeom.unmanagedSizeOf);
+                    count = OdeNative.Collide(g1, g2, contacts.GetLength(0), contacts, OdeNative.ContactGeom.unmanagedSizeOf);
                 }
             }
             catch (SEHException)

@@ -56,7 +56,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 //#endif
 
     [SuppressUnmanagedCodeSecurityAttribute]
-    internal static class SafeNativeMethods
+    internal static class UBOdeNative
     {
         internal static dReal Infinity = dReal.MaxValue;
         internal static int NTotalBodies = 0;
@@ -250,7 +250,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         //needed for Contact only, rest should use the class
         internal struct ContactGeom
         {
-
             internal Vector3 pos;
             internal Vector3 normal;
             internal dReal depth;
@@ -261,18 +260,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             internal static readonly int unmanagedSizeOf = Marshal.SizeOf(typeof(ContactGeom));
         }
 
-        /*
-        [StructLayout(LayoutKind.Sequential)]
-        internal struct GeomClass
-        {
-            internal int bytes;
-            internal GetColliderFnFn collider;
-            internal GetAABBFn aabb;
-            internal AABBTestFn aabb_test;
-            internal GeomDtorFn dtor;
-        }
-        */
-
         [StructLayout(LayoutKind.Sequential)]
         internal struct JointFeedback
         {
@@ -281,7 +268,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             internal Vector3 f2;
             internal Vector3 t2;
         }
-
 
         [StructLayout(LayoutKind.Sequential)]
         internal struct Mass

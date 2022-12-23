@@ -72,8 +72,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             IntPtr geom = ((OdePrim)actor).m_prim_geom;
 
-            Vector3 geopos = SafeNativeMethods.GeomGetPositionOMV(geom);
-            Quaternion geomOri = SafeNativeMethods.GeomGetQuaternionOMV(geom);
+            Vector3 geopos = UBOdeNative.GeomGetPositionOMV(geom);
+            Quaternion geomOri = UBOdeNative.GeomGetQuaternionOMV(geom);
 
             //Vector3 geopos = actor.Position;
             //Quaternion geomOri = actor.Orientation;
@@ -116,11 +116,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             offset = rayResults[0].Pos - geopos;
 
-            SafeNativeMethods.GeomClassID geoclass = SafeNativeMethods.GeomGetClass(geom);
+            UBOdeNative.GeomClassID geoclass = UBOdeNative.GeomGetClass(geom);
 
-            if (geoclass == SafeNativeMethods.GeomClassID.SphereClass)
+            if (geoclass == UBOdeNative.GeomClassID.SphereClass)
             {
-                float r = SafeNativeMethods.GeomSphereGetRadius(geom);
+                float r = UBOdeNative.GeomSphereGetRadius(geom);
 
                 offset.Normalize();
                 offset *= r;

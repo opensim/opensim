@@ -1582,12 +1582,9 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("LinkNumber", prim.LinkNum);
             cmd.Parameters.AddWithValue("MediaURL", prim.MediaUrl);
 
-            if (prim.AttachedPos != null)
-            {
-                cmd.Parameters.AddWithValue("AttachedPosX", prim.AttachedPos.X);
-                cmd.Parameters.AddWithValue("AttachedPosY", prim.AttachedPos.Y);
-                cmd.Parameters.AddWithValue("AttachedPosZ", prim.AttachedPos.Z);
-            }
+            cmd.Parameters.AddWithValue("AttachedPosX", prim.AttachedPos.X);
+            cmd.Parameters.AddWithValue("AttachedPosY", prim.AttachedPos.Y);
+            cmd.Parameters.AddWithValue("AttachedPosZ", prim.AttachedPos.Z);
 
             if (prim.KeyframeMotion != null)
                 cmd.Parameters.AddWithValue("KeyframeMotion", prim.KeyframeMotion.Serialize());
