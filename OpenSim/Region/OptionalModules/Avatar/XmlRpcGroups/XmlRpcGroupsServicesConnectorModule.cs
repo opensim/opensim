@@ -109,7 +109,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 | GroupPowers.SendNotices
                 | GroupPowers.SetLandingPoint
                 | GroupPowers.StartProposal
-                | GroupPowers.VoteOnProposal;
+                | GroupPowers.VoteOnProposal
+                | GroupPowers.ExperienceAdmin
+                | GroupPowers.ExperienceCreator
+                | GroupPowers.GroupBanAccess
+                | GroupPowers.HostEvent;
 
         private bool m_connectorEnabled = false;
 

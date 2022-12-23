@@ -1,4 +1,4 @@
-3547fa45-79ff-dc5f-a2ba-b9ffb56abefe
+62cb3537-38d5-c11b-1a4e-8b1336a4015f
 <llsd><map><key>llsd-lsl-syntax-version</key><integer>2</integer>
 <key>controls</key>
 <map>
@@ -5157,6 +5157,14 @@
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
+ <key>llObjectGetLinkKey</key>
+ <map>
+  <key>return</key><string>key</string>
+  <key>arguments</key><array>
+   <map><key>objectid</key><map><key>type</key><string>key</string></map></map>
+   <map><key>linknum</key><map><key>type</key><string>integer</string></map></map>
+  </array>
+ </map>
  <key>llOffsetTexture</key>
  <map>
   <key>arguments</key><array>
@@ -6053,6 +6061,13 @@
    <map><key>src</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
+ <key>llSHA256String</key>
+ <map>
+  <key>return</key><string>string</string>
+  <key>arguments</key><array>
+   <map><key>src</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
  <key>llShout</key>
  <map>
   <key>arguments</key><array>
@@ -6422,6 +6437,7 @@
   <key>arguments</key><array>
    <map><key>agentId</key><map><key>type</key><string>key</string></map></map>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
+   <map><key>includeHuds</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>osAgentSaveAppearance</key>
@@ -6430,7 +6446,6 @@
   <key>arguments</key><array>
    <map><key>agentId</key><map><key>type</key><string>key</string></map></map>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
-   <map><key>includeHuds</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>osAngleBetween</key>
@@ -6447,7 +6462,6 @@
   <key>arguments</key><array>
    <map><key>a</key><map><key>type</key><string>float</string></map></map>
    <map><key>b</key><map><key>type</key><string>float</string></map></map>
-   <map><key>margin</key><map><key>type</key><string>float</string></map></map>
   </array>
  </map>
  <key>osApproxEquals</key>
@@ -6456,6 +6470,7 @@
   <key>arguments</key><array>
    <map><key>a</key><map><key>type</key><string>float</string></map></map>
    <map><key>b</key><map><key>type</key><string>float</string></map></map>
+   <map><key>margin</key><map><key>type</key><string>float</string></map></map>
   </array>
  </map>
  <key>osApproxEquals</key>
@@ -7174,15 +7189,15 @@
  <key>osKickAvatar</key>
  <map>
   <key>arguments</key><array>
-   <map><key>FirstName</key><map><key>type</key><string>string</string></map></map>
-   <map><key>SurName</key><map><key>type</key><string>string</string></map></map>
+   <map><key>agentId</key><map><key>type</key><string>key</string></map></map>
    <map><key>alert</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
  <key>osKickAvatar</key>
  <map>
   <key>arguments</key><array>
-   <map><key>agentId</key><map><key>type</key><string>key</string></map></map>
+   <map><key>FirstName</key><map><key>type</key><string>string</string></map></map>
+   <map><key>SurName</key><map><key>type</key><string>string</string></map></map>
    <map><key>alert</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
@@ -8004,19 +8019,19 @@
  </map>
  <key>osSlerp</key>
  <map>
-  <key>return</key><string>vector</string>
+  <key>return</key><string>rotation</string>
   <key>arguments</key><array>
-   <map><key>a</key><map><key>type</key><string>vector</string></map></map>
-   <map><key>b</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>a</key><map><key>type</key><string>rotation</string></map></map>
+   <map><key>b</key><map><key>type</key><string>rotation</string></map></map>
    <map><key>amount</key><map><key>type</key><string>float</string></map></map>
   </array>
  </map>
  <key>osSlerp</key>
  <map>
-  <key>return</key><string>rotation</string>
+  <key>return</key><string>vector</string>
   <key>arguments</key><array>
-   <map><key>a</key><map><key>type</key><string>rotation</string></map></map>
-   <map><key>b</key><map><key>type</key><string>rotation</string></map></map>
+   <map><key>a</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>b</key><map><key>type</key><string>vector</string></map></map>
    <map><key>amount</key><map><key>type</key><string>float</string></map></map>
   </array>
  </map>
@@ -8041,6 +8056,8 @@
   <key>arguments</key><array>
    <map><key>src</key><map><key>type</key><string>string</string></map></map>
    <map><key>value</key><map><key>type</key><string>string</string></map></map>
+   <map><key>start</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>count</key><map><key>type</key><string>integer</string></map></map>
    <map><key>ignorecase</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
@@ -8050,6 +8067,15 @@
   <key>arguments</key><array>
    <map><key>src</key><map><key>type</key><string>string</string></map></map>
    <map><key>value</key><map><key>type</key><string>string</string></map></map>
+   <map><key>ignorecase</key><map><key>type</key><string>integer</string></map></map>
+  </array>
+ </map>
+ <key>osStringLastIndexOf</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>src</key><map><key>type</key><string>string</string></map></map>
+   <map><key>value</key><map><key>type</key><string>string</string></map></map>
    <map><key>start</key><map><key>type</key><string>integer</string></map></map>
    <map><key>count</key><map><key>type</key><string>integer</string></map></map>
    <map><key>ignorecase</key><map><key>type</key><string>integer</string></map></map>
@@ -8064,15 +8090,11 @@
    <map><key>ignorecase</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
- <key>osStringLastIndexOf</key>
+ <key>osStringLength</key>
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
-   <map><key>src</key><map><key>type</key><string>string</string></map></map>
-   <map><key>value</key><map><key>type</key><string>string</string></map></map>
-   <map><key>start</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>count</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>ignorecase</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>s</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
  <key>osStringRemove</key>
@@ -8119,6 +8141,14 @@
    <map><key>start</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
+ <key>osSubStringIndex</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>source</key><map><key>type</key><string>string</string></map></map>
+   <map><key>pattern</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
  <key>osSunGetParam</key>
  <map>
   <key>return</key><string>float</string>
@@ -8137,6 +8167,14 @@
  <map>
   <key>arguments</key><array>
    <map><key>agent</key><map><key>type</key><string>string</string></map></map>
+   <map><key>position</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
+  </array>
+ </map>
+ <key>osTeleportAgent</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>agent</key><map><key>type</key><string>string</string></map></map>
    <map><key>regionName</key><map><key>type</key><string>string</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
@@ -8148,14 +8186,6 @@
    <map><key>agent</key><map><key>type</key><string>string</string></map></map>
    <map><key>regionX</key><map><key>type</key><string>integer</string></map></map>
    <map><key>regionY</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>position</key><map><key>type</key><string>vector</string></map></map>
-   <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
-  </array>
- </map>
- <key>osTeleportAgent</key>
- <map>
-  <key>arguments</key><array>
-   <map><key>agent</key><map><key>type</key><string>string</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>
