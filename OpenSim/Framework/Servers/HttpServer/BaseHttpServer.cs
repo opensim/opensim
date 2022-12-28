@@ -1068,7 +1068,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             if(m_pollHandlers.TryGetValue(handlerKey, out oServiceEventArgs))
                 return true;
 
-            if(m_pollHandlersVarPath.IsEmpty && handlerKey.Length >= 45)
+            if(!m_pollHandlersVarPath.IsEmpty && handlerKey.Length >= 45)
             {
                 // tuned for lsl requests, the only ones that should reach this, so be strict (/lslhttp/uuid.ToString())
                 int indx = handlerKey.IndexOf('/', 44);
