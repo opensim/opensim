@@ -4238,7 +4238,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (!UUID.TryParse(agent, out UUID agentID) || agentID.IsZero())
                 return;
 
-            if (agentID == UUID.Zero || perm == 0) // Releasing permissions
+            if (agentID.IsZero() || perm == 0) // Releasing permissions
             {
                 llReleaseControls();
 
@@ -4248,7 +4248,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 m_ScriptEngine.PostScriptEvent(m_item.ItemID, new EventParams(
                         "run_time_permissions", new Object[] {
                         new LSL_Integer(0) },
-                        new DetectParams[0]));
+                        Array.Empty<DetectParams>()));
 
                 return;
             }
