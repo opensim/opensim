@@ -50,7 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Asset\FlotsamAssetCache.cs" />
-    <Compile Remove="Properties\AddinInfo.cs" />
+    <Compile Remove="Properties\AssemblyInfo.cs" />
     <Compile Remove="Agent\AssetTransaction\AgentAssetsTransactions.cs" />
     <Compile Remove="Agent\AssetTransaction\AssetTransactionModule.cs" />
     <Compile Remove="Agent\AssetTransaction\AssetXferUploader.cs" />

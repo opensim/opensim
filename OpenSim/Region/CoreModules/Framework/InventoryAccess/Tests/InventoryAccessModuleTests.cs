@@ -143,7 +143,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
         public void TestRezObject()
         {
             TestHelpers.InMethod();
-//            log4net.Config.XmlConfigurator.Configure();
+            //log4net.Config.XmlConfigurator.Configure();
 
             // Create asset
             SceneObjectGroup object1 = SceneHelpers.CreateSceneObject(1, m_userId, "My Little Dog Object", 0x40);
@@ -159,6 +159,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
             item1.Name = item1Name;
             item1.AssetID = asset1.FullID;
             item1.ID = item1Id;
+            item1.Owner = m_userId;
             InventoryFolderBase objsFolder
                 = InventoryArchiveUtils.FindFoldersByPath(m_scene.InventoryService, m_userId, "Objects")[0];
             item1.Folder = objsFolder.ID;
