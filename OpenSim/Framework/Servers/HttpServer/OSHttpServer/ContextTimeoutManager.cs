@@ -69,7 +69,7 @@ namespace OSHttpServer
                 if (m_internalThread != null)
                     return;
 
-                m_lastTimeOutCheckTime = GetTimeStampMS();
+                m_lastTimeOutCheckTime = GetTimeStamp();
                 using(ExecutionContext.SuppressFlow())
                     m_internalThread = new Thread(ThreadRunProcess);
 

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
   </PropertyGroup>
@@ -99,8 +99,8 @@
     <Compile Remove="Shared\CodeTools\LSL2CSCodeTransformer.cs" />
     <Compile Remove="Shared\Instance\ScriptInstance.cs" />
     <Compile Remove="Shared\Instance\ScriptSerializer.cs" />
-    <Compile Remove="Shared\Properties\AddinInfo.cs" />
-    <Compile Remove="XEngine\Properties\AddinInfo.cs" />
+    <Compile Remove="Shared\Properties\AssemblyInfo.cs" />
+    <Compile Remove="XEngine\Properties\AssemblyInfo.cs" />
     <Compile Remove="Shared\Api\Implementation\ApiManager.cs" />
     <Compile Remove="Shared\Api\Implementation\AsyncCommandManager.cs" />
     <Compile Remove="Shared\Api\Implementation\LSL_Api.cs" />
@@ -119,8 +119,8 @@
     <Compile Remove="Shared\Api\Runtime\OSSL_Stub.cs" />
     <Compile Remove="Shared\Api\Runtime\ScriptBase.cs" />
     <Compile Remove="Shared\Api\Runtime\ScriptSponsor.cs" />
-    <Compile Remove="Shared\CodeTools\Properties\AddinInfo.cs" />
-    <Compile Remove="Shared\Instance\Properties\AddinInfo.cs" />
+    <Compile Remove="Shared\CodeTools\Properties\AssemblyInfo.cs" />
+    <Compile Remove="Shared\Instance\Properties\AssemblyInfo.cs" />
     <Compile Remove="Shared\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
     <Compile Remove="XEngine\Api\Runtime\XEngineScriptBase.cs" />
     <Compile Remove="XEngine\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
@@ -131,8 +131,8 @@
     <Compile Remove="Shared\Api\Implementation\Plugins\ScriptTimer.cs" />
     <Compile Remove="Shared\Api\Implementation\Plugins\SensorRepeat.cs" />
     <Compile Remove="Shared\Api\Implementation\Plugins\XmlRequest.cs" />
-    <Compile Remove="Shared\Api\Implementation\Properties\AddinInfo.cs" />
-    <Compile Remove="Shared\Api\Runtime\Properties\AddinInfo.cs" />
+    <Compile Remove="Shared\Api\Implementation\Properties\AssemblyInfo.cs" />
+    <Compile Remove="Shared\Api\Runtime\Properties\AssemblyInfo.cs" />
     <Compile Remove="Shared\CodeTools\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
     <Compile Remove="Shared\Instance\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
     <Compile Remove="Shared\Api\Implementation\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />

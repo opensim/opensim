@@ -77,7 +77,7 @@ namespace OpenSim.Region.Framework.Tests
         public void TestRezObjectFromInventoryItem()
         {
             TestHelpers.InMethod();
-//            log4net.Config.XmlConfigurator.Configure();
+            //log4net.Config.XmlConfigurator.Configure();
 
             Scene scene = new SceneHelpers().SetupScene();
             UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene);
@@ -103,7 +103,7 @@ namespace OpenSim.Region.Framework.Tests
             Assert.That(rezzedObject.AbsolutePosition, Is.EqualTo(rezPos));
 
             // Velocity doesn't get applied, probably because there is no physics in tests (yet)
-//            Assert.That(rezzedObject.Velocity, Is.EqualTo(rezVel));
+            //Assert.That(rezzedObject.Velocity, Is.EqualTo(rezVel));
             Assert.That(rezzedObject.Velocity, Is.EqualTo(Vector3.Zero));
 
             // Confusingly, this isn't the rezzedObject.Rotation

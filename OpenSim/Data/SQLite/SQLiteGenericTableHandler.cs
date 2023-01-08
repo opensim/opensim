@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
+using System.Text;
 using log4net;
 using System.Data.SQLite;
 
@@ -119,7 +120,44 @@ namespace OpenSim.Data.SQLite
 
         public virtual T[] Get(string field, string key)
         {
-            return Get(new string[] { field }, new string[] { key });
+            List<string> terms = new List<string>();
+
+            using (SQLiteCommand cmd = new SQLiteCommand())
+            {
+                cmd.Parameters.Add(new SQLiteParameter(":" + field, key));
+                string query = String.Format("select * from {0} where `{1}` = :{1}",m_Realm, field);
+
+                cmd.CommandText = query;
+
+                return DoQuery(cmd);
+            }
+        }
+
+        public virtual T[] Get(string field, string[] keys)
+        {
+            int flen = keys.Length;
+            if(flen == 0)
+                return new T[0];
+
+            int flast = flen - 1;
+            StringBuilder sb = new StringBuilder(1024);
+            sb.AppendFormat("select * from {0} where {1} IN('", m_Realm, field);
+
+            using (SQLiteCommand cmd = new SQLiteCommand())
+            {
+                for (int i = 0 ; i < flen ; i++)
+                {
+                    sb.Append(keys[i]);
+                    if(i < flast)
+                        sb.Append("','");
+                    else
+                        sb.Append("')");
+                }
+
+                cmd.CommandText = sb.ToString();
+
+                return DoQuery(cmd);
+            }
         }
 
         public virtual T[] Get(string[] fields, string[] keys)
