@@ -678,9 +678,9 @@ namespace OpenSim.Services.HypergridService
                 if (!userURL.EndsWith("/"))
                     userURL += "/";
 
-                if (exceptions.Find(delegate(string s)
+                foreach (string s in exceptions)
                 {
-                    if(userURL.Equals(s))
+                    if (userURL.Equals(s))
                         return true;
                 }
             }

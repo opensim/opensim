@@ -682,8 +682,11 @@ namespace OpenSim.Services.HypergridService
             if (!exceptions.TryGetValue(level, out List<string> excep) || excep.Count == 0)
                 return false;
 
-            bool exception = false;
-            if (exceptions[level].Count > 0) // we have exceptions
+            string destination = dest;
+            if (!destination.EndsWith("/"))
+                destination += "/";
+
+            foreach (string s in excep)
             {
                 if (destination.Equals(s))
                     return true;
