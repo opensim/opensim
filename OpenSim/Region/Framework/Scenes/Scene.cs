@@ -473,7 +473,7 @@ namespace OpenSim.Region.Framework.Scenes
 
 
         private readonly Timer m_mapGenerationTimer = new();
-        private bool m_generateMaptiles;
+        private readonly bool m_generateMaptiles;
 
         protected int m_lastHealth = -1;
         protected int m_lastUsers = -1;
@@ -862,10 +862,8 @@ namespace OpenSim.Region.Framework.Scenes
             #endregion Region Settings
 
             //Bind Storage Manager functions to some land manager functions for this scene
-            EventManager.OnLandObjectAdded +=
-                new EventManager.LandObjectAdded(simDataService.StoreLandObject);
-            EventManager.OnLandObjectRemoved +=
-                new EventManager.LandObjectRemoved(simDataService.RemoveLandObject);
+            EventManager.OnLandObjectAdded += new EventManager.LandObjectAdded(simDataService.StoreLandObject);
+            EventManager.OnLandObjectRemoved += new EventManager.LandObjectRemoved(simDataService.RemoveLandObject);
 
              RegisterDefaultSceneEvents();
 
@@ -1121,8 +1119,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (restartConfig is not null)
             {
                 string markerPath = restartConfig.GetString("MarkerPath", String.Empty);
-
-                if (markerPath != String.Empty)
+                if (!string.IsNullOrEmpty(markerPath))
                 {
                     string path = Path.Combine(markerPath, RegionInfo.RegionID.ToString() + ".started");
                     try
@@ -1154,8 +1151,7 @@ namespace OpenSim.Region.Framework.Scenes
             //
             // Out of memory
             // Operating system has killed the plugin
-            m_sceneGraph.UnRecoverableError
-                += () =>
+            m_sceneGraph.UnRecoverableError += () =>
             {
                 m_log.Error($"[SCENE]: Restarting region {Name} due to unrecoverable physics crash");
                 RestartNow();
@@ -1293,7 +1289,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected virtual void RegisterDefaultSceneEvents()
         {
-//            m_eventManager.OnSignificantClientMovement += HandleOnSignificantClientMovement;
+            //m_eventManager.OnSignificantClientMovement += HandleOnSignificantClientMovement;
         }
 
         public override string GetSimulatorVersion()
@@ -1808,7 +1804,7 @@ namespace OpenSim.Region.Framework.Scenes
                             {
                                 string markerPath = restartConfig.GetString("MarkerPath", String.Empty);
 
-                                if (markerPath != String.Empty)
+                                if (!string.IsNullOrEmpty(markerPath))
                                 {
                                     string path = Path.Combine(markerPath, RegionInfo.RegionID.ToString() + ".ready");
                                     try
@@ -1845,8 +1841,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 catch (Exception e)
                 {
-                    m_log.Error(
-                        $"[SCENE]: Failed on region {Name}: {e.Message}:{e.StackTrace}");
+                    m_log.Error($"[SCENE]: Failed on region {Name}: {e.Message}:{e.StackTrace}");
                 }
 
                 EventManager.TriggerRegionHeartbeatEnd(this);
@@ -2808,8 +2803,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if ((part.AggregatedScriptEvents & scriptEvents.email) != 0)
                 {
                     IEmailModule imm = RequestModuleInterface<IEmailModule>();
-                    if (imm is not null)
-                        imm.RemovePartMailBox(part.UUID);
+                    imm?.RemovePartMailBox(part.UUID);
                 }
                 if (part.PhysActor is not null)
                 {
@@ -3795,12 +3789,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     if (!isChildAgent)
                     {
-                        if (AttachmentsModule is not null)
-                        {
-//                            m_log.Debug("[Scene]DeRezAttachments");
-                            AttachmentsModule.DeRezAttachments(avatar);
-//                            m_log.Debug("[Scene]DeRezAttachments done");
-                        }
+                        AttachmentsModule?.DeRezAttachments(avatar);
 
                         ForEachClient(
                             delegate(IClientAPI client)
@@ -3812,11 +3801,8 @@ namespace OpenSim.Region.Framework.Scenes
                     }
 
                     // It's possible for child agents to have transactions if changes are being made cross-border.
-                    if (AgentTransactionsModule is not null)
-                    {
-//                        m_log.Debug("[Scene]RemoveAgentAssetTransactions");
-                        AgentTransactionsModule.RemoveAgentAssetTransactions(agentID);
-                    }
+                    //   m_log.Debug("[Scene]RemoveAgentAssetTransactions");
+                    AgentTransactionsModule?.RemoveAgentAssetTransactions(agentID);
                     m_log.Debug("[Scene] The avatar has left the building");
                 }
                 catch (Exception e)
@@ -4170,8 +4156,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (vialogin)
                 {
                     IUserAccountCacheModule cache = RequestModuleInterface<IUserAccountCacheModule>();
-                    if (cache is not null)
-                        cache.Remove(acd.AgentID);
+                    cache?.Remove(acd.AgentID);
                 }
 
                 m_authenticateHandler.AddNewCircuit(acd);
@@ -4253,10 +4238,7 @@ namespace OpenSim.Region.Framework.Scenes
                 CacheUserName(null, acd);
             }
 
-            if (m_capsModule is not null)
-            {
-                m_capsModule.ActivateCaps(acd.circuitcode);
-            }
+            m_capsModule?.ActivateCaps(acd.circuitcode);
 
             return true;
         }
@@ -4377,6 +4359,8 @@ namespace OpenSim.Region.Framework.Scenes
         protected virtual bool AuthorizeUser(AgentCircuitData agent, bool bypassAccessControl, out string reason)
         {
             reason = string.Empty;
+            if(agent.AgentID.Equals(Constants.servicesGodAgentID))
+                return false;
 
             if (!m_strictAccessControl)
                 return true;
@@ -4820,11 +4804,9 @@ Label_GroupsDone:
                     }
 
                     // need to try this again, bc client close may had not done it
-                    if (m_authenticateHandler is not null)
-                        m_authenticateHandler.RemoveCircuit(agentID);
+                    m_authenticateHandler?.RemoveCircuit(agentID);
                     m_clientManager.Remove(agentID);
-                    if (m_capsModule is not null)
-                        m_capsModule.RemoveCaps(agentID, 0);
+                    m_capsModule?.RemoveCaps(agentID, 0);
 
                     return ret;
                 }
@@ -5001,16 +4983,13 @@ Label_GroupsDone:
         public void HandleObjectPermissionsUpdate(IClientAPI controller, UUID agentID, UUID sessionID, byte field, uint localId, uint mask, byte set)
         {
             // Check for spoofing..  since this is permissions we're talking about here!
-            if ((controller.SessionId == sessionID) && (controller.AgentId == agentID))
+            if (controller.SessionId.Equals(sessionID) && controller.AgentId.Equals(agentID))
             {
                 // Tell the object to do permission update
                 if (localId != 0)
                 {
                     SceneObjectGroup chObjectGroup = GetGroupByPrim(localId);
-                    if (chObjectGroup is not null)
-                    {
-                        chObjectGroup.UpdatePermissions(agentID, field, localId, mask, set);
-                    }
+                    chObjectGroup?.UpdatePermissions(agentID, field, localId, mask, set);
                 }
             }
         }
@@ -5931,8 +5910,7 @@ Environment.Exit(1);
         private void RegenerateMaptile()
         {
             IWorldMapModule mapModule = RequestModuleInterface<IWorldMapModule>();
-            if (mapModule is not null)
-                mapModule.GenerateMaptile();
+            mapModule?.GenerateMaptile();
         }
 
         //        public void CleanDroppedAttachments()
