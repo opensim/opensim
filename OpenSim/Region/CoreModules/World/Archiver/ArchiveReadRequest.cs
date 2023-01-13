@@ -309,7 +309,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                 string filename = assetPath.Substring(ArchiveConstants.ASSETS_PATH.Length);
                 int indx = filename.LastIndexOf(ArchiveConstants.ASSET_EXTENSION_SEPARATOR);
-                if (indx < 0)
+                if (indx < 32)
                 {
                     m_log.ErrorFormat(
                         "[ARCHIVER]: Could not find extension information in asset path {0} since it's missing the separator {1}.  Skipping",
@@ -318,7 +318,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     continue;
                 }
                 string extension = filename.Substring(indx);
-                if (ArchiveConstants.EXTENSION_TO_ASSET_TYPE.ContainsKey(extension))
+                if (ArchiveConstants.EXTENSION_TO_ASSET_TYPE.TryGetValue(extension, out sbyte ext))
                 {
                     string id = filename.Remove(indx);
                     if (UUID.TryParse(id, out UUID uuid))
@@ -326,7 +326,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         ids.Add(id);
                         uuids.Add(uuid);
                         datas.Add(data);
-                        types.Add(ArchiveConstants.EXTENSION_TO_ASSET_TYPE[extension]);
+                        types.Add(ext);
                         continue;
                     }
                 }
@@ -1061,8 +1061,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             AssetBase asset = new AssetBase(assetID, string.Empty, assetType, UUID.Zero.ToString());
             asset.Data = data;
 
-            m_assetService.Store(asset);
-            return true; // not right
+            //m_assetService.Store(asset);
+            //return true; // not right
+            return !string.IsNullOrEmpty(m_assetService.Store(asset));
         }
 
         /// <summary>
