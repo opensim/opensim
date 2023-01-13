@@ -7,7 +7,7 @@
     <Copyright>Copyright (c) OpenSimulator.org Developers</Copyright>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="OpenSim.Addons.Groups.addin.xml" />
+i    <None Remove="Resources\OpenSim.Addons.Groups.addin.xml" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="log4net" Version="2.0.15" />
