@@ -9,11 +9,9 @@
   <ItemGroup>
     <PackageReference Include="log4net" Version="2.0.15" />
   </ItemGroup>
-  <ItemGroup>
-	  <Content Include="Resources/OpenSim.ApplicationPlugins.RemoteController.addin.xml">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </Content>
-  </ItemGroup>
+  <!-- <ItemGroup>
+    <EmbeddedResource Include="Resources/OpenSim.ApplicationPlugins.RemoteController.addin.xml" />
+  </ItemGroup>   -->
   <ItemGroup>
     <Reference Include="Nini">
       <HintPath>..\..\..\bin\Nini.dll</HintPath>

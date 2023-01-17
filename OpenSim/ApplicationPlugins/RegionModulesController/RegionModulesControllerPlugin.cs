@@ -38,6 +38,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.ApplicationPlugins.RegionModulesController
 {
+    [Extension(Path = "/OpenSim/Startup", Id = "LoadRegions", NodeName = "Plugin")]
     public class RegionModulesControllerPlugin : IRegionModulesController,
             IApplicationPlugin
     {

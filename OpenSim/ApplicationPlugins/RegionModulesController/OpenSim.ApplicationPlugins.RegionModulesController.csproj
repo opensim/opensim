@@ -11,11 +11,9 @@
     <PackageReference Include="Mono.Addins" Version="1.4.1" />
 	  <PackageReference Include="Mono.Addins.Setup" Version="1.4.1" />
   </ItemGroup>
-  <ItemGroup>
-	  <Content Include="Resources/OpenSim.ApplicationPlugins.RegionModulesController.addin.xml">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </Content>
-  </ItemGroup>
+  <!-- <ItemGroup>
+    <EmbeddedResource Include="Resources/OpenSim.ApplicationPlugins.RegionModulesController.addin.xml" />
+  </ItemGroup> -->
   <ItemGroup>
     <Reference Include="Nini">
       <HintPath>..\..\..\bin\Nini.dll</HintPath>
