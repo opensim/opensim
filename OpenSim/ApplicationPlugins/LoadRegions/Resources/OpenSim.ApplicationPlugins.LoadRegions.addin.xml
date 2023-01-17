@@ -1,6 +1,7 @@
 <Addin id="OpenSim.ApplicationPlugins.LoadRegions" version="0.5">
 
     <Runtime>
+        <Import assembly="OpenSim.Region.Framework.dll" />
         <Import assembly="OpenSim.ApplicationPlugins.LoadRegions.dll"/>
     </Runtime>
 

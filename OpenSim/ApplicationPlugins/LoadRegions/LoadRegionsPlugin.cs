@@ -31,6 +31,7 @@ using System.Reflection;
 using System.Threading;
 using log4net;
 using OpenMetaverse;
+using Mono.Addins;
 using OpenSim.Framework;
 using OpenSim.Region.CoreModules.Agent.AssetTransaction;
 using OpenSim.Region.CoreModules.Avatar.InstantMessage;
@@ -41,6 +42,7 @@ using OpenSim.Services.Interfaces;
 
 namespace OpenSim.ApplicationPlugins.LoadRegions
 {
+    [Extension(Path="/OpenSim/Startup", Id="LoadRegions", NodeName="Plugin")]
     public class LoadRegionsPlugin : IApplicationPlugin, IRegionCreator
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
