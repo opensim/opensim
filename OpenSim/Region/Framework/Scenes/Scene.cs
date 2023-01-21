@@ -4604,7 +4604,7 @@ Label_GroupsDone:
                             sp.Name, sp.UUID, Name);
                     return false;
                 }
-                if (cAgentData.SessionID != sp.ControllingClient.SessionId)
+                if (cAgentData.SessionID.NotEqual(sp.ControllingClient.SessionId))
                 {
                     m_log.WarnFormat(
                         "[SCENE]: Attempt to update agent {0} with diferent session id {1} != {2}",

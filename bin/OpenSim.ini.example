@@ -59,10 +59,10 @@
     ; PrivatePort should closed at the firewall.
 
     ;# {PublicPort} {} {PublicPort} {8002 9000} "9000"
-	; in case of a standalone this needs to match the parameter http_listener_port in section [Network] below
-	; in that case the default is 9000
+    ; in case of a standalone this needs to match the parameter http_listener_port in section [Network] below
+    ; in that case the default is 9000
     PublicPort = "9000"
-	; for a region on a grid, the grid services public port should be used, normal default is 8002
+    ; for a region on a grid, the grid services public port should be used, normal default is 8002
     ;PublicPort = "8002"
 
     ; you can also have them on a diferent url / IP
@@ -641,6 +641,8 @@
     ;# {ExternalHostNameForLSL} {} {Hostname to use for HTTP-IN URLs. This should be reachable from the internet.} {}
     ;; Hostname to use in llRequestURL/llRequestSecureURL
     ;; if not defined - llRequestURL/llRequestSecureURL are disabled
+	;; this should be reachable from internet and point this machine
+	;; for standalones it can be
     ExternalHostNameForLSL = ${Const|BaseHostname}
 
     ;# {shard} {} {Name to use for X-Secondlife-Shard header? (press enter if unsure)} {} OpenSim

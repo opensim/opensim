@@ -557,18 +557,18 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             // CallMode_NORMAL:  run event handler from the beginning normally
             // CallMode_RESTORE: restore event handler stack from stackFrames
-            callMode = (stackFrames == null) ? XMRInstAbstract.CallMode_NORMAL :
+            callMode = (stackFrames is null) ? XMRInstAbstract.CallMode_NORMAL :
                                                XMRInstAbstract.CallMode_RESTORE;
 
             while(true)
             {
-                if(this.newStateCode < 0)
+                if(newStateCode < 0)
                 {
                     // Process event given by 'stateCode' and 'eventCode'.
                     // The event handler should call CheckRun() as often as convenient.
-                    int newState = this.stateCode;
-                    seh = this.m_ObjCode.scriptEventHandlerTable[newState, (int)this.eventCode];
-                    if(seh != null)
+                    int newState = stateCode;
+                    seh = m_ObjCode.scriptEventHandlerTable[newState, (int)eventCode];
+                    if(seh is not null)
                     {
                         try
                         {
@@ -579,25 +579,25 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                             newState = scse.newState;
                         }
                     }
-                    this.ehArgs = null;  // we are done with them and no args for
+                    ehArgs = null;  // we are done with them and no args for
                                          // exit_state()/enter_state() anyway
 
                     // The usual case is no state change.
                     // Even a 'state <samestate>;' statement has no effect except to exit out.
                     // It does not execute the state_exit() or state_entry() handlers.
                     // See http://wiki.secondlife.com/wiki/State
-                    if(newState == this.stateCode)
+                    if(newState == stateCode)
                         break;
 
                     // Save new state in a more permanent location in case we
                     // get serialized out while in the state_exit() handler.
-                    this.newStateCode = newState;
+                    newStateCode = newState;
                 }
 
                 // Call old state's state_exit() handler.
-                this.eventCode = ScriptEventCode.state_exit;
-                seh = this.m_ObjCode.scriptEventHandlerTable[this.stateCode, (int)ScriptEventCode.state_exit];
-                if(seh != null)
+                eventCode = ScriptEventCode.state_exit;
+                seh = m_ObjCode.scriptEventHandlerTable[stateCode, (int)ScriptEventCode.state_exit];
+                if(seh is not null)
                 {
                     try
                     {
@@ -605,24 +605,25 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     }
                     catch(ScriptChangeStateException scse)
                     {
-                        this.newStateCode = scse.newState;
+                        newStateCode = scse.newState;
                     }
                 }
 
                 // Switch over to the new state's state_entry() handler.
-                this.stateCode = this.newStateCode;
-                this.eventCode = ScriptEventCode.state_entry;
-                this.newStateCode = -1;
+                stateCode = newStateCode;
+                eventCode = ScriptEventCode.state_entry;
+                newStateCode = -1;
 
                 // Now that the old state can't possibly start any more activity,
                 // cancel any listening handlers, etc, of the old state.
-                this.StateChange();
+                StateChange();
 
                 // Loop back to execute new state's state_entry() handler.
             }
 
             // Event no longer being processed.
-            this.eventCode = ScriptEventCode.None;
+            stackFrames = null;
+            eventCode = ScriptEventCode.None;
         }
 
         /**

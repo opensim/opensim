@@ -88,56 +88,57 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private static Dictionary<Type, int> PrecedenceInit()
         {
-            Dictionary<Type, int> p = new Dictionary<Type, int>();
+            Dictionary<Type, int> p = new Dictionary<Type, int>
+            {
+                // http://www.lslwiki.net/lslwiki/wakka.php?wakka=operators
 
-            // http://www.lslwiki.net/lslwiki/wakka.php?wakka=operators
+                { typeof(TokenKwComma), 30 },
 
-            p.Add(typeof(TokenKwComma), 30);
+                { typeof(TokenKwAsnLSh), ASNPR },  // all assignment operators of equal precedence
+                { typeof(TokenKwAsnRSh), ASNPR },  // ... so they get processed strictly right-to-left
+                { typeof(TokenKwAsnAdd), ASNPR },
+                { typeof(TokenKwAsnAnd), ASNPR },
+                { typeof(TokenKwAsnSub), ASNPR },
+                { typeof(TokenKwAsnMul), ASNPR },
+                { typeof(TokenKwAsnDiv), ASNPR },
+                { typeof(TokenKwAsnMod), ASNPR },
+                { typeof(TokenKwAsnOr), ASNPR },
+                { typeof(TokenKwAsnXor), ASNPR },
+                { typeof(TokenKwAssign), ASNPR },
 
-            p.Add(typeof(TokenKwAsnLSh), ASNPR);  // all assignment operators of equal precedence
-            p.Add(typeof(TokenKwAsnRSh), ASNPR);  // ... so they get processed strictly right-to-left
-            p.Add(typeof(TokenKwAsnAdd), ASNPR);
-            p.Add(typeof(TokenKwAsnAnd), ASNPR);
-            p.Add(typeof(TokenKwAsnSub), ASNPR);
-            p.Add(typeof(TokenKwAsnMul), ASNPR);
-            p.Add(typeof(TokenKwAsnDiv), ASNPR);
-            p.Add(typeof(TokenKwAsnMod), ASNPR);
-            p.Add(typeof(TokenKwAsnOr), ASNPR);
-            p.Add(typeof(TokenKwAsnXor), ASNPR);
-            p.Add(typeof(TokenKwAssign), ASNPR);
+                { typeof(TokenKwQMark), 60 },
 
-            p.Add(typeof(TokenKwQMark), 60);
+                { typeof(TokenKwOrOrOr), 70 },
+                { typeof(TokenKwAndAndAnd), 80 },
 
-            p.Add(typeof(TokenKwOrOrOr), 70);
-            p.Add(typeof(TokenKwAndAndAnd), 80);
+                { typeof(TokenKwOrOr), 100 },
 
-            p.Add(typeof(TokenKwOrOr), 100);
+                { typeof(TokenKwAndAnd), 120 },
 
-            p.Add(typeof(TokenKwAndAnd), 120);
+                { typeof(TokenKwOr), 140 },
 
-            p.Add(typeof(TokenKwOr), 140);
+                { typeof(TokenKwXor), 160 },
 
-            p.Add(typeof(TokenKwXor), 160);
+                { typeof(TokenKwAnd), 180 },
 
-            p.Add(typeof(TokenKwAnd), 180);
+                { typeof(TokenKwCmpEQ), 200 },
+                { typeof(TokenKwCmpNE), 200 },
 
-            p.Add(typeof(TokenKwCmpEQ), 200);
-            p.Add(typeof(TokenKwCmpNE), 200);
+                { typeof(TokenKwCmpLT), 240 },
+                { typeof(TokenKwCmpLE), 240 },
+                { typeof(TokenKwCmpGT), 240 },
+                { typeof(TokenKwCmpGE), 240 },
 
-            p.Add(typeof(TokenKwCmpLT), 240);
-            p.Add(typeof(TokenKwCmpLE), 240);
-            p.Add(typeof(TokenKwCmpGT), 240);
-            p.Add(typeof(TokenKwCmpGE), 240);
+                { typeof(TokenKwRSh), 260 },
+                { typeof(TokenKwLSh), 260 },
 
-            p.Add(typeof(TokenKwRSh), 260);
-            p.Add(typeof(TokenKwLSh), 260);
+                { typeof(TokenKwAdd), 280 },
+                { typeof(TokenKwSub), 280 },
 
-            p.Add(typeof(TokenKwAdd), 280);
-            p.Add(typeof(TokenKwSub), 280);
-
-            p.Add(typeof(TokenKwMul), 320);
-            p.Add(typeof(TokenKwDiv), 320);
-            p.Add(typeof(TokenKwMod), 320);
+                { typeof(TokenKwMul), 320 },
+                { typeof(TokenKwDiv), 320 },
+                { typeof(TokenKwMod), 320 }
+            };
 
             return p;
         }
@@ -713,17 +714,15 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public Token CatalogSDTypeDecl(TokenDeclSDType decl)
         {
             string longName = decl.longName.val;
-            TokenDeclSDType dupDecl;
-            if(!tokenScript.sdSrcTypesTryGetValue(longName, out dupDecl))
+            if (!tokenScript.sdSrcTypesTryGetValue(longName, out TokenDeclSDType dupDecl))
             {
                 tokenScript.sdSrcTypesAdd(longName, decl);
-                if(decl.outerSDType != null)
-                    decl.outerSDType.innerSDTypes.Add(decl.shortName.val, decl);
+                decl.outerSDType?.innerSDTypes.Add(decl.shortName.val, decl);
 
                 return null;
             }
 
-            if(!dupDecl.isPartial || !decl.isPartial)
+            if (!dupDecl.isPartial || !decl.isPartial)
             {
                 ErrorMsg(decl, "duplicate definition of type " + longName);
                 ErrorMsg(dupDecl, "previous definition here");
@@ -3649,7 +3648,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     condExpr.falseExpr = ParseRVal(ref token, termTokenTypes);
                     condExpr.prevToken = operands.prevToken;
                     operands = condExpr;
-                    termTokenTypes = new Type[0];
+                    termTokenTypes = Array.Empty<Type>();
                     goto done;
                 }
 
@@ -4458,15 +4457,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // Splice instantiation (instdecl) in just before the beginning token of prototype (this.begToken).
             SpliceSourceToken(instdecl);
 
-             // Now for the fun part...  Copy the rest of the prototype body to the 
-             // instantiated body, replacing all generic parameter type tokens with 
-             // the corresponding generic argument types.  Note that the parameters 
-             // are numbered starting with the outermost so we need the full genArgs 
-             // array.  Eg if we are doing 'Converter<V=float>' from 
-             // 'Dictionary<T=string,U=integer>.Converter<V=float>', any V's are 
-             // numbered [2].  Any [0]s or [1]s should be gone by now but it doesn't 
-             // matter.
-            int index;
+            // Now for the fun part...  Copy the rest of the prototype body to the 
+            // instantiated body, replacing all generic parameter type tokens with 
+            // the corresponding generic argument types.  Note that the parameters 
+            // are numbered starting with the outermost so we need the full genArgs 
+            // array.  Eg if we are doing 'Converter<V=float>' from 
+            // 'Dictionary<T=string,U=integer>.Converter<V=float>', any V's are 
+            // numbered [2].  Any [0]s or [1]s should be gone by now but it doesn't 
+            // matter.
             Token it, pt;
             TokenDeclSDType innerProto = this;
             TokenDeclSDType innerInst = instdecl;
@@ -4479,10 +4477,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                  //      if generic, eg doing Converter<W> of Dictionary<T,U>.Converter<W>, we have to manually copy the W as well.
                  //   2) outerSDType is transformed from Dictionary<T,U> to Dictionary<string,integer>.
                  //   3) innerSDTypes is rebuilt when/if we find classes that are inner to this one.
-                if(pt is TokenDeclSDType)
+                if(pt is TokenDeclSDType ptSDType)
                 {
                      // Make a new TokenDeclSDType{Class,Delegate,Interface}.
-                    TokenDeclSDType ptSDType = (TokenDeclSDType)pt;
                     TokenDeclSDType itSDType = ptSDType.MakeBlank(new TokenName(ptSDType.shortName, ptSDType.shortName.val));
 
                      // Set up the transformed outerSDType.
@@ -4507,7 +4504,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
 
                  // Check for an generic parameter to substitute out.
-                else if((pt is TokenName) && this.genParams.TryGetValue(((TokenName)pt).val, out index))
+                else if((pt is TokenName) && this.genParams.TryGetValue(((TokenName)pt).val, out int index))
                 {
                     it = genArgs[index].CopyToken(pt);
                 }
@@ -4602,8 +4599,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         protected TokenType MakeTypeToken(string name)
         {
-            TokenDeclSDType sdtdecl;
-            if(sdTypes.TryGetValue(name, out sdtdecl))
+            if (sdTypes.TryGetValue(name, out TokenDeclSDType sdtdecl))
                 return sdtdecl.MakeRefToken(this);
             return TokenType.FromLSLType(this, name);
         }
@@ -4890,8 +4886,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 {
                     int i = sm.methVTI;
                     string methName = sm.methName;
-                    DynamicMethod dm;
-                    if(scriptObjCode.dynamicMethods.TryGetValue(methName, out dm))
+                    if (scriptObjCode.dynamicMethods.TryGetValue(methName, out DynamicMethod dm))
                     {
                         // method is not abstract
                         vDynMeths[i] = dm;
@@ -5112,10 +5107,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             retStr = objFileReader.ReadString();
             int nArgs = objFileReader.ReadInt32();
-            if(asmFileWriter != null)
-            {
-                asmFileWriter.Write("  delegate " + retStr + " " + longName.val + "(");
-            }
+            asmFileWriter?.Write("  delegate " + retStr + " " + longName.val + "(");
             argStrs = new string[nArgs];
             for(int i = 0; i < nArgs; i++)
             {
@@ -5127,10 +5119,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     asmFileWriter.Write(argStrs[i]);
                 }
             }
-            if(asmFileWriter != null)
-            {
-                asmFileWriter.WriteLine(");");
-            }
+            asmFileWriter?.WriteLine(");");
         }
 
         /**
@@ -5188,9 +5177,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public static TokenDeclSDTypeDelegate CreateInline(TokenType retType, TokenType[] argTypes)
         {
-            TokenDeclSDTypeDelegate decldel;
-
-             // Name it after the whole signature string.
+            // Name it after the whole signature string.
             StringBuilder sb = new StringBuilder("$inline");
             sb.Append(retType.ToString());
             sb.Append('(');
@@ -5204,7 +5191,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
             sb.Append(')');
             string inlname = sb.ToString();
-            if(!inlines.TryGetValue(inlname, out decldel))
+            if(!inlines.TryGetValue(inlname, out TokenDeclSDTypeDelegate decldel))
             {
                  // Create the corresponding declaration and link to it
                 TokenName name = new TokenName(null, inlname);
@@ -5219,18 +5206,16 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public static string TryGetInlineName(Type sysType)
         {
-            string name;
-            if(!inlrevs.TryGetValue(sysType, out name))
-                return null;
-            return name;
+            if(inlrevs.TryGetValue(sysType, out string name))
+                return name;
+            return null;
         }
 
         public static Type TryGetInlineSysType(string name)
         {
-            TokenDeclSDTypeDelegate decl;
-            if(!inlines.TryGetValue(name, out decl))
-                return null;
-            return decl.GetSysType();
+            if (inlines.TryGetValue(name, out TokenDeclSDTypeDelegate decl))
+                return decl.GetSysType();
+            return null;
         }
     }
 
@@ -5479,11 +5464,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             int nArgs = argTypes.Length;
             foreach(TokenDeclSDType decl in tokenScript.sdSrcTypesValues)
             {
-                if(decl is TokenDeclSDTypeDelegate)
+                if(decl is TokenDeclSDTypeDelegate decldelg)
                 {
-                    decldel = (TokenDeclSDTypeDelegate)decl;
-                    TokenType rt = decldel.GetRetType();
-                    TokenType[] ats = decldel.GetArgTypes();
+                    TokenType rt = decldelg.GetRetType();
+                    TokenType[] ats = decldelg.GetArgTypes();
                     if((rt.ToString() == retType.ToString()) && (ats.Length == nArgs))
                     {
                         for(int i = 0; i < nArgs; i++)
@@ -5491,7 +5475,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                             if(ats[i].ToString() != argTypes[i].ToString())
                                 goto nomatch;
                         }
-                        this.decl = decldel;
+                        this.decl = decldelg;
                         return;
                     }
                 }
@@ -5766,10 +5750,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public TokenDeclVar(Token original, TokenDeclVar func, TokenScript ts) : base(original)
         {
-            if(func != null)
-            {
-                func.localVars.AddLast(this);
-            }
+            func?.localVars.AddLast(this);
             tokenScript = ts;
         }
 
@@ -7283,8 +7264,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
              // Everything else depends on both operands.
             string key = lType + opstr + rType;
-            BinOpStr binOpStr;
-            if(BinOpStr.defined.TryGetValue(key, out binOpStr))
+            if(BinOpStr.defined.TryGetValue(key, out BinOpStr binOpStr))
             {
                 return TokenType.FromSysType(opcode, binOpStr.outtype);
             }
@@ -7877,11 +7857,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 initStmt.DebString(sb);
             else
                 sb.Append(';');
-            if(testRVal != null)
-                testRVal.DebString(sb);
+            testRVal?.DebString(sb);
             sb.Append(';');
-            if(incrRVal != null)
-                incrRVal.DebString(sb);
+            incrRVal?.DebString(sb);
             sb.Append(") ");
             bodyStmt.DebString(sb);
         }
@@ -7903,11 +7881,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public override void DebString(StringBuilder sb)
         {
             sb.Append("foreach (");
-            if(keyLVal != null)
-                keyLVal.DebString(sb);
+            keyLVal?.DebString(sb);
             sb.Append(',');
-            if(valLVal != null)
-                valLVal.DebString(sb);
+            valLVal?.DebString(sb);
             sb.Append(" in ");
             arrayRVal.DebString(sb);
             sb.Append(')');
