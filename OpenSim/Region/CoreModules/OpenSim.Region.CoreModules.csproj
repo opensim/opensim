@@ -97,9 +97,9 @@
     <Compile Remove="Avatar\Inventory\Transfer\Tests\InventoryTransferModuleTests.cs" />
     <Compile Remove="World\Media\Moap\Tests\MoapTests.cs" />
   </ItemGroup>
-  <ItemGroup>
+  <!-- <ItemGroup>
     <EmbeddedResource Include="Resources\OpenSim.Region.CoreModules.addin.xml" />
-  </ItemGroup>
+  </ItemGroup> -->
   <ItemGroup>
     <PackageReference Include="Ionic.Zlib.Core" Version="1.0.0" />
     <PackageReference Include="log4net" Version="2.0.15" />
