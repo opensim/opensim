@@ -52,6 +52,7 @@ using OSDMap = OpenMetaverse.StructuredData.OSDMap;
 using OSDArray = OpenMetaverse.StructuredData.OSDArray;
 
 using Extension = Mono.Addins.ExtensionAttribute;
+
 namespace OpenSim.Region.CoreModules.World.Land
 {
     // used for caching
