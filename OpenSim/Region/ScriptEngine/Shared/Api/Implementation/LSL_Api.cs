@@ -4186,11 +4186,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (presence != null)
                 {
                     UUID animID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, anim);
-
-                    if (animID.IsZero())
-                        presence.Animator.RemoveAnimation(anim);
-                    else
+                    if (animID.IsNotZero())
                         presence.Animator.RemoveAnimation(animID, true);
+                    else if (presence.TryGetAnimationOverride(anim.ToUpper(), out UUID sitanimID))
+                        presence.Animator.RemoveAnimation(sitanimID, true);
+                    else
+                        presence.Animator.RemoveAnimation(anim);
                 }
             }
         }

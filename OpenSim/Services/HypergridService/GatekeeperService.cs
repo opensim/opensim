@@ -60,9 +60,10 @@ namespace OpenSim.Services.HypergridService
         private static IGridUserService m_GridUserService;
         private static IBansService m_BansService;
 
-        private static string m_AllowedClients = string.Empty;
-        private static string m_DeniedClients = string.Empty;
+        private static Regex m_AllowedClientsRegex = null;
+        private static Regex m_DeniedClientsRegex = null;
         private static string m_DeniedMacs = string.Empty;
+        private static string m_DeniedID0s = string.Empty;
         private static bool m_ForeignAgentsAllowed = true;
         private static List<string> m_ForeignsAllowedExceptions = new List<string>();
         private static List<string> m_ForeignsDisallowedExceptions = new List<string>();
@@ -138,27 +139,52 @@ namespace OpenSim.Services.HypergridService
                 m_GridService = ServerUtils.LoadPlugin<IGridService>(gridService, args);
                 m_PresenceService = ServerUtils.LoadPlugin<IPresenceService>(presenceService, args);
 
-                if (accountService != string.Empty)
+                if (!string.IsNullOrEmpty(accountService))
                     m_UserAccountService = ServerUtils.LoadPlugin<IUserAccountService>(accountService, args);
-                if (homeUsersService != string.Empty)
+                if (!string.IsNullOrEmpty(homeUsersService))
                     m_UserAgentService = ServerUtils.LoadPlugin<IUserAgentService>(homeUsersService, args);
-                if (gridUserService != string.Empty)
+                if (!string.IsNullOrEmpty(gridUserService))
                     m_GridUserService = ServerUtils.LoadPlugin<IGridUserService>(gridUserService, args);
-                if (bansService != string.Empty)
+                if (!string.IsNullOrEmpty(bansService))
                     m_BansService = ServerUtils.LoadPlugin<IBansService>(bansService, args);
 
                 if (simService != null)
                     m_SimulationService = simService;
-                else if (simulationService != string.Empty)
+                else if (!string.IsNullOrEmpty(simulationService))
                         m_SimulationService = ServerUtils.LoadPlugin<ISimulationService>(simulationService, args);
 
                 string[] possibleAccessControlConfigSections = new string[] { "AccessControl", "GatekeeperService" };
-                m_AllowedClients = Util.GetConfigVarFromSections<string>(
-                        config, "AllowedClients", possibleAccessControlConfigSections, string.Empty);
-                m_DeniedClients = Util.GetConfigVarFromSections<string>(
-                        config, "DeniedClients", possibleAccessControlConfigSections, string.Empty);
-                m_DeniedMacs = Util.GetConfigVarFromSections<string>(
-                        config, "DeniedMacs", possibleAccessControlConfigSections, string.Empty);
+                string AllowedClients = Util.GetConfigVarFromSections<string>(config, "AllowedClients", possibleAccessControlConfigSections, string.Empty);
+                if (!string.IsNullOrEmpty(AllowedClients))
+                {
+                    try
+                    {
+                        m_AllowedClientsRegex = new Regex(AllowedClients, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                    }
+                    catch
+                    {
+                        m_AllowedClientsRegex = null;
+                        m_log.Error("[GATEKEEPER SERVICE]: failed to parse AllowedClients");
+                    }
+                }
+
+                string DeniedClients = Util.GetConfigVarFromSections<string>(config, "DeniedClients", possibleAccessControlConfigSections, string.Empty);
+                if (!string.IsNullOrEmpty(DeniedClients))
+                {
+                    try
+                    {
+                        m_DeniedClientsRegex = new Regex(DeniedClients, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                    }
+                    catch
+                    {
+                        m_DeniedClientsRegex = null;
+                        m_log.Error("[GATEKEEPER SERVICE]: failed to parse DeniedClients");
+                    }
+                }
+
+                m_DeniedMacs = Util.GetConfigVarFromSections<string>(config, "DeniedMacs", possibleAccessControlConfigSections, string.Empty);
+                m_DeniedID0s = Util.GetConfigVarFromSections<string>(config, "DeniedID0s", possibleAccessControlConfigSections, string.Empty);
+
                 m_ForeignAgentsAllowed = serverConfig.GetBoolean("ForeignAgentsAllowed", true);
 
                 LoadDomainExceptionsFromConfig(serverConfig, "AllowExcept", m_ForeignsAllowedExceptions);
@@ -190,8 +216,13 @@ namespace OpenSim.Services.HypergridService
             string value = config.GetString(variable, string.Empty);
             string[] parts = value.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
-            foreach (string s in parts)
-                exceptions.Add(s.Trim());
+            foreach (string ps in parts)
+            {
+                string s = ps.Trim();
+                if(!s.EndsWith("/"))
+                    s += '/';
+                exceptions.Add(s);
+            }
         }
 
         public bool LinkRegion(string regionName, out UUID regionID, out ulong regionHandle, out string externalName, out string imageURL, out string reason, out int sizeX, out int sizeY)
@@ -306,39 +337,54 @@ namespace OpenSim.Services.HypergridService
             //
             // Check client
             //
-            if (!String.IsNullOrWhiteSpace(m_AllowedClients))
+            if (m_AllowedClientsRegex != null)
             {
-                Regex arx = new Regex(m_AllowedClients);
-                Match am = arx.Match(curViewer);
-
-                if (!am.Success)
+                lock(m_AllowedClientsRegex)
                 {
-                    reason = "Login failed: client " + curViewer + " is not allowed";
-                    m_log.InfoFormat("[GATEKEEPER SERVICE]: Login failed, reason: client {0} is not allowed", curViewer);
-                    return false;
+                    Match am = m_AllowedClientsRegex.Match(curViewer);
+
+                    if (!am.Success)
+                    {
+                        reason = "Login failed: client " + curViewer + " is not allowed";
+                        m_log.InfoFormat("[GATEKEEPER SERVICE]: Login failed, reason: client {0} is not allowed", curViewer);
+                        return false;
+                    }
                 }
             }
 
-            if (!String.IsNullOrWhiteSpace(m_DeniedClients))
+            if (m_DeniedClientsRegex != null)
             {
-                Regex drx = new Regex(m_DeniedClients);
-                Match dm = drx.Match(curViewer);
-
-                if (dm.Success)
+                lock(m_DeniedClientsRegex)
                 {
-                    reason = "Login failed: client " + curViewer + " is denied";
-                    m_log.InfoFormat("[GATEKEEPER SERVICE]: Login failed, reason: client {0} is denied", curViewer);
-                    return false;
+                    Match dm = m_DeniedClientsRegex.Match(curViewer);
+
+                    if (dm.Success)
+                    {
+                        reason = "Login failed: client " + curViewer + " is denied";
+                        m_log.InfoFormat("[GATEKEEPER SERVICE]: Login failed, reason: client {0} is denied", curViewer);
+                        return false;
+                    }
                 }
             }
 
             if (!String.IsNullOrWhiteSpace(m_DeniedMacs))
             {
-                m_log.InfoFormat("[GATEKEEPER SERVICE]: Checking users Mac {0} against list of denied macs {1} ...", curMac, m_DeniedMacs);
+                //m_log.InfoFormat("[GATEKEEPER SERVICE]: Checking users Mac {0} against list of denied macs {1} ...", curMac, m_DeniedMacs);
                 if (m_DeniedMacs.Contains(curMac))
                 {
                     reason = "Login failed: client with Mac " + curMac + " is denied";
                     m_log.InfoFormat("[GATEKEEPER SERVICE]: Login failed, reason: client with mac {0} is denied", curMac);
+                    return false;
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(m_DeniedID0s))
+            {
+                //m_log.InfoFormat("[GATEKEEPER SERVICE]: Checking users Mac {0} against list of denied macs {1} ...", curMac, m_DeniedMacs);
+                if (m_DeniedID0s.Contains(aCircuit.Id0))
+                {
+                    reason = "Login failed: client with id0 " + aCircuit.Id0 + " is denied";
+                    m_log.InfoFormat("[GATEKEEPER SERVICE]: Login failed, reason: client with mac {0} is denied", aCircuit.Id0);
                     return false;
                 }
             }
@@ -624,24 +670,23 @@ namespace OpenSim.Services.HypergridService
 
         private bool IsException(AgentCircuitData aCircuit, List<string> exceptions)
         {
-            bool exception = false;
             if (exceptions.Count > 0) // we have exceptions
             {
                 // Retrieve the visitor's origin
-                string userURL = aCircuit.ServiceURLs["HomeURI"].ToString();
+                string userURL = aCircuit.ServiceURLs["HomeURI"].ToString().Trim();
+                if (string.IsNullOrEmpty(userURL))
+                    return false;
+
                 if (!userURL.EndsWith("/"))
                     userURL += "/";
 
-                if (exceptions.Find(delegate(string s)
+                foreach(string s in exceptions)
                 {
-                    if (!s.EndsWith("/"))
-                        s += "/";
-                    return s == userURL;
-                }) != null)
-                    exception = true;
+                    if(userURL.Equals(s))
+                        return true;
+                }
             }
-
-            return exception;
+            return false;
         }
 
         private bool SendAgentGodKillToRegion(UUID scopeID, UUID agentID , GridUserInfo guinfo)

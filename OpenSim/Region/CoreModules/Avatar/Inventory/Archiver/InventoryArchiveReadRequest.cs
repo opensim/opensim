@@ -503,9 +503,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             //IRegionSerialiser serialiser = scene.RequestModuleInterface<IRegionSerialiser>();
             // Right now we're nastily obtaining the UUID from the filename
             string filename = assetPath.Remove(0, ArchiveConstants.ASSETS_PATH.Length);
-            int i = filename.LastIndexOf(ArchiveConstants.ASSET_EXTENSION_SEPARATOR);
+            int indx = filename.LastIndexOf(ArchiveConstants.ASSET_EXTENSION_SEPARATOR);
 
-            if (i == -1)
+            if (indx < 32)
             {
                 m_log.ErrorFormat(
                    "[INVENTORY ARCHIVER]: Could not find extension information in asset path {0} since it's missing the separator {1}.  Skipping",
@@ -514,11 +514,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 return false;
             }
 
-            string extension = filename.Substring(i);
-            string rawUuid = filename.Remove(filename.Length - extension.Length);
-            UUID assetId = new UUID(rawUuid);
-
-            if (!ArchiveConstants.EXTENSION_TO_ASSET_TYPE.ContainsKey(extension))
+            string extension = filename.Substring(indx);
+            if (!ArchiveConstants.EXTENSION_TO_ASSET_TYPE.TryGetValue(extension, out sbyte assetType))
             {
                 m_log.ErrorFormat(
                    "[INVENTORY ARCHIVER]: Tried to dearchive data with path {0} with an unknown type extension {1}",
@@ -526,7 +523,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 return false;
             }
 
-            sbyte assetType = ArchiveConstants.EXTENSION_TO_ASSET_TYPE[extension];
+            string rawUuid = filename.Remove(indx);
+            if (!UUID.TryParse(rawUuid, out UUID assetId))
+                return false;
+
             if (assetType == (sbyte)AssetType.Unknown)
             {
                 m_log.WarnFormat("[INVENTORY ARCHIVER]: Importing {0} byte asset {1} with unknown type", data.Length, assetId);
