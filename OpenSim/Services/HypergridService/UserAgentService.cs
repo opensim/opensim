@@ -195,7 +195,12 @@ namespace OpenSim.Services.HypergridService
                         string[] parts = value.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
                         foreach (string s in parts)
-                            exceptions[level].Add(s.Trim());
+                        {
+                            string ss = s.Trim();
+                            if(!ss.EndsWith("/"))
+                                ss += '/';
+                            exceptions[level].Add(ss);
+                        }
                     }
                 }
             }
@@ -682,26 +687,22 @@ namespace OpenSim.Services.HypergridService
 
         private bool IsException(string dest, int level, Dictionary<int, List<string>> exceptions)
         {
-            if (!exceptions.ContainsKey(level))
+            if (string.IsNullOrEmpty(dest))
+                return false;
+            if (!exceptions.TryGetValue(level, out List<string> excep) || excep.Count == 0)
                 return false;
 
-            bool exception = false;
-            if (exceptions[level].Count > 0) // we have exceptions
-            {
-                string destination = dest;
-                if (!destination.EndsWith("/"))
-                    destination += "/";
+            string destination = dest;
+            if (!destination.EndsWith("/"))
+                destination += "/";
 
-                if (exceptions[level].Find(delegate(string s)
-                {
-                    if (!s.EndsWith("/"))
-                        s += "/";
-                    return s == destination;
-                }) != null)
-                    exception = true;
+            foreach(string s in excep)
+            {
+                if (destination.Equals(s))
+                    return true;
             }
 
-            return exception;
+            return false;
         }
 
         private void StoreTravelInfo(TravelingAgentInfo travel)
