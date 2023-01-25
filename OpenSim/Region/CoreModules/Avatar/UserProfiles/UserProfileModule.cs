@@ -166,7 +166,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                                 client.SendAvatarInterestsReply(props.UserId, (uint)props.WantToMask, props.WantToText,
                                                              (uint)props.SkillsMask, props.SkillsText, props.Language);
                                 if (agentGroups != null)
-                                    client.SendAvatarGroupsReply(avatarID, agentGroups);
+                                    client.SendAvatarGroupsReply(req.agent, agentGroups);
                             }
                             else
                             {
