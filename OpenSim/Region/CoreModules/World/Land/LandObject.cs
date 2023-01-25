@@ -844,9 +844,9 @@ namespace OpenSim.Region.CoreModules.World.Land
                     else
                         userflags = m_scene.GetUserFlags(avatar);
 
-                    if(adults && ((userflags & 32) == 0))
+                    if(adults && ((userflags & (int)ProfileFlags.AgeVerified) == 0))
                         return true;
-                    if(anonymous && ((userflags & 4) == 0))
+                    if(anonymous && ((userflags & (int)ProfileFlags.Identified) == 0))
                         return true;
                 }
                 return false;
