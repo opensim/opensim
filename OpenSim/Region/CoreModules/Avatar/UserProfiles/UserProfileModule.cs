@@ -48,6 +48,7 @@ using OpenSim.Services.Connectors.Hypergrid;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Services.UserProfilesService;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
+using OpenSim.Region.CoreModules.Avatar.Friends;
 
 namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 {
@@ -135,10 +136,6 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                             if (!m_allowUserProfileWebURLs)
                                 props.WebUrl = "";
 
-                            // if on same region force online
-                            if (p is not null && !p.IsDeleted)
-                                flags |= (int)ProfileFlags.Online;
-
                             GroupMembershipData[] agentGroups = null;
                             if(ok && m_groupsModule is not null)
                                 agentGroups = m_groupsModule.GetMembershipData(req.agent);
@@ -158,14 +155,19 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                                 m_profilesCache.AddOrUpdate(props.UserId, uce, PROFILECACHEEXPIRE);
                             }
 
-                            if(clients is null)
+                            if (IsFriendOnline(req.client.AgentId, req.agent))
+                                flags |= (uint)ProfileFlags.Online;
+                            else
+                                flags &= (uint)~ProfileFlags.Online;
+
+                            if (clients is null)
                             {
                                 client.SendAvatarProperties(props.UserId, props.AboutText, born, membershipType, props.FirstLifeText, flags,
                                                               props.FirstLifeImageId, props.ImageId, props.WebUrl, props.PartnerId);
 
                                 client.SendAvatarInterestsReply(props.UserId, (uint)props.WantToMask, props.WantToText,
                                                              (uint)props.SkillsMask, props.SkillsText, props.Language);
-                                if (agentGroups != null)
+                                if (agentGroups is not null)
                                     client.SendAvatarGroupsReply(req.agent, agentGroups);
                             }
                             else
@@ -177,7 +179,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 
                                     client.SendAvatarInterestsReply(props.UserId, (uint)props.WantToMask, props.WantToText,
                                                                  (uint)props.SkillsMask, props.SkillsText, props.Language);
-                                    if (agentGroups != null)
+                                    if (agentGroups is not null)
                                         client.SendAvatarGroupsReply(req.agent, agentGroups);
                                 }
                                 foreach (IClientAPI cli in clients)
@@ -1448,9 +1450,11 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                     {
                         props = uce.props;
                         uint cflags = uce.flags;
-                        // if on same region force online
-                        if(p is not null && !p.IsDeleted)
-                            cflags |= 0x10;
+
+                        if (IsFriendOnline(remoteClient.AgentId, avatarID))
+                            cflags = (uint)ProfileFlags.Online;
+                        else
+                            cflags &= (uint)~ProfileFlags.Online;
 
                         remoteClient.SendAvatarProperties(props.UserId, props.AboutText,
                             uce.born, uce.membershipType , props.FirstLifeText, cflags,
@@ -1820,17 +1824,36 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         /// </param>
         ScenePresence FindPresence(UUID clientID)
         {
-            ScenePresence p;
-
-            p = Scene.GetScenePresence(clientID);
+            ScenePresence p = Scene.GetScenePresence(clientID);
             if (p is not null && !p.IsChildAgent)
                 return p;
 
             return null;
         }
-        #endregion Util
 
-        #region Web Util
+        public virtual bool IsFriendOnline(UUID client, UUID agent)
+        {
+                    // if on same region force online
+            ScenePresence p = Scene.GetScenePresence(agent);
+            if (p is not null && !p.IsDeleted)
+                return true;
+
+            IFriendsModule friendsModule = Scene.RequestModuleInterface<IFriendsModule>();
+            if (friendsModule is not null)
+            {
+                int friendPerms = friendsModule.GetRightsGrantedByFriend(client, agent);
+                if((friendPerms & (int)FriendRights.CanSeeOnline) != 0);
+                {
+                    Services.Interfaces.PresenceInfo[] pi = Scene.PresenceService?.GetAgents(new string[] { agent.ToString() });
+                    return pi is not null && pi.Length > 0;
+                }
+            }
+            return false;
+         }
+   
+    #endregion Util
+
+    #region Web Util
         /// <summary>
         /// Sends json-rpc request with a serializable type.
         /// </summary>
