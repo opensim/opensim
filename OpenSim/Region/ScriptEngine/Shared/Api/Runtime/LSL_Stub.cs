@@ -515,6 +515,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llGetHTTPHeader(request_id, header);
         }
 
+        public LSL_String llGetInventoryAcquireTime(string item)
+        {
+            return m_LSL_Functions.llGetInventoryAcquireTime(item);
+        }
+
         public LSL_Key llGetInventoryCreator(string item)
         {
             return m_LSL_Functions.llGetInventoryCreator(item);
