@@ -256,15 +256,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             //m_log.DebugFormat("[HGFRIENDS MODULE]: Entering StatusNotify for {0}", userID);
 
             // First, let's divide the friends on a per-domain basis
+            List<FriendInfo> locallst = new(friendList.Count);
+
             Dictionary<string, List<FriendInfo>> friendsPerDomain = new Dictionary<string, List<FriendInfo>>();
             foreach (FriendInfo friend in friendList)
             {
-                UUID friendID;
-                if (UUID.TryParse(friend.Friend, out friendID))
+                if (UUID.TryParse(friend.Friend, out UUID friendID))
                 {
-                    if (!friendsPerDomain.ContainsKey("local"))
-                        friendsPerDomain["local"] = new List<FriendInfo>();
-                    friendsPerDomain["local"].Add(friend);
+                    if (LocalStatusNotification(userID, friendID, online))
+                        continue;
+                    locallst.Add(friend);
                 }
                 else
                 {
@@ -275,19 +276,23 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                         if (LocalStatusNotification(userID, friendID, online))
                             continue;
 
-                        if (!friendsPerDomain.ContainsKey(url))
-                            friendsPerDomain[url] = new List<FriendInfo>();
-                        friendsPerDomain[url].Add(friend);
+                        if (!friendsPerDomain.TryGetValue(url, out List<FriendInfo> lst))
+                        {
+                            lst = new List<FriendInfo>();
+                            friendsPerDomain[url] = lst;
+                        }
+                        lst.Add(friend);
                     }
                 }
             }
 
             // For the local friends, just call the base method
             // Let's do this first of all
-            if (friendsPerDomain.ContainsKey("local"))
-                base.StatusNotify(friendsPerDomain["local"], userID, online);
+            if (locallst.Count > 0)
+                base.StatusNotify(locallst, userID, online);
 
-            m_StatusNotifier.Notify(userID, friendsPerDomain, online);
+            if(friendsPerDomain.Count > 0)
+                m_StatusNotifier.Notify(userID, friendsPerDomain, online);
 
 //            m_log.DebugFormat("[HGFRIENDS MODULE]: Exiting StatusNotify for {0}", userID);
         }
