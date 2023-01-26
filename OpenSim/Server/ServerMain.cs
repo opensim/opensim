@@ -141,6 +141,29 @@ namespace OpenSim.Server
                 connList = string.Join(",", servicesList.ToArray());
             }
 
+            // temporay set the platform dependent System.Drawing.Common.dll
+            string targetdll = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
+                        "System.Drawing.Common.dll");
+            string src = targetdll + (Util.IsWindows() ? ".win" : ".linux");
+            try
+            {
+                if (!File.Exists(targetdll))
+                    File.Copy(src, targetdll);
+                else
+                {
+                    FileInfo targetInfo = new(targetdll);
+                    FileInfo srcInfo = new(src);
+                    if (targetInfo.Length != srcInfo.Length)
+                        File.Copy(src, targetdll, true);
+                }
+            }
+            catch (Exception e)
+            {
+                m_log.Error("Failed to copy System.Drawing.Common.dll for current platform" + e.Message);
+                throw;
+            }
+
+
             string[] conns = connList.Split(new char[] {',', ' ', '\n', '\r', '\t'});
 
             foreach (string c in conns)

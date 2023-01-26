@@ -91,7 +91,7 @@ namespace OpenSim
             // Configure Log4Net
             configSource.AddSwitch("Startup", "logconfig");
             string logConfigFile = configSource.Configs["Startup"].GetString("logconfig", String.Empty);
-            if (logConfigFile != String.Empty)
+            if (!string.IsNullOrEmpty(logConfigFile))
             {
                 XmlConfigurator.Configure(new System.IO.FileInfo(logConfigFile));
                 m_log.InfoFormat("[OPENSIM MAIN]: configured log4net using \"{0}\" as configuration file",
@@ -101,6 +101,28 @@ namespace OpenSim
             {
                 XmlConfigurator.Configure(new System.IO.FileInfo("OpenSim.exe.config"));
                 m_log.Info("[OPENSIM MAIN]: configured log4net using default OpenSim.exe.config");
+            }
+
+            // temporay set the platform dependent System.Drawing.Common.dll
+            string targetdll = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
+                        "System.Drawing.Common.dll");
+            string src = targetdll + (Util.IsWindows() ? ".win" : ".linux");
+            try
+            {
+                if (!File.Exists(targetdll))
+                    File.Copy(src, targetdll);
+                else
+                {
+                    FileInfo targetInfo = new(targetdll);
+                    FileInfo srcInfo = new(src);
+                    if(targetInfo.Length != srcInfo.Length)
+                        File.Copy(src, targetdll, true);
+                }
+            }
+            catch (Exception e)
+            {
+                m_log.Error("Failed to copy System.Drawing.Common.dll for current platform" + e.Message);
+                throw;
             }
 
             m_log.InfoFormat(
