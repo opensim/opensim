@@ -1789,7 +1789,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             if (friendsModule != null)
             {
                 int friendPerms = friendsModule.GetRightsGrantedByFriend(client, agent);
-                if((friendPerms & (int) FriendRights.CanSeeOnline) != 0);
+                if((friendPerms & (int) FriendRights.CanSeeOnline) != 0)
                 {
                     Services.Interfaces.PresenceInfo[] pi = Scene.PresenceService?.GetAgents(new string[] { agent.ToString() });
                     return pi != null && pi.Length > 0;
