@@ -12800,7 +12800,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return String.Empty;
             }
 
-            DateTime date = new DateTime(1970, 1, 1, 0, 0, 0).AddSeconds(item.CreationDate);
+            DateTime date = Util.ToDateTime(item.CreationDate);
             return date.ToString("yyyy-MM-ddTHH:mm:ssZ");
         }
 
