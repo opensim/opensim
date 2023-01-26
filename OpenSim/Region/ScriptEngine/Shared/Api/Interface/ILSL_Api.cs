@@ -144,6 +144,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_Vector llGetGeometricCenter();
          LSL_Float llGetGMTclock();
         LSL_String llGetHTTPHeader(LSL_Key request_id, string header);
+        LSL_String llGetInventoryAcquireTime(string item);
            LSL_Key llGetInventoryCreator(string item);
            LSL_Key llGetInventoryKey(string name);
         LSL_String llGetInventoryName(int type, int number);
