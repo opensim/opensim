@@ -12730,8 +12730,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             TaskInventoryItem item = m_host.Inventory.GetInventoryItem(itemName);
-
-            if (item != null)
+            if (item is not null)
             {
                 if (mask != ScriptBaseClass.MASK_BASE)
                 {
@@ -12778,8 +12777,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
 
             TaskInventoryItem item = m_host.Inventory.GetInventoryItem(itemName);
-
-            if (item == null)
+            if (item is null)
             {
                 Error("llGetInventoryCreator", "Can't find item '" + item + "'");
 
@@ -12793,8 +12791,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
 
             TaskInventoryItem item = m_host.Inventory.GetInventoryItem(itemName);
-
-            if (item == null)
+            if (item is null)
             {
                 Error("llGetInventoryAcquireTime", "Can't find item '" + item + "'");
                 return String.Empty;
