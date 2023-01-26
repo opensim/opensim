@@ -12802,8 +12802,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (item == null)
             {
-                Error("llGetInventoryCreator", "Can't find item '" + item + "'");
-
+                Error("llGetInventoryCreator", "Can't find item '" + itemName + "'");
                 return String.Empty;
             }
 
@@ -12817,7 +12816,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (item == null)
             {
-                Error("llGetInventoryAcquireTime", "Can't find item '" + item + "'");
+                Error("llGetInventoryAcquireTime", "Can't find item '" + itemName + "'");
                 return String.Empty;
             }
 
