@@ -1,0 +1,57 @@
+name: .msbuild48
+
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+      - '**.cs'
+  workflow_dispatch:
+
+jobs:
+  build:
+    if: github.repository == 'opensim/opensim'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: shortsha
+      id: vars
+      run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"   
+    - name: preBuild
+      run: bash ${GITHUB_WORKSPACE}/runprebuild48.sh
+
+    - name: Build
+      id: build
+      run: msbuild /p:Configuration=Release OpenSim.sln
+
+    - name: release
+      if: success()
+      run: zip -r LastBuild.zip bin ThirdPartyLicenses README.md CONTRIBUTORS.txt LICENSE.txt 
+    - uses: softprops/action-gh-release@v1
+      if: success()
+      with:
+          tag_name: r${{ steps.vars.outputs.sha_short }}
+          name: LastAutoBuild
+          files: LastBuild.zip
+
+    - name: report push to irc
+      if: github.event_name == 'push'
+      uses: rectalogic/notify-irc@v1
+      with:
+        channel: "#opensim-dev"
+        server: "irc.libera.chat"
+        nickname: osgithub
+        message: |
+          ${{ github.actor }} pushed to ${{ github.repository }}
+          ${{ join(github.event.commits.*.message, '\n') }}
+          mono framework4.8 compile: ${{ steps.build.conclusion }}
+
+    - name: manual report to irc
+      if: github.event_name == 'workflow_dispatch'
+      uses: rectalogic/notify-irc@v1
+      with:
+        channel: "#opensim-dev"
+        server: "irc.libera.chat"
+        nickname: osgithub
+        message: |
+          ${{ github.repository }}
+          mono framework4.8 compile: ${{ steps.build.conclusion }}

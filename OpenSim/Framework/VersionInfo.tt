@@ -37,9 +37,9 @@ namespace OpenSim
 {
     public class VersionInfo
     {
-        public const string BuildNumber = "<#= (int)DateTimeOffset.UtcNow.Subtract(new DateTimeOffset(2000, 1, 1, 0, 0, 0, TimeSpan.Zero)).TotalDays #>";
-        public const string VersionNumber = "0.9.2."+BuildNumber;
-        public const string AssemblyVersionNumber = "0.9.2."+BuildNumber;
+        public const string VersionNumber = "0.9.2.2";
+        public const string AssemblyVersionNumber = "0.9.2.2";
+        public const string Release = "<#= (int)DateTimeOffset.UtcNow.Subtract(new DateTimeOffset(2000, 1, 1, 0, 0, 0, TimeSpan.Zero)).TotalDays #>";
 
         public const Flavour VERSION_FLAVOUR = Flavour.Dev;
 
@@ -57,24 +57,16 @@ namespace OpenSim
 
         public static string Version
         {
-            get { return GetVersionString(VersionNumber, VERSION_FLAVOUR); }
+            get { return GetVersionString(VersionNumber, Release, VERSION_FLAVOUR); }
         }
 
-        public static string GetVersionString(string versionNumber, Flavour flavour)
+        public static string GetVersionString(string versionNumber, string release, Flavour flavour)
         {
-            string versionString = "OpenSim-NGC " + versionNumber + " Tranquillity " + flavour;
+            string versionString = "OpenSim-NGC " + versionNumber + "." + release + " Yeti " + flavour;
             return versionString.PadRight(VERSIONINFO_VERSION_LENGTH);
         }
 
-        public const int VERSIONINFO_VERSION_LENGTH = 36;
-
-        /// <value>
-        /// This is the external interface version.  It is separate from the OpenSimulator project version.
-        ///
-        /// </value>
-        /// Commented because it's not used anymore, see below for new
-        /// versioning method.
-        //public readonly static int MajorInterfaceVersion = 8;
+        public const int VERSIONINFO_VERSION_LENGTH = 48;
 
         /// <summary>
         /// This rules versioning regarding teleports, and compatibility between simulators in that regard.

@@ -30,11 +30,7 @@ using System.Data;
 using System.Reflection;
 using System.Collections.Generic;
 using log4net;
-#if CSharpSqlite
-    using Community.CsharpSqlite.Sqlite;
-#else
-    using Mono.Data.Sqlite;
-#endif
+using System.Data.SQLite;
 
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -55,7 +51,7 @@ namespace OpenSim.Data.SQLite
         private const string UpdateAssetSQL = "update assets set Name=:Name, Description=:Description, Type=:Type, Local=:Local, Temporary=:Temporary, asset_flags=:Flags, CreatorID=:CreatorID, Data=:Data where UUID=:UUID";
         private const string assetSelect = "select * from assets";
 
-        private SqliteConnection m_conn;
+        private SQLiteConnection m_conn;
 
         protected virtual Assembly Assembly
         {
@@ -88,7 +84,7 @@ namespace OpenSim.Data.SQLite
             {
                 dbconnect = "URI=file:Asset.db,version=3";
             }
-            m_conn = new SqliteConnection(dbconnect);
+            m_conn = new SQLiteConnection(dbconnect);
             m_conn.Open();
 
             Migration m = new Migration(m_conn, Assembly, "AssetStore");
@@ -106,9 +102,9 @@ namespace OpenSim.Data.SQLite
         {
             lock (this)
             {
-                using (SqliteCommand cmd = new SqliteCommand(SelectAssetSQL, m_conn))
+                using (SQLiteCommand cmd = new SQLiteCommand(SelectAssetSQL, m_conn))
                 {
-                    cmd.Parameters.Add(new SqliteParameter(":UUID", uuid.ToString()));
+                    cmd.Parameters.Add(new SQLiteParameter(":UUID", uuid.ToString()));
                     using (IDataReader reader = cmd.ExecuteReader())
                     {
                         if (reader.Read())
@@ -158,17 +154,17 @@ namespace OpenSim.Data.SQLite
 
                 lock (this)
                 {
-                    using (SqliteCommand cmd = new SqliteCommand(UpdateAssetSQL, m_conn))
+                    using (SQLiteCommand cmd = new SQLiteCommand(UpdateAssetSQL, m_conn))
                     {
-                        cmd.Parameters.Add(new SqliteParameter(":UUID", asset.FullID.ToString()));
-                        cmd.Parameters.Add(new SqliteParameter(":Name", assetName));
-                        cmd.Parameters.Add(new SqliteParameter(":Description", assetDescription));
-                        cmd.Parameters.Add(new SqliteParameter(":Type", asset.Type));
-                        cmd.Parameters.Add(new SqliteParameter(":Local", asset.Local));
-                        cmd.Parameters.Add(new SqliteParameter(":Temporary", asset.Temporary));
-                        cmd.Parameters.Add(new SqliteParameter(":Flags", asset.Flags));
-                        cmd.Parameters.Add(new SqliteParameter(":CreatorID", asset.Metadata.CreatorID));
-                        cmd.Parameters.Add(new SqliteParameter(":Data", asset.Data));
+                        cmd.Parameters.Add(new SQLiteParameter(":UUID", asset.FullID.ToString()));
+                        cmd.Parameters.Add(new SQLiteParameter(":Name", assetName));
+                        cmd.Parameters.Add(new SQLiteParameter(":Description", assetDescription));
+                        cmd.Parameters.Add(new SQLiteParameter(":Type", asset.Type));
+                        cmd.Parameters.Add(new SQLiteParameter(":Local", asset.Local));
+                        cmd.Parameters.Add(new SQLiteParameter(":Temporary", asset.Temporary));
+                        cmd.Parameters.Add(new SQLiteParameter(":Flags", asset.Flags));
+                        cmd.Parameters.Add(new SQLiteParameter(":CreatorID", asset.Metadata.CreatorID));
+                        cmd.Parameters.Add(new SQLiteParameter(":Data", asset.Data));
 
                         cmd.ExecuteNonQuery();
                         return true;
@@ -179,17 +175,17 @@ namespace OpenSim.Data.SQLite
             {
                 lock (this)
                 {
-                    using (SqliteCommand cmd = new SqliteCommand(InsertAssetSQL, m_conn))
+                    using (SQLiteCommand cmd = new SQLiteCommand(InsertAssetSQL, m_conn))
                     {
-                        cmd.Parameters.Add(new SqliteParameter(":UUID", asset.FullID.ToString()));
-                        cmd.Parameters.Add(new SqliteParameter(":Name", assetName));
-                        cmd.Parameters.Add(new SqliteParameter(":Description", assetDescription));
-                        cmd.Parameters.Add(new SqliteParameter(":Type", asset.Type));
-                        cmd.Parameters.Add(new SqliteParameter(":Local", asset.Local));
-                        cmd.Parameters.Add(new SqliteParameter(":Temporary", asset.Temporary));
-                        cmd.Parameters.Add(new SqliteParameter(":Flags", asset.Flags));
-                        cmd.Parameters.Add(new SqliteParameter(":CreatorID", asset.Metadata.CreatorID));
-                        cmd.Parameters.Add(new SqliteParameter(":Data", asset.Data));
+                        cmd.Parameters.Add(new SQLiteParameter(":UUID", asset.FullID.ToString()));
+                        cmd.Parameters.Add(new SQLiteParameter(":Name", assetName));
+                        cmd.Parameters.Add(new SQLiteParameter(":Description", assetDescription));
+                        cmd.Parameters.Add(new SQLiteParameter(":Type", asset.Type));
+                        cmd.Parameters.Add(new SQLiteParameter(":Local", asset.Local));
+                        cmd.Parameters.Add(new SQLiteParameter(":Temporary", asset.Temporary));
+                        cmd.Parameters.Add(new SQLiteParameter(":Flags", asset.Flags));
+                        cmd.Parameters.Add(new SQLiteParameter(":CreatorID", asset.Metadata.CreatorID));
+                        cmd.Parameters.Add(new SQLiteParameter(":Data", asset.Data));
 
                         cmd.ExecuteNonQuery();
                         return true;
@@ -232,7 +228,7 @@ namespace OpenSim.Data.SQLite
 
             lock (this)
             {
-                using (SqliteCommand cmd = new SqliteCommand(sql, m_conn))
+                using (SQLiteCommand cmd = new SQLiteCommand(sql, m_conn))
                 {
                     using (IDataReader reader = cmd.ExecuteReader())
                     {
@@ -289,7 +285,7 @@ namespace OpenSim.Data.SQLite
             metadata.CreatorID = row["CreatorID"].ToString();
 
             // Current SHA1s are not stored/computed.
-            metadata.SHA1 = new byte[] {};
+            metadata.SHA1 = Array.Empty<byte>();
 
             return metadata;
         }
@@ -308,10 +304,10 @@ namespace OpenSim.Data.SQLite
 
             lock (this)
             {
-                using (SqliteCommand cmd = new SqliteCommand(SelectAssetMetadataSQL, m_conn))
+                using (SQLiteCommand cmd = new SQLiteCommand(SelectAssetMetadataSQL, m_conn))
                 {
-                    cmd.Parameters.Add(new SqliteParameter(":start", start));
-                    cmd.Parameters.Add(new SqliteParameter(":count", count));
+                    cmd.Parameters.Add(new SQLiteParameter(":start", start));
+                    cmd.Parameters.Add(new SQLiteParameter(":count", count));
 
                     using (IDataReader reader = cmd.ExecuteReader())
                     {
@@ -381,9 +377,9 @@ namespace OpenSim.Data.SQLite
         {
             lock (this)
             {
-                using (SqliteCommand cmd = new SqliteCommand(DeleteAssetSQL, m_conn))
+                using (SQLiteCommand cmd = new SQLiteCommand(DeleteAssetSQL, m_conn))
                 {
-                    cmd.Parameters.Add(new SqliteParameter(":UUID", uuid.ToString()));
+                    cmd.Parameters.Add(new SQLiteParameter(":UUID", uuid.ToString()));
                     cmd.ExecuteNonQuery();
                 }
             }

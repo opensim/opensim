@@ -68,7 +68,8 @@ namespace OpenSim.Capabilities.Handlers
             {"animatn_id", AssetType.Animation},
             {"gesture_id", AssetType.Gesture},
             {"mesh_id", AssetType.Mesh},
-            {"settings_id", AssetType.Settings}
+            {"settings_id", AssetType.Settings},
+            {"material_id", AssetType.Material}
         };
 
         private IAssetService m_assetService;
@@ -118,8 +119,7 @@ namespace OpenSim.Capabilities.Handlers
             if (string.IsNullOrEmpty(assetStr))
                 return;
 
-            UUID assetID = UUID.Zero;
-            if(!UUID.TryParse(assetStr, out assetID))
+            if(!UUID.TryParse(assetStr, out UUID assetID))
                 return;
 
             ManualResetEventSlim done = new ManualResetEventSlim(false);

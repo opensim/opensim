@@ -41,7 +41,7 @@ using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Framework.Servers;
 using OpenMetaverse.StructuredData; // LitJson is hidden on this
 
-[assembly:AddinRoot("Robust", OpenSim.VersionInfo.VersionNumber)]
+[assembly:AddinRoot("Robust", OpenSim.VersionInfo.AssemblyVersionNumber)]
 namespace OpenSim.Server.Base
 {
     [TypeExtensionPoint(Path="/Robust/Connector", Name="RobustConnector")]

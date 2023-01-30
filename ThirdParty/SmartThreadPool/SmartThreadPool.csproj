@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
     <AssemblyTitle>Amib.Threading</AssemblyTitle>
@@ -7,6 +7,9 @@
     <AssemblyVersion>2.2.3.0</AssemblyVersion>
     <FileVersion>2.2.3.0</FileVersion>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="log4net" Version="2.0.15" />
+  </ItemGroup>
   <ItemGroup>
     <Reference Include="System.Web">
       <Private>False</Private>

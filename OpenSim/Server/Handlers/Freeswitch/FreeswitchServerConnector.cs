@@ -61,7 +61,7 @@ namespace OpenSim.Server.Handlers.Freeswitch
             string freeswitchService = serverConfig.GetString("LocalServiceModule",
                     String.Empty);
 
-            if (freeswitchService == String.Empty)
+            if (freeswitchService.Length == 0)
                 throw new Exception("No LocalServiceModule in config file");
 
             Object[] args = new Object[] { config };

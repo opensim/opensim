@@ -31,11 +31,7 @@ using System.Collections.Generic;
 using System.Data;
 using OpenMetaverse;
 using OpenSim.Framework;
-#if CSharpSqlite
-    using Community.CsharpSqlite.Sqlite;
-#else
-    using Mono.Data.Sqlite;
-#endif
+using System.Data.SQLite;
 
 namespace OpenSim.Data.SQLite
 {
@@ -57,13 +53,13 @@ namespace OpenSim.Data.SQLite
         // All non queries are funneled through one connection
         // to increase performance a little
         //
-        protected int ExecuteNonQuery(SqliteCommand cmd, SqliteConnection connection)
+        protected int ExecuteNonQuery(SQLiteCommand cmd, SQLiteConnection connection)
         {
             lock (connection)
             {
 /*
-                SqliteConnection newConnection =
-                        (SqliteConnection)((ICloneable)connection).Clone();
+                SQLiteConnection newConnection =
+                        (SQLiteConnection)((ICloneable)connection).Clone();
                 newConnection.Open();
 
                 cmd.Connection = newConnection;
@@ -75,12 +71,12 @@ namespace OpenSim.Data.SQLite
             }
         }
 
-        protected IDataReader ExecuteReader(SqliteCommand cmd, SqliteConnection connection)
+        protected IDataReader ExecuteReader(SQLiteCommand cmd, SQLiteConnection connection)
         {
             lock (connection)
             {
-                //SqliteConnection newConnection =
-                //        (SqliteConnection)((ICloneable)connection).Clone();
+                //SQLiteConnection newConnection =
+                //        (SQLiteConnection)((ICloneable)connection).Clone();
                 //newConnection.Open();
 
                 //cmd.Connection = newConnection;

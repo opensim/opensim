@@ -72,7 +72,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                 {
                     while (tries > 0)
                     {
-                        RegionInfo[] regionInfos = new RegionInfo[] { };
+                        RegionInfo[] regionInfos = Array.Empty<RegionInfo>();
                         int regionCount = 0;
                         HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(url);
                         webRequest.Timeout = 30000; //30 Second Timeout
@@ -118,10 +118,10 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                             if (((HttpWebResponse)ex.Response).StatusCode == HttpStatusCode.NotFound)
                             {
                                 if (!allowRegionless)
-                                    throw ex;
+                                    throw;
                             }
                             else
-                                throw ex;
+                                throw;
                         }
 
                         if (regionCount > 0 || allowRegionless)

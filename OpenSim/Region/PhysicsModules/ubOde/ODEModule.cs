@@ -58,9 +58,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     if (Util.IsWindows())
                         Util.LoadArchSpecificWindowsDll("ubode.dll");
 
-                    SafeNativeMethods.InitODE();
+                    UBOdeNative.InitODE();
 
-                    string ode_config = SafeNativeMethods.GetConfiguration();
+                    string ode_config = UBOdeNative.GetConfiguration();
                     if (string.IsNullOrEmpty(ode_config))
                     {
                         m_log.Error("[ubODE] Native ode library version not supported");

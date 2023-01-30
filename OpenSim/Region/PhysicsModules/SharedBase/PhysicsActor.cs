@@ -28,7 +28,7 @@
 using log4net;
 using System;
 using System.Collections.Generic;
-using System.Reflection;
+using System.Runtime.InteropServices;
 using OpenSim.Framework;
 using OpenMetaverse;
 
@@ -60,6 +60,15 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         public Quaternion CameraRotation;
         public Vector3 CameraAtAxis;
         public bool MouseLook;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 16)]
+    public struct AABB2D
+    {
+        public float minx;
+        public float maxx;
+        public float miny;
+        public float maxy;
     }
 
     public struct ContactPoint
@@ -158,7 +167,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
 
     public abstract class PhysicsActor
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public delegate void RequestTerseUpdate();
         public delegate void CollisionUpdate(EventArgs e);
@@ -201,6 +210,8 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
             cdata.bounce = 0;
         }
 
+        public AABB2D _AABB2D;
+
         public abstract bool Stopped { get; }
 
         public abstract Vector3 Size { get; set; }
@@ -222,7 +233,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
 
         public abstract PrimitiveBaseShape Shape { set; }
 
-        uint m_baseLocalID;
+        public uint m_baseLocalID;
         public virtual uint LocalID
         {
             set { m_baseLocalID = value; }
@@ -258,38 +269,17 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
 
         public virtual void RequestPhysicsterseUpdate()
         {
-            // Make a temporary copy of the event to avoid possibility of
-            // a race condition if the last subscriber unsubscribes
-            // immediately after the null check and before the event is raised.
-            RequestTerseUpdate handler = OnRequestTerseUpdate;
-
-            if (handler != null)
-            {
-                handler();
-            }
+            OnRequestTerseUpdate?.Invoke();
         }
 
         public virtual void RaiseOutOfBounds(Vector3 pos)
         {
-            // Make a temporary copy of the event to avoid possibility of
-            // a race condition if the last subscriber unsubscribes
-            // immediately after the null check and before the event is raised.
-            OutOfBounds handler = OnOutOfBounds;
-
-            if (handler != null)
-            {
-                handler(pos);
-            }
+            OnOutOfBounds?.Invoke(pos);
         }
 
         public virtual void SendCollisionUpdate(EventArgs e)
         {
-            CollisionUpdate handler = OnCollisionUpdate;
-
-//            m_log.DebugFormat("[PHYSICS ACTOR]: Sending collision for {0}", LocalID);
-
-            if (handler != null)
-                handler(e);
+            OnCollisionUpdate?.Invoke(e);
         }
 
         public virtual void SetMaterial (int material) { }

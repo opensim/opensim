@@ -40,13 +40,13 @@ using log4net;
 using MySql.Data.MySqlClient;
 using OpenSim.Data.MySQL;
 
-using Mono.Data.Sqlite;
+using System.Data.SQLite;
 using OpenSim.Data.SQLite;
 
 namespace OpenSim.Data.Tests
 {
     [TestFixture(Description = "Asset store tests (SQLite)")]
-    public class SQLiteAssetTests :  AssetTests<SqliteConnection, SQLiteAssetData>
+    public class SQLiteAssetTests :  AssetTests<SQLiteConnection, SQLiteAssetData>
     {
     }
 

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
     <AssemblyTitle>OpenSim.Data.Null</AssemblyTitle>
@@ -7,10 +7,6 @@
     <Copyright>Copyright (c) OpenSimulator.org Developers 2007-2009</Copyright>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="log4net">
-      <HintPath>..\..\..\bin\log4net.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="OpenMetaverseTypes">
       <HintPath>..\..\..\bin\OpenMetaverseTypes.dll</HintPath>
       <Private>False</Private>
@@ -24,5 +20,8 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="log4net" Version="2.0.15" />
   </ItemGroup>
 </Project>

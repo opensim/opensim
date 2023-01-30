@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
     <AssemblyTitle>OpenSim.ApplicationPlugins.RemoteController</AssemblyTitle>
@@ -7,13 +7,12 @@
     <Copyright>Copyright OpenSimulator developers ©  2012</Copyright>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Mono.Addins" Version="1.3.14" />
+    <PackageReference Include="log4net" Version="2.0.15" />
   </ItemGroup>
+  <!-- <ItemGroup>
+    <EmbeddedResource Include="Resources/OpenSim.ApplicationPlugins.RemoteController.addin.xml" />
+  </ItemGroup>   -->
   <ItemGroup>
-    <Reference Include="log4net">
-      <HintPath>..\..\..\bin\log4net.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Nini">
       <HintPath>..\..\..\bin\Nini.dll</HintPath>
       <Private>False</Private>

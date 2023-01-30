@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
     <AssemblyTitle>OpenSim.Services.AuthorizationService</AssemblyTitle>
@@ -7,10 +7,9 @@
     <Copyright>OpenSimulator developers</Copyright>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="log4net">
-      <HintPath>..\..\..\bin\log4net.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
+    <PackageReference Include="log4net" Version="2.0.15" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="Nini">
       <HintPath>..\..\..\bin\Nini.dll</HintPath>
       <Private>False</Private>

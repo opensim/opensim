@@ -58,6 +58,7 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
             }
             else
             {
+                asset.Data = Array.Empty<byte>();
                 m_log.InfoFormat("[ASSETS]: Instantiated: [{0}]", name);
             }
 
@@ -145,9 +146,13 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
                         string assetIdStr = source.Configs[i].GetString("assetID", UUID.Random().ToString());
                         string name = source.Configs[i].GetString("name", String.Empty);
                         sbyte type = (sbyte)source.Configs[i].GetInt("assetType", 0);
-                        string assetPath = Path.Combine(dir, source.Configs[i].GetString("fileName", String.Empty));
 
-                        AssetBase newAsset = CreateAsset(assetIdStr, name, assetPath, type);
+                        string assetPath =  source.Configs[i].GetString("fileName", String.Empty);
+                        AssetBase newAsset;
+                        if (string.IsNullOrEmpty(assetPath))
+                            newAsset = CreateAsset(assetIdStr, name, null, type);
+                        else
+                            newAsset = CreateAsset(assetIdStr, name, Path.Combine(dir, assetPath), type);
 
                         newAsset.Type = type;
                         assets.Add(newAsset);

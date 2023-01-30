@@ -59,9 +59,9 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public Vector3(Vector3 vector)
             {
-                x = (float)vector.x;
-                y = (float)vector.y;
-                z = (float)vector.z;
+                x = vector.x;
+                y = vector.y;
+                z = vector.z;
             }
 
             public Vector3(OMV_Vector3 vector)
@@ -1864,11 +1864,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public static bool operator ==(key k1, key k2)
             {
-                return k1.value == k2.value;
+                return k1.value.Equals(k2.value);
             }
             public static bool operator !=(key k1, key k2)
             {
-                return k1.value != k2.value;
+                return !k1.value.Equals(k2.value);
             }
 
             #endregion

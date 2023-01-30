@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
   </PropertyGroup>
@@ -6,10 +6,6 @@
     <Copy SourceFiles="@(FilesToCopy_0000)" DestinationFolder="../../../bin/" />
   </Target>
   <ItemGroup>
-    <Reference Include="log4net">
-      <HintPath>..\..\..\bin\log4net.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Nini">
       <HintPath>..\..\..\bin\Nini.dll</HintPath>
       <Private>False</Private>
@@ -66,7 +62,8 @@
     <EmbeddedResource Include="Resources\GloebitUsersSQLite.migrations" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Mono.Addins" Version="1.3.14" />
-    <PackageReference Include="MySql.Data" Version="8.0.29" />
+    <PackageReference Include="log4net" Version="2.0.15" />
+    <PackageReference Include="Mono.Addins" Version="1.4.1" />
+    <PackageReference Include="MySql.Data" Version="8.0.31" />
   </ItemGroup>
 </Project>

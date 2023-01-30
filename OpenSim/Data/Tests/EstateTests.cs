@@ -41,13 +41,13 @@ using System.Data.Common;
 using MySql.Data.MySqlClient;
 using OpenSim.Data.MySQL;
 
-using Mono.Data.Sqlite;
+using System.Data.SQLite;
 using OpenSim.Data.SQLite;
 
 namespace OpenSim.Data.Tests
 {
     [TestFixture(Description = "Estate store tests (SQLite)")]
-    public class SQLiteEstateTests : EstateTests<SqliteConnection, SQLiteEstateStore>
+    public class SQLiteEstateTests : EstateTests<SQLiteConnection, SQLiteEstateStore>
     {
     }
 

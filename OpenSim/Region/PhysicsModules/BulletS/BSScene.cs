@@ -725,6 +725,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 {
                     lock (PhysObjects)
                     {
+                        if(collidersCount > m_collisionArray.Length)
+                            collidersCount = m_collisionArray.Length;
                         for (int ii = 0; ii < collidersCount; ii++)
                         {
                             uint cA = m_collisionArray[ii].aID;

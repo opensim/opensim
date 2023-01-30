@@ -1216,11 +1216,10 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                     m_log.InfoFormat("[RADMIN]: CreateUser: User {0} {1} created, UUID {2}", firstName, lastName, account.PrincipalID);
                 }
-                catch (Exception e)
+                catch
                 {
                     responseData["avatar_uuid"] = UUID.Zero.ToString();
-
-                    throw e;
+                    throw;
                 }
 
                 m_log.Info("[RADMIN]: CreateUser: request complete");
@@ -1446,11 +1445,10 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                                      firstName, lastName,
                                      account.PrincipalID);
                 }
-                catch (Exception e)
+                catch
                 {
                     responseData["avatar_uuid"] = UUID.Zero.ToString();
-
-                    throw e;
+                    throw;
                 }
 
                 m_log.Info("[RADMIN]: UpdateUserAccount: request complete");
@@ -1583,7 +1581,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 {
                     responseData["success"] = false;
                     responseData["error"] = e.Message;
-                    throw e;
+                    throw;
                 }
 
                 m_log.Info("[RADMIN]: AuthenticateUser: request complete");
@@ -1682,11 +1680,10 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                     responseData["loaded"] = true;
                 }
-                catch (Exception e)
+                catch
                 {
                     responseData["loaded"] = false;
-
-                    throw e;
+                    throw;
                 }
 
                 m_log.Info("[RADMIN]: Load OAR Administrator Request complete");
@@ -1806,11 +1803,10 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 responseData["saved"] = true;
             }
-            catch (Exception e)
+            catch
             {
                 responseData["saved"] = false;
-
-                throw e;
+                throw;
             }
 
             m_log.Info("[RADMIN]: Save OAR Request complete");
@@ -1870,12 +1866,11 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                     responseData["loaded"] = true;
                 }
-                catch (Exception e)
+                catch
                 {
                     responseData["loaded"] = false;
                     responseData["switched"] = false;
-
-                    throw e;
+                    throw;
                 }
 
                 m_log.Info("[RADMIN]: Load XML Administrator Request complete");
@@ -1923,12 +1918,11 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 responseData["saved"] = true;
             }
-            catch (Exception e)
+            catch
             {
                 responseData["saved"] = false;
                 responseData["switched"] = false;
-
-                throw e;
+                throw;
             }
 
             m_log.Info("[RADMIN]: Save XML Administrator Request complete");

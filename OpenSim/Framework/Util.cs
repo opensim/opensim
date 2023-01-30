@@ -213,6 +213,40 @@ namespace OpenSim.Framework
             return Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         }
 
+        // next should be replaced using .net5 system numerics bitoperations log2
+        // this is just log2 + 1
+        private static byte[] nBitsLookup =
+         {
+            01, 10, 02, 11, 14, 22, 03, 30, 12, 15, 17, 19, 23, 26, 04, 31,
+            09, 13, 21, 29, 16, 18, 25, 08, 20, 28, 24, 07, 27, 06, 05, 32
+        };
+
+        public static int NumberBits(uint n)
+        {
+            n |= (n >> 1);
+            n |= (n >> 2);
+            n |= (n >> 4);
+            n |= (n >> 8);
+            n |= (n >> 16);
+            return nBitsLookup[(n * 0x07C4ACDDu) >> 27];
+        }
+
+        private static byte[] intLog2Lookup =
+         {
+            00, 09, 01, 10, 13, 21, 02, 29, 11, 14, 16, 18, 22, 25, 03, 30,
+            08, 12, 20, 28, 15, 17, 24, 07, 19, 27, 23, 06, 26, 05, 04, 31
+        };
+
+        public static int intLog2(uint n)
+        {
+            n |= (n >> 1);
+            n |= (n >> 2);
+            n |= (n >> 4);
+            n |= (n >> 8);
+            n |= (n >> 16);
+            return intLog2Lookup[(n * 0x07C4ACDDu) >> 27];
+        }
+
         /// <summary>
         /// Linear interpolates B<->C using percent A
         /// </summary>
@@ -1282,8 +1316,8 @@ namespace OpenSim.Framework
         public static UUID ComputeSHA1UUID(byte[] src)
         {
             byte[] ret;
-            using (SHA1CryptoServiceProvider SHA1 = new SHA1CryptoServiceProvider())
-                ret = SHA1.ComputeHash(src);
+            using (SHA1 sha = SHA1.Create())
+                ret = sha.ComputeHash(src);
             return new UUID(ret, 2);
         }
 
@@ -1344,6 +1378,12 @@ namespace OpenSim.Framework
         public static string FieldToString(byte[] bytes)
         {
             return FieldToString(bytes, String.Empty);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static string FieldToASCIIString(byte[] bytes, int limit)
+        {
+            return CleanString(Encoding.ASCII.GetString(bytes, 0, limit < bytes.Length ? limit : bytes.Length));
         }
 
         /// <summary>
@@ -2018,28 +2058,12 @@ namespace OpenSim.Framework
 
         public static string CleanString(string input)
         {
-            if (input.Length == 0)
-                return input;
-
-            int clip = input.Length;
-
-            // Test for ++ string terminator
-            int pos = input.IndexOf("\0");
-            if (pos != -1 && pos < clip)
-                clip = pos;
-
-            // Test for CR
-            pos = input.IndexOf("\r");
-            if (pos != -1 && pos < clip)
-                clip = pos;
-
-            // Test for LF
-            pos = input.IndexOf("\n");
-            if (pos != -1 && pos < clip)
-                clip = pos;
-
-            // Truncate string before first end-of-line character found
-            return input.Substring(0, clip);
+            for (int i = 0; i < input.Length; i++)
+            {
+                if (input[i] == '\0' || input[i] == '\r' || input[i] == '\n')
+                    return input.Substring(0, i);
+            }
+            return input;
         }
 
         /// <summary>
@@ -4366,11 +4390,10 @@ namespace OpenSim.Framework
             using (Graphics graphics = Graphics.FromImage(result))
             {
                 atrib.SetWrapMode(System.Drawing.Drawing2D.WrapMode.TileFlipXY);
-                atrib.SetWrapMode(System.Drawing.Drawing2D.WrapMode.TileFlipXY);
                 graphics.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
                 graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
                 graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-                graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.None;
+                graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
 
                 graphics.DrawImage(image, new Rectangle(0, 0, result.Width, result.Height),
                     0, 0, image.Width, image.Height, GraphicsUnit.Pixel, atrib);

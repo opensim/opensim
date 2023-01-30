@@ -939,8 +939,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 if (Engine.World.PipeEventsForScript(LocalID) ||
                     data.EventName == "control") // Don't freeze avies!
                 {
-                    //                        m_log.DebugFormat("[Script] Delivered event {2} in state {3} to {0}.{1}",
-                    //                                PrimName, ScriptName, data.EventName, State);
+                    //m_log.DebugFormat("[Script] Delivered event {2} in state {3} to {0}.{1}",
+                    //          PrimName, ScriptName, data.EventName, State);
 
                     try
                     {

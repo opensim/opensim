@@ -44,6 +44,36 @@ namespace OpenSim.Tests.Common
 
         public TestXInventoryDataPlugin(string conn, string realm) {}
 
+        public XInventoryItem[] GetItems(string field, string val)
+        {
+//            Console.WriteLine(
+//                "Requesting items, fields {0}, vals {1}", string.Join(", ", fields), string.Join(", ", vals));
+
+            List<XInventoryItem> origItems = Get<XInventoryItem>(field, val, m_allItems.Values.ToList());
+
+            XInventoryItem[] items = origItems.Select(i => i.Clone()).ToArray();
+
+//            Console.WriteLine("Found {0} items", items.Length);
+//            Array.ForEach(items, i => Console.WriteLine("Found item {0} {1}", i.inventoryName, i.inventoryID));
+
+            return items;
+        }
+
+        public XInventoryItem[] GetItems(string field, string[] vals)
+        {
+//            Console.WriteLine(
+//                "Requesting items, fields {0}, vals {1}", string.Join(", ", fields), string.Join(", ", vals));
+
+            List<XInventoryItem> origItems = Get<XInventoryItem>(field, vals, m_allItems.Values.ToList());
+
+            XInventoryItem[] items = origItems.Select(i => i.Clone()).ToArray();
+
+//            Console.WriteLine("Found {0} items", items.Length);
+//            Array.ForEach(items, i => Console.WriteLine("Found item {0} {1}", i.inventoryName, i.inventoryID));
+
+            return items;
+        }
+
         public XInventoryItem[] GetItems(string[] fields, string[] vals)
         {
 //            Console.WriteLine(

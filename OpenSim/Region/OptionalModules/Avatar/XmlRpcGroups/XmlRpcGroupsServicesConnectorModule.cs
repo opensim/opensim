@@ -109,7 +109,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 | GroupPowers.SendNotices
                 | GroupPowers.SetLandingPoint
                 | GroupPowers.StartProposal
-                | GroupPowers.VoteOnProposal;
+                | GroupPowers.VoteOnProposal
+                | GroupPowers.ExperienceAdmin
+                | GroupPowers.ExperienceCreator
+                | GroupPowers.GroupBanAccess
+                | GroupPowers.HostEvent;
 
         private bool m_connectorEnabled = false;
 
@@ -1171,10 +1175,10 @@ namespace Nwc.XmlRpc
                         {
                             resp = (XmlRpcResponse)_deserializer.Deserialize(inputXml);
                         }
-                        catch (Exception e)
+                        catch
                         {
                             RequestResponse = inputXml;
-                            throw e;
+                            throw;
                         }
                     }
                 }

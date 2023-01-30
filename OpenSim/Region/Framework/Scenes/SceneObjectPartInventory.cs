@@ -1095,6 +1095,22 @@ namespace OpenSim.Region.Framework.Scenes
             return null;
         }
 
+        public TaskInventoryItem GetInventoryItem(string name, int type)
+        {
+            m_items.LockItemsForRead(true);
+            foreach (TaskInventoryItem item in m_items.Values)
+            {
+                if (item.Type == type && item.Name == name)
+                {
+                    m_items.LockItemsForRead(false);
+                    return item;
+                }
+            }
+            m_items.LockItemsForRead(false);
+
+            return null;
+        }
+
         public List<TaskInventoryItem> GetInventoryItems(string name)
         {
             List<TaskInventoryItem> items = new List<TaskInventoryItem>();
