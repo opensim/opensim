@@ -166,8 +166,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 //            m_log.DebugFormat(
 //                "[TRANSACTIONS MANAGER] Called HandleItemCreationFromTransaction with item {0}", name);
 
-            AgentAssetTransactions transactions =
-                    GetUserTransactions(remoteClient.AgentId);
+            AgentAssetTransactions transactions = GetUserTransactions(remoteClient.AgentId);
 
             return transactions.RequestCreateInventoryItem(remoteClient, transactionID,
                     folderID, callbackID, description, name, invType, type,

@@ -152,7 +152,7 @@ namespace OpenSim.Services.InventoryService.Tests
             string itemName3 = "item3";
 
             itemToStore.CreatorIdentification = creatorId2.ToString();
-            itemToStore.Owner = ownerId2;
+            //itemToStore.Owner = ownerId2; this cant be done
             itemToStore.Folder = folderId2;
             itemToStore.InvType = invType2;
             itemToStore.AssetType = assetType2;

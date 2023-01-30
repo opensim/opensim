@@ -295,7 +295,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
             if (mapbmp.Width != hm.Width || mapbmp.Height != hm.Height)
             {
                 m_log.ErrorFormat("{0} TerrainToBitmap. Passed bitmap wrong dimensions. passed=<{1},{2}>, size=<{3},{4}>",
-                    "[TEXTURED MAP TILE RENDERER]", mapbmp.Width, mapbmp.Height, hm.Width, hm.Height);
+                    "[TEXTURED MAPTILE RENDERER]", mapbmp.Width, mapbmp.Height, hm.Width, hm.Height);
             }
 
             // These textures should be in the AssetCache anyway, as every client conneting to this
@@ -429,7 +429,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                 }
             }
 
-            m_log.Debug("[TEXTURED MAP TILE RENDERER]: Generating Maptile Step 1: Done in " + (Environment.TickCount - tc) + " ms");
+            m_log.Debug("[TEXTURED MAPTILE RENDERER]: Generating Maptile Step 1: Done in " + (Environment.TickCount - tc) + " ms");
         }
     }
 }

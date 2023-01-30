@@ -45,7 +45,7 @@ using Mono.Addins;
 
 namespace OpenSim.Region.CoreModules.Avatar.BakedTextures
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "XBakes.Module")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "XBakesModule")]
     public class XBakesModule : INonSharedRegionModule, IBakedTextureModule
     {
         protected Scene m_Scene;
@@ -97,7 +97,7 @@ namespace OpenSim.Region.CoreModules.Avatar.BakedTextures
 
         public string Name
         {
-            get { return "XBakes.Module"; }
+            get { return "XBakesModule"; }
         }
 
         public Type ReplaceableInterface

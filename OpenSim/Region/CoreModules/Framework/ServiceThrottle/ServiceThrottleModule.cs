@@ -39,9 +39,9 @@ using OpenSim.Framework.Monitoring;
 using OpenSim.Region.Framework.Scenes;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
-namespace OpenSim.Region.CoreModules.Framework
+namespace OpenSim.Region.CoreModules.Framework.ServiceThrottle
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "GridServiceThrottleModule")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "ServiceThrottleModule")]
     public class ServiceThrottleModule : ISharedRegionModule, IServiceThrottleModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(

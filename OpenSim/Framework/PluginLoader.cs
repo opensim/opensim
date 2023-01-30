@@ -102,19 +102,19 @@ namespace OpenSim.Framework
         public PluginLoader()
         {
             Initialiser = new PluginInitialiserBase();
-            initialise_plugin_dir_(".");
+            initialise_plugin_dir(".");
         }
 
         public PluginLoader(PluginInitialiserBase init)
         {
             Initialiser = init;
-            initialise_plugin_dir_(".");
+            initialise_plugin_dir(".");
         }
 
         public PluginLoader(PluginInitialiserBase init, string dir)
         {
             Initialiser = init;
-            initialise_plugin_dir_(dir);
+            initialise_plugin_dir(dir);
         }
 
         public void Add(string extpoint)
@@ -201,30 +201,40 @@ namespace OpenSim.Framework
         /// </summary>
         public void Dispose()
         {
-            AddinManager.AddinLoadError -= on_addinloaderror_;
-            AddinManager.AddinLoaded -= on_addinloaded_;
+            AddinManager.ExtensionChanged -= OnExtensionChanged;
+            AddinManager.AddinUnloaded -= OnUnload;
+            AddinManager.AddinLoadError -= OnLoaderError;
+            AddinManager.AddinLoaded -= OnLoad;
         }
 
-        private void initialise_plugin_dir_(string dir)
+        private void initialise_plugin_dir(string dir)
         {
             if (AddinManager.IsInitialized == true)
                 return;
 
             log.Info("[PLUGINS]: Initializing addin manager");
 
-            AddinManager.AddinLoadError += on_addinloaderror_;
-            AddinManager.AddinLoaded += on_addinloaded_;
-
             AddinManager.Initialize(dir);
+
+            AddinManager.AddinLoadError += OnLoaderError;
+            AddinManager.AddinLoaded += OnLoad;
+            AddinManager.AddinUnloaded += OnUnload;
+            AddinManager.ExtensionChanged += OnExtensionChanged;
+
             AddinManager.Registry.Update(null);
         }
 
-        private void on_addinloaded_(object sender, AddinEventArgs args)
+        private void OnLoad(object sender, AddinEventArgs args)
         {
             log.Info("[PLUGINS]: Plugin Loaded: " + args.AddinId);
         }
 
-        private void on_addinloaderror_(object sender, AddinErrorEventArgs args)
+        private void OnUnload(object sender, AddinEventArgs args)
+        {
+            log.Info ("[PLUGINS]: Plugin Unloaded: " + args.AddinId);
+        }
+
+        private void OnLoaderError(object sender, AddinErrorEventArgs args)
         {
             if (args.Exception == null)
                 log.Error("[PLUGINS]: Plugin Error: "
@@ -233,6 +243,11 @@ namespace OpenSim.Framework
                 log.Error("[PLUGINS]: Plugin Error: "
                         + args.Exception.Message + "\n"
                         + args.Exception.StackTrace);
+        }
+        
+        private void OnExtensionChanged(object sender, ExtensionEventArgs args)
+        {
+            log.Info ("[PLUGINS]: Extension Changed: " + args.Path);
         }
     }
 

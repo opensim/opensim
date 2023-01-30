@@ -1,0 +1,16 @@
+<Addin id="OpenSim.ApplicationPlugins.RegionModulesController" version="0.5">
+
+    <Runtime>
+        <Import assembly="OpenSim.Region.Framework.dll" />
+        <Import assembly="OpenSim.ApplicationPlugins.RegionModulesController.dll"/>
+    </Runtime>
+
+    <Dependencies>
+        <Addin id="OpenSim" version="0.5" />
+    </Dependencies>
+
+    <Extension path = "/OpenSim/Startup">
+        <Plugin id="RegionModulesController" type="OpenSim.ApplicationPlugins.RegionModulesController.RegionModulesControllerPlugin" />
+    </Extension>
+    
+</Addin>

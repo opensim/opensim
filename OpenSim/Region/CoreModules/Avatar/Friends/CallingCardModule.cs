@@ -40,7 +40,7 @@ using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.CoreModules.Avatar.Friends
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "XCallingCard")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "CallingCardModule")]
     public class CallingCardModule : ISharedRegionModule, ICallingCardModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -100,7 +100,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         public string Name
         {
-            get { return "XCallingCardModule"; }
+            get { return "CallingCardModule"; }
         }
 
         private void OnNewClient(IClientAPI client)

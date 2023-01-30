@@ -327,7 +327,7 @@ namespace OpenSim.Groups
         {
             return m_CacheWrapper.GetAgentGroupRoles(RequestingAgentID, AgentID, GroupID, delegate
             {
-                return m_GroupsService.GetAgentGroupRoles(RequestingAgentID, AgentID, GroupID); ;
+                return m_GroupsService.GetAgentGroupRoles(RequestingAgentID, AgentID, GroupID);
             });
         }
 

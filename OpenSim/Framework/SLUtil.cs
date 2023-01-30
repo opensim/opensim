@@ -164,6 +164,7 @@ namespace OpenSim.Framework
             new TypeMapping(AssetType.Link, InventoryType.Unknown, "application/vnd.ll.link", "link"),
             new TypeMapping(AssetType.LinkFolder, InventoryType.Unknown, "application/vnd.ll.linkfolder", "linkfolder"),
             new TypeMapping(AssetType.Mesh, InventoryType.Mesh, "application/vnd.ll.mesh", "llm"),
+            new TypeMapping(AssetType.Material, InventoryType.Material, "application/llsd+xml", "glftmat"),
 
             // The next few items are about inventory folders
             new TypeMapping(AssetType.Folder, FolderType.None, "application/vnd.ll.folder", "folder"),
@@ -212,7 +213,8 @@ namespace OpenSim.Framework
             {"gesture", AssetType.Gesture},
             {"simstate", AssetType.Simstate},
             {"mesh", AssetType.Mesh},
-            {"settings", AssetType.Settings}
+            {"settings", AssetType.Settings},
+            {"material", AssetType.Material}
         };
         private static Dictionary<string, FolderType> name2Inventory = new Dictionary<string, FolderType>()
         {
@@ -238,6 +240,7 @@ namespace OpenSim.Framework
             {"myoutfits", FolderType.MyOutfits},
             {"mesh", FolderType.Mesh},
             {"settings", FolderType.Settings},
+            {"material", FolderType.Material},
             {"suitcase", FolderType.Suitcase}
         };
 

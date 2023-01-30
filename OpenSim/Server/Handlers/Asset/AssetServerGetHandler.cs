@@ -136,7 +136,8 @@ namespace OpenSim.Server.Handlers.Asset
                     result = ServerUtils.SerializeResult(xs, asset);
 
                     httpResponse.StatusCode = (int)HttpStatusCode.OK;
-                    httpResponse.ContentType = SLUtil.SLAssetTypeToContentType(asset.Type);
+                    //httpResponse.ContentType = SLUtil.SLAssetTypeToContentType(asset.Type);
+                    httpResponse.ContentType = "text/xml";
                 }
                 else
                 {

@@ -2774,16 +2774,33 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         public virtual bool HandleIncomingSceneObject(SceneObjectGroup so, Vector3 newPosition)
         {
+            if (so.OwnerID.IsZero())
+            {
+                m_log.DebugFormat(
+                    "[ENTITY TRANSFER MODULE]: Denied object {0}({1}) entry into {2} because ownerID is zero",
+                        so.Name, so.UUID, m_sceneName);
+                return false;
+            }
+
             // If the user is banned, we won't let any of their objects
             // enter. Period.
-            //
             if (m_sceneRegionInfo.EstateSettings.IsBanned(so.OwnerID))
             {
                 m_log.DebugFormat(
-                    "[ENTITY TRANSFER MODULE]: Denied prim crossing of {0} {1} into {2} for banned avatar {3}",
-                    so.Name, so.UUID, m_sceneName, so.OwnerID);
-
+                    "[ENTITY TRANSFER MODULE]: Denied {0} {1} into {2} of banned owner {3}",
+                        so.Name, so.UUID, m_sceneName, so.OwnerID);
                 return false;
+            }
+
+            if(so.IsAttachmentCheckFull())
+            {
+                if(m_scene.GetScenePresence(so.OwnerID) == null)
+                {
+                    m_log.DebugFormat(
+                    "[ENTITY TRANSFER MODULE]: Denied attachment {0}({1}) owner {2} not in region {3}",
+                        so.Name, so.UUID, so.OwnerID, m_sceneName);
+                    return false;
+                }
             }
 
             if (!newPosition.IsZero())
