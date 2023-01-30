@@ -22,7 +22,7 @@ Load the generated OpenSim.sln into Visual Studio .NET and build the solution.
 
 Configure, see below
 
-Now just run `OpenSim.exe` from the `bin` folder, and set up the region.
+The resulting build will be generated to ./build/{Debug|Release}/
 
 # Building on Linux / Mac
 
@@ -46,13 +46,13 @@ format for Msbuild which is simplified and really directly replaces what prebuil
 
 Configure. See below
 
-run `./opensim.sh` from the `bin` folder, and set up the region
+The resulting build will be generated to ./build/{Debug|Release}/
 
-For rebuilding and debugging use the msbuild option switches
-  *  clean:  `msbuild /target:clean`
-  *  debug: (default) `msbuild /property:Configuration=Debug`
-  *  release: `msbuild /property:Configuration=Release`
-
+For rebuilding and debugging use the dotnet command options
+  *  clean:  `dotnet clean
+  *  restore: dotnet restore
+  *  debug:   dotnet build --configuration Debug
+  *  release: dotnet build --configuration Release
 
 # Configure #
 ## Standalone mode ##
