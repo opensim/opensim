@@ -18700,6 +18700,42 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             return hash;
         }
+
+        public LSL_String llReplaceSubString(LSL_String src, LSL_String pattern, LSL_String replacement, int count)
+        {
+            RegexOptions RegexOptions;
+            if (count < 0)
+            {
+                RegexOptions = RegexOptions.CultureInvariant | RegexOptions.RightToLeft;
+                count = -count;
+            }
+            else
+            {
+                RegexOptions = RegexOptions.CultureInvariant;
+                if (count == 0)
+                    count = -1;
+            }
+
+
+            try
+            {
+                if (string.IsNullOrEmpty(src.m_string))
+                    return src;
+
+                if (string.IsNullOrEmpty(pattern.m_string))
+                    return src;
+
+                Regex rx = new Regex(pattern, RegexOptions, new TimeSpan(500000)); // 50ms)
+                if (replacement == null)
+                    return rx.Replace(src.m_string, string.Empty, count);
+
+                return rx.Replace(src.m_string, replacement.m_string, count);
+            }
+            catch
+            {
+                return src;
+            }
+        }
     }
 
     public class NotecardCache
