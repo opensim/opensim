@@ -2209,5 +2209,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_LSL_Functions.llHash(s);
         }
+
+        public LSL_String llReplaceSubString(LSL_String src, LSL_String pattern, LSL_String replacement, int count)
+        {
+            return m_LSL_Functions.llReplaceSubString(src, pattern, replacement, count);
+        }
     }
 }

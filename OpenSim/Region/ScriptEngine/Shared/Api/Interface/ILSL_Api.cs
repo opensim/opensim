@@ -486,5 +486,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
          LSL_String llChar(LSL_Integer unicode);
         LSL_Integer llOrd(LSL_String s, LSL_Integer index);
         LSL_Integer llHash(LSL_String s);
+         LSL_String llReplaceSubString(LSL_String src, LSL_String pattern, LSL_String replacement, int count);
     }
 }
