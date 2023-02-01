@@ -1975,7 +1975,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             webRequest.ContentType = "application/json-rpc";
             webRequest.Method = "POST";
 
-            WebResponse webResponse = null;
+            WebResponse webResponse;
             try
             {
                 using(Stream dataStream = webRequest.GetRequestStream())
@@ -2001,8 +2001,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 catch (Exception e)
                 {
                     m_log.DebugFormat("[PROFILES]: JsonRpcRequest Error {0} - remote user with legacy profiles?", e.Message);
-                    if (webResponse != null)
-                        webResponse.Close();
+                    webResponse?.Close();
                     return false;
                 }
             }

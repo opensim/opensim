@@ -50,7 +50,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     string friendsServerURI = m_FriendsModule.UserManagementModule.GetUserServerURL(friendID, "FriendsServerURI");
                     if (!string.IsNullOrEmpty(friendsServerURI))
                     {
-                        HGFriendsServicesConnector fConn = new HGFriendsServicesConnector(friendsServerURI);
+                        HGFriendsServicesConnector fConn = new(friendsServerURI);
 
                         List<UUID> friendsOnline = fConn.StatusNotification(ids, userID, online);
 
