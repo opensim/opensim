@@ -238,10 +238,22 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             // FIXME: also query the presence status of friends in other grids (like in HGStatusNotifier.Notify())
 
             PresenceInfo[] presence = PresenceService.GetAgents(fList.ToArray());
+            if (presence.Length == 0)
+                return;
+
+            if (!m_OnlineFriendsCache.TryGetValue(userID, out HashSet<UUID> friends))
+            {
+                friends = new HashSet<UUID>();
+                m_OnlineFriendsCache[userID] = friends;
+            }
+
             foreach (PresenceInfo pi in presence)
             {
                 if (UUID.TryParse(pi.UserID, out UUID presenceID))
+                {
                     online.Add(presenceID);
+                    friends.Add(presenceID);
+                }
             }
 
             //m_log.DebugFormat("[HGFRIENDS MODULE]: Exiting GetOnlineFriends for {0}", userID);

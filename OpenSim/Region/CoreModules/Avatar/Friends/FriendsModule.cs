@@ -268,11 +268,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 friends = new HashSet<UUID>();
                 m_OnlineFriendsCache[userID] = friends;
             }
-            foreach (UUID friendID in friendsOnline)
+            if (online)
             {
-                if (online)
+                foreach (UUID friendID in friendsOnline)
                     friends.Add(friendID);
-                else
+            }
+            else
+            {
+                foreach (UUID friendID in friendsOnline)
                     friends.Remove(friendID);
             }
         }
@@ -374,6 +377,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
             lock (m_Friends)
             {
+                foreach(HashSet<UUID> friends in m_OnlineFriendsCache.Values)
+                    friends.Remove(agentID);
                 m_OnlineFriendsCache.Remove(agentID);
                 if (m_Friends.TryGetValue(agentID, out UserFriendData friendsData))
                 {

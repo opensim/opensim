@@ -1842,7 +1842,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             if(client.SceneAgent is ScenePresence sp && sp.IsViewerUIGod)
             {
                 Services.Interfaces.PresenceInfo[] pi = Scene.PresenceService?.GetAgents(new string[] { agent.ToString() });
-                return pi != null && pi.Length > 0;
+                return pi is not null && pi.Length > 0;
             }
             return false;
          }
