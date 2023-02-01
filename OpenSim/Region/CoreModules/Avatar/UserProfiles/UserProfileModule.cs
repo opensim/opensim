@@ -155,7 +155,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                                 m_profilesCache.AddOrUpdate(props.UserId, uce, PROFILECACHEEXPIRE);
                             }
 
-                            if (IsFriendOnline(req.client.AgentId, req.agent))
+                            if (IsFriendOnline(req.client, req.agent))
                                 flags |= (uint)ProfileFlags.Online;
                             else
                                 flags &= (uint)~ProfileFlags.Online;
@@ -1086,9 +1086,8 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         {
             //m_log.DebugFormat("[PROFILES]: Start PickInfoUpdate Name: {0} PickId: {1} SnapshotId: {2}", name, pickID.ToString(), snapshotID.ToString());
 
-            UserProfilePick pick = new UserProfilePick();
-            string serverURI = string.Empty;
-            GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
+            UserProfilePick pick = new();
+            GetUserProfileServerURI(remoteClient.AgentId, out string serverURI);
             if(string.IsNullOrWhiteSpace(serverURI))
                 return;
 
@@ -1192,10 +1191,8 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             {
                 if(m_profilesCache.TryGetValue(remoteClient.AgentId, out uce) && uce is not null)
                 {
-                    if(uce.picks != null && uce.picks.ContainsKey(queryPickID))
-                        uce.picks.Remove(queryPickID);
-                    if(uce.picksList is not null)
-                        uce.picksList.Remove(queryPickID);
+                    uce.picks?.Remove(queryPickID);
+                    uce.picksList?.Remove(queryPickID);
                     m_profilesCache.AddOrUpdate(remoteClient.AgentId, uce, PROFILECACHEEXPIRE);
                 }
             }
@@ -1451,7 +1448,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                         props = uce.props;
                         uint cflags = uce.flags;
 
-                        if (IsFriendOnline(remoteClient.AgentId, avatarID))
+                        if (IsFriendOnline(remoteClient, avatarID))
                             cflags = (uint)ProfileFlags.Online;
                         else
                             cflags &= (uint)~ProfileFlags.Online;
@@ -1831,22 +1828,21 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             return null;
         }
 
-        public virtual bool IsFriendOnline(UUID client, UUID agent)
+        public virtual bool IsFriendOnline(IClientAPI client, UUID agent)
         {
-                    // if on same region force online
+            // if on same region force online
             ScenePresence p = Scene.GetScenePresence(agent);
-            if (p is not null && !p.IsDeleted)
+            if (p is not null && !p.IsChildAgent && !p.IsDeleted)
                 return true;
 
             IFriendsModule friendsModule = Scene.RequestModuleInterface<IFriendsModule>();
-            if (friendsModule is not null)
+            if (friendsModule is not null && friendsModule.IsFriendOnline(client.AgentId, agent))
+                return true;
+
+            if(client.SceneAgent is ScenePresence sp && sp.IsViewerUIGod)
             {
-                int friendPerms = friendsModule.GetRightsGrantedByFriend(client, agent);
-                if((friendPerms & (int)FriendRights.CanSeeOnline) != 0)
-                {
-                    Services.Interfaces.PresenceInfo[] pi = Scene.PresenceService?.GetAgents(new string[] { agent.ToString() });
-                    return pi is not null && pi.Length > 0;
-                }
+                Services.Interfaces.PresenceInfo[] pi = Scene.PresenceService?.GetAgents(new string[] { agent.ToString() });
+                return pi != null && pi.Length > 0;
             }
             return false;
          }

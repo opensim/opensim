@@ -96,5 +96,8 @@ namespace OpenSim.Region.Framework.Interfaces
 
         void IsNowRoot(ScenePresence sp);
         bool SendFriendsOnlineIfNeeded(IClientAPI client);
+        bool IsFriendOnline(UUID userID, UUID friendID);
+        void CacheFriendsOnline(UUID userID, List<UUID> friendsOnline, bool online);
+        void CacheFriendOnline(UUID userID, UUID friendOnline, bool online);
     }
 }

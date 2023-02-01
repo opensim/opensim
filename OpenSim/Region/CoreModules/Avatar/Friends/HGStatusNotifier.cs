@@ -28,6 +28,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         public void Notify(UUID userID, Dictionary<string, List<FriendInfo>> friendsPerDomain, bool online)
         {
+            if(m_FriendsModule is null)
+                return;
+
             foreach (KeyValuePair<string, List<FriendInfo>> kvp in friendsPerDomain)
             {
                 // For the others, call the user agent service
@@ -51,10 +54,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
                         List<UUID> friendsOnline = fConn.StatusNotification(ids, userID, online);
 
-                        if (online && friendsOnline.Count > 0)
+                        if (friendsOnline.Count > 0)
                         {
                             IClientAPI client = m_FriendsModule.LocateClientObject(userID);
-                            client?.SendAgentOnline(friendsOnline.ToArray());
+                            if(client is not null)
+                            {
+                                m_FriendsModule.CacheFriendsOnline(userID, friendsOnline, online);
+                                if(online)
+                                    client?.SendAgentOnline(friendsOnline.ToArray());
+                                else
+                                    client?.SendAgentOffline(friendsOnline.ToArray());
+                            }
                         }
                     }
                 }
