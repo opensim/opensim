@@ -665,7 +665,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (m_dupeInProgress || IsDeleted)
                     triggerScriptEvent = false;
                 else
-                    triggerScriptEvent = m_rootPart.GroupPosition != val;
+                    triggerScriptEvent = !m_rootPart.GroupPosition.ApproxEquals(val, 1e-3f);
 
                 m_rootPart.GroupPosition = val;
 
