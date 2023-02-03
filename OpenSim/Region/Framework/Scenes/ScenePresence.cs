@@ -4947,6 +4947,12 @@ namespace OpenSim.Region.Framework.Scenes
                 else
                     cAgent.ActiveGroupTitle = Grouptitle;
             }
+
+            IFriendsModule friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
+            if (friendsModule != null)
+            {
+                cAgent.CachedFriendsOnline = friendsModule.GetCachedFriendsOnline(UUID);
+            }
         }
 
         private void CopyFrom(AgentData cAgent)
@@ -5107,6 +5113,13 @@ namespace OpenSim.Region.Framework.Scenes
 
             lock (m_originRegionIDAccessLock)
                 m_originRegionID = cAgent.RegionID;
+
+            if (cAgent.CachedFriendsOnline != null)
+            {
+                IFriendsModule friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
+                friendsModule?.CacheFriendsOnline(UUID, cAgent.CachedFriendsOnline, true);
+            }
+
         }
 
         public bool CopyAgent(out IAgentData agent)

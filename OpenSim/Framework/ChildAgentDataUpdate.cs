@@ -389,16 +389,10 @@ namespace OpenSim.Framework
         // Appearance
         public AvatarAppearance Appearance;
 
-// DEBUG ON
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
-// DEBUG OFF
-
         // Scripted
         public ControllerData[] Controllers;
 
-        public string CallbackURI; // to remove
+        public string CallbackURI;
         public string NewCallbackURI;
 
         // These two must have the same Count
@@ -406,6 +400,10 @@ namespace OpenSim.Framework
         public List<string> AttachmentObjectStates;
 
         public Dictionary<string, UUID> MovementAnimationOverRides = new Dictionary<string, UUID>();
+
+        public List<UUID> CachedFriendsOnline;
+
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public void SetLookAt(Vector3 value)
         {
@@ -424,7 +422,7 @@ namespace OpenSim.Framework
 
         public virtual OSDMap Pack(EntityTransferContext ctx)
         {
-//            m_log.InfoFormat("[CHILDAGENTDATAUPDATE] Pack data");
+            //m_log.InfoFormat("[CHILDAGENTDATAUPDATE] Pack data");
 
             OSDMap args = new OSDMap();
             args["message_type"] = OSD.FromString("AgentData");
@@ -574,6 +572,16 @@ namespace OpenSim.Framework
 
             args["parent_part"] = OSD.FromUUID(ParentPart);
             args["sit_offset"] = OSD.FromString(SitOffset.ToString());
+
+            if(CachedFriendsOnline != null && CachedFriendsOnline.Count > 0)
+            {
+                OSDArray cfonl = new OSDArray(CachedFriendsOnline.Count);
+                {
+                    foreach(UUID id in CachedFriendsOnline)
+                        cfonl.Add(id);
+                }
+                args["cfonline"] = cfonl;
+            }
 
             return args;
         }
@@ -871,6 +879,14 @@ namespace OpenSim.Framework
                 ParentPart = tmp.AsUUID();
             if (args.TryGetValue("sit_offset", out tmp) && tmp != null)
                 Vector3.TryParse(tmp.AsString(), out SitOffset);
+
+            if (args.TryGetValue("cfonline", out tmp) && tmp != null)
+            {
+                OSDArray cfonl = (OSDArray)tmp;
+                CachedFriendsOnline = new List<UUID>(cfonl.Count);
+                foreach(OSD o in cfonl)
+                    CachedFriendsOnline.Add(o.AsUUID());
+            } 
         }
 
         public AgentData()

@@ -99,5 +99,6 @@ namespace OpenSim.Region.Framework.Interfaces
         bool IsFriendOnline(UUID userID, UUID friendID);
         void CacheFriendsOnline(UUID userID, List<UUID> friendsOnline, bool online);
         void CacheFriendOnline(UUID userID, UUID friendOnline, bool online);
+        List<UUID> GetCachedFriendsOnline(UUID userID);
     }
 }

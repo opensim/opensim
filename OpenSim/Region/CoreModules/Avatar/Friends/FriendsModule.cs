@@ -280,7 +280,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             }
         }
 
-        public void CacheFriendOnline(UUID userID, UUID friendID, bool online)
+        public virtual void CacheFriendOnline(UUID userID, UUID friendID, bool online)
         {
             if (!m_OnlineFriendsCache.TryGetValue(userID, out HashSet<UUID> friends))
             {
@@ -291,6 +291,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 friends.Add(friendID);
             else
                 friends.Remove(friendID);
+        }
+        public virtual List<UUID> GetCachedFriendsOnline(UUID userID)
+        {
+            if (m_OnlineFriendsCache.TryGetValue(userID, out HashSet<UUID> friends))
+            {
+                List<UUID> friendslst = new List<UUID>(friends.Count);
+                foreach(UUID id in friends)
+                    friendslst.Add(id);
+                return friendslst;
+            }
+            else
+                return null;
         }
 
         private void OnMakeRootAgent(ScenePresence sp)
