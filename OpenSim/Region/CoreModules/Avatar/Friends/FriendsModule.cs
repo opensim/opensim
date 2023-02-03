@@ -389,8 +389,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
             lock (m_Friends)
             {
-                foreach(HashSet<UUID> friends in m_OnlineFriendsCache.Values)
-                    friends.Remove(agentID);
                 m_OnlineFriendsCache.Remove(agentID);
                 if (m_Friends.TryGetValue(agentID, out UserFriendData friendsData))
                 {
