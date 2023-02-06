@@ -487,5 +487,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_Integer llOrd(LSL_String s, LSL_Integer index);
         LSL_Integer llHash(LSL_String s);
          LSL_String llReplaceSubString(LSL_String src, LSL_String pattern, LSL_String replacement, int count);
+
+               void llLinkAdjustSoundVolume(LSL_Integer linknumber, LSL_Float volume);
+               void llLinkStopSound(LSL_Integer linknumber);
+               void llLinkPlaySound(LSL_Integer linknumber, string sound, double volume);
     }
 }

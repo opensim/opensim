@@ -2214,5 +2214,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_LSL_Functions.llReplaceSubString(src, pattern, replacement, count);
         }
+
+        public void llLinkAdjustSoundVolume(LSL_Integer linknumber, LSL_Float volume)
+        {
+            m_LSL_Functions.llLinkAdjustSoundVolume(linknumber, volume);
+        }
+
+        public void llLinkStopSound(LSL_Integer linknumber)
+        {
+            m_LSL_Functions.llLinkStopSound(linknumber);
+        }
+
+        public void llLinkPlaySound(LSL_Integer linknumber, string sound, double volume)
+        {
+            m_LSL_Functions.llLinkPlaySound(linknumber, sound, volume);
+        }
     }
 }
