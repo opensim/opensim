@@ -3164,7 +3164,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             SceneObjectPart sop;
-            if (linknumber = ScriptBaseClass.LINK_THIS)
+            if (linknumber == ScriptBaseClass.LINK_THIS)
                 sop = m_host;               
             else if (linknumber < 0)
                 return;
