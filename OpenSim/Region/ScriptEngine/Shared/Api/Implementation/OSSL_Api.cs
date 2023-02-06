@@ -2695,7 +2695,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.VeryLow, "osReplaceString");
 
             // Normalize indices (if negative).
-            // After normlaization they may still be
+            // After normalization they may still be
             // negative, but that is now relative to
             // the start, rather than the end, of the
             // sequence.
