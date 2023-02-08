@@ -3049,7 +3049,20 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>null if no child part with that linknum or child part</returns>
         public SceneObjectPart GetLinkNumPart(int linknum)
         {
-            SceneObjectPart[] parts = m_parts.GetArray();
+            if (linknum < 0)
+                return null;
+            if (linknum < 2)
+                return RootPart;
+
+            Span<SceneObjectPart> parts = m_parts.GetArray().AsSpan();
+            SceneObjectPart sop;
+            if (linknum <= parts.Length)
+            {
+                sop = parts[linknum - 1];
+                if (sop.LinkNum == linknum)
+                    return sop;
+            }
+
             for (int i = 0; i < parts.Length; i++)
             {
                 if (parts[i].LinkNum == linknum)
@@ -5266,6 +5279,18 @@ namespace OpenSim.Region.Framework.Scenes
         {
             lock (m_sittingAvatars)
                 return m_sittingAvatars.Count;
+        }
+
+        public ScenePresence GetLinkSitingAvatar(int linknumber)
+        {
+            lock(m_parts)
+                linknumber -= (m_parts.Count + 1);
+            if(linknumber >= 0)
+            {
+                lock (m_sittingAvatars)
+                    return linknumber > m_sittingAvatars.Count ? null : m_sittingAvatars[linknumber];
+            }
+            return null;
         }
 
         public override string ToString()
