@@ -583,8 +583,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             // We need to tell the URL module, if we hav one, to release
             // the allocated URLs
-            if (m_UrlModule != null)
-                m_UrlModule.ScriptRemoved(m_item.ItemID);
+            m_UrlModule?.ScriptRemoved(m_item.ItemID);
 
             m_ScriptEngine.ApiResetScript(m_item.ItemID);
         }
@@ -633,7 +632,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (!item.IsZero())
             {
-                m_ScriptEngine.SetScriptState(item, run == 0 ? false : true, item.Equals(m_item.ItemID));
+                m_ScriptEngine.SetScriptState(item, run != 0, item.Equals(m_item.ItemID));
             }
             else
             {
@@ -724,51 +723,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </param>
         public ISceneEntity GetLinkEntity(SceneObjectPart part, int linknum)
         {
-            if (linknum < 0)
-            {
-                if (linknum == ScriptBaseClass.LINK_THIS)
-                    return part;
-                else
-                    return null;
-            }
+            if (linknum == ScriptBaseClass.LINK_THIS)
+               return part;
+ 
+            if (linknum <= part.ParentGroup.PrimCount)
+                return part.ParentGroup.GetLinkNumPart(linknum);
 
-            int actualPrimCount = part.ParentGroup.PrimCount;
-            List<ScenePresence> sittingAvatars = part.ParentGroup.GetSittingAvatars();
-            int adjustedPrimCount = actualPrimCount + sittingAvatars.Count;
-
-            // Special case for a single prim.  In this case the linknum is zero.  However, this will not match a single
-            // prim that has any avatars sat upon it (in which case the root prim is link 1).
-            if (linknum == 0)
-            {
-                if (actualPrimCount == 1 && sittingAvatars.Count == 0)
-                    return part;
-
-                return null;
-            }
-            // Special case to handle a single prim with sitting avatars.  GetLinkPart() would only match zero but
-            // here we must match 1 (ScriptBaseClass.LINK_ROOT).
-            else if (linknum == ScriptBaseClass.LINK_ROOT && actualPrimCount == 1)
-            {
-                if (sittingAvatars.Count > 0)
-                    return part.ParentGroup.RootPart;
-                else
-                    return null;
-            }
-            else if (linknum <= adjustedPrimCount)
-            {
-                if (linknum <= actualPrimCount)
-                {
-                    return part.ParentGroup.GetLinkNumPart(linknum);
-                }
-                else
-                {
-                    return sittingAvatars[linknum - actualPrimCount - 1];
-                }
-            }
-            else
-            {
-                return null;
-            }
+            return part.ParentGroup.GetLinkSitingAvatar(linknum);
         }
 
         public List<SceneObjectPart> GetLinkParts(int linkType)
@@ -778,47 +739,36 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public static List<SceneObjectPart> GetLinkParts(SceneObjectPart part, int linkType)
         {
-            List<SceneObjectPart> ret = new List<SceneObjectPart>();
-            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
-                return ret;
+            if (part is null || part.ParentGroup is null || part.ParentGroup.IsDeleted)
+                return new List<SceneObjectPart>();
 
+            List<SceneObjectPart> ret;
             switch (linkType)
             {
                 case ScriptBaseClass.LINK_SET:
                     return new List<SceneObjectPart>(part.ParentGroup.Parts);
 
                 case ScriptBaseClass.LINK_ROOT:
-                    ret.Add(part.ParentGroup.RootPart);
-                    return ret;
+                    return new List<SceneObjectPart> { part.ParentGroup.RootPart };
 
                 case ScriptBaseClass.LINK_ALL_OTHERS:
                     ret = new List<SceneObjectPart>(part.ParentGroup.Parts);
-
-                    if (ret.Contains(part))
-                        ret.Remove(part);
-
+                    ret.Remove(part);
                     return ret;
 
                 case ScriptBaseClass.LINK_ALL_CHILDREN:
                     ret = new List<SceneObjectPart>(part.ParentGroup.Parts);
-
-                    if (ret.Contains(part.ParentGroup.RootPart))
-                        ret.Remove(part.ParentGroup.RootPart);
+                    ret.Remove(part.ParentGroup.RootPart);
                     return ret;
 
                 case ScriptBaseClass.LINK_THIS:
-                    ret.Add(part);
-                    return ret;
+                    return new List<SceneObjectPart> { part };
 
                 default:
-                    if (linkType < 0)
-                        return ret;
-
                     SceneObjectPart target = part.ParentGroup.GetLinkNumPart(linkType);
-                    if (target == null)
-                        return ret;
-                    ret.Add(target);
-                    return ret;
+                    if (target is not null)
+                        return new List<SceneObjectPart> { target };
+                    return new List<SceneObjectPart>();
             }
         }
 
@@ -841,20 +791,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 case ScriptBaseClass.LINK_ALL_OTHERS:
                     ret = new List<ISceneEntity>(part.ParentGroup.Parts);
-
-                    if (ret.Contains(part))
-                        ret.Remove(part);
-
+                    ret.Remove(part);
                     return ret;
 
                 case ScriptBaseClass.LINK_ALL_CHILDREN:
                     ret = new List<ISceneEntity>(part.ParentGroup.Parts);
-
-                    if (ret.Contains(part.ParentGroup.RootPart))
-                        ret.Remove(part.ParentGroup.RootPart);
+                    ret.Remove(part.ParentGroup.RootPart);
 
                     List<ScenePresence> avs = part.ParentGroup.GetSittingAvatars();
-                    if(avs!= null && avs.Count > 0)
+                    if(avs is not null && avs.Count > 0)
                         ret.AddRange(avs);
 
                     return ret;
@@ -867,7 +812,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         return new List<ISceneEntity>();
 
                     ISceneEntity target = GetLinkEntity(part, linkType);
-                    if (target == null)
+                    if (target is null)
                         return new List<ISceneEntity>();
 
                     return new List<ISceneEntity>() { target };
