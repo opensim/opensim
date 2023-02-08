@@ -17689,7 +17689,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 jsdata = LitJson.JsonMapper.ToObject(json);
             }
-            catch (Exception e)
+            catch //(Exception e)
             {
                 //string m = e.Message; // debug point
                 return json;
@@ -17698,7 +17698,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 return JsonParseTop(jsdata);
             }
-            catch   (Exception e)
+            catch //(Exception e)
             {
                 //string m = e.Message; // debug point
                 return (LSL_String)ScriptBaseClass.JSON_INVALID;
@@ -17957,7 +17957,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     workData.SetJsonType(LitJson.JsonType.Array);
                 }
             }
-            catch (Exception e)
+            catch //(Exception e)
             {
                 //string m = e.Message; // debug point
                 return ScriptBaseClass.JSON_INVALID;
@@ -17968,9 +17968,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if(replace != null)
                     workData = replace;
             }
-            catch (Exception e)
+            catch //(Exception e)
             {
-                string m = e.Message; // debug point
+                //string m = e.Message; // debug point
                 return ScriptBaseClass.JSON_INVALID;
             }
 
@@ -17981,7 +17981,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     r = r.Substring(1,r.Length -2); // strip leading and trailing brakets
                 return r;
             }
-            catch (Exception e)
+            catch //(Exception e)
             {
                 //string m = e.Message; // debug point
             }
