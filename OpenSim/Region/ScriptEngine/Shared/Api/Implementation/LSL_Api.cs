@@ -7015,51 +7015,39 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Vector llGroundNormal(LSL_Vector offset)
         {
-            Vector3 pos = m_host.GetWorldPosition() + (Vector3)offset;
+            Vector3 pos = m_host.GetWorldPosition();
+            int posX = (int)(pos.X + (float)offset.x);
+            int posY = (int)(pos.Y + (float)offset.y);
+
             // Clamp to valid position
-            if (pos.X < 0)
-                pos.X = 0;
-            else if (pos.X >= World.Heightmap.Width)
-                pos.X = World.Heightmap.Width - 1;
-            if (pos.Y < 0)
-                pos.Y = 0;
-            else if (pos.Y >= World.Heightmap.Height)
-                pos.Y = World.Heightmap.Height - 1;
+            if (posX < 0)
+                posX = 0;
+            else if (posX >= World.Heightmap.Width)
+                posX = World.Heightmap.Width - 1;
+
+            if (posY < 0)
+                posY = 0;
+            else if (posY >= World.Heightmap.Height)
+                posY = World.Heightmap.Height - 1;
 
             //Find two points in addition to the position to define a plane
-            Vector3 p0 = new Vector3(pos.X, pos.Y,
-                                     (float)World.Heightmap[(int)pos.X, (int)pos.Y]);
-            Vector3 p1 = new Vector3();
-            Vector3 p2 = new Vector3();
-            if ((pos.X + 1.0f) >= World.Heightmap.Width)
-                p1 = new Vector3(pos.X + 1.0f, pos.Y,
-                            (float)World.Heightmap[(int)pos.X, (int)pos.Y]);
+            float h0 = (float)World.Heightmap[(int)pos.X, (int)pos.Y];
+            float h1;
+            float h2;
+            int posxplus = posX + 1;
+            if (posxplus >= World.Heightmap.Width)
+                h1 = h0;
             else
-                p1 = new Vector3(pos.X + 1.0f, pos.Y,
-                            (float)World.Heightmap[(int)(pos.X + 1.0f), (int)pos.Y]);
-            if ((pos.Y + 1.0f) >= World.Heightmap.Height)
-                p2 = new Vector3(pos.X, pos.Y + 1.0f,
-                            (float)World.Heightmap[(int)pos.X, (int)pos.Y]);
+                h1 = (float)World.Heightmap[posxplus, posY];
+
+            int posyplus = posY + 1;
+            if (posyplus >= World.Heightmap.Height)
+                h2 = h0;
             else
-                p2 = new Vector3(pos.X, pos.Y + 1.0f,
-                            (float)World.Heightmap[(int)pos.X, (int)(pos.Y + 1.0f)]);
+                h2 = (float)World.Heightmap[posX, posyplus];
 
-            //Find normalized vectors from p0 to p1 and p0 to p2
-            Vector3 v0 = new Vector3(p1.X - p0.X, p1.Y - p0.Y, p1.Z - p0.Z);
-            Vector3 v1 = new Vector3(p2.X - p0.X, p2.Y - p0.Y, p2.Z - p0.Z);
-            v0.Normalize();
-            v1.Normalize();
-
-            //Find the cross product of the vectors (the slope normal).
-            Vector3 vsn = new Vector3
-            {
-                X = (v0.Y * v1.Z) - (v0.Z * v1.Y),
-                Y = (v0.Z * v1.X) - (v0.X * v1.Z),
-                Z = (v0.X * v1.Y) - (v0.Y * v1.X)
-            };
+            Vector3 vsn = new(h0 - h1, h0 - h2, 1.0f);
             vsn.Normalize();
-            //I believe the crossproduct of two normalized vectors is a normalized vector so
-            //this normalization may be overkill
 
             return new LSL_Vector(vsn);
         }
