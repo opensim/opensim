@@ -18322,7 +18322,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 jsonData = LitJson.JsonMapper.ToObject(json);
             }
-            catch (Exception e)
+            catch //(Exception e)
             {
                 //string m = e.Message; // debug point
                 return ScriptBaseClass.JSON_INVALID;
