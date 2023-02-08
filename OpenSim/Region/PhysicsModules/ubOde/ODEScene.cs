@@ -2068,7 +2068,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 }
             }
             h0 = rx * rx + ry * ry + 1.0f;
-            h0 = 1.0f / (float) Math.Sqrt(h0);
+            h0 = 1.0f / MathF.Sqrt(h0);
             return new Vector3(rx * h0, ry * h0, h0);
         }
 
