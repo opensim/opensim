@@ -576,10 +576,8 @@ namespace OpenSim.Framework
             if(CachedFriendsOnline != null && CachedFriendsOnline.Count > 0)
             {
                 OSDArray cfonl = new OSDArray(CachedFriendsOnline.Count);
-                {
-                    foreach(UUID id in CachedFriendsOnline)
-                        cfonl.Add(id);
-                }
+                foreach(UUID id in CachedFriendsOnline)
+                    cfonl.Add(id);
                 args["cfonline"] = cfonl;
             }
 
