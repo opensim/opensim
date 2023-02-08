@@ -47,7 +47,7 @@ namespace OpenSim.Server
         private static readonly ILog m_log = LogManager.GetLogger( MethodBase.GetCurrentMethod().DeclaringType);
 
         protected static HttpServerBase m_Server = null;
-        protected static List<IServiceConnector> m_ServiceConnectors = new List<IServiceConnector>();
+        protected static List<IServiceConnector> m_ServiceConnectors = new();
 
         protected static PluginLoader loader;
         private static bool m_NoVerifyCertChain = false;
@@ -82,7 +82,7 @@ namespace OpenSim.Server
                 using(StreamReader readFile = File.OpenText(fileName))
                 {
                     string currentLine;
-                    while ((currentLine = readFile.ReadLine()) != null)
+                    while ((currentLine = readFile.ReadLine()) is not null)
                     {
                         m_log.InfoFormat("[!]" + currentLine);
                     }
@@ -127,7 +127,7 @@ namespace OpenSim.Server
             IConfig servicesConfig = m_Server.Config.Configs["ServiceList"];
             if (servicesConfig != null)
             {
-                List<string> servicesList = new List<string>();
+                List<string> servicesList = new();
                 if (!string.IsNullOrEmpty(connList))
                     servicesList.Add(connList);
 
@@ -236,8 +236,7 @@ namespace OpenSim.Server
 
             int res = m_Server.Run();
 
-            if(m_Server != null)
-                m_Server.Shutdown();
+            m_Server?.Shutdown();
 
             Util.StopThreadPool();
 
