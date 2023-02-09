@@ -16801,13 +16801,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llSetSoundQueueing(int queue)
         {
-            if (m_SoundModule != null)
+            if (m_SoundModule is not null)
                 m_SoundModule.SetSoundQueueing(m_host.UUID, queue == ScriptBaseClass.TRUE.value);
         }
 
         public void llLinkSetSoundQueueing(int linknumber, int queue)
         {
-            if (m_SoundModule != null)
+            if (m_SoundModule is not null)
             {
                 foreach (SceneObjectPart sop in GetLinkParts(linknumber))
                     m_SoundModule.SetSoundQueueing(sop.UUID, queue == ScriptBaseClass.TRUE.value);
