@@ -1,4 +1,4 @@
-ed6c8a73-2eee-8850-88e9-5bf844e6ab3b
+b60b609e-502d-3344-e38d-7fd0718cf5ea
 <llsd><map><key>llsd-lsl-syntax-version</key><integer>2</integer>
 <key>controls</key>
 <map>
@@ -4851,6 +4851,13 @@ ed6c8a73-2eee-8850-88e9-5bf844e6ab3b
    <map><key>queue</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
+ <key>llLinkSetSoundRadius</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>linknumber</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>radius</key><map><key>type</key><string>float</string></map></map>
+  </array>
+ </map>
  <key>llLinkSitTarget</key>
  <map>
   <key>arguments</key><array>
@@ -6505,23 +6512,6 @@ ed6c8a73-2eee-8850-88e9-5bf844e6ab3b
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
-   <map><key>ra</key><map><key>type</key><string>rotation</string></map></map>
-   <map><key>rb</key><map><key>type</key><string>rotation</string></map></map>
-   <map><key>margin</key><map><key>type</key><string>float</string></map></map>
-  </array>
- </map>
- <key>osApproxEquals</key>
- <map>
-  <key>return</key><string>integer</string>
-  <key>arguments</key><array>
-   <map><key>ra</key><map><key>type</key><string>rotation</string></map></map>
-   <map><key>rb</key><map><key>type</key><string>rotation</string></map></map>
-  </array>
- </map>
- <key>osApproxEquals</key>
- <map>
-  <key>return</key><string>integer</string>
-  <key>arguments</key><array>
    <map><key>va</key><map><key>type</key><string>vector</string></map></map>
    <map><key>vb</key><map><key>type</key><string>vector</string></map></map>
    <map><key>margin</key><map><key>type</key><string>float</string></map></map>
@@ -6550,6 +6540,23 @@ ed6c8a73-2eee-8850-88e9-5bf844e6ab3b
   <key>arguments</key><array>
    <map><key>a</key><map><key>type</key><string>float</string></map></map>
    <map><key>b</key><map><key>type</key><string>float</string></map></map>
+  </array>
+ </map>
+ <key>osApproxEquals</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>ra</key><map><key>type</key><string>rotation</string></map></map>
+   <map><key>rb</key><map><key>type</key><string>rotation</string></map></map>
+   <map><key>margin</key><map><key>type</key><string>float</string></map></map>
+  </array>
+ </map>
+ <key>osApproxEquals</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>ra</key><map><key>type</key><string>rotation</string></map></map>
+   <map><key>rb</key><map><key>type</key><string>rotation</string></map></map>
   </array>
  </map>
  <key>osAvatarName2Key</key>
@@ -6695,6 +6702,8 @@ ed6c8a73-2eee-8850-88e9-5bf844e6ab3b
   <key>return</key><string>string</string>
   <key>arguments</key><array>
    <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
+   <map><key>startX</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>startY</key><map><key>type</key><string>integer</string></map></map>
    <map><key>endX</key><map><key>type</key><string>integer</string></map></map>
    <map><key>endY</key><map><key>type</key><string>integer</string></map></map>
   </array>
@@ -6704,8 +6713,6 @@ ed6c8a73-2eee-8850-88e9-5bf844e6ab3b
   <key>return</key><string>string</string>
   <key>arguments</key><array>
    <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
-   <map><key>startX</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>startY</key><map><key>type</key><string>integer</string></map></map>
    <map><key>endX</key><map><key>type</key><string>integer</string></map></map>
    <map><key>endY</key><map><key>type</key><string>integer</string></map></map>
   </array>
@@ -6844,13 +6851,13 @@ ed6c8a73-2eee-8850-88e9-5bf844e6ab3b
  <map>
   <key>arguments</key><array>
    <map><key>avatar</key><map><key>type</key><string>string</string></map></map>
-   <map><key>target</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
  <key>osForceOtherSit</key>
  <map>
   <key>arguments</key><array>
    <map><key>avatar</key><map><key>type</key><string>string</string></map></map>
+   <map><key>target</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
  <key>osFormatString</key>
