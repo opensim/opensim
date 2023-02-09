@@ -6758,6 +6758,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.SoundRadius = radius;
         }
 
+        public void llLinkSetSoundRadius(int linknumber, double radius)
+        {
+            foreach (SceneObjectPart sop in GetLinkParts(linknumber))
+                sop.SoundRadius = radius;
+        }
+
         public LSL_String llKey2Name(LSL_Key id)
         {
             if (UUID.TryParse(id, out UUID key) && key.IsNotZero())
@@ -16999,19 +17005,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // This does nothing for LSO scripts in SL
         }
 
+        public void llSetSoundQueueing(int queue)
+        {
+            if (m_SoundModule != null)
+                m_SoundModule.SetSoundQueueing(m_host.UUID, queue == ScriptBaseClass.TRUE.value);
+        }
+
+        public void llLinkSetSoundQueueing(int linknumber, int queue)
+        {
+            if (m_SoundModule != null)
+            {
+                foreach (SceneObjectPart sop in GetLinkParts(linknumber))
+                    m_SoundModule.SetSoundQueueing(sop.UUID, queue == ScriptBaseClass.TRUE.value);
+            }
+        }
+
         #region Not Implemented
         //
         // Listing the unimplemented lsl functions here, please move
         // them from this region as they are completed
         //
-
-        public void llSetSoundQueueing(int queue)
-        {
-
-            if (m_SoundModule != null)
-                m_SoundModule.SetSoundQueueing(m_host.UUID, queue == ScriptBaseClass.TRUE.value);
-        }
-
         public void llCollisionSprite(LSL_String impact_sprite)
         {
             // Viewer 2.0 broke this and it's likely LL has no intention

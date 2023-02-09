@@ -492,5 +492,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
                void llLinkAdjustSoundVolume(LSL_Integer linknumber, LSL_Float volume);
                void llLinkStopSound(LSL_Integer linknumber);
                void llLinkPlaySound(LSL_Integer linknumber, string sound, double volume);
+               void llLinkSetSoundQueueing(int linknumber, int queue);
+               void llLinkSetSoundRadius(int linknumber, double radius);
     }
 }

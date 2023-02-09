@@ -2232,5 +2232,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             m_LSL_Functions.llLinkPlaySound(linknumber, sound, volume);
         }
+
+        public void llLinkSetSoundQueueing(int linknumber, int queue)
+        {
+            m_LSL_Functions.llLinkSetSoundQueueing(linknumber, queue);
+        }
+
+        public void llLinkSetSoundRadius(int linknumber, double radius)
+        {
+            m_LSL_Functions.llLinkSetSoundRadius(linknumber, radius);
+        }
     }
 }
