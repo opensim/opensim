@@ -1341,72 +1341,55 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llDetectedName(int number)
         {
             DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, number);
-            if (detectedParams == null)
-                return String.Empty;
-            return detectedParams.Name;
+            return detectedParams is null ? LSL_String.Empty : detectedParams.Name;
         }
 
         public LSL_Key llDetectedKey(int number)
         {
             DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, number);
-            if (detectedParams == null)
-                return String.Empty;
-            return detectedParams.Key.ToString();
+            return detectedParams is null ? LSL_String.Empty : detectedParams.Key.ToString();
         }
 
         public LSL_Key llDetectedOwner(int number)
         {
             DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, number);
-            if (detectedParams == null)
-                return String.Empty;
-            return detectedParams.Owner.ToString();
+            return detectedParams is null ? LSL_String.Empty : detectedParams.Owner.ToString();
         }
 
         public LSL_Integer llDetectedType(int number)
         {
             DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, number);
-            if (detectedParams == null)
-                return 0;
-            return new LSL_Integer(detectedParams.Type);
+            return detectedParams is null ? 0 : new LSL_Integer(detectedParams.Type);
         }
 
         public LSL_Vector llDetectedPos(int number)
         {
             DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, number);
-            if (detectedParams == null)
-                return new LSL_Vector();
-            return detectedParams.Position;
+            return detectedParams is null ?  new LSL_Vector() : detectedParams.Position;
         }
 
         public LSL_Vector llDetectedVel(int number)
         {
             DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, number);
-            if (detectedParams == null)
-                return new LSL_Vector();
-            return detectedParams.Velocity;
+            return  detectedParams == null ? new LSL_Vector() : detectedParams.Velocity;
         }
 
         public LSL_Vector llDetectedGrab(int number)
         {
             DetectParams parms = m_ScriptEngine.GetDetectParams(m_item.ItemID, number);
-            if (parms == null)
-                return new LSL_Vector(0, 0, 0);
-
-            return parms.OffsetPos;
+            return parms is null ? new LSL_Vector() : parms.OffsetPos;
         }
 
         public LSL_Rotation llDetectedRot(int number)
         {
             DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, number);
-            if (detectedParams == null)
-                return new LSL_Rotation();
-            return detectedParams.Rotation;
+            return detectedParams is null ? new LSL_Rotation() : detectedParams.Rotation;
         }
 
         public LSL_Integer llDetectedGroup(int number)
         {
             DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, number);
-            if (detectedParams == null)
+            if (detectedParams is null)
                 return new LSL_Integer(0);
             if (m_host.GroupID.Equals(detectedParams.Group))
                 return new LSL_Integer(1);
@@ -1416,10 +1399,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llDetectedLinkNumber(int number)
         {
             DetectParams parms = m_ScriptEngine.GetDetectParams(m_item.ItemID, number);
-            if (parms == null)
-                return new LSL_Integer(0);
-
-            return new LSL_Integer(parms.LinkNum);
+            return parms is null ? new LSL_Integer() : new LSL_Integer(parms.LinkNum);
         }
 
         /// <summary>
@@ -1428,9 +1408,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llDetectedTouchBinormal(int index)
         {
             DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, index);
-            if (detectedParams == null)
-                return new LSL_Vector();
-            return detectedParams.TouchBinormal;
+             return detectedParams is null ? new LSL_Vector() : detectedParams.TouchBinormal;
         }
 
         /// <summary>
@@ -1439,9 +1417,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llDetectedTouchFace(int index)
         {
             DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, index);
-            if (detectedParams == null)
-                return new LSL_Integer(-1);
-            return new LSL_Integer(detectedParams.TouchFace);
+            return detectedParams is null ?  new LSL_Integer(-1) : new LSL_Integer(detectedParams.TouchFace);
         }
 
         /// <summary>
@@ -1450,9 +1426,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llDetectedTouchNormal(int index)
         {
             DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, index);
-            if (detectedParams == null)
-                return new LSL_Vector();
-            return detectedParams.TouchNormal;
+            return detectedParams is null ? new LSL_Vector() : detectedParams.TouchNormal;
         }
 
         /// <summary>
@@ -1461,9 +1435,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llDetectedTouchPos(int index)
         {
             DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, index);
-            if (detectedParams == null)
-                return new LSL_Vector();
-            return detectedParams.TouchPos;
+            return detectedParams is null ? new LSL_Vector() : detectedParams.TouchPos;
         }
 
         /// <summary>
@@ -1472,9 +1444,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llDetectedTouchST(int index)
         {
             DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, index);
-            if (detectedParams == null)
-                return new LSL_Vector(-1.0, -1.0, 0.0);
-            return detectedParams.TouchST;
+            return detectedParams is null ? new LSL_Vector(-1.0, -1.0, 0.0) : detectedParams.TouchST;
         }
 
         /// <summary>
@@ -1483,9 +1453,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llDetectedTouchUV(int index)
         {
             DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, index);
-            if (detectedParams == null)
-                return new LSL_Vector(-1.0, -1.0, 0.0);
-            return detectedParams.TouchUV;
+            return detectedParams is null ? new LSL_Vector(-1.0, -1.0, 0.0) : detectedParams.TouchUV;
         }
 
         [DebuggerNonUserCode]
@@ -1505,25 +1473,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Float llCloud(LSL_Vector offset)
         {
-            float cloudCover = 0f;
             ICloudModule module = World.RequestModuleInterface<ICloudModule>();
-            if (module != null)
+            if (module is not null)
             {
                 Vector3 pos = m_host.GetWorldPosition();
                 int x = (int)(pos.X + offset.x);
                 int y = (int)(pos.Y + offset.y);
 
-                cloudCover = module.CloudCover(x, y, 0);
-
+                return module.CloudCover(x, y, 0);
             }
-            return cloudCover;
+            return 0;
         }
 
         public LSL_Vector llWind(LSL_Vector offset)
         {
-            LSL_Vector wind = new LSL_Vector(0, 0, 0);
+            LSL_Vector wind = new();
             IWindModule module = World.RequestModuleInterface<IWindModule>();
-            if (module != null)
+            if (module is not null)
             {
                 Vector3 pos = m_host.GetWorldPosition();
                 int x = (int)(pos.X + offset.x);
@@ -1539,49 +1505,46 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llSetStatus(int status, int value)
         {
-            if (m_host == null || m_host.ParentGroup == null || m_host.ParentGroup.IsDeleted)
+            if (m_host is null || m_host.ParentGroup is null || m_host.ParentGroup.IsDeleted)
                 return;
 
             int statusrotationaxis = 0;
 
-            if ((status & ScriptBaseClass.STATUS_PHYSICS) == ScriptBaseClass.STATUS_PHYSICS)
+            if ((status & ScriptBaseClass.STATUS_PHYSICS) != 0)
             {
                 if (value != 0)
                 {
                     SceneObjectGroup group = m_host.ParentGroup;
-                    bool allow = true;
-
-                    int maxprims = World.m_linksetPhysCapacity;
-                    bool checkShape = (maxprims > 0 && group.PrimCount > maxprims);
-
-                    foreach (SceneObjectPart part in group.Parts)
+                    if (group.RootPart.PhysActor is null || !group.RootPart.PhysActor.IsPhysical)
                     {
-                        if (part.PhysicsShapeType == (byte)PhysicsShapeType.None)
-                            continue;
+                        bool allow = true;
+                        int maxprims = World.m_linksetPhysCapacity;
+                        bool checkShape = (maxprims > 0 && group.PrimCount > maxprims);
 
-                        if (part.Scale.X > World.m_maxPhys || part.Scale.Y > World.m_maxPhys || part.Scale.Z > World.m_maxPhys)
+                        foreach (SceneObjectPart part in group.Parts)
                         {
-                            allow = false;
-                            break;
-                        }
-                        if (checkShape)
-                        {
-                            if (--maxprims < 0)
+                            if (part.PhysicsShapeType == (byte)PhysicsShapeType.None)
+                                continue;
+
+                            if (checkShape)
+                            {
+                                if (--maxprims < 0)
+                                {
+                                    allow = false;
+                                    break;
+                                }
+                            }
+
+                            if (part.Scale.X > World.m_maxPhys || part.Scale.Y > World.m_maxPhys || part.Scale.Z > World.m_maxPhys)
                             {
                                 allow = false;
                                 break;
                             }
                         }
+
+                        if (allow)
+                            m_host.ScriptSetPhysicsStatus(true);
                     }
-
-                    if (!allow)
-                        return;
-
-                    if (m_host.ParentGroup.RootPart.PhysActor != null &&
-                        m_host.ParentGroup.RootPart.PhysActor.IsPhysical)
-                        return;
-
-                    m_host.ScriptSetPhysicsStatus(true);
                 }
                 else
                 {
@@ -1589,70 +1552,43 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
             }
 
-            if ((status & ScriptBaseClass.STATUS_PHANTOM) == ScriptBaseClass.STATUS_PHANTOM)
-            {
+            if ((status & ScriptBaseClass.STATUS_PHANTOM) != 0)
                 m_host.ParentGroup.ScriptSetPhantomStatus(value != 0);
-            }
 
-            if ((status & ScriptBaseClass.STATUS_CAST_SHADOWS) == ScriptBaseClass.STATUS_CAST_SHADOWS)
-            {
+            if ((status & ScriptBaseClass.STATUS_CAST_SHADOWS) != 0)
                 m_host.AddFlag(PrimFlags.CastShadows);
-            }
 
-            if ((status & ScriptBaseClass.STATUS_ROTATE_X) == ScriptBaseClass.STATUS_ROTATE_X)
-            {
+            if ((status & ScriptBaseClass.STATUS_ROTATE_X) != 0)
                 statusrotationaxis |= ScriptBaseClass.STATUS_ROTATE_X;
-            }
 
-            if ((status & ScriptBaseClass.STATUS_ROTATE_Y) == ScriptBaseClass.STATUS_ROTATE_Y)
-            {
+            if ((status & ScriptBaseClass.STATUS_ROTATE_Y) !=0)
                 statusrotationaxis |= ScriptBaseClass.STATUS_ROTATE_Y;
-            }
 
-            if ((status & ScriptBaseClass.STATUS_ROTATE_Z) == ScriptBaseClass.STATUS_ROTATE_Z)
-            {
+            if ((status & ScriptBaseClass.STATUS_ROTATE_Z) != 0)
                 statusrotationaxis |= ScriptBaseClass.STATUS_ROTATE_Z;
-            }
 
-            if ((status & ScriptBaseClass.STATUS_BLOCK_GRAB) == ScriptBaseClass.STATUS_BLOCK_GRAB)
+            if ((status & ScriptBaseClass.STATUS_BLOCK_GRAB) != 0)
                 m_host.BlockGrab = value != 0;
 
-            if ((status & ScriptBaseClass.STATUS_BLOCK_GRAB_OBJECT) == ScriptBaseClass.STATUS_BLOCK_GRAB_OBJECT)
+            if ((status & ScriptBaseClass.STATUS_BLOCK_GRAB_OBJECT) != 0)
                 m_host.ParentGroup.BlockGrabOverride = value != 0;
 
-            if ((status & ScriptBaseClass.STATUS_DIE_AT_EDGE) == ScriptBaseClass.STATUS_DIE_AT_EDGE)
-            {
-                if (value != 0)
-                    m_host.SetDieAtEdge(true);
-                else
-                    m_host.SetDieAtEdge(false);
-            }
+            if ((status & ScriptBaseClass.STATUS_DIE_AT_EDGE) != 0)
+                    m_host.SetDieAtEdge(value != 0);
 
-            if ((status & ScriptBaseClass.STATUS_RETURN_AT_EDGE) == ScriptBaseClass.STATUS_RETURN_AT_EDGE)
-            {
-                if (value != 0)
-                    m_host.SetReturnAtEdge(true);
-                else
-                    m_host.SetReturnAtEdge(false);
-            }
+            if ((status & ScriptBaseClass.STATUS_RETURN_AT_EDGE) != 0)
+                m_host.SetReturnAtEdge(value != 0);
 
-            if ((status & ScriptBaseClass.STATUS_SANDBOX) == ScriptBaseClass.STATUS_SANDBOX)
-            {
-                if (value != 0)
-                    m_host.SetStatusSandbox(true);
-                else
-                    m_host.SetStatusSandbox(false);
-            }
+            if ((status & ScriptBaseClass.STATUS_SANDBOX) != 0)
+                m_host.SetStatusSandbox(value != 0);
 
             if (statusrotationaxis != 0)
-            {
                 m_host.SetAxisRotation(statusrotationaxis, value);
-            }
         }
 
         private bool IsPhysical()
         {
-            return ((m_host.GetEffectiveObjectFlags() & (uint)PrimFlags.Physics) == (uint)PrimFlags.Physics);
+            return ((m_host.GetEffectiveObjectFlags() & (uint)PrimFlags.Physics) != 0);
         }
 
         public LSL_Integer llGetStatus(int status)
@@ -6607,11 +6543,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llLinkAdjustSoundVolume(LSL_Integer linknumber, LSL_Float volume)
         {
-            List<SceneObjectPart> parts = GetLinkParts(linknumber);
-            foreach (SceneObjectPart part in parts)
-            {
+            foreach (SceneObjectPart part in GetLinkParts(linknumber))
                 part.AdjustSoundGain(volume);
-            }
+
             ScriptSleep(m_sleepMsOnAdjustSoundVolume);
         }
 
@@ -6631,17 +6565,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (UUID.TryParse(id, out UUID key) && key.IsNotZero())
             {
                 ScenePresence presence = World.GetScenePresence(key);
-                if (presence != null)
-                {
+                if (presence is not null)
                     return presence.Name;
-                }
+
                 SceneObjectPart sop = World.GetSceneObjectPart(key);
-                if (sop != null)
-                {
+                if (sop is not null)
                     return sop.Name;
-                }
             }
-            return String.Empty;
+            return LSL_String.Empty;
         }
 
         public LSL_Key llName2Key(LSL_String name)
@@ -7941,7 +7872,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             if (src.Length == 0)
             {
-                return String.Empty;
+                return LSL_String.Empty;
             }
             string ret = String.Empty;
             foreach (object o in src.Data)
@@ -10823,7 +10754,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             catch
             {
                 Error("llBase64ToString", "Error encoding string");
-                return string.Empty;
+                return LSL_String.Empty;
             }
         }
 
@@ -10837,7 +10768,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             catch
             {
                 Error("llBase64ToString", "Error decoding string");
-                return string.Empty;
+                return LSL_String.Empty;
             }
         }
 
@@ -10893,7 +10824,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
 
             if (land.LandData.OwnerID != m_host.OwnerID)
-                return String.Empty;
+                return LSL_String.Empty;
 
             return land.GetMusicUrl();
         }
@@ -12302,7 +12233,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
            if (m_UrlModule != null)
                return m_UrlModule.GetHttpHeader(new UUID(request_id), header);
-           return String.Empty;
+           return LSL_String.Empty;
         }
 
 
@@ -12678,7 +12609,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (item is null)
             {
                 Error("llGetInventoryAcquireTime", $"Can't find item '{itemName}'");
-                return String.Empty;
+                return LSL_String.Empty;
             }
 
             DateTime date = Util.ToDateTime(item.CreationDate);
@@ -13723,7 +13654,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ScriptSleep(300);
 
             if (str1.Length == 0)
-                return string.Empty;
+                return LSL_String.Empty;
             if (str2.Length == 0)
                 return str1;
 
@@ -13753,7 +13684,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             catch
             {
-                return string.Empty;
+                return LSL_String.Empty;
             }
 
             // Remove padding
@@ -13805,7 +13736,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
 
             if (str1.Length == 0)
-                return string.Empty;
+                return LSL_String.Empty;
             if (str2.Length == 0)
                 return str1;
 
@@ -13837,7 +13768,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             catch (Exception)
             {
-                return string.Empty;
+                return LSL_String.Empty;
             }
 
             int len2 = data2.Length;
@@ -13882,16 +13813,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 input = input.Substring(0, paddingPos);
 
             int remainder = input.Length % 4;
-            switch(remainder)
+            return remainder switch
             {
-                case 0:
-                    return input;
-                case 1:
-                    return input.Substring(0, input.Length - 1);
-                case 2:
-                    return input + "==";
-            }
-            return input + "=";
+                0 => input,
+                1 => input.Substring(0, input.Length - 1),
+                2 => input + "==",
+                _ => input + "=",
+            };
         }
 
         public LSL_String llXorBase64(string str1, string str2)
@@ -13902,7 +13830,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             str1 = truncateBase64(str1);
             if (string.IsNullOrEmpty(str1))
-                return string.Empty;
+                return LSL_String.Empty;
 
             str2 = truncateBase64(str2);
             if (string.IsNullOrEmpty(str2))
@@ -13917,7 +13845,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             catch (Exception)
             {
-                return string.Empty;
+                return LSL_String.Empty;
             }
 
             int len2 = data2.Length;
@@ -15247,7 +15175,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return presence.Name;
                 }
             }
-            return String.Empty;
+            return LSL_String.Empty;
         }
 
         public LSL_Key llRequestDisplayName(LSL_Key id)
@@ -17497,19 +17425,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
 
             ScenePresence presence = World.GetScenePresence(m_item.PermsGranter);
-            if (presence == null)
-                return String.Empty;
+            if (presence is null)
+                return LSL_String.Empty;
 
             if (m_item.PermsGranter.IsZero())
             {
                 llShout(ScriptBaseClass.DEBUG_CHANNEL, "No permission to override animations");
-                return String.Empty;
+                return LSL_String.Empty;
             }
 
             if ((m_item.PermsMask & (ScriptBaseClass.PERMISSION_OVERRIDE_ANIMATIONS | ScriptBaseClass.PERMISSION_TRIGGER_ANIMATION)) == 0)
             {
                 llShout(ScriptBaseClass.DEBUG_CHANNEL, "No permission to override animations");
-                return String.Empty;
+                return LSL_String.Empty;
             }
 
             string state = String.Empty;
@@ -17525,7 +17453,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (state.Length == 0)
             {
-                return String.Empty;
+                return LSL_String.Empty;
             }
 
             if (!presence.TryGetAnimationOverride(state, out UUID animID) || animID.IsZero())
@@ -17543,7 +17471,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return item.Name;
             }
 
-            return String.Empty;
+            return LSL_String.Empty;
         }
 
         public LSL_Integer llGetDayLength()
@@ -18438,7 +18366,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llChar(LSL_Integer unicode)
         {
             if(unicode == 0)
-                return string.Empty;
+                return LSL_String.Empty;
             try
             {
                 return Char.ConvertFromUtf32(unicode);

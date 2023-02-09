@@ -5559,8 +5559,7 @@ Environment.Exit(1);
 
         // Get terrain height at the specified <x,y> location.
         // Presumes the underlying implementation is a heightmap which is a 1m grid.
-        // Finds heightmap grid points before and after the point and
-        //    does a linear approximation of the height at this intermediate point.
+     
         public float GetGroundHeight(float x, float y)
         {
            return Heightmap.GetHeight(x, y);
