@@ -5563,65 +5563,7 @@ Environment.Exit(1);
         //    does a linear approximation of the height at this intermediate point.
         public float GetGroundHeight(float x, float y)
         {
-            int ix;
-            int iy;
-            float dx;
-            float dy;
-
-            // make position fit into array
-            if (x < 0)
-            {
-                ix = 0;
-                dx = 0;
-            }
-            else if (x < Heightmap.Width - 1)
-            {
-                ix = (int)x;
-                dx = x - ix;
-            }
-            else // out world use external height
-            {
-                ix = Heightmap.Width - 2;
-                dx = 0;
-            }
-            if (y < 0)
-            {
-                iy = 0;
-                dy = 0;
-            }
-            else if (y < Heightmap.Height - 1)
-            {
-                iy = (int)y;
-                dy = y - iy;
-            }
-            else
-            {
-                iy = Heightmap.Height - 2;
-                dy = 0;
-            }
-
-            float h1;
-            float h2;
-            float h0 = Heightmap[ix, iy]; // 0,0 vertice
-
-            if (dy > dx)
-            {
-                ++iy;
-                h2 = Heightmap[ix, iy]; // 0,1 vertice
-                h1 = (h2 - h0) * dy; // 0,1 vertice minus 0,0
-                ++ix;
-                h2 = (Heightmap[ix, iy] - h2) * dx; // 1,1 vertice minus 0,1
-            }
-            else
-            {
-                ++ix;
-                h2 = Heightmap[ix, iy]; // vertice 1,0
-                h1 = (h2 - h0) * dx; // 1,0 vertice minus 0,0
-                ++iy;
-                h2 = (Heightmap[ix, iy] - h2) * dy; // 1,1 vertice minus 1,0
-            }
-         
-            return h0 + h1 + h2;
+           return Heightmap.GetHeight(x, y);
         }
 
         private void CheckHeartbeat()

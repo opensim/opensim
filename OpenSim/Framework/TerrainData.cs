@@ -121,6 +121,70 @@ namespace OpenSim.Framework
             set { this[x, y] = value; }
         }
 
+        public float GetHeight(float x, float y)
+        {
+            // integer indexs
+            int ix;
+            int iy;
+            // interpolators offset
+            float dx;
+            float dy;
+
+            // make position fit into array
+            if (x <= 0)
+            {
+                ix = 0;
+                dx = 0;
+            }
+            else if (x < SizeX)
+            {
+                ix = (int)x;
+                dx = x - ix;
+            }
+            else // out world use external height
+            {
+                ix = SizeX - 1;
+                dx = 0;
+            }
+            if (y <= 0)
+            {
+                iy = 0;
+                dy = 0;
+            }
+            else if (y < SizeY)
+            {
+                iy = (int)y;
+                dy = y - iy;
+            }
+            else
+            {
+                iy = SizeY - 1;
+                dy = 0;
+            }
+
+            float h0 = m_heightmap[ix, iy]; // 0,0 vertice
+            float h1;
+            float h2;
+
+            if (dy > dx)
+            {
+                iy++;
+                h2 = m_heightmap[ix, iy]; // 0,1 vertice
+                h1 = (h2 - h0) * dy; // 0,1 vertice minus 0,0
+                ix++;
+                h2 = (m_heightmap[ix, iy] - h2) * dx; // 1,1 vertice minus 0,1
+            }
+            else
+            {
+                ix++;
+                h2 = m_heightmap[ix, iy]; // vertice 1,0
+                h1 = (h2 - h0) * dx; // 1,0 vertice minus 0,0
+                iy++;
+                h2 = (m_heightmap[ix, iy] - h2) * dy; // 1,1 vertice minus 1,0
+            }
+            return h0 + h1 + h2;
+        }
+
         public TerrainTaintsArray GetTaints()
         {
             return m_taints;

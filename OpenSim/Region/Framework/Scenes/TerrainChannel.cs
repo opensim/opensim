@@ -159,12 +159,14 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        // ITerrainChannel.GetHieghtAtXYZ(x, y, z)
+        public float GetHeight(float x, float y)
+        {
+            return m_terrainData.GetHeight(x, y);
+        }
+
         public float GetHeightAtXYZ(float x, float y, float z)
         {
-            if (x < 0 || x >= Width || y < 0 || y >= Height)
-                return 0;
-            return m_terrainData[(int)x, (int)y];
+            return m_terrainData.GetHeight(x, y);
         }
 
         // ITerrainChannel.Tainted()
