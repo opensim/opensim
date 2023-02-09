@@ -1500,7 +1500,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             pos.X += (float)offset.x;
             pos.Y += (float)offset.y;
 
-            return (((vsn.x * xdiff) + (vsn.y * ydiff)) / (-1 * vsn.z)) + baseheight;
+            return World.GetGroundHeight(pos.X, pos.Y);
         }
 
         public LSL_Float llCloud(LSL_Vector offset)
