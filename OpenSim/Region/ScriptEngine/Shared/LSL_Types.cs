@@ -2055,6 +2055,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
 
             #endregion
+            public static readonly LSLString Empty = new (string.Empty);
         }
 
         [Serializable]

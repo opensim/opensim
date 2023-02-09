@@ -1600,18 +1600,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return IsPhysical() ? 1 : 0;
 
                 case ScriptBaseClass.STATUS_PHANTOM:
-                    if ((m_host.GetEffectiveObjectFlags() & (uint)PrimFlags.Phantom) == (uint)PrimFlags.Phantom)
-                    {
-                        return 1;
-                    }
-                    return 0;
+                    return (m_host.GetEffectiveObjectFlags() & (uint)PrimFlags.Phantom) != 0 ? 1 : 0;
 
                 case ScriptBaseClass.STATUS_CAST_SHADOWS:
-                    if ((m_host.GetEffectiveObjectFlags() & (uint)PrimFlags.CastShadows) == (uint)PrimFlags.CastShadows)
-                    {
-                        return 1;
-                    }
-                    return 0;
+                    return (m_host.GetEffectiveObjectFlags() & (uint)PrimFlags.CastShadows) != 0 ? 1 : 0;
 
                 case ScriptBaseClass.STATUS_BLOCK_GRAB:
                     return m_host.BlockGrab ? 1 : 0;
@@ -1620,41 +1612,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return m_host.ParentGroup.BlockGrabOverride ? 1 : 0;
 
                 case ScriptBaseClass.STATUS_DIE_AT_EDGE:
-                    if (m_host.GetDieAtEdge())
-                        return 1;
-                    else
-                        return 0;
+                     return m_host.GetDieAtEdge() ? 1 :0;
 
                 case ScriptBaseClass.STATUS_RETURN_AT_EDGE:
-                    if (m_host.GetReturnAtEdge())
-                        return 1;
-                    else
-                        return 0;
+                    return m_host.GetReturnAtEdge() ? 1 : 0;
 
                 case ScriptBaseClass.STATUS_ROTATE_X:
-                    // if (m_host.GetAxisRotation(2) != 0)
-                    if (m_host.GetAxisRotation((int)SceneObjectGroup.axisSelect.STATUS_ROTATE_X) != 0)
-                        return 1;
-                    else
-                        return 0;
+                     return m_host.GetAxisRotation((int)SceneObjectGroup.axisSelect.STATUS_ROTATE_X) != 0 ? 1 : 0;
 
                 case ScriptBaseClass.STATUS_ROTATE_Y:
-                    if (m_host.GetAxisRotation((int)SceneObjectGroup.axisSelect.STATUS_ROTATE_Y) != 0)
-                        return 1;
-                    else
-                        return 0;
+                    return m_host.GetAxisRotation((int)SceneObjectGroup.axisSelect.STATUS_ROTATE_Y) != 0 ? 1 : 0;
 
                 case ScriptBaseClass.STATUS_ROTATE_Z:
-                    if (m_host.GetAxisRotation((int)SceneObjectGroup.axisSelect.STATUS_ROTATE_Z) != 0)
-                        return 1;
-                    else
-                        return 0;
+                    return m_host.GetAxisRotation((int)SceneObjectGroup.axisSelect.STATUS_ROTATE_Z) != 0 ? 1: 0;
 
                 case ScriptBaseClass.STATUS_SANDBOX:
-                    if (m_host.GetStatusSandbox())
-                        return 1;
-                    else
-                        return 0;
+                    return m_host.GetStatusSandbox() ? 1 : 0;
             }
             return 0;
         }
@@ -1668,26 +1641,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if(scaling_factor > 1e6)
                 return ScriptBaseClass.FALSE;
 
-            if (group == null || group.IsDeleted || group.inTransit)
+            if (group is null || group.IsDeleted || group.inTransit)
                 return ScriptBaseClass.FALSE;
 
-            if (group.RootPart.PhysActor != null && group.RootPart.PhysActor.IsPhysical)
+            if (group.RootPart.PhysActor is not null && group.RootPart.PhysActor.IsPhysical)
                 return ScriptBaseClass.FALSE;
 
-            if (group.RootPart.KeyframeMotion != null)
+            if (group.RootPart.KeyframeMotion is not null)
                 return ScriptBaseClass.FALSE;
 
-            if(group.GroupResize(scaling_factor))
-                return ScriptBaseClass.TRUE;
-            else
-                return ScriptBaseClass.FALSE;
+            return group.GroupResize(scaling_factor) ? 1 : 0;
         }
 
         public LSL_Float llGetMaxScaleFactor()
         {
             SceneObjectGroup group = m_host.ParentGroup;
 
-            if (group == null || group.IsDeleted || group.inTransit)
+            if (group is null || group.IsDeleted || group.inTransit)
                 return 1.0f;
 
             return (LSL_Float)group.GetMaxGroupResizeScale();
@@ -1697,7 +1667,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             SceneObjectGroup group = m_host.ParentGroup;
 
-            if (group == null || group.IsDeleted || group.inTransit)
+            if (group is null || group.IsDeleted || group.inTransit)
                 return 1.0f;
 
             return (LSL_Float)group.GetMinGroupResizeScale();
@@ -1711,7 +1681,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected void SetScale(SceneObjectPart part, LSL_Vector scale)
         {
             // TODO: this needs to trigger a persistance save as well
-            if (part == null || part.ParentGroup.IsDeleted)
+            if (part is null || part.ParentGroup.IsDeleted)
                 return;
 
             // First we need to check whether or not we need to clamp the size of a physics-enabled prim
