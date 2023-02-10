@@ -87,6 +87,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 "llDetectedTouchUV",
                 "llDetectedType",
                 "llDetectedVel",
+                "llDie",
                 "llFabs",
                 "llFloor",
                 "llFrand",
