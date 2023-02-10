@@ -1895,6 +1895,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
             }
 
             #endregion
+            public static readonly key NullKey = new("00000000-0000-0000-0000-000000000000");
         }
 
         [Serializable]
@@ -2059,7 +2060,9 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
 
             #endregion
-            public static readonly LSLString Empty = new (string.Empty);
+            public static readonly LSLString Empty = new(string.Empty);
+            public static readonly LSLString NullKey = new("00000000-0000-0000-0000-000000000000");
+
         }
 
         [Serializable]
