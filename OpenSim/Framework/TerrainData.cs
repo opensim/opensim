@@ -124,8 +124,8 @@ namespace OpenSim.Framework
         public float GetHeight(float x, float y)
         {
             // integer indexs
-            int ix;
-            int iy;
+            int ix, ixb;
+            int iy, iyb;
             // interpolators offset
             float dx;
             float dy;
@@ -134,31 +134,37 @@ namespace OpenSim.Framework
             if (x <= 0)
             {
                 ix = 0;
+                ixb = 0;
                 dx = 0;
             }
-            else if (x < SizeX)
+            else if (x < SizeX - 1)
             {
                 ix = (int)x;
+                ixb = ix + 1;
                 dx = x - ix;
             }
             else // out world use external height
             {
                 ix = SizeX - 1;
+                ixb = ix;
                 dx = 0;
             }
             if (y <= 0)
             {
                 iy = 0;
+                iyb = 0;
                 dy = 0;
             }
-            else if (y < SizeY)
+            else if (y < SizeY - 1 )
             {
                 iy = (int)y;
+                iyb = iy + 1;
                 dy = y - iy;
             }
             else
             {
                 iy = SizeY - 1;
+                iyb = iy;
                 dy = 0;
             }
 
@@ -168,19 +174,15 @@ namespace OpenSim.Framework
 
             if (dy > dx)
             {
-                iy++;
-                h2 = m_heightmap[ix, iy]; // 0,1 vertice
+                h2 = m_heightmap[ix, iyb]; // 0,1 vertice
                 h1 = (h2 - h0) * dy; // 0,1 vertice minus 0,0
-                ix++;
-                h2 = (m_heightmap[ix, iy] - h2) * dx; // 1,1 vertice minus 0,1
+                h2 = (m_heightmap[ixb, iyb] - h2) * dx; // 1,1 vertice minus 0,1
             }
             else
             {
-                ix++;
-                h2 = m_heightmap[ix, iy]; // vertice 1,0
+                h2 = m_heightmap[ixb, iy]; // vertice 1,0
                 h1 = (h2 - h0) * dx; // 1,0 vertice minus 0,0
-                iy++;
-                h2 = (m_heightmap[ix, iy] - h2) * dy; // 1,1 vertice minus 1,0
+                h2 = (m_heightmap[ixb, iyb] - h2) * dy; // 1,1 vertice minus 1,0
             }
             return h0 + h1 + h2;
         }

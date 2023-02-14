@@ -196,32 +196,32 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 string risk = m_osslconfig.GetString("OSFunctionThreatLevel", "VeryLow");
                 switch (risk)
                 {
-                case "NoAccess":
-                    m_MaxThreatLevel = ThreatLevel.NoAccess;
-                    break;
-                case "None":
-                    m_MaxThreatLevel = ThreatLevel.None;
-                    break;
-                case "VeryLow":
-                    m_MaxThreatLevel = ThreatLevel.VeryLow;
-                    break;
-                case "Low":
-                    m_MaxThreatLevel = ThreatLevel.Low;
-                    break;
-                case "Moderate":
-                    m_MaxThreatLevel = ThreatLevel.Moderate;
-                    break;
-                case "High":
-                    m_MaxThreatLevel = ThreatLevel.High;
-                    break;
-                case "VeryHigh":
-                    m_MaxThreatLevel = ThreatLevel.VeryHigh;
-                    break;
-                case "Severe":
-                    m_MaxThreatLevel = ThreatLevel.Severe;
-                    break;
-                default:
-                    break;
+                    case "NoAccess":
+                        m_MaxThreatLevel = ThreatLevel.NoAccess;
+                        break;
+                    case "None":
+                        m_MaxThreatLevel = ThreatLevel.None;
+                        break;
+                    case "VeryLow":
+                        m_MaxThreatLevel = ThreatLevel.VeryLow;
+                        break;
+                    case "Low":
+                        m_MaxThreatLevel = ThreatLevel.Low;
+                        break;
+                    case "Moderate":
+                        m_MaxThreatLevel = ThreatLevel.Moderate;
+                        break;
+                    case "High":
+                        m_MaxThreatLevel = ThreatLevel.High;
+                        break;
+                    case "VeryHigh":
+                        m_MaxThreatLevel = ThreatLevel.VeryHigh;
+                        break;
+                    case "Severe":
+                        m_MaxThreatLevel = ThreatLevel.Severe;
+                        break;
+                    default:
+                        break;
                 }
 
                 try
@@ -288,8 +288,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (m_item is not null)
                 m_ScriptEngine.SleepScript(m_item.ItemID, 1000);
-            else
-                Thread.Sleep(1000);
+            //else
+            //    Thread.Sleep(1000);
             }
 
         // Returns if OSSL is enabled. Throws a script exception if OSSL is not allowed..
@@ -459,12 +459,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return string.Empty;
             }
 
-            UUID ownerID = m_item.OwnerID;
-
             if ((functionControl & AllowedControlFlags.PARCEL_OWNER) != 0)
             {
                 ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
-                if (land.LandData.OwnerID.Equals(ownerID))
+                if (land.LandData.OwnerID.Equals(m_item.OwnerID))
                     return string.Empty;
             }
 
@@ -476,39 +474,39 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return string.Empty;
             }
 
+            //Only regionowners may use the function
+            if ((functionControl & AllowedControlFlags.ESTATE_OWNER) != 0)
+            {
+                if (World.RegionInfo.EstateSettings.EstateOwner.Equals(m_item.OwnerID))
+                    return string.Empty;
+            }
+
             //Only Estate Managers may use the function
             if ((functionControl & AllowedControlFlags.ESTATE_MANAGER) != 0)
             {
                 //Only Estate Managers may use the function
-                if (World.RegionInfo.EstateSettings.IsEstateManagerOrOwner(ownerID) && World.RegionInfo.EstateSettings.EstateOwner.NotEqual(ownerID))
-                    return string.Empty;
-            }
-
-            //Only regionowners may use the function
-            if ((functionControl & AllowedControlFlags.ESTATE_OWNER) != 0)
-            {
-                if (World.RegionInfo.EstateSettings.EstateOwner.Equals(ownerID))
+                if (World.RegionInfo.EstateSettings.IsEstateManagerOrOwner(m_item.OwnerID))
                     return string.Empty;
             }
 
             //Only grid gods may use the function
             if ((functionControl & AllowedControlFlags.GRID_GOD) != 0)
             {
-                if (World.Permissions.IsGridGod(ownerID))
+                if (World.Permissions.IsGridGod(m_item.OwnerID))
                     return string.Empty;
             }
 
             //Any god may use the function
             if ((functionControl & AllowedControlFlags.GOD) != 0)
             {
-                if (World.Permissions.IsAdministrator(ownerID))
+                if (World.Permissions.IsAdministrator(m_item.OwnerID))
                     return string.Empty;
             }
 
             //Only active gods may use the function
             if ((functionControl & AllowedControlFlags.ACTIVE_GOD) != 0)
             {
-                ScenePresence sp = World.GetScenePresence(ownerID);
+                ScenePresence sp = World.GetScenePresence(m_item.OwnerID);
                 if (sp is not null && !sp.IsDeleted && sp.IsGod)
                     return string.Empty;
             }
@@ -520,7 +518,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (!perms.AllowedCreators.Contains(m_item.CreatorID))
                 return($"{function} permission denied. Script creator is not in the list of users allowed to execute this function and prim owner also has no permission");
 
-            if (m_item.CreatorID.NotEqual(ownerID))
+            if (m_item.CreatorID.NotEqual(m_item.OwnerID))
             {
                 if ((m_item.CurrentPermissions & (uint)PermissionMask.Modify) != 0)
                     return $"{function} permission denied. Script creator is not prim owner";
@@ -5189,9 +5187,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel();
 
             if (string.IsNullOrEmpty(src))
-                return "";
+                return LSL_String.Empty;
             if (length <= 0 || offset >= src.Length)
-                return "";
+                return LSL_String.Empty;
             if (offset <= 0)
             {
                 if(length == src.Length)
@@ -5444,9 +5442,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (item is null)
                 return LSL_String.NullKey;
 
-            UUID id = item.LastOwnerID;
-            if(id.IsZero())
-                id = item.OwnerID;
+            UUID id = item.LastOwnerID.IsNotZero() ? item.LastOwnerID : item.OwnerID;
 
             return new LSL_Key(id.ToString());
         }
@@ -5562,7 +5558,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Integer osIsNotValidNumber(LSL_Float v)
         {
-            double d = v;
+            double d = v.value;
             if (double.IsNaN(d))
                 return 1;
             if (double.IsNegativeInfinity(d))
@@ -5574,12 +5570,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void osSetSitActiveRange(LSL_Float v)
         {
-            if (v > 128f)
-                v = 128f;
-            float old = m_host.SitActiveRange;
-            m_host.SitActiveRange = (float)v;
-            if(old != (float)v)
+            float fv = (float)v.value;
+            if (fv > 128f)
+                fv = 128f;
+
+            if(m_host.SitActiveRange != fv)
+            {
+                m_host.SitActiveRange = fv;
                 m_host.ParentGroup.HasGroupChanged = true;
+            }
         }
 
         public void osSetLinkSitActiveRange(LSL_Integer linkNumber, LSL_Float v)
@@ -5588,11 +5587,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if(m_LSL_Api is null)
                 return;
 
-            if (v > 128f)
-                v = 128f;
+            float fv = (float)v.value;
+            if (fv > 128f)
+                fv = 128f;
 
             bool changed = false;
-            float fv = (float)v;
 
             List<SceneObjectPart> parts = m_LSL_Api.GetLinkParts(linkNumber);
             for(int i = 0; i < parts.Count; ++i)
@@ -5653,10 +5652,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (target is null)
                 return;
 
-            Vector3 old = target.StandOffset;
-            target.StandOffset = v;
-            if (!old.ApproxEquals(v))
+            Vector3 newv = v;
+            if (!newv.ApproxEquals(target.StandOffset))
+            {
+                target.StandOffset = v;
                 m_host.ParentGroup.HasGroupChanged = true;
+            }
         }
 
         public LSL_Vector osGetStandTarget()
@@ -5707,7 +5708,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return -3;
 
             AssetBase asset = World.AssetService.Get(envID.ToString());
-            if(asset == null || asset.Type != (byte)AssetType.Settings)
+            if(asset is null || asset.Type != (byte)AssetType.Settings)
                 return -3;
             // cant use stupid broken asset flags for subtype
             try
@@ -5741,7 +5742,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return -3;
 
             ViewerEnvironment VEnv;
-            if (parcel.LandData.Environment == null)
+            if (parcel.LandData.Environment is null)
                 VEnv = m_envModule.GetRegionEnvironment().Clone();
             else
                 VEnv = parcel.LandData.Environment;
@@ -5755,7 +5756,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return -4;
 
                 AssetBase asset = World.AssetService.Get(envID.ToString());
-                if (asset == null || asset.Type != (byte)AssetType.Settings)
+                if (asset is null || asset.Type != (byte)AssetType.Settings)
                     return -4;
                 // cant use stupid broken asset flags for subtype
                 try
@@ -5959,13 +5960,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             effectblock[0] = effect;
 
             World.ForEachScenePresence(
-             sp =>
-             {
-                if(!sp.IsNPC && !sp.IsDeleted)
-                {
-                    sp.ControllingClient.SendViewerEffect(effectblock);
-                }
-             });
+                 sp =>
+                 {
+                    if(!sp.IsNPC && !sp.IsDeleted)
+                    {
+                        sp.ControllingClient.SendViewerEffect(effectblock);
+                    }
+                 });
 
             return 0;
         }
@@ -5985,7 +5986,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer osAvatarType(LSL_String sFirstName, LSL_String sLastName)
         {
             ScenePresence av = World.GetScenePresence(sFirstName.m_string, sLastName.m_string);
-            if (av == null || av.IsDeleted || av.IsChildAgent)
+            if (av is null || av.IsDeleted || av.IsChildAgent)
                 return 0;
 
             return av.IsNPC ? 2 : 1;
