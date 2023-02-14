@@ -1268,8 +1268,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llListen(int channelID, string name, string ID, string msg)
         {
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-            if (wComm is not null && UUID.TryParse(ID, out UUID keyID))
+            if (wComm is not null)
+            { 
+                _ = UUID.TryParse(ID, out UUID keyID);
                 return wComm.Listen(m_item.ItemID, m_host.UUID, channelID, name, keyID, msg);
+            }
             return -1;
         }
 
