@@ -668,23 +668,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public static Vector3 Xrot(Quaternion rot)
         {
-            Vector3 vec;
             rot.Normalize(); // just in case
-            vec.X = 2 * (rot.X * rot.X + rot.W * rot.W) - 1;
-            vec.Y = 2 * (rot.X * rot.Y + rot.Z * rot.W);
-            vec.Z = 2 * (rot.X * rot.Z - rot.Y * rot.W);
-            return vec;
-        }
-
-        public static Vector3 Zrot(Quaternion rot)
-        {
-            Vector3 vec;
-            rot.Normalize(); // just in case
-            vec.X = 2 * (rot.X * rot.Z + rot.Y * rot.W);
-            vec.Y = 2 * (rot.Y * rot.Z - rot.X * rot.W);
-            vec.Z = 2 * (rot.Z * rot.Z + rot.W * rot.W) - 1;
-
-            return vec;
+            return Vector3.UnitXRotated(rot);
         }
 
         private const float pi = MathF.PI;
@@ -878,7 +863,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                     perr *= (1.0f + ldampZ) / m_VhoverTimescale;
 
-                    //                    force.Z += perr - curVel.Z * tmp;
+                    //force.Z += perr - curVel.Z * tmp;
                     force.Z += perr;
                     ldampZ *= -curVel.Z;
 
@@ -899,8 +884,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 float len = curVel.Length();
                 if (len > 0.01f) // if moving
                 {
-                    Vector3 atAxis;
-                    atAxis = Xrot(rotq); // where are we pointing to
+                    Vector3 atAxis = Xrot(rotq); // where are we pointing to
                     atAxis *= len; // make it same size as world velocity vector
 
                     tmpV = -atAxis; // oposite direction
@@ -999,7 +983,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     broll /= m_bankingTimescale;
 
 
-                    tmpV = Zrot(irotq);
+                    tmpV = Vector3.UnitZRotated(irotq);
                     tmpV *= broll;
 
                     torque.X += tmpV.X;
