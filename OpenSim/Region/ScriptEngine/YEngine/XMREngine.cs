@@ -1374,7 +1374,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                 initerr = e1;
             }
-            if(initerr != null && !instance.m_ForceRecomp && initerr is CVVMismatchException)
+            if(initerr is not null && !instance.m_ForceRecomp && initerr is CVVMismatchException)
             {
                 UUID itemID = instance.m_ItemID;
                 Verbose("[YEngine]: {0}/{2} first load failed ({1}), retrying after recompile",
@@ -1392,7 +1392,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     initerr = e2;
                 }
             }
-            if(initerr != null)
+            if(initerr is not null)
             {
                 UUID itemID = instance.m_ItemID;
                 Verbose("[YEngine]: Error starting script {0}/{2}: {1}",

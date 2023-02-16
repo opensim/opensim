@@ -34,7 +34,6 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.Serialization;
 using System.Text;
-using System.Threading;
 
 using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
 using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
@@ -78,14 +77,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private static VarDict legalEventHandlers = CreateLegalEventHandlers();
         private static CompValu[] zeroCompValus = Array.Empty<CompValu>();
         private static TokenType[] zeroArgs = Array.Empty<TokenType>();
-        private static TokenTypeBool tokenTypeBool = new TokenTypeBool(null);
-        private static TokenTypeExc tokenTypeExc = new TokenTypeExc(null);
-        private static TokenTypeFloat tokenTypeFlt = new TokenTypeFloat(null);
-        private static TokenTypeInt tokenTypeInt = new TokenTypeInt(null);
-        private static TokenTypeObject tokenTypeObj = new TokenTypeObject(null);
-        private static TokenTypeRot tokenTypeRot = new TokenTypeRot(null);
-        private static TokenTypeStr tokenTypeStr = new TokenTypeStr(null);
-        private static TokenTypeVec tokenTypeVec = new TokenTypeVec(null);
+        private static TokenTypeBool tokenTypeBool = new(null);
+        private static TokenTypeExc tokenTypeExc = new(null);
+        private static TokenTypeFloat tokenTypeFlt = new(null);
+        private static TokenTypeInt tokenTypeInt = new(null);
+        private static TokenTypeObject tokenTypeObj = new(null);
+        private static TokenTypeRot tokenTypeRot = new(null);
+        private static TokenTypeStr tokenTypeStr = new(null);
+        private static TokenTypeVec tokenTypeVec = new(null);
         private static Type[] instanceTypeArg = new Type[] { typeof(XMRInstAbstract) };
         private static string[] instanceNameArg = new string[] { "$xmrthis" };
 
@@ -149,7 +148,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public static bool CodeGen(TokenScript tokenScript, BinaryWriter objFileWriter, string sourceHash)
         {
              // Run compiler such that it has a 'this' context for convenience.
-            ScriptCodeGen scg = new ScriptCodeGen(tokenScript, objFileWriter, sourceHash);
+            ScriptCodeGen scg = new(tokenScript, objFileWriter, sourceHash);
 
              // Return pointer to resultant script object code.
             return !scg.youveAnError;
@@ -5413,7 +5412,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
             if(expr is CompValuFloat CompValuFloatexpr)
             {
-                constVal = ((CompValuFloat)expr).x != (double)0;
+                constVal = CompValuFloatexpr.x != 0;
                 return true;
             }
             if(expr is CompValuInteger CompValuIntegerexpr)

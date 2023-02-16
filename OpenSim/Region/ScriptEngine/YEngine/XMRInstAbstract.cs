@@ -31,7 +31,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Reflection.Emit;
-using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
 
@@ -89,24 +88,24 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public void Clear()
         {
             int newheapUse = 0;
-            if(iarArrays != null)
+            if(iarArrays is not null)
             {
                 foreach(XMR_Array xa in iarArrays)
                     xa.__pub_clear();
             }
-            if(iarChars != null)
+            if(iarChars is not null)
                 iarChars = new char[iarChars.Length];
-            if (iarLists != null)
+            if (iarLists is not null)
                 iarLists = new LSL_List[iarLists.Length];
-            if (iarObjects != null)
+            if (iarObjects is not null)
                 iarObjects = new object[iarObjects.Length];
-            if(iarStrings != null)
+            if(iarStrings is not null)
                 iarStrings = new string[iarStrings.Length];
-            if (iarFloats != null)
+            if (iarFloats is not null)
                 newheapUse += iarFloats.Length * HeapTrackerObject.HT_DOUB;
-            if (iarIntegers != null)
+            if (iarIntegers is not null)
                 newheapUse += iarIntegers.Length * HeapTrackerObject.HT_INT;
-            if (iarRotations != null)
+            if (iarRotations is not null)
                 newheapUse += iarRotations.Length * HeapTrackerObject.HT_ROT;
             if (iarVectors != null)
                 newheapUse += iarVectors.Length * HeapTrackerObject.HT_VEC;
@@ -201,13 +200,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             ClearOldArrays();
 
             iarArrays = (XMR_Array[])recver();
-            if(iarArrays == null)
+            if(iarArrays is null)
                 iarArrays = noArrays;
 
             int newheapuse = arraysHeapUse;
 
             char[] chrs = (char[])recver();
-            if (chrs != null)
+            if (chrs is not null)
             {
                 newheapuse += chrs.Length * HeapTrackerObject.HT_CHAR;
                 iarChars = chrs;
@@ -216,7 +215,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 iarChars = noChars;
 
             double[] flts = (double[])recver();
-            if (flts != null)
+            if (flts is not null)
             {
                 newheapuse += flts.Length * HeapTrackerObject.HT_DOUB;
                 iarFloats = flts;
@@ -225,7 +224,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 iarFloats = noFloats;
 
             int[] ints = (int[])recver();
-            if (ints != null)
+            if (ints is not null)
             {
                 newheapuse += ints.Length * HeapTrackerObject.HT_INT;
                 iarIntegers = ints;
@@ -234,7 +233,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 iarIntegers = noIntegers;
 
             LSL_List[] liss = (LSL_List[])recver();
-            if (liss != null)
+            if (liss is not null)
             {
                 foreach (LSL_List lis in liss)
                 {
@@ -247,7 +246,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 iarLists = noLists;
 
             object[] objs = (object[])recver();
-            if (objs != null)
+            if (objs is not null)
             {
                 foreach (object obj in objs)
                     newheapuse += HeapTrackerObject.Size(obj);
@@ -257,7 +256,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 iarObjects = noObjects;
 
             LSL_Rotation[] rots = (LSL_Rotation[])recver();
-            if (rots != null)
+            if (rots is not null)
             {
                 newheapuse += rots.Length * HeapTrackerObject.HT_ROT;
                 iarRotations = rots;
@@ -266,7 +265,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 iarRotations = noRotations;
 
             string[] strs = (string[])recver();
-            if (strs != null)
+            if (strs is not null)
             {
                 foreach (string str in strs)
                     newheapuse += HeapTrackerString.Size(str);
@@ -285,11 +284,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 iarVectors = noVectors;
 
             iarSDTClObjs = (XMRSDTypeClObj[])recver();
-            if(iarSDTClObjs == null)
+            if(iarSDTClObjs is null)
                 iarSDTClObjs = noSDTClObjs;
 
             Delegate[][] dels = (Delegate[][])recver();
-            if(dels != null)
+            if(dels is not null)
             {
                 newheapuse += dels.Length * HeapTrackerObject.HT_DELE;
                 iarSDTIntfObjs = dels;
@@ -307,54 +306,54 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             int newheapuse = arraysHeapUse;
 
             iarArrays = null;
-            if(iarChars != null)
+            if(iarChars is not null)
             {
                 newheapuse -= iarChars.Length * HeapTrackerObject.HT_CHAR;
                 iarChars = null;
             }
-            if(iarFloats != null)
+            if(iarFloats is not null)
             {
                 newheapuse -= iarFloats.Length * HeapTrackerObject.HT_DOUB;
                 iarFloats = null;
             }
-            if(iarIntegers != null)
+            if(iarIntegers is not null)
             {
                 newheapuse -= iarIntegers.Length * HeapTrackerObject.HT_INT;
                 iarIntegers = null;
             }
-            if(iarLists != null)
+            if(iarLists is not null)
             {
                 foreach(LSL_List lis in iarLists)
                 {
-                    if (!(lis is null))
+                    if ((lis is not null))
                         newheapuse += lis.Size;
                 }
                 iarLists = null;
             }
-            if(iarObjects != null)
+            if(iarObjects is not null)
             {
                 foreach(object obj in iarObjects)
                     newheapuse -= HeapTrackerObject.Size(obj);
                 iarObjects = null;
             }
-            if(iarRotations != null)
+            if(iarRotations is not null)
             {
                 newheapuse -= iarRotations.Length * HeapTrackerObject.HT_ROT;
                 iarRotations = null;
             }
-            if(iarStrings != null)
+            if(iarStrings is not null)
             {
                 foreach(string str in iarStrings)
                     newheapuse -= HeapTrackerString.Size(str);
                 iarStrings = null;
             }
-            if(iarVectors != null)
+            if(iarVectors is not null)
             {
                 newheapuse -= iarVectors.Length * HeapTrackerObject.HT_VEC;
                 iarVectors = null;
             }
             iarSDTClObjs = null;
-            if(iarSDTIntfObjs != null)
+            if(iarSDTIntfObjs is not null)
             {
                 newheapuse -= iarSDTIntfObjs.Length * HeapTrackerObject.HT_DELE;
                 iarSDTIntfObjs = null;
@@ -651,7 +650,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public void CheckRunQuick()
         {
-            //            if (suspendOnCheckRunHold || suspendOnCheckRunTemp)
+            //if (suspendOnCheckRunHold || suspendOnCheckRunTemp)
             CheckRunWork();
         }
 
@@ -700,13 +699,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public static LSL_List FixLLParcelMediaQuery(LSL_List oldlist)
         {
             object[] oldarray = oldlist.Data;
-            int len = oldarray.Length;
-            object[] newarray = new object[len];
-            for(int i = 0; i < len; i++)
+            object[] newarray = new object[oldarray.Length];
+            for(int i = 0; i < oldarray.Length; i++)
             {
                 object obj = oldarray[i];
-                if(obj is LSL_Integer)
-                    obj = (int)(LSL_Integer)obj;
+                if(obj is LSL_Integer io)
+                    obj = io.value;
                 newarray[i] = obj;
             }
             return new LSL_List(newarray);
@@ -719,19 +717,18 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public static LSL_List FixLLParcelMediaCommandList(LSL_List oldlist)
         {
             object[] oldarray = oldlist.Data;
-            int len = oldarray.Length;
-            object[] newarray = new object[len];
+            object[] newarray = new object[oldarray.Length];
             int verbatim = 0;
-            for(int i = 0; i < len; i++)
+            for(int i = 0; i < oldarray.Length; i++)
             {
                 object obj = oldarray[i];
                 if(--verbatim < 0)
                 {
-                    if(obj is LSL_Integer)
-                        obj = (int)(LSL_Integer)obj;
-                    if(obj is int)
+                    if(obj is LSL_Integer lio)
+                        obj = lio.value;
+                    if(obj is int io)
                     {
-                        switch((int)obj)
+                        switch(io)
                         {
                             case ScriptBaseClass.PARCEL_MEDIA_COMMAND_AUTO_ALIGN:
                                 // leave next integer as LSL_Integer
@@ -809,20 +806,19 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             // If that is the case, convert it to the object of the script-defined 
             // class that is implementing the interface.  This should let the next 
             // step get the script-defined type name of the object.
-            if(o is Delegate[])
-                o = ((Delegate[])o)[0].Target;
+            if(o is Delegate[] dao)
+                o = dao[0].Target;
 
             // If script-defined class instance, get the script-defined 
             // type name.
-            if(o is XMRSDTypeClObj)
-                return ((XMRSDTypeClObj)o).sdtcClass.longName.val;
+            if(o is XMRSDTypeClObj XMRSDTypeClObjo) 
+                return XMRSDTypeClObjo.sdtcClass.longName.val;
 
             // If it's a delegate, maybe we can look up its script-defined type name.
             Type ot = o.GetType();
             if(o is Delegate)
             {
-                String os;
-                if(m_ObjCode.sdDelTypes.TryGetValue(ot, out os))
+                if(m_ObjCode.sdDelTypes.TryGetValue(ot, out string os))
                     return os;
             }
 
@@ -842,7 +838,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             object[] data = ev.Data;
             int evc = (int)(ev.GetLSLIntegerItem(0).value & 0xFFFFFFFF);
             ScriptEventHandler seh = m_ObjCode.scriptEventHandlerTable[stateCode, evc];
-            if(seh != null)
+            if(seh is not null)
             {
                 int nargs = data.Length - 1;
                 object[] args = new object[nargs];
@@ -851,13 +847,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 object[] saveEHArgs = this.ehArgs;
                 ScriptEventCode saveEventCode = this.eventCode;
 
-                this.ehArgs = args;
-                this.eventCode = (ScriptEventCode)evc;
+                ehArgs = args;
+                eventCode = (ScriptEventCode)evc;
 
                 seh(this);
 
-                this.ehArgs = saveEHArgs;
-                this.eventCode = saveEventCode;
+                ehArgs = saveEHArgs;
+                eventCode = saveEventCode;
             }
         }
 
@@ -969,9 +965,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             TokenDeclSDType sdType = inst.m_ObjCode.sdObjTypesIndx[sdtypeindex];
 
             // If it is a script-defined interface object, convert to the original XMRSDTypeClObj.
-            if(thrown is Delegate[])
+            if(thrown is Delegate[] dt)
             {
-                thrown = ((Delegate[])thrown)[0].Target;
+                thrown = dt[0].Target;
             }
 
             // If it is a script-defined delegate object, make sure it is an instance of the expected type.
@@ -983,12 +979,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
 
             // If it is a script-defined class object, make sure it is an instance of the expected class.
-            if(thrown is XMRSDTypeClObj)
+            if(thrown is XMRSDTypeClObj XMRSDTypeClObjthrown)
             {
                 // Step from the object's actual class rootward.
                 // If we find the requested class along the way, the cast is valid.
                 // If we run off the end of the root, the cast is not valid.
-                for(TokenDeclSDTypeClass ac = ((XMRSDTypeClObj)thrown).sdtcClass; ac != null; ac = ac.extends)
+                for(TokenDeclSDTypeClass ac = XMRSDTypeClObjthrown.sdtcClass; ac is not null; ac = ac.extends)
                 {
                     if(ac == sdType)
                         return thrown;
@@ -1130,14 +1126,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 object src = srcarray.GetValue(i + start);
                 if(src == null)
                     throw new NullReferenceException("null element " + i);
-                if(src is double)
+                if(src is double dsrc)
                 {
-                    output[i] = new LSL_Float((double)src);
+                    output[i] = new LSL_Float(dsrc);
                     continue;
                 }
-                if(src is int)
+                if(src is int isrc)
                 {
-                    output[i] = new LSL_Integer((int)src);
+                    output[i] = new LSL_Integer(isrc);
                     continue;
                 }
                 if(src is LSL_Rotation)
@@ -1150,9 +1146,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     output[i] = src;
                     continue;
                 }
-                if(src is string)
+                if(src is string ssrc)
                 {
-                    output[i] = new LSL_String((string)src);
+                    output[i] = new LSL_String(ssrc);
                     continue;
                 }
                 throw new InvalidCastException("invalid element " + i + " type " + src.GetType().Name);
@@ -1187,12 +1183,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             for(int i = 0; i < count; i++)
             {
                 object obj = srcarr[i + srcstart];
-                if(obj is LSL_Float)
-                    obj = ((LSL_Float)obj).value;
-                else if(obj is LSL_Integer)
-                    obj = ((LSL_Integer)obj).value;
-                else if(obj is LSL_String)
-                    obj = ((LSL_String)obj).m_string;
+                if(obj is LSL_Float lfo)
+                    obj = lfo.value;
+                else if(obj is LSL_Integer lio)
+                    obj = lio.value;
+                else if(obj is LSL_String lso)
+                    obj = lso.m_string;
                 dstarr.SetValue(obj, i + dststart);
             }
         }
@@ -1491,32 +1487,32 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             try
             {
-                this.migrateOutWriter = mow;
-                this.migrateOutObjects = new Dictionary<object, int>();
-                this.migrateOutLists = new Dictionary<object[], ObjLslList>();
-                this.SendObjValue(this.ehArgs);
-                mow.Write(this.doGblInit);
-                mow.Write(this.stateCode);
-                mow.Write((int)this.eventCode);
-                this.glblVars.SendArrays(this.SendObjValue);
-                if(this.newStateCode >= 0)
+                migrateOutWriter = mow;
+                migrateOutObjects = new Dictionary<object, int>();
+                migrateOutLists = new Dictionary<object[], ObjLslList>();
+                SendObjValue(ehArgs);
+                mow.Write(doGblInit);
+                mow.Write(stateCode);
+                mow.Write((int)eventCode);
+                glblVars.SendArrays(SendObjValue);
+                if(newStateCode >= 0)
                 {
                     mow.Write("**newStateCode**");
-                    mow.Write(this.newStateCode);
+                    mow.Write(newStateCode);
                 }
-                for(XMRStackFrame thisSF = this.stackFrames; thisSF != null; thisSF = thisSF.nextSF)
+                for(XMRStackFrame thisSF = stackFrames; thisSF is not null; thisSF = thisSF.nextSF)
                 {
                     mow.Write(thisSF.funcName);
                     mow.Write(thisSF.callNo);
-                    this.SendObjValue(thisSF.objArray);
+                    SendObjValue(thisSF.objArray);
                 }
                 mow.Write("");
             }
             finally
             {
-                this.migrateOutWriter = null;
-                this.migrateOutObjects = null;
-                this.migrateOutLists = null;
+                migrateOutWriter = null;
+                migrateOutObjects = null;
+                migrateOutLists = null;
             }
         }
 
@@ -1529,10 +1525,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private Dictionary<object[], ObjLslList> migrateOutLists;
         public void SendObjValue(object graph)
         {
-            BinaryWriter mow = this.migrateOutWriter;
+            BinaryWriter mow = migrateOutWriter;
 
             // Value types (including nulls) are always output directly.
-            if(graph == null)
+            if(graph is null)
             {
                 mow.Write((byte)Ser.NULL);
                 return;
@@ -1543,47 +1539,45 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 mow.Write((int)graph);
                 return;
             }
-            if(graph is LSL_Float)
+            if(graph is LSL_Float lfg)
             {
                 mow.Write((byte)Ser.LSLFLOAT);
-                mow.Write((double)((LSL_Float)graph).value);
+                mow.Write(lfg.value);
                 return;
             }
-            if(graph is LSL_Integer)
+            if(graph is LSL_Integer lig)
             {
                 mow.Write((byte)Ser.LSLINT);
-                mow.Write((int)((LSL_Integer)graph).value);
+                mow.Write(lig.value);
                 return;
             }
-            if(graph is LSL_Key)
+            if(graph is LSL_Key lkg)
             {
                 mow.Write((byte)Ser.LSLKEY);
-                LSL_Key key = (LSL_Key)graph;
-                SendObjValue(key.m_string);  // m_string can be null
+                SendObjValue(lkg.m_string);  // m_string can be null
                 return;
             }
-            if(graph is LSL_Rotation)
+            if(graph is LSL_Rotation lrg)
             {
                 mow.Write((byte)Ser.LSLROT);
-                mow.Write((double)((LSL_Rotation)graph).x);
-                mow.Write((double)((LSL_Rotation)graph).y);
-                mow.Write((double)((LSL_Rotation)graph).z);
-                mow.Write((double)((LSL_Rotation)graph).s);
+                mow.Write(lrg.x);
+                mow.Write(lrg.y);
+                mow.Write(lrg.z);
+                mow.Write(lrg.s);
                 return;
             }
-            if(graph is LSL_String)
+            if(graph is LSL_String lsg)
             {
                 mow.Write((byte)Ser.LSLSTR);
-                LSL_String str = (LSL_String)graph;
-                SendObjValue(str.m_string);  // m_string can be null
+                SendObjValue(lsg.m_string);  // m_string can be null
                 return;
             }
-            if(graph is LSL_Vector)
+            if(graph is LSL_Vector lvg)
             {
                 mow.Write((byte)Ser.LSLVEC);
-                mow.Write((double)((LSL_Vector)graph).x);
-                mow.Write((double)((LSL_Vector)graph).y);
-                mow.Write((double)((LSL_Vector)graph).z);
+                mow.Write(lvg.x);
+                mow.Write(lvg.y);
+                mow.Write(lvg.z);
                 return;
             }
             if(graph is bool)
@@ -1592,28 +1586,28 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 mow.Write((bool)graph);
                 return;
             }
-            if(graph is double)
+            if(graph is double dg)
             {
                 mow.Write((byte)Ser.SYSDOUB);
                 mow.Write((double)graph);
                 return;
             }
-            if(graph is float)
+            if(graph is float fg)
             {
                 mow.Write((byte)Ser.SYSFLOAT);
-                mow.Write((float)graph);
+                mow.Write(fg);
                 return;
             }
-            if(graph is int)
+            if(graph is int ig)
             {
                 mow.Write((byte)Ser.SYSINT);
                 mow.Write((int)graph);
                 return;
             }
-            if(graph is char)
+            if(graph is char cg)
             {
                 mow.Write((byte)Ser.SYSCHAR);
-                mow.Write((char)graph);
+                mow.Write(cg);
                 return;
             }
 
@@ -1627,17 +1621,16 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             // Convert lists to object type.
             // This is compatible with old migration data and also
             // two vars pointing to same list won't duplicate it.
-            if(graph is LSL_List)
+            if(graph is LSL_List llg)
             {
-                object[] data = ((LSL_List)graph).Data;
-                ObjLslList oll;
-                if(!this.migrateOutLists.TryGetValue(data, out oll))
+                object[] data = llg.Data;
+                if(!migrateOutLists.TryGetValue(data, out ObjLslList ollg))
                 {
-                    oll = new ObjLslList();
-                    oll.objarray = data;
-                    this.migrateOutLists[data] = oll;
+                    ollg = new ObjLslList();
+                    ollg.objarray = data;
+                    migrateOutLists[data] = ollg;
                 }
-                graph = oll;
+                graph = ollg;
             }
 
             // If this same exact object was already serialized,
@@ -1646,8 +1639,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             // new object with the same values.  Also this prevents
             // self-referencing objects (like arrays) from causing
             // an infinite loop.
-            int ident;
-            if(this.migrateOutObjects.TryGetValue(graph, out ident))
+            if(migrateOutObjects.TryGetValue(graph, out int ident))
             {
                 mow.Write((byte)Ser.DUPREF);
                 mow.Write(ident);
@@ -1656,51 +1648,47 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             // Object not seen before, save its address with an unique
             // ident number that the receiver can easily regenerate.
-            ident = this.migrateOutObjects.Count;
-            this.migrateOutObjects.Add(graph, ident);
+            ident = migrateOutObjects.Count;
+            migrateOutObjects.Add(graph, ident);
 
             // Now output the object's value(s).
             // If the object self-references, the object is alreay entered
             // in the dictionary and so the self-reference will just emit
             // a DUPREF tag instead of trying to output the whole object 
             // again.
-            if(graph is ObjLslList)
+            if(graph is ObjLslList oll)
             {
                 mow.Write((byte)Ser.LSLLIST);
-                ObjLslList oll = (ObjLslList)graph;
                 SendObjValue(oll.objarray);
             }
-            else if(graph is XMR_Array)
+            else if(graph is XMR_Array xg)
             {
                 mow.Write((byte)Ser.XMRARRAY);
-                ((XMR_Array)graph).SendArrayObj(this.SendObjValue);
+                xg.SendArrayObj(SendObjValue);
             }
-            else if(graph is Array)
+            else if(graph is Array array)
             {
-                Array array = (Array)graph;
                 mow.Write((byte)Ser.SYSARRAY);
                 mow.Write(SysType2String(array.GetType().GetElementType()));
-                mow.Write((int)array.Length);
+                mow.Write(array.Length);
                 for(int i = 0; i < array.Length; i++)
-                    this.SendObjValue(array.GetValue(i));
+                    SendObjValue(array.GetValue(i));
             }
-            else if(graph is string)
+            else if(graph is string sg)
             {
                 mow.Write((byte)Ser.SYSSTR);
-                mow.Write((string)graph);
+                mow.Write(sg);
             }
-            else if(graph is Delegate)
+            else if(graph is Delegate del)
             {
-                Delegate del = (Delegate)graph;
                 mow.Write((byte)Ser.DELEGATE);
                 mow.Write(del.Method.Name);
                 Type delType = del.GetType();
                 foreach(KeyValuePair<string, TokenDeclSDType> kvp in m_ObjCode.sdObjTypesName)
                 {
                     TokenDeclSDType sdt = kvp.Value;
-                    if(sdt is TokenDeclSDTypeDelegate)
+                    if(sdt is TokenDeclSDTypeDelegate sdtd)
                     {
-                        TokenDeclSDTypeDelegate sdtd = (TokenDeclSDTypeDelegate)sdt;
                         if(sdtd.GetSysType() == delType)
                         {
                             mow.Write(kvp.Key);
@@ -1712,12 +1700,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 found:
                 SendObjValue(del.Target);
             }
-            else if(graph is XMRSDTypeClObj)
+            else if(graph is XMRSDTypeClObj XMRSDTypeClObjgraph)
             {
                 mow.Write((byte)Ser.SDTCLOBJ);
-                ((XMRSDTypeClObj)graph).Capture(this.SendObjValue);
+                XMRSDTypeClObjgraph.Capture(this.SendObjValue);
             }
-            else if(graph is ScriptThrownException)
+            else if(graph is ScriptThrownException ScriptThrownExceptiongraph)
             {
                 MemoryStream memoryStream = new MemoryStream();
                 System.Runtime.Serialization.Formatters.Binary.BinaryFormatter bformatter =
@@ -1727,7 +1715,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 mow.Write((byte)Ser.THROWNEX);
                 mow.Write((int)rawBytes.Length);
                 mow.Write(rawBytes);
-                SendObjValue(((ScriptThrownException)graph).thrown);
+                SendObjValue(ScriptThrownExceptiongraph.thrown);
             }
             else
             {
@@ -1737,7 +1725,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 bformatter.Serialize(memoryStream, graph);
                 byte[] rawBytes = memoryStream.ToArray();
                 mow.Write((byte)Ser.SYSERIAL);
-                mow.Write((int)rawBytes.Length);
+                mow.Write(rawBytes.Length);
                 mow.Write(rawBytes);
             }
         }
@@ -1750,13 +1738,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             if(type.IsArray && (type.GetArrayRank() == 1))
             {
                 string str = KnownSysType2String(type.GetElementType());
-                if(str != null)
+                if(str is not null)
                     return str + "[]";
             }
             else
             {
                 string str = KnownSysType2String(type);
-                if(str != null)
+                if(str is not null)
                     return str;
             }
             return type.ToString();
@@ -1832,29 +1820,29 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             try
             {
-                this.migrateInReader = mir;
-                this.migrateInObjects = new Dictionary<int, object>();
-                this.ehArgs = (object[])this.RecvObjValue();
-                this.doGblInit = mir.ReadBoolean();
-                this.stateCode = mir.ReadInt32();
-                this.eventCode = (ScriptEventCode)mir.ReadInt32();
-                this.newStateCode = -1;
-                this.glblVars.RecvArrays(this.RecvObjValue);
+                migrateInReader = mir;
+                migrateInObjects = new Dictionary<int, object>();
+                ehArgs = (object[])RecvObjValue();
+                doGblInit = mir.ReadBoolean();
+                stateCode = mir.ReadInt32();
+                eventCode = (ScriptEventCode)mir.ReadInt32();
+                newStateCode = -1;
+                glblVars.RecvArrays(RecvObjValue);
                 XMRStackFrame lastSF = null;
                 string funcName;
                 while((funcName = mir.ReadString()) != "")
                 {
                     if(funcName == "**newStateCode**")
                     {
-                        this.newStateCode = mir.ReadInt32();
+                        newStateCode = mir.ReadInt32();
                         continue;
                     }
                     XMRStackFrame thisSF = new XMRStackFrame();
                     thisSF.funcName = funcName;
                     thisSF.callNo = mir.ReadInt32();
-                    thisSF.objArray = (object[])this.RecvObjValue();
+                    thisSF.objArray = (object[])RecvObjValue();
                     if(lastSF == null)
-                        this.stackFrames = thisSF;
+                        stackFrames = thisSF;
                     else
                         lastSF.nextSF = thisSF;
                     lastSF = thisSF;
@@ -1862,8 +1850,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
             finally
             {
-                this.migrateInReader = null;
-                this.migrateInObjects = null;
+                migrateInReader = null;
+                migrateInObjects = null;
             }
         }
 

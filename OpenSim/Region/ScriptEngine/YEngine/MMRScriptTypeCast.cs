@@ -833,7 +833,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         }
         public static string ObjectToString(object x)
         {
-            return (x == null) ? null : x.ToString();
+            return x?.ToString();
         }
         public static string RotationToString(LSL_Rotation x)
         {
@@ -878,27 +878,34 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public static double ObjectToFloat(object x)
         {
-            if(x is LSL_String)
-                return double.Parse(((LSL_String)x).m_string);
-            if(x is string)
-                return double.Parse((string)x);
-            if(x is LSL_Float)
-                return (double)(LSL_Float)x;
-            if(x is LSL_Integer)
-                return (double)(int)(LSL_Integer)x;
-            if(x is int)
-                return (double)(int)x;
+            if(x is LSL_String lsx)
+                return double.Parse(lsx.m_string);
+            if(x is string sx)
+                return double.Parse(sx);
+            if(x is LSL_Float lfx)
+                return lfx.value;
+            if(x is LSL_Integer lix)
+                return lix.value;
+            if(x is int ix)
+                return ix;
             return (double)x;
         }
 
         public static int ObjectToInteger(object x)
         {
-            if(x is LSL_String)
-                return int.Parse(((LSL_String)x).m_string);
-            if(x is string)
-                return int.Parse((string)x);
-            if(x is LSL_Integer)
-                return (int)(LSL_Integer)x;
+            if (x is int ix)
+                return ix;
+            if (x is LSL_Integer lix)
+                return lix.value;
+            if (x is LSL_String lsx)
+                return int.Parse(lsx.m_string);
+            if(x is string sx)
+                return int.Parse(sx);
+            if (x is LSL_Float lfx)
+                return (int)lfx.value;
+            if (x is double dx)
+                return (int)dx;
+
             return (int)x;
         }
 
@@ -909,19 +916,19 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public static LSL_Rotation ObjectToRotation(object x)
         {
-            if(x is LSL_String)
-                return new LSL_Rotation(((LSL_String)x).m_string);
-            if(x is string)
-                return new LSL_Rotation((string)x);
+            if(x is LSL_String lsx)
+                return new LSL_Rotation(lsx.m_string);
+            if(x is string sx)
+                return new LSL_Rotation(sx);
             return (LSL_Rotation)x;
         }
 
         public static LSL_Vector ObjectToVector(object x)
         {
-            if(x is LSL_String)
-                return new LSL_Vector(((LSL_String)x).m_string);
-            if(x is string)
-                return new LSL_Vector((string)x);
+            if(x is LSL_String lsx)
+                return new LSL_Vector(lsx.m_string);
+            if(x is string sx)
+                return new LSL_Vector(sx);
             return (LSL_Vector)x;
         }
 
@@ -937,44 +944,38 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public static double EHArgUnwrapFloat(object x)
         {
-            if(x is LSL_Float)
-                return (double)(LSL_Float)x;
+            if(x is LSL_Float lfx)
+                return lfx.value;
             return (double)x;
         }
 
         public static int EHArgUnwrapInteger(object x)
         {
-            if(x is LSL_Integer)
-                return (int)(LSL_Integer)x;
+            if(x is LSL_Integer lix)
+                return lix.value;
             return (int)x;
         }
 
         public static LSL_Rotation EHArgUnwrapRotation(object x)
         {
-            if(x is OpenMetaverse.Quaternion)
-            {
-                OpenMetaverse.Quaternion q = (OpenMetaverse.Quaternion)x;
-                return new LSL_Rotation(q.X, q.Y, q.Z, q.W);
-            }
+            if(x is OpenMetaverse.Quaternion oqx)
+                return new LSL_Rotation(oqx);
             return (LSL_Rotation)x;
         }
 
         public static string EHArgUnwrapString(object x)
         {
-            if(x is LSL_Key)
-                return (string)(LSL_Key)x;
-            if(x is LSL_String)
-                return (string)(LSL_String)x;
+            if(x is LSL_Key lkx)
+                return lkx.m_string;
+            if(x is LSL_String sx)
+                return sx.m_string;
             return (string)x;
         }
 
         public static LSL_Vector EHArgUnwrapVector(object x)
         {
-            if(x is OpenMetaverse.Vector3)
-            {
-                OpenMetaverse.Vector3 v = (OpenMetaverse.Vector3)x;
-                return new LSL_Vector(v.X, v.Y, v.Z);
-            }
+            if(x is OpenMetaverse.Vector3 ovx)
+                return new LSL_Vector(ovx);
             return (LSL_Vector)x;
         }
     }

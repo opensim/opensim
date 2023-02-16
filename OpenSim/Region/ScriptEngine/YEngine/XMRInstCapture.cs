@@ -116,7 +116,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 //m_RunOnePhase = "GetExecutionState D";
                 CheckRunLockInvariants(true);
 
-                if(m_XMRLSLApi != null)
+                if(m_XMRLSLApi is not null)
                 {
                     double scriptTime = Util.GetTimeStampMS() - m_XMRLSLApi.getLSLTimer();
                     XmlElement scriptTimeN = doc.CreateElement("", "scrpTime", "");
@@ -150,7 +150,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 // "DetectParams" are returned by llDetected...() script functions
                 // for the currently active event, if any.
                 var detectParams = m_DetectParams;
-                if (detectParams != null)
+                if (detectParams is not null)
                 {
                     XmlElement detParArrayN = doc.CreateElement("", "DetectArray", "");
                     AppendXMLDetectArray(doc, detParArrayN, detectParams);
@@ -184,8 +184,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 CheckRunLockInvariants(true);
 
                 // "Plugins" indicate enabled timers and listens, etc.
-                Object[] pluginData =
-                        AsyncCommandManager.GetSerializationData(m_Engine, m_ItemID);
+                Object[] pluginData = AsyncCommandManager.GetSerializationData(m_Engine, m_ItemID);
 
                 XmlNode plugins = doc.CreateElement("", "Plugins", "");
                 AppendXMLObjectArray(doc, plugins, pluginData, "plugin");
@@ -222,7 +221,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             // Does not change script state.
             stream.WriteByte(migrationVersion);
             stream.WriteByte((byte)16);
-            this.MigrateOut(new BinaryWriter(stream));
+            MigrateOut(new BinaryWriter(stream));
         }
 
         /**
