@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using OpenSim.Framework;
@@ -36,13 +37,14 @@ using OpenMetaverse;
 using OMV_Vector3 = OpenMetaverse.Vector3;
 using OMV_Vector3d = OpenMetaverse.Vector3d;
 using OMV_Quaternion = OpenMetaverse.Quaternion;
+using System.Runtime.InteropServices;
 
 namespace OpenSim.Region.ScriptEngine.Shared
 {
     public partial class LSL_Types
     {
         // Types are kept is separate .dll to avoid having to add whatever .dll it is in it to script AppDomain
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe static bool IsBadNumber(double d)
         {
             return (*(long*)(&d) & 0x7FFFFFFFFFFFFFFF) >= 0x7FF0000000000000;
@@ -85,29 +87,78 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 z = Z;
             }
 
-            public Vector3(string str)
+            public unsafe Vector3(string str)
             {
-                str = str.Replace('<', ' ');
-                str = str.Replace('>', ' ');
-                string[] tmps = str.Split(Util.SplitCommaArray);
-                if (tmps.Length < 3)
+                if (str.Length < 5)
                 {
                     z = y = x = 0;
                     return;
                 }
-                if (!Double.TryParse(tmps[0], NumberStyles.Float, Culture.NumberFormatInfo, out x))
+
+                var strspan = str.AsSpan();
+
+                int start = 0;
+                int comma = 0;
+                char c;
+                do
+                {
+                    c = Unsafe.Add(ref MemoryMarshal.GetReference(strspan), comma);
+                    if (c == ',' || c == '<')
+                        break;
+                }
+                while (++comma < str.Length);
+
+                if (c == '<')
+                {
+                    start = ++comma;
+                    while (++comma < str.Length)
+                    {
+                        if (Unsafe.Add(ref MemoryMarshal.GetReference(strspan), comma) == ',')
+                            break;
+                    }
+                }
+                if (comma > str.Length - 3)
+                {
+                    z = y = x = 0;
+                    return;
+                }
+
+                if (!double.TryParse(strspan[start..comma], NumberStyles.Float, Utils.EnUsCulture, out x))
                 {
                     z = y = 0;
                     return;
                 }
-                if (!Double.TryParse(tmps[1], NumberStyles.Float, Culture.NumberFormatInfo, out y))
+
+                start = ++comma;
+                while (++comma < str.Length)
+                {
+                    if (Unsafe.Add(ref MemoryMarshal.GetReference(strspan), comma) == ',')
+                        break;
+                }
+                if (comma > str.Length - 1)
+                {
+                    z = y = x = 0;
+                    return;
+                }
+                if (!double.TryParse(strspan[start..comma], NumberStyles.Float, Utils.EnUsCulture, out y))
                 {
                     z = x = 0;
                     return;
                 }
-                if (!Double.TryParse(tmps[2], NumberStyles.Float, Culture.NumberFormatInfo, out z))
+
+                start = ++comma;
+                while (++comma < str.Length)
+                {
+                    c = Unsafe.Add(ref MemoryMarshal.GetReference(strspan), comma);
+                    if (c == ' ' || c == '>')
+                        break;
+                    comma++;
+                }
+
+                if (!double.TryParse(strspan[start..comma], NumberStyles.Float, Utils.EnUsCulture, out z))
                 {
                     y = x = 0;
+                    return;
                 }
             }
 
@@ -115,23 +166,20 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             #region Overriders
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static implicit operator Boolean(Vector3 vec)
             {
-                if (vec.x != 0)
-                    return true;
-                if (vec.y != 0)
-                    return true;
-                if (vec.z != 0)
-                    return true;
-                return false;
+                return vec.x != 0 || vec.y != 0 || vec.z != 0;
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public override string ToString()
             {
                 string s = String.Format(Culture.FormatProvider, "<{0:0.000000}, {1:0.000000}, {2:0.000000}>", x, y, z);
                 return s;
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static explicit operator LSLString(Vector3 vec)
             {
                 string s = String.Format(Culture.FormatProvider, "<{0:0.000000}, {1:0.000000}, {2:0.000000}>", vec.x, vec.y, vec.z);
@@ -186,16 +234,14 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public override int GetHashCode()
             {
-                return (x.GetHashCode() ^ y.GetHashCode() ^ z.GetHashCode());
+                return x.GetHashCode() + y.GetHashCode() + z.GetHashCode();
             }
 
             public override bool Equals(object o)
             {
-                if (!(o is Vector3)) return false;
-
-                Vector3 vector = (Vector3)o;
-
-                return (x == vector.x && y == vector.y && z == vector.z);
+                if (o is Vector3 vector)
+                    return (x == vector.x && y == vector.y && z == vector.z);
+                return false;
             }
 
             public static Vector3 operator -(Vector3 vector)
@@ -357,13 +403,13 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public static Vector3 Norm(Vector3 vector)
             {
-                double mag = Mag(vector);
-                if (mag > 0.0)
+                double mag = MagSquare(vector);
+                if (mag > float.Epsilon)
                 {
-                    double invMag = 1.0 / mag;
+                    double invMag = 1.0 / Math.Sqrt(mag);
                     return vector * invMag;
                 }
-                return new Vector3(0, 0, 0);
+                return Vector3.Zero;
             }
 
             public static Vector3 Slerp(Vector3 v1, Vector3 v2, double amount)
@@ -391,7 +437,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 );
             }
 
-            public static readonly Vector3 Zero = new Vector3(0, 0, 0);
+            public static readonly Vector3 Zero = new(0, 0, 0);
             #endregion
         }
 
@@ -407,10 +453,10 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public Quaternion(Quaternion Quat)
             {
-                x = (float)Quat.x;
-                y = (float)Quat.y;
-                z = (float)Quat.z;
-                s = (float)Quat.s;
+                x = Quat.x;
+                y = Quat.y;
+                z = Quat.z;
+                s = Quat.s;
                 if (s == 0 && x == 0 && y == 0 && z == 0)
                     s = 1;
             }
@@ -425,43 +471,113 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     s = 1;
             }
 
-            public Quaternion(string str)
-            {
-                str = str.Replace('<', ' ');
-                str = str.Replace('>', ' ');
-                string[] tmps = str.Split(Util.SplitCommaArray);
-                if (tmps.Length < 4 ||
-                    !Double.TryParse(tmps[3], NumberStyles.Float, Culture.NumberFormatInfo, out s))
-                {
-                    z = y = x = 0;
-                    s = 1;
-                    return;
-                }
-                if (!Double.TryParse(tmps[0], NumberStyles.Float, Culture.NumberFormatInfo, out x))
-                {
-                    z = y = 0;
-                    s = 1;
-                    return;
-                }
-                if (!Double.TryParse(tmps[1], NumberStyles.Float, Culture.NumberFormatInfo, out y))
-                {
-                    z = x = 0;
-                    s = 1;
-                    return;
-                }
-                if (!Double.TryParse(tmps[2], NumberStyles.Float, Culture.NumberFormatInfo, out z))
-                {
-                    y = x = 0;
-                    s = 1;
-                }
-            }
-
             public Quaternion(OMV_Quaternion rot)
             {
                 x = rot.X;
                 y = rot.Y;
                 z = rot.Z;
                 s = rot.W;
+            }
+
+            public Quaternion(string str)
+            {
+                if (str.Length < 7)
+                {
+                    z = y = x = 0;
+                    s = 1;
+                    return;
+                }
+
+                var strspan = str.AsSpan();
+
+                int start = 0;
+                int comma = 0;
+                char c;
+
+                do
+                {
+                    c = Unsafe.Add(ref MemoryMarshal.GetReference(strspan), comma);
+                    if (c == ',' || c == '<')
+                        break;
+                }
+                while (++comma < str.Length);
+
+                if (c == '<')
+                {
+                    start = ++comma;
+                    while (++comma < str.Length)
+                    {
+                        if (Unsafe.Add(ref MemoryMarshal.GetReference(strspan), comma) == ',')
+                            break;
+                    }
+                }
+                if (comma > str.Length - 5)
+                {
+                    z = y = x = 0;
+                    s = 1;
+                    return;
+                }
+
+                if (!double.TryParse(strspan[start..comma], NumberStyles.Float, Utils.EnUsCulture, out x))
+                {
+                    z = y = 0;
+                    s = 1;
+                    return;
+                }
+
+                start = ++comma;
+                while (++comma < str.Length)
+                {
+                    if (Unsafe.Add(ref MemoryMarshal.GetReference(strspan), comma) == ',')
+                        break;
+                }
+                if (comma > str.Length - 3)
+                {
+                    z = y = x = 0;
+                    s = 1;
+                    return;
+                }
+
+                if (!double.TryParse(strspan[start..comma], NumberStyles.Float, Utils.EnUsCulture, out y))
+                {
+                    z = x = 0;
+                    s = 1;
+                    return;
+                }
+                start = ++comma;
+                while (++comma < str.Length)
+                {
+                    if (Unsafe.Add(ref MemoryMarshal.GetReference(strspan), comma) == ',')
+                        break;
+                }
+                if (comma > str.Length - 1)
+                {
+                    z = y = x = 0;
+                    s = 1;
+                    return;
+                }
+
+                if (!double.TryParse(strspan[start..comma], NumberStyles.Float, Utils.EnUsCulture, out z))
+                {
+                    y = x = 0;
+                    s = 1;
+                    return;
+                }
+
+                start = ++comma;
+                while (++comma < str.Length)
+                {
+                    c = Unsafe.Add(ref MemoryMarshal.GetReference(strspan), comma);
+                    if (c == ' ' || c == '>')
+                        break;
+                }
+
+                if (!double.TryParse(strspan[start..comma], NumberStyles.Float, Utils.EnUsCulture, out s))
+                {
+                    z = y = x = 0;
+                    s = 1;
+                    return;
+                }
             }
 
             #endregion
@@ -564,28 +680,27 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public override bool Equals(object o)
             {
-                if (!(o is Quaternion)) return false;
+                if (o is Quaternion qo)
+                    return x == qo.x && y == qo.y && z == qo.z && s == qo.s;
 
-                Quaternion quaternion = (Quaternion)o;
-
-                return x == quaternion.x && y == quaternion.y && z == quaternion.z && s == quaternion.s;
+                return false;
             }
 
             public override string ToString()
             {
-                string st=String.Format(Culture.FormatProvider, "<{0:0.000000}, {1:0.000000}, {2:0.000000}, {3:0.000000}>", x, y, z, s);
+                string st = String.Format(Culture.FormatProvider, "<{0:0.000000}, {1:0.000000}, {2:0.000000}, {3:0.000000}>", x, y, z, s);
                 return st;
             }
 
             public static explicit operator string(Quaternion r)
             {
-                string st=String.Format(Culture.FormatProvider,"<{0:0.000000}, {1:0.000000}, {2:0.000000}, {3:0.000000}>", r.x, r.y, r.z, r.s);
+                string st = String.Format(Culture.FormatProvider, "<{0:0.000000}, {1:0.000000}, {2:0.000000}, {3:0.000000}>", r.x, r.y, r.z, r.s);
                 return st;
             }
 
             public static explicit operator LSLString(Quaternion r)
             {
-                string st=String.Format(Culture.FormatProvider,"<{0:0.000000}, {1:0.000000}, {2:0.000000}, {3:0.000000}>", r.x, r.y, r.z, r.s);
+                string st = String.Format(Culture.FormatProvider, "<{0:0.000000}, {1:0.000000}, {2:0.000000}, {3:0.000000}>", r.x, r.y, r.z, r.s);
                 return new LSLString(st);
             }
 
@@ -605,7 +720,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 if (rot.s == 0 && rot.x == 0 && rot.y == 0 && rot.z == 0)
                     return OMV_Quaternion.Identity; // ZERO_ROTATION = 0,0,0,1
 
-                OMV_Quaternion omvrot = new OMV_Quaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s);
+                OMV_Quaternion omvrot = new((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s);
                 omvrot.Normalize();
                 return omvrot;
             }
@@ -665,7 +780,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return c;
             }
 
-            public static readonly Quaternion Identity = new (0, 0, 0, 1);
+            public static readonly Quaternion Identity = new(0, 0, 0, 1);
         }
 
         [Serializable]
@@ -682,9 +797,9 @@ namespace OpenSim.Region.ScriptEngine.Shared
             {
                 get
                 {
-                    if (m_data == null)
+                    if (m_data is null)
                     {
-                        m_data=new object[0];
+                        m_data = new object[0];
                         return 0;
                     }
                     return m_data.Length;
@@ -695,7 +810,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
             {
                 get
                 {
-                    if (m_data == null)
+                    if (m_data is null)
                         return 0;
 
                     int size = IntPtr.Size * m_data.Length;
@@ -706,10 +821,10 @@ namespace OpenSim.Region.ScriptEngine.Shared
                             size += 4;
                         else if (o is LSL_Types.LSLFloat)
                             size += 8;
-                        else if (o is LSL_Types.LSLString)
-                            size += ((LSL_Types.LSLString)o).m_string == null ? 0 : ((LSL_Types.LSLString)o).m_string.Length * sizeof(char);
-                        else if (o is LSL_Types.key)
-                            size += ((LSL_Types.key)o).value.Length;
+                        else if (o is LSL_Types.LSLString lso)
+                            size += lso.m_string is null ? 0 : lso.m_string.Length * sizeof(char);
+                        else if (o is LSL_Types.key ko)
+                            size += ko.value.Length;
                         else if (o is LSL_Types.Vector3)
                             size += 32;
                         else if (o is LSL_Types.Quaternion)
@@ -718,14 +833,14 @@ namespace OpenSim.Region.ScriptEngine.Shared
                             size += 4;
                         else if (o is uint)
                             size += 4;
-                        else if (o is string)
-                            size += ((string)o).Length * sizeof(char);
+                        else if (o is string so)
+                            size += so.Length * sizeof(char);
                         else if (o is float)
                             size += 8;
                         else if (o is double)
                             size += 16;
-                        else if (o is list)
-                            size += ((list)o).Size;
+                        else if (o is list lo)
+                            size += lo.Size;
                         else
                             throw new Exception("Unknown type in List.Size: " + o.GetType().ToString());
                     }
@@ -735,13 +850,13 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public object[] Data
             {
-                get {
-                    if (m_data == null)
-                        m_data=new object[0];
+                get
+                {
+                    m_data ??= new object[0];
                     return m_data;
                 }
 
-                set {m_data = value; }
+                set { m_data = value; }
             }
 
             /// <summary>
@@ -773,75 +888,72 @@ namespace OpenSim.Region.ScriptEngine.Shared
             public LSL_Types.LSLFloat GetLSLFloatItem(int itemIndex)
             {
                 object o = Data[itemIndex];
-                if (o is LSL_Types.LSLInteger)
-                    return (LSL_Types.LSLInteger)o;
-                if (o is Int32)
-                    return new LSL_Types.LSLFloat((int)o);
-                if (o is float)
-                    return new LSL_Types.LSLFloat((float)o);
-                if (o is Double)
-                    return new LSL_Types.LSLFloat((Double)o);
-                if (o is LSL_Types.LSLString)
-                    return new LSL_Types.LSLFloat(o.ToString());
+                if (o is LSL_Types.LSLInteger lio)
+                    return new LSL_Types.LSLFloat(lio.value);
+                if (o is Int32 io)
+                    return new LSL_Types.LSLFloat(io);
+                if (o is float fo)
+                    return new LSL_Types.LSLFloat(fo);
+                if (o is Double dov)
+                    return new LSL_Types.LSLFloat(dov);
+                if (o is LSL_Types.LSLString lso)
+                    return new LSL_Types.LSLFloat(lso.m_string);
                 return (LSL_Types.LSLFloat)o;
             }
 
             public LSL_Types.LSLString GetLSLStringItem(int itemIndex)
             {
                 object o = Data[itemIndex];
-                if (o is LSL_Types.key)
-                    return (LSL_Types.key)o;
+                if (o is LSL_Types.key ko)
+                    return ko;
+                if (o is LSL_Types.LSLString lso)
+                    return lso;
                 return new LSL_Types.LSLString(o.ToString());
             }
 
             public LSL_Types.LSLInteger GetLSLIntegerItem(int itemIndex)
             {
                 object o = Data[itemIndex];
-                if (o is LSL_Types.LSLInteger)
-                    return (LSL_Types.LSLInteger)o;
-                if (o is LSL_Types.LSLFloat)
-                    return new LSLInteger((int)o);
-                if (o is Int32)
-                    return new LSLInteger((int)o);
-                if (o is LSL_Types.LSLString)
-                    return new LSLInteger(o.ToString());
+                if (o is LSL_Types.LSLInteger lio)
+                    return lio;
+                if (o is LSL_Types.LSLFloat lfo)
+                    return new LSLInteger((int)lfo.value);
+                if (o is Int32 io)
+                    return new LSLInteger(io);
+                if (o is LSL_Types.LSLString lso)
+                    return new LSLInteger(lso.m_string);
 
                 throw new InvalidCastException(string.Format(
                     "{0} expected but {1} given",
                     typeof(LSL_Types.LSLInteger).Name,
-                    o != null ?
-                    o.GetType().Name : "null"));
+                    o is not null ? o.GetType().Name : "null"));
             }
 
             public LSL_Types.Vector3 GetVector3Item(int itemIndex)
             {
                 object o = Data[itemIndex];
-                if (o is LSL_Types.Vector3)
-                    return (LSL_Types.Vector3)o;
-                if(o is OpenMetaverse.Vector3)
-                    return new LSL_Types.Vector3((OpenMetaverse.Vector3)o);
+                if (o is LSL_Types.Vector3 vo)
+                    return vo;
+                if (o is OMV_Vector3 ov)
+                    return new LSL_Types.Vector3(ov);
 
                 throw new InvalidCastException(string.Format(
                     "{0} expected but {1} given",
                     typeof(LSL_Types.Vector3).Name,
-                    o != null ?
-                    o.GetType().Name : "null"));
+                    o != null ? o.GetType().Name : "null"));
             }
 
             // use LSL_Types.Quaternion to parse and store a vector4 for lightShare
             public LSL_Types.Quaternion GetVector4Item(int itemIndex)
             {
                 object o = Data[itemIndex];
-                if (o is LSL_Types.Quaternion)
-                {
-                    LSL_Types.Quaternion q = (LSL_Types.Quaternion)o;
+                if (o is LSL_Types.Quaternion q)
                     return q;
-                }
-                if(o is OpenMetaverse.Quaternion)
+
+                if (o is OMV_Quaternion qo)
                 {
-                    LSL_Types.Quaternion q = new LSL_Types.Quaternion((OpenMetaverse.Quaternion)o);
-                    q.Normalize();
-                    return q;
+                    qo.Normalize();
+                    return new LSL_Types.Quaternion(qo); ;
                 }
 
                 throw new InvalidCastException(string.Format(
@@ -854,17 +966,15 @@ namespace OpenSim.Region.ScriptEngine.Shared
             public LSL_Types.Quaternion GetQuaternionItem(int itemIndex)
             {
                 object o = Data[itemIndex];
-                if (o is LSL_Types.Quaternion)
+                if (o is LSL_Types.Quaternion q)
                 {
-                    LSL_Types.Quaternion q = (LSL_Types.Quaternion)o;
                     q.Normalize();
                     return q;
                 }
-                if(o is OpenMetaverse.Quaternion)
+                if (o is OMV_Quaternion oq)
                 {
-                    LSL_Types.Quaternion q = new LSL_Types.Quaternion((OpenMetaverse.Quaternion)o);
-                    q.Normalize();
-                    return q;
+                    oq.Normalize();
+                    return new LSL_Types.Quaternion(oq);
                 }
 
                 throw new InvalidCastException(string.Format(
@@ -876,7 +986,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public LSL_Types.key GetKeyItem(int itemIndex)
             {
-              return (LSL_Types.key)Data[itemIndex];
+                return (LSL_Types.key)Data[itemIndex];
             }
 
             public static list operator +(list a, list b)
@@ -891,7 +1001,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
             private void ExtendAndAdd(object o)
             {
                 object[] tmp;
-                if(m_data == null || m_data.Length == 0)
+                if (m_data is null || m_data.Length == 0)
                 {
                     tmp = new object[1];
                     tmp.SetValue(o, 0);
@@ -932,20 +1042,20 @@ namespace OpenSim.Region.ScriptEngine.Shared
             {
                 if (b is null)
                     return (a is null);
-                return (a is null) ? false : a.Length == b.Length;
+                return a is not null && a.Length == b.Length;
             }
 
             public static bool operator !=(list a, list b)
             {
                 if (b is null)
-                    return !(a is null);
-                return (a is null) ? true : a.Length != b.Length;
+                    return a is not null;
+                return (a is null) || a.Length != b.Length;
             }
 
             public void Add(object o)
             {
                 object[] tmp;
-                if(m_data == null || m_data.Length == 0)
+                if (m_data is null || m_data.Length == 0)
                 {
                     tmp = new object[1];
                     tmp[0] = o;
@@ -961,7 +1071,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public bool Contains(object o)
             {
-                if (m_data == null)
+                if (m_data is null)
                     return false;
                 foreach (object i in m_data)
                 {
@@ -977,21 +1087,21 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 // If start <= end, remove that part
                 // if either is negative, count from the end of the array
                 // if the resulting start > end, keep [end + 1, start - 1]
-                if(m_data == null || m_data.Length == 0)
+                if (m_data is null || m_data.Length == 0)
                     return new list(new object[0]);
 
                 int len = m_data.Length;
                 object[] ret;
 
                 if (start < 0)
-                    start= len + start;
+                    start = len + start;
                 if (start < 0)
-                    start=0;
+                    start = 0;
 
                 if (end < 0)
-                    end= len + end;
+                    end = len + end;
                 if (end < 0)
-                    end=0;
+                    end = 0;
 
                 if (start > end)
                 {
@@ -1004,7 +1114,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                         start = len - 1;
 
                     int num = start - end + 1;
-                    if(num <= 0)
+                    if (num <= 0)
                         return new list(new object[0]);
 
                     ret = new object[num];
@@ -1028,7 +1138,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 // now, this makes the math easier
                 int remove = end - start;
 
-                if(remove >= len)
+                if (remove >= len)
                     return new list(new object[0]);
 
                 ret = new object[len - remove];
@@ -1036,7 +1146,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 if (start > 0)
                     Array.Copy(m_data, 0, ret, 0, start);
 
-                if(end >= len)
+                if (end >= len)
                     return new list(ret);
 
                 Array.Copy(m_data, end, ret, start, len - end);
@@ -1123,7 +1233,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     }
                     else
                     {
-                        result = GetSublist(0,end);
+                        result = GetSublist(0, end);
                     }
 
                     // If start is outside of list, then just return
@@ -1148,37 +1258,32 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     return 0;
                 }
 
-                int ret = 0;
+                int ret;
 
-                if (left is LSLInteger)
+                if (left is LSLInteger l)
                 {
-                    LSLInteger l = (LSLInteger)left;
                     LSLInteger r = (LSLInteger)right;
                     ret = Math.Sign(l.value - r.value);
                 }
-                else if (left is LSLString)
+                else if (left is LSLString lsl)
                 {
-                    LSLString l = (LSLString)left;
                     LSLString r = (LSLString)right;
-                    ret = string.CompareOrdinal(l.m_string, r.m_string);
+                    ret = string.CompareOrdinal(lsl.m_string, r.m_string);
                 }
-                else if (left is LSLFloat)
+                else if (left is LSLFloat fl)
                 {
-                    LSLFloat l = (LSLFloat)left;
                     LSLFloat r = (LSLFloat)right;
-                    ret = Math.Sign(l.value - r.value);
+                    ret = Math.Sign(fl.value - r.value);
                 }
-                else if (left is Vector3)
+                else if (left is Vector3 vl)
                 {
-                    Vector3 l = (Vector3)left;
                     Vector3 r = (Vector3)right;
-                    ret = Math.Sign(Vector3.Mag(l) - Vector3.Mag(r));
+                    ret = Math.Sign(Vector3.Mag(vl) - Vector3.Mag(r));
                 }
-                else if (left is key)
+                else if (left is key kl)
                 {
-                    key l = (key)left;
                     key r = (key)right;
-                    ret = string.CompareOrdinal(l.value, r.value);
+                    ret = string.CompareOrdinal(kl.value, r.value);
                 }
                 else //if (left is Quaternion) and unknown types
                 {
@@ -1202,36 +1307,31 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
                 public int Compare(object left, object right)
                 {
-                    int ret = 0;
-                    if (left is LSLInteger)
+                    int ret;
+                    if (left is LSLInteger il)
                     {
-                        LSLInteger l = (LSLInteger)left;
                         LSLInteger r = (LSLInteger)right;
-                        ret = Math.Sign(l.value - r.value);
+                        ret = Math.Sign(il.value - r.value);
                     }
-                    else if (left is LSLString)
+                    else if (left is LSLString lsl)
                     {
-                        LSLString l = (LSLString)left;
                         LSLString r = (LSLString)right;
-                        ret = string.CompareOrdinal(l.m_string, r.m_string);
+                        ret = string.CompareOrdinal(lsl.m_string, r.m_string);
                     }
-                    else if (left is LSLFloat)
+                    else if (left is LSLFloat fl)
                     {
-                        LSLFloat l = (LSLFloat)left;
                         LSLFloat r = (LSLFloat)right;
-                        ret = Math.Sign(l.value - r.value);
+                        ret = Math.Sign(fl.value - r.value);
                     }
-                    else if (left is Vector3)
+                    else if (left is Vector3 vl)
                     {
-                        Vector3 l = (Vector3)left;
                         Vector3 r = (Vector3)right;
-                        ret = Math.Sign(Vector3.MagSquare(l) - Vector3.MagSquare(r));
+                        ret = Math.Sign(Vector3.MagSquare(vl) - Vector3.MagSquare(r));
                     }
-                    else if (left is key)
+                    else if (left is key kl)
                     {
-                        key l = (key)left;
                         key r = (key)right;
-                        ret = string.CompareOrdinal(l.value, r.value);
+                        ret = string.CompareOrdinal(kl.value, r.value);
                     }
                     else //if (left is Quaternion) and unknown types
                     {
@@ -1247,81 +1347,71 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             private static bool needSwapAscending(object left, object right)
             {
-                if (left is LSLInteger)
+                if (left is LSLInteger li)
                 {
-                    LSLInteger l = (LSLInteger)left;
                     LSLInteger r = (LSLInteger)right;
-                    return l.value > r.value;
+                    return li.value > r.value;
                 }
-                else if (left is LSLString)
+                else if (left is LSLString lsl)
                 {
-                    LSLString l = (LSLString)left;
                     LSLString r = (LSLString)right;
-                    return string.CompareOrdinal(l.m_string, r.m_string) > 0;
+                    return string.CompareOrdinal(lsl.m_string, r.m_string) > 0;
                 }
-                else if (left is LSLFloat)
+                else if (left is LSLFloat lf)
                 {
-                    LSLFloat l = (LSLFloat)left;
                     LSLFloat r = (LSLFloat)right;
-                    return l.value > r.value;
+                    return lf.value > r.value;
                 }
-                else if (left is Vector3)
+                else if (left is Vector3 lv)
                 {
-                    Vector3 l = (Vector3)left;
                     Vector3 r = (Vector3)right;
-                    return Vector3.MagSquare(l) > Vector3.Mag(r);
+                    return Vector3.MagSquare(lv) > Vector3.Mag(r);
                 }
-                else if (left is key)
+                else if (left is key lk)
                 {
-                    key l = (key)left;
                     key r = (key)right;
-                    return string.CompareOrdinal(l.value, r.value) > 0;
+                    return string.CompareOrdinal(lk.value, r.value) > 0;
                 }
                 return false;
             }
 
             private static bool needSwapDescending(object left, object right)
             {
-                if (left is LSLInteger)
+                if (left is LSLInteger li)
                 {
-                    LSLInteger l = (LSLInteger)left;
                     LSLInteger r = (LSLInteger)right;
-                    return l.value < r.value;
+                    return li.value < r.value;
                 }
-                else if (left is LSLString)
+                else if (left is LSLString lsl)
                 {
-                    LSLString l = (LSLString)left;
                     LSLString r = (LSLString)right;
-                    return string.CompareOrdinal(l.m_string, r.m_string) < 0;
+                    return string.CompareOrdinal(lsl.m_string, r.m_string) < 0;
                 }
-                else if (left is LSLFloat)
+                else if (left is LSLFloat lf)
                 {
-                    LSLFloat l = (LSLFloat)left;
                     LSLFloat r = (LSLFloat)right;
-                    return l.value < r.value;
+                    return lf.value < r.value;
                 }
-                else if (left is Vector3)
+                else if (left is Vector3 lv)
                 {
-                    Vector3 l = (Vector3)left;
                     Vector3 r = (Vector3)right;
-                    return Vector3.MagSquare(l) < Vector3.MagSquare(r);
+                    return Vector3.MagSquare(lv) < Vector3.MagSquare(r);
                 }
-                else if (left is key)
+                else if (left is key lk)
                 {
-                    key l = (key)left;
                     key r = (key)right;
-                    return string.CompareOrdinal(l.value, r.value) < 0;
+                    return string.CompareOrdinal(lk.value, r.value) < 0;
                 }
                 return false;
             }
 
             public list Sort(int stride, bool ascending)
             {
-                if (m_data == null)
+                if (m_data is null)
                     return new list(); // Don't even bother
 
                 int len = m_data.Length;
-                if(len == 0)
+                if (len == 0)
                     return new list(); // Don't even bother
 
                 object[] ret = new object[len];
@@ -1339,7 +1429,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public void SortInPlace(int stride, bool ascending)
             {
-                if (m_data == null)
+                if (m_data is null)
                     return; // Don't even bother
 
                 if (stride < 1)
@@ -1489,35 +1579,35 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public string ToCSV()
             {
-                if(m_data == null || m_data.Length == 0)
+                if (m_data is null || m_data.Length == 0)
                     return String.Empty;
 
                 Object o = m_data[0];
                 int len = m_data.Length;
-                if(len == 1)
+                if (len == 1)
                     return o.ToString();
 
-                StringBuilder sb = new StringBuilder(1024);
+                StringBuilder sb = osStringBuilderCache.Acquire();
                 sb.Append(o.ToString());
-                for(int i = 1 ; i < len; i++)
+                for (int i = 1; i < len; i++)
                 {
-                    sb.Append(",");
+                    sb.Append(',');
                     sb.Append(o.ToString());
                 }
-                return sb.ToString();
+                return osStringBuilderCache.GetStringAndRelease(sb);
             }
 
             private string ToSoup()
             {
-                if(m_data == null || m_data.Length == 0)
+                if (m_data is null || m_data.Length == 0)
                     return String.Empty;
 
-                StringBuilder sb = new StringBuilder(1024);
+                StringBuilder sb = osStringBuilderCache.Acquire();
                 foreach (object o in m_data)
                 {
                     sb.Append(o.ToString());
                 }
-                return sb.ToString();
+                return osStringBuilderCache.GetStringAndRelease(sb);
             }
 
             public static explicit operator String(list l)
@@ -1542,10 +1632,9 @@ namespace OpenSim.Region.ScriptEngine.Shared
             public double Min()
             {
                 double minimum = double.PositiveInfinity;
-                double entry;
                 for (int i = 0; i < Data.Length; i++)
                 {
-                    if (double.TryParse(m_data[i].ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out entry))
+                    if (double.TryParse(m_data[i].ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out double entry))
                     {
                         if (entry < minimum) minimum = entry;
                     }
@@ -1556,10 +1645,9 @@ namespace OpenSim.Region.ScriptEngine.Shared
             public double Max()
             {
                 double maximum = double.NegativeInfinity;
-                double entry;
                 for (int i = 0; i < Data.Length; i++)
                 {
-                    if (double.TryParse(m_data[i].ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out entry))
+                    if (double.TryParse(m_data[i].ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out double entry))
                     {
                         if (entry > maximum) maximum = entry;
                     }
@@ -1575,10 +1663,9 @@ namespace OpenSim.Region.ScriptEngine.Shared
             public int NumericLength()
             {
                 int count = 0;
-                double entry;
                 for (int i = 0; i < Data.Length; i++)
                 {
-                    if (double.TryParse(m_data[i].ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out entry))
+                    if (double.TryParse(m_data[i].ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out _))
                     {
                         count++;
                     }
@@ -1588,11 +1675,10 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public static list ToDoubleList(list src)
             {
-                list ret = new list();
-                double entry;
+                list ret = new();
                 for (int i = 0; i < src.Data.Length; i++)
                 {
-                    if (double.TryParse(src.m_data[i].ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out entry))
+                    if (double.TryParse(src.m_data[i].ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out double entry))
                     {
                         ret.Add(entry);
                     }
@@ -1603,12 +1689,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
             public double Sum()
             {
                 double sum = 0;
-                double entry;
                 for (int i = 0; i < Data.Length; i++)
                 {
-                    if (double.TryParse(m_data[i].ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out entry))
+                    if (double.TryParse(m_data[i].ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out double entry))
                     {
-                        sum = sum + entry;
+                        sum += entry;
                     }
                 }
                 return sum;
@@ -1617,12 +1702,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
             public double SumSqrs()
             {
                 double sum = 0;
-                double entry;
                 for (int i = 0; i < Data.Length; i++)
                 {
-                    if (double.TryParse(m_data[i].ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out entry))
+                    if (double.TryParse(m_data[i].ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out double entry))
                     {
-                        sum = sum + Math.Pow(entry, 2);
+                        sum += (entry * entry);
                     }
                 }
                 return sum;
@@ -1707,33 +1791,33 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public string ToPrettyString()
             {
-                if(m_data == null || m_data.Length == 0)
+                if (m_data is null || m_data.Length == 0)
                     return "[]";
 
-                StringBuilder sb = new StringBuilder(1024);
+                StringBuilder sb = osStringBuilderCache.Acquire();
                 int len = m_data.Length;
                 int last = len - 1;
                 object o;
 
-                sb.Append("[");
-                for(int i = 0; i < len; i++ )
+                sb.Append('[');
+                for (int i = 0; i < len; i++)
                 {
                     o = m_data[i];
-                    if (o is String)
+                    if (o is string so)
                     {
-                        sb.Append("\"");
-                        sb.Append((String)o);
-                        sb.Append("\"");
+                        sb.Append('\"');
+                        sb.Append(so);
+                        sb.Append('\"');
                     }
                     else
                     {
                         sb.Append(o.ToString());
                     }
-                    if(i < last)
-                        sb.Append(",");
+                    if (i < last)
+                        sb.Append(',');
                 }
-                sb.Append("]");
-                return sb.ToString();
+                sb.Append(']');
+                return osStringBuilderCache.GetStringAndRelease(sb);
             }
 
             public class AlphaCompare : IComparer
@@ -1748,13 +1832,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
             {
                 int IComparer.Compare(object x, object y)
                 {
-                    double a;
-                    double b;
-                    if (!double.TryParse(x.ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out a))
+                    if (!double.TryParse(x.ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out double a))
                     {
                         a = 0.0;
                     }
-                    if (!double.TryParse(y.ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out b))
+                    if (!double.TryParse(y.ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out double b))
                     {
                         b = 0.0;
                     }
@@ -1775,10 +1857,9 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public override bool Equals(object o)
             {
-                if (!(o is list))
-                    return false;
-
-                return Data.Length == ((list)o).Data.Length;
+                if (o is list lo)
+                    return Data.Length == lo.Data.Length;
+                return false;
             }
 
             public override int GetHashCode()
@@ -1804,7 +1885,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             static public bool Parse2Key(string s)
             {
-                Regex isuuid = new Regex(@"^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$", RegexOptions.Compiled);
+                Regex isuuid = new(@"^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$", RegexOptions.Compiled);
                 if (isuuid.IsMatch(s))
                 {
                     return true;
@@ -1830,7 +1911,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 {
                     return false;
                 }
-                Regex isuuid = new Regex(@"^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$", RegexOptions.Compiled);
+                Regex isuuid = new(@"^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$", RegexOptions.Compiled);
                 if (isuuid.IsMatch(k.value))
                 {
                     return true;
@@ -1928,7 +2009,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 m_string = s;
             }
 
-            public LSLString(LSLInteger i) : this(i.value) {}
+            public LSLString(LSLInteger i) : this(i.value) { }
 
             #endregion
 
@@ -2030,7 +2111,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public static implicit operator list(LSLString s)
             {
-                return new list(new object[]{s});
+                return new list(new object[] { s });
             }
 
             #endregion
@@ -2069,7 +2150,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
         public struct LSLInteger
         {
             public int value;
-            private static readonly Regex castRegex = new Regex(@"(^[ ]*0[xX][0-9A-Fa-f][0-9A-Fa-f]*)|(^[ ]*(-?|\+?)[0-9][0-9]*)");
+            private static readonly Regex castRegex = new(@"(^[ ]*0[xX][0-9A-Fa-f][0-9A-Fa-f]*)|(^[ ]*(-?|\+?)[0-9][0-9]*)");
 
             #region Constructors
             public LSLInteger(int i)
@@ -2102,9 +2183,9 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 {
                     try
                     {
-                        if (v.Contains("x") || v.Contains("X"))
+                        if (v.Contains('x') || v.Contains('X'))
                         {
-                            value = int.Parse(v.Substring(2), System.Globalization.NumberStyles.HexNumber);
+                            value = int.Parse(v[2..], System.Globalization.NumberStyles.HexNumber);
                         }
                         else
                         {
@@ -2293,19 +2374,13 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public override bool Equals(Object o)
             {
-                if (!(o is LSLInteger))
-                {
-                    if (o is int)
-                    {
-                        return value == (int)o;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
+                if (o is LSLInteger lio)
+                    return value == lio.value;
 
-                return value == ((LSLInteger)o).value;
+                if (o is int io)
+                    return value == io;
+
+                return false;
             }
 
             public override int GetHashCode()
@@ -2375,12 +2450,12 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return i;
             }
 
-            public static LSLInteger operator << (LSLInteger i, int s)
+            public static LSLInteger operator <<(LSLInteger i, int s)
             {
                 return i.value << s;
             }
 
-            public static LSLInteger operator >> (LSLInteger i, int s)
+            public static LSLInteger operator >>(LSLInteger i, int s)
             {
                 return i.value >> s;
             }
@@ -2431,21 +2506,21 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public LSLFloat(string s)
             {
-                Regex r = new Regex("^ *(\\+|-)?([0-9]+\\.?[0-9]*|\\.[0-9]+)([eE](\\+|-)?[0-9]+)?");
+                Regex r = new("^ *(\\+|-)?([0-9]+\\.?[0-9]*|\\.[0-9]+)([eE](\\+|-)?[0-9]+)?");
                 Match m = r.Match(s);
                 string v = m.Groups[0].Value;
 
                 v = v.Trim();
 
-                if (v.Length == 0 || v == null)
+                if (string.IsNullOrEmpty(v))
                     v = "0.0";
                 else
-                    if (!v.Contains(".") && !v.ToLower().Contains("e"))
-                        v = v + ".0";
-                    else
-                        if (v.EndsWith("."))
-                            v = v + "0";
-                this.value = double.Parse(v, System.Globalization.NumberStyles.Float, Culture.NumberFormatInfo);
+                    if (!v.Contains('.') && !v.ToLower().Contains('e'))
+                    v += ".0";
+                else
+                        if (v.EndsWith('.'))
+                    v += '0';
+                value = double.Parse(v, System.Globalization.NumberStyles.Float, Culture.NumberFormatInfo);
             }
 
             #endregion
@@ -2464,7 +2539,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             static public explicit operator uint(LSLFloat f)
             {
-                return (uint) Math.Abs(f.value);
+                return (uint)Math.Abs(f.value);
             }
 
             static public implicit operator Boolean(LSLFloat f)
@@ -2617,9 +2692,9 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public override bool Equals(Object o)
             {
-                if (!(o is LSLFloat))
-                    return false;
-                return value == ((LSLFloat)o).value;
+                if (o is LSLFloat fo)
+                    return value == fo.value;
+                return false;
             }
 
             public override int GetHashCode()
