@@ -87,7 +87,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 z = Z;
             }
 
-            public unsafe Vector3(string str)
+            public Vector3(string str)
             {
                 if (str.Length < 5)
                 {
