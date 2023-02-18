@@ -2514,7 +2514,8 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public LSLFloat(ReadOnlySpan<char> s)
             {
-                double.TryParse(s, System.Globalization.NumberStyles.Float, Culture.NumberFormatInfo, out value);
+                if(!double.TryParse(s, System.Globalization.NumberStyles.Float, Culture.NumberFormatInfo, out value))
+                    value = 0;
             }
 
             #endregion
