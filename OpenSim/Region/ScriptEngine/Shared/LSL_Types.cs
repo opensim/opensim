@@ -2175,14 +2175,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 value = (int)d;
             }
 
-            public LSLInteger(string s)
+            public LSLInteger(string s) : this(MemoryExtensions.AsSpan(s)) { }
+            public LSLInteger(LSLString s) : this(MemoryExtensions.AsSpan(s.m_string)) { }
+            public LSLInteger(ReadOnlySpan<char> s)
             {
-                Match m = castRegex.Match(s);
-                string v = m.Groups[0].Value;
-                // Leading plus sign is allowed, but ignored
-                v = v.Replace("+", "");
-
-                if (v.Length == 0)
+                if (s.Length == 0)
                 {
                     value = 0;
                 }
@@ -2190,18 +2187,19 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 {
                     try
                     {
-                        if (v.Contains('x') || v.Contains('X'))
-                        {
-                            value = int.Parse(v[2..], System.Globalization.NumberStyles.HexNumber);
-                        }
+                        s = s.TrimStart();
+                        if (s.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+                            value = int.Parse(s[2..], NumberStyles.HexNumber);
                         else
-                        {
-                            value = int.Parse(v, System.Globalization.NumberStyles.Integer);
-                        }
+                            value = int.Parse(s,NumberStyles.Integer);
                     }
                     catch (OverflowException)
                     {
                         value = -1;
+                    }
+                    catch
+                    {
+                        value = 0;
                     }
                 }
             }
