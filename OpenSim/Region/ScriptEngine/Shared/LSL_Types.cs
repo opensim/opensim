@@ -152,7 +152,6 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     c = Unsafe.Add(ref MemoryMarshal.GetReference(strspan), comma);
                     if (c == ' ' || c == '>')
                         break;
-                    comma++;
                 }
 
                 if (!double.TryParse(strspan[start..comma], NumberStyles.Float, Utils.EnUsCulture, out z))
