@@ -87,7 +87,13 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 z = Z;
             }
 
-            public Vector3(string str)
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public Vector3(string str) : this(str.AsSpan()) { }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public Vector3(LSLString str) : this(str.m_string.AsSpan()) { }
+
+            public Vector3(ReadOnlySpan<char> str)
             {
                 if (str.Length < 5)
                 {
@@ -95,14 +101,12 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     return;
                 }
 
-                var strspan = str.AsSpan();
-
                 int start = 0;
                 int comma = 0;
                 char c;
                 do
                 {
-                    c = Unsafe.Add(ref MemoryMarshal.GetReference(strspan), comma);
+                    c = Unsafe.Add(ref MemoryMarshal.GetReference(str), comma);
                     if (c == ',' || c == '<')
                         break;
                 }
@@ -113,7 +117,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     start = ++comma;
                     while (++comma < str.Length)
                     {
-                        if (Unsafe.Add(ref MemoryMarshal.GetReference(strspan), comma) == ',')
+                        if (Unsafe.Add(ref MemoryMarshal.GetReference(str), comma) == ',')
                             break;
                     }
                 }
@@ -123,7 +127,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     return;
                 }
 
-                if (!double.TryParse(strspan[start..comma], NumberStyles.Float, Utils.EnUsCulture, out x))
+                if (!double.TryParse(str[start..comma], NumberStyles.Float, Utils.EnUsCulture, out x))
                 {
                     z = y = 0;
                     return;
@@ -132,7 +136,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 start = ++comma;
                 while (++comma < str.Length)
                 {
-                    if (Unsafe.Add(ref MemoryMarshal.GetReference(strspan), comma) == ',')
+                    if (Unsafe.Add(ref MemoryMarshal.GetReference(str), comma) == ',')
                         break;
                 }
                 if (comma > str.Length - 1)
@@ -140,7 +144,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     z = y = x = 0;
                     return;
                 }
-                if (!double.TryParse(strspan[start..comma], NumberStyles.Float, Utils.EnUsCulture, out y))
+                if (!double.TryParse(str[start..comma], NumberStyles.Float, Utils.EnUsCulture, out y))
                 {
                     z = x = 0;
                     return;
@@ -149,12 +153,12 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 start = ++comma;
                 while (++comma < str.Length)
                 {
-                    c = Unsafe.Add(ref MemoryMarshal.GetReference(strspan), comma);
+                    c = Unsafe.Add(ref MemoryMarshal.GetReference(str), comma);
                     if (c == ' ' || c == '>')
                         break;
                 }
 
-                if (!double.TryParse(strspan[start..comma], NumberStyles.Float, Utils.EnUsCulture, out z))
+                if (!double.TryParse(str[start..comma], NumberStyles.Float, Utils.EnUsCulture, out z))
                 {
                     y = x = 0;
                     return;
@@ -478,7 +482,13 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 s = rot.W;
             }
 
-            public Quaternion(string str)
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public Quaternion(string str) : this(str.AsSpan()) { }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public Quaternion(LSLString str) : this(str.m_string.AsSpan()) { }
+
+            public Quaternion(ReadOnlySpan<char> str)
             {
                 if (str.Length < 7)
                 {
@@ -487,15 +497,13 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     return;
                 }
 
-                var strspan = str.AsSpan();
-
                 int start = 0;
                 int comma = 0;
                 char c;
 
                 do
                 {
-                    c = Unsafe.Add(ref MemoryMarshal.GetReference(strspan), comma);
+                    c = Unsafe.Add(ref MemoryMarshal.GetReference(str), comma);
                     if (c == ',' || c == '<')
                         break;
                 }
@@ -506,7 +514,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     start = ++comma;
                     while (++comma < str.Length)
                     {
-                        if (Unsafe.Add(ref MemoryMarshal.GetReference(strspan), comma) == ',')
+                        if (Unsafe.Add(ref MemoryMarshal.GetReference(str), comma) == ',')
                             break;
                     }
                 }
@@ -517,7 +525,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     return;
                 }
 
-                if (!double.TryParse(strspan[start..comma], NumberStyles.Float, Utils.EnUsCulture, out x))
+                if (!double.TryParse(str[start..comma], NumberStyles.Float, Utils.EnUsCulture, out x))
                 {
                     z = y = 0;
                     s = 1;
@@ -527,7 +535,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 start = ++comma;
                 while (++comma < str.Length)
                 {
-                    if (Unsafe.Add(ref MemoryMarshal.GetReference(strspan), comma) == ',')
+                    if (Unsafe.Add(ref MemoryMarshal.GetReference(str), comma) == ',')
                         break;
                 }
                 if (comma > str.Length - 3)
@@ -537,7 +545,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     return;
                 }
 
-                if (!double.TryParse(strspan[start..comma], NumberStyles.Float, Utils.EnUsCulture, out y))
+                if (!double.TryParse(str[start..comma], NumberStyles.Float, Utils.EnUsCulture, out y))
                 {
                     z = x = 0;
                     s = 1;
@@ -546,7 +554,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 start = ++comma;
                 while (++comma < str.Length)
                 {
-                    if (Unsafe.Add(ref MemoryMarshal.GetReference(strspan), comma) == ',')
+                    if (Unsafe.Add(ref MemoryMarshal.GetReference(str), comma) == ',')
                         break;
                 }
                 if (comma > str.Length - 1)
@@ -556,7 +564,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     return;
                 }
 
-                if (!double.TryParse(strspan[start..comma], NumberStyles.Float, Utils.EnUsCulture, out z))
+                if (!double.TryParse(str[start..comma], NumberStyles.Float, Utils.EnUsCulture, out z))
                 {
                     y = x = 0;
                     s = 1;
@@ -566,12 +574,12 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 start = ++comma;
                 while (++comma < str.Length)
                 {
-                    c = Unsafe.Add(ref MemoryMarshal.GetReference(strspan), comma);
+                    c = Unsafe.Add(ref MemoryMarshal.GetReference(str), comma);
                     if (c == ' ' || c == '>')
                         break;
                 }
 
-                if (!double.TryParse(strspan[start..comma], NumberStyles.Float, Utils.EnUsCulture, out s))
+                if (!double.TryParse(str[start..comma], NumberStyles.Float, Utils.EnUsCulture, out s))
                 {
                     z = y = x = 0;
                     s = 1;
@@ -2095,12 +2103,12 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public static implicit operator Vector3(LSLString s)
             {
-                return new Vector3(s.m_string);
+                return new Vector3(s);
             }
 
             public static implicit operator Quaternion(LSLString s)
             {
-                return new Quaternion(s.m_string);
+                return new Quaternion(s);
             }
 
             public static implicit operator LSLFloat(LSLString s)

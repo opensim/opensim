@@ -926,7 +926,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public static LSL_Vector ObjectToVector(object x)
         {
             if(x is LSL_String lsx)
-                return new LSL_Vector(lsx.m_string);
+                return new LSL_Vector(lsx);
             if(x is string sx)
                 return new LSL_Vector(sx);
             return (LSL_Vector)x;

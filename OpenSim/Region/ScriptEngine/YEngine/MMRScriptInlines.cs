@@ -63,6 +63,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             /*
              * For those listed in noCheckRun, we just generate the call (simple computations).
              * For all others, we generate the call then a call to CheckRun().
+             * note to self: a change here implies change on magic numbers to invalidate older code and 
+             * script state
              */
             noCheckRuns = new HashSet<string>() {
                 "llBase64ToString",

@@ -6761,8 +6761,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     {
                         if(val is LSL_Vector)
                             return rVal;
-                        if(val is string)
-                            nval = new LSL_Vector((string)val);
+                        if(val is string sval)
+                            nval = new LSL_Vector(sval);
                     }
 
                     if(nval != null)
