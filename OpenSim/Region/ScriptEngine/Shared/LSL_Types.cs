@@ -2157,7 +2157,6 @@ namespace OpenSim.Region.ScriptEngine.Shared
         public struct LSLInteger
         {
             public int value;
-            private static readonly Regex castRegex = new(@"(^[ ]*0[xX][0-9A-Fa-f][0-9A-Fa-f]*)|(^[ ]*(-?|\+?)[0-9][0-9]*)");
 
             #region Constructors
             public LSLInteger(int i)
@@ -2175,7 +2174,10 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 value = (int)d;
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public LSLInteger(string s) : this(MemoryExtensions.AsSpan(s)) { }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public LSLInteger(LSLString s) : this(MemoryExtensions.AsSpan(s.m_string)) { }
             public LSLInteger(ReadOnlySpan<char> s)
             {
@@ -2489,6 +2491,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return this.value.ToString();
             }
 
+            public static readonly LSLInteger Zero = new(0);
             #endregion
         }
 
@@ -2501,12 +2504,12 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public LSLFloat(int i)
             {
-                this.value = (double)i;
+                value = (double)i;
             }
 
             public LSLFloat(double d)
             {
-                this.value = d;
+                value = d;
             }
 
             public LSLFloat(string s) : this(MemoryExtensions.AsSpan(s)) { }
@@ -2549,14 +2552,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             static public implicit operator Boolean(LSLFloat f)
             {
-                if (f.value == 0.0)
-                {
-                    return false;
-                }
-                else
-                {
-                    return true;
-                }
+                return f.value != 0.0;
             }
 
             static public implicit operator LSLFloat(int i)
@@ -2586,10 +2582,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             static public implicit operator LSLFloat(bool b)
             {
-                if (b)
-                    return new LSLFloat(1.0);
-                else
-                    return new LSLFloat(0.0);
+                return  b ? new LSLFloat(1.0) :  new LSLFloat(0.0);
             }
 
             static public bool operator ==(LSLFloat f1, LSLFloat f2)
@@ -2681,10 +2674,12 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return new LSLFloat(-f.value);
             }
 
-            static public implicit operator System.Double(LSLFloat f)
+            static public implicit operator double(LSLFloat f)
             {
                 return f.value;
             }
+
+            public static readonly LSLFloat Zero = new(0);
 
             #endregion
 
