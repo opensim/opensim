@@ -88,10 +88,10 @@ namespace OpenSim.Region.ScriptEngine.Shared
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public Vector3(string str) : this(str.AsSpan()) { }
+            public Vector3(string str) : this(MemoryExtensions.AsSpan(str)) { }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public Vector3(LSLString str) : this(str.m_string.AsSpan()) { }
+            public Vector3(LSLString str) : this(MemoryExtensions.AsSpan(str.m_string)) { }
 
             public Vector3(ReadOnlySpan<char> str)
             {
@@ -483,10 +483,10 @@ namespace OpenSim.Region.ScriptEngine.Shared
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public Quaternion(string str) : this(str.AsSpan()) { }
+            public Quaternion(string str) : this(MemoryExtensions.AsSpan(str)) { }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public Quaternion(LSLString str) : this(str.m_string.AsSpan()) { }
+            public Quaternion(LSLString str) : this(MemoryExtensions.AsSpan(str.m_string)) { }
 
             public Quaternion(ReadOnlySpan<char> str)
             {
@@ -2511,23 +2511,12 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 this.value = d;
             }
 
-            public LSLFloat(string s)
+            public LSLFloat(string s) : this(MemoryExtensions.AsSpan(s)) { }
+            public LSLFloat(LSLString s) : this(MemoryExtensions.AsSpan(s.m_string)) { }
+
+            public LSLFloat(ReadOnlySpan<char> s)
             {
-                Regex r = new("^ *(\\+|-)?([0-9]+\\.?[0-9]*|\\.[0-9]+)([eE](\\+|-)?[0-9]+)?");
-                Match m = r.Match(s);
-                string v = m.Groups[0].Value;
-
-                v = v.Trim();
-
-                if (string.IsNullOrEmpty(v))
-                    v = "0.0";
-                else
-                    if (!v.Contains('.') && !v.ToLower().Contains('e'))
-                    v += ".0";
-                else
-                        if (v.EndsWith('.'))
-                    v += '0';
-                value = double.Parse(v, System.Globalization.NumberStyles.Float, Culture.NumberFormatInfo);
+                double.TryParse(s, System.Globalization.NumberStyles.Float, Culture.NumberFormatInfo, out value);
             }
 
             #endregion
@@ -2547,6 +2536,16 @@ namespace OpenSim.Region.ScriptEngine.Shared
             static public explicit operator uint(LSLFloat f)
             {
                 return (uint)Math.Abs(f.value);
+            }
+
+            static public explicit operator string(LSLFloat f)
+            {
+                return string.Format(Culture.FormatProvider, "{0:0.000000}", f.value);
+            }
+
+            static public explicit operator LSLString(LSLFloat f)
+            {
+                return new LSLString(string.Format(Culture.FormatProvider, "{0:0.000000}", f.value));
             }
 
             static public implicit operator Boolean(LSLFloat f)
