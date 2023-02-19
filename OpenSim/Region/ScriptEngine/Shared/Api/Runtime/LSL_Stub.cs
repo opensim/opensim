@@ -518,6 +518,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llGetHTTPHeader(request_id, header);
         }
 
+        public LSL_String llGetInventoryAcquireTime(string item)
+        {
+            return m_LSL_Functions.llGetInventoryAcquireTime(item);
+        }
+
         public LSL_Key llGetInventoryCreator(string item)
         {
             return m_LSL_Functions.llGetInventoryCreator(item);
@@ -2206,6 +2211,36 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public LSL_Integer llHash(LSL_String s)
         {
             return m_LSL_Functions.llHash(s);
+        }
+
+        public LSL_String llReplaceSubString(LSL_String src, LSL_String pattern, LSL_String replacement, int count)
+        {
+            return m_LSL_Functions.llReplaceSubString(src, pattern, replacement, count);
+        }
+
+        public void llLinkAdjustSoundVolume(LSL_Integer linknumber, LSL_Float volume)
+        {
+            m_LSL_Functions.llLinkAdjustSoundVolume(linknumber, volume);
+        }
+
+        public void llLinkStopSound(LSL_Integer linknumber)
+        {
+            m_LSL_Functions.llLinkStopSound(linknumber);
+        }
+
+        public void llLinkPlaySound(LSL_Integer linknumber, string sound, double volume)
+        {
+            m_LSL_Functions.llLinkPlaySound(linknumber, sound, volume);
+        }
+
+        public void llLinkSetSoundQueueing(int linknumber, int queue)
+        {
+            m_LSL_Functions.llLinkSetSoundQueueing(linknumber, queue);
+        }
+
+        public void llLinkSetSoundRadius(int linknumber, double radius)
+        {
+            m_LSL_Functions.llLinkSetSoundRadius(linknumber, radius);
         }
     }
 }
