@@ -144,6 +144,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_Vector llGetGeometricCenter();
          LSL_Float llGetGMTclock();
         LSL_String llGetHTTPHeader(LSL_Key request_id, string header);
+        LSL_String llGetInventoryAcquireTime(string item);
            LSL_Key llGetInventoryCreator(string item);
            LSL_Key llGetInventoryKey(string name);
         LSL_String llGetInventoryName(int type, int number);
@@ -485,5 +486,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
          LSL_String llChar(LSL_Integer unicode);
         LSL_Integer llOrd(LSL_String s, LSL_Integer index);
         LSL_Integer llHash(LSL_String s);
+
+         LSL_String llReplaceSubString(LSL_String src, LSL_String pattern, LSL_String replacement, int count);
+
+               void llLinkAdjustSoundVolume(LSL_Integer linknumber, LSL_Float volume);
+               void llLinkStopSound(LSL_Integer linknumber);
+               void llLinkPlaySound(LSL_Integer linknumber, string sound, double volume);
+               void llLinkSetSoundQueueing(int linknumber, int queue);
+               void llLinkSetSoundRadius(int linknumber, double radius);
     }
 }
