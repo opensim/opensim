@@ -86,7 +86,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     }
                     else
                     {
-                        if (uri.Scheme != "http")
+                        if (uri.Scheme != "http" && uri.Scheme != "https")
                             throw new Exception(String.Format("Unsupported URI scheme ({0})", path));
 
                         // OK, now we know we have an HTTP URI to work with

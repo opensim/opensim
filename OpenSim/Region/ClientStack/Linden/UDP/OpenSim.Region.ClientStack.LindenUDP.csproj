@@ -36,9 +36,6 @@
       <HintPath>..\..\..\..\..\bin\OpenMetaverseTypes.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="System.Drawing.Common">
-      <Private>False</Private>
-    </Reference>
     <Reference Include="System.Web">
       <Private>False</Private>
     </Reference>
@@ -64,6 +61,5 @@
   <ItemGroup>
     <PackageReference Include="log4net" Version="2.0.15" />
     <PackageReference Include="Mono.Addins" Version="1.4.1" />
-    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
   </ItemGroup>
 </Project>
