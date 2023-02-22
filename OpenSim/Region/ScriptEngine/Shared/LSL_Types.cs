@@ -2181,28 +2181,87 @@ namespace OpenSim.Region.ScriptEngine.Shared
             public LSLInteger(LSLString s) : this(MemoryExtensions.AsSpan(s.m_string)) { }
             public LSLInteger(ReadOnlySpan<char> s)
             {
+                value = 0;
                 if (s.Length == 0)
+                    return;
+
+                int indx = 0;
+                char c;
+                bool neg = false;
+                int rc;
+                try
+                {
+                    do
+                    {
+                        c = Unsafe.Add(ref MemoryMarshal.GetReference(s), indx);
+                        if (c != ' ')
+                            break;
+                    }
+                    while (++indx < s.Length);
+
+                    if (c == '0')
+                    {
+                        if (++indx >= s.Length)
+                            return;
+                        c = Unsafe.Add(ref MemoryMarshal.GetReference(s), indx);
+                        if (c == 'x' || c == 'X')
+                        {
+                            uint uvalue = 0;
+                            while (++indx < s.Length)
+                            {
+                                c = Unsafe.Add(ref MemoryMarshal.GetReference(s), indx);
+                                rc = Utils.HexNibbleWithChk(c);
+                                if (rc < 0)
+                                    return;
+                                checked
+                                {
+                                    uvalue *= 16;
+                                    uvalue += (uint)rc;
+                                }
+                                value = (int)uvalue;
+                            }
+                            return;
+                        }
+                    }
+                    else if (c == '+')
+                    {
+                        if (++indx >= s.Length)
+                            return;
+                        c = Unsafe.Add(ref MemoryMarshal.GetReference(s), indx);
+                    }
+                    else if (c == '-')
+                    {
+                        if (++indx >= s.Length)
+                            return;
+
+                        neg = true;
+                        c = Unsafe.Add(ref MemoryMarshal.GetReference(s), indx);
+                    }
+
+                    while (c >= '0' && c <= '9')
+                    {
+                        rc = c - '0';
+                        checked
+                        {
+                            value *= 10;
+                            value += rc;
+                        }
+                        if(++indx >= s.Length)
+                            break;
+                        c = Unsafe.Add(ref MemoryMarshal.GetReference(s), indx);
+                    }
+
+                    if(neg)
+                        value = -value;
+                    return;
+                }
+                catch (OverflowException)
+                {
+                    value = -1;
+                }
+                catch
                 {
                     value = 0;
-                }
-                else
-                {
-                    try
-                    {
-                        s = s.TrimStart();
-                        if (s.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
-                            value = int.Parse(s[2..], NumberStyles.HexNumber);
-                        else
-                            value = int.Parse(s,NumberStyles.Integer);
-                    }
-                    catch (OverflowException)
-                    {
-                        value = -1;
-                    }
-                    catch
-                    {
-                        value = 0;
-                    }
                 }
             }
 
