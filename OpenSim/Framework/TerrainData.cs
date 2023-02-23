@@ -86,7 +86,7 @@ namespace OpenSim.Framework
 
         public int SizeX { get; protected set; }
         public int SizeY { get; protected set; }
-        public int SizeZ { get; protected set; }
+        public const int SizeZ = 0;
 
         // A height used when the user doesn't specify anything
         public const float DefaultTerrainHeight = 21f;
@@ -124,49 +124,70 @@ namespace OpenSim.Framework
         public float GetHeight(float x, float y)
         {
             // integer indexs
-            int ix, ixb;
-            int iy, iyb;
+            int ix, mix;
+            int iy, miy;
             // interpolators offset
             float dx;
             float dy;
 
-            // make position fit into array
             if (x <= 0)
             {
-                ix = 0;
-                ixb = 0;
-                dx = 0;
+                if(y <= 0)
+                    return m_heightmap[0, 0];
+
+                iy = (int)y;
+                miy = SizeY - 1;
+                if (iy >= miy)
+                    return m_heightmap[0, miy];
+
+                dy = y - iy;
+
+                float h = m_heightmap[0, iy];
+                ++iy;
+                return h + (m_heightmap[0, iy] - h) * dy;
             }
-            else if (x < SizeX - 1)
+
+            ix = (int)x;
+            mix = SizeX - 1;
+
+            if (ix >= mix)
             {
-                ix = (int)x;
-                ixb = ix + 1;
-                dx = x - ix;
+                if(y <= 0)
+                    return m_heightmap[mix, 0];
+
+                iy = (int)y;
+                miy = SizeY - 1;
+
+                if (y >= miy)
+                    return m_heightmap[mix, miy];
+
+                dy = y - iy;
+
+                float h = m_heightmap[mix, iy];
+                ++iy;
+                return h + (m_heightmap[mix, iy] - h) * dy;
             }
-            else // out world use external height
-            {
-                ix = SizeX - 1;
-                ixb = ix;
-                dx = 0;
-            }
+
+            dx = x - ix;
+
             if (y <= 0)
             {
-                iy = 0;
-                iyb = 0;
-                dy = 0;
+                float h = m_heightmap[ix, 0];
+                ++ix;
+                return h + (m_heightmap[ix, 0] - h) * dx;
             }
-            else if (y < SizeY - 1 )
+
+            iy = (int)y;
+            miy = SizeY - 1;
+
+            if (iy >= miy)
             {
-                iy = (int)y;
-                iyb = iy + 1;
-                dy = y - iy;
+                float h = m_heightmap[ix, miy];
+                ++ix;
+                return h + (m_heightmap[ix, miy] - h) * dx;
             }
-            else
-            {
-                iy = SizeY - 1;
-                iyb = iy;
-                dy = 0;
-            }
+
+            dy = y - iy;
 
             float h0 = m_heightmap[ix, iy]; // 0,0 vertice
             float h1;
@@ -174,15 +195,19 @@ namespace OpenSim.Framework
 
             if (dy > dx)
             {
-                h2 = m_heightmap[ix, iyb]; // 0,1 vertice
+                ++iy;
+                h2 = m_heightmap[ix, iy]; // 0,1 vertice
                 h1 = (h2 - h0) * dy; // 0,1 vertice minus 0,0
-                h2 = (m_heightmap[ixb, iyb] - h2) * dx; // 1,1 vertice minus 0,1
+                ++ix;
+                h2 = (m_heightmap[ix, iy] - h2) * dx; // 1,1 vertice minus 0,1
             }
             else
             {
-                h2 = m_heightmap[ixb, iy]; // vertice 1,0
+                ++ix;
+                h2 = m_heightmap[ix, iy]; // vertice 1,0
                 h1 = (h2 - h0) * dx; // 1,0 vertice minus 0,0
-                h2 = (m_heightmap[ixb, iyb] - h2) * dy; // 1,1 vertice minus 1,0
+                ++iy;
+                h2 = (m_heightmap[ix, iy] - h2) * dy; // 1,1 vertice minus 1,0
             }
             return h0 + h1 + h2;
         }
@@ -433,7 +458,6 @@ namespace OpenSim.Framework
             m_mapStride = SizeY;
             m_mapPatchsStride = m_mapStride * Constants.TerrainPatchSize;
 
-            SizeZ = (int)Constants.RegionHeight;
             CompressionFactor = 100.0f;
 
 
@@ -456,7 +480,6 @@ namespace OpenSim.Framework
         {
             SizeX = pX;
             SizeY = pY;
-            SizeZ = pZ;
             m_taintSizeX = SizeX / Constants.TerrainPatchSize;
             m_taintSizeY = SizeY / Constants.TerrainPatchSize;
             m_mapStride = SizeY;
