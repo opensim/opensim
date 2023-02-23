@@ -2212,14 +2212,14 @@ namespace OpenSim.Region.ScriptEngine.Shared
                                 c = Unsafe.Add(ref MemoryMarshal.GetReference(s), indx);
                                 rc = Utils.HexNibbleWithChk(c);
                                 if (rc < 0)
-                                    return;
+                                    break;
                                 checked
                                 {
                                     uvalue *= 16;
                                     uvalue += (uint)rc;
                                 }
-                                value = (int)uvalue;
                             }
+                            value = (int)uvalue;
                             return;
                         }
                     }
