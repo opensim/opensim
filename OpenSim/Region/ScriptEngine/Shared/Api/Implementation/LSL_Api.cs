@@ -1292,7 +1292,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             _ = UUID.TryParse(id, out UUID keyID);
             m_AsyncCommands.SensorRepeatPlugin.SenseOnce(m_host.LocalId, m_item.ItemID, name, keyID, type, range, arc, m_host);
-       }
+        }
 
         public void llSensorRepeat(string name, string id, int type, double range, double arc, double rate)
         {

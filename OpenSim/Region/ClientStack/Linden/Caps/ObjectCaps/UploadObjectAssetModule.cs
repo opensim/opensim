@@ -145,7 +145,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             try
             {
-                Vector3 pos = avatar.AbsolutePosition + (Vector3.UnitX * avatar.Rotation);
+                Vector3 pos = avatar.AbsolutePosition + Vector3.UnitXRotated(avatar.Rotation);
                 Quaternion rot = Quaternion.Identity;
                 Vector3 rootpos = Vector3.Zero;
 

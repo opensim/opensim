@@ -511,16 +511,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (position.X == 128f && position.Y == 128f && position.Z == 22.5f)
                 position = m_sceneRegionInfo.DefaultLandingPoint;
 
-            // TODO: Get proper AVG Height
-            float localHalfAVHeight = 0.8f;
-            if (sp.Appearance != null)
-                localHalfAVHeight = sp.Appearance.AvatarHeight / 2;
-
-            float posZLimit = 22;
-
-            // TODO: Check other Scene HeightField
-            posZLimit = m_scene.Heightmap[(int)position.X, (int)position.Y];
-
+            float localHalfAVHeight = sp.Appearance is null ? 0.8f : sp.Appearance.AvatarHeight / 2;
+            float posZLimit = m_scene.GetGroundHeight(position.X, position.Y);
             posZLimit += localHalfAVHeight + 0.1f;
 
             if ((position.Z < posZLimit) && !(Single.IsInfinity(posZLimit) || Single.IsNaN(posZLimit)))

@@ -611,8 +611,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_asyncPacketProcess.Stop();
 
             // Flush all of the packets out of the UDP server for this client
-            if (m_udpServer != null)
-                m_udpServer.Flush(m_udpClient);
+            m_udpServer?.Flush(m_udpClient);
 
             // Remove ourselves from the scene
             m_scene.RemoveClient(m_agentId, true);
