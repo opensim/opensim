@@ -60,8 +60,7 @@ namespace OpenSim.Region.ClientStack.Linden
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "SimulatorFeaturesModule")]
     public class SimulatorFeaturesModule : INonSharedRegionModule, ISimulatorFeaturesModule
     {
-        private static readonly ILog m_log =
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public event SimulatorFeaturesRequestDelegate OnSimulatorFeaturesRequest;
 
@@ -422,8 +421,8 @@ namespace OpenSim.Region.ClientStack.Linden
                         StringBuilder sb = new(400*1024);
                         char[] trimc = new char[] {' ','\t', '\n', '\r'};
 
-                        s = sr.ReadLine();
-                        if(s == null)
+                        string s = sr.ReadLine();
+                        if(s is null)
                             return;
                         s = s.Trim(trimc);
 
