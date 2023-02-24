@@ -175,7 +175,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected int m_sleepMsOnClearPrimMedia = 1000;
         protected int m_sleepMsOnClearLinkMedia = 1000;
         protected int m_sleepMsOnRequestSimulatorData = 1000;
-        protected int m_sleepMsOnLoadURL = 10000;
+        protected int m_sleepMsOnLoadURL = 1000;
         protected int m_sleepMsOnParcelMediaCommandList = 2000;
         protected int m_sleepMsOnParcelMediaQuery = 2000;
         protected int m_sleepMsOnModPow = 1000;
@@ -14863,18 +14863,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             ret.Add(new LSL_String(obj.Description));
                             break;
                         case ScriptBaseClass.OBJECT_POS:
-                            Vector3 opos = obj.AbsolutePosition;
-                            ret.Add(new LSL_Vector(opos.X, opos.Y, opos.Z));
+                            ret.Add(new LSL_Vector(obj.AbsolutePosition));
                             break;
                         case ScriptBaseClass.OBJECT_ROT:
-                            Quaternion rot = Quaternion.Identity;
+                            Quaternion rot;
 
                             if (obj.ParentGroup.IsAttachment)
                             {
                                 ScenePresence sp = World.GetScenePresence(obj.ParentGroup.AttachedAvatar);
-
-                                if (sp != null)
-                                    rot = sp.GetWorldRotation();
+                                rot = sp != null ? sp.GetWorldRotation() : Quaternion.Identity
                             }
                             else
                             {
@@ -14976,23 +14973,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             break;
                         case ScriptBaseClass.OBJECT_PHYSICS:
                             if (obj.ParentGroup.AttachmentPoint != 0)
-                            {
                                 ret.Add(new LSL_Integer(0)); // Always false if attached
-                            }
                             else
-                            {
                                 ret.Add(new LSL_Integer(obj.ParentGroup.UsesPhysics ? 1 : 0));
-                            }
                             break;
                         case ScriptBaseClass.OBJECT_PHANTOM:
                             if (obj.ParentGroup.AttachmentPoint != 0)
-                            {
                                 ret.Add(new LSL_Integer(0)); // Always false if attached
-                            }
                             else
-                            {
                                 ret.Add(new LSL_Integer(obj.ParentGroup.IsPhantom ? 1 : 0));
-                            }
                             break;
                         case ScriptBaseClass.OBJECT_TEMP_ON_REZ:
                             ret.Add(new LSL_Integer(obj.ParentGroup.IsTemporary ? 1 : 0));
@@ -15033,29 +15022,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             break;
                         case ScriptBaseClass.OBJECT_TEMP_ATTACHED:
                             if (obj.ParentGroup.AttachmentPoint != 0 && obj.ParentGroup.FromItemID.IsZero())
-                            {
                                 ret.Add(new LSL_Integer(1));
-                            }
                             else
-                            {
                                 ret.Add(new LSL_Integer(0));
-                            }
                             break;
                         case ScriptBaseClass.OBJECT_ATTACHED_SLOTS_AVAILABLE:
                             ret.Add(new LSL_Integer(0));
                             break;
                         case ScriptBaseClass.OBJECT_CREATION_TIME:
-                            DateTime date = Util.ToDateTime(m_host.ParentGroup.RootPart.CreationDate);
+                            DateTime date = Util.ToDateTime(obj.ParentGroup.RootPart.CreationDate);
                             ret.Add(new LSL_String(date.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture)));
                             break;
                         case ScriptBaseClass.OBJECT_SELECT_COUNT:
                             ret.Add(new LSL_Integer(0));
                             break;
                         case ScriptBaseClass.OBJECT_SIT_COUNT:
-                            ret.Add(new LSL_Integer(m_host.ParentGroup.GetSittingAvatarsCount()));
+                            ret.Add(new LSL_Integer(obj.ParentGroup.GetSittingAvatarsCount()));
                             break;
                         case ScriptBaseClass.OBJECT_ANIMATED_COUNT:
-                            if(m_host.ParentGroup.RootPart.Shape.MeshFlagEntry)
+                            if(obj.ParentGroup.RootPart.Shape.MeshFlagEntry)
                                 ret.Add(new LSL_Integer(1));
                             else
                                 ret.Add(new LSL_Integer(0));
@@ -15067,31 +15052,37 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             ret.Add(new LSL_Integer(1));
                             break;
                         case ScriptBaseClass.OBJECT_MATERIAL:
-                            ret.Add(new LSL_Integer(m_host.Material));
+                            ret.Add(new LSL_Integer(obj.Material));
                             break;
                         case ScriptBaseClass.OBJECT_MASS:
-                            ret.Add(new LSL_Float(llGetMassMKS()));
-                            break;
+                            float mass;
+                            if (obj.ParentGroup.IsAttachment)
+                            {
+                                ScenePresence attachedAvatar = World.GetScenePresence(obj.ParentGroup.AttachedAvatar);
+                                mass = attachedAvatar is null ? 0 : attachedAvatar.GetMass();
+                            }
+                            else
+                                mass = obj.ParentGroup.GetMass();
+                            mass *= 100f;
+                            ret.Add(new LSL_Float(mass)); break;
                         case ScriptBaseClass.OBJECT_TEXT:
-                            ret.Add(new LSL_String(m_host.Text));
+                            ret.Add(new LSL_String(obj.Text));
                             break;
                         case ScriptBaseClass.OBJECT_REZ_TIME:
-                            ret.Add(new LSL_String(m_host.Rezzed.ToString("yyyy-MM-ddTHH:mm:ss.ffffffZ", CultureInfo.InvariantCulture)));
+                            ret.Add(new LSL_String(obj.Rezzed.ToString("yyyy-MM-ddTHH:mm:ss.ffffffZ", CultureInfo.InvariantCulture)));
                             break;
                         case ScriptBaseClass.OBJECT_LINK_NUMBER:
-                            ret.Add(new LSL_Integer(m_host.LinkNum));
+                            ret.Add(new LSL_Integer(obj.LinkNum));
                             break;
                         case ScriptBaseClass.OBJECT_SCALE:
-                            ret.Add(new LSL_Vector(m_host.Scale));
+                            ret.Add(new LSL_Vector(obj.Scale));
                             break;
                         case ScriptBaseClass.OBJECT_TEXT_COLOR:
-                            Color4 textColor = m_host.GetTextColor();
-                            ret.Add(new LSL_Vector(textColor.R,
-                                                   textColor.G,
-                                                   textColor.B));
+                            Color4 textColor = obj.GetTextColor();
+                            ret.Add(new LSL_Vector(textColor.R, textColor.G, textColor.B));
                             break;
                         case ScriptBaseClass.OBJECT_TEXT_ALPHA:
-                            ret.Add(new LSL_Float(m_host.GetTextColor().A));
+                            ret.Add(new LSL_Float(obj.GetTextColor().A));
                             break;
                         default:
                             // Invalid or unhandled constant.
