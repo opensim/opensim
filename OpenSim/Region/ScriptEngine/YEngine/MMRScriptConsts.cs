@@ -181,76 +181,72 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             CompValu cv = null;
 
-            if(value is char)
+            if(value is char cvalue)
             {
-                cv = new CompValuChar(new TokenTypeChar(null), (char)value);
+                cv = new CompValuChar(new TokenTypeChar(null), cvalue);
             }
-            else if (value is double)
+            else if (value is double dvalue)
             {
-                cv = new CompValuFloat(new TokenTypeFloat(null), (double)(double)value);
+                cv = new CompValuFloat(new TokenTypeFloat(null), dvalue);
             }
-            else if (value is float)
+            else if (value is float fvalue)
             {
-                cv = new CompValuFloat(new TokenTypeFloat(null), (double)(float)value);
+                cv = new CompValuFloat(new TokenTypeFloat(null), (double)fvalue);
             }
-            else if (value is int)
+            else if (value is int ivalue)
             {
-                cv = new CompValuInteger(new TokenTypeInt(null), (int)value);
+                cv = new CompValuInteger(new TokenTypeInt(null), ivalue);
             }
-            else if (value is string)
+            else if (value is string svalue)
             {
-                cv = new CompValuString(new TokenTypeStr(null), (string)value);
+                cv = new CompValuString(new TokenTypeStr(null), svalue);
             }
 
-            else if (value is LSL_Float)
+            else if (value is LSL_Float lfvalue)
             {
-                cv = new CompValuFloat(new TokenTypeFloat(null), (double)((LSL_Float)value).value);
+                cv = new CompValuFloat(new TokenTypeFloat(null), lfvalue.value);
             }
-            else if (value is LSL_Integer)
+            else if (value is LSL_Integer livalue)
             {
-                cv = new CompValuInteger(new TokenTypeInt(null), ((LSL_Integer)value).value);
+                cv = new CompValuInteger(new TokenTypeInt(null), livalue.value);
             }
-            else if (value is LSL_Rotation)
+            else if (value is LSL_Rotation r)
             {
-                LSL_Rotation r = (LSL_Rotation)value;
                 CompValu x = new CompValuFloat(new TokenTypeFloat(null), r.x);
                 CompValu y = new CompValuFloat(new TokenTypeFloat(null), r.y);
                 CompValu z = new CompValuFloat(new TokenTypeFloat(null), r.z);
                 CompValu s = new CompValuFloat(new TokenTypeFloat(null), r.s);
                 cv = new CompValuRot(new TokenTypeRot(null), x, y, z, s);
             }
-            else if (value is LSL_String)
+            else if (value is LSL_String lsvalue)
             {
-                cv = new CompValuString(new TokenTypeStr(null), (string)(LSL_String)value);
+                cv = new CompValuString(new TokenTypeStr(null), lsvalue.m_string);
             }
-            else if (value is LSL_Vector)
+            else if (value is LSL_Vector v)
             {
-                LSL_Vector v = (LSL_Vector)value;
                 CompValu x = new CompValuFloat(new TokenTypeFloat(null), v.x);
                 CompValu y = new CompValuFloat(new TokenTypeFloat(null), v.y);
                 CompValu z = new CompValuFloat(new TokenTypeFloat(null), v.z);
                 cv = new CompValuVec(new TokenTypeVec(null), x, y, z);
             }
 
-            else if (value is OpenMetaverse.Quaternion)
+            else if (value is OpenMetaverse.Quaternion or)
             {
-                OpenMetaverse.Quaternion r = (OpenMetaverse.Quaternion)value;
-                CompValu x = new CompValuFloat(new TokenTypeFloat(null), r.X);
-                CompValu y = new CompValuFloat(new TokenTypeFloat(null), r.Y);
-                CompValu z = new CompValuFloat(new TokenTypeFloat(null), r.Z);
-                CompValu s = new CompValuFloat(new TokenTypeFloat(null), r.W);
+                CompValu x = new CompValuFloat(new TokenTypeFloat(null), or.X);
+                CompValu y = new CompValuFloat(new TokenTypeFloat(null), or.Y);
+                CompValu z = new CompValuFloat(new TokenTypeFloat(null), or.Z);
+                CompValu s = new CompValuFloat(new TokenTypeFloat(null), or.W);
                 cv = new CompValuRot(new TokenTypeRot(null), x, y, z, s);
             }
-            else if (value is OpenMetaverse.UUID)
+            else if (value is OpenMetaverse.UUID uvalue)
             {
-                cv = new CompValuString(new TokenTypeKey(null), value.ToString());
+                cv = new CompValuString(new TokenTypeKey(null), uvalue.ToString());
             }
-            else if (value is OpenMetaverse.Vector3)
+            else if (value is OpenMetaverse.Vector3 ov)
             {
-                OpenMetaverse.Vector3 v = (OpenMetaverse.Vector3)value;
-                CompValu x = new CompValuFloat(new TokenTypeFloat(null), v.X);
-                CompValu y = new CompValuFloat(new TokenTypeFloat(null), v.Y);
-                CompValu z = new CompValuFloat(new TokenTypeFloat(null), v.Z);
+                CompValu x = new CompValuFloat(new TokenTypeFloat(null), ov.X);
+                CompValu y = new CompValuFloat(new TokenTypeFloat(null), ov.Y);
+                CompValu z = new CompValuFloat(new TokenTypeFloat(null), ov.Z);
                 cv = new CompValuVec(new TokenTypeVec(null), x, y, z);
             }
 

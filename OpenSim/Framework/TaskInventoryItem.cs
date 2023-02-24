@@ -38,78 +38,19 @@ namespace OpenSim.Framework
     public class TaskInventoryItem : ICloneable
     {
         // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-        /// <summary>
-        /// XXX This should really be factored out into some constants class.
-        /// </summary>
         private const uint FULL_MASK_PERMISSIONS_GENERAL = 2147483647;
 
-        private UUID _assetID = UUID.Zero;
+        public UUID AssetID { get; set; }
+        public uint CreationDate { get; set; }
 
-        private uint _baseMask = FULL_MASK_PERMISSIONS_GENERAL;
-        private uint _creationDate = 0;
-        private UUID _creatorID = UUID.Zero;
-        private string _creatorData = String.Empty;
-        private string _description = String.Empty;
-        private uint _everyoneMask = FULL_MASK_PERMISSIONS_GENERAL;
-        private uint _flags = 0;
-        private UUID _groupID = UUID.Zero;
-        private uint _groupMask = FULL_MASK_PERMISSIONS_GENERAL;
-
-        private int _invType = 0;
-        private UUID _itemID = UUID.Zero;
-        private UUID _lastOwnerID = UUID.Zero;
-        private UUID _rezzerID = UUID.Zero;
-        private string _name = String.Empty;
-        private uint _nextOwnerMask = FULL_MASK_PERMISSIONS_GENERAL;
-        private UUID _ownerID = UUID.Zero;
-        private uint _ownerMask = FULL_MASK_PERMISSIONS_GENERAL;
-        private UUID _parentID = UUID.Zero; //parent folder id
-        private UUID _parentPartID = UUID.Zero; // SceneObjectPart this is inside
-        private UUID _permsGranter;
-        private int _permsMask;
-        private int _type = 0;
-        private UUID _oldID;
-        private UUID _loadedID = UUID.Zero;
-
-        private bool _ownerChanged = false;
-
-        public UUID AssetID {
-            get {
-                return _assetID;
-            }
-            set {
-                _assetID = value;
-            }
+        UUID _creatorID = UUID.Zero;
+        public UUID CreatorID
+        {
+            get { return _creatorID; }
+            set { _creatorID = value; }
         }
 
-        public uint BasePermissions {
-            get {
-                return _baseMask;
-            }
-            set {
-                _baseMask = value;
-            }
-        }
-
-        public uint CreationDate {
-            get {
-                return _creationDate;
-            }
-            set {
-                _creationDate = value;
-            }
-        }
-
-        public UUID CreatorID {
-            get {
-                return _creatorID;
-            }
-            set {
-                _creatorID = value;
-            }
-        }
-
+        private string _creatorData = string.Empty;
         public string CreatorData // = <profile url>;<name>
         {
             get { return _creatorData; }
@@ -138,11 +79,9 @@ namespace OpenSim.Framework
                     return;
                 }
 
-                if (!value.Contains(";")) // plain UUID
+                if (!value.Contains(';')) // plain UUID
                 {
-                    UUID uuid = UUID.Zero;
-                    UUID.TryParse(value, out uuid);
-                    _creatorID = uuid;
+                    _= UUID.TryParse(value, out _creatorID);
                 }
                 else // <uuid>[;<endpoint>[;name]]
                 {
@@ -150,9 +89,7 @@ namespace OpenSim.Framework
                     string[] parts = value.Split(';');
                     if (parts.Length >= 1)
                     {
-                        UUID uuid = UUID.Zero;
-                        UUID.TryParse(parts[0], out uuid);
-                        _creatorID = uuid;
+                        _ = UUID.TryParse(parts[0], out _creatorID);
                     }
                     if (parts.Length >= 2)
                         _creatorData = parts[1];
@@ -165,199 +102,38 @@ namespace OpenSim.Framework
             }
         }
 
-        public string Description {
-            get {
-                return _description;
-            }
-            set {
-                _description = value;
-            }
-        }
+        public uint Flags { get; set; }
+        public int Type { get; set; }
+        public int InvType { get; set; }
+        public UUID ItemID { get; set; }
+        public UUID OldItemID { get; set; }
+        public UUID LoadedItemID { get; set; }
+        public UUID RezzerID { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public UUID OwnerID { get; set; }
+        public UUID LastOwnerID { get; set; }
+        public UUID GroupID { get; set; }
+        public UUID ParentID { get; set; }
+        public UUID ParentPartID { get; set; }
+        public uint BasePermissions { get; set; } = FULL_MASK_PERMISSIONS_GENERAL;
+        public uint CurrentPermissions { get; set; } = FULL_MASK_PERMISSIONS_GENERAL;
+        public uint EveryonePermissions { get; set; } = FULL_MASK_PERMISSIONS_GENERAL;
+        public uint GroupPermissions { get; set; } = FULL_MASK_PERMISSIONS_GENERAL;
+        public uint NextPermissions { get; set; } = FULL_MASK_PERMISSIONS_GENERAL;
+        public UUID PermsGranter { get; set; }
+        public int PermsMask { get; set; }
 
-        public uint EveryonePermissions {
-            get {
-                return _everyoneMask;
-            }
-            set {
-                _everyoneMask = value;
-            }
-        }
-
-        public uint Flags {
-            get {
-                return _flags;
-            }
-            set {
-                _flags = value;
-            }
-        }
-
-        public UUID GroupID {
-            get {
-                return _groupID;
-            }
-            set {
-                _groupID = value;
-            }
-        }
-
-        public uint GroupPermissions {
-            get {
-                return _groupMask;
-            }
-            set {
-                _groupMask = value;
-            }
-        }
-
-        public int InvType {
-            get {
-                return _invType;
-            }
-            set {
-                _invType = value;
-            }
-        }
-
-        public UUID ItemID {
-            get {
-                return _itemID;
-            }
-            set {
-                _itemID = value;
-            }
-        }
-
-        public UUID OldItemID {
-            get {
-                return _oldID;
-            }
-            set {
-                _oldID = value;
-            }
-        }
-
-        public UUID LoadedItemID {
-            get {
-                return _loadedID;
-            }
-            set {
-                _loadedID = value;
-            }
-        }
-
-        public UUID LastOwnerID {
-            get {
-                return _lastOwnerID;
-            }
-            set {
-                _lastOwnerID = value;
-            }
-        }
-
-        public UUID RezzerID
-        {
-            get {
-                return _rezzerID;
-            }
-            set {
-                _rezzerID = value;
-            }
-        }
-
-        public string Name {
-            get {
-                return _name;
-            }
-            set {
-                _name = value;
-            }
-        }
-
-        public uint NextPermissions {
-            get {
-                return _nextOwnerMask;
-            }
-            set {
-                _nextOwnerMask = value;
-            }
-        }
-
-        public UUID OwnerID {
-            get {
-                return _ownerID;
-            }
-            set {
-                _ownerID = value;
-            }
-        }
-
-        public uint CurrentPermissions {
-            get {
-                return _ownerMask;
-            }
-            set {
-                _ownerMask = value;
-            }
-        }
-
-        public UUID ParentID {
-            get {
-                return _parentID;
-            }
-            set {
-                _parentID = value;
-            }
-        }
-
-        public UUID ParentPartID {
-            get {
-                return _parentPartID;
-            }
-            set {
-                _parentPartID = value;
-            }
-        }
-
-        public UUID PermsGranter {
-            get {
-                return _permsGranter;
-            }
-            set {
-                _permsGranter = value;
-            }
-        }
-
-        public int PermsMask {
-            get {
-                return _permsMask;
-            }
-            set {
-                _permsMask = value;
-            }
-        }
-
-        public int Type {
-            get {
-                return _type;
-            }
-            set {
-                _type = value;
-            }
-        }
-
+        private bool _ownerChanged = false;
         public bool OwnerChanged
         {
-            get
-            {
-                return _ownerChanged;
-            }
+            get { return _ownerChanged; }
             set
             {
                 _ownerChanged = value;
-//                m_log.DebugFormat(
-//                    "[TASK INVENTORY ITEM]: Owner changed set {0} for {1} {2} owned by {3}",
-//                    _ownerChanged, Name, ItemID, OwnerID);
+                //m_log.DebugFormat(
+                //    "[TASK INVENTORY ITEM]: Owner changed set {0} for {1} {2} owned by {3}",
+                //    _ownerChanged, Name, ItemID, OwnerID);
             }
         }
 

@@ -70,13 +70,13 @@ namespace OpenSim.Region.ClientStack.Linden
         /// <summary>
         /// Simulator features
         /// </summary>
-        private OSDMap m_features = new OSDMap();
+        private readonly OSDMap m_features = new();
 
         private bool m_ExportSupported = false;
 
         private bool m_doScriptSyntax;
 
-        static private object m_scriptSyntaxLock = new object();
+        static private readonly object m_scriptSyntaxLock = new();
         static private UUID m_scriptSyntaxID = UUID.Zero;
         static private byte[] m_scriptSyntaxXML = null;
 
@@ -142,7 +142,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_features["BakesOnMeshEnabled"] = true;
 
                 m_features["PhysicsMaterialsEnabled"] = true;
-                OSDMap typesMap = new OSDMap();
+                OSDMap typesMap = new();
                 typesMap["convex"] = true;
                 typesMap["none"] = true;
                 typesMap["prim"] = true;
@@ -151,7 +151,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 if(m_doScriptSyntax && !m_scriptSyntaxID.IsZero())
                     m_features["LSLSyntaxId"] = OSD.FromUUID(m_scriptSyntaxID);
 
-                OSDMap meshAnim = new OSDMap();
+                OSDMap meshAnim = new();
                 meshAnim["AnimatedObjectMaxTris"] = OSD.FromInteger(150000);
                 meshAnim["MaxAgentAnimatedObjectAttachments"] = OSD.FromInteger(2);
                 m_features["AnimatedObjects"] = meshAnim;
@@ -385,7 +385,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         default:
                             if (key == "ExportSupported")
                             {
-                                bool.TryParse(val, out m_ExportSupported);
+                                _ = bool.TryParse(val, out m_ExportSupported);
                                 extrasMap[key] = m_ExportSupported;
                             }
                             else
@@ -419,20 +419,18 @@ namespace OpenSim.Region.ClientStack.Linden
                 {
                     using (StreamReader sr = File.OpenText("ScriptSyntax.xml"))
                     {
-                        StringBuilder sb = new StringBuilder(400*1024);
-
-                        string s="";
+                        StringBuilder sb = new(400*1024);
                         char[] trimc = new char[] {' ','\t', '\n', '\r'};
 
                         s = sr.ReadLine();
                         if(s == null)
                             return;
                         s = s.Trim(trimc);
-                        UUID id;
-                        if(!UUID.TryParse(s,out id))
+
+                        if(!UUID.TryParse(s, out UUID id))
                             return;
 
-                        while ((s = sr.ReadLine()) != null)
+                        while ((s = sr.ReadLine()) is not null)
                         {
                             s = s.Trim(trimc);
                             if (String.IsNullOrEmpty(s) || s.StartsWith("<!--"))

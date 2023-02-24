@@ -174,8 +174,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         private readonly object m_completeMovementLock = new();
 
-        private static readonly Vector3 HEAD_ADJUSTMENT = new(0f, 0f, 0.3f);
-
         /// <summary>
         /// Experimentally determined "fudge factor" to make sit-target positions
         /// the same as in SecondLife. Fudge factor was tested for 36 different
@@ -1975,7 +1973,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        private Dictionary<ulong, spRegionSizeInfo> m_knownChildRegionsSizeInfo = new();
+        private readonly Dictionary<ulong, spRegionSizeInfo> m_knownChildRegionsSizeInfo = new();
 
         public void AddNeighbourRegion(GridRegion region, string capsPath)
         {
@@ -4790,17 +4788,13 @@ namespace OpenSim.Region.Framework.Scenes
             m_pos = cAgentData.Position + offset;
             CameraPosition = cAgentData.Center + offset;
 
-            if (cAgentData.ChildrenCapSeeds != null && cAgentData.ChildrenCapSeeds.Count > 0)
+            if (cAgentData.ChildrenCapSeeds is not null && cAgentData.ChildrenCapSeeds.Count > 0)
             {
-                if (Scene.CapsModule != null)
-                {
-                    Scene.CapsModule.SetChildrenSeed(UUID, cAgentData.ChildrenCapSeeds);
-                }
-
+                Scene.CapsModule?.SetChildrenSeed(UUID, cAgentData.ChildrenCapSeeds);
                 KnownRegions = cAgentData.ChildrenCapSeeds;
             }
 
-            if ((cAgentData.Throttles != null) && cAgentData.Throttles.Length > 0)
+            if ((cAgentData.Throttles is not null) && cAgentData.Throttles.Length > 0)
             {
                 // some scaling factor
                 float x = m_pos.X;

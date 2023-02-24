@@ -212,7 +212,7 @@ namespace OpenSim.Region.Framework.Scenes
                 IClientAPI cli = sp.ControllingClient;
                 InventoryFolderBase parent = InventoryService.GetFolder(f.Owner, f.ParentID);
                 cli.SendRemoveInventoryItems(new UUID[] { item.ID });
-                cli.SendBulkUpdateInventory(new InventoryFolderBase[0], new InventoryItemBase[] { item });
+                cli.SendBulkUpdateInventory(Array.Empty<InventoryFolderBase>(), new InventoryItemBase[] { item });
                 string message = "The item was placed in folder " + f.Name;
                 if (parent != null)
                     message += " under " + parent.Name;
