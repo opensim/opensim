@@ -1096,7 +1096,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Create a new asset data structure.
         /// </summary>
-        public static AssetBase CreateAsset(string name, string description, sbyte assetType, byte[] data, UUID creatorID)
+        public AssetBase CreateAsset(string name, string description, sbyte assetType, byte[] data, UUID creatorID)
         {
             return new AssetBase(UUID.Random(), name, assetType, creatorID.ToString())
             {
