@@ -310,9 +310,10 @@ namespace OpenSim.Services.MapImageService
 
         private bool CreateTile(uint zoomLevel, int x, int y, UUID scopeID)
         {
-//            m_log.DebugFormat("[MAP IMAGE SERVICE]: Create tile for {0} {1}, zoom {2}", x, y, zoomLevel);
-            int prevWidth = (int)Math.Pow(2, (double)zoomLevel - 2);
-            int thisWidth = (int)Math.Pow(2, (double)zoomLevel - 1);
+            // m_log.DebugFormat("[MAP IMAGE SERVICE]: Create tile for {0} {1}, zoom {2}", x, y, zoomLevel);
+            zoomLevel--;
+            int thisWidth = 1 << ((int)zoomLevel);
+            int prevWidth = thisWidth >> 1;
 
             // Convert x and y to the bottom left tile for this zoom level
             int xIn = x - (x % prevWidth);
@@ -323,13 +324,13 @@ namespace OpenSim.Services.MapImageService
             int yOut = y - (y % thisWidth);
 
             // Try to open the four input tiles from the previous zoom level
-            Bitmap inputBL = GetInputTileImage(GetFileName(zoomLevel - 1, xIn, yIn, scopeID));
-            Bitmap inputBR = GetInputTileImage(GetFileName(zoomLevel - 1, xIn + prevWidth, yIn, scopeID));
-            Bitmap inputTL = GetInputTileImage(GetFileName(zoomLevel - 1, xIn, yIn + prevWidth, scopeID));
-            Bitmap inputTR = GetInputTileImage(GetFileName(zoomLevel - 1, xIn + prevWidth, yIn + prevWidth, scopeID));
+            Bitmap inputBL = GetInputTileImage(GetFileName(zoomLevel, xIn, yIn, scopeID));
+            Bitmap inputBR = GetInputTileImage(GetFileName(zoomLevel, xIn + prevWidth, yIn, scopeID));
+            Bitmap inputTL = GetInputTileImage(GetFileName(zoomLevel, xIn, yIn + prevWidth, scopeID));
+            Bitmap inputTR = GetInputTileImage(GetFileName(zoomLevel, xIn + prevWidth, yIn + prevWidth, scopeID));
 
             // Open the output tile (current zoom level)
-            string outputFile = GetFileName(zoomLevel, xOut, yOut, scopeID);
+            string outputFile = GetFileName(++zoomLevel, xOut, yOut, scopeID);
 
             int ntiles = 0;
             Bitmap output = (Bitmap)m_WaterBitmap.Clone();
