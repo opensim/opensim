@@ -14871,7 +14871,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             if (obj.ParentGroup.IsAttachment)
                             {
                                 ScenePresence sp = World.GetScenePresence(obj.ParentGroup.AttachedAvatar);
-                                rot = sp != null ? sp.GetWorldRotation() : Quaternion.Identity
+                                rot = sp != null ? sp.GetWorldRotation() : Quaternion.Identity;
                             }
                             else
                             {
