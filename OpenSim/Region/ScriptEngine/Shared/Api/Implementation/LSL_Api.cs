@@ -3467,28 +3467,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m_host.ParentGroup.IsAttachment)
             {
                 ScenePresence attachedAvatar = World.GetScenePresence(m_host.ParentGroup.AttachedAvatar);
-
-                if (attachedAvatar != null)
-                {
-                    return attachedAvatar.GetMass();
-                }
-                else
-                {
-                    return 0;
-                }
+                return attachedAvatar is null ? 0 : attachedAvatar.GetMass();
             }
             else
-            {
-                // new SL always returns object mass
-//                if (m_host.IsRoot)
-//                {
-                    return m_host.ParentGroup.GetMass();
-//                }
-//                else
-//                {
-//                    return m_host.GetMass();
-//                }
-            }
+                return m_host.ParentGroup.GetMass();
         }
 
         public LSL_Float llGetMassMKS()
@@ -14551,7 +14533,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             else
                                 mass = obj.ParentGroup.GetMass();
                             mass *= 100f;
-                            ret.Add(new LSL_Float(mass)); break;
+                            ret.Add(new LSL_Float(mass));
+                            break;
                         case ScriptBaseClass.OBJECT_TEXT:
                             ret.Add(new LSL_String(obj.Text));
                             break;
@@ -17914,12 +17897,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 newdata.Add(JsonBuildRestOfSpec(specifiers, level + 1, val));
                 return newdata;
             }
-            else if (spec is string)
+            else if (spec is string sspec)
             {
                 LitJson.JsonData newdata = new();
                 newdata.SetJsonType(LitJson.JsonType.Object);
                 IOrderedDictionary no = newdata as IOrderedDictionary;
-                no.Add((string)spec,JsonBuildRestOfSpec(specifiers, level + 1, val));
+                no.Add(sspec,JsonBuildRestOfSpec(specifiers, level + 1, val));
                 return newdata;
             }
             throw new IndexOutOfRangeException();
