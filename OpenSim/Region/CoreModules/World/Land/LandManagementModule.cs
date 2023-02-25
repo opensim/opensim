@@ -2088,10 +2088,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 land_update.MediaWidth = properties.MediaWidth;
                 land_update.MediaHeight = properties.MediaHeight;
                 land_update.MediaLoop = properties.MediaLoop;
-                //land_update.ObscureMusic = properties.ObscureMusic;
-                //land_update.ObscureMedia = properties.ObscureMedia;
 
-                land_update.ObscureMedia = false; // obsolete
                 if (args.TryGetValue("obscure_moap", out OSD omoap))
                     land_update.ObscureMOAP = omoap.AsBoolean();
 
