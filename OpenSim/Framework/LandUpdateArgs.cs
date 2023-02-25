@@ -59,5 +59,6 @@ namespace OpenSim.Framework
         public bool SeeAVs;
         public bool AnyAVSounds;
         public bool GroupAVSounds;
+        public bool ObscureMOAP;
     }
 }
