@@ -1459,11 +1459,11 @@ namespace OpenSim.Region.CoreModules.World.Land
 
                     // now flags
                     // local sound
-                    if ((currentParcel.LandData.Flags & (uint)ParcelFlags.SoundLocal) != 0)
+                    if ((currentParcelLandData.Flags & (uint)ParcelFlags.SoundLocal) != 0)
                         curByte |= (byte)LandChannel.LAND_FLAG_LOCALSOUND;
 
                     // hide avatars
-                    if (!currentParcel.LandData.SeeAVs)
+                    if (!currentParcelLandData.SeeAVs)
                         curByte |= (byte)LandChannel.LAND_FLAG_HIDEAVATARS;
 
                     // border flags for current
@@ -2088,8 +2088,12 @@ namespace OpenSim.Region.CoreModules.World.Land
                 land_update.MediaWidth = properties.MediaWidth;
                 land_update.MediaHeight = properties.MediaHeight;
                 land_update.MediaLoop = properties.MediaLoop;
-                land_update.ObscureMusic = properties.ObscureMusic;
-                land_update.ObscureMedia = properties.ObscureMedia;
+                //land_update.ObscureMusic = properties.ObscureMusic;
+                //land_update.ObscureMedia = properties.ObscureMedia;
+
+                land_update.ObscureMedia = false; // obsolete
+                if (args.TryGetValue("obscure_moap", out OSD omoap))
+                    land_update.ObscureMOAP = omoap.AsBoolean();
 
                 if (args.ContainsKey("see_avs"))
                 {
@@ -2810,7 +2814,8 @@ namespace OpenSim.Region.CoreModules.World.Land
             cdl.AddRow("Media Width", ld.MediaWidth);
             cdl.AddRow("Media Height", ld.MediaHeight);
             cdl.AddRow("Media Loop", ld.MediaLoop);
-            cdl.AddRow("Obscure Media", ld.ObscureMedia);
+
+            cdl.AddRow("Obscure MOAP", ld.ObscureMedia);
 
             cdl.AddRow("Parcel Category", ld.Category);
 
