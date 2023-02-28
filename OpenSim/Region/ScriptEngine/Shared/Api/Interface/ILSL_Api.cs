@@ -154,7 +154,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
            LSL_Key llGetKey();
            LSL_Key llGetLandOwnerAt(LSL_Vector pos);
            LSL_Key llGetLinkKey(int linknum);
-           LSL_Key llObjectGetLinkKey(LSL_Key objectid, int linknum);
+           LSL_Key llGetObjectLinkKey(LSL_Key objectid, int linknum);
         LSL_String llGetLinkName(int linknum);
        LSL_Integer llGetLinkNumber();
        LSL_Integer llGetLinkNumberOfSides(int link);
