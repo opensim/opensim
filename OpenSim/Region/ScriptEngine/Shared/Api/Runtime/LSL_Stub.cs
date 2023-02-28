@@ -662,10 +662,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llGetLinkKey(linknum);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public LSL_Key llObjectGetLinkKey(LSL_Key objectid, int linknum)
+        public LSL_Key llGetObjectLinkKey(LSL_Key objectid, int linknum)
         {
-            return m_LSL_Functions.llObjectGetLinkKey(objectid, linknum);
+            return m_LSL_Functions.llGetObjectLinkKey(objectid, linknum); ;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
