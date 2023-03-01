@@ -127,10 +127,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             }
 
             m_regionConsole = scene.RequestModuleInterface<IRegionConsole>();
-            if (m_regionConsole is not null)
-            {
-                m_regionConsole.AddCommand("AttachModule", false, "set auto_grant_attach_perms", "set auto_grant_attach_perms true|false", "Allow objects owned by the region owner or estate managers to obtain attach permissions without asking the user", HandleSetAutoGrantAttachPerms);
-            }
+            m_regionConsole?.AddCommand("AttachModule", false, "set auto_grant_attach_perms", "set auto_grant_attach_perms true|false", "Allow objects owned by the region owner or estate managers to obtain attach permissions without asking the user", HandleSetAutoGrantAttachPerms);
 
             scene.AddCommand(
                 "Debug",
@@ -208,7 +205,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 optionalTargetLastName = cmd[3];
             }
 
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
             sm.ForEachSelectedScene(
                 scene =>
                 {
@@ -269,7 +266,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
         private void HandleSetAutoGrantAttachPerms(string module, string[] parms)
         {
-            UUID agentID = new(parms[parms.Length - 1]);
+            UUID agentID = new(parms[^1]);
             Array.Resize(ref parms, parms.Length - 1);
 
             if (parms.Length != 3)
@@ -496,7 +493,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 for (int indx = 0; indx < attachments.Count; ++indx)
                 {
                     InventoryItemBase attItem = attItems[indx];
-                    if (attItem is null || attItem.Owner != sp.UUID)
+                    if (attItem is null || attItem.Owner.NotEqual(sp.UUID))
                         continue;
                     AvatarAttachment attach = attachments[indx];
                     uint attachmentPt = (uint)attach.AttachPoint;
@@ -802,7 +799,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
         public void DetachSingleAttachmentToGround(IScenePresence sp, uint soLocalId)
         {
-            Vector3 pos = new Vector3(2.5f, 0f, 0f);
+            Vector3 pos = new(2.5f, 0f, 0f);
             pos *= ((ScenePresence)sp).Rotation;
             pos += sp.AbsolutePosition;
             DetachSingleAttachmentToGround(sp, soLocalId, pos, Quaternion.Identity);
@@ -1400,9 +1397,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
         private ISceneEntity Client_OnRezSingleAttachmentFromInv(IClientAPI remoteClient, UUID itemID, uint AttachmentPt)
         {
-            if (!Enabled)
-                return null;
-
             if (DebugLevel > 0)
                 m_log.Debug(
                     $"[ATTACHMENTS MODULE]: Rezzing attachment to point {(AttachmentPoint)AttachmentPt} from item {itemID} for {remoteClient.Name}");
@@ -1419,9 +1413,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
         private void Client_OnRezMultipleAttachmentsFromInv(IClientAPI remoteClient, List<KeyValuePair<UUID, uint>> rezlist)
         {
-            if (!Enabled)
-                return;
-
             if (remoteClient.SceneAgent is ScenePresence sp)
                 RezMultipleAttachmentsFromInventory(sp, rezlist);
             else
@@ -1503,7 +1494,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 List<SceneObjectGroup> attachments = sp.GetAttachments();
                 foreach (SceneObjectGroup group in attachments)
                 {
-                    if (group.FromItemID.Equals(itemID) && !group.FromItemID.IsZero())
+                    if (group.FromItemID.Equals(itemID) && group.FromItemID.IsNotZero())
                     {
                         DetachSingleAttachmentToInv(sp, group);
                         return;

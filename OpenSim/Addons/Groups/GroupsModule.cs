@@ -1575,17 +1575,12 @@ namespace OpenSim.Groups
 
         private string GetRequestingAgentIDStr(IClientAPI client)
         {
-            return GetRequestingAgentID(client).ToString();
+            return client is null ? UUID.ZeroString : client.AgentId.ToString();
         }
 
         private UUID GetRequestingAgentID(IClientAPI client)
         {
-            UUID requestingAgentID = UUID.Zero;
-            if (client != null)
-            {
-                requestingAgentID = client.AgentId;
-            }
-            return requestingAgentID;
+            return client is null ? UUID.Zero : client.AgentId;
         }
 
     }

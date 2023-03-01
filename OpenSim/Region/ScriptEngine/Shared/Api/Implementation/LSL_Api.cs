@@ -4433,7 +4433,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Key llGetObjectLinkKey(LSL_Key objectid, int linknum)
         {
-            if (!UUID.TryParse(objectid, out UUID oID))
+            if (!UUID.TryParse(objectid, out UUID oID) || oID.IsZero())
                 return ScriptBaseClass.NULL_KEY;
 
             if (!World.TryGetSceneObjectPart(oID, out SceneObjectPart sop))
