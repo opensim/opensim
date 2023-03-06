@@ -270,10 +270,11 @@ namespace OpenSim.Region.CoreModules.World.Land
                     if (newData.FakeID.IsNotZero())
                         m_landFakeIDs[newData.FakeID] = local_id;
                 }
+                else
+                    return;
             }
 
-            if (land is not null)
-                m_scene.EventManager.TriggerLandObjectUpdated((uint)local_id, land);
+            m_scene.EventManager.TriggerLandObjectUpdated((uint)local_id, land);
         }
 
         public bool IsForcefulBansAllowed()
@@ -436,9 +437,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         private void ForceAvatarToPosition(ScenePresence avatar, Vector3? position)
         {
             if (m_scene.Permissions.IsGod(avatar.UUID)) return;
-
-            if (!position.HasValue)
-                return;
+            if (!position.HasValue) return;
 
             if(avatar.MovingToTarget)
                 avatar.ResetMoveToTarget();
@@ -645,7 +644,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
                     if (!mm.AmountCovered(remote_client.AgentId, cost))
                     {
-                        remote_client.SendAgentAlertMessage(String.Format("Insufficient funds in region '{0}' money system", regionName), true); 
+                        remote_client.SendAgentAlertMessage($"Insufficient funds in region '{regionName}' money system", true); 
                         return;
                     }
 
@@ -697,7 +696,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             ILandObject land;
             lock (m_landList)
             {
-                m_landList.TryGetValue(landLocalID, out land);
+                _ = m_landList.TryGetValue(landLocalID, out land);
             }
 
             if (land is not null)
@@ -913,6 +912,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             return null;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ILandObject GetLandObjectByfakeID(UUID fakeID)
         {
             lock (m_landList)
@@ -963,24 +963,31 @@ namespace OpenSim.Region.CoreModules.World.Land
         // as did code it replaces
         public ILandObject GetLandObjectClippedXY(float x, float y)
         {
-            //do clip inline
             int avx = (int)MathF.Round(x);
             if (avx < 0)
                 avx = 0;
-            else if (avx >= m_regionSizeX)
-                avx = m_regionSizeX - 1;
+            else 
+            {
+                if (avx >= m_regionSizeX) 
+                    avx = m_regionSizeX - 1;
+                avx /= Constants.LandUnit;
+            }
 
             int avy = (int)MathF.Round(y);
             if (avy < 0)
                 avy = 0;
-            else if (avy >= m_regionSizeY)
-                avy = m_regionSizeY - 1;
+            else 
+            {
+                if (avy >= m_regionSizeY)
+                    avy = m_regionSizeY - 1;
+                avy /= Constants.LandUnit;
+            }
 
             lock (m_landIDList)
             {
                 try
                 {
-                    return m_landList[m_landIDList[avx / Constants.LandUnit, avy / Constants.LandUnit]];
+                    return m_landList[m_landIDList[avx, avy]];
                 }
                 catch (IndexOutOfRangeException)
                 {
@@ -1214,9 +1221,9 @@ namespace OpenSim.Region.CoreModules.World.Land
             int area = 0;
             try
             {
-                for (int y = start_y; y < end_y; y++)
+                for (int x = start_x; x < end_x; x++)
                 {
-                    for (int x = start_x; x < end_x; x++)
+                    for (int y = start_y; y < end_y; y++)
                     {
                         ILandObject tempLandObject = GetLandObject(x, y);
                         if (tempLandObject is null)
@@ -2094,11 +2101,11 @@ namespace OpenSim.Region.CoreModules.World.Land
             UUID parcelID = new();
             try
             {
-                if (args.TryGetValue("location", out OSD tmp) && tmp is OSDArray list)
+                if (args.TryGetValue("location", out OSD tmp) && tmp is OSDArray olist)
                 {
                     UUID scope = m_scene.RegionInfo.ScopeID;
-                    uint x = (uint)(double)list[0];
-                    uint y = (uint)(double)list[1];
+                    uint x = (uint)(double)olist[0];
+                    uint y = (uint)(double)olist[1];
                     ulong myHandle = m_scene.RegionInfo.RegionHandle;
                     if (args.TryGetValue("region_handle", out tmp) && tmp is OSDBinary)
                     {
@@ -2535,10 +2542,9 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             // Gather some data
             ulong gpowers = remoteClient.GetGroupPowers(land.LandData.GroupID);
-            SceneObjectGroup telehub = null;
-            if (!m_scene.RegionInfo.RegionSettings.TelehubObject.IsZero())
-                // Does the telehub exist in the scene?
-                telehub = m_scene.GetSceneObjectGroup(m_scene.RegionInfo.RegionSettings.TelehubObject);
+
+            SceneObjectGroup telehub = m_scene.RegionInfo.RegionSettings.TelehubObject.IsNotZero() ?
+                m_scene.GetSceneObjectGroup(m_scene.RegionInfo.RegionSettings.TelehubObject) : null;
 
             // Can the user set home here?
             if (// Required: local user; foreign users cannot set home
