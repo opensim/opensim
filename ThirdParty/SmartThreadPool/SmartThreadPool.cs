@@ -98,7 +98,6 @@
 using System;
 using System.Security;
 using System.Threading;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -335,9 +334,7 @@ namespace Amib.Threading
         /// </summary>
         /// <param name="idleTimeout">Idle timeout in milliseconds</param>
         /// <param name="maxWorkerThreads">Upper limit of threads in the pool</param>
-        public SmartThreadPool(
-            int idleTimeout,
-            int maxWorkerThreads)
+        public SmartThreadPool(int idleTimeout, int maxWorkerThreads)
         {
             m_stpStartInfo = new STPStartInfo
             {
@@ -353,10 +350,7 @@ namespace Amib.Threading
         /// <param name="idleTimeout">Idle timeout in milliseconds</param>
         /// <param name="maxWorkerThreads">Upper limit of threads in the pool</param>
         /// <param name="minWorkerThreads">Lower limit of threads in the pool</param>
-        public SmartThreadPool(
-            int idleTimeout,
-            int maxWorkerThreads,
-            int minWorkerThreads)
+        public SmartThreadPool(int idleTimeout, int maxWorkerThreads, int minWorkerThreads)
         {
             m_stpStartInfo = new STPStartInfo
             {
@@ -445,10 +439,7 @@ namespace Amib.Threading
         /// </returns>
         private WorkItem Dequeue()
         {
-            WorkItem workItem =
-                m_workItemsQueue.DequeueWorkItem(m_stpStartInfo.IdleTimeout, m_shuttingDownEvent);
-
-            return workItem;
+            return m_workItemsQueue.DequeueWorkItem(m_stpStartInfo.IdleTimeout, m_shuttingDownEvent);
         }
 
         /// <summary>
@@ -458,7 +449,7 @@ namespace Amib.Threading
         internal override void Enqueue(WorkItem workItem)
         {
             // Make sure the workItem is not null
-            Debug.Assert(null != workItem);
+            Debug.Assert(workItem is not null);
 
             IncrementWorkItemsCount();
 
@@ -510,7 +501,7 @@ namespace Amib.Threading
 
         internal void UnregisterWorkItemsGroup(IWorkItemsGroup workItemsGroup)
         {
-            m_workItemsGroups.TryRemove(workItemsGroup.localID, out WorkItemsGroup dummy);
+            m_workItemsGroups.TryRemove(workItemsGroup.localID, out WorkItemsGroup _);
         }
 
         /// <summary>
@@ -519,10 +510,7 @@ namespace Amib.Threading
         /// </summary>
         private void InformCompleted()
         {
-            // There is no need to lock the two methods together 
-            // since only the current thread removes itself
-            // and the _workerThreads is a synchronized dictionary
-            if (m_workerThreads.TryRemove(Thread.CurrentThread.ManagedThreadId, out ThreadEntry te))
+            if (m_workerThreads.TryRemove(Environment.CurrentManagedThreadId, out ThreadEntry te))
             {
                 te.Clean();
             }
@@ -584,8 +572,7 @@ namespace Amib.Threading
                         workerThread.SetApartmentState(m_stpStartInfo.ApartmentState);
 
                     workerThread.Priority = m_stpStartInfo.ThreadPriority;
-
-                    workerThread.Name = string.Format("STP:{0}:{1}", Name, m_threadCounter);
+                    workerThread.Name = $"STP:{Name}:{m_threadCounter}";
 
                     Interlocked.Exchange(ref m_lastThreadCreateTS, DateTime.UtcNow.Ticks);
                     ++m_threadCounter;
@@ -606,7 +593,7 @@ namespace Amib.Threading
         {
             // Keep the entry of the dictionary as thread's variable to avoid the synchronization locks
             // of the dictionary.
-            CurrentThreadEntry = m_workerThreads[Thread.CurrentThread.ManagedThreadId];
+            CurrentThreadEntry = m_workerThreads[Environment.CurrentManagedThreadId];
 
             bool informedCompleted = false;
             FireOnThreadInitialization();
@@ -646,7 +633,7 @@ namespace Amib.Threading
                     WorkItem workItem = Dequeue();
 
                     // On timeout or shut down.
-                    if (workItem == null)
+                    if (workItem is null)
                     {
                         // Double lock for quit.
                         if (m_workerThreads.Count > minworkers)
@@ -753,7 +740,7 @@ namespace Amib.Threading
             */
             catch (Exception e)
             {
-                Debug.Assert(null != e);
+                Debug.Assert(e is not null);
             }
             finally
             {
@@ -783,7 +770,7 @@ namespace Amib.Threading
 
         private void ValidateWaitForIdle()
         {
-            if (null != CurrentThreadEntry && CurrentThreadEntry.AssociatedSmartThreadPool == this)
+            if (CurrentThreadEntry is not null && CurrentThreadEntry.AssociatedSmartThreadPool == this)
             {
                 throw new NotSupportedException(
                     "WaitForIdle cannot be called from a thread on its SmartThreadPool, it causes a deadlock");
@@ -792,15 +779,15 @@ namespace Amib.Threading
 
         internal static void ValidateWorkItemsGroupWaitForIdle(IWorkItemsGroup workItemsGroup)
         {
-            if (CurrentThreadEntry != null)
+            if (CurrentThreadEntry is not null)
                 ValidateWorkItemsGroupWaitForIdleImpl(workItemsGroup, CurrentThreadEntry.CurrentWorkItem);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ValidateWorkItemsGroupWaitForIdleImpl(IWorkItemsGroup workItemsGroup, WorkItem workItem)
         {
-            if ((null != workItemsGroup) &&
-                (null != workItem) &&
+            if ((workItemsGroup is not null) &&
+                (workItem is not null) &&
                 workItem.WasQueuedBy(workItemsGroup))
             {
                 throw new NotSupportedException("WaitForIdle cannot be called from a thread on its SmartThreadPool, it causes a deadlock");
@@ -855,7 +842,7 @@ namespace Amib.Threading
             // Each iteration we update the time left for the timeout.
             foreach (ThreadEntry te in threadEntries)
             {
-                if (te == null)
+                if (te is null)
                     continue;
 
                 Thread thread = te.WorkThread;
@@ -889,11 +876,11 @@ namespace Amib.Threading
                 // Abort the threads in the pool
                 foreach (ThreadEntry te in threadEntries)
                 {
-                    if (te == null)
+                    if (te is null)
                         continue;
 
                     Thread thread = te.WorkThread;
-                    if ((thread != null) && thread.IsAlive )
+                    if (thread is not null && thread.IsAlive )
                     {
                         try
                         {
@@ -1310,14 +1297,14 @@ namespace Amib.Threading
                     Shutdown();
                 }
 
-                if (null != m_shuttingDownEvent)
+                if (m_shuttingDownEvent is not null)
                 {
                     m_shuttingDownEvent.Close();
                     m_shuttingDownEvent = null;
                 }
                 m_workerThreads.Clear();
 
-                if (null != m_isIdleWaitHandle)
+                if (m_isIdleWaitHandle is not null)
                 {
                     m_isIdleWaitHandle.Close();
                     m_isIdleWaitHandle = null;
@@ -1418,7 +1405,7 @@ namespace Amib.Threading
                     if(threadEntry.AssociatedSmartThreadPool == this)
                     {
                         WorkItem workItem = threadEntry.CurrentWorkItem;
-                        if (null != workItem && !workItem.IsCanceled)
+                        if (workItem is not null && !workItem.IsCanceled)
                         {
                             threadEntry.CurrentWorkItem.GetWorkItemResult().Cancel(true);
                         }
