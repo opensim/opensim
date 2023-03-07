@@ -634,7 +634,7 @@ namespace Amib.Threading.Internal
                 {
                     return m_workItemState;
                 }
-                if (WorkItemState.Canceled != _workItemState && DateTime.UtcNow.Ticks > _expirationTime)
+                if (WorkItemState.Canceled != m_workItemState && DateTime.UtcNow.Ticks > m_expirationTime)
                 {
                     m_workItemState = WorkItemState.Canceled;
                     return m_workItemState;
