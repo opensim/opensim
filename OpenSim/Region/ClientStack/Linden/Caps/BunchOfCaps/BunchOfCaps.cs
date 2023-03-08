@@ -34,7 +34,6 @@ using System.IO;
 using System.Net;
 using System.Threading;
 using System.Reflection;
-using System.Security.Cryptography;
 using System.Text;
 using System.Web;
 
@@ -45,11 +44,9 @@ using log4net;
 
 using OpenSim.Framework;
 using OpenSim.Framework.Capabilities;
-using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Serialization;
-using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Services.Interfaces;
 
@@ -337,6 +334,9 @@ namespace OpenSim.Region.ClientStack.Linden
                     oreq = new SimpleOSDMapHandler("POST", GetNewCapPath(), UpdateGestureItemAsset);
                     m_HostCapsObj.RegisterSimpleHandler("UpdateGestureAgentInventory", oreq, true);
                     m_HostCapsObj.RegisterSimpleHandler("UpdateGestureTaskInventory", oreq, false);
+
+                    m_HostCapsObj.RegisterSimpleHandler("ModifyMaterialParams",
+                        new SimpleStreamHandler(GetNewCapPath(), ModifyMaterialParams), true);
                 }
 
                 if (TaskScriptUpdatedCall != null)
@@ -2710,6 +2710,89 @@ namespace OpenSim.Region.ClientStack.Linden
                 LLSDxmlEncode2.AddEndMap(sb);
                 response.RawBuffer = LLSDxmlEncode2.EndToNBBytes(sb);
                 response.StatusCode = (int)HttpStatusCode.OK;
+            }
+        }
+        public void ModifyMaterialParams(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+        {
+            if (httpRequest.HttpMethod != "POST")
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
+            }
+            OSDArray req;
+            try
+            {
+                req = (OSDArray)OSDParser.DeserializeLLSDXml(httpRequest.InputStream);
+                OSD tmp;
+                foreach (OSDMap map in req)
+                {
+                    if (!map.TryGetValue("object_id", out tmp))
+                        continue;
+
+                    UUID id = tmp.AsUUID();
+                    if (id.IsZero())
+                        continue;
+                    UUID assetID;
+                    int side;
+                    if (map.TryGetValue("side", out tmp))
+                        side = tmp.AsInteger();
+                    else
+                        side = 0;
+
+                    if (map.TryGetValue("asset_id", out tmp))
+                        assetID = tmp.AsUUID();
+                    else
+                        assetID = UUID.Zero;
+
+                    string assetdata = string.Empty;
+                    if (map.TryGetValue("gltf_json", out tmp))
+                    {
+                        assetdata = tmp.AsString();
+                    }
+
+                    SceneObjectPart sop = m_Scene.GetSceneObjectPart(id);
+                    if(sop is null)
+                        continue;
+                    PrimitiveBaseShape pbs = sop.Shape;
+                    if(pbs is null)
+                        continue;
+                    if(pbs.RenderMaterials is null)
+                    {
+                        var entries = new Primitive.RenderMaterials.RenderMaterialEntry[1];
+                        entries[0].te_index = (byte)side;
+                        entries[0].id = assetID;
+                        pbs.RenderMaterials = new Primitive.RenderMaterials
+                        {
+                            entries = entries
+                        };
+                    }
+                    else
+                    {
+                        int i = 0;
+                        for (; i < pbs.RenderMaterials.entries.Length; i++ )
+                        {
+                            if (pbs.RenderMaterials.entries[i].te_index == side)
+                            {
+                                pbs.RenderMaterials.entries[i].id = assetID;
+                                break;
+                            }
+                        }
+                        if( i == pbs.RenderMaterials.entries.Length)
+                        {
+                            Array.Resize(ref pbs.RenderMaterials.entries, i + 1);
+                            pbs.RenderMaterials.entries[i].te_index = (byte)side;
+                            pbs.RenderMaterials.entries[i].id = assetID;
+                        }
+                    }
+                    sop.ScheduleFullUpdate();
+                }
+                httpResponse.StatusCode = (int)HttpStatusCode.OK;
+                return;
+            }
+            catch
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
+                return;
             }
         }
     }
