@@ -235,7 +235,13 @@ namespace OpenSim.Region.OptionalModules.Materials
             caps.RegisterSimpleHandler("RenderMaterials", 
                 new SimpleStreamHandler("/" + UUID.Random(),
                     (httpRequest, httpResponse)
-                        => preprocess(httpRequest, httpResponse,agentID)
+                        => preprocess(httpRequest, httpResponse, agentID)
+                ));
+
+            caps.RegisterSimpleHandler("ModifyMaterialParams",
+                new SimpleStreamHandler("/" + UUID.Random(),
+                    (httpRequest, httpResponse)
+                        => ModifyMaterialParams(httpRequest, httpResponse, agentID)
                 ));
         }
 
@@ -899,6 +905,120 @@ namespace OpenSim.Region.OptionalModules.Materials
                         delayedDelete.Enqueue(id);
                     }
                 }
+            }
+        }
+
+        public void ModifyMaterialParams(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, UUID agentID)
+        {
+            if (httpRequest.HttpMethod != "POST")
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
+            }
+            OSDArray req;
+            try
+            {
+                req = (OSDArray)OSDParser.DeserializeLLSDXml(httpRequest.InputStream);
+                httpRequest.InputStream.Dispose();
+
+                OSD tmp;
+                HashSet<SceneObjectPart> changedSOPs = new();
+
+                foreach (OSDMap map in req)
+                {
+                    if (!map.TryGetValue("object_id", out tmp))
+                        continue;
+                    UUID sopid = tmp.AsUUID();
+                    if (sopid.IsZero())
+                        continue;
+
+                    SceneObjectPart sop = m_scene.GetSceneObjectPart(sopid);
+                    if (sop is null)
+                        continue;
+
+                    PrimitiveBaseShape pbs = sop.Shape;
+                    if (pbs is null)
+                        continue;
+
+                    if (!map.TryGetValue("side", out tmp))
+                        continue;
+                    int side = tmp.AsInteger();
+
+                    UUID assetID;
+                    if (map.TryGetValue("asset_id", out tmp))
+                        assetID = tmp.AsUUID();
+                    else
+                        assetID = UUID.Zero;
+
+                    if (map.TryGetValue("gltf_json", out tmp))
+                    {
+                        string assetdata = tmp.AsString();
+                        if (!string.IsNullOrEmpty(assetdata))
+                        {
+                            if (pbs.RenderMaterials is not null)
+                            {
+                                int sideIndex = 0;
+                                while (sideIndex < pbs.RenderMaterials.entries.Length)
+                                {
+                                    if (pbs.RenderMaterials.entries[sideIndex].te_index == side)
+                                        break;
+                                    sideIndex++;
+                                }
+                                if (sideIndex < pbs.RenderMaterials.entries.Length)
+                                {
+
+
+                                    changedSOPs.Add(sop);
+                                }
+                            }
+                        }
+                    }
+
+                    if (assetID.IsNotZero())
+                    {
+                        if (pbs.RenderMaterials is null)
+                        {
+                            var entries = new Primitive.RenderMaterials.RenderMaterialEntry[1];
+                            entries[0].te_index = (byte)side;
+                            entries[0].id = assetID;
+                            pbs.RenderMaterials = new Primitive.RenderMaterials
+                            {
+                                entries = entries
+                            };
+                        }
+                        else
+                        {
+                            int i = 0;
+                            while(i < pbs.RenderMaterials.entries.Length)
+                            {
+                                if (pbs.RenderMaterials.entries[i].te_index == side)
+                                {
+                                    pbs.RenderMaterials.entries[i].id = assetID;
+                                    break;
+                                }
+                                i++;
+                            }
+                            if (i == pbs.RenderMaterials.entries.Length)
+                            {
+                                Array.Resize(ref pbs.RenderMaterials.entries, i + 1);
+                                pbs.RenderMaterials.entries[i].te_index = (byte)side;
+                                pbs.RenderMaterials.entries[i].id = assetID;
+                            }
+                        }
+                        changedSOPs.Add(sop);
+                    }
+                }
+                foreach(SceneObjectPart sop in changedSOPs)
+                {
+                    sop.ParentGroup.HasGroupChanged = true;
+                    sop.ScheduleFullUpdate();
+                }
+
+                httpResponse.StatusCode = (int)HttpStatusCode.OK;
+            }
+            catch
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
             }
         }
     }
