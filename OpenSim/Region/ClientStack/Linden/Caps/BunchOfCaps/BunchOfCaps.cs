@@ -2784,6 +2784,7 @@ namespace OpenSim.Region.ClientStack.Linden
                             pbs.RenderMaterials.entries[i].id = assetID;
                         }
                     }
+                    sop.ParentGroup.HasGroupChanged = true;
                     sop.ScheduleFullUpdate();
                 }
                 httpResponse.StatusCode = (int)HttpStatusCode.OK;

@@ -1182,6 +1182,20 @@ namespace OpenSim.Framework
             return md5.ComputeHash(encoding.GetBytes(data));
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static UUID ComputeASCIIMD5UUID(string data)
+        {
+            using MD5 md5 = MD5.Create();
+            byte[] bytes = md5.ComputeHash(Encoding.ASCII.GetBytes(data));
+            UUID uuid = new(bytes,2);
+            uuid.c &= 0x0fff;
+            uuid.c |= 0x3000;
+            uuid.d &= 0x3f;
+            uuid.d |= 0x80;
+
+            return uuid;
+        }
+
         /// <summary>
         /// Return an SHA1 hash
         /// </summary>
@@ -1305,12 +1319,24 @@ namespace OpenSim.Framework
             return ComputeSHA1UUID(Encoding.Default.GetBytes(src));
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UUID ComputeASCIISHA1UUID(string src)
+        {
+            return ComputeSHA1UUID(Encoding.ASCII.GetBytes(src));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UUID ComputeSHA1UUID(byte[] src)
         {
             byte[] ret;
             using (SHA1 sha = SHA1.Create())
                 ret = sha.ComputeHash(src);
-            return new UUID(ret, 2);
+            UUID uuid = new(ret, 2);
+            uuid.c &= 0x0fff;
+            uuid.c |= 0x5000;
+            uuid.d &= 0x3f;
+            uuid.d |= 0x80;
+            return uuid;
         }
 
         public static int fast_distance2d(int x, int y)
