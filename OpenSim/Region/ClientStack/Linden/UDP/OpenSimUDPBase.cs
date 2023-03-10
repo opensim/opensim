@@ -395,7 +395,7 @@ namespace OpenMetaverse
                 // buffer
                 buffer.DataLength = m_udpSocket.EndReceiveFrom(iar, ref buffer.RemoteEndPoint);
 
-                if(!IsRunningInbound)
+                if (!IsRunningInbound)
                     return;
 
                 UdpReceives++;
@@ -436,51 +436,11 @@ namespace OpenMetaverse
             }
             finally
             {
-                if(IsRunningInbound && !sync)
+                if (IsRunningInbound && !sync)
                     AsyncBeginReceive();
             }
         }
 
-/* not in use
-        public void AsyncBeginSend(UDPPacketBuffer buf)
-        {
-//            if (IsRunningOutbound)
-//            {
-
-                // This is strictly for debugging purposes to simulate dropped
-                // packets when testing throttles & retransmission code
-                // if (DropOutgoingPacket())
-                //     return;
-
-                try
-                {
-                    m_udpSocket.BeginSendTo(
-                        buf.Data,
-                        0,
-                        buf.DataLength,
-                        SocketFlags.None,
-                        buf.RemoteEndPoint,
-                        AsyncEndSend,
-                        buf);
-                }
-                catch (SocketException) { }
-                catch (ObjectDisposedException) { }
- //           }
-        }
-
-        void AsyncEndSend(IAsyncResult result)
-        {
-            try
-            {
-//                UDPPacketBuffer buf = (UDPPacketBuffer)result.AsyncState;
-                m_udpSocket.EndSendTo(result);
-
-                UdpSends++;
-            }
-            catch (SocketException) { }
-            catch (ObjectDisposedException) { }
-        }
-*/
         public void SyncSend(UDPPacketBuffer buf)
         {
             if(buf.RemoteEndPoint == null)
