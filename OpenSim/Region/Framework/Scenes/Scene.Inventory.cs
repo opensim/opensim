@@ -331,24 +331,7 @@ namespace OpenSim.Region.Framework.Scenes
                         avatar.ControllingClient.SendAgentAlertMessage("Insufficient permissions to edit setting", false);
                         return UUID.Zero;
                     }
-
-                    UUID mid = data is null ? Util.ComputeSHA1UUID(UUID.ZeroString) : Util.ComputeSHA1UUID(data);
-                    // this may be bad
-                    if (mid.Equals(item.AssetID))
-                        return mid;
-
-                    AssetBase matasset = new(mid, item.Name, (sbyte)item.Type, avatarId.ToString())
-                    {
-                        Description = item.Description,
-                        Data = data ?? (new byte[1])
-                    };
-                    item.AssetID = matasset.FullID;
-                    AssetService.Store(matasset);
-
-                    sop.Inventory.UpdateInventoryItem(item);
-                    avatar.ControllingClient.SendAlertMessage("Material updated");
-
-                    return matasset.FullID;
+                    break;
                 }
             }
 
