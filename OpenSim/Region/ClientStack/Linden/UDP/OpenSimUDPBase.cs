@@ -382,62 +382,62 @@ namespace OpenMetaverse
 
         private void AsyncEndReceive(IAsyncResult iar)
         {
-            bool sync = iar.CompletedSynchronously;
-            try
+            if (IsRunningInbound)
             {
-                // get the buffer that was created in AsyncBeginReceive
-                // this is the received data
-                UDPPacketBuffer buffer = (UDPPacketBuffer)iar.AsyncState;
-
-                int startTick = Util.EnvironmentTickCount();
-
-                // get the length of data actually read from the socket, store it with the
-                // buffer
-                buffer.DataLength = m_udpSocket.EndReceiveFrom(iar, ref buffer.RemoteEndPoint);
-
-                if (!IsRunningInbound)
-                    return;
-
-                UdpReceives++;
-
-                // call the abstract method PacketReceived(), passing the buffer that
-                // has just been filled from the socket read.
-                PacketReceived(buffer);
-
-                // If more than one thread can be calling AsyncEndReceive() at once (e.g. if m_asyncPacketHandler)
-                // then a particular stat may be inaccurate due to a race condition.  We won't worry about this
-                // since this should be rare and  won't cause a runtime problem.
-                if (m_currentReceiveTimeSamples >= s_receiveTimeSamples)
+                bool sync = iar.CompletedSynchronously;
+                try
                 {
-                    AverageReceiveTicksForLastSamplePeriod
-                        = (float)m_receiveTicksInCurrentSamplePeriod / s_receiveTimeSamples;
+                    // get the buffer that was created in AsyncBeginReceive
+                    // this is the received data
+                    UDPPacketBuffer buffer = (UDPPacketBuffer)iar.AsyncState;
 
-                    m_receiveTicksInCurrentSamplePeriod = 0;
-                    m_currentReceiveTimeSamples = 0;
+                    int startTick = Util.EnvironmentTickCount();
+
+                    // get the length of data actually read from the socket, store it with the
+                    // buffer
+                    buffer.DataLength = m_udpSocket.EndReceiveFrom(iar, ref buffer.RemoteEndPoint);
+
+                    UdpReceives++;
+
+                    // call the abstract method PacketReceived(), passing the buffer that
+                    // has just been filled from the socket read.
+                    PacketReceived(buffer);
+
+                    // If more than one thread can be calling AsyncEndReceive() at once (e.g. if m_asyncPacketHandler)
+                    // then a particular stat may be inaccurate due to a race condition.  We won't worry about this
+                    // since this should be rare and  won't cause a runtime problem.
+                    if (m_currentReceiveTimeSamples >= s_receiveTimeSamples)
+                    {
+                        AverageReceiveTicksForLastSamplePeriod
+                            = (float)m_receiveTicksInCurrentSamplePeriod / s_receiveTimeSamples;
+
+                        m_receiveTicksInCurrentSamplePeriod = 0;
+                        m_currentReceiveTimeSamples = 0;
+                    }
+                    else
+                    {
+                        m_receiveTicksInCurrentSamplePeriod += Util.EnvironmentTickCountSubtract(startTick);
+                        m_currentReceiveTimeSamples++;
+                    }
                 }
-                else
+                catch (SocketException se)
                 {
-                    m_receiveTicksInCurrentSamplePeriod += Util.EnvironmentTickCountSubtract(startTick);
-                    m_currentReceiveTimeSamples++;
+                    m_log.Error(
+                        string.Format(
+                            "[UDPBASE]: Error processing UDP end receive {0}, socket error code {1}.  Exception  ",
+                            UdpReceives, se.ErrorCode),
+                        se);
                 }
-            }
-            catch (SocketException se)
-            {
-                m_log.Error(
-                    string.Format(
-                        "[UDPBASE]: Error processing UDP end receive {0}, socket error code {1}.  Exception  ",
-                        UdpReceives, se.ErrorCode),
-                    se);
-            }
-            catch (Exception e)
-            {
-                m_log.Error(
-                    string.Format("[UDPBASE]: Error processing UDP end receive {0}.  Exception  ", UdpReceives), e);
-            }
-            finally
-            {
-                if (IsRunningInbound && !sync)
-                    AsyncBeginReceive();
+                catch (Exception e)
+                {
+                    m_log.Error(
+                        string.Format("[UDPBASE]: Error processing UDP end receive {0}.  Exception  ", UdpReceives), e);
+                }
+                finally
+                {
+                    if (IsRunningInbound && !sync)
+                        AsyncBeginReceive();
+                }
             }
         }
 
