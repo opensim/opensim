@@ -5704,7 +5704,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (AnimationsNames.Count == 0)
                     return new byte[] { 0 };
 
-                using (MemoryStream ms = new MemoryStream())
+                using (MemoryStream ms = new())
                 {
                     byte[] tmp = Utils.UInt16ToBytes((ushort)Animations.Count);
                     ms.Write(tmp, 0, 2);
