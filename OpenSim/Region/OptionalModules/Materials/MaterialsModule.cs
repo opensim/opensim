@@ -36,6 +36,8 @@ using Mono.Addins;
 using Nini.Config;
 
 using OpenMetaverse;
+using static OpenMetaverse.Primitive;
+using static OpenMetaverse.Primitive.RenderMaterials;
 using OpenMetaverse.StructuredData;
 
 using OpenSim.Framework;
@@ -61,23 +63,23 @@ namespace OpenSim.Region.OptionalModules.Materials
         private Scene m_scene = null;
         private bool m_enabled = false;
         private int m_maxMaterialsPerTransaction = 50;
-        private object materialslock = new object();
+        private readonly object  materialslock = new();
 
-        public Dictionary<UUID, FaceMaterial> m_Materials = new Dictionary<UUID, FaceMaterial>();
-        public Dictionary<UUID, int> m_MaterialsRefCount = new Dictionary<UUID, int>();
+        public Dictionary<UUID, FaceMaterial> m_Materials = new();
+        public Dictionary<UUID, int> m_MaterialsRefCount = new();
 
-        private Dictionary<FaceMaterial, double> m_changed = new Dictionary<FaceMaterial, double>();
-        private Queue<UUID> delayedDelete = new Queue<UUID>();
+        private readonly Dictionary<FaceMaterial, double> m_changed = new();
+        private readonly Queue<UUID> delayedDelete = new();
         private bool m_storeBusy;
 
-        private static byte[] GetPutEmptyResponseBytes = osUTF8.GetASCIIBytes("<llsd><map><key>Zipped</key><binary>eNqLZgCCWAAChQC5</binary></map></llsd>");
+        private static readonly byte[] GetPutEmptyResponseBytes = osUTF8.GetASCIIBytes("<llsd><map><key>Zipped</key><binary>eNqLZgCCWAAChQC5</binary></map></llsd>");
 
         public void Initialise(IConfigSource source)
         {
             m_enabled = true; // default is enabled
 
             IConfig config = source.Configs["Materials"];
-            if (config != null)
+            if (config is not null)
             {
                 m_enabled = config.GetBoolean("enable_materials", m_enabled);
                 m_maxMaterialsPerTransaction = config.GetInt("MaxMaterialsPerTransaction", m_maxMaterialsPerTransaction);
@@ -124,7 +126,7 @@ namespace OpenSim.Region.OptionalModules.Materials
 
             m_cache = scene.RequestModuleInterface<IAssetCache>();
             ISimulatorFeaturesModule featuresModule = scene.RequestModuleInterface<ISimulatorFeaturesModule>();
-            if (featuresModule != null)
+            if (featuresModule is not null)
             {
                 featuresModule.AddOpenSimExtraFeature("MaxMaterialsPerTransaction", m_maxMaterialsPerTransaction);
                 featuresModule.AddOpenSimExtraFeature("RenderMaterialsCapability", 3.0f);
@@ -217,15 +219,17 @@ namespace OpenSim.Region.OptionalModules.Materials
         private void EventManager_OnObjectAddedToScene(SceneObjectGroup obj)
         {
             foreach (var part in obj.Parts)
-                if (part != null)
+            {
+                if (part is not null)
                     GetStoredMaterialsInPart(part);
+            }
         }
 
         private void EventManager_OnObjectDeleteFromScene(SceneObjectGroup obj)
         {
             foreach (var part in obj.Parts)
             {
-                if (part != null)
+                if (part is not null)
                     RemoveMaterialsInPart(part);
             }
         }
@@ -271,12 +275,11 @@ namespace OpenSim.Region.OptionalModules.Materials
         /// <param name="part"></param>
         private bool GetLegacyStoredMaterialsInPart(SceneObjectPart part)
         {
-            if (part.DynAttrs == null)
+            if (part.DynAttrs is null)
                 return false;
 
             OSD OSMaterials = null;
-            OSDArray matsArr = null;
-
+            OSDArray matsArr;
             bool partchanged = false;
 
             lock (part.DynAttrs)
@@ -284,8 +287,7 @@ namespace OpenSim.Region.OptionalModules.Materials
                 if (part.DynAttrs.ContainsStore("OpenSim", "Materials"))
                 {
                     OSDMap materialsStore = part.DynAttrs.GetStore("OpenSim", "Materials");
-
-                    if (materialsStore == null)
+                    if (materialsStore is null)
                         return false;
 
                     materialsStore.TryGetValue("Materials", out OSMaterials);
@@ -293,42 +295,37 @@ namespace OpenSim.Region.OptionalModules.Materials
                     partchanged = true;
                 }
 
-                if (OSMaterials != null && OSMaterials is OSDArray)
-                    matsArr = OSMaterials as OSDArray;
-                else
+                if (OSMaterials is not OSDArray)
                     return partchanged;
+                matsArr = (OSDArray)OSMaterials;
             }
 
-            if (matsArr == null)
+            if (matsArr is null)
                 return partchanged;
             
             foreach (OSD elemOsd in matsArr)
             {
-                if (elemOsd != null && elemOsd is OSDMap)
+                if (elemOsd is OSDMap matMap)
                 {
-                    OSDMap matMap = elemOsd as OSDMap;
-                    OSD OSDID;
-                    OSD OSDMaterial;
-                    if (matMap.TryGetValue("ID", out OSDID) && matMap.TryGetValue("Material", out OSDMaterial) && OSDMaterial is OSDMap)
+                    if (matMap.TryGetValue("ID", out OSD OSDID) && 
+                        matMap.TryGetValue("Material", out OSD OSDMaterial) && OSDMaterial is OSDMap theMatMap)
                     {
                         try
                         {
                             lock (materialslock)
                             {
                                 UUID id = OSDID.AsUUID();
-                                if(m_Materials.ContainsKey(id))
+                                if (m_Materials.ContainsKey(id))
                                     continue;
 
-                                OSDMap theMatMap = (OSDMap)OSDMaterial;
-                                FaceMaterial fmat = new FaceMaterial(theMatMap);
-
-                                if(fmat == null ||
-                                        ( fmat.DiffuseAlphaMode == 1
+                                FaceMaterial fmat = new(theMatMap);
+                                if (fmat is null ||
+                                        (fmat.DiffuseAlphaMode == 1
                                         && fmat.NormalMapID.IsZero()
                                         && fmat.SpecularMapID.IsZero()))
                                     continue;
 
-                                fmat.ID = id; 
+                                fmat.ID = id;
                                 m_Materials[id] = fmat;
                                 m_MaterialsRefCount[id] = 0;
                             }
@@ -348,18 +345,17 @@ namespace OpenSim.Region.OptionalModules.Materials
         /// </summary>
         private void GetStoredMaterialsInPart(SceneObjectPart part)
         {
-            if (part.Shape == null)
+            if (part.Shape is null)
                 return;
 
-            bool partchanged = false;
-            bool facechanged = false;
             var te = new Primitive.TextureEntry(part.Shape.TextureEntry, 0, part.Shape.TextureEntry.Length);
-            if (te == null)
+            if (te is null)
                 return;
 
-            partchanged = GetLegacyStoredMaterialsInPart(part);
+            bool partchanged = GetLegacyStoredMaterialsInPart(part);
+            bool facechanged = false;
 
-            if (te.DefaultTexture != null)
+            if (te.DefaultTexture is not null)
                 facechanged = GetStoredMaterialInFace(part, te.DefaultTexture);
             else
                 m_log.WarnFormat(
@@ -368,7 +364,7 @@ namespace OpenSim.Region.OptionalModules.Materials
 
             foreach (Primitive.TextureEntryFace face in te.FaceTextures)
             {
-                if (face != null)
+                if (face is not null)
                     facechanged |= GetStoredMaterialInFace(part, face);
             }
 
@@ -377,7 +373,7 @@ namespace OpenSim.Region.OptionalModules.Materials
 
             if(facechanged || partchanged)
             {
-                if (part.ParentGroup != null && !part.ParentGroup.IsDeleted)
+                if (part.ParentGroup is not null && !part.ParentGroup.IsDeleted)
                     part.ParentGroup.HasGroupChanged = true;
             }
         }
@@ -401,7 +397,7 @@ namespace OpenSim.Region.OptionalModules.Materials
                 }
 
                 AssetBase matAsset = m_scene.AssetService.Get(id.ToString());
-                if (matAsset == null || matAsset.Data == null || matAsset.Data.Length == 0 )
+                if (matAsset is null || matAsset.Data is null || matAsset.Data.Length == 0 )
                 {
                     // grid may just be down...
                     return false;
@@ -420,9 +416,8 @@ namespace OpenSim.Region.OptionalModules.Materials
                     return false;
                 }
 
-                FaceMaterial fmat = new FaceMaterial(mat);
-
-                if(fmat == null ||
+                FaceMaterial fmat = new(mat);
+                if(fmat is null ||
                         (fmat.DiffuseAlphaMode == 1
                         && fmat.NormalMapID.IsZero()
                         && fmat.SpecularMapID.IsZero()))
@@ -448,19 +443,19 @@ namespace OpenSim.Region.OptionalModules.Materials
 
         private void RemoveMaterialsInPart(SceneObjectPart part)
         {
-            if (part.Shape == null)
+            if (part.Shape is null)
                 return;
 
             var te = new Primitive.TextureEntry(part.Shape.TextureEntry, 0, part.Shape.TextureEntry.Length);
-            if (te == null)
+            if (te is null)
                 return;
 
-            if (te.DefaultTexture != null)
+            if (te.DefaultTexture is not null)
                 RemoveMaterialInFace(te.DefaultTexture);
 
             foreach (Primitive.TextureEntryFace face in te.FaceTextures)
             {
-                if(face != null)
+                if(face is not null)
                     RemoveMaterialInFace(face);
             }
         }
@@ -495,34 +490,33 @@ namespace OpenSim.Region.OptionalModules.Materials
                 return;
             }
 
-            OSDArray respArr = new OSDArray();
-            OSD tmpOSD;
+            OSDArray respArr = new();
 
-            if (req.TryGetValue("Zipped", out tmpOSD))
+            if (req.TryGetValue("Zipped", out OSD tmpOSD))
             {
-                OSD osd = null;
-
+                OSD osd;
                 byte[] inBytes = tmpOSD.AsBinary();
 
                 try
                 {
                     osd = ZDecompressBytesToOsd(inBytes);
-
-                    if (osd != null && osd is OSDArray)
+                    if (osd is OSDArray OSDArrayosd)
                     {
-                        foreach (OSD elem in (OSDArray)osd)
+                        foreach (OSD elem in OSDArrayosd)
                         {
                             try
                             {
-                                UUID id = new UUID(elem.AsBinary(), 0);
+                                UUID id = new(elem.AsBinary(), 0);
 
                                 lock (materialslock)
                                 {
                                     if (m_Materials.ContainsKey(id))
                                     {
-                                        OSDMap matMap = new OSDMap();
-                                        matMap["ID"] = OSD.FromBinary(id.GetBytes());
-                                        matMap["Material"] = m_Materials[id].toOSD();
+                                        OSDMap matMap = new()
+                                        {
+                                            ["ID"] = OSD.FromBinary(id.GetBytes()),
+                                            ["Material"] = m_Materials[id].toOSD()
+                                        };
                                         respArr.Add(matMap);
                                     }
                                     else
@@ -552,8 +546,10 @@ namespace OpenSim.Region.OptionalModules.Materials
                 }
             }
 
-            OSDMap resp = new OSDMap();
-            resp["Zipped"] = ZCompressOSD(respArr, false);
+            OSDMap resp = new()
+            {
+                ["Zipped"] = ZCompressOSD(respArr, false)
+            };
             response.RawBuffer = Encoding.UTF8.GetBytes(OSDParser.SerializeLLSDXmlString(resp));
 
             //m_log.Debug("[Materials]: cap request: " + request);
@@ -574,22 +570,19 @@ namespace OpenSim.Region.OptionalModules.Materials
                 return;
             }
 
-            OSD tmpOSD;
-            if (req.TryGetValue("Zipped", out tmpOSD))
+            if (req.TryGetValue("Zipped", out OSD tmpOSD))
             {
                 try
                 {
                     byte[] inBytes = tmpOSD.AsBinary();
                     OSD osd = ZDecompressBytesToOsd(inBytes);
 
-                    if (osd != null && osd is OSDMap)
+                    if (osd is OSDMap materialsFromViewer)
                     {
-                        OSDMap materialsFromViewer = osd as OSDMap;
-
                         if (materialsFromViewer.TryGetValue("FullMaterialsPerFace", out tmpOSD) && (tmpOSD is OSDArray))
                         {
-                            Dictionary<uint, SceneObjectPart> parts = new Dictionary<uint, SceneObjectPart>();
-                            HashSet<uint> errorReported = new HashSet<uint>();
+                            Dictionary<uint, SceneObjectPart> parts = new();
+                            HashSet<uint> errorReported = new();
                             OSDArray matsArr = tmpOSD as OSDArray;
                             try
                             {
@@ -607,7 +600,7 @@ namespace OpenSim.Region.OptionalModules.Materials
                                     }
 
                                     SceneObjectPart sop = m_scene.GetSceneObjectPart(primLocalID);
-                                    if (sop == null)
+                                    if (sop is null)
                                     {
                                         m_log.WarnFormat("[Materials]: SOP not found for localId: {0}", primLocalID.ToString());
                                         continue;
@@ -634,8 +627,8 @@ namespace OpenSim.Region.OptionalModules.Materials
                                         continue;
                                     }
 
-                                    Primitive.TextureEntry te = new Primitive.TextureEntry(sop.Shape.TextureEntry, 0, sop.Shape.TextureEntry.Length);
-                                    if (te == null)
+                                    Primitive.TextureEntry te = new(sop.Shape.TextureEntry, 0, sop.Shape.TextureEntry.Length);
+                                    if (te is null)
                                     {
                                         m_log.WarnFormat("[Materials]: Error in TextureEntry for SOP {0} {1}", sop.Name, sop.UUID);
                                         continue;
@@ -652,12 +645,12 @@ namespace OpenSim.Region.OptionalModules.Materials
                                     else
                                         faceEntry = te.DefaultTexture;
 
-                                    if (faceEntry == null)
+                                    if (faceEntry is null)
                                         continue;
 
                                     UUID id;
                                     FaceMaterial newFaceMat = null;
-                                    if (mat == null)
+                                    if (mat is null)
                                     {
                                         // This happens then the user removes a material from a prim
                                         id = UUID.Zero;
@@ -665,7 +658,7 @@ namespace OpenSim.Region.OptionalModules.Materials
                                     else
                                     {
                                         newFaceMat = new FaceMaterial(mat);
-                                        if(newFaceMat.DiffuseAlphaMode == 1 
+                                        if (newFaceMat.DiffuseAlphaMode == 1
                                                 && newFaceMat.NormalMapID.IsZero()
                                                 && newFaceMat.SpecularMapID.IsZero())
                                             id = UUID.Zero;
@@ -678,10 +671,10 @@ namespace OpenSim.Region.OptionalModules.Materials
 
                                     oldid = faceEntry.MaterialID;
 
-                                    if(oldid == id)
+                                    if (oldid == id)
                                         continue;
 
-                                    if (faceEntry != null)
+                                    if (faceEntry is not null)
                                     {
                                         faceEntry.MaterialID = id;
                                         //m_log.DebugFormat("[Materials]: in \"{0}\" {1}, setting material ID for face {2} to {3}", sop.Name, sop.UUID, face, id);
@@ -689,12 +682,12 @@ namespace OpenSim.Region.OptionalModules.Materials
                                         sop.Shape.TextureEntry = te.GetBytes(9);
                                     }
 
-                                    if(!oldid.IsZero())
+                                    if (!oldid.IsZero())
                                         RemoveMaterial(oldid);
 
-                                    lock(materialslock)
+                                    lock (materialslock)
                                     {
-                                        if(!id.IsZero())
+                                        if (id.IsNotZero())
                                         {
                                             if (m_Materials.ContainsKey(id))
                                                 m_MaterialsRefCount[id]++;
@@ -707,13 +700,12 @@ namespace OpenSim.Region.OptionalModules.Materials
                                         }
                                     }
 
-                                    if(!parts.ContainsKey(primLocalID))
-                                        parts[primLocalID] = sop;
+                                    parts[primLocalID] = sop;
                                 }
 
-                                foreach(SceneObjectPart sop in parts.Values)
+                                foreach (SceneObjectPart sop in parts.Values)
                                 {
-                                    if (sop.ParentGroup != null && !sop.ParentGroup.IsDeleted)
+                                    if (sop.ParentGroup is not null && !sop.ParentGroup.IsDeleted)
                                     {
                                         sop.TriggerScriptChangedEvent(Changed.TEXTURE);
                                         sop.ScheduleFullUpdate();
@@ -749,27 +741,26 @@ namespace OpenSim.Region.OptionalModules.Materials
 
         private AssetBase MakeAsset(FaceMaterial fm, bool local)
         {
-            // this are not true assets, should had never been...
-            AssetBase asset = null;
             byte[] data = fm.toLLSDxml();
-
-            asset = new AssetBase(fm.ID, "llmaterial", (sbyte)OpenSimAssetType.Material, "00000000-0000-0000-0000-000000000000");
-            asset.Data = data;
-            asset.Local = local;
+            AssetBase asset = new(fm.ID, "llmaterial", (sbyte)OpenSimAssetType.Material, "00000000-0000-0000-0000-000000000000")
+            {
+                Data = data,
+                Local = local
+            };
             return asset;
         }
 
         private byte[] CacheGet = null;
-        private object CacheGetLock = new object();
+        private readonly object CacheGetLock = new();
         private double CacheGetTime = 0;
 
         public void RenderMaterialsGetCap(IOSHttpRequest request, IOSHttpResponse response)
         {
             lock(CacheGetLock)
             {
-                OSDArray allOsd = new OSDArray();
+                OSDArray allOsd = new();
                 double now = Util.GetTimeStamp();
-                if(CacheGet == null || now - CacheGetTime > 30)
+                if(CacheGet is null || now - CacheGetTime > 30)
                 {
                     CacheGetTime = now;
 
@@ -777,7 +768,7 @@ namespace OpenSim.Region.OptionalModules.Materials
                     {
                         foreach (KeyValuePair<UUID, FaceMaterial> kvp in m_Materials)
                         {
-                            OSDMap matMap = new OSDMap
+                            OSDMap matMap = new()
                             {
                                 ["ID"] = OSD.FromBinary(kvp.Key.GetBytes()),
                                 ["Material"] = kvp.Value.toOSD()
@@ -786,7 +777,7 @@ namespace OpenSim.Region.OptionalModules.Materials
                         }
                     }
 
-                    OSDMap resp = new OSDMap
+                    OSDMap resp = new()
                     {
                         ["Zipped"] = ZCompressOSD(allOsd, false)
                     };
@@ -811,11 +802,8 @@ namespace OpenSim.Region.OptionalModules.Materials
 
         public static OSD ZCompressOSD(OSD inOsd, bool useHeader)
         {
-            OSD osd = null;
-
             byte[] data = OSDParser.SerializeLLSDBinary(inOsd, useHeader);
-
-            using (MemoryStream msSinkCompressed = new MemoryStream())
+            using (MemoryStream msSinkCompressed = new())
             {
                 using (Ionic.Zlib.ZlibStream zOut = new Ionic.Zlib.ZlibStream(msSinkCompressed,
                     Ionic.Zlib.CompressionMode.Compress, CompressionLevel.BestCompression, true))
@@ -824,42 +812,34 @@ namespace OpenSim.Region.OptionalModules.Materials
                 }
 
                 msSinkCompressed.Seek(0L, SeekOrigin.Begin);
-                osd = OSD.FromBinary(msSinkCompressed.ToArray());
+                return OSD.FromBinary(msSinkCompressed.ToArray());
             }
-
-            return osd;
         }
 
         public static OSD ZDecompressBytesToOsd(byte[] input)
         {
-            OSD osd = null;
-
-            using (MemoryStream msSinkUnCompressed = new MemoryStream())
+            using (MemoryStream msSinkUnCompressed = new())
             {
-                using (Ionic.Zlib.ZlibStream zOut = new Ionic.Zlib.ZlibStream(msSinkUnCompressed, CompressionMode.Decompress, true))
+                using (Ionic.Zlib.ZlibStream zOut = new(msSinkUnCompressed, CompressionMode.Decompress, true))
                 {
                     zOut.Write(input, 0, input.Length);
                 }
 
                 msSinkUnCompressed.Seek(0L, SeekOrigin.Begin);
-                osd = OSDParser.DeserializeLLSDBinary(msSinkUnCompressed.ToArray());
+                return OSDParser.DeserializeLLSDBinary(msSinkUnCompressed.ToArray());
             }
-
-            return osd;
         }
 
         public FaceMaterial GetMaterial(UUID ID)
         {
-            FaceMaterial fm = null;
-            if(m_Materials.TryGetValue(ID, out fm))
+            if(m_Materials.TryGetValue(ID, out FaceMaterial fm))
                 return fm;
             return null;
         }
 
         public FaceMaterial GetMaterialCopy(UUID ID)
         {
-            FaceMaterial fm = null;
-            if(m_Materials.TryGetValue(ID, out fm))
+            if(m_Materials.TryGetValue(ID, out FaceMaterial fm))
                 return new FaceMaterial(fm);
             return null;
         }
@@ -915,10 +895,10 @@ namespace OpenSim.Region.OptionalModules.Materials
                 httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
                 return;
             }
-            OSDArray req;
+
             try
             {
-                req = (OSDArray)OSDParser.DeserializeLLSDXml(httpRequest.InputStream);
+                OSDArray req = (OSDArray)OSDParser.DeserializeLLSDXml(httpRequest.InputStream);
                 httpRequest.InputStream.Dispose();
 
                 OSD tmp;
@@ -940,86 +920,195 @@ namespace OpenSim.Region.OptionalModules.Materials
                     if (pbs is null)
                         continue;
 
+                    if (!m_scene.Permissions.CanEditObject(sop.UUID, agentID))
+                        continue;
+
                     if (!map.TryGetValue("side", out tmp))
                         continue;
                     int side = tmp.AsInteger();
 
-                    UUID assetID;
-                    if (map.TryGetValue("asset_id", out tmp))
-                        assetID = tmp.AsUUID();
-                    else
-                        assetID = UUID.Zero;
-
+                    string overridedata;
                     if (map.TryGetValue("gltf_json", out tmp))
+                        overridedata = tmp.AsString().TrimEnd('\n');
+                    else
+                        overridedata = string.Empty;
+
+                    if (map.TryGetValue("asset_id", out tmp))
                     {
-                        string assetdata = tmp.AsString();
-                        if (!string.IsNullOrEmpty(assetdata))
+                        UUID assetID = tmp.AsUUID();
+                        if (assetID.IsNotZero())
                         {
-                            if (pbs.RenderMaterials is not null)
+                            if (pbs.RenderMaterials is null)
                             {
-                                int sideIndex = 0;
-                                while (sideIndex < pbs.RenderMaterials.entries.Length)
+                                var entries = new Primitive.RenderMaterials.RenderMaterialEntry[1];
+                                entries[0].te_index = (byte)side;
+                                entries[0].id = assetID;
+                                pbs.RenderMaterials = new Primitive.RenderMaterials { entries = entries };
+                            }
+                            else
+                            {
+                                if (pbs.RenderMaterials.entries is null)
                                 {
-                                    if (pbs.RenderMaterials.entries[sideIndex].te_index == side)
-                                        break;
-                                    sideIndex++;
+                                    var entries = new Primitive.RenderMaterials.RenderMaterialEntry[1];
+                                    entries[0].te_index = (byte)side;
+                                    entries[0].id = assetID;
+                                    pbs.RenderMaterials.entries = entries;
                                 }
-                                if (sideIndex < pbs.RenderMaterials.entries.Length)
+                                else
                                 {
-
-
-                                    changedSOPs.Add(sop);
+                                    int indx = 0;
+                                    while (indx < pbs.RenderMaterials.entries.Length)
+                                    {
+                                        if (pbs.RenderMaterials.entries[indx].te_index == side)
+                                        {
+                                            pbs.RenderMaterials.entries[indx].id = assetID;
+                                            break;
+                                        }
+                                        indx++;
+                                    }
+                                    if (indx == pbs.RenderMaterials.entries.Length)
+                                    {
+                                        Array.Resize(ref pbs.RenderMaterials.entries, indx + 1);
+                                        pbs.RenderMaterials.entries[indx].te_index = (byte)side;
+                                        pbs.RenderMaterials.entries[indx].id = assetID;
+                                    }
                                 }
                             }
+                            if (string.IsNullOrEmpty(overridedata))
+                                RemoveMaterialOverride(ref pbs.RenderMaterials.overrides, side);
+                            else
+                                AddMaterialOverride(ref pbs.RenderMaterials.overrides, overridedata, side);
+
+                            changedSOPs.Add(sop);
+                        }
+                        else if(pbs.RenderMaterials is not null)
+                        {
+                            bool changed = RemoveMaterialEntry(ref pbs.RenderMaterials.entries, side);
+                            changed |= RemoveMaterialOverride(ref pbs.RenderMaterials.overrides, side);
+
+                            if(pbs.RenderMaterials.entries is null && pbs.RenderMaterials.overrides is null)
+                                pbs.RenderMaterials = null;
+                            if(changed)
+                                changedSOPs.Add(sop);
                         }
                     }
-
-                    if (assetID.IsNotZero())
+                    else if (pbs.RenderMaterials is not null)
                     {
-                        if (pbs.RenderMaterials is null)
+                        if (string.IsNullOrEmpty(overridedata))
                         {
-                            var entries = new Primitive.RenderMaterials.RenderMaterialEntry[1];
-                            entries[0].te_index = (byte)side;
-                            entries[0].id = assetID;
-                            pbs.RenderMaterials = new Primitive.RenderMaterials
-                            {
-                                entries = entries
-                            };
+
                         }
                         else
                         {
-                            int i = 0;
-                            while(i < pbs.RenderMaterials.entries.Length)
-                            {
-                                if (pbs.RenderMaterials.entries[i].te_index == side)
-                                {
-                                    pbs.RenderMaterials.entries[i].id = assetID;
-                                    break;
-                                }
-                                i++;
-                            }
-                            if (i == pbs.RenderMaterials.entries.Length)
-                            {
-                                Array.Resize(ref pbs.RenderMaterials.entries, i + 1);
-                                pbs.RenderMaterials.entries[i].te_index = (byte)side;
-                                pbs.RenderMaterials.entries[i].id = assetID;
-                            }
+                            if(AddMaterialOverride(ref pbs.RenderMaterials.overrides, overridedata, side))
+                                changedSOPs.Add(sop);
                         }
-                        changedSOPs.Add(sop);
                     }
                 }
-                foreach(SceneObjectPart sop in changedSOPs)
+                foreach (SceneObjectPart sop in changedSOPs)
                 {
                     sop.ParentGroup.HasGroupChanged = true;
                     sop.ScheduleFullUpdate();
                 }
 
+                httpResponse.RawBuffer = XMLkeyMaterialSucess;
                 httpResponse.StatusCode = (int)HttpStatusCode.OK;
             }
             catch
             {
                 httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
+                httpResponse.RawBuffer = XMLkeyMaterialFail;
             }
+        }
+
+        public static readonly byte[] XMLkeyMaterialSucess = osUTF8.GetASCIIBytes("<llsd><map><key>success</key><integer>1</integer></map></llsd>\r\n");
+        public static readonly byte[] XMLkeyMaterialFail = osUTF8.GetASCIIBytes("<llsd><map><key>success</key><integer>0</integer></map></llsd>\r\n");
+        private static bool RemoveMaterialEntry(ref RenderMaterialEntry[] entries, int side)
+        {
+            if (entries is null || entries.Length == 0)
+                return false;
+
+            int indx = 0;
+            while (entries[indx].te_index != side && indx < entries.Length)
+                indx++;
+
+            if (indx >= entries.Length)
+                return false;
+
+            if (entries.Length == 1)
+                entries = null;
+            else
+            {
+                var newentries = new Primitive.RenderMaterials.RenderMaterialEntry[entries.Length - 1];
+                if (indx > 0)
+                    Array.Copy(entries, newentries, indx);
+                int left = newentries.Length - indx;
+                if (left > 0)
+                    Array.Copy(entries, indx + 1, newentries, indx, left);
+                entries = newentries;
+            }
+            return true;
+        }
+
+        private static bool RemoveMaterialOverride(ref RenderMaterialOverrideEntry[] overrides, int side)
+        {
+            if (overrides is null || overrides.Length == 0)
+                return false;
+
+            int indx = 0;
+            while(overrides[indx].te_index != side && indx < overrides.Length)
+                indx++;
+
+            if (indx >= overrides.Length)
+                return false;
+
+            if (overrides.Length == 1)
+                overrides = null;
+            else
+            {
+                var entries = new Primitive.RenderMaterials.RenderMaterialOverrideEntry[overrides.Length - 1];
+                if (indx > 0)
+                    Array.Copy(overrides, entries, indx);
+                int left = entries.Length - indx;
+                if (left > 0)
+                    Array.Copy(overrides, indx + 1, entries, indx, left);
+                overrides = entries;
+            }
+            return true;
+        }
+        
+        private static bool AddMaterialOverride(ref RenderMaterials.RenderMaterialOverrideEntry[] overrides, string data, int side)
+        {
+            if (overrides is null)
+            {
+                var entries = new RenderMaterials.RenderMaterialOverrideEntry[1];
+                entries[0].te_index = (byte)side;
+                entries[0].data = data;
+                overrides = entries;
+                return true;
+            }
+
+            int indx = 0;
+            while (indx < overrides.Length)
+            {
+                if (overrides[indx].te_index == side)
+                {
+                    overrides[indx].data = data;
+                    return true;
+                }
+                indx++;
+            }
+            if (indx == overrides.Length)
+            {
+                Array.Resize(ref overrides, indx + 1);
+                overrides[indx].te_index = (byte)side;
+                if(overrides[indx].data != data)
+                {
+                    overrides[indx].data = data;
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }

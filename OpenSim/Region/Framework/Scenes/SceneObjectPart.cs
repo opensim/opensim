@@ -5755,7 +5755,7 @@ namespace OpenSim.Region.Framework.Scenes
                 int pos = 2;
                 while(--count >= 0)
                 {
-                    UUID id = new UUID(data, pos);
+                    UUID id = new(data, pos);
                     if(id.IsZero())
                         break;
                     pos += 16;

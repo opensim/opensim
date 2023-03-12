@@ -5287,7 +5287,7 @@ namespace OpenSim.Region.Framework.Scenes
                 linknumber -= (m_parts.Count + 1);
             lock (m_sittingAvatars)
             {
-                if (linknumber >= 0 && linknumber < m_sittingAvatars.Count)
+                if (linknumber < m_sittingAvatars.Count && linknumber >= 0)
                     return  m_sittingAvatars[linknumber];
             }
             return null;

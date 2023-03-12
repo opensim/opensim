@@ -27,6 +27,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Runtime;
@@ -4767,6 +4769,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             List<EntityUpdate> compressedUpdates = null;
             List<EntityUpdate> terseUpdates = null;
             List<SceneObjectPart> ObjectAnimationUpdates = null;
+            List<SceneObjectPart> needMaterials = null;
 
             // Check to see if this is a flush
             if (maxUpdatesBytes <= 0)
@@ -4821,6 +4824,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 useCompressUpdate = false;
                 bool istree = false;
+                bool hasMaterialOverride = false;
 
                 if (update.Entity is SceneObjectPart part)
                 {
@@ -4965,6 +4969,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         useCompressUpdate = grp.IsViewerCachable;
 
                     istree = (part.Shape.PCode == (byte)PCode.Grass || part.Shape.PCode == (byte)PCode.NewTree || part.Shape.PCode == (byte)PCode.Tree);
+                    if(!istree && part.Shape.RenderMaterials is not null &&
+                        part.Shape.ReflectionProbe is null &&
+                        part.Shape.RenderMaterials.overrides is not null &&
+                        part.Shape.RenderMaterials.overrides.Length > 0)
+                        hasMaterialOverride = true;
                 }
                 else if (update.Entity is ScenePresence presence)
                 {
@@ -5076,6 +5085,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             }
                             objectUpdates.Add(update);
                         }
+                        if(hasMaterialOverride)
+                        {
+                            needMaterials ??= new List<SceneObjectPart>(16);
+                            needMaterials.Add((SceneObjectPart)update.Entity);
+                        }
                     }
                 }
 
@@ -5090,8 +5104,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return;
 
             timeDilation = Utils.FloatZeroOneToushort(m_scene.TimeDilation);
-
-            if(objectUpdates is not null)
+            if (objectUpdates is not null)
             {
                 //List<EntityUpdate> tau = new List<EntityUpdate>(30);
 
@@ -5182,71 +5195,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         null, false);
                 }
             }
-
-            /* no zero encode compressed updates
-            if(compressedUpdates != null)
-            {
-                List<EntityUpdate> tau = new List<EntityUpdate>(30);
-
-                UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
-                byte[] data = buf.Data;
-
-                Buffer.BlockCopy(CompressedObjectHeader, 0, data , 0, 7);
-
-                Utils.UInt64ToBytesSafepos(m_scene.RegionInfo.RegionHandle, data, 7); // 15
-                Utils.UInt16ToBytes(timeDilation, data, 15); // 17
-
-                int countposition = 17; // blocks count position
-                int pos = 18;
-
-                int lastpos = 0;
-
-                int count = 0;
-                foreach (EntityUpdate eu in compressedUpdates)
-                {
-                    SceneObjectPart sop = (SceneObjectPart)eu.Entity;
-                    if (sop.ParentGroup is null || sop.ParentGroup.IsDeleted)
-                        continue;
-                    lastpos = pos;
-                    CreateCompressedUpdateBlock(sop, mysp, data, ref pos);
-                    if (pos < LLUDPServer.MAXPAYLOAD)
-                    {
-                        tau.Add(eu);
-                        ++count;
-                    }
-                    else
-                    {
-                        // we need more packets
-                        UDPPacketBuffer newbuf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
-                        Buffer.BlockCopy(buf.Data, 0, newbuf.Data, 0, countposition); // start is the same
-
-                        buf.Data[countposition] = (byte)count;
-
-                        buf.DataLength = lastpos;
-                        m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task,
-                            delegate (OutgoingPacket oPacket) { ResendPrimUpdates(tau, oPacket); }, false, false);
-
-                        buf = newbuf;
-                        data = buf.Data;
-
-                        pos = 18;
-                        // im lazy now, just do last again
-                        CreateCompressedUpdateBlock(sop, mysp, data, ref pos);
-                        tau = new List<EntityUpdate>(30);
-                        tau.Add(eu);
-                        count = 1;
-                    }
-                }
-
-                if (count > 0)
-                {
-                    buf.Data[countposition] = (byte)count;
-                    buf.DataLength = pos;
-                    m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task,
-                        delegate (OutgoingPacket oPacket) { ResendPrimUpdates(tau, oPacket); }, false, false);
-                }
-            }
-            */
 
             if (compressedUpdates is not null)
             {
@@ -5545,6 +5493,70 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
 
+            IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();
+            if (needMaterials is not null && eq is not null)
+            {
+                Utils.LongToUInts(m_scene.RegionInfo.RegionHandle, out uint regionX, out uint regionY);
+                foreach (SceneObjectPart sop in needMaterials)
+                {
+                    Primitive.RenderMaterials.RenderMaterialOverrideEntry[] overrides = sop.Shape.RenderMaterials.overrides;
+                    /*
+                    osUTF8 sbinner = LLSDxmlEncode2.Start();
+                    LLSDxmlEncode2.AddArray(sbinner);
+                    LLSDxmlEncode2.AddMap(sbinner);
+                        LLSDxmlEncode2.AddElem("object_id", sop.UUID, sbinner);
+                        LLSDxmlEncode2.AddElem("region_handle_low", (int)regionX, sbinner);
+                        LLSDxmlEncode2.AddElem("region_handle_high", (int)regionY, sbinner);
+                        LLSDxmlEncode2.AddArray("sides", sbinner);
+                            foreach (Primitive.RenderMaterials.RenderMaterialOverrideEntry ovr in overrides)
+                                LLSDxmlEncode2.AddElem(ovr.te_index, sbinner);
+                        LLSDxmlEncode2.AddEndArray(sbinner);
+                        LLSDxmlEncode2.AddArray("gltf_json", sbinner);
+                            foreach (Primitive.RenderMaterials.RenderMaterialOverrideEntry ovr in overrides)
+                            {
+                                LLSDxmlEncode2.AddElem(ovr.data, sbinner);
+                            }
+                        LLSDxmlEncode2.AddEndArray(sbinner);
+                    LLSDxmlEncode2.AddEndMapAndArray(sbinner);
+                    LLSDxmlEncode2.AddEnd(sbinner);
+                    */
+                    OSDMap data = new OSDMap();
+                    data["object_id"] = sop.UUID;
+                    //data["region_handle_low"]= (int)regionX;
+                    //data["region_handle_high"]= (int)regionY;
+                    OSDArray sides = new OSDArray();
+                    foreach (Primitive.RenderMaterials.RenderMaterialOverrideEntry ovr in overrides)
+                        sides.Add(ovr.te_index);
+                    data["sides"] = sides;
+
+                    OSDArray gltf = new OSDArray();
+                    foreach (Primitive.RenderMaterials.RenderMaterialOverrideEntry ovr in overrides)
+                        gltf.Add(ovr.data);
+                    data["gltf_json"] = gltf;
+
+                    string inner = OSDParser.SerializeLLSDNotationFull(data);
+
+                    osUTF8 sb = eq.StartEvent("LargeGenericMessage");
+                    LLSDxmlEncode2.AddArrayAndMap("AgentData", sb);
+                        LLSDxmlEncode2.AddElem("AgentID", AgentId, sb);
+                        //LLSDxmlEncode2.AddElem("TransactionID", transationID.Value, sb);
+                        //LLSDxmlEncode2.AddElem("SessionID", sessionID.Value, sb);
+                    LLSDxmlEncode2.AddEndMapAndArray(sb);
+
+                    LLSDxmlEncode2.AddArrayAndMap("MethodData", sb);
+                    LLSDxmlEncode2.AddElem("Method", "GLTFMaterialOverride", sb);
+                    LLSDxmlEncode2.AddElem("Invoice", UUID.Zero, sb);
+                    LLSDxmlEncode2.AddEndMapAndArray(sb);
+
+                    LLSDxmlEncode2.AddArrayAndMap("ParamList", sb);
+                        //LLSDxmlEncode2.AddElem("Parameter", sbinner, sb);
+                        LLSDxmlEncode2.AddElem("Parameter", inner, sb);
+                    LLSDxmlEncode2.AddEndMapAndArray(sb);
+
+                    //OSUTF8Cached.Release(sbinner);
+                    eq.Enqueue(eq.EndEventToBytes(sb), AgentId);
+                }
+            }
             #endregion Packet Sending
 
             #region Handle deleted objects

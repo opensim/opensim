@@ -26,21 +26,12 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Net;
-using System.Reflection;
-using System.Text;
-using log4net;
-using Nini.Config;
-using Mono.Addins;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
-using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.Framework.Scenes;
-using Caps=OpenSim.Framework.Capabilities.Caps;
 
 namespace OpenSim.Region.ClientStack.Linden
 {
@@ -185,7 +176,7 @@ namespace OpenSim.Region.ClientStack.Linden
             Vector3 position, uint ttl, UUID transactionID, bool fromGroup, byte[] binaryBucket,
             bool checkEstate, int godLevel, bool limitedToEstate)
         {
-            osUTF8 sb = new osUTF8(512);
+            osUTF8 sb = new(512);
             LLSDxmlEncode2.AddMap("instantmessage", sb);
             LLSDxmlEncode2.AddMap("message_params", sb); //messageParams
             LLSDxmlEncode2.AddElem("type", dialog, sb);
@@ -346,7 +337,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void PlacesQueryReply(UUID avatarID, UUID queryID, UUID transactionID, PlacesReplyData[] replyDataArray)
         {
-            osUTF8 sb = new osUTF8(256);
+            osUTF8 sb = new(256);
             LLSDxmlEncode2.AddMap(sb);
             LLSDxmlEncode2.AddElem("message", "PlacesReplyMessage", sb);
             LLSDxmlEncode2.AddMap("QueryData[]", sb); LLSDxmlEncode2.AddArray(sb);
@@ -476,7 +467,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public static string KeepAliveEvent()
         {
-            osUTF8 sb = new osUTF8(256);
+            osUTF8 sb = new(256);
             LLSDxmlEncode2.AddMap(sb);
             LLSDxmlEncode2.AddElem("message", "FAKEEVENT", sb);
             LLSDxmlEncode2.AddMap("body", sb);
@@ -485,9 +476,63 @@ namespace OpenSim.Region.ClientStack.Linden
             return sb.ToString();
         }
 
+        public void SendLargeGenericMessage(UUID avatarID, UUID? transationID, UUID? sessionID,
+                string method, UUID invoice, List<string> message)
+        {
+            osUTF8 sb = StartEvent("LargeGenericMessage");
+            LLSDxmlEncode2.AddArrayAndMap("AgentData", sb);
+            LLSDxmlEncode2.AddElem("AgentID", avatarID, sb);
+            if (transationID.HasValue)
+                LLSDxmlEncode2.AddElem("TransactionID", transationID.Value, sb);
+            if (sessionID.HasValue)
+                LLSDxmlEncode2.AddElem("SessionID", sessionID.Value, sb);
+            LLSDxmlEncode2.AddEndMapAndArray(sb);
+
+            LLSDxmlEncode2.AddArrayAndMap("MethodData", sb);
+            LLSDxmlEncode2.AddElem("Method", method, sb);
+            LLSDxmlEncode2.AddElem("Invoice", invoice, sb);
+            LLSDxmlEncode2.AddEndMapAndArray(sb);
+
+            LLSDxmlEncode2.AddArrayAndMap("ParamList", sb);
+            foreach (string s in message)
+                LLSDxmlEncode2.AddElem("Parameter", s, sb);
+            LLSDxmlEncode2.AddEndMapAndArray(sb);
+
+            Enqueue(EndEventToBytes(sb), avatarID);
+        }
+
+        public void SendLargeGenericMessage(UUID avatarID, UUID? transationID, UUID? sessionID,
+                string method, UUID invoice, List<byte[]> message)
+        {
+            osUTF8 sb = StartEvent("LargeGenericMessage");
+            LLSDxmlEncode2.AddArrayAndMap("AgentData", sb);
+            LLSDxmlEncode2.AddElem("AgentID", avatarID, sb);
+            if (transationID.HasValue)
+                LLSDxmlEncode2.AddElem("TransactionID", transationID.Value, sb);
+            if (sessionID.HasValue)
+                LLSDxmlEncode2.AddElem("SessionID", sessionID.Value, sb);
+            LLSDxmlEncode2.AddEndMapAndArray(sb);
+
+            LLSDxmlEncode2.AddArrayAndMap("MethodData", sb);
+            LLSDxmlEncode2.AddElem("Method", method, sb);
+            LLSDxmlEncode2.AddElem("Invoice", invoice, sb);
+            LLSDxmlEncode2.AddEndMapAndArray(sb);
+
+            LLSDxmlEncode2.AddArrayAndMap("ParamList", sb);
+            foreach (byte[] b in message)
+            {
+                LLSDxmlEncode2.AddLLSD("<key>Parameter</key><string>", sb);
+                sb.Append(b);
+                LLSDxmlEncode2.AddLLSD("</string>", sb);
+            }
+            LLSDxmlEncode2.AddEndMapAndArray(sb);
+
+            Enqueue(EndEventToBytes(sb), avatarID);
+        }
+
         public byte[] BuildEvent(string eventName, OSD eventBody)
         {
-            OSDMap llsdEvent = new OSDMap(2);
+            OSDMap llsdEvent = new(2);
             llsdEvent.Add("message", new OSDString(eventName));
             llsdEvent.Add("body", eventBody);
 
