@@ -399,3 +399,9 @@ COMMIT;
 BEGIN;
 ALTER TABLE `land` ADD COLUMN `environment` TEXT default NULL;
 COMMIT;
+
+:VERSION 40         #----- sop animations and materials
+BEGIN;
+ALTER TABLE `prims` ADD COLUMN `sopanims` blob default NULL;
+ALTER TABLE `primshapes` ADD COLUMN `MatOvrd` blob default NULL;
+COMMIT;
