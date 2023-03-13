@@ -355,7 +355,7 @@ namespace OpenSim.Data.PGSQL
             ""ClickAction"" = :ClickAction, ""Material"" = :Material, ""CollisionSound"" = :CollisionSound, ""CollisionSoundVolume"" = :CollisionSoundVolume, ""PassTouches"" = :PassTouches,
             ""LinkNumber"" = :LinkNumber, ""MediaURL"" = :MediaURL, ""DynAttrs"" = :DynAttrs, ""Vehicle"" = :Vehicle,
             ""PhysInertia"" = :PhysInertia, ""standtargetx"" =:standtargetx, ""standtargety"" =:standtargety, ""standtargetz"" =:standtargetz,
-            ""sitactrange"" =:sitactrange, ""pseudocrc"" = :pseudocrc
+            ""sitactrange"" =:sitactrange, ""pseudocrc"" = :pseudocrc, ""sopanims"" = :sopanims
 
         WHERE ""UUID"" = :UUID ;
 
@@ -371,7 +371,7 @@ namespace OpenSim.Data.PGSQL
             ""ForceMouselook"", ""ScriptAccessPin"", ""AllowedDrop"", ""DieAtEdge"", ""SalePrice"", ""SaleType"", ""ColorR"", ""ColorG"", ""ColorB"", ""ColorA"",
             ""ParticleSystem"", ""ClickAction"", ""Material"", ""CollisionSound"", ""CollisionSoundVolume"", ""PassTouches"", ""LinkNumber"", ""MediaURL"", ""DynAttrs"",
             ""PhysicsShapeType"", ""Density"", ""GravityModifier"", ""Friction"", ""Restitution"", ""PassCollisions"", ""RotationAxisLocks"", ""RezzerID"" , ""Vehicle"", ""PhysInertia"",
-            ""standtargetx"", ""standtargety"", ""standtargetz"", ""sitactrange"", ""pseudocrc""
+            ""standtargetx"", ""standtargety"", ""standtargetz"", ""sitactrange"", ""pseudocrc"",""sopanims""
             ) Select
             :UUID, :CreationDate, :Name, :Text, :Description, :SitName, :TouchName, :ObjectFlags, :OwnerMask, :NextOwnerMask, :GroupMask,
             :EveryoneMask, :BaseMask, :PositionX, :PositionY, :PositionZ, :GroupPositionX, :GroupPositionY, :GroupPositionZ, :VelocityX,
@@ -383,7 +383,7 @@ namespace OpenSim.Data.PGSQL
             :ForceMouselook, :ScriptAccessPin, :AllowedDrop, :DieAtEdge, :SalePrice, :SaleType, :ColorR, :ColorG, :ColorB, :ColorA,
             :ParticleSystem, :ClickAction, :Material, :CollisionSound, :CollisionSoundVolume, :PassTouches, :LinkNumber, :MediaURL, :DynAttrs,
             :PhysicsShapeType, :Density, :GravityModifier, :Friction, :Restitution, :PassCollisions, :RotationAxisLocks, :RezzerID, :Vehicle, :PhysInertia,
-            :standtargetx, :standtargety, :standtargetz,:sitactrange, :pseudocrc 
+            :standtargetx, :standtargety, :standtargetz,:sitactrange, :pseudocrc, :sopanims 
             where not EXISTS (SELECT ""UUID"" FROM prims WHERE ""UUID"" = :UUID);
         ";
 
@@ -414,19 +414,19 @@ namespace OpenSim.Data.PGSQL
             ""PathSkew"" = :PathSkew, ""PathCurve"" = :PathCurve, ""PathRadiusOffset"" = :PathRadiusOffset, ""PathRevolutions"" = :PathRevolutions,
             ""PathTaperX"" = :PathTaperX, ""PathTaperY"" = :PathTaperY, ""PathTwist"" = :PathTwist, ""PathTwistBegin"" = :PathTwistBegin,
             ""ProfileBegin"" = :ProfileBegin, ""ProfileEnd"" = :ProfileEnd, ""ProfileCurve"" = :ProfileCurve, ""ProfileHollow"" = :ProfileHollow,
-            ""Texture"" = :Texture, ""ExtraParams"" = :ExtraParams, ""State"" = :State, ""Media"" = :Media
+            ""Texture"" = :Texture, ""ExtraParams"" = :ExtraParams, ""State"" = :State, ""Media"" = :Media, ""MatOvrd"" = :MatOvrd
         WHERE ""UUID"" = :UUID ;
 
         INSERT INTO
             primshapes (
             ""UUID"", ""Shape"", ""ScaleX"", ""ScaleY"", ""ScaleZ"", ""PCode"", ""PathBegin"", ""PathEnd"", ""PathScaleX"", ""PathScaleY"", ""PathShearX"", ""PathShearY"",
             ""PathSkew"", ""PathCurve"", ""PathRadiusOffset"", ""PathRevolutions"", ""PathTaperX"", ""PathTaperY"", ""PathTwist"", ""PathTwistBegin"", ""ProfileBegin"",
-            ""ProfileEnd"", ""ProfileCurve"", ""ProfileHollow"", ""Texture"", ""ExtraParams"", ""State"", ""Media""
+            ""ProfileEnd"", ""ProfileCurve"", ""ProfileHollow"", ""Texture"", ""ExtraParams"", ""State"", ""Media"", ""MatOvrd""
             )
             Select
             :UUID, :Shape, :ScaleX, :ScaleY, :ScaleZ, :PCode, :PathBegin, :PathEnd, :PathScaleX, :PathScaleY, :PathShearX, :PathShearY,
             :PathSkew, :PathCurve, :PathRadiusOffset, :PathRevolutions, :PathTaperX, :PathTaperY, :PathTwist, :PathTwistBegin, :ProfileBegin,
-            :ProfileEnd, :ProfileCurve, :ProfileHollow, :Texture, :ExtraParams, :State, :Media
+            :ProfileEnd, :ProfileCurve, :ProfileHollow, :Texture, :ExtraParams, :State, :Media, :MatOvrd
         where not EXISTS (SELECT ""UUID"" FROM primshapes WHERE ""UUID"" = :UUID);
         ";
 
@@ -1397,6 +1397,19 @@ namespace OpenSim.Data.PGSQL
             if(pseudocrc != 0)
                 prim.PseudoCRC = pseudocrc;
 
+            if (primRow["sopanims"] is not DBNull)
+            {
+                byte[] data = (byte[])primRow["sopanims"];
+                if (data.Length > 0)
+                    prim.DeSerializeAnimations(data);
+                else
+                    prim.Animations = null;
+            }
+            else
+            {
+                prim.Animations = null;
+            }
+
             return prim;
         }
 
@@ -1449,10 +1462,15 @@ namespace OpenSim.Data.PGSQL
             {
             }
 
-            if (!(shapeRow["Media"] is System.DBNull))
+            if (shapeRow["Media"] is not System.DBNull)
             {
                 baseShape.Media = PrimitiveBaseShape.MediaList.FromXml((string)shapeRow["Media"]);
             }
+
+            if (shapeRow["MatOvrd"] is not System.DBNull)
+                baseShape.RenderMaterialsOvrFromRawBin((byte[])shapeRow["MatOvrd"]);
+            else
+                baseShape.RenderMaterialsOvrFromRawBin(null);
 
             return baseShape;
         }
@@ -1856,6 +1874,11 @@ namespace OpenSim.Data.PGSQL
 
             parameters.Add(_Database.CreateParameter("pseudocrc", prim.PseudoCRC));
 
+            if (prim.Animations != null)
+                parameters.Add(_Database.CreateParameter("sopanims", prim.SerializeAnimations()));
+            else
+                parameters.Add(_Database.CreateParameter("sopanims", null));
+
             return parameters.ToArray();
         }
 
@@ -1911,6 +1934,9 @@ namespace OpenSim.Data.PGSQL
             {
                 parameters.Add(_Database.CreateParameter("Media", s.Media.ToXml()));
             }
+
+            byte[] matovrdata = s.RenderMaterialsOvrToRawBin();
+            parameters.Add(_Database.CreateParameter("MatOvrd", matovrdata));
 
             return parameters.ToArray();
         }
