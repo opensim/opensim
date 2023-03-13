@@ -550,3 +550,6 @@ BEGIN;
 ALTER TABLE `land` ADD COLUMN `environment` MEDIUMTEXT default NULL;
 COMMIT;
 
+:VERSION 64         #----- material overrides
+ALTER TABLE `primshapes` ADD COLUMN `MatOvrd` blob default NULL;
+COMMIT;

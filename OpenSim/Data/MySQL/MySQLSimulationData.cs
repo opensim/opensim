@@ -229,7 +229,7 @@ namespace OpenSim.Data.MySQL
                                     "PathTaperX, PathTaperY, PathTwist, " +
                                     "PathTwistBegin, ProfileBegin, ProfileEnd, " +
                                     "ProfileCurve, ProfileHollow, Texture, " +
-                                    "ExtraParams, State, LastAttachPoint, Media) " +
+                                    "ExtraParams, State, LastAttachPoint, Media, MatOvrd) " +
                                     "values (?UUID, " +
                                     "?Shape, ?ScaleX, ?ScaleY, ?ScaleZ, " +
                                     "?PCode, ?PathBegin, ?PathEnd, " +
@@ -241,7 +241,7 @@ namespace OpenSim.Data.MySQL
                                     "?PathTwistBegin, ?ProfileBegin, " +
                                     "?ProfileEnd, ?ProfileCurve, " +
                                     "?ProfileHollow, ?Texture, ?ExtraParams, " +
-                                    "?State, ?LastAttachPoint, ?Media)";
+                                    "?State, ?LastAttachPoint, ?Media, ?MatOvrd)";
 
                             FillShapeCommand(cmd, prim);
 
@@ -1830,6 +1830,10 @@ namespace OpenSim.Data.MySQL
             if (row["Media"] is not System.DBNull)
                 s.Media = PrimitiveBaseShape.MediaList.FromXml((string)row["Media"]);
 
+            if (row["MatOvrd"] is not System.DBNull)
+                s.RenderMaterialsOvrFromRawBin((byte[])row["MatOvrd"]);
+            else
+                s.RenderMaterialsOvrFromRawBin(null);
             return s;
         }
 
@@ -1873,7 +1877,10 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("ExtraParams", s.ExtraParams);
             cmd.Parameters.AddWithValue("State", s.State);
             cmd.Parameters.AddWithValue("LastAttachPoint", s.LastAttachPoint);
-            cmd.Parameters.AddWithValue("Media", null == s.Media ? null : s.Media.ToXml());
+            cmd.Parameters.AddWithValue("Media", s.Media?.ToXml());
+
+            byte[] matovrdata = s.RenderMaterialsOvrToRawBin();
+            cmd.Parameters.AddWithValue("MatOvrd", matovrdata);
         }
 
         public virtual void StorePrimInventory(UUID primID, ICollection<TaskInventoryItem> items)
