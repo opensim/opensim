@@ -1060,6 +1060,12 @@ namespace OpenSim.Region.Framework.Scenes
                             {
                                 GatheredUuids[teid] = (sbyte)AssetType.Texture;
                             }
+                            if(ps.RenderMaterials is not null && ps.RenderMaterials.entries is not null &&
+                                ps.RenderMaterials.entries.Length > 0)
+                            {
+                                foreach(Primitive.RenderMaterials.RenderMaterialEntry re in ps.RenderMaterials.entries)
+                                    AddForInspection(re.id, (sbyte)AssetType.Material);
+                            }
                             /* multiple store
                             teid = ps.SculptTexture; //??
                             if (teid != UUID.Zero &&
