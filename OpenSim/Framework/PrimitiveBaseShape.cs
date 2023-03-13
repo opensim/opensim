@@ -1366,10 +1366,8 @@ namespace OpenSim.Framework
                         entries[i].id = new UUID(data, pos);
                         pos += 16;
                     }
-                    RenderMaterials = new Primitive.RenderMaterials
-                    {
-                        entries = entries
-                    };
+                    RenderMaterials ??= new Primitive.RenderMaterials();
+                    RenderMaterials.entries = entries;
                 }
             }
             return size + 4; 
@@ -1480,6 +1478,60 @@ namespace OpenSim.Framework
             };
 
             return prim;
+        }
+
+        public byte[] RenderMaterialsOvrToRawBin()
+        {
+            // byte: number of entries 
+            // repeat:
+            // byte; entry face index
+            // byte; low entry override utf8 length
+            // byte: high entry override utf8 length
+            // utf8 bytes: override 
+
+            if (RenderMaterials is null || RenderMaterials.overrides is null || RenderMaterials.overrides.Length == 0)
+                return null;
+
+            osUTF8 sb = OSUTF8Cached.Acquire();
+            
+            sb.Append((byte)RenderMaterials.overrides.Length);
+            for (int i = 0; i < RenderMaterials.overrides.Length; i++)
+            {
+                if (string.IsNullOrEmpty(RenderMaterials.overrides[i].data))
+                    continue;
+                sb.Append(RenderMaterials.overrides[i].te_index);
+                int len = RenderMaterials.overrides[i].data.Length;
+                sb.Append((byte)(len & 0xff));
+                sb.Append((byte)((len >> 8) & 0xff));
+                sb.Append(RenderMaterials.overrides[i].data);
+            }
+            return OSUTF8Cached.GetArrayAndRelease(sb);
+        }
+
+        public void RenderMaterialsOvrFromRawBin(byte[] data)
+        {
+            if (RenderMaterials is not null && RenderMaterials.overrides is not null)
+                RenderMaterials.overrides = null;
+            if (data is null || data.Length < 16)
+                return;
+            int nentries = data[0];
+            if(nentries > 128)
+                return;
+            int indx = 1;
+            Primitive.RenderMaterials.RenderMaterialOverrideEntry[] overrides = new Primitive.RenderMaterials.RenderMaterialOverrideEntry[nentries];
+            try
+            {
+                for(int i = 0; i < overrides.Length; i++)
+                {
+                    overrides[i].te_index = data[indx++];
+                    int ovrlen = data[indx++];
+                    ovrlen += data[indx++] << 8;
+                    overrides[i].data = Utils.BytesToString(data,indx, ovrlen);
+                    indx += ovrlen;
+                }
+                RenderMaterials.overrides = overrides;
+            }
+            catch { }
         }
 
         /// <summary>
