@@ -1252,6 +1252,7 @@ namespace OpenSim.Data.SQLite
             createCol(prims, "sitactrange", typeof(float));
 
             createCol(prims, "pseudocrc", typeof(int));
+            createCol(prims, "sopanims", typeof(byte[]));
 
             // Add in contraints
             prims.PrimaryKey = new DataColumn[] { prims.Columns["UUID"] };
@@ -1799,6 +1800,19 @@ namespace OpenSim.Data.SQLite
             if(pseudocrc != 0)
                 prim.PseudoCRC = pseudocrc;
 
+            if (!(row["sopanims"] is DBNull))
+            {
+                byte[] data = (byte[])row["sopanims"];
+                if (data.Length > 0)
+                    prim.DeSerializeAnimations(data);
+                else
+                    prim.Animations = null;
+            }
+            else
+            {
+                prim.Animations = null;
+            }
+
             return prim;
         }
 
@@ -2187,6 +2201,7 @@ namespace OpenSim.Data.SQLite
                 row["PhysInertia"] = String.Empty;
 
             row["pseudocrc"] = prim.PseudoCRC;
+            row["sopanims"] = prim.SerializeAnimations();
         }
 
         /// <summary>
