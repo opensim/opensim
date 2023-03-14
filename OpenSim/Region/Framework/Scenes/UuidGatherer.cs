@@ -401,12 +401,23 @@ namespace OpenSim.Region.Framework.Scenes
                     if (part.Shape.ProjectionTextureUUID.IsNotZero())
                         GatheredUuids[part.Shape.ProjectionTextureUUID] = (sbyte)AssetType.Texture;
 
-                    if(part.Shape.RenderMaterials is not null && part.Shape.RenderMaterials.entries is not null)
+                    if(part.Shape.RenderMaterials is not null)
                     {
-                        for(int j = 0; j < part.Shape.RenderMaterials.entries.Length; ++j)
+                        if (part.Shape.RenderMaterials.entries is not null)
                         {
-                            if(part.Shape.RenderMaterials.entries[j].id.IsNotZero())
-                                AddForInspection(part.Shape.RenderMaterials.entries[j].id, (sbyte)AssetType.Material);
+                            for (int j = 0; j < part.Shape.RenderMaterials.entries.Length; ++j)
+                            {
+                                if (part.Shape.RenderMaterials.entries[j].id.IsNotZero())
+                                    AddForInspection(part.Shape.RenderMaterials.entries[j].id, (sbyte)AssetType.Material);
+                            }
+                        }
+                        if (part.Shape.RenderMaterials.overrides is not null)
+                        {
+                            for (int j = 0; j < part.Shape.RenderMaterials.overrides.Length; ++j)
+                            {
+                                //if(!string.IsNullOrEmpty(part.Shape.RenderMaterials.overrides[j].data))
+                                //AddForInspection(part.Shape.RenderMaterials.overrides[j].data, (sbyte)AssetType.Material);
+                            }
                         }
                     }
                     UUID collisionSound = part.CollisionSound;

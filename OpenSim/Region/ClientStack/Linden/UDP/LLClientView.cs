@@ -5496,7 +5496,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();
             if (needMaterials is not null && eq is not null)
             {
-                Utils.LongToUInts(m_scene.RegionInfo.RegionHandle, out uint regionX, out uint regionY);
                 foreach (SceneObjectPart sop in needMaterials)
                 {
                     Primitive.RenderMaterials.RenderMaterialOverrideEntry[] overrides = sop.Shape.RenderMaterials.overrides;
@@ -5505,8 +5504,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     LLSDxmlEncode2.AddArray(sbinner);
                     LLSDxmlEncode2.AddMap(sbinner);
                         LLSDxmlEncode2.AddElem("object_id", sop.UUID, sbinner);
-                        LLSDxmlEncode2.AddElem("region_handle_low", (int)regionX, sbinner);
-                        LLSDxmlEncode2.AddElem("region_handle_high", (int)regionY, sbinner);
+                        LLSDxmlEncode2.AddElem("region_handle_low", (int)m_scene.RegionInfo.WorldLocX, sbinner);
+                        LLSDxmlEncode2.AddElem("region_handle_high", (int)m_scene.RegionInfo.WorldLocY, sbinner);
                         LLSDxmlEncode2.AddArray("sides", sbinner);
                             foreach (Primitive.RenderMaterials.RenderMaterialOverrideEntry ovr in overrides)
                                 LLSDxmlEncode2.AddElem(ovr.te_index, sbinner);
@@ -5522,8 +5521,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     */
                     OSDMap data = new OSDMap();
                     data["object_id"] = sop.UUID;
-                    //data["region_handle_low"]= (int)regionX;
-                    //data["region_handle_high"]= (int)regionY;
+                    data["region_handle_x"]= (int)m_scene.RegionInfo.WorldLocX;
+                    data["region_handle_y"]= (int)m_scene.RegionInfo.WorldLocY;
                     OSDArray sides = new OSDArray();
                     foreach (Primitive.RenderMaterials.RenderMaterialOverrideEntry ovr in overrides)
                         sides.Add(ovr.te_index);

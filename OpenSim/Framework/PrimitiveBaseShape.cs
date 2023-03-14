@@ -1493,8 +1493,16 @@ namespace OpenSim.Framework
                 return null;
 
             osUTF8 sb = OSUTF8Cached.Acquire();
-            
-            sb.Append((byte)RenderMaterials.overrides.Length);
+            int nentries = 0;
+            for (int i = 0; i < RenderMaterials.overrides.Length; i++)
+            {
+                if (!string.IsNullOrEmpty(RenderMaterials.overrides[i].data))
+                    nentries++;
+            }
+            if(nentries == 0)
+                return null;
+
+            sb.Append((byte)nentries);
             for (int i = 0; i < RenderMaterials.overrides.Length; i++)
             {
                 if (string.IsNullOrEmpty(RenderMaterials.overrides[i].data))
@@ -1510,7 +1518,7 @@ namespace OpenSim.Framework
 
         public void RenderMaterialsOvrFromRawBin(byte[] data)
         {
-            if (RenderMaterials is not null && RenderMaterials.overrides is not null)
+            if (RenderMaterials is not null && RenderMaterials.overrides != null)
                 RenderMaterials.overrides = null;
             if (data is null || data.Length < 16)
                 return;
@@ -1529,9 +1537,12 @@ namespace OpenSim.Framework
                     overrides[i].data = Utils.BytesToString(data,indx, ovrlen);
                     indx += ovrlen;
                 }
+                RenderMaterials ??= new Primitive.RenderMaterials();
                 RenderMaterials.overrides = overrides;
             }
-            catch { }
+            catch
+            {
+            }
         }
 
         /// <summary>

@@ -1301,7 +1301,7 @@ namespace OpenSim.Data.SQLite
             createCol(shapes, "Texture", typeof(Byte[]));
             createCol(shapes, "ExtraParams", typeof(Byte[]));
             createCol(shapes, "Media", typeof(String));
-            createCol(shapes, "NatOvrd", typeof(byte[]));
+            createCol(shapes, "MatOvrd", typeof(byte[]));
             shapes.PrimaryKey = new DataColumn[] { shapes.Columns["UUID"] };
 
             return shapes;

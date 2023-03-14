@@ -221,8 +221,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         public static void ToOriginalXmlFormat(
             SceneObjectGroup sceneObject, XmlTextWriter writer, bool doScriptStates, bool noRootElement)
         {
-//            m_log.DebugFormat("[SERIALIZER]: Starting serialization of {0}", sceneObject.Name);
-//            int time = System.Environment.TickCount;
+            //m_log.DebugFormat("[SERIALIZER]: Starting serialization of {0}", sceneObject.Name);
+            //int time = System.Environment.TickCount;
 
             if (!noRootElement)
                 writer.WriteStartElement(string.Empty, "SceneObjectGroup", string.Empty);
@@ -261,7 +261,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             if (!noRootElement)
                 writer.WriteEndElement(); // SceneObjectGroup
 
-//            m_log.DebugFormat("[SERIALIZER]: Finished serialization of SOG {0}, {1}ms", sceneObject.Name, System.Environment.TickCount - time);
+            //m_log.DebugFormat("[SERIALIZER]: Finished serialization of SOG {0}, {1}ms", sceneObject.Name, System.Environment.TickCount - time);
         }
 
         protected static void ToXmlFormat(SceneObjectPart part, XmlTextWriter writer)
@@ -331,7 +331,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 // Script state may, or may not, exist. Not having any, is NOT
                 // ever a problem.
                 sceneObject.LoadScriptState(doc);
-//                sceneObject.AggregatePerms();
+                //sceneObject.AggregatePerms();
                 return sceneObject;
             }
             catch (Exception e)
@@ -598,7 +598,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             {"FlexiEntry", ProcessShpFlexiEntry },
             {"LightEntry", ProcessShpLightEntry },
             {"SculptEntry", ProcessShpSculptEntry },
-            {"Media", ProcessShpMedia }
+            {"Media", ProcessShpMedia },
+            {"MatOvrd", ProcessShpMatOvrd }
         };
 
         #region SOPXmlProcessors
@@ -855,16 +856,15 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             obj.Animations = null;
             try
             {
-                string datastr;
-                datastr = reader.ReadElementContentAsString();
-                if(string.IsNullOrEmpty(datastr))
+                string datastr = reader.ReadElementContentAsString();
+                if (string.IsNullOrEmpty(datastr))
                     return;
 
                 byte[] pdata = Convert.FromBase64String(datastr);
                 obj.DeSerializeAnimations(pdata);
                 return;
             }
-            catch {}
+            catch { }
 
             m_log.DebugFormat(
                     "[SceneObjectSerializer]: Parsing ProcessSOPAnims for object part {0} {1} encountered errors",
@@ -1465,6 +1465,24 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             }
         }
 
+        private static void ProcessShpMatOvrd(PrimitiveBaseShape shp, XmlReader reader)
+        {
+            try
+            {
+                string datastr = reader.ReadElementContentAsString();
+                if (!string.IsNullOrEmpty(datastr))
+                {
+                    byte[] pdata = Convert.FromBase64String(datastr);
+                    shp.RenderMaterialsOvrFromRawBin(pdata);
+                }
+                return;
+            }
+            catch
+            {
+                shp.RenderMaterialsOvrFromRawBin(null);
+            }
+        }
+
         #endregion
 
         ////////// Write /////////
@@ -1839,8 +1857,16 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 writer.WriteElementString("LightEntry", shp.LightEntry.ToString().ToLower());
                 writer.WriteElementString("SculptEntry", shp.SculptEntry.ToString().ToLower());
 
-                if (shp.Media != null)
+                if (shp.Media is not null)
                     writer.WriteElementString("Media", shp.Media.ToXml());
+
+                byte[] matoverrides = shp.RenderMaterialsOvrToRawBin();
+                if(matoverrides is not null)
+                { 
+                    writer.WriteStartElement("MatOvrd");
+                    writer.WriteBase64(matoverrides, 0, matoverrides.Length);
+                    writer.WriteEndElement();
+                }
 
                 writer.WriteEndElement(); // Shape
             }
