@@ -2046,7 +2046,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (!pbs.SculptEntry && (pbs.PathCurve == (byte)Extrusion.Straight || pbs.PathCurve == (byte)Extrusion.Flexible))
             {
                 if(flexi)
-                {                 
+                {
                     pbs.PathCurve = (byte)Extrusion.Flexible;
                     if(!sog.IsPhantom)
                     {
@@ -2240,7 +2240,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             Primitive.TextureEntry tex = part.Shape.Textures;
-            int nsides = GetNumberOfSides(part); 
+            int nsides = GetNumberOfSides(part);
 
             if (face >= 0 && face < nsides)
             {
@@ -2536,7 +2536,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             SceneObjectGroup grp = part.ParentGroup;
             if (grp == null || grp.IsDeleted || grp.inTransit)
                 return;
- 
+
             LSL_Vector currentPos = GetPartLocalPos(part);
             LSL_Vector toPos = GetSetPosTarget(part, targetPos, currentPos, adjust);
 
@@ -2902,7 +2902,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if(soundID.IsZero())
                 return;
 
-            // send the sound, once, to all clients in range           
+            // send the sound, once, to all clients in range
             m_SoundModule.SendSound(m_host.UUID, soundID, volume, false, 0, false, false);
         }
 
@@ -2915,12 +2915,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             SceneObjectPart sop;
             if (linknumber == ScriptBaseClass.LINK_THIS)
-                sop = m_host;               
+                sop = m_host;
             else if (linknumber < 0)
                 return;
             else if (linknumber < 2)
                 sop = m_host.ParentGroup.RootPart;
-            else 
+            else
                 sop = m_host.ParentGroup.GetLinkNumPart(linknumber);
 
             if(sop == null)
@@ -2930,7 +2930,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (soundID.IsZero())
                 return;
 
-            // send the sound, once, to all clients in range           
+            // send the sound, once, to all clients in range
             m_SoundModule.SendSound(sop.UUID, soundID, volume, false, 0, false, false);
         }
 
@@ -3694,7 +3694,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 message = (message.Length > 1024) ? message[..1024] : message,
                 binaryBucket = Util.StringToBytes256("{0}/{1}/{2}/{3}", m_regionName, (int)pos.X, (int)pos.Y, (int)pos.Z)
             };
- 
+
             m_TransferModule?.SendInstantMessage(msg, delegate(bool success) {});
             ScriptSleep(m_sleepMsOnInstantMessage);
       }
@@ -5393,7 +5393,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 if(key.IsZero())
                     return id;
-                
+
                 SceneObjectPart obj = World.GetSceneObjectPart(key);
                 return (obj == null) ? id : obj.OwnerID.ToString();
             }
@@ -5564,7 +5564,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return LSL_Rotation.Identity;
 
             object item = src.Data[index];
-            
+
             if (item is LSL_Rotation rot)
                 return rot;
             if (item is LSL_String lls)
@@ -6126,7 +6126,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// Remove as they are done
         /// </summary>
         static readonly UUID busyAnimation = new("efcf670c-2d18-8128-973a-034ebc806b67");
-        
+
         public LSL_Integer llGetAgentInfo(LSL_Key id)
         {
 
@@ -9716,14 +9716,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             LSL_Vector primTextColor;
                             LSL_Float primTextAlpha;
 
-                            try
-                            {
+                            object o = rules.Data[idx];
+                            if (o is LSL_Types.LSLString || o is LSL_Types.key)
                                 primText = rules.GetLSLStringItem(idx++);
-                            }
-                            catch(InvalidCastException)
+                            else
                             {
-                               Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TEXT: arg #{1} - parameter 2 must be string", rulesParsed, idx - idxStart - 1));
-                               return new LSL_List();
+                                //throw new InvalidCastException(string.Format("Error running rule #{0} -> PRIM_TEXT: arg #{1} - parameter 2 must be string", rulesParsed, idx - idxStart - 1));
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TEXT: arg #{1} - parameter 2 must be string", rulesParsed, idx - idxStart - 1));
+                                return new LSL_List();
                             }
                             try
                             {
@@ -9939,7 +9939,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_ALPHA_MODE: arg #{1} - must be 0 to 255", rulesParsed, idx - idxStart - 1));
                                return new LSL_List();
                             }
-    
+
                             materialChanged |= SetMaterialAlphaMode(part, face, materialAlphaMode, materialMaskCutoff);
                             break;
 
@@ -10003,7 +10003,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 Error(originFunc, string.Format("Error running rule #{0} -> PRIM_NORMAL: arg #{1} - must be float", rulesParsed, idx - idxStart - 1));
                                 return new LSL_List();
                             }
-    
+
                             float repeatX = (float)Util.Clamp(mnrepeat.x,-100.0, 100.0);
                             float repeatY = (float)Util.Clamp(mnrepeat.y,-100.0, 100.0);
                             float offsetX = (float)Util.Clamp(mnoffset.x, 0, 1.0);
@@ -10105,7 +10105,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_SPECULAR: arg #{1} - must be integer", rulesParsed, idx - idxStart - 1));
                                return new LSL_List();
                             }
-   
+
                             float srepeatX = (float)Util.Clamp(msrepeat.x, -100.0, 100.0);
                             float srepeatY = (float)Util.Clamp(msrepeat.y, -100.0, 100.0);
                             float soffsetX = (float)Util.Clamp(msoffset.x, -1.0, 1.0);
@@ -10247,8 +10247,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             if(m_materialsModule == null)
                 return false;
-           
-            int nsides =  part.GetNumberOfSides();                      
+
+            int nsides =  part.GetNumberOfSides();
 
             if(face == ScriptBaseClass.ALL_SIDES)
             {
@@ -10301,8 +10301,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             if(m_materialsModule == null)
                 return false;
-           
-            int nsides =  part.GetNumberOfSides();                      
+
+            int nsides =  part.GetNumberOfSides();
 
             if(face == ScriptBaseClass.ALL_SIDES)
             {
@@ -10365,8 +10365,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             if(m_materialsModule == null)
                 return false;
-           
-            int nsides =  part.GetNumberOfSides();                      
+
+            int nsides =  part.GetNumberOfSides();
 
             if(face == ScriptBaseClass.ALL_SIDES)
             {
@@ -12430,7 +12430,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             try
             {
-    
+
                 if (m_regionName.Equals(simulator))
                 {
                     string lreply = String.Empty;
@@ -17351,7 +17351,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return new LSL_List();
             char first = ((string)json)[0];
 
-            if(first != '[' && first !='{') 
+            if(first != '[' && first !='{')
             {
                 // we already have a single element
                 LSL_List l = new();
@@ -17385,7 +17385,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             LSL_List retl = new();
             if(elem is null)
                 retl.Add((LSL_String)ScriptBaseClass.JSON_NULL);
-                
+
             LitJson.JsonType elemType = elem.GetJsonType();
             switch (elemType)
             {
@@ -17503,7 +17503,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return  "\"Inf\"";
                 if(double.IsNaN(float_val))
                     return  "\"NaN\"";
-               
+
                 return ((LSL_Float)float_val).ToString();
             }
             if (o is LSL_Integer LSL_Integero)
@@ -17724,7 +17724,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     newData.SetJsonType(LitJson.JsonType.Array);
                     newData.Add(JsonBuildRestOfSpec(specifiers, level + 1, val));
                     return newData;
-                }              
+                }
             }
             else
             {
