@@ -915,49 +915,53 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     return ko;
                 if (o is LSL_Types.LSLString lso)
                     return lso;
+                if (o is string s)
+                    return new LSL_Types.LSLString(s);
                 return new LSL_Types.LSLString(o.ToString());
             }
 
             public string GetStringItem(int itemIndex)
             {
                 object o = Data[itemIndex];
-                if (o is LSL_Types.key)
-                    return ((LSL_Types.key)o).value;
+                if (o is LSL_Types.LSLString lso)
+                    return lso.m_string;
+                if (o is LSL_Types.key lk)
+                    return (lk.value);
+                if (o is string s)
+                    return s;
                 return o.ToString();
             }
 
             public LSL_Types.LSLString GetStrictLSLStringItem(int itemIndex)
             {
                 object o = Data[itemIndex];
-                if (o is LSL_Types.LSLString)
-                    return ((LSL_Types.LSLString)o);
-                if (o is string)
-                    return new LSL_Types.LSLString((string)o);
-                if (o is LSL_Types.key)
-                    return ((LSL_Types.key)o).value;
+                if (o is LSL_Types.LSLString lso)
+                    return lso;
+                if (o is string so)
+                    return new LSL_Types.LSLString(so);
+                if (o is LSL_Types.key lko)
+                    return new LSL_Types.LSLString(lko.value);
 
                 throw new InvalidCastException(string.Format(
                     "{0} expected but {1} given",
                     typeof(LSL_Types.LSLString).Name,
-                    o != null ?
-                    o.GetType().Name : "null"));
+                    o is not null ? o.GetType().Name : "null"));
             }
 
             public string GetStrictStringItem(int itemIndex)
             {
                 object o = Data[itemIndex];
-                if (o is LSL_Types.LSLString)
-                    return ((LSL_Types.LSLString)o).m_string;
-                if (o is string)
-                    return (string)o;
-                if (o is LSL_Types.key)
-                    return ((LSL_Types.key)o).value;
+                if (o is LSL_Types.LSLString lso)
+                    return lso.m_string;
+                if (o is string s)
+                    return s;
+                if (o is LSL_Types.key lko)
+                    return lko.value;
 
                 throw new InvalidCastException(string.Format(
                     "{0} expected but {1} given",
                     typeof(LSL_Types.LSLString).Name,
-                    o != null ?
-                    o.GetType().Name : "null"));
+                    o is not null ? o.GetType().Name : "null"));
             }
 
 
@@ -966,12 +970,38 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 object o = Data[itemIndex];
                 if (o is LSL_Types.LSLInteger lio)
                     return lio;
+                if (o is int io)
+                    return new LSLInteger(io);
                 if (o is LSL_Types.LSLFloat lfo)
                     return new LSLInteger((int)lfo.value);
-                if (o is Int32 io)
-                    return new LSLInteger(io);
+                if (o is float fo)
+                    return new LSLInteger((int)fo);
+                if (o is double duo)
+                    return new LSLInteger((int)duo);
                 if (o is LSL_Types.LSLString lso)
                     return new LSLInteger(lso.m_string);
+
+                throw new InvalidCastException(string.Format(
+                    "{0} expected but {1} given",
+                    typeof(LSL_Types.LSLInteger).Name,
+                    o is not null ? o.GetType().Name : "null"));
+            }
+
+            public int GetIntegerItem(int itemIndex)
+            {
+                object o = Data[itemIndex];
+                if (o is LSL_Types.LSLInteger lio)
+                    return lio.value;
+                if (o is int io)
+                    return io;
+                if (o is LSL_Types.LSLFloat lfo)
+                    return (int)lfo.value;
+                if (o is float fo)
+                    return (int)fo;
+                if (o is double duo)
+                    return (int)duo;
+                if (o is LSL_Types.LSLString lso)
+                    return Convert.ToInt32(lso.m_string);
 
                 throw new InvalidCastException(string.Format(
                     "{0} expected but {1} given",

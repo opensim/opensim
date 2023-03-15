@@ -836,7 +836,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public void xmrEventCallHandler(LSL_List ev)
         {
             object[] data = ev.Data;
-            int evc = (int)(ev.GetLSLIntegerItem(0).value & 0xFFFFFFFF);
+            int evc = ev.GetIntegerItem(0);
             ScriptEventHandler seh = m_ObjCode.scriptEventHandlerTable[stateCode, evc];
             if(seh is not null)
             {

@@ -1766,8 +1766,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // Process the rules, not sure what the impact would be of changing owner or group
             for (int idx = 0; idx < rules.Length;)
             {
-                int code = rules.GetLSLIntegerItem(idx++);
-                string arg = rules.GetStringItem(idx++);
+                int code = rules.GetIntegerItem(idx++);
+                string arg = rules.GetStrictStringItem(idx++);
                 switch (code)
                 {
                     case ScriptBaseClass.PARCEL_DETAILS_NAME:
@@ -2746,7 +2746,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             while (remaining.Length > 1)
             {
-                linknumber = remaining.GetLSLIntegerItem(0);
+                linknumber = remaining.GetIntegerItem(0);
                 parts = m_LSL_Api.GetLinkParts(linknumber);
                 if(parts.Count == 0)
                     break;
