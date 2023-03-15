@@ -7600,7 +7600,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         case ScriptBaseClass.PSYS_SRC_TEXTURE:
                             try
                             {
-                                prules.Texture = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, rules.GetLSLStringItem(i + 1));
+                                prules.Texture = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, rules.GetStrictStringItem(i + 1));
                             }
                             catch(InvalidCastException)
                             {
@@ -10155,14 +10155,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             LSL_Vector primTextColor;
                             LSL_Float primTextAlpha;
 
-                            object o = rules.Data[idx];
-                            if (o is LSL_Types.LSLString || o is LSL_Types.key)
-                                primText = rules.GetLSLStringItem(idx++);
-                            else
+                            try
                             {
-                                //throw new InvalidCastException(string.Format("Error running rule #{0} -> PRIM_TEXT: arg #{1} - parameter 2 must be string", rulesParsed, idx - idxStart - 1));
-                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TEXT: arg #{1} - parameter 2 must be string", rulesParsed, idx - idxStart - 1));
-                                return new LSL_List();
+                                primText = rules.GetStrictStringItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                               Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TEXT: arg #{1} - parameter 2 must be string", rulesParsed, idx - idxStart - 1));
+                               return new LSL_List();
                             }
                             try
                             {
@@ -10192,7 +10192,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 return new LSL_List();
                             try
                             {
-                                string primName = rules.GetLSLStringItem(idx++);
+                                string primName = rules.GetStrictStringItem(idx++);
                                 part.Name = primName;
                             }
                             catch(InvalidCastException)
@@ -10206,7 +10206,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 return new LSL_List();
                             try
                             {
-                                string primDesc = rules.GetLSLStringItem(idx++);
+                                string primDesc = rules.GetStrictStringItem(idx++);
                                 part.Description = primDesc;
                             }
                             catch(InvalidCastException)
@@ -12113,11 +12113,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         break;
 
                     case ScriptBaseClass.PRIM_MEDIA_CURRENT_URL:
-                        me.CurrentURL = rules.GetLSLStringItem(i++);
+                        me.CurrentURL = rules.GetStringItem(i++);
                         break;
 
                     case ScriptBaseClass.PRIM_MEDIA_HOME_URL:
-                        me.HomeURL = rules.GetLSLStringItem(i++);
+                        me.HomeURL = rules.GetStringItem(i++);
                         break;
 
                     case ScriptBaseClass.PRIM_MEDIA_AUTO_LOOP:
@@ -12153,7 +12153,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         break;
 
                     case ScriptBaseClass.PRIM_MEDIA_WHITELIST:
-                        string[] rawWhiteListUrls = rules.GetLSLStringItem(i++).ToString().Split(new char[] { ',' });
+                        string[] rawWhiteListUrls = rules.GetStringItem(i++).Split(new char[] { ',' });
                         List<string> whiteListUrls = new List<string>();
                         Array.ForEach(
                             rawWhiteListUrls, delegate(string rawUrl) { whiteListUrls.Add(rawUrl.Trim()); });
