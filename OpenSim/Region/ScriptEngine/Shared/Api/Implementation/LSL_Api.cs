@@ -3979,18 +3979,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llTargetOmega(LSL_Vector axis, double spinrate, double gain)
         {
-            TargetOmega(m_host, axis, spinrate, gain);
+            TargetOmega(m_host, axis, (float)spinrate, (float)gain);
         }
 
-        protected static void TargetOmega(SceneObjectPart part, LSL_Vector axis, double spinrate, double gain)
+        protected static void TargetOmega(SceneObjectPart part, LSL_Vector axis, float spinrate, float gain)
         {
-            if(gain == 0)
+            if(MathF.Abs(gain) < 1e-6f)
             {
                 part.UpdateAngularVelocity(Vector3.Zero);
                 part.ScheduleFullAnimUpdate();
             }
             else
-                part.UpdateAngularVelocity(axis * spinrate);
+                part.UpdateAngularVelocity((Vector3)axis * spinrate);
         }
 
         public LSL_Integer llGetStartParameter()
@@ -6985,7 +6985,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         case ScriptBaseClass.PSYS_PART_START_ALPHA:
                             try
                             {
-                                tempf = (float)rules.GetLSLFloatItem(i + 1);
+                                tempf = rules.GetStrictFloatItem(i + 1);
                             }
                             catch(InvalidCastException)
                             {
@@ -7013,7 +7013,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         case ScriptBaseClass.PSYS_PART_END_ALPHA:
                             try
                             {
-                                tempf = (float)rules.GetLSLFloatItem(i + 1);
+                                tempf = rules.GetStrictFloatItem(i + 1);
                             }
                             catch(InvalidCastException)
                             {
@@ -7054,7 +7054,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         case ScriptBaseClass.PSYS_PART_MAX_AGE:
                             try
                             {
-                                tempf = (float)rules.GetLSLFloatItem(i + 1);
+                                tempf = rules.GetStrictFloatItem(i + 1);
                             }
                             catch(InvalidCastException)
                             {
@@ -7099,28 +7099,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         case ScriptBaseClass.PSYS_SRC_INNERANGLE:
                             try
                             {
-                                tempf = (float)rules.GetLSLFloatItem(i + 1);
+                                tempf = rules.GetStrictFloatItem(i + 1);
                             }
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule PSYS_SRC_INNERANGLE: arg #{0} - parameter 1 must be float", i + 1));
                                 return;
                             }
-                            prules.InnerAngle = (float)tempf;
+                            prules.InnerAngle = tempf;
                             prules.PartFlags &= 0xFFFFFFFD; // Make sure new angle format is off.
                             break;
 
                         case ScriptBaseClass.PSYS_SRC_OUTERANGLE:
                             try
                             {
-                                tempf = (float)rules.GetLSLFloatItem(i + 1);
+                                tempf = rules.GetStrictFloatItem(i + 1);
                             }
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule PSYS_SRC_OUTERANGLE: arg #{0} - parameter 1 must be float", i + 1));
                                 return;
                             }
-                            prules.OuterAngle = (float)tempf;
+                            prules.OuterAngle = tempf;
                             prules.PartFlags &= 0xFFFFFFFD; // Make sure new angle format is off.
                             break;
 
@@ -7153,27 +7153,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         case ScriptBaseClass.PSYS_PART_START_GLOW:
                             try
                             {
-                                tempf = (float)rules.GetLSLFloatItem(i + 1);
+                                tempf = rules.GetStrictFloatItem(i + 1);
                             }
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule PSYS_PART_START_GLOW: arg #{0} - parameter 1 must be float", i + 1));
                                 return;
                             }
-                            prules.PartStartGlow = (float)tempf;
+                            prules.PartStartGlow = tempf;
                             break;
 
                         case ScriptBaseClass.PSYS_PART_END_GLOW:
                             try
                             {
-                                tempf = (float)rules.GetLSLFloatItem(i + 1);
+                                tempf = rules.GetStrictFloatItem(i + 1);
                             }
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule PSYS_PART_END_GLOW: arg #{0} - parameter 1 must be float", i + 1));
                                 return;
                             }
-                            prules.PartEndGlow = (float)tempf;
+                            prules.PartEndGlow = tempf;
                             break;
 
                         case ScriptBaseClass.PSYS_SRC_TEXTURE:
@@ -7191,14 +7191,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         case ScriptBaseClass.PSYS_SRC_BURST_RATE:
                             try
                             {
-                                tempf = (float)rules.GetLSLFloatItem(i + 1);
+                                tempf = rules.GetStrictFloatItem(i + 1);
                             }
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule PSYS_SRC_BURST_RATE: arg #{0} - parameter 1 must be float", i + 1));
                                 return;
                             }
-                            prules.BurstRate = (float)tempf;
+                            prules.BurstRate = tempf;
                             break;
 
                         case ScriptBaseClass.PSYS_SRC_BURST_PART_COUNT:
@@ -7216,53 +7216,53 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         case ScriptBaseClass.PSYS_SRC_BURST_RADIUS:
                             try
                             {
-                                tempf = (float)rules.GetLSLFloatItem(i + 1);
+                                tempf = rules.GetStrictFloatItem(i + 1);
                             }
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule PSYS_SRC_BURST_RADIUS: arg #{0} - parameter 1 must be float", i + 1));
                                 return;
                             }
-                            prules.BurstRadius = (float)tempf;
+                            prules.BurstRadius = tempf;
                             break;
 
                         case ScriptBaseClass.PSYS_SRC_BURST_SPEED_MIN:
                             try
                             {
-                                tempf = (float)rules.GetLSLFloatItem(i + 1);
+                                tempf = rules.GetStrictFloatItem(i + 1);
                             }
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule PSYS_SRC_BURST_SPEED_MIN: arg #{0} - parameter 1 must be float", i + 1));
                                 return;
                             }
-                            prules.BurstSpeedMin = (float)tempf;
+                            prules.BurstSpeedMin = tempf;
                             break;
 
                         case ScriptBaseClass.PSYS_SRC_BURST_SPEED_MAX:
                             try
                             {
-                                tempf = (float)rules.GetLSLFloatItem(i + 1);
+                                tempf = rules.GetStrictFloatItem(i + 1);
                             }
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule PSYS_SRC_BURST_SPEED_MAX: arg #{0} - parameter 1 must be float", i + 1));
                                 return;
                             }
-                            prules.BurstSpeedMax = (float)tempf;
+                            prules.BurstSpeedMax = tempf;
                             break;
 
                         case ScriptBaseClass.PSYS_SRC_MAX_AGE:
                             try
                             {
-                                tempf = (float)rules.GetLSLFloatItem(i + 1);
+                                tempf = rules.GetStrictFloatItem(i + 1);
                             }
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule PSYS_SRC_MAX_AGE: arg #{0} - parameter 1 must be float", i + 1));
                                 return;
                             }
-                            prules.MaxAge = (float)tempf;
+                            prules.MaxAge = tempf;
                             break;
 
                         case ScriptBaseClass.PSYS_SRC_TARGET_KEY:
@@ -7295,28 +7295,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         case ScriptBaseClass.PSYS_SRC_ANGLE_BEGIN:
                             try
                             {
-                                tempf = (float)rules.GetLSLFloatItem(i + 1);
+                                tempf = rules.GetStrictFloatItem(i + 1);
                             }
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule PSYS_SRC_ANGLE_BEGIN: arg #{0} - parameter 1 must be float", i + 1));
                                 return;
                             }
-                            prules.InnerAngle = (float)tempf;
+                            prules.InnerAngle = tempf;
                             prules.PartFlags |= 0x02; // Set new angle format.
                             break;
 
                         case ScriptBaseClass.PSYS_SRC_ANGLE_END:
                             try
                             {
-                                tempf = (float)rules.GetLSLFloatItem(i + 1);
+                                tempf = rules.GetStrictFloatItem(i + 1);
                             }
                             catch (InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule PSYS_SRC_ANGLE_END: arg #{0} - parameter 1 must be float", i + 1));
                                 return;
                             }
-                            prules.OuterAngle = (float)tempf;
+                            prules.OuterAngle = tempf;
                             prules.PartFlags |= 0x02; // Set new angle format.
                             break;
                     }
@@ -8473,7 +8473,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         frame.Rotation = q;
                     }
 
-                    float tempf = (float)frames.GetLSLFloatItem(idx++);
+                    float tempf = frames.GetStrictFloatItem(idx++);
                     frame.TimeMS = (int)(tempf * 1000.0f);
 
                     keyframes.Add(frame);
@@ -8726,7 +8726,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     }
                                     try
                                     {
-                                        hollow = (float)rules.GetLSLFloatItem(idx++);
+                                        hollow = rules.GetStrictFloatItem(idx++);
                                     }
                                     catch(InvalidCastException)
                                     {
@@ -8789,7 +8789,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     }
                                     try
                                     {
-                                        hollow = (float)rules.GetLSLFloatItem(idx++);
+                                        hollow = rules.GetStrictFloatItem(idx++);
                                     }
                                     catch(InvalidCastException)
                                     {
@@ -8851,7 +8851,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     }
                                     try
                                     {
-                                        hollow = (float)rules.GetLSLFloatItem(idx++);
+                                        hollow = rules.GetStrictFloatItem(idx++);
                                     }
                                     catch(InvalidCastException)
                                     {
@@ -8913,7 +8913,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     }
                                     try
                                     {
-                                        hollow = (float)rules.GetLSLFloatItem(idx++);
+                                        hollow = rules.GetStrictFloatItem(idx++);
                                     }
                                     catch(InvalidCastException)
                                     {
@@ -8966,7 +8966,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     }
                                     try
                                     {
-                                        hollow = (float)rules.GetLSLFloatItem(idx++);
+                                        hollow = rules.GetStrictFloatItem(idx++);
                                     }
                                     catch(InvalidCastException)
                                     {
@@ -9020,7 +9020,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     }
                                     try
                                     {
-                                        revolutions = (float)rules.GetLSLFloatItem(idx++);
+                                        revolutions = rules.GetStrictFloatItem(idx++);
                                     }
                                     catch(InvalidCastException)
                                     {
@@ -9029,7 +9029,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     }
                                     try
                                     {
-                                        radiusoffset = (float)rules.GetLSLFloatItem(idx++);
+                                        radiusoffset = rules.GetStrictFloatItem(idx++);
                                     }
                                     catch(InvalidCastException)
                                     {
@@ -9038,7 +9038,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     }
                                     try
                                     {
-                                        skew = (float)rules.GetLSLFloatItem(idx++);
+                                        skew = rules.GetStrictFloatItem(idx++);
                                     }
                                     catch(InvalidCastException)
                                     {
@@ -9073,7 +9073,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     }
                                     try
                                     {
-                                        hollow = (float)rules.GetLSLFloatItem(idx++);
+                                        hollow = rules.GetStrictFloatItem(idx++);
                                     }
                                     catch(InvalidCastException)
                                     {
@@ -9127,7 +9127,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     }
                                     try
                                     {
-                                        revolutions = (float)rules.GetLSLFloatItem(idx++);
+                                        revolutions = rules.GetStrictFloatItem(idx++);
                                     }
                                     catch(InvalidCastException)
                                     {
@@ -9136,7 +9136,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     }
                                     try
                                     {
-                                        radiusoffset = (float)rules.GetLSLFloatItem(idx++);
+                                        radiusoffset = rules.GetStrictFloatItem(idx++);
                                     }
                                     catch(InvalidCastException)
                                     {
@@ -9145,7 +9145,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     }
                                     try
                                     {
-                                        skew = (float)rules.GetLSLFloatItem(idx++);
+                                        skew = rules.GetStrictFloatItem(idx++);
                                     }
                                     catch(InvalidCastException)
                                     {
@@ -9180,7 +9180,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     }
                                     try
                                     {
-                                        hollow = (float)rules.GetLSLFloatItem(idx++);
+                                        hollow = rules.GetStrictFloatItem(idx++);
                                     }
                                     catch(InvalidCastException)
                                     {
@@ -9234,7 +9234,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     }
                                     try
                                     {
-                                        revolutions = (float)rules.GetLSLFloatItem(idx++);
+                                        revolutions = rules.GetStrictFloatItem(idx++);
                                     }
                                     catch(InvalidCastException)
                                     {
@@ -9243,7 +9243,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     }
                                     try
                                     {
-                                        radiusoffset = (float)rules.GetLSLFloatItem(idx++);
+                                        radiusoffset = rules.GetStrictFloatItem(idx++);
                                     }
                                     catch(InvalidCastException)
                                     {
@@ -9252,7 +9252,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     }
                                     try
                                     {
-                                        skew = (float)rules.GetLSLFloatItem(idx++);
+                                        skew = rules.GetStrictFloatItem(idx++);
                                     }
                                     catch(InvalidCastException)
                                     {
@@ -9314,7 +9314,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             }
                             try
                             {
-                                rotation = (double)rules.GetLSLFloatItem(idx++);
+                                rotation = rules.GetStrictFloatItem(idx++);
                             }
                             catch(InvalidCastException)
                             {
@@ -9330,7 +9330,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 return new LSL_List();
 
                             LSL_Vector color;
-                            double alpha;
+                            float alpha;
 
                             try
                             {
@@ -9352,7 +9352,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             }
                             try
                             {
-                                alpha = (double)rules.GetLSLFloatItem(idx++);
+                                alpha = rules.GetStrictFloatItem(idx++);
                             }
                             catch(InvalidCastException)
                             {
@@ -9395,7 +9395,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             }
                             try
                             {
-                                gravity = (float)rules.GetLSLFloatItem(idx++);
+                                gravity = rules.GetStrictFloatItem(idx++);
                             }
                             catch(InvalidCastException)
                             {
@@ -9404,7 +9404,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             }
                             try
                             {
-                                friction = (float)rules.GetLSLFloatItem(idx++);
+                                friction = rules.GetStrictFloatItem(idx++);
                             }
                             catch(InvalidCastException)
                             {
@@ -9413,7 +9413,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             }
                             try
                             {
-                                wind = (float)rules.GetLSLFloatItem(idx++);
+                                wind = rules.GetStrictFloatItem(idx++);
                             }
                             catch(InvalidCastException)
                             {
@@ -9422,7 +9422,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             }
                             try
                             {
-                                tension = (float)rules.GetLSLFloatItem(idx++);
+                                tension = rules.GetStrictFloatItem(idx++);
                             }
                             catch(InvalidCastException)
                             {
@@ -9472,7 +9472,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             }
                             try
                             {
-                                intensity = (float)rules.GetLSLFloatItem(idx++);
+                                intensity = rules.GetStrictFloatItem(idx++);
                             }
                             catch(InvalidCastException)
                             {
@@ -9481,7 +9481,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             }
                             try
                             {
-                                radius = (float)rules.GetLSLFloatItem(idx++);
+                                radius = rules.GetStrictFloatItem(idx++);
                             }
                             catch(InvalidCastException)
                             {
@@ -9490,7 +9490,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             }
                             try
                             {
-                                falloff = (float)rules.GetLSLFloatItem(idx++);
+                                falloff = rules.GetStrictFloatItem(idx++);
                             }
                             catch(InvalidCastException)
                             {
@@ -9519,7 +9519,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             }
                             try
                             {
-                                glow = (float)rules.GetLSLFloatItem(idx++);
+                                glow = rules.GetStrictFloatItem(idx++);
                             }
                             catch(InvalidCastException)
                             {
@@ -9665,10 +9665,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 return new LSL_List();
 
                             int material_bits = rules.GetIntegerItem(idx++);
-                            float material_density = (float)rules.GetLSLFloatItem(idx++);
-                            float material_friction = (float)rules.GetLSLFloatItem(idx++);
-                            float material_restitution = (float)rules.GetLSLFloatItem(idx++);
-                            float material_gravity_modifier = (float)rules.GetLSLFloatItem(idx++);
+                            float material_density = rules.GetFloatItem(idx++);
+                            float material_friction = rules.GetFloatItem(idx++);
+                            float material_restitution = rules.GetFloatItem(idx++);
+                            float material_gravity_modifier = rules.GetFloatItem(idx++);
 
                             SetPhysicsMaterial(part, material_bits, material_density, material_friction, material_restitution, material_gravity_modifier);
 
@@ -9714,7 +9714,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 return new LSL_List();
                             string primText;
                             LSL_Vector primTextColor;
-                            LSL_Float primTextAlpha;
+                            float primTextAlpha;
 
                             try
                             {
@@ -9736,7 +9736,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             }
                             try
                             {
-                                primTextAlpha = rules.GetLSLFloatItem(idx++);
+                                primTextAlpha = rules.GetStrictFloatItem(idx++);
                             }
                             catch(InvalidCastException)
                             {
@@ -9744,7 +9744,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                return new LSL_List();
                             }
                             Vector3 av3 = Vector3.Clamp(primTextColor, 0.0f, 1.0f);
-                            part.SetText(primText, av3, Utils.Clamp((float)primTextAlpha, 0.0f, 1.0f));
+                            part.SetText(primText, av3, Utils.Clamp(primTextAlpha, 0.0f, 1.0f));
 
                             break;
 
@@ -9796,8 +9796,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             if (remain < 3)
                                 return new LSL_List();
                             LSL_Vector axis;
-                            LSL_Float spinrate;
-                            LSL_Float gain;
+                            float spinrate;
+                            float gain;
 
                             try
                             {
@@ -9810,7 +9810,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             }
                             try
                             {
-                                spinrate = rules.GetLSLFloatItem(idx++);
+                                spinrate = rules.GetStrictFloatItem(idx++);
                             }
                             catch(InvalidCastException)
                             {
@@ -9819,14 +9819,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             }
                             try
                             {
-                                gain = rules.GetLSLFloatItem(idx++);
+                                gain = rules.GetStrictFloatItem(idx++);
                             }
                             catch(InvalidCastException)
                             {
                                 Error(originFunc, string.Format("Error running rule #{0} -> PRIM_OMEGA: arg #{1} - parameter 4 must be float", rulesParsed, idx - idxStart - 1));
                                 return new LSL_List();
                             }
-                            TargetOmega(part, axis, (double)spinrate, (double)gain);
+                            TargetOmega(part, axis, spinrate, gain);
                             break;
 
                         case ScriptBaseClass.PRIM_SLICE:
@@ -9993,10 +9993,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 return new LSL_List();
                             }
 
-                            LSL_Float mnrot;
+                            float mnrot;
                             try
                             {
-                                mnrot = rules.GetLSLFloatItem(idx++);
+                                mnrot = rules.GetStrictFloatItem(idx++);
                             }
                             catch(InvalidCastException)
                             {
@@ -10009,7 +10009,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             float offsetX = (float)Util.Clamp(mnoffset.x, 0, 1.0);
                             float offsetY = (float)Util.Clamp(mnoffset.y, 0, 1.0);
 
-                            materialChanged |= SetMaterialNormalMap(part, face, mapID, repeatX, repeatY, offsetX, offsetY, (float)mnrot);
+                            materialChanged |= SetMaterialNormalMap(part, face, mapID, repeatX, repeatY, offsetX, offsetY, mnrot);
                             break;
 
                         case ScriptBaseClass.PRIM_SPECULAR:
@@ -10062,10 +10062,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 return new LSL_List();
                             }
 
-                            LSL_Float msrot;
+                            float msrot;
                             try
                             {
-                                msrot = rules.GetLSLFloatItem(idx++);
+                                msrot = rules.GetStrictFloatItem(idx++);
                             }
                             catch(InvalidCastException)
                             {
@@ -10117,7 +10117,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             byte env = (byte)Util.Clamp((int)msenv, 0, 255);
 
                             materialChanged |= SetMaterialSpecMap(part, face, smapID, srepeatX, srepeatY, soffsetX, soffsetY,
-                                                (float)msrot, colorR, colorG, colorB, gloss, env);
+                                                msrot, colorR, colorG, colorB, gloss, env);
 
                             break;
 
@@ -10146,10 +10146,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 }
                             }
 
-                            LSL_Float fov;
+                            float fov;
                             try
                             {
-                                fov = rules.GetLSLFloatItem(idx++);
+                                fov = rules.GetStrictFloatItem(idx++);
                             }
                             catch(InvalidCastException)
                             {
@@ -10157,10 +10157,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 return new LSL_List();
                             }
 
-                            LSL_Float focus;
+                            float focus;
                             try
                             {
-                                focus = rules.GetLSLFloatItem(idx++);
+                                focus = rules.GetStrictFloatItem(idx++);
                             }
                             catch(InvalidCastException)
                             {
@@ -10168,10 +10168,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 return new LSL_List();
                             }
 
-                            LSL_Float amb;
+                            float amb;
                             try
                             {
-                                amb = rules.GetLSLFloatItem(idx++);
+                                amb = rules.GetStrictFloatItem(idx++);
                             }
                             catch(InvalidCastException)
                             {
@@ -10183,9 +10183,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             {
                                 part.Shape.ProjectionEntry = true;
                                 part.Shape.ProjectionTextureUUID = stexID;
-                                part.Shape.ProjectionFOV = Util.Clamp((float)fov, 0, 3.0f);
-                                part.Shape.ProjectionFocus = Util.Clamp((float)focus, 0, 20.0f);
-                                part.Shape.ProjectionAmbiance = Util.Clamp((float)amb, 0, 1.0f);
+                                part.Shape.ProjectionFOV = Util.Clamp(fov, 0, 3.0f);
+                                part.Shape.ProjectionFocus = Util.Clamp(focus, 0, 20.0f);
+                                part.Shape.ProjectionAmbiance = Util.Clamp(amb, 0, 1.0f);
 
                                 part.ParentGroup.HasGroupChanged = true;
                                 part.ScheduleFullUpdate();
