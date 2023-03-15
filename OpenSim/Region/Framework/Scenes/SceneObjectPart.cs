@@ -3678,11 +3678,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="face"></param>
         /// <param name="color"></param>
         /// <param name="alpha"></param>
-        public void SetFaceColorAlpha(int face, Vector3 color, double ?alpha)
+        public void SetFaceColorAlpha(int face, Vector3 color, float ?alpha)
         {
             Vector3 clippedColor = Vector3.Clamp(color, 0.0f, 1.0f);
             float clippedAlpha = alpha.HasValue ?
-                Utils.Clamp((float)alpha.Value, 0.0f, 1.0f) : 0;
+                Utils.Clamp(alpha.Value, 0.0f, 1.0f) : 0;
 
             // The only way to get a deep copy/ If we don't do this, we can
             // never detect color changes further down.

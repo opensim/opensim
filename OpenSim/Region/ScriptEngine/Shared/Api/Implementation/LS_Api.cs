@@ -275,7 +275,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         idx++;
                         try
                         {
-                            wl.sunMoonPosition = (float)rules.GetLSLFloatItem(idx);
+                            wl.sunMoonPosition = rules.GetStrictFloatItem(idx);
                         }
                         catch (InvalidCastException)
                         {
@@ -322,7 +322,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         idx++;
                         try
                         {
-                            wl.blurMultiplier = (float)rules.GetLSLFloatItem(idx);
+                            wl.blurMultiplier = rules.GetStrictFloatItem(idx);
                         }
                         catch (InvalidCastException)
                         {
@@ -345,7 +345,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         idx++;
                         try
                         {
-                            wl.cloudCoverage = (float)rules.GetLSLFloatItem(idx);
+                            wl.cloudCoverage = rules.GetStrictFloatItem(idx);
                         }
                         catch (InvalidCastException)
                         {
@@ -368,7 +368,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         idx++;
                         try
                         {
-                            wl.cloudScale = (float)rules.GetLSLFloatItem(idx);
+                            wl.cloudScale = rules.GetStrictFloatItem(idx);
                         }
                         catch (InvalidCastException)
                         {
@@ -379,7 +379,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         idx++;
                         try
                         {
-                            wl.cloudScrollX = (float)rules.GetLSLFloatItem(idx);
+                            wl.cloudScrollX = rules.GetStrictFloatItem(idx);
                         }
                         catch (InvalidCastException)
                         {
@@ -401,7 +401,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         idx++;
                         try
                         {
-                            wl.cloudScrollY = (float)rules.GetLSLFloatItem(idx);
+                            wl.cloudScrollY = rules.GetStrictFloatItem(idx);
                         }
                         catch (InvalidCastException)
                         {
@@ -412,7 +412,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         idx++;
                         try
                         {
-                            wl.cloudScrollYLock = rules.GetIntegerItem(idx) == 1 ? true : false;
+                            wl.cloudScrollYLock = rules.GetIntegerItem(idx) != 0;
                         }
                         catch (InvalidCastException)
                         {
@@ -435,7 +435,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         idx++;
                         try
                         {
-                            wl.densityMultiplier = (float)rules.GetLSLFloatItem(idx);
+                            wl.densityMultiplier = rules.GetStrictFloatItem(idx);
                         }
                         catch (InvalidCastException)
                         {
@@ -446,7 +446,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         idx++;
                         try
                         {
-                            wl.distanceMultiplier = (float)rules.GetLSLFloatItem(idx);
+                            wl.distanceMultiplier = rules.GetStrictFloatItem(idx);
                         }
                         catch (InvalidCastException)
                         {
@@ -457,7 +457,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         idx++;
                         try
                         {
-                            wl.drawClassicClouds = rules.GetIntegerItem(idx) == 1 ? true : false;
+                            wl.drawClassicClouds = rules.GetIntegerItem(idx) != 0;
                         }
                         catch (InvalidCastException)
                         {
@@ -468,7 +468,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         idx++;
                         try
                         {
-                            wl.eastAngle = (float)rules.GetLSLFloatItem(idx);
+                            wl.eastAngle = rules.GetStrictFloatItem(idx);
                         }
                         catch (InvalidCastException)
                         {
@@ -479,7 +479,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         idx++;
                         try
                         {
-                            wl.fresnelOffset = (float)rules.GetLSLFloatItem(idx);
+                            wl.fresnelOffset = rules.GetStrictFloatItem(idx);
                         }
                         catch (InvalidCastException)
                         {
@@ -490,7 +490,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         idx++;
                         try
                         {
-                            wl.fresnelScale = (float)rules.GetLSLFloatItem(idx);
+                            wl.fresnelScale = rules.GetStrictFloatItem(idx);
                         }
                         catch (InvalidCastException)
                         {
@@ -501,7 +501,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         idx++;
                         try
                         {
-                            wl.hazeDensity = (float)rules.GetLSLFloatItem(idx);
+                            wl.hazeDensity = rules.GetStrictFloatItem(idx);
                         }
                         catch (InvalidCastException)
                         {
@@ -512,7 +512,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         idx++;
                         try
                         {
-                            wl.hazeHorizon = (float)rules.GetLSLFloatItem(idx);
+                            wl.hazeHorizon = rules.GetStrictFloatItem(idx);
                         }
                         catch (InvalidCastException)
                         {
@@ -581,7 +581,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         idx++;
                         try
                         {
-                            wl.refractScaleAbove = (float)rules.GetLSLFloatItem(idx);
+                            wl.refractScaleAbove = rules.GetStrictFloatItem(idx);
                         }
                         catch (InvalidCastException)
                         {
@@ -592,7 +592,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         idx++;
                         try
                         {
-                            wl.refractScaleBelow = (float)rules.GetLSLFloatItem(idx);
+                            wl.refractScaleBelow = rules.GetStrictFloatItem(idx);
                         }
                         catch (InvalidCastException)
                         {
@@ -603,7 +603,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         idx++;
                         try
                         {
-                            wl.sceneGamma = (float)rules.GetLSLFloatItem(idx);
+                            wl.sceneGamma = rules.GetStrictFloatItem(idx);
                         }
                         catch (InvalidCastException)
                         {
@@ -614,7 +614,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         idx++;
                         try
                         {
-                            wl.starBrightness = (float)rules.GetLSLFloatItem(idx);
+                            wl.starBrightness = rules.GetStrictFloatItem(idx);
                         }
                         catch (InvalidCastException)
                         {
@@ -625,7 +625,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         idx++;
                         try
                         {
-                            wl.sunGlowFocus = (float)rules.GetLSLFloatItem(idx);
+                            wl.sunGlowFocus = rules.GetStrictFloatItem(idx);
                         }
                         catch (InvalidCastException)
                         {
@@ -636,7 +636,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         idx++;
                         try
                         {
-                            wl.sunGlowSize = (float)rules.GetLSLFloatItem(idx);
+                            wl.sunGlowSize = rules.GetStrictFloatItem(idx);
                         }
                         catch (InvalidCastException)
                         {
@@ -659,7 +659,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         idx++;
                         try
                         {
-                            wl.underwaterFogModifier = (float)rules.GetLSLFloatItem(idx);
+                            wl.underwaterFogModifier = rules.GetStrictFloatItem(idx);
                         }
                         catch (InvalidCastException)
                         {
@@ -682,7 +682,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         idx++;
                         try
                         {
-                            wl.waterFogDensityExponent = (float)rules.GetLSLFloatItem(idx);
+                            wl.waterFogDensityExponent = rules.GetStrictFloatItem(idx);
                         }
                         catch (InvalidCastException)
                         {

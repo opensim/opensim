@@ -895,9 +895,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
             public LSL_Types.LSLFloat GetLSLFloatItem(int itemIndex)
             {
                 object o = Data[itemIndex];
+                if (o is LSL_Types.LSLFloat lfo)
+                    return lfo;
                 if (o is LSL_Types.LSLInteger lio)
                     return new LSL_Types.LSLFloat(lio.value);
-                if (o is Int32 io)
+                if (o is int io)
                     return new LSL_Types.LSLFloat(io);
                 if (o is float fo)
                     return new LSL_Types.LSLFloat(fo);
@@ -906,6 +908,42 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 if (o is LSL_Types.LSLString lso)
                     return new LSL_Types.LSLFloat(lso.m_string);
                 return (LSL_Types.LSLFloat)o;
+            }
+
+            public float GetFloatItem(int itemIndex)
+            {
+                object o = Data[itemIndex];
+                if (o is LSL_Types.LSLFloat lfo)
+                    return (float)lfo.value;
+                if (o is LSL_Types.LSLInteger lio)
+                    return lio.value;
+                if (o is int io)
+                    return io;
+                if (o is float fo)
+                    return fo;
+                if (o is Double dov)
+                    return (float)dov;
+                if (o is LSL_Types.LSLString lso)
+                    return Convert.ToSingle(lso.m_string);
+                return Convert.ToSingle(o.ToString());
+            }
+
+            public float GetStrictFloatItem(int itemIndex)
+            {
+                object o = Data[itemIndex];
+                if (o is LSL_Types.LSLFloat lfo)
+                    return (float)lfo.value;
+                if (o is LSL_Types.LSLInteger lio)
+                    return lio.value;
+                if (o is int io)
+                    return io;
+                if (o is float fo)
+                    return fo;
+                if (o is double dov)
+                    return (float)dov;
+                if (o is LSL_Types.LSLString lso)
+                    return Convert.ToSingle(lso.m_string);
+                throw new InvalidCastException(@"LSL float expected but {o is not null ? o.GetType().Name : ""null"")} given");
             }
 
             public LSL_Types.LSLString GetLSLStringItem(int itemIndex)
