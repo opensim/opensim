@@ -21,9 +21,9 @@ jobs:
     - name: preBuild
       run: bash ${GITHUB_WORKSPACE}/runprebuild.sh
 
-     - name: Setup dotnet
-       uses: actions/setup-dotnet@v3
-       with:
+    - name: Setup dotnet
+      uses: actions/setup-dotnet@v3
+      with:
         dotnet-version: '6.0.x'
     - name: Build
       id: build
