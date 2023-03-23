@@ -232,10 +232,7 @@ namespace OpenSim.Framework
         {
             OSDMap map = new OSDMap();
 
-            float sun_angle;
-            float east_angle;
-            Vector4 lightnorm;
-            ViewerEnvironment.convertToAngles(this, out sun_angle, out east_angle, out lightnorm);
+            ViewerEnvironment.convertToAngles(this, out float sun_angle, out float east_angle, out Vector4 lightnorm);
             map["ambient"] = new Vector4(ambient.X, ambient.Y, ambient.Z, 1);
             map["blue_density"] = new Vector4(blue_density.X, blue_density.Y, blue_density.Z, 1);
             map["blue_horizon"] = new Vector4(blue_horizon.X, blue_horizon.Y, blue_horizon.Z, 1);
@@ -381,7 +378,7 @@ namespace OpenSim.Framework
             if (map.TryGetValue("halo_id", out otmp))
                 halo_id = otmp;
             if (map.TryGetValue("ice_level", out otmp))
-                halo_id = otmp;
+                ice_level = otmp;
 
             if (map.TryGetValue("reflection_probe_ambiance", out otmp))
                 reflectionProbeAmbiance = otmp;
@@ -409,9 +406,8 @@ namespace OpenSim.Framework
 
             if (map.TryGetValue("mie_config", out otmp) && otmp is OSDArray mieArray)
             {
-                var tmpArray = otmp as OSDArray;
-                if (tmpArray.Count > 0)
-                    mieconf.FromOSD(tmpArray[0] as OSDMap);
+                if (mieArray.Count > 0)
+                    mieconf.FromOSD(mieArray[0] as OSDMap);
             }
 
             if (map.TryGetValue("moisture_level", out otmp))
