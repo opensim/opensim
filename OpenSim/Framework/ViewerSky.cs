@@ -153,7 +153,8 @@ namespace OpenSim.Framework
         public float dome_offset = 0.96f;
         public float dome_radius = 15000f;
         public float droplet_radius = 800.0f;
-        public float ice_level = 0;
+        public float ice_level = 0f;
+        public float reflectionProbeAmbiance = 0f;
 
         public float moisture_level = 0;
         public float sky_bottom_radius = 6360;
@@ -216,6 +217,8 @@ namespace OpenSim.Framework
             star_brightness = map["star_brightness"] * 250.0f;
 
             sunlight_color = map["sunlight_color"];
+
+            reflectionProbeAmbiance = 0f;
 
             ViewerEnvironment.convertFromAngles(this, map["sun_angle"], map["east_angle"]);
             Name = name;
@@ -281,6 +284,9 @@ namespace OpenSim.Framework
             map["glow"] = glow;
             map["halo_id"] = halo_id;
             map["ice_level"] = ice_level;
+
+            if (reflectionProbeAmbiance != 0f)
+                map["reflection_probe_ambiance"] = reflectionProbeAmbiance;
 
             OSDMap lhaze = new OSDMap();
             lhaze["ambient"] = ambient;
@@ -369,7 +375,10 @@ namespace OpenSim.Framework
             if (map.TryGetValue("halo_id", out otmp))
                 halo_id = otmp;
             if (map.TryGetValue("ice_level", out otmp))
-                halo_id = otmp;
+                ice_level = otmp;
+
+            if (map.TryGetValue("reflection_probe_ambiance", out otmp))
+                reflectionProbeAmbiance = otmp;
 
             if (map.TryGetValue("legacy_haze", out OSD tmp) && tmp is OSDMap)
             {
