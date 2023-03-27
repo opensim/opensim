@@ -614,8 +614,10 @@ namespace OpenSim.Region.CoreModules.World.Land
                 newData.MediaWidth = args.MediaWidth;
                 newData.MediaHeight = args.MediaHeight;
                 newData.MediaLoop = args.MediaLoop;
-                newData.ObscureMusic = args.ObscureMusic;
-                newData.ObscureMedia = args.ObscureMedia;
+                //newData.ObscureMusic = args.ObscureMusic;
+                newData.ObscureMusic = false; // obsolete
+                //newData.ObscureMedia = args.ObscureMedia;
+                newData.ObscureMedia = args.ObscureMOAP; // obsolete, reuse for moap
 
                 allowedDelta |= (uint)(ParcelFlags.SoundLocal |
                         ParcelFlags.UrlWebPage |
