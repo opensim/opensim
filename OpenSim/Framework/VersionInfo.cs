@@ -32,7 +32,7 @@ namespace OpenSim
         public const string VersionNumber = "0.9.2.2";
         public const string AssemblyVersionNumber = "0.9.2.2";
 
-        public const Flavour VERSION_FLAVOUR = Flavour.Dev;
+        public const Flavour VERSION_FLAVOUR = Flavour.Release;
 
         public enum Flavour
         {
