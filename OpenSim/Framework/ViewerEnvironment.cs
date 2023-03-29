@@ -36,38 +36,38 @@ namespace OpenSim.Framework
     // legacy lightshare
     public class RegionLightShareData
     {
-        public Vector3 waterColor = new Vector3(4.0f, 38.0f, 64.0f);
+        public Vector3 waterColor = new(4.0f, 38.0f, 64.0f);
         public float waterFogDensityExponent = 4.0f;
         public float underwaterFogModifier = 0.25f;
-        public Vector3 reflectionWaveletScale = new Vector3(2.0f, 2.0f, 2.0f);
+        public Vector3 reflectionWaveletScale = new(2.0f, 2.0f, 2.0f);
         public float fresnelScale = 0.40f;
         public float fresnelOffset = 0.50f;
         public float refractScaleAbove = 0.03f;
         public float refractScaleBelow = 0.20f;
         public float blurMultiplier = 0.040f;
-        public Vector2 bigWaveDirection = new Vector2(1.05f, -0.42f);
-        public Vector2 littleWaveDirection = new Vector2(1.11f, -1.16f);
-        public UUID normalMapTexture = new UUID("822ded49-9a6c-f61c-cb89-6df54f42cdf4");
-        public Vector4 horizon = new Vector4(0.25f, 0.25f, 0.32f, 0.32f);
+        public Vector2 bigWaveDirection = new(1.05f, -0.42f);
+        public Vector2 littleWaveDirection = new(1.11f, -1.16f);
+        public UUID normalMapTexture = new("822ded49-9a6c-f61c-cb89-6df54f42cdf4");
+        public Vector4 horizon = new(0.25f, 0.25f, 0.32f, 0.32f);
         public float hazeHorizon = 0.19f;
-        public Vector4 blueDensity = new Vector4(0.12f, 0.22f, 0.38f, 0.38f);
+        public Vector4 blueDensity = new(0.12f, 0.22f, 0.38f, 0.38f);
         public float hazeDensity = 0.70f;
         public float densityMultiplier = 0.18f;
         public float distanceMultiplier = 0.8f;
         public UInt16 maxAltitude = 1605;
-        public Vector4 sunMoonColor = new Vector4(0.24f, 0.26f, 0.30f, 0.30f);
+        public Vector4 sunMoonColor = new(0.24f, 0.26f, 0.30f, 0.30f);
         public float sunMoonPosition = 0.317f;
-        public Vector4 ambient = new Vector4(0.35f, 0.35f, 0.35f, 0.35f);
+        public Vector4 ambient = new(0.35f, 0.35f, 0.35f, 0.35f);
         public float eastAngle = 0.0f;
         public float sunGlowFocus = 0.10f;
         public float sunGlowSize = 1.75f;
         public float sceneGamma = 1.0f;
         public float starBrightness = 0.0f;
-        public Vector4 cloudColor = new Vector4(0.41f, 0.41f, 0.41f, 0.41f);
-        public Vector3 cloudXYDensity = new Vector3(1.00f, 0.53f, 1.00f);
+        public Vector4 cloudColor = new(0.41f, 0.41f, 0.41f, 0.41f);
+        public Vector3 cloudXYDensity = new(1.00f, 0.53f, 1.00f);
         public float cloudCoverage = 0.27f;
         public float cloudScale = 0.42f;
-        public Vector3 cloudDetailXYDensity = new Vector3(1.00f, 0.53f, 0.12f);
+        public Vector3 cloudDetailXYDensity = new(1.00f, 0.53f, 0.12f);
         public float cloudScrollX = 0.20f;
         public bool cloudScrollXLock = false;
         public float cloudScrollY = 0.01f;
@@ -77,7 +77,7 @@ namespace OpenSim.Framework
 
     public class ViewerEnvironment
     {
-        DayCycle Cycle = new DayCycle();
+        DayCycle Cycle = new();
         public int DayLength = 14400;
         public int DayOffset = 57600;
         public int Flags = 0;
@@ -104,7 +104,7 @@ namespace OpenSim.Framework
 
         public OSD ToWLOSD(UUID message, UUID region)
         {
-            OSDArray array = new OSDArray(4) { null, null, null, null };
+            OSDArray array = new() { null, null, null, null };
             array[0] = new OSDMap { {"messageID", message }, { "regionID", region } };
             Cycle.ToWLOSD(ref array);
             return array;
@@ -131,7 +131,7 @@ namespace OpenSim.Framework
             float sl = MathF.Sin(al);
             float cl = MathF.Cos(al);
 
-            Quaternion rot = new Quaternion(sl * sz, -sl * cz, cl * sz, cl * cz);
+            Quaternion rot = new(sl * sz, -sl * cz, cl * sz, cl * cz);
             rot.Normalize();
             return rot;
         }
@@ -193,24 +193,25 @@ namespace OpenSim.Framework
 
         public void FromLightShare(RegionLightShareData ls)
         {
-            WaterData water = new WaterData();
+            WaterData water = new()
+            {
+                waterFogColor = ls.waterColor / 256f,
+                waterFogDensity = MathF.Pow(2.0f, ls.waterFogDensityExponent),
+                //water.waterFogDensity = ls.waterFogDensityExponent;
+                underWaterFogMod = ls.underwaterFogModifier,
+                normScale = ls.reflectionWaveletScale,
+                fresnelScale = ls.fresnelScale,
+                fresnelOffset = ls.fresnelOffset,
+                scaleAbove = ls.refractScaleAbove,
+                scaleBelow = ls.refractScaleBelow,
+                blurMultiplier = ls.blurMultiplier,
+                wave1Dir = ls.littleWaveDirection,
+                wave2Dir = ls.bigWaveDirection,
+                normalMap = ls.normalMapTexture,
+                Name = "LightshareWater"
+            };
 
-            water.waterFogColor = ls.waterColor / 256f;
-            water.waterFogDensity = MathF.Pow(2.0f, ls.waterFogDensityExponent);
-            //water.waterFogDensity = ls.waterFogDensityExponent;
-            water.underWaterFogMod = ls.underwaterFogModifier;
-            water.normScale = ls.reflectionWaveletScale;
-            water.fresnelScale = ls.fresnelScale;
-            water.fresnelOffset = ls.fresnelOffset;
-            water.scaleAbove = ls.refractScaleAbove;
-            water.scaleBelow = ls.refractScaleBelow;
-            water.blurMultiplier = ls.blurMultiplier;
-            water.wave1Dir = ls.littleWaveDirection;
-            water.wave2Dir = ls.bigWaveDirection;
-            water.normalMap = ls.normalMapTexture;
-            water.Name = "LightshareWater";
-
-            SkyData sky = new SkyData();
+            SkyData sky = new();
             convertFromAngles(sky, Utils.TWO_PI * ls.sunMoonPosition, Utils.TWO_PI * ls.eastAngle);
             sky.sunlight_color = ls.sunMoonColor * 3.0f;
             sky.ambient = new Vector3(ls.ambient.X * 3.0f, ls.ambient.Y * 3.0f, ls.ambient.Z * 3.0f);
@@ -236,14 +237,13 @@ namespace OpenSim.Framework
             sky.star_brightness = ls.starBrightness * 250f;
             sky.Name = "LightshareSky";
 
-            Cycle = new DayCycle();
-            Cycle.Name = "Lightshare";
+            Cycle = new DayCycle { Name = "Lightshare" };
             Cycle.waterframes.Add(water.Name, water);
-            DayCycle.TrackEntry track = new DayCycle.TrackEntry(-1, water.Name);
+            DayCycle.TrackEntry track = new(-1, water.Name);
             Cycle.waterTrack.Add(track);
 
             Cycle.skyframes.Add(sky.Name, sky);
-            track = new DayCycle.TrackEntry(-1, sky.Name);
+            track = new(-1, sky.Name);
             Cycle.skyTrack0.Add(track);
 
             InvalidateCaches();
@@ -251,7 +251,7 @@ namespace OpenSim.Framework
 
         public RegionLightShareData ToLightShare()
         {
-            RegionLightShareData ls = new RegionLightShareData();
+            RegionLightShareData ls = new();
 
             DayCycle.TrackEntry te;
             if (Cycle.waterTrack.Count > 0)
@@ -280,8 +280,7 @@ namespace OpenSim.Framework
                 te = Cycle.skyTrack0[0];
                 if (Cycle.skyframes.TryGetValue(te.frameName, out SkyData sky))
                 {
-                    Vector4 lightnorm;
-                    convertToAngles(sky, out ls.sunMoonPosition, out ls.eastAngle, out lightnorm);
+                    convertToAngles(sky, out ls.sunMoonPosition, out ls.eastAngle, out Vector4 _);
                     ls.sunMoonPosition *= 0.5f / MathF.PI;
                     ls.eastAngle *= 0.5f / MathF.PI;
                     ls.sunMoonColor = sky.sunlight_color / 3f;
@@ -313,8 +312,7 @@ namespace OpenSim.Framework
 
         public void FromOSD(OSD osd)
         {
-            OSDMap map = osd as OSDMap;
-            if (map == null)
+            if (osd is not OSDMap map)
                 return;
 
             OSD otmp;
@@ -324,8 +322,8 @@ namespace OpenSim.Framework
                 Cycle = new DayCycle();
                 Cycle.FromOSD(otmp as OSDMap);
             }
-            if (Cycle == null)
-                Cycle = new DayCycle();
+
+            Cycle ??= new DayCycle();
 
             if (map.TryGetValue("day_length", out otmp))
                 DayLength = otmp;
@@ -374,8 +372,7 @@ namespace OpenSim.Framework
 
         public bool CycleFromOSD(OSD osd)
         {
-            OSDMap map = osd as OSDMap;
-            if (map == null)
+            if (osd is not OSDMap map)
                 return false;
             if (!map.TryGetValue("type", out OSD tmp))
                 return false;
@@ -392,8 +389,7 @@ namespace OpenSim.Framework
 
         public bool FromAssetOSD(string name, OSD osd)
         {
-            OSDMap map = osd as OSDMap;
-            if (map == null)
+            if (osd is not OSDMap map)
                 return false;
             if (!map.TryGetValue("type", out OSD tmp))
                 return false;
@@ -402,8 +398,7 @@ namespace OpenSim.Framework
             bool ok = false;
             if (type == "water")
             {
-                if (Cycle == null)
-                    Cycle = new DayCycle();
+                Cycle ??= new DayCycle();
                 ok = Cycle.replaceWaterFromOSD(name, map);
             }
             else
@@ -416,8 +411,7 @@ namespace OpenSim.Framework
                 }
                 else if(type == "sky")
                 {
-                    if (Cycle == null)
-                        Cycle = new DayCycle();
+                    Cycle ??= new DayCycle();
                     ok = Cycle.replaceSkyFromOSD(name, map);
                 }
             }
@@ -430,22 +424,18 @@ namespace OpenSim.Framework
 
         public OSD ToOSD()
         {
-            OSDMap env = new OSDMap();
-            env["day_cycle"] = Cycle.ToOSD();
-            env["day_length"] = DayLength;
-            env["day_offset"] = DayOffset;
-            env["flags"] = Flags;
-            env["env_version"] = version;
-
-            OSDArray alt = new OSDArray();
-            alt.Add(Altitudes[0]);
-            alt.Add(Altitudes[1]);
-            alt.Add(Altitudes[2]);
-            env["track_altitudes"] = alt;
-            return env;
+            return new OSDMap
+            {
+                ["day_cycle"] = Cycle.ToOSD(),
+                ["day_length"] = DayLength,
+                ["day_offset"] = DayOffset,
+                ["flags"] = Flags,
+                ["env_version"] = version,
+                ["track_altitudes"] = new OSDArray() { Altitudes[0], Altitudes[1], Altitudes[2] }
+            };
         }
 
-        public readonly object m_cachedbytesLock = new object();
+        public readonly object m_cachedbytesLock = new();
         public byte[] m_cachedbytes = null;
         public byte[] m_cachedWLbytes = null;
 
@@ -469,7 +459,7 @@ namespace OpenSim.Framework
                 byte[] ret = m_cachedbytes;
                 if (ret == null)
                 {
-                    OSDMap map = new OSDMap();
+                    OSDMap map = new();
                     OSDMap cenv = (OSDMap)ToOSD();
                     cenv["parcel_id"] = parcelID;
                     cenv["region_id"] = regionID;
@@ -508,7 +498,7 @@ namespace OpenSim.Framework
             try
             {
                 OSD eosd = OSDParser.Deserialize(s);
-                ViewerEnvironment VEnv = new ViewerEnvironment();
+                ViewerEnvironment VEnv = new();
                 VEnv.FromOSD(eosd);
                 return VEnv;
             }
@@ -536,28 +526,29 @@ namespace OpenSim.Framework
         {
             // im lazy need to proper clone later
             OSD osd = ToOSD();
-            ViewerEnvironment VEnv = new ViewerEnvironment();
+            ViewerEnvironment VEnv = new();
             VEnv.FromOSD(osd);
             return VEnv;
         }
 
         public static OSD DefaultToOSD(UUID regionID, int parcel)
         {
-            OSDMap top = new OSDMap();
-            OSDMap env = new OSDMap();
-            env["is_default"] = true;
+            OSDMap env = new()
+            {
+                ["is_default"] = true,
+                ["region_id"] = regionID,
+                ["track_altitudes"] = new OSDArray() { 1000f, 2000f, 3000f }
+            };
             if (parcel >= 0)
                 env["parcel_id"] = parcel;
-            env["region_id"] = regionID;
-            OSDArray alt = new OSDArray();
-            alt.Add(1000f);
-            alt.Add(2000f);
-            alt.Add(3000f);
-            env["track_altitudes"] = alt;
-            top["environment"] = env;
+
+            OSDMap top = new()
+            {
+                ["environment"] = env,
+                ["success"] = true
+            };
             if (parcel >= 0)
                 top["parcel_id"] = parcel;
-            top["success"] = true;
             return top;
         }
 
@@ -717,8 +708,7 @@ namespace OpenSim.Framework
 
         public void GatherAssets(Dictionary<UUID, sbyte> uuids)
         {
-            if (Cycle != null)
-                Cycle.GatherAssets(uuids);
+            Cycle?.GatherAssets(uuids);
         }
     }
 }

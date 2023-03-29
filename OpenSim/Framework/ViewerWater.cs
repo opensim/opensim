@@ -33,20 +33,20 @@ namespace OpenSim.Framework
 {
     public class WaterData
     {
-        public UUID normalMap = new UUID("822ded49-9a6c-f61c-cb89-6df54f42cdf4");
-        public UUID transpTexture = new UUID("2bfd3884-7e27-69b9-ba3a-3e673f680004");
+        public UUID normalMap = new("822ded49-9a6c-f61c-cb89-6df54f42cdf4");
+        public UUID transpTexture = new("2bfd3884-7e27-69b9-ba3a-3e673f680004");
 
         public float blurMultiplier = 0.04f;
         public float fresnelOffset = 0.5f;
         public float fresnelScale = 0.4f;
-        public Vector3 normScale = new Vector3(2f, 2f, 2f);
+        public Vector3 normScale = new(2f, 2f, 2f);
         public float scaleAbove = 0.03f;
         public float scaleBelow = 0.2f;
         public float underWaterFogMod = 0.25f;
-        public Vector3 waterFogColor = new Vector3(0.0156f, 0.149f, 0.2509f);
+        public Vector3 waterFogColor = new(0.0156f, 0.149f, 0.2509f);
         public float waterFogDensity = 10;
-        public Vector2 wave1Dir = new Vector2(1.05f, -0.42f);
-        public Vector2 wave2Dir = new Vector2(1.11f, -1.16f);
+        public Vector2 wave1Dir = new(1.05f, -0.42f);
+        public Vector2 wave2Dir = new(1.11f, -1.16f);
         public string Name;
 
         public void FromWLOSD(string name, OSD osd)
@@ -71,23 +71,22 @@ namespace OpenSim.Framework
 
         public OSDMap ToWLOSD()
         {
-            OSDMap map = new OSDMap();
-
-            map["blurMultiplier"] = blurMultiplier;
-            map["fresnelOffset"] = fresnelOffset;
-            map["fresnelScale"] = fresnelScale;
-            map["normScale"] = normScale;
-            map["normalMap"] = normalMap;
-            map["scaleAbove"] = scaleAbove;
-            map["scaleBelow"] = scaleBelow;
-            map["underWaterFogMod"] = underWaterFogMod;
-            map["waterFogColor"] = new Vector4(waterFogColor.X, waterFogColor.Y, waterFogColor.Z, 1);
-            map["waterFogDensity"] = waterFogDensity;
-            //map["waterFogDensity"] = MathF.Pow(2.0f, waterFogDensity);
-            map["wave1Dir"] = wave1Dir;
-            map["wave2Dir"] = wave2Dir;
-
-            return map;
+            return new OSDMap
+            {
+                ["blurMultiplier"] = blurMultiplier,
+                ["fresnelOffset"] = fresnelOffset,
+                ["fresnelScale"] = fresnelScale,
+                ["normScale"] = normScale,
+                ["normalMap"] = normalMap,
+                ["scaleAbove"] = scaleAbove,
+                ["scaleBelow"] = scaleBelow,
+                ["underWaterFogMod"] = underWaterFogMod,
+                ["waterFogColor"] = new Vector4(waterFogColor.X, waterFogColor.Y, waterFogColor.Z, 1),
+                ["waterFogDensity"] = waterFogDensity,
+                //["waterFogDensity"] = MathF.Pow(2.0f, waterFogDensity),
+                ["wave1Dir"] = wave1Dir,
+                ["wave2Dir"] = wave2Dir
+            };
         }
 
         public void FromOSD(string name, OSDMap map)
@@ -125,24 +124,23 @@ namespace OpenSim.Framework
 
         public OSDMap ToOSD()
         {
-            OSDMap map = new OSDMap();
-
-            map["blur_multiplier"] = blurMultiplier;
-            map["fresnel_offset"] = fresnelOffset;
-            map["fresnel_scale"] = fresnelScale;
-            map["normal_scale"] = normScale;
-            map["normal_map"] = normalMap;
-            map["scale_above"] = scaleAbove;
-            map["scale_below"] = scaleBelow;
-            map["underwater_fog_mod"] = underWaterFogMod;
-            map["water_fog_color"] = waterFogColor;
-            map["water_fog_density"] = waterFogDensity;
-            map["wave1_direction"] = wave1Dir;
-            map["wave2_direction"] = wave2Dir;
-            map["transparent_texture"] = transpTexture;
-            map["type"] ="water";
-
-            return map;
+            return new OSDMap
+            {
+                ["blur_multiplier"] = blurMultiplier,
+                ["fresnel_offset"] = fresnelOffset,
+                ["fresnel_scale"] = fresnelScale,
+                ["normal_scale"] = normScale,
+                ["normal_map"] = normalMap,
+                ["scale_above"] = scaleAbove,
+                ["scale_below"] = scaleBelow,
+                ["underwater_fog_mod"] = underWaterFogMod,
+                ["water_fog_color"] = waterFogColor,
+                ["water_fog_density"] = waterFogDensity,
+                ["wave1_direction"] = wave1Dir,
+                ["wave2_direction"] = wave2Dir,
+                ["transparent_texture"] = transpTexture,
+                ["type"] = "water"
+            };
         }
 
         public void GatherAssets(Dictionary<UUID, sbyte> uuids)
