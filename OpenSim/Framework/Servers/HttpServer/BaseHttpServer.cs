@@ -2310,7 +2310,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
             if (httpRequest.QueryFlags.Contains("about"))
             {
-                httpResponse.Redirect("http://opensimulator.org/wiki/0.9.2.2_Release");
+                httpResponse.Redirect("http://opensimulator.org/wiki/0.9.3.0_Release");
                 return;
             }
             if (!httpRequest.QueryAsDictionary.TryGetValue("method", out string method) || string.IsNullOrWhiteSpace(method))
