@@ -628,7 +628,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                 Status = (int)response.StatusCode;
 
                 byte[] buf = new byte[HttpBodyMaxLenMAX + 16];
-                int count = 0;
+                int count;
 
                 resStream = response.GetResponseStream();
                 int totalBodyBytes = 0;
