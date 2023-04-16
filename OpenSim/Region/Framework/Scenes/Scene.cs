@@ -46,6 +46,7 @@ using Timer = System.Timers.Timer;
 using TPFlags = OpenSim.Framework.Constants.TeleportFlags;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using PermissionMask = OpenSim.Framework.PermissionMask;
+using System.Runtime.CompilerServices;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -5072,10 +5073,16 @@ Label_GroupsDone:
         #endregion
 
         #region Script Engine
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool LSLScriptDanger(SceneObjectPart part, Vector3 pos)
         {
+            ILandObject parcel = LandChannel.GetLandObject(pos);
+            return LSLScriptDanger(part, parcel);
+        }
 
-            ILandObject parcel = LandChannel.GetLandObject(pos.X, pos.Y);
+        public bool LSLScriptDanger(SceneObjectPart part, ILandObject parcel)
+        {
             if (parcel is null)
                 return true;
             

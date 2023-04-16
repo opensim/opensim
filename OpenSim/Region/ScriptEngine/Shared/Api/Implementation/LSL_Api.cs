@@ -4574,66 +4574,60 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             TaskInventoryItem item = m_host.Inventory.GetInventoryItem(inventory);
-            if (item == null)
+            if (item is null)
             {
                 Error("llGiveInventory", "Can't find inventory object '" + inventory + "'");
                 return;
             }
 
-            UUID objId = item.ItemID;
-
             // check if destination is an object
-            if (World.GetSceneObjectPart(destId) != null)
+            if (World.GetSceneObjectPart(destId) is not null)
             {
                 // destination is an object
-                World.MoveTaskInventoryItem(destId, m_host, objId);
+                World.MoveTaskInventoryItem(destId, m_host, item.ItemID);
+                return;
             }
-            else
+
+            ScenePresence presence = World.GetScenePresence(destId);
+            if (presence is null)
             {
-                ScenePresence presence = World.GetScenePresence(destId);
-
-                if (presence == null)
+                UserAccount account = m_userAccountService.GetUserAccount(RegionScopeID, destId);
+                if (account is null)
                 {
-                    UserAccount account = m_userAccountService.GetUserAccount(RegionScopeID, destId);
-
-                    if (account == null)
+                    GridUserInfo info = World.GridUserService.GetGridUserInfo(destId.ToString());
+                    if(info is null || info.Online == false)
                     {
-                        GridUserInfo info = World.GridUserService.GetGridUserInfo(destId.ToString());
-                        if(info == null || info.Online == false)
-                        {
-                            Error("llGiveInventory", "Can't find destination '" + destId.ToString() + "'");
-                            return;
-                        }
+                        Error("llGiveInventory", "Can't find destination '" + destId.ToString() + "'");
+                        return;
                     }
                 }
-
-                // destination is an avatar
-                InventoryItemBase agentItem = World.MoveTaskInventoryItem(destId, UUID.Zero, m_host, objId, out string message);
-
-                if (agentItem == null)
-                {
-                    llSay(0, message);
-                    return;
-                }
-
-                byte[] bucket = new byte[1];
-                bucket[0] = (byte)item.Type;
-
-                GridInstantMessage msg = new(World, m_host.OwnerID, m_host.Name, destId,
-                        (byte)InstantMessageDialog.TaskInventoryOffered,
-                        m_host.OwnerID.Equals(m_host.GroupID), "'"+item.Name+"'. ("+m_host.Name+" is located at "+
-                        m_regionName + " "+ m_host.AbsolutePosition.ToString() + ")",
-                        agentItem.ID, true, m_host.AbsolutePosition,
-                        bucket, true);
-
-                if (World.TryGetScenePresence(destId, out ScenePresence sp))
-                    sp.ControllingClient.SendInstantMessage(msg);
-                else
-                    m_TransferModule?.SendInstantMessage(msg, delegate(bool success) {});
-
-                //This delay should only occur when giving inventory to avatars.
-                ScriptSleep(m_sleepMsOnGiveInventory);
             }
+
+            // destination is an avatar
+            InventoryItemBase agentItem = World.MoveTaskInventoryItem(destId, UUID.Zero, m_host, item.ItemID, out string message);
+            if (agentItem is null)
+            {
+                llSay(0, message);
+                return;
+            }
+
+            byte[] bucket = new byte[1];
+            bucket[0] = (byte)item.Type;
+
+            GridInstantMessage msg = new(World, m_host.OwnerID, m_host.Name, destId,
+                    (byte)InstantMessageDialog.TaskInventoryOffered,
+                    m_host.OwnerID.Equals(m_host.GroupID), "'"+item.Name+"'. ("+m_host.Name+" is located at "+
+                    m_regionName + " "+ m_host.AbsolutePosition.ToString() + ")",
+                    agentItem.ID, true, m_host.AbsolutePosition,
+                    bucket, true);
+
+            if (World.TryGetScenePresence(destId, out ScenePresence sp))
+                sp.ControllingClient.SendInstantMessage(msg);
+            else
+                m_TransferModule?.SendInstantMessage(msg, delegate(bool success) {});
+
+            //This delay should only occur when giving inventory to avatars.
+            ScriptSleep(m_sleepMsOnGiveInventory);
         }
 
         [DebuggerNonUserCode]
@@ -7385,20 +7379,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             foreach (object item in inventory.Data)
             {
                 string rawItemString = item.ToString();
-                TaskInventoryItem taskItem = null;
+                TaskInventoryItem taskItem = (UUID.TryParse(rawItemString, out UUID itemID)) ?
+                    m_host.Inventory.GetInventoryItem(itemID) : m_host.Inventory.GetInventoryItem(rawItemString);
 
-                if (UUID.TryParse(rawItemString, out UUID itemID))
-                    taskItem = m_host.Inventory.GetInventoryItem(itemID);
-                else
-                    taskItem = m_host.Inventory.GetInventoryItem(rawItemString);
-
-                if(taskItem == null)
+                if(taskItem is null)
                     continue;
 
                 if ((taskItem.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
                     continue;
 
-                if (destSop != null)
+                if (destSop is not null)
                 {
                     if(!World.Permissions.CanDoObjectInvToObjectInv(taskItem, m_host, destSop))
                         continue;
@@ -7431,7 +7421,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
 
-            if (destSop != null)
+            if (destSop is not null)
             {
                 ScriptSleep(100);
                 return;
