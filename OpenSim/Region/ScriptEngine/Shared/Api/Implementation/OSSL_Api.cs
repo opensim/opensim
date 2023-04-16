@@ -5996,5 +5996,47 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             src.SortInPlace(stride, ascending == 1);
         }
+
+        public LSL_List osGetParcelDetails(LSL_Key id, LSL_List param)
+        {
+            if (!UUID.TryParse(id, out UUID parcelID))
+                return new LSL_List(0);
+
+            InitLSL();
+            if (m_LSL_Api is null)
+                return new LSL_List(0);
+
+            ILandObject parcel = World.LandChannel.GetLandObject(parcelID);
+            if (parcel is null)
+                return new LSL_List(0);
+
+            return m_LSL_Api.GetParcelDetails(parcel, param);
+        }
+
+        public LSL_List osGetParcelIDs()
+        {
+            //if(!World.Permissions.IsEstateManager(m_host.OwnerID))
+            //    return new LSL_List();
+
+            List<ILandObject> parcels = World.LandChannel.AllParcels();
+            if (parcels is null || parcels.Count == 0)
+                return new LSL_List();
+            LSL_List ret = new();
+            foreach (ILandObject obj in parcels)
+            {
+                // some sanity check
+                if(obj.GlobalID.IsZero())
+                    continue;
+                if(obj.LandData is null || obj.LandData.Area == 0)
+                    continue;
+                ret.Add(new LSL_Key(obj.GlobalID.ToString()));
+            }
+            return ret;
+        }
+        public LSL_Key osGetParcelID()
+        {
+            ILandObject parcel = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
+            return parcel is null ? ScriptBaseClass.NULL_KEY : new LSL_Key(parcel.GlobalID.ToString());
+        }
     }
 }

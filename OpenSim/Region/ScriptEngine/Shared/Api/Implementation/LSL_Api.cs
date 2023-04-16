@@ -13972,6 +13972,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (parcel is null)
                 return new LSL_List(0);
 
+            return GetParcelDetails(parcel, param);
+        }
+
+        public LSL_List GetParcelDetails(ILandObject parcel, LSL_List param)
+        {
             LandData land = parcel.LandData;
             if (land is null)
                 return new LSL_List(0);
@@ -14021,7 +14026,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         ret.Add(new LSL_Integer(land.Flags));
                         break;
                     case "13":
-                        ret.Add(new LSL_Integer(World.LSLScriptDanger(m_host, pos) ? 1 : 0));
+                        ret.Add(new LSL_Integer(World.LSLScriptDanger(m_host, parcel) ? 1 : 0));
                         break;
                     case "64":
                         ret.Add(new LSL_Integer(land.Dwell));

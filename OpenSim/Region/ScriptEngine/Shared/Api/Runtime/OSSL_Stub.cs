@@ -1635,5 +1635,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             m_OSSL_Functions.osListSortInPlace(src, stride, ascending);
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_List osGetParcelDetails(LSL_Key id, LSL_List param)
+        {
+            return m_OSSL_Functions.osGetParcelDetails(id, param);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_List osGetParcelIDs()
+        {
+            return m_OSSL_Functions.osGetParcelIDs();
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_Key osGetParcelID()
+        {
+            return m_OSSL_Functions.osGetParcelID();
+        }
     }
 }
