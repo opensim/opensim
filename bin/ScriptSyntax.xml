@@ -1,4 +1,4 @@
-face0493-6022-3cf1-bdbe-1ae375f7f2da
+2b6f53a3-e9ef-d630-971a-f08479b3a7c0
 <llsd><map><key>llsd-lsl-syntax-version</key><integer>2</integer>
 <key>controls</key>
 <map>
@@ -1817,6 +1817,18 @@ face0493-6022-3cf1-bdbe-1ae375f7f2da
   <key>type</key><string>integer</string>
   <key>value</key><string>64</string>
  </map>
+ <key>PARCEL_DETAILS_FLAGS</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>12</string>
+ </map>
+ <key>PARCEL_DETAILS_GEOMETRICCENTER</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>66</string>
+ </map>
+ <key>PARCEL_DETAILS_GETCLAIMDATE</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>65</string>
+ </map>
  <key>PARCEL_DETAILS_GROUP</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>3</string>
@@ -1829,6 +1841,14 @@ face0493-6022-3cf1-bdbe-1ae375f7f2da
   <key>type</key><string>integer</string>
   <key>value</key><string>5</string>
  </map>
+ <key>PARCEL_DETAILS_LANDING_LOOKAT</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>10</string>
+ </map>
+ <key>PARCEL_DETAILS_LANDING_POINT</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>9</string>
+ </map>
  <key>PARCEL_DETAILS_NAME</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>0</string>
@@ -1837,9 +1857,25 @@ face0493-6022-3cf1-bdbe-1ae375f7f2da
   <key>type</key><string>integer</string>
   <key>value</key><string>2</string>
  </map>
+ <key>PARCEL_DETAILS_PRIM_CAPACITY</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>7</string>
+ </map>
+ <key>PARCEL_DETAILS_PRIM_USED</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>8</string>
+ </map>
+ <key>PARCEL_DETAILS_SCRIPT_DANGER</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>13</string>
+ </map>
  <key>PARCEL_DETAILS_SEE_AVATARS</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>6</string>
+ </map>
+ <key>PARCEL_DETAILS_TP_ROUTING</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>11</string>
  </map>
  <key>PARCEL_FLAG_ALLOW_ALL_OBJECT_ENTRY</key><map>
   <key>type</key><string>integer</string>
@@ -6512,17 +6548,8 @@ face0493-6022-3cf1-bdbe-1ae375f7f2da
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
-   <map><key>va</key><map><key>type</key><string>vector</string></map></map>
-   <map><key>vb</key><map><key>type</key><string>vector</string></map></map>
-   <map><key>margin</key><map><key>type</key><string>float</string></map></map>
-  </array>
- </map>
- <key>osApproxEquals</key>
- <map>
-  <key>return</key><string>integer</string>
-  <key>arguments</key><array>
-   <map><key>va</key><map><key>type</key><string>vector</string></map></map>
-   <map><key>vb</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>a</key><map><key>type</key><string>float</string></map></map>
+   <map><key>b</key><map><key>type</key><string>float</string></map></map>
   </array>
  </map>
  <key>osApproxEquals</key>
@@ -6538,16 +6565,16 @@ face0493-6022-3cf1-bdbe-1ae375f7f2da
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
-   <map><key>a</key><map><key>type</key><string>float</string></map></map>
-   <map><key>b</key><map><key>type</key><string>float</string></map></map>
+   <map><key>va</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>vb</key><map><key>type</key><string>vector</string></map></map>
   </array>
  </map>
  <key>osApproxEquals</key>
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
-   <map><key>ra</key><map><key>type</key><string>rotation</string></map></map>
-   <map><key>rb</key><map><key>type</key><string>rotation</string></map></map>
+   <map><key>va</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>vb</key><map><key>type</key><string>vector</string></map></map>
    <map><key>margin</key><map><key>type</key><string>float</string></map></map>
   </array>
  </map>
@@ -6557,6 +6584,15 @@ face0493-6022-3cf1-bdbe-1ae375f7f2da
   <key>arguments</key><array>
    <map><key>ra</key><map><key>type</key><string>rotation</string></map></map>
    <map><key>rb</key><map><key>type</key><string>rotation</string></map></map>
+  </array>
+ </map>
+ <key>osApproxEquals</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>ra</key><map><key>type</key><string>rotation</string></map></map>
+   <map><key>rb</key><map><key>type</key><string>rotation</string></map></map>
+   <map><key>margin</key><map><key>type</key><string>float</string></map></map>
   </array>
  </map>
  <key>osAvatarName2Key</key>
@@ -6585,15 +6621,15 @@ face0493-6022-3cf1-bdbe-1ae375f7f2da
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
-   <map><key>sFirstName</key><map><key>type</key><string>string</string></map></map>
-   <map><key>sLastName</key><map><key>type</key><string>string</string></map></map>
+   <map><key>avkey</key><map><key>type</key><string>key</string></map></map>
   </array>
  </map>
  <key>osAvatarType</key>
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
-   <map><key>avkey</key><map><key>type</key><string>key</string></map></map>
+   <map><key>sFirstName</key><map><key>type</key><string>string</string></map></map>
+   <map><key>sLastName</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
  <key>osCauseDamage</key>
@@ -7098,12 +7134,28 @@ face0493-6022-3cf1-bdbe-1ae375f7f2da
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
+ <key>osGetParcelDetails</key>
+ <map>
+  <key>return</key><string>list</string>
+  <key>arguments</key><array>
+   <map><key>id</key><map><key>type</key><string>key</string></map></map>
+   <map><key>param</key><map><key>type</key><string>list</string></map></map>
+  </array>
+ </map>
  <key>osGetParcelDwell</key>
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
    <map><key>pos</key><map><key>type</key><string>vector</string></map></map>
   </array>
+ </map>
+ <key>osGetParcelID</key>
+ <map>
+  <key>arguments</key><undef/>
+ </map>
+ <key>osGetParcelIDs</key>
+ <map>
+  <key>arguments</key><undef/>
  </map>
  <key>osGetPhysicsEngineName</key>
  <map>
@@ -7389,7 +7441,6 @@ face0493-6022-3cf1-bdbe-1ae375f7f2da
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
-   <map><key>options</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>osNpcCreate</key>
@@ -7400,6 +7451,7 @@ face0493-6022-3cf1-bdbe-1ae375f7f2da
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
+   <map><key>options</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>osNpcGetOwner</key>
@@ -7954,6 +8006,17 @@ face0493-6022-3cf1-bdbe-1ae375f7f2da
  <key>osSetProjectionParams</key>
  <map>
   <key>arguments</key><array>
+   <map><key>linknumber</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>projection</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>texture</key><map><key>type</key><string>key</string></map></map>
+   <map><key>fov</key><map><key>type</key><string>float</string></map></map>
+   <map><key>focus</key><map><key>type</key><string>float</string></map></map>
+   <map><key>amb</key><map><key>type</key><string>float</string></map></map>
+  </array>
+ </map>
+ <key>osSetProjectionParams</key>
+ <map>
+  <key>arguments</key><array>
    <map><key>projection</key><map><key>type</key><string>integer</string></map></map>
    <map><key>texture</key><map><key>type</key><string>key</string></map></map>
    <map><key>fov</key><map><key>type</key><string>float</string></map></map>
@@ -7965,17 +8028,6 @@ face0493-6022-3cf1-bdbe-1ae375f7f2da
  <map>
   <key>arguments</key><array>
    <map><key>prim</key><map><key>type</key><string>key</string></map></map>
-   <map><key>projection</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>texture</key><map><key>type</key><string>key</string></map></map>
-   <map><key>fov</key><map><key>type</key><string>float</string></map></map>
-   <map><key>focus</key><map><key>type</key><string>float</string></map></map>
-   <map><key>amb</key><map><key>type</key><string>float</string></map></map>
-  </array>
- </map>
- <key>osSetProjectionParams</key>
- <map>
-  <key>arguments</key><array>
-   <map><key>linknumber</key><map><key>type</key><string>integer</string></map></map>
    <map><key>projection</key><map><key>type</key><string>integer</string></map></map>
    <map><key>texture</key><map><key>type</key><string>key</string></map></map>
    <map><key>fov</key><map><key>type</key><string>float</string></map></map>
@@ -8175,7 +8227,6 @@ face0493-6022-3cf1-bdbe-1ae375f7f2da
   <key>arguments</key><array>
    <map><key>src</key><map><key>type</key><string>string</string></map></map>
    <map><key>start</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>length</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>osStringSubString</key>
@@ -8184,6 +8235,7 @@ face0493-6022-3cf1-bdbe-1ae375f7f2da
   <key>arguments</key><array>
    <map><key>src</key><map><key>type</key><string>string</string></map></map>
    <map><key>start</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>length</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>osSunGetParam</key>
@@ -8213,8 +8265,6 @@ face0493-6022-3cf1-bdbe-1ae375f7f2da
  <map>
   <key>arguments</key><array>
    <map><key>agent</key><map><key>type</key><string>string</string></map></map>
-   <map><key>regionX</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>regionY</key><map><key>type</key><string>integer</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>
@@ -8223,6 +8273,8 @@ face0493-6022-3cf1-bdbe-1ae375f7f2da
  <map>
   <key>arguments</key><array>
    <map><key>agent</key><map><key>type</key><string>string</string></map></map>
+   <map><key>regionX</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>regionY</key><map><key>type</key><string>integer</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>
@@ -8240,6 +8292,13 @@ face0493-6022-3cf1-bdbe-1ae375f7f2da
  <key>osTeleportOwner</key>
  <map>
   <key>arguments</key><array>
+   <map><key>position</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
+  </array>
+ </map>
+ <key>osTeleportOwner</key>
+ <map>
+  <key>arguments</key><array>
    <map><key>regionName</key><map><key>type</key><string>string</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
@@ -8250,13 +8309,6 @@ face0493-6022-3cf1-bdbe-1ae375f7f2da
   <key>arguments</key><array>
    <map><key>regionX</key><map><key>type</key><string>integer</string></map></map>
    <map><key>regionY</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>position</key><map><key>type</key><string>vector</string></map></map>
-   <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
-  </array>
- </map>
- <key>osTeleportOwner</key>
- <map>
-  <key>arguments</key><array>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>
