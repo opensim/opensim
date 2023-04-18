@@ -13984,55 +13984,64 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             LSL_List ret = new();
             foreach (object o in param.Data)
             {
-                switch (o.ToString())
+                if (o is not LSL_Integer io)
                 {
-                    case "0":
+                    Error("GetParcelDetails", $"Unknown parameter {o.ToString()}");
+                    return new LSL_List(0);
+                }
+
+                switch (io.value)
+                {
+                    case 0:
                         ret.Add(new LSL_String(land.Name));
                         break;
-                    case "1":
+                    case 1:
                         ret.Add(new LSL_String(land.Description));
                         break;
-                    case "2":
+                    case 2:
                         ret.Add(new LSL_Key(land.OwnerID.ToString()));
                         break;
-                    case "3":
+                    case 3:
                         ret.Add(new LSL_Key(land.GroupID.ToString()));
                         break;
-                    case "4":
+                    case 4:
                         ret.Add(new LSL_Integer(land.Area));
                         break;
-                    case "5":
+                    case 5:
                         ret.Add(new LSL_Key(land.GlobalID.ToString()));
                         break;
-                    case "6":
+                    case 6:
                         ret.Add(new LSL_Integer(land.SeeAVs ? 1 : 0));
                         break;
-                    case "7":
+                    case 7:
                         ret.Add(new LSL_Integer(parcel.GetParcelMaxPrimCount()));
                         break;
-                    case "8":
+                    case 8:
                         ret.Add(new LSL_Integer(parcel.PrimCounts.Total));
                         break;
-                    case "9":
+                    case 9:
                         ret.Add(new LSL_Vector(land.UserLocation));
                         break;
-                    case "10":
+                    case 10:
                         ret.Add(new LSL_Vector(land.UserLookAt));
                         break;
-                    case "11":
+                    case 11:
                         ret.Add(new LSL_Integer(land.LandingType));
                         break;
-                    case "12":
+                    case 12:
                         ret.Add(new LSL_Integer(land.Flags));
                         break;
-                    case "13":
+                    case 13:
                         ret.Add(new LSL_Integer(World.LSLScriptDanger(m_host, parcel) ? 1 : 0));
                         break;
-                    case "64":
+                    case 64:
                         ret.Add(new LSL_Integer(land.Dwell));
                         break;
-                    case "65":
+                    case 65:
                         ret.Add(new LSL_Integer(land.ClaimDate));
+                        break;
+                    case 66:
+                        ret.Add(new LSL_Vector(parcel.CenterPoint.X, parcel.CenterPoint.Y, 0));
                         break;
                     default:
                         ret.Add(new LSL_Integer(0));
