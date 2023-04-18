@@ -13986,66 +13986,66 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 if (o is not LSL_Integer io)
                 {
-                    Error("GetParcelDetails", $"Unknown parameter {o.ToString()}");
+                    Error("GetParcelDetails", $"Unknown parameter {o}");
                     return new LSL_List(0);
                 }
 
                 switch (io.value)
                 {
-                    case 0:
+                    case ScriptBaseClass.PARCEL_DETAILS_NAME:
                         ret.Add(new LSL_String(land.Name));
                         break;
-                    case 1:
+                    case ScriptBaseClass.PARCEL_DETAILS_DESC:
                         ret.Add(new LSL_String(land.Description));
                         break;
-                    case 2:
+                    case ScriptBaseClass.PARCEL_DETAILS_OWNER:
                         ret.Add(new LSL_Key(land.OwnerID.ToString()));
                         break;
-                    case 3:
+                    case ScriptBaseClass.PARCEL_DETAILS_GROUP:
                         ret.Add(new LSL_Key(land.GroupID.ToString()));
                         break;
-                    case 4:
+                    case ScriptBaseClass.PARCEL_DETAILS_AREA:
                         ret.Add(new LSL_Integer(land.Area));
                         break;
-                    case 5:
+                    case ScriptBaseClass.PARCEL_DETAILS_ID:
                         ret.Add(new LSL_Key(land.GlobalID.ToString()));
                         break;
-                    case 6:
+                    case ScriptBaseClass.PARCEL_DETAILS_SEE_AVATARS:
                         ret.Add(new LSL_Integer(land.SeeAVs ? 1 : 0));
                         break;
-                    case 7:
+                    case ScriptBaseClass.PARCEL_DETAILS_PRIM_CAPACITY:
                         ret.Add(new LSL_Integer(parcel.GetParcelMaxPrimCount()));
                         break;
                     case 8:
                         ret.Add(new LSL_Integer(parcel.PrimCounts.Total));
                         break;
-                    case 9:
+                    case ScriptBaseClass.PARCEL_DETAILS_LANDING_POINT:
                         ret.Add(new LSL_Vector(land.UserLocation));
                         break;
-                    case 10:
+                    case ScriptBaseClass.PARCEL_DETAILS_LANDING_LOOKAT:
                         ret.Add(new LSL_Vector(land.UserLookAt));
                         break;
-                    case 11:
+                    case ScriptBaseClass.PARCEL_DETAILS_TP_ROUTING:
                         ret.Add(new LSL_Integer(land.LandingType));
                         break;
-                    case 12:
+                    case ScriptBaseClass.PARCEL_DETAILS_FLAGS:
                         ret.Add(new LSL_Integer(land.Flags));
                         break;
-                    case 13:
+                    case ScriptBaseClass.PARCEL_DETAILS_SCRIPT_DANGER:
                         ret.Add(new LSL_Integer(World.LSLScriptDanger(m_host, parcel) ? 1 : 0));
                         break;
-                    case 64:
+                    case ScriptBaseClass.PARCEL_DETAILS_DWELL:
                         ret.Add(new LSL_Integer(land.Dwell));
                         break;
-                    case 65:
+                    case ScriptBaseClass.PARCEL_DETAILS_GETCLAIMDATE:
                         ret.Add(new LSL_Integer(land.ClaimDate));
                         break;
-                    case 66:
+                    case ScriptBaseClass.PARCEL_DETAILS_GEOMETRICCENTER:
                         ret.Add(new LSL_Vector(parcel.CenterPoint.X, parcel.CenterPoint.Y, 0));
                         break;
                     default:
-                        ret.Add(new LSL_Integer(0));
-                        break;
+                        Error("GetParcelDetails", $"Unknown parameter {io.value}");
+                        return new LSL_List(0);
                 }
             }
             return ret;

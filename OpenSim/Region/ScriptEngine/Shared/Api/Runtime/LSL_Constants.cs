@@ -742,12 +742,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PARCEL_DETAILS_AREA = 4;
         public const int PARCEL_DETAILS_ID = 5;
         public const int PARCEL_DETAILS_SEE_AVATARS = 6;
-        public const int PARCEL_DETAILS_ANY_AVATAR_SOUNDS = 7;
-        public const int PARCEL_DETAILS_GROUP_SOUNDS = 8;
+        public const int PARCEL_DETAILS_PRIM_CAPACITY = 7;
+        public const int PARCEL_DETAILS_PRIM_USED = 8;
+        public const int PARCEL_DETAILS_LANDING_POINT = 9;
+        public const int PARCEL_DETAILS_LANDING_LOOKAT = 10;
+        public const int PARCEL_DETAILS_TP_ROUTING = 11;
+        public const int PARCEL_DETAILS_FLAGS = 12;
+        public const int PARCEL_DETAILS_SCRIPT_DANGER = 13;
+
         // constants for llGetParcelDetails os specific
         public const int PARCEL_DETAILS_DWELL = 64;
+        public const int PARCEL_DETAILS_GETCLAIMDATE = 65;
+        public const int PARCEL_DETAILS_GEOMETRICCENTER = 66;
 
         //osSetParcelDetails
+        public const int PARCEL_DETAILS_ANY_AVATAR_SOUNDS = 7;
+        public const int PARCEL_DETAILS_GROUP_SOUNDS = 8;
         public const int PARCEL_DETAILS_CLAIMDATE = 10;
 
         // constants for llSetClickAction
