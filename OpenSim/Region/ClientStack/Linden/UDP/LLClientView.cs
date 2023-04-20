@@ -6590,9 +6590,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             LLSDxmlEncode2.AddElem("MediaWidth", landData.MediaWidth, sb);
             LLSDxmlEncode2.AddElem("MediaLoop", landData.MediaLoop, sb);
             LLSDxmlEncode2.AddElem("MediaType", landData.MediaType, sb);
-            LLSDxmlEncode2.AddElem("ObscureMedia", landData.ObscureMedia, sb);
-            LLSDxmlEncode2.AddElem("ObscureMusic", landData.ObscureMusic, sb);
+            //LLSDxmlEncode2.AddElem("ObscureMedia", landData.ObscureMedia, sb);
+            LLSDxmlEncode2.AddElem("ObscureMedia", false, sb); //obsolete
+            //LLSDxmlEncode2.AddElem("ObscureMusic", landData.ObscureMusic, sb);
+            LLSDxmlEncode2.AddElem("ObscureMusic", false, sb); //obsolete
 
+            LLSDxmlEncode2.AddEndMapAndArray(sb);
+
+            LLSDxmlEncode2.AddArrayAndMap("ParcelExtendedFlags", sb); // obscure moap
+            LLSDxmlEncode2.AddElem("Flags", (uint)(landData.ObscureMedia ? 1 : (int)0), sb);
             LLSDxmlEncode2.AddEndMapAndArray(sb);
 
             LLSDxmlEncode2.AddArrayAndMap("AgeVerificationBlock", sb);

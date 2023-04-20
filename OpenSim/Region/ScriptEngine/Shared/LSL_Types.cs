@@ -790,6 +790,49 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return new LSL_Types.LSLString(o.ToString());
             }
 
+            public string GetStringItem(int itemIndex)
+            {
+                object o = Data[itemIndex];
+                if (o is LSL_Types.key)
+                    return ((LSL_Types.key)o).value;
+                return o.ToString();
+            }
+
+            public LSL_Types.LSLString GetStrictLSLStringItem(int itemIndex)
+            {
+                object o = Data[itemIndex];
+                if (o is LSL_Types.LSLString)
+                    return ((LSL_Types.LSLString)o);
+                if (o is string)
+                    return new LSL_Types.LSLString((string)o);
+                if (o is LSL_Types.key)
+                    return ((LSL_Types.key)o).value;
+
+                throw new InvalidCastException(string.Format(
+                    "{0} expected but {1} given",
+                    typeof(LSL_Types.LSLString).Name,
+                    o != null ?
+                    o.GetType().Name : "null"));
+            }
+
+            public string GetStrictStringItem(int itemIndex)
+            {
+                object o = Data[itemIndex];
+                if (o is LSL_Types.LSLString)
+                    return ((LSL_Types.LSLString)o).m_string;
+                if (o is string)
+                    return (string)o;
+                if (o is LSL_Types.key)
+                    return ((LSL_Types.key)o).value;
+
+                throw new InvalidCastException(string.Format(
+                    "{0} expected but {1} given",
+                    typeof(LSL_Types.LSLString).Name,
+                    o != null ?
+                    o.GetType().Name : "null"));
+            }
+
+
             public LSL_Types.LSLInteger GetLSLIntegerItem(int itemIndex)
             {
                 object o = Data[itemIndex];

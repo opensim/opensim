@@ -98,7 +98,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // The owner of a region is a god in his region only.
                 m_regionOwnerIsGod =
                     Util.GetConfigVarFromSections<bool>(config,
-                    "region_owner_is_god", sections, true);
+                    "region_owner_is_god", sections, false);
 
                 // Region managers are gods in the regions they manage.
                 m_regionManagerIsGod =

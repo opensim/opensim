@@ -1,4 +1,4 @@
-b60b609e-502d-3344-e38d-7fd0718cf5ea
+face0493-6022-3cf1-bdbe-1ae375f7f2da
 <llsd><map><key>llsd-lsl-syntax-version</key><integer>2</integer>
 <key>controls</key>
 <map>
@@ -4337,6 +4337,14 @@ b60b609e-502d-3344-e38d-7fd0718cf5ea
    <map><key>args</key><map><key>type</key><string>list</string></map></map>
   </array>
  </map>
+ <key>llGetObjectLinkKey</key>
+ <map>
+  <key>return</key><string>key</string>
+  <key>arguments</key><array>
+   <map><key>objectid</key><map><key>type</key><string>key</string></map></map>
+   <map><key>linknum</key><map><key>type</key><string>integer</string></map></map>
+  </array>
+ </map>
  <key>llGetObjectMass</key>
  <map>
   <key>return</key><string>float</string>
@@ -5197,14 +5205,6 @@ b60b609e-502d-3344-e38d-7fd0718cf5ea
   <key>return</key><string>key</string>
   <key>arguments</key><array>
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
-  </array>
- </map>
- <key>llObjectGetLinkKey</key>
- <map>
-  <key>return</key><string>key</string>
-  <key>arguments</key><array>
-   <map><key>objectid</key><map><key>type</key><string>key</string></map></map>
-   <map><key>linknum</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>llOffsetTexture</key>
