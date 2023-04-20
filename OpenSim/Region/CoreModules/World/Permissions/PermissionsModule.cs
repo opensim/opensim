@@ -169,7 +169,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             m_forceGridAdminsOnly = Util.GetConfigVarFromSections<bool>(config, "force_grid_gods_only", sections, false);
             if(!m_forceGridAdminsOnly)
             {            
-                m_RegionOwnerIsAdmin = Util.GetConfigVarFromSections<bool>(config, "region_owner_is_god",sections, true);
+                m_RegionOwnerIsAdmin = Util.GetConfigVarFromSections<bool>(config, "region_owner_is_god",sections, false);
                 m_RegionManagerIsAdmin = Util.GetConfigVarFromSections<bool>(config, "region_manager_is_god",sections, false);
             }
             else
