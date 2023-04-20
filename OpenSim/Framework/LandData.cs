@@ -132,6 +132,7 @@ namespace OpenSim.Framework
 
         /// <summary>
         /// Whether to obscure parcel media URL
+        /// Now to obscure parcel MOAP
         /// </summary>
         [XmlIgnore]
         public bool ObscureMedia

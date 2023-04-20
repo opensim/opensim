@@ -1408,10 +1408,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 return "";
             }
-            drawList += "FillPolygon " + x.GetLSLStringItem(0) + "," + y.GetLSLStringItem(0);
+            drawList += "FillPolygon " + x.GetStringItem(0) + "," + y.GetStringItem(0);
             for (int i = 1; i < x.Length; i++)
             {
-                drawList += "," + x.GetLSLStringItem(i) + "," + y.GetLSLStringItem(i);
+                drawList += "," + x.GetStringItem(i) + "," + y.GetStringItem(i);
             }
             drawList += "; ";
             return drawList;
@@ -1425,10 +1425,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 return "";
             }
-            drawList += "Polygon " + x.GetLSLStringItem(0) + "," + y.GetLSLStringItem(0);
+            drawList += "Polygon " + x.GetStringItem(0) + "," + y.GetStringItem(0);
             for (int i = 1; i < x.Length; i++)
             {
-                drawList += "," + x.GetLSLStringItem(i) + "," + y.GetLSLStringItem(i);
+                drawList += "," + x.GetStringItem(i) + "," + y.GetStringItem(i);
             }
             drawList += "; ";
             return drawList;
@@ -1835,7 +1835,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             for (int idx = 0; idx < rules.Length;)
             {
                 int code = rules.GetLSLIntegerItem(idx++);
-                string arg = rules.GetLSLStringItem(idx++);
+                string arg = rules.GetStringItem(idx++);
                 switch (code)
                 {
                     case ScriptBaseClass.PARCEL_DETAILS_NAME:
@@ -2239,7 +2239,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             StringBuilder notecardData = new StringBuilder();
 
             for (int i = 0; i < contents.Length; i++)
-                notecardData.Append((string)(contents.GetLSLStringItem(i) + "\n"));
+                notecardData.Append(contents.GetStringItem(i) + "\n");
 
             SaveNotecard(notecardName, "Script generated notecard", notecardData.ToString(), false);
         }
