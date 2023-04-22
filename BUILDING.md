@@ -14,20 +14,22 @@ change to dotnet6 test branch
 ## Requirements
   To building under Windows, the following is required:
 
+  * [dotnet 6.0 SDK, Runtime and Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
+
+optionally also
+
   * [Visual Studio .NET](https://visualstudio.microsoft.com/vs/features/net-development/), version 2022 or later
   
-  or just
-  
-  * [dotnet 6.0 SDK, Runtime and Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
 
 ### Building
  To create the project files, run   
 
   `runprebuild.bat`
 
-Load the generated OpenSim.sln into Visual Studio and build the solution.
+run 
+  `compile.bat`
 
-copy file bin\System.Drawing.Common.dll.win to bin\System.Drawing.Common.dll
+Or load the generated OpenSim.sln into Visual Studio and build the solution.
 
 Configure, see below
 
@@ -41,6 +43,7 @@ Now just run `OpenSim.exe` from the `bin` folder, and set up the region.
  * libgdiplus 
  
  if you have mono 6.x complete, you already have libgdiplus, otherwise you need to install it
+ using a package manager for your operating system, like atp, brew, macports, etc
  for example on debian:
  
  `apt-get update && apt-get install -y apt-utils libgdiplus libc6-dev`
@@ -50,8 +53,6 @@ Now just run `OpenSim.exe` from the `bin` folder, and set up the region.
 
   `./runprebuild.sh`
 
-  copy file bin/System.Drawing.Common.dll.linux to bin/System.Drawing.Common.dll
-  
   then run
 
  `dotnet build --configuration Release OpenSim.sln`
