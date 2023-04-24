@@ -39,8 +39,8 @@ jobs:
           name: LastDotNetAutoBuild
           files: LastDotNetBuild.zip
 
-    - name: report push to irc
-      if: github.event_name == 'push'
+    - name: report push to irc if from main OpenSim repository
+      if: github.event_name == 'push' && github.repository_owner == 'opensim'
       uses: rectalogic/notify-irc@v1
       with:
         channel: "#opensim-dev"
@@ -51,8 +51,8 @@ jobs:
           ${{ join(github.event.commits.*.message, '\n') }}
           dotnet compile: ${{ steps.build.conclusion }}
 
-    - name: manual report to irc
-      if: github.event_name == 'workflow_dispatch'
+    - name: manual report to irc if from main OpenSim repository
+      if: github.event_name == 'workflow_dispatch' && github.repository_owner == 'opensim'
       uses: rectalogic/notify-irc@v1
       with:
         channel: "#opensim-dev"
