@@ -367,7 +367,7 @@ namespace OpenSim.Services.HypergridService
             if (!String.IsNullOrWhiteSpace(m_DeniedMacs))
             {
                 //m_log.InfoFormat("[GATEKEEPER SERVICE]: Checking users Mac {0} against list of denied macs {1} ...", curMac, m_DeniedMacs);
-                if (m_DeniedMacs.Contains(curMac))
+                if (m_DeniedMacs.Contains(curMac, StringComparison.InvariantCultureIgnoreCase))
                 {
                     reason = "Login failed: client with Mac " + curMac + " is denied";
                     m_log.InfoFormat("[GATEKEEPER SERVICE]: Login failed, reason: client with mac {0} is denied", curMac);
@@ -378,7 +378,7 @@ namespace OpenSim.Services.HypergridService
             if (!string.IsNullOrWhiteSpace(m_DeniedID0s))
             {
                 //m_log.InfoFormat("[GATEKEEPER SERVICE]: Checking users Mac {0} against list of denied macs {1} ...", curMac, m_DeniedMacs);
-                if (m_DeniedID0s.Contains(aCircuit.Id0))
+                if (m_DeniedID0s.Contains(aCircuit.Id0, StringComparison.InvariantCultureIgnoreCase))
                 {
                     reason = "Login failed: client with id0 " + aCircuit.Id0 + " is denied";
                     m_log.InfoFormat("[GATEKEEPER SERVICE]: Login failed, reason: client with mac {0} is denied", aCircuit.Id0);
