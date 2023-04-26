@@ -1483,7 +1483,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 else if (left is Vector3 lv)
                 {
                     Vector3 r = (Vector3)right;
-                    return Vector3.MagSquare(lv) > Vector3.Mag(r);
+                    return Vector3.MagSquare(lv) > Vector3.MagSquare(r);
                 }
                 else if (left is key lk)
                 {
@@ -1533,7 +1533,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     return new list(); // Don't even bother
 
                 object[] ret = new object[len];
-                Array.Copy(m_data, 0, ret, 0, len);
+                m_data.CopyTo(ret, 0);
 
                 if (stride < 1)
                     stride = 1;
@@ -1542,6 +1542,49 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     return new list(ret);
 
                 Sort(ret, stride, ascending);
+                return new list(ret);
+            }
+
+            public list Sort(int stride, int stride_index, bool ascending)
+            {
+                if (m_data is null)
+                    return new list(); // Don't even bother
+
+                int len = m_data.Length;
+                if (len == 0)
+                    return new list(); // Don't even bother
+
+                if (stride < 1)
+                    stride = 1;
+
+                if (stride_index < 0)
+                {
+                    stride_index = stride + stride_index;
+                    if (stride_index < 0)
+                        return new list();
+                }
+                else if (stride_index >= stride)
+                    return new list();
+
+                object[] ret = new object[len];
+                m_data.CopyTo(ret, 0);
+
+                if (len <= stride)
+                    return new list(ret);
+
+                if (stride == 1)
+                {
+                    Sort(ret, stride, ascending);
+                    return new list(ret);
+                }
+
+                if (len % stride == 0)
+                {
+                    if (stride_index == 0)
+                        Sort(ret, stride, ascending);
+                    else
+                        Sort(ret, stride, stride_index, ascending);
+                }
                 return new list(ret);
             }
 
@@ -1558,6 +1601,33 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     return;
 
                 Sort(m_data, stride, ascending);
+            }
+
+            public void SortInPlace(int stride, int stride_index, bool ascending)
+            {
+                if (m_data is null)
+                    return; // Don't even bother
+
+                if (stride < 1)
+                    stride = 1;
+
+                if (stride_index < 0)
+                {
+                    stride_index = stride + stride_index;
+                    if (stride_index < 0)
+                        return;
+                }
+                else if (stride_index >= stride)
+                    return;
+
+                int len = m_data.Length;
+                if ((len <= stride) || (len % stride) != 0)
+                    return;
+
+                if(stride_index == 0)
+                    Sort(m_data, stride, ascending);
+                else
+                    Sort(m_data, stride,stride_index, ascending);
             }
 
             public void Sort(object[] ret, int stride, bool ascending)
@@ -1595,7 +1665,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                                 for (int j = i + 1; j < ret.Length; ++j)
                                 {
                                     object tmp = ret[j];
-                                    if (tmp.GetType() == pivotType && needSwapAscending(pivot, tmp))
+                                    if (pivotType.Equals(tmp.GetType()) && needSwapAscending(pivot, tmp))
                                     {
                                         ret[j] = pivot;
                                         pivot = tmp;
@@ -1613,7 +1683,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                                 for (int j = i + 1; j < ret.Length; ++j)
                                 {
                                     object tmp = ret[j];
-                                    if (tmp.GetType() == pivotType && needSwapDescending(pivot, tmp))
+                                    if (pivotType.Equals(tmp.GetType()) && needSwapDescending(pivot, tmp))
                                     {
                                         ret[j] = pivot;
                                         pivot = tmp;
@@ -1684,6 +1754,64 @@ namespace OpenSim.Region.ScriptEngine.Shared
                             }
                         }
                         ret[i] = pivot;
+                    }
+                }
+            }
+
+            public void Sort(object[] ret, int stride, int stride_index, bool ascending)
+            {
+                if (ascending)
+                {
+                    for (int i = stride_index; i < ret.Length - stride; i += stride)
+                    {
+                        object pivot = ret[i];
+                        Type pivotType = pivot.GetType();
+                        for (int j = i + stride; j < ret.Length; j += stride)
+                        {
+                            object tmp = ret[j];
+                            if (pivotType.Equals(tmp.GetType()) && needSwapAscending(pivot, tmp))
+                            {
+                                pivot = tmp;
+                                int ik = i - stride_index;
+                                int end = ik + stride;
+                                int jk = j - stride_index;
+                                while (ik < end)
+                                {
+                                    tmp = ret[ik];
+                                    ret[ik] = ret[jk];
+                                    ret[jk] = tmp;
+                                    ++ik;
+                                    ++jk;
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    for (int i = stride_index; i < ret.Length - stride; i += stride)
+                    {
+                        object pivot = ret[i];
+                        Type pivotType = pivot.GetType();
+                        for (int j = i + stride; j < ret.Length; j += stride)
+                        {
+                            object tmp = ret[j];
+                            if (pivotType.Equals(tmp.GetType()) && needSwapDescending(pivot, tmp))
+                            {
+                                pivot = tmp;
+                                int ik = i - stride_index;
+                                int end = ik + stride;
+                                int jk = j - stride_index;
+                                while (ik < end)
+                                {
+                                    tmp = ret[ik];
+                                    ret[ik] = ret[jk];
+                                    ret[jk] = tmp;
+                                    ++ik;
+                                    ++jk;
+                                }
+                            }
+                        }
                     }
                 }
             }

@@ -1637,6 +1637,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void osListSortInPlaceStrided(LSL_List src, LSL_Integer stride, LSL_Integer stride_index, LSL_Integer ascending)
+        {
+            m_OSSL_Functions.osListSortInPlaceStrided(src, stride, stride_index, ascending);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public LSL_List osGetParcelDetails(LSL_Key id, LSL_List param)
         {
             return m_OSSL_Functions.osGetParcelDetails(id, param);

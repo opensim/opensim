@@ -1281,6 +1281,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_List llListSortStrided(LSL_List src, int stride, int stride_index, int ascending)
+        {
+            return m_LSL_Functions.llListSortStrided(src, stride, stride_index, ascending);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public LSL_Float llListStatistics(int operation, LSL_List src)
         {
             return m_LSL_Functions.llListStatistics(operation, src);

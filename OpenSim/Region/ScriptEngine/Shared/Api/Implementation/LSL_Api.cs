@@ -5407,6 +5407,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return src.Sort(stride, ascending == 1);
         }
 
+        public LSL_List llListSortStrided(LSL_List src, int stride, int stride_index, int ascending)
+        {
+            return src.Sort(stride, stride_index, ascending == 1);
+        }
+
         public LSL_Integer llGetListLength(LSL_List src)
         {
             return src.Length;

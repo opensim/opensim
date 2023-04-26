@@ -5997,6 +5997,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             src.SortInPlace(stride, ascending == 1);
         }
 
+        public void osListSortInPlaceStrided(LSL_List src, LSL_Integer stride, LSL_Integer stride_index, LSL_Integer ascending)
+        {
+            src.SortInPlace(stride, stride_index, ascending == 1);
+        }
+
         public LSL_List osGetParcelDetails(LSL_Key id, LSL_List param)
         {
             if (!UUID.TryParse(id, out UUID parcelID))

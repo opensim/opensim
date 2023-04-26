@@ -598,7 +598,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_Integer osAvatarType(LSL_Key avkey);
         LSL_Integer osAvatarType(LSL_String sFirstName, LSL_String sLastName);
         void osListSortInPlace(LSL_List src, LSL_Integer stride, LSL_Integer ascending);
-
+        void osListSortInPlaceStrided(LSL_List src, LSL_Integer stride, LSL_Integer stride_index, LSL_Integer ascending);
         LSL_List osGetParcelDetails(LSL_Key id, LSL_List param);
         public LSL_List osGetParcelIDs();
         public LSL_Key osGetParcelID();

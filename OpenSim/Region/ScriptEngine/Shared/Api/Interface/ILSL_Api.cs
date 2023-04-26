@@ -259,6 +259,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
           LSL_List llListRandomize(LSL_List src, int stride);
           LSL_List llListReplaceList(LSL_List dest, LSL_List src, int start, int end);
           LSL_List llListSort(LSL_List src, int stride, int ascending);
+          LSL_List llListSortStrided(LSL_List src, int stride, int stride_index, int ascending);
          LSL_Float llListStatistics(int operation, LSL_List src);
               void llLoadURL(string avatar_id, string message, string url);
          LSL_Float llLog(double val);
