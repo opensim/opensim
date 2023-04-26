@@ -600,7 +600,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void osListSortInPlace(LSL_List src, LSL_Integer stride, LSL_Integer ascending);
         void osListSortInPlaceStrided(LSL_List src, LSL_Integer stride, LSL_Integer stride_index, LSL_Integer ascending);
         LSL_List osGetParcelDetails(LSL_Key id, LSL_List param);
-        public LSL_List osGetParcelIDs();
-        public LSL_Key osGetParcelID();
+        LSL_List osGetParcelIDs();
+        LSL_Key osGetParcelID();
     }
 }
