@@ -1285,14 +1285,10 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 // longer relative to the end of the list.
 
                 if (start < 0)
-                {
-                    start = Data.Length + start;
-                }
+                    start += Data.Length;
 
                 if (end < 0)
-                {
-                    end = Data.Length + end;
-                }
+                    end += Data.Length;
 
                 // The conventional case is start <= end
                 // NOTE that the case of an empty list is
@@ -1306,21 +1302,15 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     // Start sublist beyond length
                     // Also deals with start AND end still negative
                     if (start >= Data.Length || end < 0)
-                    {
                         return new list();
-                    }
 
                     // Sublist extends beyond the end of the supplied list
                     if (end >= Data.Length)
-                    {
                         end = Data.Length - 1;
-                    }
 
                     // Sublist still starts before the beginning of the list
                     if (start < 0)
-                    {
                         start = 0;
-                    }
 
                     ret = new object[end - start + 1];
 
@@ -1559,7 +1549,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
                 if (stride_index < 0)
                 {
-                    stride_index = stride + stride_index;
+                    stride_index += stride;
                     if (stride_index < 0)
                         return new list();
                 }
@@ -1613,7 +1603,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
                 if (stride_index < 0)
                 {
-                    stride_index = stride + stride_index;
+                    stride_index += stride;
                     if (stride_index < 0)
                         return;
                 }

@@ -248,6 +248,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
            LSL_Key llList2Key(LSL_List src, int index);
           LSL_List llList2List(LSL_List src, int start, int end);
           LSL_List llList2ListStrided(LSL_List src, int start, int end, int stride);
+          LSL_List llList2ListSlice(LSL_List src, int start, int end, int stride, int stride_index);
       LSL_Rotation llList2Rot(LSL_List src, int index);
         LSL_String llList2String(LSL_List src, int index);
         LSL_Vector llList2Vector(LSL_List src, int index);

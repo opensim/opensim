@@ -5587,8 +5587,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llGetListEntryType(LSL_List src, int index)
         {
             if (index < 0)
+            {
                 index = src.Length + index;
-            if (index >= src.Length || index < 0)
+                if (index < 0)
+                    return 0;
+            }
+            else if (index >= src.Length)
                 return 0;
 
             object o = src.Data[index];
@@ -5597,16 +5601,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (o is LSL_Float || o is Single || o is Double)
                 return 2;
             if (o is LSL_String || o is String)
-            {
-                if (UUID.TryParse(o.ToString(), out UUID _))
-                {
-                    return 4;
-                }
-                else
-                {
-                    return 3;
-                }
-            }
+                return UUID.TryParse(o.ToString(), out UUID _) ? 4 : 3;
             if (o is LSL_Key)
                 return 4;
             if (o is LSL_Vector)
@@ -5849,6 +5844,70 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             return result;
+        }
+        public LSL_List llList2ListSlice(LSL_List src, int start, int end, int stride, int stride_index)
+        {
+            if (start < 0)
+            {
+                start += src.Length;
+                if (start < 0)
+                    start = 0;
+            }
+            if (end < 0)
+            {
+                end += src.Length;
+                if (end < 0)
+                    end = 0;
+            }
+            if (start > end)
+            {
+                start = 0;
+                end = src.Length - 1;
+            }
+            else
+            {
+                if (start >= src.Length)
+                    return new LSL_List();
+                if (end >= src.Length)
+                    end = src.Length - 1;
+            }
+            if (stride < 1)
+                stride = 1;
+            if (stride_index < 0)
+            {
+                stride_index += stride;
+                if (stride_index < 0)
+                    return new LSL_List();
+            }
+            else if (stride_index >= stride)
+                return new LSL_List();
+            int size;
+            if (stride > 1)
+            {
+                if (start > 0)
+                {
+                    int sst = start / stride;
+                    sst *= stride;
+                    if (sst != start)
+                        start = sst + stride;
+                    if (start > end)
+                        return new LSL_List();
+                }
+                start += stride_index;
+                size = end - start + 1;
+                int sz = size / stride;
+                if (sz * stride < size)
+                    sz++;
+                size = sz;
+            }
+            else
+                size = end - start + 1;
+            object[] res = new object[size];
+            int j = 0;
+            for (int i = start; i <= end; i += stride, j++)
+                res[j] = src.Data[i];
+            m_log.Debug($" test {size} {j}");
+            return new LSL_List(res);
         }
 
         public LSL_Integer llGetRegionAgentCount()
