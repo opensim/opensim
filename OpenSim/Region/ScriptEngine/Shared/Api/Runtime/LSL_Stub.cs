@@ -1215,6 +1215,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_List llList2ListSlice(LSL_List src, int start, int end, int stride, int stride_index)
+        {
+            return m_LSL_Functions.llList2ListSlice(src, start, end, stride, stride_index);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public LSL_Rotation llList2Rot(LSL_List src, int index)
         {
             return m_LSL_Functions.llList2Rot(src, index);

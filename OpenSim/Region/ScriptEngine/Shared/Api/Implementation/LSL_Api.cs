@@ -5906,7 +5906,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             int j = 0;
             for (int i = start; i <= end; i += stride, j++)
                 res[j] = src.Data[i];
-            m_log.Debug($" test {size} {j}");
+
+            //m_log.Debug($" test {size} {j}");
             return new LSL_List(res);
         }
 
