@@ -1658,5 +1658,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osGetParcelID();
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_List osOldList2ListStrided(LSL_List src, int start, int end, int stride)
+        {
+            return m_OSSL_Functions.osOldList2ListStrided(src, start, end, stride);
+        }
     }
 }

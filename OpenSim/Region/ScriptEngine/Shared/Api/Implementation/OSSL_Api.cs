@@ -6043,5 +6043,96 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ILandObject parcel = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
             return parcel is null ? ScriptBaseClass.NULL_KEY : new LSL_Key(parcel.GlobalID.ToString());
         }
+
+        // old List2ListStrided for compatibility
+        /// <summary>
+        /// Elements in the source list starting with 0 and then
+        /// every i+stride. If the stride is negative then the scan
+        /// Only those elements that are also in the specified
+        /// range are included in the result.
+        /// </summary>
+
+        public LSL_List osOldList2ListStrided(LSL_List src, int start, int end, int stride)
+        {
+            LSL_List result = new();
+            int[] si = new int[2];
+            int[] ei = new int[2];
+            bool twopass = false;
+
+            //  First step is always to deal with negative indices
+
+            if (start < 0)
+                start += src.Length;
+            if (end   < 0)
+                end += src.Length;
+
+            //  Out of bounds indices are OK, just trim them
+            //  accordingly
+
+            if (start > src.Length)
+                start = src.Length;
+
+            if (end > src.Length)
+                end = src.Length;
+
+            if (stride == 0)
+                stride = 1;
+
+            //  There may be one or two ranges to be considered
+
+            if (start != end)
+            {
+                if (start <= end)
+                {
+                   si[0] = start;
+                   ei[0] = end;
+                }
+                else
+                {
+                   si[1] = start;
+                   ei[1] = src.Length;
+                   si[0] = 0;
+                   ei[0] = end;
+                   twopass = true;
+                }
+
+                //  The scan always starts from the beginning of the
+                //  source list, but members are only selected if they
+                //  fall within the specified sub-range. The specified
+                //  range values are inclusive.
+                //  A negative stride reverses the direction of the
+                //  scan producing an inverted list as a result.
+
+                if (stride > 0)
+                {
+                    for (int i = 0; i < src.Length; i += stride)
+                    {
+                        if (i<=ei[0] && i>=si[0])
+                            result.Add(src.Data[i]);
+                        if (twopass && i>=si[1] && i<=ei[1])
+                            result.Add(src.Data[i]);
+                    }
+                }
+                else if (stride < 0)
+                {
+                    for (int i = src.Length - 1; i >= 0; i += stride)
+                    {
+                        if (i <= ei[0] && i >= si[0])
+                            result.Add(src.Data[i]);
+                        if (twopass && i >= si[1] && i <= ei[1])
+                            result.Add(src.Data[i]);
+                    }
+                }
+            }
+            else
+            {
+                if (start%stride == 0)
+                {
+                    result.Add(src.Data[start]);
+                }
+            }
+
+            return result;
+        }
     }
 }

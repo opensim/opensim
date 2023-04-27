@@ -602,5 +602,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_List osGetParcelDetails(LSL_Key id, LSL_List param);
         LSL_List osGetParcelIDs();
         LSL_Key osGetParcelID();
+        LSL_List osOldList2ListStrided(LSL_List src, int start, int end, int stride);
     }
 }
