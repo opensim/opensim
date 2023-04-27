@@ -5753,6 +5753,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return result;
         }
 
+        /* old incompatible code
         /// <summary>
         /// Elements in the source list starting with 0 and then
         /// every i+stride. If the stride is negative then the scan
@@ -5845,6 +5846,69 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             return result;
         }
+        */
+
+        public LSL_List llList2ListStrided(LSL_List src, int start, int end, int stride)
+        {
+            if (start < 0)
+            {
+                start += src.Length;
+                if (start < 0)
+                    start = 0;
+            }
+            if (end < 0)
+            {
+                end += src.Length;
+                if (end < 0)
+                    end = 0;
+            }
+
+            if (start > end)
+            {
+                start = 0;
+                end = src.Length - 1;
+            }
+            else
+            {
+                if (start >= src.Length)
+                    return new LSL_List();
+                if (end >= src.Length)
+                    end = src.Length - 1;
+            }
+
+            if (stride < 1)
+                stride = 1;
+
+            int size;
+            if (stride > 1)
+            {
+                if (start > 0)
+                {
+                    int sst = start / stride;
+                    sst *= stride;
+                    if (sst != start)
+                        start = sst + stride;
+
+                    if (start > end)
+                        return new LSL_List();
+                }
+                size = end - start + 1;
+                int sz = size / stride;
+                if (sz * stride < size)
+                    sz++;
+                size = sz;
+            }
+            else
+                size = end - start + 1;
+
+            object[] res = new object[size];
+            int j = 0;
+            for (int i = start; i <= end; i += stride, j++)
+                res[j] = src.Data[i];
+
+            return new LSL_List(res);
+        }
+
         public LSL_List llList2ListSlice(LSL_List src, int start, int end, int stride, int stride_index)
         {
             if (start < 0)
