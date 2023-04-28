@@ -4368,119 +4368,18 @@ namespace OpenSim.Framework
             bw.Close();
             fs.Close();
         }
-    }
 
-    /*  don't like this code
-        public class DoubleQueue<T> where T:class
+        //https://www.color.org/sRGB.pdf
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float LinearTosRGB(float linear)
         {
-            private Queue<T> m_lowQueue = new Queue<T>();
-            private Queue<T> m_highQueue = new Queue<T>();
-
-            private object m_syncRoot = new object();
-            private Semaphore m_s = new Semaphore(0, 1);
-
-            public DoubleQueue()
-            {
-            }
-
-            public virtual int Count
-            {
-                get
-                {
-                    lock (m_syncRoot)
-                        return m_highQueue.Count + m_lowQueue.Count;
-                }
-            }
-
-            public virtual void Enqueue(T data)
-            {
-                Enqueue(m_lowQueue, data);
-            }
-
-            public virtual void EnqueueLow(T data)
-            {
-                Enqueue(m_lowQueue, data);
-            }
-
-            public virtual void EnqueueHigh(T data)
-            {
-                Enqueue(m_highQueue, data);
-            }
-
-            private void Enqueue(Queue<T> q, T data)
-            {
-                lock (m_syncRoot)
-                {
-                    q.Enqueue(data);
-                    m_s.WaitOne(0);
-                    m_s.Release();
-                }
-            }
-
-            public virtual T Dequeue()
-            {
-                return Dequeue(Timeout.Infinite);
-            }
-
-            public virtual T Dequeue(int tmo)
-            {
-                return Dequeue(TimeSpan.FromMilliseconds(tmo));
-            }
-
-            public virtual T Dequeue(TimeSpan wait)
-            {
-                T res = null;
-
-                if (!Dequeue(wait, ref res))
-                    return null;
-
-                return res;
-            }
-
-            public bool Dequeue(int timeout, ref T res)
-            {
-                return Dequeue(TimeSpan.FromMilliseconds(timeout), ref res);
-            }
-
-            public bool Dequeue(TimeSpan wait, ref T res)
-            {
-                if (!m_s.WaitOne(wait))
-                    return false;
-
-                lock (m_syncRoot)
-                {
-                    if (m_highQueue.Count > 0)
-                        res = m_highQueue.Dequeue();
-                    else if (m_lowQueue.Count > 0)
-                        res = m_lowQueue.Dequeue();
-
-                    if (m_highQueue.Count == 0 && m_lowQueue.Count == 0)
-                        return true;
-
-                    try
-                    {
-                        m_s.Release();
-                    }
-                    catch
-                    {
-                    }
-
-                    return true;
-                }
-            }
-
-            public virtual void Clear()
-            {
-
-                lock (m_syncRoot)
-                {
-                    // Make sure sem count is 0
-                    m_s.WaitOne(0);
-
-                    m_lowQueue.Clear();
-                    m_highQueue.Clear();
-                }
-            }
+            return linear <= 0.0031308f ? (linear * 12.92f) : (1.055f * MathF.Pow(linear, 0.4166667f) - 0.055f);
         }
-    */
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float sRGBtoLinear(float rgb)
+        {
+            return (rgb  < 0.04045f) ? rgb * 0.07739938f :  MathF.Pow((rgb + 0.055f) / 1.055f, 2.4f);
+        }
+    }
 }

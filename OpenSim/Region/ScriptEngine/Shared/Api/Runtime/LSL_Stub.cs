@@ -2682,5 +2682,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             m_LSL_Functions.llLinkSetSoundRadius(linknumber, radius);
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_Vector llLinear2sRGB(LSL_Vector src)
+        {
+            return m_LSL_Functions.llLinear2sRGB(src);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_Vector llsRGB2Linear(LSL_Vector src)
+        {
+            return m_LSL_Functions.llsRGB2Linear(src);
+        }
     }
 }

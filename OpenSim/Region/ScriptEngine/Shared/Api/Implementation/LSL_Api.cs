@@ -18281,6 +18281,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return src;
             }
         }
+
+        public LSL_Vector llLinear2sRGB(LSL_Vector src)
+        {
+            return new LSL_Vector(Util.LinearTosRGB((float)src.x), Util.LinearTosRGB((float)src.y), Util.LinearTosRGB((float)src.z));
+        }
+
+        public LSL_Vector llsRGB2Linear(LSL_Vector src)
+        {
+            return new LSL_Vector(Util.sRGBtoLinear((float)src.x), Util.sRGBtoLinear((float)src.y), Util.sRGBtoLinear((float)src.z));
+        }
+
     }
 
     public class NotecardCache
