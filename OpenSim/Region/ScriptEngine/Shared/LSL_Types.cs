@@ -824,32 +824,35 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
                     foreach (object o in m_data)
                     {
-                        if (o is LSL_Types.LSLInteger)
-                            size += 4;
-                        else if (o is LSL_Types.LSLFloat)
-                            size += 8;
-                        else if (o is LSL_Types.LSLString lso)
-                            size += lso.m_string is null ? 0 : lso.m_string.Length * sizeof(char);
-                        else if (o is LSL_Types.key ko)
-                            size += ko.value.Length;
-                        else if (o is LSL_Types.Vector3)
-                            size += 32;
-                        else if (o is LSL_Types.Quaternion)
-                            size += 64;
-                        else if (o is int)
-                            size += 4;
-                        else if (o is uint)
-                            size += 4;
-                        else if (o is string so)
-                            size += so.Length * sizeof(char);
-                        else if (o is float)
-                            size += 8;
-                        else if (o is double)
-                            size += 16;
-                        else if (o is list lo)
-                            size += lo.Size;
-                        else
-                            throw new Exception("Unknown type in List.Size: " + o.GetType().ToString());
+                       // here modern sugar alternatives with switch or switch statement generate crap code on dotnet6
+                       if (o is null) // this explicit test does improve release jit code, otherwise it is present on ALL its
+                           throw new Exception("null entry in List.Size");
+                       else if (o is LSL_Types.LSLInteger)
+                           size += sizeof(int);
+                       else if (o is LSL_Types.LSLFloat)
+                           size += sizeof(double);
+                       else if (o is LSL_Types.LSLString lso)
+                           size += lso.m_string is null ? 0 : lso.m_string.Length * sizeof(char);
+                       else if (o is LSL_Types.key ko)
+                           size += ko.value.Length;
+                       else if (o is LSL_Types.Vector3)
+                           size += 3 * sizeof(double);
+                       else if (o is LSL_Types.Quaternion)
+                           size += 4 * sizeof(double);
+                       else if (o is int)
+                           size += sizeof(int);
+                       else if (o is uint)
+                           size += sizeof(uint);
+                       else if (o is string so)
+                           size += so.Length * sizeof(char);
+                       else if (o is float)
+                           size += sizeof(float);
+                       else if (o is double)
+                           size += sizeof(double);
+                       else if (o is list lo)
+                           size += lo.Size;
+                       else
+                           throw new Exception("Unknown type in List.Size: " + o.GetType().ToString());
                     }
                     return size;
                 }
@@ -1133,6 +1136,22 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 m_data = tmp;
             }
 
+            public object this[int i]
+            {
+                get
+                {
+                    if(m_data is null || i >= m_data.Length)
+                        return null;
+                    return m_data[i];
+                }
+                set
+                {
+                    if (m_data is null || i >= m_data.Length)
+                        return;
+                    m_data[i] = value;
+                }
+            }
+
             public static implicit operator Boolean(list l)
             {
                 return l.Length != 0;
@@ -1358,6 +1377,9 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             private static int compare(object left, object right, bool ascending)
             {
+                if(left is null)
+                    return 0;
+
                 if (!left.GetType().Equals(right.GetType()))
                 {
                     // unequal types are always "equal" for comparison purposes.
@@ -1415,6 +1437,9 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
                 public int Compare(object left, object right)
                 {
+                    if (left is null)
+                        return 0;
+
                     int ret;
                     if (left is LSLInteger il)
                     {
@@ -1455,27 +1480,30 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             private static bool needSwapAscending(object left, object right)
             {
+                if (left is null)
+                    return false;
+
                 if (left is LSLInteger li)
                 {
                     LSLInteger r = (LSLInteger)right;
                     return li.value > r.value;
                 }
-                else if (left is LSLString lsl)
+                if (left is LSLString lsl)
                 {
                     LSLString r = (LSLString)right;
                     return string.CompareOrdinal(lsl.m_string, r.m_string) > 0;
                 }
-                else if (left is LSLFloat lf)
+                if (left is LSLFloat lf)
                 {
                     LSLFloat r = (LSLFloat)right;
                     return lf.value > r.value;
                 }
-                else if (left is Vector3 lv)
+                if (left is Vector3 lv)
                 {
                     Vector3 r = (Vector3)right;
                     return Vector3.MagSquare(lv) > Vector3.MagSquare(r);
                 }
-                else if (left is key lk)
+                if (left is key lk)
                 {
                     key r = (key)right;
                     return string.CompareOrdinal(lk.value, r.value) > 0;
@@ -1485,27 +1513,30 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             private static bool needSwapDescending(object left, object right)
             {
+                if (left is null)
+                    return false;
+
                 if (left is LSLInteger li)
                 {
                     LSLInteger r = (LSLInteger)right;
                     return li.value < r.value;
                 }
-                else if (left is LSLString lsl)
+                if (left is LSLString lsl)
                 {
                     LSLString r = (LSLString)right;
                     return string.CompareOrdinal(lsl.m_string, r.m_string) < 0;
                 }
-                else if (left is LSLFloat lf)
+                if (left is LSLFloat lf)
                 {
                     LSLFloat r = (LSLFloat)right;
                     return lf.value < r.value;
                 }
-                else if (left is Vector3 lv)
+                if (left is Vector3 lv)
                 {
                     Vector3 r = (Vector3)right;
                     return Vector3.MagSquare(lv) < Vector3.MagSquare(r);
                 }
-                else if (left is key lk)
+                if (left is key lk)
                 {
                     key r = (key)right;
                     return string.CompareOrdinal(lk.value, r.value) < 0;

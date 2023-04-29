@@ -1263,6 +1263,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_Integer llListFindStrided(LSL_List src, LSL_List test, LSL_Integer lstart, LSL_Integer lend, LSL_Integer lstride)
+        {
+            return m_LSL_Functions.llListFindStrided(src, test, lstart, lend, lstride);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public LSL_List llListInsertList(LSL_List dest, LSL_List src, int start)
         {
             return m_LSL_Functions.llListInsertList(dest, src, start);

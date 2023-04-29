@@ -5596,6 +5596,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return 0;
 
             object o = src.Data[index];
+            if (o is null)
+                return 0;
             if (o is LSL_Integer || o is Int32)
                 return 1;
             if (o is LSL_Float || o is Single || o is Double)
@@ -5611,8 +5613,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (o is LSL_List)
                 return 7;
             return 0;
-
         }
+
 
         /// <summary>
         /// Process the supplied list and return the
@@ -6021,6 +6023,105 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         }
 
+        private bool ListFind_areEqual(object l, object r)
+        {
+            if (l is null || r is null)
+                return false;
+
+            if (l is LSL_Integer lli)
+            {
+                if (r is LSL_Integer rli)
+                    return lli.value == rli.value;
+                if (r is int ri)
+                    return lli.value == ri;
+                return false;
+            }
+
+            if (l is int li)
+            {
+                if (r is LSL_Integer rli)
+                    return li == rli.value;
+                if (r is int ri)
+                    return li == ri;
+                return false;
+            }
+
+            if (l is LSL_Float llf)
+            {
+                if (r is LSL_Float rlf)
+                    return llf.value == rlf.value;
+                if (r is float rf)
+                    return llf.value == (double)rf;
+                if (r is double rd)
+                    return llf.value == rd;
+                return false;
+            }
+            if (l is double ld)
+            {
+                if (r is LSL_Float rlf)
+                    return ld == rlf.value;
+                if (r is float rf)
+                    return ld == (double)rf;
+                if (r is double rd)
+                    return ld == rd;
+                return false;
+            }
+            if (l is float lf)
+            {
+                if (r is LSL_Float rlf)
+                    return lf == (float)rlf.value;
+                if (r is float rf)
+                    return lf == rf;
+                if (r is double rd)
+                    return lf == (float)rd;
+                return false;
+            }
+
+            if (l is LSL_String lls)
+            {
+                if (r is LSL_String rls)
+                    return lls.m_string.Equals(rls.m_string, StringComparison.Ordinal);
+                if (r is string rs)
+                    return lls.m_string.Equals(rs, StringComparison.Ordinal);
+                return false;
+            }
+
+            if (l is string ls)
+            {
+                if (r is LSL_String rls)
+                    return ls.Equals(rls.m_string, StringComparison.Ordinal);
+                if (r is string rs)
+                    return ls.Equals(rs, StringComparison.Ordinal);
+                if (r is LSL_Key rlk)
+                    return ls.Equals(rlk.m_string, StringComparison.OrdinalIgnoreCase);
+                return false;
+            }
+
+            if(l is LSL_Key llk)
+            {
+                if (r is LSL_Key rlk)
+                    return llk.m_string.Equals(rlk.m_string, StringComparison.OrdinalIgnoreCase);
+                if (r is string rk)
+                    return llk.m_string.Equals(rk, StringComparison.OrdinalIgnoreCase);
+            }
+
+            if (l is LSL_Vector llv)
+            {
+                if(r is LSL_Vector rlv)
+                    return llv.Equals(rlv);
+                return false;
+            }
+
+            if (l is LSL_Rotation llr)
+            {
+                if(r is LSL_Rotation rlr)
+                    return llr.Equals(rlr);
+                return false;
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// Returns the index of the first occurrence of test
         /// in src.
@@ -6033,45 +6134,89 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </returns>
         public LSL_Integer llListFindList(LSL_List src, LSL_List test)
         {
-            int index  = -1;
-            int length = src.Length - test.Length + 1;
+            if (src.Length == 0)
+                return -1;
+            if (test.Length == 0)
+                return 0;
+            if (test.Length > src.Length)
+                return -1;
 
-
-            // If either list is empty, do not match
-            if (src.Length != 0 && test.Length != 0)
+            object test0 = test[0];
+            for (int i = 0; i <= src.Length - test.Length; i++)
             {
-                for (int i = 0; i < length; i++)
+                if (ListFind_areEqual(test0, src[i]))
                 {
-                    int needle = llGetListEntryType(test, 0).value;
-                    int haystack = llGetListEntryType(src, i).value;
-
-                    // Why this piece of insanity?  This is because most script constants are C# value types (e.g. int)
-                    // rather than wrapped LSL types.  Such a script constant does not have int.Equal(LSL_Integer) code
-                    // and so the comparison fails even if the LSL_Integer conceptually has the same value.
-                    // Therefore, here we test Equals on both the source and destination objects.
-                    // However, a future better approach may be use LSL struct script constants (e.g. LSL_Integer(1)).
-                    if ((needle == haystack) && (src.Data[i].Equals(test.Data[0]) || test.Data[0].Equals(src.Data[i])))
+                    int k = i + 1;
+                    int j = 1;
+                    while(j < test.Length)
                     {
-                        int j;
-                        for (j = 1; j < test.Length; j++)
-                        {
-                            needle = llGetListEntryType(test, j).value;
-                            haystack = llGetListEntryType(src, i+j).value;
-
-                            if ((needle != haystack) || (!(src.Data[i+j].Equals(test.Data[j]) || test.Data[j].Equals(src.Data[i+j]))))
-                                break;
-                        }
-
-                        if (j == test.Length)
-                        {
-                            index = i;
+                        if (!ListFind_areEqual(test[j], src[k]))
                             break;
-                        }
+                        ++j;
+                        ++k;
                     }
+
+                    if (j == test.Length)
+                        return i;
+                 }
+            }
+            return -1;
+        }
+
+        public LSL_Integer llListFindStrided(LSL_List src, LSL_List test, LSL_Integer lstart, LSL_Integer lend, LSL_Integer lstride)
+        {
+            if (src.Length == 0)
+                return -1;
+            if (test.Length == 0)
+                return 0;
+            if (test.Length > src.Length)
+                return -1;
+
+            int start = lstart.value;
+            if (start < 0)
+            {
+                start += src.Length;
+                if (start < 0)
+                    return -1;
+            }
+            else if (start >= src.Length)
+                return -1;
+
+            int end = lend.value;
+            if (end < 0)
+            {
+                end += src.Length;
+                if (end < 0)
+                    return -1;
+                end -= test.Length - 1;
+            }
+            else if (end >= src.Length)
+                end = src.Length - test.Length;
+
+            int stride = lstride.value;
+            if (stride < 1)
+                stride = 1;
+
+            object test0 = test[0];
+            for (int i = start; i <= end; i += stride)
+            {
+                if (ListFind_areEqual(test0, src[i]))
+                {
+                    int k = i + 1;
+                    int j = 1;
+                    while (j < test.Length)
+                    {
+                        if (!ListFind_areEqual(test[j], src[k]))
+                            break;
+                        ++j;
+                        ++k;
+                    }
+
+                    if (j == test.Length)
+                        return i;
                 }
             }
-
-            return index;
+            return -1;
         }
 
         public LSL_String llGetObjectName()
