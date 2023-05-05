@@ -1413,6 +1413,31 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return drawList;
         }
 
+        public string osSetPenColor(string drawList, LSL_Types.Vector3 color)
+        {
+            CheckThreatLevel();
+
+            return osSetPenColor(drawList, color, (LSL_Float)1.0);
+        }
+
+        public string osSetPenColor(string drawList, LSL_Types.Vector3 color, LSL_Float alpha)
+        {
+            CheckThreatLevel()  ;
+
+            int argbA = (int) (Util.Clamp ((float)alpha,   0f, 1f) * 255f);
+            int argbR = (int) (Util.Clamp ((float)color.x, 0f, 1f) * 255f);
+            int argbG = (int) (Util.Clamp ((float)color.y, 0f, 1f) * 255f);
+            int argbB = (int) (Util.Clamp ((float)color.z, 0f, 1f) * 255f);
+            
+            StringBuilder hexColorBuilder = new StringBuilder();
+            hexColorBuilder.Append(argbA.ToString("X2"));
+            hexColorBuilder.Append(argbR.ToString("X2"));
+            hexColorBuilder.Append(argbG.ToString("X2"));
+            hexColorBuilder.Append(argbB.ToString("X2"));
+
+            return osSetPenColor(drawList, hexColorBuilder.ToString());
+        }
+
         // Deprecated
         public string osSetPenColour(string drawList, string colour)
         {

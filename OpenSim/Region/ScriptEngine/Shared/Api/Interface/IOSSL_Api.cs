@@ -243,6 +243,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         string osSetFontSize(string drawList, int fontSize);
         string osSetPenSize(string drawList, int penSize);
         string osSetPenColor(string drawList, string color);
+        string osSetPenColor(string drawList, LSL_Types.Vector3 color);
+        string osSetPenColor(string drawList, LSL_Types.Vector3 color, LSL_Float alpha);
         string osSetPenColour(string drawList, string colour); // Deprecated
         string osSetPenCap(string drawList, string direction, string type);
         string osDrawImage(string drawList, int width, int height, string imageUrl);

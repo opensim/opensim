@@ -515,6 +515,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osSetPenColor(drawList, color);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public string osSetPenColor(string drawList, vector color)
+        {
+            return m_OSSL_Functions.osSetPenColor(drawList, color);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public string osSetPenColor(string drawList, vector color, float alpha)
+        {
+            return m_OSSL_Functions.osSetPenColor(drawList, color, alpha);
+        }
+
         // Deprecated
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public string osSetPenColour(string drawList, string colour)

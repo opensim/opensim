@@ -1,4 +1,4 @@
-57bbb7d8-30e5-4fef-1b11-f073f30740d0
+08743d8a-ea46-11ed-ac8d-406c8fbbb495
 <llsd><map><key>llsd-lsl-syntax-version</key><integer>2</integer>
 <key>controls</key>
 <map>
@@ -8039,6 +8039,23 @@
   <key>arguments</key><array>
    <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
    <map><key>color</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
+  <key>osSetPenColor</key>
+ <map>
+  <key>return</key><string>string</string>
+  <key>arguments</key><array>
+   <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
+   <map><key>color</key><map><key>type</key><string>vector</string></map></map>
+  </array>
+ </map>
+ <key>osSetPenColor</key>
+ <map>
+  <key>return</key><string>string</string>
+  <key>arguments</key><array>
+   <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
+   <map><key>color</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>alpha</key><map><key>type</key><string>float</string></map></map>
   </array>
  </map>
  <key>osSetPenColour</key>
