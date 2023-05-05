@@ -5436,6 +5436,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 if (item is LSL_Integer LSL_Integeritem)
                     return LSL_Integeritem;
+                if (item is int LSL_Intitem)
+                    return new LSL_Integer(LSL_Intitem);
                 if (item is LSL_Float LSL_Floatitem)
                     return new LSL_Integer(LSL_Floatitem.value);
                 return new LSL_Integer(item.ToString());
@@ -5461,11 +5463,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return 0;
 
             // valid keys seem to get parsed as integers then converted to floats
-            if (item is LSL_Key)
+            if (item is LSL_Key lslk)
             {
-                string s = item.ToString();
-                if(UUID.TryParse(s, out UUID _))
-                    return Convert.ToDouble(new LSL_Integer(s).value);
+                if(UUID.TryParse(lslk.m_string, out UUID _))
+                    return Convert.ToDouble(new LSL_Integer(lslk.m_string).value);
                 // we can't do this because a string is also a LSL_Key for now :(
                 //else
                 //   return 0;
@@ -5473,10 +5474,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             try
             {
-                if (item is LSL_Integer intitem)
-                    return new LSL_Float(intitem.value);
                 if (item is LSL_Float floatitem)
                     return floatitem;
+                if (item is LSL_Integer intitem)
+                    return new LSL_Float(intitem.value);
+                if (item is int LSL_Intitem)
+                    return new LSL_Float(LSL_Intitem);
                 if (item is LSL_String lstringitem)
                 {
                     Match m = Regex.Match(lstringitem.m_string, "^\\s*(-?\\+?[,0-9]+\\.?[0-9]*)");

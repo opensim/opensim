@@ -1417,25 +1417,48 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel();
 
-            return osSetPenColor(drawList, color, (LSL_Float)1.0);
+            byte argbR = Utils.FloatZeroOneToByte((float)color.x);
+            byte argbG = Utils.FloatZeroOneToByte((float)color.y);
+            byte argbB = Utils.FloatZeroOneToByte((float)color.z);
+
+            StringBuilder sb = new(19);
+            sb.Append("PenColor FF");
+            sb.Append(Utils.charHighNibbleToHexChar(argbR));
+            sb.Append(Utils.charLowNibbleToHexChar(argbR));
+            sb.Append(Utils.charHighNibbleToHexChar(argbG));
+            sb.Append(Utils.charLowNibbleToHexChar(argbG));
+            sb.Append(Utils.charHighNibbleToHexChar(argbB));
+            sb.Append(Utils.charLowNibbleToHexChar(argbB));
+            sb.Append("; ");
+
+            drawList += sb.ToString();
+            return drawList;
         }
 
         public string osSetPenColor(string drawList, LSL_Types.Vector3 color, LSL_Float alpha)
         {
-            CheckThreatLevel()  ;
+            CheckThreatLevel();
 
-            int argbA = (int) (Util.Clamp ((float)alpha,   0f, 1f) * 255f);
-            int argbR = (int) (Util.Clamp ((float)color.x, 0f, 1f) * 255f);
-            int argbG = (int) (Util.Clamp ((float)color.y, 0f, 1f) * 255f);
-            int argbB = (int) (Util.Clamp ((float)color.z, 0f, 1f) * 255f);
-            
-            StringBuilder hexColorBuilder = new StringBuilder();
-            hexColorBuilder.Append(argbA.ToString("X2"));
-            hexColorBuilder.Append(argbR.ToString("X2"));
-            hexColorBuilder.Append(argbG.ToString("X2"));
-            hexColorBuilder.Append(argbB.ToString("X2"));
+            byte argbA = Utils.FloatZeroOneToByte((float)alpha);
+            byte argbR = Utils.FloatZeroOneToByte((float)color.x);
+            byte argbG = Utils.FloatZeroOneToByte((float)color.y);
+            byte argbB = Utils.FloatZeroOneToByte((float)color.z);
 
-            return osSetPenColor(drawList, hexColorBuilder.ToString());
+            StringBuilder sb = new(19);
+            sb.Append("PenColor ");
+            sb.Append(Utils.charHighNibbleToHexChar(argbA));
+            sb.Append(Utils.charLowNibbleToHexChar(argbA));
+            sb.Append(Utils.charHighNibbleToHexChar(argbR));
+            sb.Append(Utils.charLowNibbleToHexChar(argbR));
+            sb.Append(Utils.charHighNibbleToHexChar(argbG));
+            sb.Append(Utils.charLowNibbleToHexChar(argbG));
+            sb.Append(Utils.charHighNibbleToHexChar(argbB));
+            sb.Append(Utils.charLowNibbleToHexChar(argbB));
+            sb.Append(';');
+            sb.Append(' ');
+
+            drawList += sb.ToString();
+            return drawList;
         }
 
         // Deprecated
