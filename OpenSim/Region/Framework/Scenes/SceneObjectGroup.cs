@@ -3423,6 +3423,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (linkPartPa is not null)
             {
                 m_scene.PhysicsScene.RemovePrim(linkPartPa);
+                m_scene.RemovePhysicalPrim(1);
                 linkPart.PhysActor = null;
             }
 
