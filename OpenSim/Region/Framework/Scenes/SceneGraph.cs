@@ -83,7 +83,6 @@ namespace OpenSim.Region.Framework.Scenes
         private int m_numChildAgents = 0;
         private int m_numRootNPC = 0;
 
-        private int m_numTotalPrim = 0;
         private int m_numPrim = 0;
         private int m_numMesh = 0;
         private int m_physicalPrim = 0;
@@ -439,19 +438,18 @@ namespace OpenSim.Region.Framework.Scenes
                 return false;
             }
 
-//            m_log.DebugFormat(
-//                "[SCENEGRAPH]: Adding scene object {0} {1}, with {2} parts on {3}",
-//                sceneObject.Name, sceneObject.UUID, sceneObject.Parts.Length, m_parentScene.RegionInfo.RegionName);
+            //m_log.DebugFormat(
+            //    "[SCENEGRAPH]: Adding scene object {0} {1}, with {2} parts on {3}",
+            //    sceneObject.Name, sceneObject.UUID, sceneObject.Parts.Length, m_parentScene.RegionInfo.RegionName);
 
-            SceneObjectPart[] parts = sceneObject.Parts;
-            int partsLength = parts.Length;
+            ReadOnlySpan<SceneObjectPart> parts = sceneObject.Parts.AsSpan();
             SceneObjectPart part;
 
             // Clamp the sizes (scales) of the child prims and add the child prims to the count of all primitives
             // (meshes and geometric primitives) in the scene; add child prims to m_numTotalPrim count
             if (m_parentScene.m_clampPrimSize)
             {
-                for (int i = 0; i< partsLength; ++i)
+                for (int i = 0; i < parts.Length; ++i)
                 {
                     part = parts[i];
                     Vector3 scale = part.Shape.Scale;
@@ -476,19 +474,20 @@ namespace OpenSim.Region.Framework.Scenes
                     entered = true;
                 }
 
-                m_numTotalPrim += partsLength;
-
                 Entities.Add(sceneObject);
                 m_scenePartsArray = null;
-                for (int i = 0; i < partsLength; ++i)
+                for (int i = 0; i < parts.Length; ++i)
                 {
                     part = parts[i];
-                    m_scenePartsByID[part.UUID] = part;
-                    m_scenePartsByLocalID[part.LocalId] = part;
-                    if (part.GetPrimType() == PrimType.SCULPT)
-                        ++m_numMesh;
-                    else
-                        ++m_numPrim;
+                    if (!m_scenePartsByID.ContainsKey(part.UUID))
+                    {
+                        m_scenePartsByID[part.UUID] = part;
+                        m_scenePartsByLocalID[part.LocalId] = part;
+                        if (part.GetPrimType() == PrimType.SCULPT)
+                            ++m_numMesh;
+                        else
+                            ++m_numPrim;
+                    }
                 }
             }
             finally
@@ -525,10 +524,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (!resultOfObjectLinked)
             {
-                // Decrement the total number of primitives (meshes and geometric primitives)
-                // that are part of the Scene Object being removed
-                m_numTotalPrim -= grp.PrimCount;
-
                 bool isPh = (grp.RootPart.Flags & PrimFlags.Physics) == PrimFlags.Physics;
                 int nphysparts = 0;
                 
@@ -838,7 +833,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public int GetTotalObjectsCount()
         {
-            return m_numTotalPrim;
+            return m_scenePartsByID.Count;
         }
 
         public int GetTotalPrimObjectsCount()
@@ -2131,17 +2126,15 @@ namespace OpenSim.Region.Framework.Scenes
                     copy.RootPart.Rezzed = DateTime.UtcNow;
                     copy.RootPart.RezzerID = AgentID;
 
-                    SceneObjectPart[] parts = copy.Parts;
+                    ReadOnlySpan<SceneObjectPart> parts = copy.Parts.AsSpan();
 
-                    m_numTotalPrim += parts.Length;
-
-                    if (original.OwnerID != AgentID)
+                    if (original.OwnerID.NotEqual(AgentID))
                     {
                         copy.SetOwner(AgentID, GroupID);
 
                         if (m_parentScene.Permissions.PropagatePermissions())
                         {
-                            foreach (SceneObjectPart child in parts.AsSpan())
+                            foreach (SceneObjectPart child in parts)
                             {
                                 child.Inventory.ChangeInventoryOwner(AgentID);
                                 child.TriggerScriptChangedEvent(Changed.OWNER);
@@ -2163,15 +2156,19 @@ namespace OpenSim.Region.Framework.Scenes
 
                         Entities.Add(copy);
                         m_scenePartsArray = null;
-                        foreach (SceneObjectPart part in parts.AsSpan())
+                        foreach (SceneObjectPart part in parts)
                         {
-                            if (part.GetPrimType() == PrimType.SCULPT)
-                                m_numMesh++;
-                            else
-                                m_numPrim++;
+                            if (!m_scenePartsByID.ContainsKey(part.UUID))
+                            {
 
-                            m_scenePartsByID[part.UUID] = part;
-                            m_scenePartsByLocalID[part.LocalId] = part;
+                                if (part.GetPrimType() == PrimType.SCULPT)
+                                    m_numMesh++;
+                                else
+                                    m_numPrim++;
+
+                                m_scenePartsByID[part.UUID] = part;
+                                m_scenePartsByLocalID[part.LocalId] = part;
+                            }
                         }
                     }
                     finally
