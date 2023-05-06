@@ -13814,6 +13814,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return Convert.ToBase64String(data1);
         }
 
+        static Regex llHTTPRequestRegex = new(@"^(https?:\/\/)(\w+):(\w+)@(.*)$", RegexOptions.Compiled);
+
         public LSL_Key llHTTPRequest(string url, LSL_List parameters, string body)
         {
             IHttpRequestModule httpScriptMod = m_ScriptEngine.World.RequestModuleInterface<IHttpRequestModule>();
@@ -13823,40 +13825,48 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if(!httpScriptMod.CheckThrottle(m_host.LocalId, m_host.OwnerID))
                 return ScriptBaseClass.NULL_KEY;
 
-            try
-            {
-                Uri m_checkuri = new(url);
-                if (m_checkuri.Scheme != Uri.UriSchemeHttp && m_checkuri.Scheme != Uri.UriSchemeHttps)
-                {
-                    Error("llHTTPRequest", "Invalid url schema");
-                    return string.Empty;
-                }
-            }
-            catch
+            if(!Uri.TryCreate(url, UriKind.Absolute, out Uri m_checkuri))
             {
                 Error("llHTTPRequest", "Invalid url");
                 return string.Empty;
             }
 
+            if (m_checkuri.Scheme != Uri.UriSchemeHttp && m_checkuri.Scheme != Uri.UriSchemeHttps)
+            {
+                Error("llHTTPRequest", "Invalid url schema");
+                return string.Empty;
+            }
+
+            if (!httpScriptMod.CheckAllowed(m_checkuri))
+            {
+                Error("llHttpRequest", string.Format("Request to {0} disallowed by filter", url));
+                return string.Empty;
+            }
+
+            Dictionary<string, string> httpHeaders = new();
             List<string> param = new();
-            bool  ok;
             int nCustomHeaders = 0;
+            int flag;
 
             for (int i = 0; i < parameters.Data.Length; i += 2)
             {
-                ok = Int32.TryParse(parameters.Data[i].ToString(), out int flag);
-                if (!ok || flag < 0 ||
-                    flag > (int)HttpRequestConstants.HTTP_PRAGMA_NO_CACHE)
+                object di = parameters.Data[i];
+                if(di is LSL_Integer li )
+                    flag = li.value;
+                else if (di is int ldi)
+                    flag = ldi;
+                else flag = -1;
+
+                if(flag < 0 || flag > (int)HttpRequestConstants.HTTP_PRAGMA_NO_CACHE)
                 {
                     Error("llHTTPRequest", "Parameter " + i.ToString() + " is an invalid flag");
                     ScriptSleep(200);
                     return string.Empty;
                 }
 
-                param.Add(parameters.Data[i].ToString());       //Add parameter flag
-
                 if (flag != (int)HttpRequestConstants.HTTP_CUSTOM_HEADER)
                 {
+                    param.Add(flag.ToString());       //Add parameter flag
                     param.Add(parameters.Data[i+1].ToString()); //Add parameter value
                 }
                 else
@@ -13909,17 +13919,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             noskip = false;
                         }
 
-                        string paramValue = parameters.Data[i + 1].ToString();
-                        if(paramName.Length + paramValue.Length > 253)
-                        {
-                            Error("llHTTPRequest", "name and value length exceds 253 characters for custom header at parameter " + i.ToString());
-                            return string.Empty;
-                        }
-
                         if (noskip)
                         {
-                            param.Add(paramName);
-                            param.Add(paramValue);
+                            string paramValue = parameters.Data[i + 1].ToString();
+                            if (paramName.Length + paramValue.Length > 253)
+                            {
+                                Error("llHTTPRequest", "name and value length exceds 253 characters for custom header at parameter " + i.ToString());
+                                return string.Empty;
+                            }
+                            httpHeaders[paramName] = paramValue;
                             nCustomHeaders++;
                         }
 
@@ -13948,8 +13956,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 ownerName = scenePresence.Name;
 
             RegionInfo regionInfo = World.RegionInfo;
-
-            Dictionary<string, string> httpHeaders =new();
 
             if (!string.IsNullOrWhiteSpace(m_lsl_shard))
                 httpHeaders["X-SecondLife-Shard"] = m_lsl_shard;
@@ -13996,17 +14002,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     url = url[..idx];
             }
 
-            string authregex = @"^(https?:\/\/)(\w+):(\w+)@(.*)$";
-            Regex r = new(authregex);
-            //int[] gnums = r.GetGroupNumbers();
-            Match m = r.Match(url);
+            Match m = llHTTPRequestRegex.Match(url);
             if (m.Success)
             {
-                //for (int i = 1; i < gnums.Length; i++)
-                //{
-                    //System.Text.RegularExpressions.Group g = m.Groups[gnums[i]];
-                    //CaptureCollection cc = g.Captures;
-                //}
                 if (m.Groups.Count == 5)
                 {
                     httpHeaders["Authorization"] = String.Format("Basic {0}", Convert.ToBase64String(System.Text.ASCIIEncoding.ASCII.GetBytes(m.Groups[2].ToString() + ":" + m.Groups[3].ToString())));
@@ -14014,13 +14012,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
             }
 
-            UUID reqID = httpScriptMod.StartHttpRequest(m_host.LocalId, m_item.ItemID, url, param, httpHeaders, body,
-                    out HttpInitialRequestStatus status);
-
-            if (status == HttpInitialRequestStatus.DISALLOWED_BY_FILTER)
-                Error("llHttpRequest", string.Format("Request to {0} disallowed by filter", url));
-
-            return reqID.IsZero() ? "" : reqID.ToString();
+            UUID reqID = httpScriptMod.StartHttpRequest(m_host.LocalId, m_item.ItemID, url, param, httpHeaders, body);
+            return reqID.IsZero() ? string.Empty : reqID.ToString();
         }
 
 
