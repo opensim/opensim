@@ -201,7 +201,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         private void PostInventoryAsset(InventoryItemBase item, int userlevel)
         {
             InventoryFolderBase f = m_Scene.InventoryService.GetFolderForType(item.Owner, FolderType.Trash);
-            if (f == null || (f != null && item.Folder != f.ID))
+            if (f is null || item.Folder.NotEqual(f.ID))
                 PostInventoryAsset(item.Owner, (AssetType)item.AssetType, item.AssetID, item.Name, userlevel);
         }
 
@@ -376,8 +376,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 {
                     if (!UserManagementModule.IsLocalGridUser(userID))
                     { // foreign
-                        ScenePresence sp = null;
-                        if (m_Scene.TryGetScenePresence(userID, out sp))
+                        if (m_Scene.TryGetScenePresence(userID, out ScenePresence sp))
                         {
                             AgentCircuitData aCircuit = m_Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
                             if (aCircuit != null && aCircuit.ServiceURLs != null && aCircuit.ServiceURLs.ContainsKey("AssetServerURI"))

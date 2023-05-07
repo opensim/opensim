@@ -812,15 +812,10 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             if ((LandData.Flags & (uint) ParcelFlags.UseBanList) > 0)
             {
-                if (LandData.ParcelAccessList.FindIndex(
-                        delegate(LandAccessEntry e)
-                        {
-                            if (e.Flags == AccessList.Ban && e.AgentID.Equals(avatar))
-                                return true;
-                            return false;
-                        }) != -1)
+                foreach(LandAccessEntry e in LandData.ParcelAccessList)
                 {
-                    return true;
+                    if (e.Flags == AccessList.Ban && e.AgentID.Equals(avatar))
+                        return true;
                 }
             }
             return false;
@@ -898,17 +893,12 @@ namespace OpenSim.Region.CoreModules.World.Land
         {
             ExpireAccessList();
 
-            if (LandData.ParcelAccessList.FindIndex(
-                    delegate(LandAccessEntry e)
-                    {
-                        if (e.Flags == AccessList.Access && e.AgentID.Equals(avatar))
-                            return true;
-                        return false;
-                    }) == -1)
+            foreach(LandAccessEntry e in LandData.ParcelAccessList)
             {
-                return false;
+                if (e.Flags == AccessList.Access && e.AgentID.Equals(avatar))
+                    return true;
             }
-            return true;
+            return false;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1710,9 +1700,9 @@ namespace OpenSim.Region.CoreModules.World.Land
 
                 lock (primsOverMe)
                 {
-//                    m_log.DebugFormat(
-//                        "[LAND OBJECT]: Request for SendLandObjectOwners() from {0} with {1} known prims on region",
-//                        remote_client.Name, primsOverMe.Count);
+                    //m_log.DebugFormat(
+                    //    "[LAND OBJECT]: Request for SendLandObjectOwners() from {0} with {1} known prims on region",
+                    //    remote_client.Name, primsOverMe.Count);
 
                     try
                     {
@@ -1820,15 +1810,13 @@ namespace OpenSim.Region.CoreModules.World.Land
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ReturnObject(SceneObjectGroup obj)
         {
-            SceneObjectGroup[] objs = new SceneObjectGroup[1];
-            objs[0] = obj;
-            m_scene.returnObjects(objs, null);
+            m_scene.returnObjects(new SceneObjectGroup[] { obj }, null);
         }
 
         public void ReturnLandObjects(uint type, UUID[] owners, UUID[] tasks, IClientAPI remote_client)
         {
-//            m_log.DebugFormat(
-//                "[LAND OBJECT]: Request to return objects in {0} from {1}", LandData.Name, remote_client.Name);
+            //m_log.DebugFormat(
+            //    "[LAND OBJECT]: Request to return objects in {0} from {1}", LandData.Name, remote_client.Name);
 
             Dictionary<UUID,List<SceneObjectGroup>> returns = new();
 
@@ -1840,13 +1828,14 @@ namespace OpenSim.Region.CoreModules.World.Land
                     {
                         if (obj.OwnerID.Equals(LandData.OwnerID))
                         {
-                            if (!returns.ContainsKey(obj.OwnerID))
-                                returns[obj.OwnerID] = new List<SceneObjectGroup>();
-                            returns[obj.OwnerID].Add(obj);
+                            if (returns.TryGetValue(obj.OwnerID, out List<SceneObjectGroup> rol))
+                                rol.Add(obj);
+                            else
+                                returns[obj.OwnerID] = new List<SceneObjectGroup>() { obj };
                         }
                     }
                 }
-                else if (type == (uint)ObjectReturnType.Group && !LandData.GroupID.IsZero())
+                else if (type == (uint)ObjectReturnType.Group && LandData.GroupID.IsNotZero())
                 {
                     foreach (SceneObjectGroup obj in primsOverMe)
                     {
@@ -1854,9 +1843,10 @@ namespace OpenSim.Region.CoreModules.World.Land
                         {
                             if (obj.OwnerID.Equals(LandData.OwnerID))
                                 continue;
-                            if (!returns.ContainsKey(obj.OwnerID))
-                                returns[obj.OwnerID] = new List<SceneObjectGroup>();
-                            returns[obj.OwnerID].Add(obj);
+                            if (returns.TryGetValue(obj.OwnerID, out List<SceneObjectGroup> rol))
+                                rol.Add(obj);
+                            else
+                                returns[obj.OwnerID] = new List<SceneObjectGroup>() { obj };
                         }
                     }
                 }
@@ -1868,9 +1858,10 @@ namespace OpenSim.Region.CoreModules.World.Land
                             (obj.GroupID.NotEqual(LandData.GroupID) ||
                             LandData.GroupID.IsZero()))
                         {
-                            if (!returns.ContainsKey(obj.OwnerID))
-                                returns[obj.OwnerID] = new List<SceneObjectGroup>();
-                            returns[obj.OwnerID].Add(obj);
+                            if (returns.TryGetValue(obj.OwnerID, out List<SceneObjectGroup> rol))
+                                rol.Add(obj);
+                            else
+                                returns[obj.OwnerID] = new List<SceneObjectGroup>() { obj };
                         }
                     }
                 }
@@ -1881,9 +1872,10 @@ namespace OpenSim.Region.CoreModules.World.Land
                     {
                         if (ownerlist.Contains(obj.OwnerID))
                         {
-                            if (!returns.ContainsKey(obj.OwnerID))
-                                returns[obj.OwnerID] = new List<SceneObjectGroup>();
-                            returns[obj.OwnerID].Add(obj);
+                            if (returns.TryGetValue(obj.OwnerID, out List<SceneObjectGroup> rol))
+                                rol.Add(obj);
+                            else
+                                returns[obj.OwnerID] = new List<SceneObjectGroup>() { obj };
                         }
                     }
                 }
@@ -2033,16 +2025,17 @@ namespace OpenSim.Region.CoreModules.World.Land
         private void ExpireAccessList()
         {
             List<LandAccessEntry> delete = new();
+            int now = Util.UnixTimeSinceEpoch();
             foreach (LandAccessEntry entry in LandData.ParcelAccessList)
             {
-                if (entry.Expires != 0 && entry.Expires < Util.UnixTimeSinceEpoch())
+                if (entry.Expires != 0 && entry.Expires < now)
                     delete.Add(entry);
             }
             foreach (LandAccessEntry entry in delete)
             {
                 LandData.ParcelAccessList.Remove(entry);
 
-                if (m_scene.TryGetScenePresence(entry.AgentID, out ScenePresence presence) && (!presence.IsChildAgent))
+                if ((entry.Flags & AccessList.Access) != 0 && m_scene.TryGetScenePresence(entry.AgentID, out ScenePresence presence) && (!presence.IsChildAgent))
                 {
                     ILandObject land = m_scene.LandChannel.GetLandObject(presence.AbsolutePosition.X, presence.AbsolutePosition.Y);
                     if (land.LandData.LocalID == LandData.LocalID)
