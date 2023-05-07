@@ -7784,6 +7784,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 };
 
                 land.LandData.ParcelAccessList.Add(entry);
+                land.LandData.Flags |= (uint)ParcelFlags.UsePassList;
                 World.EventManager.TriggerLandObjectUpdated((uint)land.LandData.LocalID, land);
             }
             ScriptSleep(m_sleepMsOnAddToLandPassList);
@@ -13352,6 +13353,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 };
 
                 land.LandData.ParcelAccessList.Add(entry);
+                land.LandData.Flags |= (uint)ParcelFlags.UseBanList;
 
                 World.EventManager.TriggerLandObjectUpdated((uint)land.LandData.LocalID, land);
             }
