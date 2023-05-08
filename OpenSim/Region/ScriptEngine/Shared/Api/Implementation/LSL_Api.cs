@@ -7766,7 +7766,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
                 }
 
-                entry = new LandAccessEntry
+                LandAccessEntry entry = new()
                 {
                     AgentID = key,
                     Flags = AccessList.Access,
@@ -13326,7 +13326,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
                 }
 
-                LandAccessEntry entry = new LandAccessEntry
+                LandAccessEntry entry = new()
                 {
                     AgentID = key,
                     Flags = AccessList.Ban,
