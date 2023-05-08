@@ -14001,7 +14001,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // Partial implementation: support for parameter flags needed
             //   see http://wiki.secondlife.com/wiki/llHTTPResponse
 
-            m_UrlModule?.HttpResponse(new UUID(id), status,body);
+            m_UrlModule?.HttpResponse(new UUID(id), status, body);
         }
 
         public void llResetLandBanList()
@@ -14010,14 +14010,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (World.Permissions.CanEditParcelProperties(m_host.OwnerID, parcel, GroupPowers.LandManageBanned, false))
             {
                 LandData land = parcel.LandData;
-                var todelete = new List<LandAccessEntry>();
+                var tokeep = new List<LandAccessEntry>();
                 foreach (LandAccessEntry entry in land.ParcelAccessList)
                 {
-                    if (entry.Flags == AccessList.Ban)
-                        todelete.Add(entry);
+                    if (entry.Flags != AccessList.Ban)
+                        tokeep.Add(entry);
                 }
-                foreach (LandAccessEntry entry in todelete)
-                    land.ParcelAccessList.Remove(entry);
+                land.ParcelAccessList = tokeep;
                 land.Flags &= ~(uint)ParcelFlags.UseBanList;
             }
             ScriptSleep(m_sleepMsOnResetLandBanList);
@@ -14029,14 +14028,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (World.Permissions.CanEditParcelProperties(m_host.OwnerID, parcel, GroupPowers.LandManagePasses, false))
             {
                 LandData land = parcel.LandData;
-                var todelete = new List<LandAccessEntry>();
+                var tokeep = new List<LandAccessEntry>();
                 foreach (LandAccessEntry entry in land.ParcelAccessList)
                 {
-                    if (entry.Flags == AccessList.Access)
-                        todelete.Add(entry);
+                    if (entry.Flags != AccessList.Access)
+                        tokeep.Add(entry);
                 }
-                foreach (LandAccessEntry entry in todelete)
-                    land.ParcelAccessList.Remove(entry);
+                land.ParcelAccessList = tokeep;
                 land.Flags &= ~(uint)ParcelFlags.UsePassList;
             }
             ScriptSleep(m_sleepMsOnResetLandPassList);
