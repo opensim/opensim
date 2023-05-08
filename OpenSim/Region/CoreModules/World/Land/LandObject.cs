@@ -796,8 +796,6 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public bool IsBannedFromLand(UUID avatar)
         {
-            ExpireAccessList();
-
             if (m_estateSettings.TaxFree) // region access control only
                 return false;
 
@@ -812,10 +810,11 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             if ((LandData.Flags & (uint) ParcelFlags.UseBanList) > 0)
             {
-                foreach(LandAccessEntry e in LandData.ParcelAccessList)
+                int now = Util.UnixTimeSinceEpoch();
+                foreach (LandAccessEntry e in LandData.ParcelAccessList)
                 {
                     if (e.Flags == AccessList.Ban && e.AgentID.Equals(avatar))
-                        return true;
+                        return e.Expires == 0 || e.Expires > now;
                 }
             }
             return false;
@@ -891,12 +890,11 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public bool IsInLandAccessList(UUID avatar)
         {
-            ExpireAccessList();
-
             foreach(LandAccessEntry e in LandData.ParcelAccessList)
             {
+                int now = Util.UnixTimeSinceEpoch();
                 if (e.Flags == AccessList.Access && e.AgentID.Equals(avatar))
-                    return true;
+                    return e.Expires == 0 || e.Expires > now;
             }
             return false;
         }
@@ -972,27 +970,18 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         #region AccessList Functions
 
+        //legacy
         public List<LandAccessEntry>  CreateAccessListArrayByFlag(AccessList flag)
         {
-            ExpireAccessList();
-
+            int now = Util.UnixTimeSinceEpoch();
             List<LandAccessEntry> list = new();
             foreach (LandAccessEntry entry in LandData.ParcelAccessList)
             {
-                if (entry.Flags == flag)
+                if (entry.Flags == flag && (entry.Expires > now || entry.Expires == 0))
                    list.Add(entry);
             }
             if (list.Count == 0)
-            {
-                LandAccessEntry e = new()
-                {
-                    AgentID = UUID.Zero,
-                    Flags = 0,
-                    Expires = 0
-                };
-
-                list.Add(e);
-            }
+                list.Add(new LandAccessEntry());
 
             return list;
         }
@@ -1000,18 +989,35 @@ namespace OpenSim.Region.CoreModules.World.Land
         public void SendAccessList(UUID agentID, UUID sessionID, uint flags, int sequenceID,
                                    IClientAPI remote_client)
         {
-
-            if ((flags & (uint) AccessList.Access) != 0)
+            int now = Util.UnixTimeSinceEpoch();
+            List<LandAccessEntry> accesslist = new();
+            List<LandAccessEntry> banlist = new();
+            foreach (LandAccessEntry entry in LandData.ParcelAccessList)
             {
-                List<LandAccessEntry> accessEntries = CreateAccessListArrayByFlag(AccessList.Access);
-                remote_client.SendLandAccessListData(accessEntries,(uint) AccessList.Access,LandData.LocalID);
+                if(entry.Expires > now || entry.Expires == 0)
+                {
+                    if (entry.Flags == AccessList.Access)
+                        accesslist.Add(entry);
+                    else if (entry.Flags == AccessList.Ban)
+                        banlist.Add(entry);
+                }
             }
 
-            if ((flags & (uint) AccessList.Ban) != 0)
+            if (accesslist.Count == 0)
             {
-                List<LandAccessEntry> accessEntries = CreateAccessListArrayByFlag(AccessList.Ban);
-                remote_client.SendLandAccessListData(accessEntries, (uint)AccessList.Ban, LandData.LocalID);
+                remote_client.SendLandAccessListData(new List<LandAccessEntry>() { new LandAccessEntry() },
+                    (uint)AccessList.Access, LandData.LocalID);
+            }               
+            else
+                remote_client.SendLandAccessListData(accesslist, (uint)AccessList.Access, LandData.LocalID);
+
+            if (banlist.Count == 0)
+            {
+                remote_client.SendLandAccessListData(new List<LandAccessEntry>() { new LandAccessEntry() },
+                        (uint)AccessList.Ban, LandData.LocalID);
             }
+            else
+                remote_client.SendLandAccessListData(banlist, (uint)AccessList.Ban, LandData.LocalID);
         }
 
         public void UpdateAccessList(uint flags, UUID transactionID, List<LandAccessEntry> entries)

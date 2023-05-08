@@ -149,6 +149,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                 m_allowedForcefulBans = !disablebans;
                 m_showBansLines = landManagementConfig.GetBoolean("ShowParcelBansLines", m_showBansLines);
                 m_BanLineSafeHeight = landManagementConfig.GetFloat("BanLineSafeHeight", m_BanLineSafeHeight);
+                if(!m_allowedForcefulBans)
+                    m_showBansLines = false;
             }
         }
 
@@ -525,10 +527,10 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void EventManagerOnSignificantClientMovement(ScenePresence avatar)
         {
-            if (avatar.IsChildAgent)
+            if (avatar.IsChildAgent || avatar.IsNPC)
                 return;
 
-            if ( m_allowedForcefulBans && m_showBansLines && !m_scene.RegionInfo.EstateSettings.TaxFree)
+            if (m_showBansLines && !m_scene.RegionInfo.EstateSettings.TaxFree)
                 SendOutNearestBanLine(avatar.ControllingClient);
         }
 
