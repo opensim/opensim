@@ -7752,28 +7752,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
             if (World.Permissions.CanEditParcelProperties(m_host.OwnerID, land, GroupPowers.LandManagePasses, false))
             {
-                LandAccessEntry entry;
-
                 int expires = (hours != 0) ? Util.UnixTimeSinceEpoch() + (int)(3600.0 * hours) : 0;
-                int idx = land.LandData.ParcelAccessList.FindIndex(
-                        delegate(LandAccessEntry e)
-                        {
-                            if (e.Flags == AccessList.Access && e.AgentID.Equals(key))
-                                return true;
-                            return false;
-                        });
-
-                if (idx != -1)
+                foreach(LandAccessEntry e in land.LandData.ParcelAccessList)
                 {
-                    entry = land.LandData.ParcelAccessList[idx];
-                    if (entry.Expires == 0)
+                    if (e.Flags == AccessList.Access && e.AgentID.Equals(key))
+                    {
+                        if (e.Expires != 0 && expires > e.Expires)
+                        {
+                            e.Expires = expires;
+                            World.EventManager.TriggerLandObjectUpdated((uint)land.LandData.LocalID, land);
+                        }
                         return;
-                    if (expires != 0 && expires < entry.Expires)
-                        return;
-
-                    entry.Expires = expires;
-                    World.EventManager.TriggerLandObjectUpdated((uint)land.LandData.LocalID, land);
-                    return;
+                    }
                 }
 
                 entry = new LandAccessEntry
@@ -13321,31 +13311,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
             if (World.Permissions.CanEditParcelProperties(m_host.OwnerID, land, GroupPowers.LandManageBanned, false))
             {
-                LandAccessEntry entry;
                 int expires = (hours != 0) ? Util.UnixTimeSinceEpoch() + (int)(3600.0 * hours) : 0;
 
-                int idx = land.LandData.ParcelAccessList.FindIndex(
-                        delegate(LandAccessEntry e)
-                        {
-                            if (e.Flags == AccessList.Ban && e.AgentID.Equals(key))
-                                return true;
-                            return false;
-                        });
-
-                if (idx != -1)
+                foreach(LandAccessEntry e in land.LandData.ParcelAccessList)
                 {
-                    entry = land.LandData.ParcelAccessList[idx];
-                    if (entry.Expires == 0)
+                    if (e.Flags == AccessList.Ban && e.AgentID.Equals(key))
+                    {
+                        if (e.Expires != 0 && e.Expires < expires)
+                        {
+                            e.Expires = expires;
+                            World.EventManager.TriggerLandObjectUpdated((uint)land.LandData.LocalID, land);
+                        }
                         return;
-                    if (expires != 0 && expires < entry.Expires)
-                        return;
-
-                    entry.Expires = expires;
-                    World.EventManager.TriggerLandObjectUpdated((uint)land.LandData.LocalID, land);
-                    return;
+                    }
                 }
 
-                entry = new LandAccessEntry
+                LandAccessEntry entry = new LandAccessEntry
                 {
                     AgentID = key,
                     Flags = AccessList.Ban,
