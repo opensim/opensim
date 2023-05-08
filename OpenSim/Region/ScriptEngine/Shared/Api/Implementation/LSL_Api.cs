@@ -7774,7 +7774,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     Expires = expires
                 };
                 land.ParcelAccessList.Add(entry);
-                land.Flags |= (uint)ParcelFlags.UsePassList;
                 World.EventManager.TriggerLandObjectUpdated((uint)land.LocalID, parcel);
             }
             ScriptSleep(m_sleepMsOnAddToLandPassList);
@@ -14035,7 +14034,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         tokeep.Add(entry);
                 }
                 land.ParcelAccessList = tokeep;
-                land.Flags &= ~(uint)ParcelFlags.UsePassList;
             }
             ScriptSleep(m_sleepMsOnResetLandPassList);
         }
