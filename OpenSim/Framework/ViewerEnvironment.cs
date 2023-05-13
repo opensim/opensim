@@ -657,13 +657,13 @@ namespace OpenSim.Framework
             moonrot = Quaternion.Identity;
 
             List<DayCycle.TrackEntry> track = FindTrack(altitude);
-            if (track == null || track.Count == 0)
+            if (track is null || track.Count == 0)
                 return false;
 
             if (!FindSkies(track, dayfrac, out dayfrac, out SkyData sky1, out SkyData sky2))
                 return false;
 
-            if (sky2 == null)
+            if (sky2 is null)
             {
                 moonrot = sky1.moon_rotation;
                 moondir = Xrot(moonrot);
@@ -677,6 +677,92 @@ namespace OpenSim.Framework
 
             sunrot = Quaternion.Slerp(sky1.sun_rotation, sky2.sun_rotation, dayfrac);
             sundir = Xrot(sunrot);
+            return true;
+        }
+
+        public bool getPositions_sundir(float altitude, float dayfrac, out Vector3 sundir)
+        {
+            sundir = Vector3.Zero;
+
+            List<DayCycle.TrackEntry> track = FindTrack(altitude);
+            if (track is null || track.Count == 0)
+                return false;
+
+            if (!FindSkies(track, dayfrac, out dayfrac, out SkyData sky1, out SkyData sky2))
+                return false;
+
+            if (sky2 is null)
+            {
+                sundir = Xrot(sky1.sun_rotation);
+                return true;
+            }
+
+            Quaternion sunrot = Quaternion.Slerp(sky1.sun_rotation, sky2.sun_rotation, dayfrac);
+            sundir = Xrot(sunrot);
+            return true;
+        }
+
+        public bool getPositions_sunrot(float altitude, float dayfrac, out Quaternion sunrot)
+        {
+            sunrot = Quaternion.Identity;
+
+            List<DayCycle.TrackEntry> track = FindTrack(altitude);
+            if (track is null || track.Count == 0)
+                return false;
+
+            if (!FindSkies(track, dayfrac, out dayfrac, out SkyData sky1, out SkyData sky2))
+                return false;
+
+            if (sky2 is null)
+            {
+                sunrot = sky1.sun_rotation;
+                return true;
+            }
+
+            sunrot = Quaternion.Slerp(sky1.sun_rotation, sky2.sun_rotation, dayfrac);
+            return true;
+        }
+
+        public bool getPositions_moondir(float altitude, float dayfrac, out Vector3 moondir)
+        {
+            moondir = Vector3.Zero;
+
+            List<DayCycle.TrackEntry> track = FindTrack(altitude);
+            if (track is null || track.Count == 0)
+                return false;
+
+            if (!FindSkies(track, dayfrac, out dayfrac, out SkyData sky1, out SkyData sky2))
+                return false;
+
+            if (sky2 is null)
+            {
+                moondir = Xrot(sky1.moon_rotation);
+                return true;
+            }
+
+            Quaternion moonrot = Quaternion.Slerp(sky1.moon_rotation, sky2.moon_rotation, dayfrac);
+            moondir = Xrot(moonrot);
+            return true;
+        }
+
+        public bool getPositions_moonrot(float altitude, float dayfrac, out Quaternion moonrot)
+        {
+            moonrot = Quaternion.Identity;
+
+            List<DayCycle.TrackEntry> track = FindTrack(altitude);
+            if (track is null || track.Count == 0)
+                return false;
+
+            if (!FindSkies(track, dayfrac, out dayfrac, out SkyData sky1, out SkyData sky2))
+                return false;
+
+            if (sky2 is null)
+            {
+                moonrot = sky1.moon_rotation;
+                return true;
+            }
+
+            moonrot = Quaternion.Slerp(sky1.moon_rotation, sky2.moon_rotation, dayfrac);
             return true;
         }
 

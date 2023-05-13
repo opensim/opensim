@@ -2437,7 +2437,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             ((Scene)client.Scene).returnObjects(objs, client);
         }
 
-        Dictionary<UUID, System.Threading.Timer> Timers = new();
+        private readonly Dictionary<UUID, System.Threading.Timer> Timers = new();
 
         public void ClientOnParcelFreezeUser(IClientAPI client, UUID parcelowner, uint flags, UUID target)
         {

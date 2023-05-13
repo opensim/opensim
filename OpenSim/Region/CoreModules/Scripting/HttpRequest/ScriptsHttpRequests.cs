@@ -42,6 +42,7 @@ using OpenSim.Region.Framework.Scenes;
 using Mono.Addins;
 using System.Net.Http;
 using System.Security.Authentication;
+using System.Net.Http.Headers;
 
 /*****************************************************
  *
@@ -427,7 +428,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
             htc.Url = url;
             htc.ReqID = reqID;
             htc.OutboundBody = body;
-            htc.ResponseHeaders = headers;
+            htc.Headers = headers;
 
             lock (m_mainLock)
                 m_pendingRequests.Add(reqID, htc);
@@ -578,7 +579,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
         public string OutboundBody;
 
         public string ResponseBody;
-        public Dictionary<string, string> ResponseHeaders;
+        public Dictionary<string, string> Headers;
         public int Status;
         public string Url;
 
@@ -609,7 +610,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                 else
                     datalen = -1;
 
-                foreach (KeyValuePair<string, string> entry in ResponseHeaders)
+                foreach (KeyValuePair<string, string> entry in Headers)
                     AddHeader(entry.Key, entry.Value, request);
 
                 if (HttpPragmaNoCache)
