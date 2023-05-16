@@ -102,6 +102,8 @@ namespace OpenSim.Server
             ServicePointManager.UseNagleAlgorithm = false;
             ServicePointManager.ServerCertificateValidationCallback = ValidateServerCertificate;
 
+            WebUtil.SetupHTTPClients(m_NoVerifyCertChain, m_NoVerifyCertHostname, null, 32);
+            
             m_Server = new HttpServerBase("R.O.B.U.S.T.", args);
 
             string registryLocation;

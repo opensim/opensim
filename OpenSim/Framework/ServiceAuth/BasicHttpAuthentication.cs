@@ -33,6 +33,7 @@ using System.Reflection;
 
 using Nini.Config;
 using log4net;
+using System.Net.Http.Headers;
 
 namespace OpenSim.Framework.ServiceAuth
 {
@@ -54,20 +55,25 @@ namespace OpenSim.Framework.ServiceAuth
 
         public BasicHttpAuthentication(IConfigSource config, string section)
         {
-//            remove_me = section;
             m_Username = Util.GetConfigVarFromSections<string>(config, "HttpAuthUsername", new string[] { "Network", section }, string.Empty);
             m_Password = Util.GetConfigVarFromSections<string>(config, "HttpAuthPassword", new string[] { "Network", section }, string.Empty);
             string str = m_Username + ":" + m_Password;
             byte[] encData_byte = Util.UTF8.GetBytes(str);
 
             m_CredentialsB64 = Convert.ToBase64String(encData_byte);
-//            m_log.DebugFormat("[HTTP BASIC AUTH]: {0} {1} [{2}]", m_Username, m_Password, section);
+            //m_log.DebugFormat("[HTTP BASIC AUTH]: {0} {1} [{2}]", m_Username, m_Password, section);
         }
 
         public void AddAuthorization(NameValueCollection headers)
         {
             //m_log.DebugFormat("[HTTP BASIC AUTH]: Adding authorization for {0}", remove_me);
             headers["Authorization"] = "Basic " + m_CredentialsB64;
+        }
+
+        public void AddAuthorization(HttpRequestHeaders headers)
+        {
+            //m_log.DebugFormat("[HTTP BASIC AUTH]: Adding authorization for {0}", remove_me);
+            headers.TryAddWithoutValidation("Authorization","Basic " + m_CredentialsB64);
         }
 
         public bool Authenticate(string data)

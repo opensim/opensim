@@ -422,7 +422,7 @@ namespace OpenSim.Framework
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ulong RegionWorldLocToHandle(uint X, uint Y)
         {
-            ulong handle = X & 0xffffff00; // make sure it matchs grid coord points.
+            ulong handle = X & 0xffffff00; // make sure it matches grid coord points.
             handle <<= 32; // to higher half
             handle |= (Y & 0xffffff00);
             return handle;

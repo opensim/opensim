@@ -44,6 +44,9 @@ using log4net;
 using Nwc.XmlRpc;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework.ServiceAuth;
+using System.Net.Http;
+using System.Security.Authentication;
+using System.Runtime.CompilerServices;
 
 namespace OpenSim.Framework
 {
@@ -55,6 +58,12 @@ namespace OpenSim.Framework
     public static class WebUtil
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        public static SocketsHttpHandler SharedSocketsHttpHandler = null;
+        public static HttpClient SharedHttpClient = null;
+
+        public static SocketsHttpHandler SharedSocketsHttpHandlerWithRedir = null;
+        public static HttpClient SharedHttpClientWithRedir = null;
 
         public static ExpiringKey<string> GlobalExpiringBadURLs = new(30000);
         /// <summary>
@@ -104,35 +113,187 @@ namespace OpenSim.Framework
         }
         #region JSONRequest
 
+        public static void SetupHTTPClients(bool NoVerifyCertChain, bool NoVerifyCertHostname, IWebProxy proxy, int MaxConnectionsPerServer )
+        {
+            SocketsHttpHandler shh = new()
+            {
+                AllowAutoRedirect = false,
+                AutomaticDecompression = DecompressionMethods.None,
+                ConnectTimeout = TimeSpan.FromMilliseconds(10000),
+                PreAuthenticate = false,
+                UseCookies = false,
+                MaxConnectionsPerServer = MaxConnectionsPerServer,
+                PooledConnectionIdleTimeout = TimeSpan.FromMilliseconds(30000),
+                PooledConnectionLifetime = TimeSpan.FromMinutes(3)
+            };
+            //shh.SslOptions.ClientCertificates = null,
+            shh.SslOptions.EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13;
+            if (NoVerifyCertChain)
+            {
+                shh.SslOptions.CertificateRevocationCheckMode = X509RevocationMode.NoCheck;
+                if (NoVerifyCertHostname)
+                {
+                    shh.SslOptions.RemoteCertificateValidationCallback = (message, cert, chain, errors) =>
+                    {
+                        errors &= ~(SslPolicyErrors.RemoteCertificateChainErrors | SslPolicyErrors.RemoteCertificateNameMismatch);
+                        return errors == SslPolicyErrors.None;
+                    };
+                }
+                else
+                {
+                    shh.SslOptions.RemoteCertificateValidationCallback = (message, cert, chain, errors) =>
+                    {
+                        errors &= ~SslPolicyErrors.RemoteCertificateChainErrors;
+                        return errors == SslPolicyErrors.None;
+                    };
+                }
+            }
+            else
+            {
+                shh.SslOptions.CertificateRevocationCheckMode = X509RevocationMode.NoCheck;
+                if (NoVerifyCertHostname)
+                {
+                    shh.SslOptions.RemoteCertificateValidationCallback = (message, cert, chain, errors) =>
+                    {
+                        errors &= ~SslPolicyErrors.RemoteCertificateNameMismatch;
+                        return errors == SslPolicyErrors.None;
+                    };
+                }
+                else
+                {
+                    shh.SslOptions.RemoteCertificateValidationCallback = (message, cert, chain, errors) =>
+                    {
+                        return errors == SslPolicyErrors.None;
+                    };
+                }
+            }
+
+            if (proxy is null)
+                shh.UseProxy = false;
+            else
+            {
+                shh.Proxy = proxy;
+                shh.UseProxy = true;
+            }
+
+            var client = new HttpClient(shh)
+            {
+                Timeout = TimeSpan.FromMilliseconds(30000),
+            };
+            client.DefaultRequestHeaders.ExpectContinue = false;
+
+            SharedSocketsHttpHandler = shh;
+            SharedHttpClient = client;
+
+            // ****************
+
+            shh = new()
+            {
+                AllowAutoRedirect = true,
+                MaxAutomaticRedirections = 10,
+                AutomaticDecompression = DecompressionMethods.None,
+                ConnectTimeout = TimeSpan.FromMilliseconds(10000),
+                PreAuthenticate = false,
+                UseCookies = false,
+                MaxConnectionsPerServer = MaxConnectionsPerServer,
+                PooledConnectionIdleTimeout = TimeSpan.FromMilliseconds(30000),
+                PooledConnectionLifetime = TimeSpan.FromMinutes(3)
+            };
+            //shh.SslOptions.ClientCertificates = null,
+            shh.SslOptions.EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13;
+            if (NoVerifyCertChain)
+            {
+                shh.SslOptions.CertificateRevocationCheckMode = X509RevocationMode.NoCheck;
+                if (NoVerifyCertHostname)
+                {
+                    shh.SslOptions.RemoteCertificateValidationCallback = (message, cert, chain, errors) =>
+                    {
+                        errors &= ~(SslPolicyErrors.RemoteCertificateChainErrors | SslPolicyErrors.RemoteCertificateNameMismatch);
+                        return errors == SslPolicyErrors.None;
+                    };
+                }
+                else
+                {
+                    shh.SslOptions.RemoteCertificateValidationCallback = (message, cert, chain, errors) =>
+                    {
+                        errors &= ~SslPolicyErrors.RemoteCertificateChainErrors;
+                        return errors == SslPolicyErrors.None;
+                    };
+                }
+            }
+            else
+            {
+                shh.SslOptions.CertificateRevocationCheckMode = X509RevocationMode.NoCheck;
+                if (NoVerifyCertHostname)
+                {
+                    shh.SslOptions.RemoteCertificateValidationCallback = (message, cert, chain, errors) =>
+                    {
+                        errors &= ~SslPolicyErrors.RemoteCertificateNameMismatch;
+                        return errors == SslPolicyErrors.None;
+                    };
+                }
+                else
+                {
+                    shh.SslOptions.RemoteCertificateValidationCallback = (message, cert, chain, errors) =>
+                    {
+                        return errors == SslPolicyErrors.None;
+                    };
+                }
+            }
+
+            if (proxy is null)
+                shh.UseProxy = false;
+            else
+            {
+                shh.Proxy = proxy;
+                shh.UseProxy = true;
+            }
+
+            client = new HttpClient(shh)
+            {
+                Timeout = TimeSpan.FromMilliseconds(30000),
+            };
+            client.DefaultRequestHeaders.ExpectContinue = false;
+
+            SharedSocketsHttpHandlerWithRedir = shh;
+            SharedHttpClientWithRedir = client;
+        }
+
         /// <summary>
         /// PUT JSON-encoded data to a web service that returns LLSD or
         /// JSON data
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static OSDMap PutToServiceCompressed(string url, OSDMap data, int timeout)
         {
             return ServiceOSDRequest(url, data, "PUT", timeout, true, false);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static OSDMap PutToService(string url, OSDMap data, int timeout)
         {
             return ServiceOSDRequest(url, data, "PUT", timeout, false, false);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static OSDMap PostToService(string url, OSDMap data, int timeout, bool rpc)
         {
             return ServiceOSDRequest(url, data, "POST", timeout, false, rpc);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static OSDMap PostToServiceCompressed(string url, OSDMap data, int timeout)
         {
             return ServiceOSDRequest(url, data, "POST", timeout, true, false);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static OSDMap GetFromService(string url, int timeout)
         {
             return ServiceOSDRequest(url, null, "GET", timeout, false, false);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void LogOutgoingDetail(Stream outputStream)
         {
             LogOutgoingDetail("", outputStream);
@@ -158,11 +319,13 @@ namespace OpenSim.Framework
             LogOutgoingDetail(context, output);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void LogOutgoingDetail(string type, int reqnum, string output)
         {
             LogOutgoingDetail($"{type} {reqnum}: ", output);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void LogOutgoingDetail(string context, string output)
         {
             if (DebugLevel == 5)
@@ -174,11 +337,13 @@ namespace OpenSim.Framework
             m_log.DebugFormat($"[LOGHTTP]: {context}{Util.BinaryToASCII(output)}");
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void LogResponseDetail(int reqnum, Stream inputStream)
         {
             LogOutgoingDetail($"RESPONSE {reqnum}: ", inputStream);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void LogResponseDetail(int reqnum, string input)
         {
             LogOutgoingDetail($"RESPONSE {reqnum}: ", input);
@@ -195,27 +360,14 @@ namespace OpenSim.Framework
             int tickstart = Util.EnvironmentTickCount();
             int sendlen = 0;
             int rcvlen = 0;
-            HttpWebRequest request;
+            HttpResponseMessage responseMessage = null;
+            HttpRequestMessage request = null;
             try
             {
-                request = (HttpWebRequest)WebRequest.Create(url);
-                request.Method = method;
-                request.Timeout = timeout;
-                request.KeepAlive = keepalive;
-                request.MaximumAutomaticRedirections = 10;
-                request.ReadWriteTimeout = timeout / 2;
-                request.Headers[OSHeaderRequestID] = reqnum.ToString();
-                request.AllowWriteStreamBuffering = false;
-            }
-            catch (Exception ex)
-            {
-                m_log.Debug($"[WEB UTIL]: SvcOSD error creating request {ex.Message}");
-                return ErrorResponseMap(ex.Message);
-            }
+                HttpClient client = SharedHttpClientWithRedir;
 
-            try
-            {
-                // If there is some input, write it into the request
+                request = new(new HttpMethod(method), url);
+
                 if (data is not null)
                 {
                     byte[] buffer;
@@ -228,43 +380,60 @@ namespace OpenSim.Framework
                     else
                         buffer = OSDParser.SerializeJsonToBytes(data);
 
-                    request.ContentType = rpc ? "application/json-rpc" : "application/json";
-
-                    if (compressed)
+                    if (buffer.Length > 0)
                     {
-                        request.Headers["X-Content-Encoding"] = "gzip"; // can't set "Content-Encoding" because old OpenSims fail if they get an unrecognized Content-Encoding
-
-                        using MemoryStream ms = new();
-                        using (GZipStream comp = new(ms, CompressionMode.Compress, true))
+                        if (compressed)
                         {
-                            comp.Write(buffer, 0, buffer.Length);
+                            using MemoryStream ms = new();
+                            using (GZipStream comp = new(ms, CompressionMode.Compress, true))
+                            {
+                                comp.Write(buffer, 0, buffer.Length);
+                            }
+                            buffer = ms.ToArray();
+
+                            request.Headers.TryAddWithoutValidation("X-Content-Encoding", "gzip"); // can't set "Content-Encoding" because old OpenSims fail if they get an unrecognized Content-Encoding
                         }
-                        buffer = ms.ToArray();
+
+                        sendlen = buffer.Length;
+                        request.Content = new ByteArrayContent(buffer);
+                        request.Content.Headers.TryAddWithoutValidation("Content-Type",
+                                rpc ? "application/json-rpc" : "application/json");
+                        request.Content.Headers.TryAddWithoutValidation("Content-Length", sendlen.ToString());
                     }
-
-                    sendlen = buffer.Length;
-                    request.ContentLength = buffer.Length;   //Count bytes to send
-                    using (Stream requestStream = request.GetRequestStream())
-                        requestStream.Write(buffer, 0, buffer.Length);         //Send it
-                    buffer = null;
                 }
 
-                using HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                using StreamReader reader = new(response.GetResponseStream());
-                string responseStr = reader.ReadToEnd();
-                if (WebUtil.DebugLevel >= 5)
-                    WebUtil.LogResponseDetail(reqnum, responseStr);
-                rcvlen = responseStr.Length;
-                return CanonicalizeResults(responseStr);
-            }
-            catch (WebException we)
-            {
-                errorMessage = we.Message;
-                if (we.Status == WebExceptionStatus.ProtocolError)
+                request.Headers.ExpectContinue = false;
+                request.Headers.TransferEncodingChunked = false;
+                if(keepalive)
                 {
-                    using HttpWebResponse webResponse = (HttpWebResponse)we.Response;
-                    errorMessage = $"[{webResponse.StatusCode}] {webResponse.StatusDescription}";
+                    request.Headers.TryAddWithoutValidation("Keep-Alive", "timeout=30, max=10");
+                    request.Headers.TryAddWithoutValidation("Connection", "Keep-Alive");
                 }
+                else
+                    request.Headers.TryAddWithoutValidation("Connection", "close");
+
+                request.Headers.TryAddWithoutValidation(OSHeaderRequestID, reqnum.ToString());
+
+                responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead);
+
+                int Status = (int)responseMessage.StatusCode;
+
+                Stream resStream = responseMessage.Content.ReadAsStream();
+                if (resStream is not null)
+                {
+                    using StreamReader reader = new(resStream);
+                    string responseStr = reader.ReadToEnd();
+                    if (WebUtil.DebugLevel >= 5)
+                        WebUtil.LogResponseDetail(reqnum, responseStr);
+                    rcvlen = responseStr.Length;
+                    resStream.Dispose();
+                    return CanonicalizeResults(responseStr);
+                }
+            }
+            catch (HttpRequestException e)
+            {
+                int Status = e.StatusCode is null ? 499 : (int)e.StatusCode;
+                errorMessage = $"[{Status}] {e.Message}";
             }
             catch (Exception ex)
             {
@@ -273,6 +442,9 @@ namespace OpenSim.Framework
             }
             finally
             {
+                request?.Dispose();
+                responseMessage?.Dispose();
+
                 int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
                 if (tickdiff > LongCallTime)
                 {
