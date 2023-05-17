@@ -269,6 +269,15 @@ namespace OpenSim.Framework
                     request.Headers.ExpectContinue = false;
                     request.Headers.TransferEncodingChunked = false;
 
+                    //if (keepalive)
+                    {
+                        request.Headers.TryAddWithoutValidation("Keep-Alive", "timeout=30, max=10");
+                        request.Headers.TryAddWithoutValidation("Connection", "Keep-Alive");
+                        request.Headers.ConnectionClose = false;
+                    }
+                    //else
+                    //    request.Headers.TryAddWithoutValidation("Connection", "close");
+
                     cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(DefaultTimeout));
 
                     if (WebUtil.DebugLevel >= 3)
