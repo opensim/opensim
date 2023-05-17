@@ -46,17 +46,6 @@ namespace OpenSim.Framework
     /// </summary>
     /// <remarks>
     /// This class is a generic implementation of a REST (Representational State Transfer) web service. This
-    /// class is designed to execute both synchronously and asynchronously.
-    ///
-    /// Internally the implementation works as a two stage asynchronous web-client.
-    /// When the request is initiated, RestClient will query asynchronously for for a web-response,
-    /// sleeping until the initial response is returned by the server. Once the initial response is retrieved
-    /// the second stage of asynchronous requests will be triggered, in an attempt to read of the response
-    /// object into a memorystream as a sequence of asynchronous reads.
-    ///
-    /// The asynchronisity of RestClient is designed to move as much processing into the back-ground, allowing
-    /// other threads to execute, while it waits for a response from the web-service. RestClient itself can be
-    /// invoked by the caller in either synchronous mode or asynchronous modes.
     /// </remarks>
     public class RestClient : IDisposable
     {
@@ -102,30 +91,14 @@ namespace OpenSim.Framework
         private HttpWebRequest _request;
 
         /// <summary>
-        /// WebResponse object, held as a member variable, so we can close it
-        /// </summary>
-        private HttpWebResponse _response;
-
-        /// <summary>
-        /// This flag will help block the main synchroneous method, in case we run in synchroneous mode
-        /// </summary>
-        //public static ManualResetEvent _allDone = new ManualResetEvent(false);
-
-        /// <summary>
         /// Default time out period
         /// </summary>
-        //private const int DefaultTimeout = 10*1000; // 10 seconds timeout
+        private const int DefaultTimeout = 90; // 90 seconds timeout
 
         /// <summary>
         /// Default Buffer size of a block requested from the web-server
         /// </summary>
         private const int BufferSize = 4 * 4096; // Read blocks of 4 * 4 KB.
-
-        /// <summary>
-        /// if an exception occours during async processing, we need to save it, so it can be
-        /// rethrown on the primary thread;
-        /// </summary>
-        private Exception _asyncException;
 
         #endregion member variables
 
@@ -271,44 +244,6 @@ namespace OpenSim.Framework
             //m_log.InfoFormat("[REST CLIENT]: RestURL: {0}", realuri);
             return new Uri(sb.ToString());
         }
-
-        #region Async communications with server
-
-        /// <summary>
-        /// Async method, invoked when a block of data has been received from the service
-        /// </summary>
-        /// <param name="ar"></param>
-        private void StreamIsReadyDelegate(IAsyncResult ar)
-        {
-            try
-            {
-                Stream s = (Stream) ar.AsyncState;
-                int read = s.EndRead(ar);
-
-                if (read > 0)
-                {
-                    _resource.Write(_readbuf, 0, read);
-                    // IAsyncResult asynchronousResult =
-                    //     s.BeginRead(_readbuf, 0, BufferSize, new AsyncCallback(StreamIsReadyDelegate), s);
-                    s.BeginRead(_readbuf, 0, BufferSize, new AsyncCallback(StreamIsReadyDelegate), s);
-
-                    // TODO! Implement timeout, without killing the server
-                    //ThreadPool.RegisterWaitForSingleObject(asynchronousResult.AsyncWaitHandle, new WaitOrTimerCallback(TimeoutCallback), _request, DefaultTimeout, true);
-                }
-                else
-                {
-                    s.Close();
-                    //_allDone.Set();
-                }
-            }
-            catch (Exception e)
-            {
-                //_allDone.Set();
-                _asyncException = e;
-            }
-        }
-
-        #endregion Async communications with server
 
         /// <summary>
         /// Perform a synchronous request
@@ -461,158 +396,4 @@ namespace OpenSim.Framework
         }
 
     }
-
-    internal class SimpleAsyncResult : IAsyncResult
-    {
-        private readonly AsyncCallback m_callback;
-
-        /// <summary>
-        /// Is process completed?
-        /// </summary>
-        /// <remarks>Should really be boolean, but VolatileRead has no boolean method</remarks>
-        private byte m_completed;
-
-        /// <summary>
-        /// Did process complete synchronously?
-        /// </summary>
-        /// <remarks>I have a hard time imagining a scenario where this is the case, again, same issue about
-        /// booleans and VolatileRead as m_completed
-        /// </remarks>
-        private byte m_completedSynchronously;
-
-        private readonly object m_asyncState;
-        private ManualResetEvent m_waitHandle;
-        private Exception m_exception;
-
-        internal SimpleAsyncResult(AsyncCallback cb, object state)
-        {
-            m_callback = cb;
-            m_asyncState = state;
-            m_completed = 0;
-            m_completedSynchronously = 1;
-        }
-
-        #region IAsyncResult Members
-
-        public object AsyncState
-        {
-            get { return m_asyncState; }
-        }
-
-        public WaitHandle AsyncWaitHandle
-        {
-            get
-            {
-                if (m_waitHandle == null)
-                {
-                    bool done = IsCompleted;
-                    ManualResetEvent mre = new ManualResetEvent(done);
-                    if (Interlocked.CompareExchange(ref m_waitHandle, mre, null) != null)
-                    {
-                        mre.Close();
-                    }
-                    else
-                    {
-                        if (!done && IsCompleted)
-                        {
-                            m_waitHandle.Set();
-                        }
-                    }
-                }
-
-                return m_waitHandle;
-            }
-        }
-
-
-        public bool CompletedSynchronously
-        {
-            get { return Thread.VolatileRead(ref m_completedSynchronously) == 1; }
-        }
-
-
-        public bool IsCompleted
-        {
-            get { return Thread.VolatileRead(ref m_completed) == 1; }
-        }
-
-        #endregion
-
-        #region class Methods
-
-        internal void SetAsCompleted(bool completedSynchronously)
-        {
-            m_completed = 1;
-            if (completedSynchronously)
-                m_completedSynchronously = 1;
-            else
-                m_completedSynchronously = 0;
-
-            SignalCompletion();
-        }
-
-        internal void HandleException(Exception e, bool completedSynchronously)
-        {
-            m_completed = 1;
-            if (completedSynchronously)
-                m_completedSynchronously = 1;
-            else
-                m_completedSynchronously = 0;
-            m_exception = e;
-
-            SignalCompletion();
-        }
-
-        private void SignalCompletion()
-        {
-            if (m_waitHandle != null) m_waitHandle.Set();
-
-            if (m_callback != null) m_callback(this);
-        }
-
-        public void EndInvoke()
-        {
-            // This method assumes that only 1 thread calls EndInvoke
-            if (!IsCompleted)
-            {
-                // If the operation isn't done, wait for it
-                AsyncWaitHandle.WaitOne();
-                AsyncWaitHandle.Close();
-                m_waitHandle.Close();
-                m_waitHandle = null; // Allow early GC
-            }
-
-            // Operation is done: if an exception occured, throw it
-            if (m_exception != null) throw m_exception;
-        }
-
-        #endregion
-    }
-
-    internal class AsyncResult<T> : SimpleAsyncResult
-    {
-        private T m_result = default(T);
-
-        public AsyncResult(AsyncCallback asyncCallback, Object state) :
-            base(asyncCallback, state)
-        {
-        }
-
-        public void SetAsCompleted(T result, bool completedSynchronously)
-        {
-            // Save the asynchronous operation's result
-            m_result = result;
-
-            // Tell the base class that the operation completed
-            // sucessfully (no exception)
-            base.SetAsCompleted(completedSynchronously);
-        }
-
-        public new T EndInvoke()
-        {
-            base.EndInvoke();
-            return m_result;
-        }
-    }
-
 }
