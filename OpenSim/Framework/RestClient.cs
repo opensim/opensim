@@ -86,11 +86,6 @@ namespace OpenSim.Framework
         private MemoryStream _resource;
 
         /// <summary>
-        /// WebRequest object, held as a member variable
-        /// </summary>
-        private HttpWebRequest _request;
-
-        /// <summary>
         /// Default time out period
         /// </summary>
         private const int DefaultTimeout = 90; // 90 seconds timeout
@@ -113,7 +108,6 @@ namespace OpenSim.Framework
             _url = url;
             _readbuf = new byte[BufferSize];
             _resource = new MemoryStream();
-            _request = null;
             _lock = new object();
         }
 
@@ -261,7 +255,7 @@ namespace OpenSim.Framework
         {
             lock (_lock)
             {
-                Uri uri;
+                Uri uri = null;
                 HttpResponseMessage responseMessage = null;
                 HttpRequestMessage request = null;
                 CancellationTokenSource cancellationToken = null;
@@ -275,7 +269,7 @@ namespace OpenSim.Framework
                     request.Headers.ExpectContinue = false;
                     request.Headers.TransferEncodingChunked = false;
 
-                    cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(90));
+                    cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(DefaultTimeout));
 
                     if (WebUtil.DebugLevel >= 3)
                         m_log.DebugFormat("[REST CLIENT] {0} to {1}", RequestMethod, uri);
@@ -294,21 +288,28 @@ namespace OpenSim.Framework
                 }
                 catch (HttpRequestException e)
                 {
-                    if (e.StatusCode is HttpStatusCode status)
+                    if(uri is not null)
                     {
-                        if (status == HttpStatusCode.NotFound)
+                        if (e.StatusCode is HttpStatusCode status)
                         {
-                            // This is often benign. E.g., requesting a missing asset will return 404.
-                            m_log.DebugFormat("[REST CLIENT] Resource not found (404): {0}", _request.Address.ToString());
+                            if (status == HttpStatusCode.NotFound)
+                            {
+                                // This is often benign. E.g., requesting a missing asset will return 404.
+                                m_log.DebugFormat("[REST CLIENT] Resource not found (404): {0}", uri.ToString());
+                            }
+                            else
+                            {
+                                m_log.Error($"[REST CLIENT] Error fetching resource from server: {uri} status: {status} {e.Message}");
+                            }
                         }
                         else
                         {
-                            m_log.Error($"[REST CLIENT] Error fetching resource from server: {_request.Address} status: {status} {e.Message}");
+                            m_log.Error($"[REST CLIENT] Error fetching resource from server: {uri} {e.Message}");
                         }
                     }
                     else
                     {
-                        m_log.Error($"[REST CLIENT] Error fetching resource from server: {_request.Address} {e.Message}");
+                        m_log.Error($"[REST CLIENT] Error fetching null resource from server: {e.Message}");
                     }
                     return null;
                 }
@@ -349,7 +350,7 @@ namespace OpenSim.Framework
                 request.Headers.ExpectContinue = false;
                 request.Headers.TransferEncodingChunked = false;
 
-                cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(90));
+                cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(DefaultTimeout));
 
                 request.Content = new ByteArrayContent(src);
                 request.Content.Headers.TryAddWithoutValidation("Content-Type", "application/xml");
