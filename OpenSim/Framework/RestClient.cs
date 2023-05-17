@@ -29,7 +29,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Web;
@@ -139,7 +141,6 @@ namespace OpenSim.Framework
             _readbuf = new byte[BufferSize];
             _resource = new MemoryStream();
             _request = null;
-            _response = null;
             _lock = new object();
         }
 
@@ -244,7 +245,7 @@ namespace OpenSim.Framework
 
             foreach (string e in _pathElements)
             {
-                sb.Append("/");
+                sb.Append('/');
                 sb.Append(e);
             }
 
@@ -253,16 +254,16 @@ namespace OpenSim.Framework
             {
                 if (firstElement)
                 {
-                    sb.Append("?");
+                    sb.Append('?');
                     firstElement = false;
                 }
                 else
-                    sb.Append("&");
+                    sb.Append('&');
 
                 sb.Append(kv.Key);
                 if (!string.IsNullOrEmpty(kv.Value))
                 {
-                    sb.Append("=");
+                    sb.Append('=');
                     sb.Append(kv.Value);
                 }
             }
@@ -312,6 +313,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// Perform a synchronous request
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public MemoryStream Request()
         {
             return Request(null);
@@ -324,53 +326,63 @@ namespace OpenSim.Framework
         {
             lock (_lock)
             {
+                Uri uri;
+                HttpResponseMessage responseMessage = null;
+                HttpRequestMessage request = null;
+                CancellationTokenSource cancellationToken = null;
                 try
                 {
-                    _request = (HttpWebRequest) WebRequest.Create(buildUri());
-                    _request.ContentType = "application/xml";
-                    _request.Timeout = 90000;
-                    _request.Method = RequestMethod;
-                    _asyncException = null;
-                    if (auth != null)
-                        auth.AddAuthorization(_request.Headers);
-                    else
-                        _request.AllowWriteStreamBuffering = false;
+                    HttpClient client = WebUtil.SharedHttpClientWithRedir;
+                    uri = buildUri();
+                    request = new(new HttpMethod(RequestMethod), uri);
+
+                    auth?.AddAuthorization(request.Headers);
+                    request.Headers.ExpectContinue = false;
+                    request.Headers.TransferEncodingChunked = false;
+
+                    cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(90));
 
                     if (WebUtil.DebugLevel >= 3)
-                        m_log.DebugFormat("[REST CLIENT] {0} to {1}",  _request.Method, _request.RequestUri);
+                        m_log.DebugFormat("[REST CLIENT] {0} to {1}", RequestMethod, uri);
 
-                    using (_response = (HttpWebResponse) _request.GetResponse())
+                    //_request.ContentType = "application/xml";
+                    responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken.Token);
+                    responseMessage.EnsureSuccessStatusCode();
+
+                    Stream respStream = responseMessage.Content.ReadAsStream();
+                    int length = respStream.Read(_readbuf, 0, BufferSize);
+                    while (length > 0)
                     {
-                        using (Stream src = _response.GetResponseStream())
-                        {
-                            int length = src.Read(_readbuf, 0, BufferSize);
-                            while (length > 0)
-                            {
-                                _resource.Write(_readbuf, 0, length);
-                                length = src.Read(_readbuf, 0, BufferSize);
-                            }
-                        }
+                        _resource.Write(_readbuf, 0, length);
+                        length = respStream.Read(_readbuf, 0, BufferSize);
                     }
                 }
-                catch (WebException e)
+                catch (HttpRequestException e)
                 {
-                    using (HttpWebResponse errorResponse = e.Response as HttpWebResponse)
+                    if (e.StatusCode is HttpStatusCode status)
                     {
-                        if (null != errorResponse && HttpStatusCode.NotFound == errorResponse.StatusCode)
+                        if (status == HttpStatusCode.NotFound)
                         {
                             // This is often benign. E.g., requesting a missing asset will return 404.
                             m_log.DebugFormat("[REST CLIENT] Resource not found (404): {0}", _request.Address.ToString());
                         }
                         else
                         {
-                            m_log.Error(string.Format("[REST CLIENT] Error fetching resource from server: {0} ", _request.Address.ToString()), e);
+                            m_log.Error($"[REST CLIENT] Error fetching resource from server: {_request.Address} status: {status} {e.Message}");
                         }
+                    }
+                    else
+                    {
+                        m_log.Error($"[REST CLIENT] Error fetching resource from server: {_request.Address} {e.Message}");
                     }
                     return null;
                 }
-
-                if (_asyncException != null)
-                    throw _asyncException;
+                finally
+                {
+                    request?.Dispose();
+                    responseMessage?.Dispose();
+                    cancellationToken?.Dispose();
+                }
 
                 if (_resource != null)
                 {
@@ -388,60 +400,63 @@ namespace OpenSim.Framework
         // just sync post data, ignoring result
         public void POSTRequest(byte[] src, IServiceAuth auth)
         {
+            Uri uri = null;
+            HttpResponseMessage responseMessage = null;
+            HttpRequestMessage request = null;
+            CancellationTokenSource cancellationToken = null;
             try
             {
-                _request = (HttpWebRequest)WebRequest.Create(buildUri());
-                _request.ContentType = "application/xml";
-                _request.Timeout = 90000;
-                _request.Method = "POST";
-                _asyncException = null;
-                _request.ContentLength = src.Length;
-                if (auth != null)
-                    auth.AddAuthorization(_request.Headers);
+                HttpClient client = WebUtil.SharedHttpClientWithRedir;
+                uri = buildUri();
+                request = new(HttpMethod.Post, uri);
+
+                auth?.AddAuthorization(request.Headers);
+                request.Headers.ExpectContinue = false;
+                request.Headers.TransferEncodingChunked = false;
+
+                cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(90));
+
+                request.Content = new ByteArrayContent(src);
+                request.Content.Headers.TryAddWithoutValidation("Content-Type", "application/xml");
+                request.Content.Headers.TryAddWithoutValidation("Content-Length", src.Length.ToString());
+
+                responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken.Token);
+                responseMessage.EnsureSuccessStatusCode();
+
+                using StreamReader reader = new StreamReader(responseMessage.Content.ReadAsStream());
+                string responseStr = reader.ReadToEnd();
+                if (WebUtil.DebugLevel >= 5)
+                {
+                    int reqnum = WebUtil.RequestNumber++;
+                    WebUtil.LogOutgoingDetail("REST POST", responseStr);
+                }
+            }
+            catch (HttpRequestException e)
+            {
+                if(uri is not null)
+                { 
+                    if (e.StatusCode is HttpStatusCode status)
+                        m_log.Warn($"[REST]: POST {uri} failed with status {status} and message {e.Message}");
+                    else
+                        m_log.Warn($"[REST]: POST {uri} failed with message {e.Message}");
+                }
                 else
-                    _request.AllowWriteStreamBuffering = false;
-            }
-            catch (Exception e)
-            {
-                m_log.WarnFormat("[REST]: POST {0} failed with exception {1} {2}",
-                                _request.RequestUri, e.Message, e.StackTrace);
-                return;
-            }
-
-            try
-            {
-                using (Stream dst = _request.GetRequestStream())
-                {
-                    dst.Write(src, 0, src.Length);
-                }
-
-                using(HttpWebResponse response = (HttpWebResponse)_request.GetResponse())
-                {
-                    using (Stream responseStream = response.GetResponseStream())
-                    {
-                        using (StreamReader reader = new StreamReader(responseStream))
-                        {
-                            string responseStr = reader.ReadToEnd();
-                            if (WebUtil.DebugLevel >= 5)
-                            {
-                                int reqnum = WebUtil.RequestNumber++;
-                                WebUtil.LogOutgoingDetail("REST POST", responseStr);
-                            }
-                        }
-                    }
-                }
-            }
-            catch (WebException e)
-            {
-                m_log.WarnFormat("[REST]: POST {0} failed with status {1} and message {2}",
-                                  _request.RequestUri, e.Status, e.Message);
+                    m_log.Warn($"[REST]: POST failed {e.Message}");
                 return;
             }
             catch (Exception e)
             {
-                m_log.WarnFormat("[REST]: AsyncPOST {0} failed with exception {1} {2}",
-                                _request.RequestUri, e.Message, e.StackTrace);
+                if (uri is not null)
+                    m_log.Warn($"[REST]: POST {uri} failed with message {e.Message}");
+                else
+                    m_log.Warn($"[REST]: POST failed {e.Message}");
                 return;
+            }
+            finally
+            {
+                request?.Dispose();
+                responseMessage?.Dispose();
+                cancellationToken?.Dispose();
             }
         }
 
