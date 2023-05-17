@@ -47,6 +47,7 @@ using OpenSim.Framework.ServiceAuth;
 using System.Net.Http;
 using System.Security.Authentication;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace OpenSim.Framework
 {
@@ -358,6 +359,7 @@ namespace OpenSim.Framework
 
             string errorMessage = "unknown error";
             int tickstart = Util.EnvironmentTickCount();
+
             int sendlen = 0;
             int rcvlen = 0;
             HttpResponseMessage responseMessage = null;
@@ -1303,11 +1305,13 @@ namespace OpenSim.Framework
         /// <returns>
         /// The response.  If there was an internal exception, then the default(TResponse) is returned.
         /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TResponse MakeRequest<TRequest, TResponse>(string verb, string requestUrl, TRequest obj)
         {
             return MakeRequest<TRequest, TResponse>(verb, requestUrl, obj, 0, null);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TResponse MakeRequest<TRequest, TResponse>(string verb, string requestUrl, TRequest obj, IServiceAuth auth)
         {
             return MakeRequest<TRequest, TResponse>(verb, requestUrl, obj, 0, auth);
@@ -1325,6 +1329,7 @@ namespace OpenSim.Framework
         /// The response.  If there was an internal exception or the request timed out,
         /// then the default(TResponse) is returned.
         /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TResponse MakeRequest<TRequest, TResponse>(string verb, string requestUrl, TRequest obj, int pTimeout)
         {
             return MakeRequest<TRequest, TResponse>(verb, requestUrl, obj, pTimeout, null);
@@ -1333,7 +1338,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// Perform a synchronous something request.
         /// </summary>
-        /// <param name="verb"></param>
+        /// <param name="method"></param>
         /// <param name="requestUrl"></param>
         /// <param name="obj"></param>
         /// <param name="pTimeout">
@@ -1343,42 +1348,43 @@ namespace OpenSim.Framework
         /// The response.  If there was an internal exception or the request timed out,
         /// then the default(TResponse) is returned.
         /// </returns>
-        public static TResponse MakeRequest<TRequest, TResponse>(string verb, string requestUrl, TRequest obj, int pTimeout, IServiceAuth auth)
+        public static TResponse MakeRequest<TRequest, TResponse>(string method, string requestUrl, TRequest obj, int pTimeout, IServiceAuth auth)
         {
             int reqnum = WebUtil.RequestNumber++;
 
             if (WebUtil.DebugLevel >= 3)
-                m_log.Debug($"[LOGHTTP]: HTTP OUT {reqnum} SRestObjReq {verb} {requestUrl}");
+                m_log.Debug($"[LOGHTTP]: HTTP OUT {reqnum} SRestObjReq {method} {requestUrl}");
 
-            int tickstart = Util.EnvironmentTickCount();
-
+            int ticks = Util.EnvironmentTickCount();
             TResponse deserial = default;
+            HttpResponseMessage responseMessage = null;
+            HttpRequestMessage request = null;
+            CancellationTokenSource cancellationToken = null;
 
-            HttpWebRequest request;
             try
             {
-                request = (HttpWebRequest)WebRequest.Create(requestUrl);
+                HttpClient client = WebUtil.SharedHttpClientWithRedir;
 
-                if (auth != null)
-                    auth.AddAuthorization(request.Headers);
+                request = new(new HttpMethod(method), requestUrl);
+
+                auth?.AddAuthorization(request.Headers);
+
+                request.Headers.ExpectContinue = false;
+                request.Headers.TransferEncodingChunked = false;
+
+                //if (keepalive)
+                {
+                    request.Headers.TryAddWithoutValidation("Keep-Alive", "timeout=30, max=10");
+                    request.Headers.TryAddWithoutValidation("Connection", "Keep-Alive");
+                }
+                //else
+                //    request.Headers.TryAddWithoutValidation("Connection", "close");
 
                 if (pTimeout != 0)
-                    request.Timeout = pTimeout;
+                    cancellationToken = new CancellationTokenSource(TimeSpan.FromMilliseconds(pTimeout));
 
-                request.Method = verb;
-            }
-            catch (Exception e)
-            {
-                m_log.Debug($"[SRestObjReq]: Exception in creating request {verb} {requestUrl}: {e.Message}");
-                return deserial;
-            }
-
-            try
-            {
-                if ((verb == "POST") || (verb == "PUT"))
+                if (method.Equals("POST",StringComparison.OrdinalIgnoreCase) || method.Equals("PUT", StringComparison.OrdinalIgnoreCase))
                 {
-                    request.ContentType = "text/xml";
-
                     byte[] data;
                     XmlWriterSettings settings = new() { Encoding = Util.UTF8 };
                     using (MemoryStream ms = new())
@@ -1391,76 +1397,77 @@ namespace OpenSim.Framework
                     }
 
                     int sendlen = data.Length;
-                    request.ContentLength = sendlen;
-
                     if (WebUtil.DebugLevel >= 5)
                         WebUtil.LogOutgoingDetail("SEND", reqnum, System.Text.Encoding.UTF8.GetString(data));
 
-                    using (Stream requestStream = request.GetRequestStream())
-                        requestStream.Write(data, 0, sendlen);
-                    data = null;
+                    request.Content = new ByteArrayContent(data);
+                    request.Content.Headers.TryAddWithoutValidation("Content-Type", "text/xml");
+                    request.Content.Headers.TryAddWithoutValidation("Content-Length", sendlen.ToString());
                 }
-            }
-            catch (Exception e)
-            {
-                m_log.Debug( $"[SRestObjReq]: Exception in making request {verb} {requestUrl}: {e.Message}");
-                return deserial;
-            }
 
-            int rcvlen = 0;
-            try
-            {
-                using HttpWebResponse resp = (HttpWebResponse)request.GetResponse();
-                if (resp.ContentLength != 0)
+                if(cancellationToken is null)
+                    responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead);
+                else
+                    responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken.Token);
+                responseMessage.EnsureSuccessStatusCode();
+
+                int rcvlen = 0;
+                if ((responseMessage.Content.Headers.ContentLength is long contentLength) && contentLength != 0)
                 {
-                    rcvlen = (int)resp.ContentLength;
-                    using Stream respStream = resp.GetResponseStream();
+                    rcvlen = (int)contentLength;
+                    using Stream respStream = responseMessage.Content.ReadAsStream();
                     deserial = XMLResponseHelper.LogAndDeserialize<TResponse>(
-                        reqnum, respStream, resp.ContentLength);
+                        reqnum, respStream, contentLength);
                 }
                 else
                 {
-                    m_log.Debug($"[SRestObjReq]: Oops! no content found in response stream from {verb} {requestUrl}");
+                    m_log.Debug($"[SRestObjReq]: Oops! no content found in response stream from {method} {requestUrl}");
+                }
+
+                ticks = Util.EnvironmentTickCountSubtract(ticks);
+                if (ticks > WebUtil.LongCallTime)
+                {
+                    m_log.Info($"[LOGHTTP]: Slow SRestObjReq {reqnum} {method} {requestUrl} took {ticks}ms, {rcvlen}bytes");
+                }
+                else if (WebUtil.DebugLevel >= 4)
+                {
+                    m_log.Debug($"[LOGHTTP]: HTTP OUT {reqnum} took {ticks}ms");
                 }
             }
-            catch (WebException e)
+            catch (HttpRequestException e)
             {
-                using HttpWebResponse hwr = (HttpWebResponse)e.Response;
-                if (hwr != null)
+                if (e.StatusCode is HttpStatusCode status)
                 {
-                    if (hwr.StatusCode == HttpStatusCode.Unauthorized)
+                    if (status == HttpStatusCode.Unauthorized)
                     {
-                        m_log.Error($"[SRestObjReq]: {requestUrl} requires authentication");
+                        m_log.Error($"[SRestObjReq]:  GET {requestUrl} requires authentication");
                     }
-                    else if (hwr.StatusCode != HttpStatusCode.NotFound)
+                    else if (status != HttpStatusCode.NotFound)
                     {
-                        m_log.Warn($"[SRestObjReq]: {requestUrl} returned error: {hwr.StatusCode}");
+                        m_log.Warn($"[SRestObjReq]: GET {requestUrl} returned error: {status}");
                     }
                 }
                 else
                     m_log.ErrorFormat(
                         "[SRestObjReq]: WebException for {0} {1} {2} {3}",
-                        verb, requestUrl, typeof(TResponse).ToString(), e.Message);
+                        method, requestUrl, typeof(TResponse).ToString(), e.Message);
             }
             catch (System.InvalidOperationException)
             {
                 // This is what happens when there is invalid XML
-                m_log.Debug($"[SRestObjReq]: Invalid XML from {verb} {requestUrl} {typeof(TResponse)}");
+                m_log.Debug($"[SRestObjReq]: Invalid XML from {method} {requestUrl} {typeof(TResponse)}");
             }
             catch (Exception e)
             {
-                m_log.Debug($"[SRestObjReq]: Exception on response from {verb} {requestUrl}: {e.Message}");
+                m_log.Debug($"[SRestObjReq]: Exception on response from {method} {requestUrl}: {e.Message}");
+            }
+            finally
+            {
+                request?.Dispose();
+                responseMessage?.Dispose();
+                cancellationToken?.Dispose();
             }
 
-            int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
-            if (tickdiff > WebUtil.LongCallTime)
-            {
-                m_log.Info($"[LOGHTTP]: Slow SRestObjReq {reqnum} {verb} {requestUrl} took {tickdiff}ms, {rcvlen}bytes");
-            }
-            else if (WebUtil.DebugLevel >= 4)
-            {
-                m_log.Debug($"[LOGHTTP]: HTTP OUT {reqnum} took {tickdiff}ms");
-            }
             return deserial;
         }
 
@@ -1470,58 +1477,75 @@ namespace OpenSim.Framework
 
             if (WebUtil.DebugLevel >= 3)
                 m_log.Debug($"[LOGHTTP]: HTTP OUT {reqnum} SRestObjReq GET {requestUrl}");
-            int tickstart = Util.EnvironmentTickCount();
 
+            int ticks = Util.EnvironmentTickCount();
             TResponse deserial = default;
-            HttpWebRequest request;
+            HttpResponseMessage responseMessage = null;
+            HttpRequestMessage request = null;
+            CancellationTokenSource cancellationToken = null;
             try
             {
-                request = (HttpWebRequest)WebRequest.Create(requestUrl);
+                HttpClient client = WebUtil.SharedHttpClientWithRedir;
 
-                if (auth != null)
-                    auth.AddAuthorization(request.Headers);
 
-                request.AllowWriteStreamBuffering = false;
+                request = new(HttpMethod.Get, requestUrl);
+
+                auth?.AddAuthorization(request.Headers);
+
+                request.Headers.ExpectContinue = false;
+                request.Headers.TransferEncodingChunked = false;
+
+                //if (keepalive)
+                {
+                    request.Headers.TryAddWithoutValidation("Keep-Alive", "timeout=30, max=10");
+                    request.Headers.TryAddWithoutValidation("Connection", "Keep-Alive");
+                }
+                //else
+                //    request.Headers.TryAddWithoutValidation("Connection", "close");
 
                 if (pTimeout != 0)
-                    request.Timeout = pTimeout;
+                    cancellationToken = new CancellationTokenSource(TimeSpan.FromMilliseconds(pTimeout));
 
-                request.Method = "GET";
-            }
-            catch (Exception e)
-            {
-                m_log.Debug($"[SRestObjReq]: Exception in creating GET request  {requestUrl}: {e.Message}");
-                return deserial;
-            }
+                if (cancellationToken is null)
+                    responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead);
+                else
+                    responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken.Token);
+                responseMessage.EnsureSuccessStatusCode();
 
-            int rcvlen = 0;
-            try
-            {
-                using HttpWebResponse resp = (HttpWebResponse)request.GetResponse();
-                if (resp.ContentLength != 0)
+                int rcvlen = 0;
+                if ((responseMessage.Content.Headers.ContentLength is long contentLength) && contentLength != 0)
                 {
-                    rcvlen = (int)resp.ContentLength;
-                    using Stream respStream = resp.GetResponseStream();
+                    rcvlen = (int)contentLength;
+                    using Stream respStream = responseMessage.Content.ReadAsStream();
                     deserial = XMLResponseHelper.LogAndDeserialize<TResponse>(
-                        reqnum, respStream, resp.ContentLength);
+                        reqnum, respStream, contentLength);
                 }
                 else
                 {
                     m_log.Debug($"[SRestObjReq]: Oops! no content found in response stream from GET {requestUrl}");
                 }
-            }
-            catch (WebException e)
-            {
-                using HttpWebResponse hwr = (HttpWebResponse)e.Response;
-                if (hwr != null)
+
+                ticks = Util.EnvironmentTickCountSubtract(ticks);
+                if (ticks > WebUtil.LongCallTime)
                 {
-                    if (hwr.StatusCode == HttpStatusCode.Unauthorized)
+                    m_log.Info($"[LOGHTTP]: Slow SRestObjReq  GET {reqnum} {requestUrl} took {ticks}ms, {rcvlen}bytes");
+                }
+                else if (WebUtil.DebugLevel >= 4)
+                {
+                    m_log.Debug($"[LOGHTTP]: HTTP OUT {reqnum} took {ticks}ms");
+                }
+            }
+            catch (HttpRequestException e)
+            {
+                if(e.StatusCode is HttpStatusCode status)
+                {
+                    if (status == HttpStatusCode.Unauthorized)
                     {
                         m_log.Error($"[SRestObjReq]:  GET {requestUrl} requires authentication");
                     }
-                    else if (hwr.StatusCode != HttpStatusCode.NotFound)
+                    else if (status != HttpStatusCode.NotFound)
                     {
-                        m_log.Warn($"[SRestObjReq]: GET {requestUrl} returned error: {hwr.StatusCode}");
+                        m_log.Warn($"[SRestObjReq]: GET {requestUrl} returned error: {status}");
                     }
                 }
                 else
@@ -1536,15 +1560,11 @@ namespace OpenSim.Framework
             {
                 m_log.Debug($"[SRestObjReq]: Exception on response from GET {requestUrl}: {e.Message}");
             }
-
-            int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
-            if (tickdiff > WebUtil.LongCallTime)
+            finally
             {
-                m_log.Info($"[LOGHTTP]: Slow SRestObjReq  GET {reqnum} {requestUrl} took {tickdiff}ms, {rcvlen}bytes");
-            }
-            else if (WebUtil.DebugLevel >= 4)
-            {
-                m_log.Debug($"[LOGHTTP]: HTTP OUT {reqnum} took {tickdiff}ms");
+                request?.Dispose();
+                responseMessage?.Dispose();
+                cancellationToken?.Dispose();
             }
             return deserial;
         }
