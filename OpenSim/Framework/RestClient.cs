@@ -58,17 +58,17 @@ namespace OpenSim.Framework
         /// <summary>
         /// The base Uri of the web-service e.g. http://www.google.com
         /// </summary>
-        private string _url;
+        private readonly string _url;
 
         /// <summary>
         /// Path elements of the query
         /// </summary>
-        private List<string> _pathElements = new List<string>();
+        private readonly List<string> _pathElements = new();
 
         /// <summary>
         /// Parameter elements of the query, e.g. min=34
         /// </summary>
-        private Dictionary<string, string> _parameterElements = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> _parameterElements = new();
 
         /// <summary>
         /// Request method. E.g. GET, POST, PUT or DELETE
@@ -78,12 +78,12 @@ namespace OpenSim.Framework
         /// <summary>
         /// Temporary buffer used to store bytes temporarily as they come in from the server
         /// </summary>
-        private byte[] _readbuf;
+        private readonly byte[] _readbuf;
 
         /// <summary>
         /// MemoryStream representing the resulting resource
         /// </summary>
-        private MemoryStream _resource;
+        private readonly MemoryStream _resource;
 
         /// <summary>
         /// Default time out period
@@ -111,7 +111,7 @@ namespace OpenSim.Framework
             _lock = new object();
         }
 
-        private object _lock;
+        private readonly object _lock;
 
         #endregion constructors
 
@@ -207,7 +207,7 @@ namespace OpenSim.Framework
         /// <returns>fully constructed Uri</returns>
         private Uri buildUri()
         {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
             sb.Append(_url);
 
             foreach (string e in _pathElements)
@@ -359,22 +359,23 @@ namespace OpenSim.Framework
                 request.Headers.ExpectContinue = false;
                 request.Headers.TransferEncodingChunked = false;
 
+                //if (keepalive)
+                {
+                    request.Headers.TryAddWithoutValidation("Keep-Alive", "timeout=30, max=10");
+                    request.Headers.TryAddWithoutValidation("Connection", "Keep-Alive");
+                    request.Headers.ConnectionClose = false;
+                }
+                //else
+                //    request.Headers.TryAddWithoutValidation("Connection", "close");
+
                 cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(DefaultTimeout));
 
                 request.Content = new ByteArrayContent(src);
                 request.Content.Headers.TryAddWithoutValidation("Content-Type", "application/xml");
                 request.Content.Headers.TryAddWithoutValidation("Content-Length", src.Length.ToString());
 
-                responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken.Token);
+                responseMessage = client.Send(request, HttpCompletionOption.ResponseContentRead, cancellationToken.Token);
                 responseMessage.EnsureSuccessStatusCode();
-
-                using StreamReader reader = new StreamReader(responseMessage.Content.ReadAsStream());
-                string responseStr = reader.ReadToEnd();
-                if (WebUtil.DebugLevel >= 5)
-                {
-                    int reqnum = WebUtil.RequestNumber++;
-                    WebUtil.LogOutgoingDetail("REST POST", responseStr);
-                }
             }
             catch (HttpRequestException e)
             {
