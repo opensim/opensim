@@ -173,6 +173,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                         VeriFyNoCertClient = new HttpClient(shhnc)
                         {
                             Timeout = TimeSpan.FromMilliseconds(httpTimeout),
+                            MaxResponseContentBufferSize = 2 * m_HttpBodyMaxLenMAX,
                         };
                         VeriFyNoCertClient.DefaultRequestHeaders.ExpectContinue = false;
                         VeriFyNoCertClient.DefaultRequestHeaders.ConnectionClose = true;
@@ -207,7 +208,8 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                         }
                         VeriFyCertClient = new HttpClient(shh)
                         {
-                            Timeout = TimeSpan.FromMilliseconds(httpTimeout)
+                            Timeout = TimeSpan.FromMilliseconds(httpTimeout),
+                            MaxResponseContentBufferSize = 2 * m_HttpBodyMaxLenMAX
                         };
                         VeriFyCertClient.DefaultRequestHeaders.ExpectContinue = false;
                         VeriFyCertClient.DefaultRequestHeaders.ConnectionClose = true;

@@ -180,6 +180,7 @@ namespace OpenSim.Framework
             var client = new HttpClient(shh)
             {
                 Timeout = TimeSpan.FromMilliseconds(30000),
+                MaxResponseContentBufferSize = 250 * 1024 * 1024,
             };
             client.DefaultRequestHeaders.ExpectContinue = false;
 
@@ -253,6 +254,7 @@ namespace OpenSim.Framework
             client = new HttpClient(shh)
             {
                 Timeout = TimeSpan.FromMilliseconds(30000),
+                MaxResponseContentBufferSize = 250 * 1024 * 1024,
             };
             client.DefaultRequestHeaders.ExpectContinue = false;
 
