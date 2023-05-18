@@ -1870,71 +1870,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         /// </param>
         bool JsonRpcRequest(ref object parameters, string method, string uri, string jsonId)
         {
-            if (jsonId is null)
-                throw new ArgumentNullException(nameof(jsonId));
-            if (uri is null)
-                throw new ArgumentNullException(nameof(uri));
-            if (method is null)
-                throw new ArgumentNullException(nameof(method));
-            if (parameters is null)
-                throw new ArgumentNullException(nameof(parameters));
-
-            // Prep our payload
-            OSDMap json = new()
-            {
-                { "jsonrpc", OSD.FromString("2.0") },
-                { "id", OSD.FromString(jsonId) },
-                { "method", OSD.FromString(method) },
-                { "params", OSD.SerializeMembers(parameters) }
-            };
-
-            string jsonRequestData = OSDParser.SerializeJsonString(json);
-            byte[] content = Encoding.UTF8.GetBytes(jsonRequestData);
-
-            HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(uri);
-
-            webRequest.ContentType = "application/json-rpc";
-            webRequest.Method = "POST";
-
-            WebResponse webResponse;
-            try
-            {
-                using(Stream dataStream = webRequest.GetRequestStream())
-                    dataStream.Write(content,0,content.Length);
-
-                webResponse = webRequest.GetResponse();
-            }
-            catch (WebException e)
-            {
-                Console.WriteLine("Web Error" + e.Message);
-                Console.WriteLine ("Please check input");
-                return false;
-            }
-
-            OSDMap mret = new();
-
-            using (Stream rstream = webResponse.GetResponseStream())
-            {
-                try
-                {
-                    mret = (OSDMap)OSDParser.DeserializeJson(rstream);
-                }
-                catch (Exception e)
-                {
-                    m_log.DebugFormat("[PROFILES]: JsonRpcRequest Error {0} - remote user with legacy profiles?", e.Message);
-                    webResponse?.Close();
-                    return false;
-                }
-            }
-
-            webResponse?.Close();
-
-            if (mret.ContainsKey("error"))
-                return false;
-
-            // get params...
-            OSD.DeserializeMembers(ref parameters, (OSDMap) mret["result"]);
-            return true;
+            return rpc?.JsonRpcRequest(ref parameters, method, uri, jsonId) ?? false;
         }
 
         /// <summary>
@@ -1957,66 +1893,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         /// </param>
         bool JsonRpcRequest(ref OSD data, string method, string uri, string jsonId)
         {
-            OSDMap map = new()
-            {
-                ["jsonrpc"] = "2.0",
-                ["method"] = method,
-                ["params"] = data
-            };
-            if (string.IsNullOrEmpty(jsonId))
-                map["id"] = UUID.Random().ToString();
-            else
-                map["id"] = jsonId;
-
-            string jsonRequestData = OSDParser.SerializeJsonString(map);
-            byte[] content = Encoding.UTF8.GetBytes(jsonRequestData);
-
-            HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(uri);
-            webRequest.ContentType = "application/json-rpc";
-            webRequest.Method = "POST";
-
-            WebResponse webResponse;
-            try
-            {
-                using(Stream dataStream = webRequest.GetRequestStream())
-                    dataStream.Write(content,0,content.Length);
-
-                webResponse = webRequest.GetResponse();
-            }
-            catch (WebException e)
-            {
-                Console.WriteLine("Web Error" + e.Message);
-                Console.WriteLine ("Please check input");
-                return false;
-            }
-
-            OSDMap response = new();
-
-            using (Stream rstream = webResponse.GetResponseStream())
-            {
-                try
-                {
-                    response = (OSDMap)OSDParser.DeserializeJson(rstream);
-                }
-                catch (Exception e)
-                {
-                    m_log.DebugFormat("[PROFILES]: JsonRpcRequest Error {0} - remote user with legacy profiles?", e.Message);
-                    webResponse?.Close();
-                    return false;
-                }
-            }
-
-            webResponse?.Close();
-
-            if(response.ContainsKey("error"))
-            {
-                data = response["error"];
-                return false;
-            }
-
-            data = response;
-
-            return true;
+            return rpc?.JsonRpcRequest(ref data, method, uri, jsonId) ?? false;
         }
         #endregion Web Util
     }
