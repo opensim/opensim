@@ -120,11 +120,11 @@ namespace OpenSim.Framework
             {
                 AllowAutoRedirect = false,
                 AutomaticDecompression = DecompressionMethods.None,
-                ConnectTimeout = TimeSpan.FromMilliseconds(10000),
+                ConnectTimeout = TimeSpan.FromSeconds(120),
                 PreAuthenticate = false,
                 UseCookies = false,
                 MaxConnectionsPerServer = MaxConnectionsPerServer,
-                PooledConnectionIdleTimeout = TimeSpan.FromMilliseconds(30000),
+                PooledConnectionIdleTimeout = TimeSpan.FromSeconds(31),
                 PooledConnectionLifetime = TimeSpan.FromMinutes(3)
             };
             //shh.SslOptions.ClientCertificates = null,
@@ -194,11 +194,11 @@ namespace OpenSim.Framework
                 AllowAutoRedirect = true,
                 MaxAutomaticRedirections = 10,
                 AutomaticDecompression = DecompressionMethods.None,
-                ConnectTimeout = TimeSpan.FromMilliseconds(10000),
+                ConnectTimeout = TimeSpan.FromSeconds(120),
                 PreAuthenticate = false,
                 UseCookies = false,
                 MaxConnectionsPerServer = MaxConnectionsPerServer,
-                PooledConnectionIdleTimeout = TimeSpan.FromMilliseconds(30000),
+                PooledConnectionIdleTimeout = TimeSpan.FromSeconds(31),
                 PooledConnectionLifetime = TimeSpan.FromMinutes(3)
             };
             //shh.SslOptions.ClientCertificates = null,

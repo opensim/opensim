@@ -27,7 +27,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Reflection;
 using OpenMetaverse;
 
@@ -300,15 +299,14 @@ namespace OpenSim.Framework
         {
             if (avatarID.IsZero())
                 return;
-            if (!l_EstateAccess.Contains(avatarID) &&
-                    (l_EstateAccess.Count < (int)Constants.EstateAccessLimits.AllowedAccess))
+            if ((l_EstateAccess.Count < (int)Constants.EstateAccessLimits.AllowedAccess) &&
+                    !l_EstateAccess.Contains(avatarID))
                 l_EstateAccess.Add(avatarID);
         }
 
         public void RemoveEstateUser(UUID avatarID)
         {
-            if (l_EstateAccess.Contains(avatarID))
-                l_EstateAccess.Remove(avatarID);
+            _ = l_EstateAccess.Remove(avatarID);
         }
 
         public int EstateGroupsCount()
@@ -320,15 +318,14 @@ namespace OpenSim.Framework
         {
             if (avatarID.IsZero())
                 return;
-            if (!l_EstateGroups.Contains(avatarID) &&
-                    (l_EstateGroups.Count < (int)Constants.EstateAccessLimits.AllowedGroups))
+            if ((l_EstateGroups.Count < (int)Constants.EstateAccessLimits.AllowedGroups) &&
+                    !l_EstateGroups.Contains(avatarID))
                 l_EstateGroups.Add(avatarID);
         }
 
         public void RemoveEstateGroup(UUID avatarID)
         {
-            if (l_EstateGroups.Contains(avatarID))
-                l_EstateGroups.Remove(avatarID);
+            _ = l_EstateGroups.Remove(avatarID);
         }
 
         public int EstateManagersCount()
@@ -340,31 +337,24 @@ namespace OpenSim.Framework
         {
             if (avatarID.IsZero())
                 return;
-            if (!l_EstateManagers.Contains(avatarID) &&
-                (l_EstateManagers.Count < (int)Constants.EstateAccessLimits.EstateManagers))
+            if ((l_EstateManagers.Count < (int)Constants.EstateAccessLimits.EstateManagers) &&
+                    !l_EstateManagers.Contains(avatarID))
                 l_EstateManagers.Add(avatarID);
         }
 
         public void RemoveEstateManager(UUID avatarID)
         {
-            if (l_EstateManagers.Contains(avatarID))
-                l_EstateManagers.Remove(avatarID);
+            _ = l_EstateManagers.Remove(avatarID);
         }
 
         public bool IsEstateManagerOrOwner(UUID avatarID)
         {
-            if (IsEstateOwner(avatarID))
-                return true;
-
-            return l_EstateManagers.Contains(avatarID);
+             return m_EstateOwner.Equals(avatarID) || l_EstateManagers.Contains(avatarID);
         }
 
         public bool IsEstateOwner(UUID avatarID)
         {
-            if (avatarID == m_EstateOwner)
-                return true;
-
-            return false;
+            return m_EstateOwner.Equals(avatarID);
         }
 
         public bool IsBanned(UUID avatarID)
@@ -551,10 +541,10 @@ namespace OpenSim.Framework
                     object value = p.GetValue(this, null);
                     if (value is String)
                         p.SetValue(this, map[p.Name], null);
-                    else if (value is UInt32)
-                        p.SetValue(this, UInt32.Parse((string)map[p.Name]), null);
-                    else if (value is Boolean)
-                        p.SetValue(this, Boolean.Parse((string)map[p.Name]), null);
+                    else if (value is uint)
+                        p.SetValue(this, uint.Parse((string)map[p.Name]), null);
+                    else if (value is bool)
+                        p.SetValue(this, bool.Parse((string)map[p.Name]), null);
                     else if (value is UUID)
                         p.SetValue(this, UUID.Parse((string)map[p.Name]), null);
                 }
@@ -575,7 +565,7 @@ namespace OpenSim.Framework
                         LitJson.JsonMapper.RegisterImporter<string, UUID>((input) => new UUID(input));
                         bdata = LitJson.JsonMapper.ToObject<Dictionary<string,EstateBan>>(bansmap);
                     }
- //                   catch(Exception e)
+                    //catch(Exception e)
                     catch
                     {
                         return;

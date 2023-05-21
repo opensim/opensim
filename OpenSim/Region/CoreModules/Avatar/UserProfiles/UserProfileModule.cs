@@ -26,13 +26,10 @@
  */
 
 using System;
-using System.IO;
-using System.Text;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.Linq;
-using System.Net;
 using System.Reflection;
 using System.Threading;
 using OpenMetaverse;
@@ -1690,8 +1687,8 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 
                 if (!secondChanceSuccess)
                 {
-                    message = string.Format("JsonRpcRequest for user {0} to {1} failed", properties.UserId, serverURI);
-                    m_log.DebugFormat("[PROFILES]: {0}", message);
+                    message = $"JsonRpcRequest for user {properties.UserId} to {serverURI} failed";
+                    m_log.Debug($"[PROFILES]: {message}");
                     return false;
                 }
             }
