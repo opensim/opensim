@@ -450,12 +450,12 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
 
         public void StopHttpRequest(uint localID, UUID m_itemID)
         {
-            List<UUID> toremove = new List<UUID>();
+            List<UUID> toremove = new();
             lock (m_mainLock)
             {
                 foreach (HttpRequestClass tmpReq in m_pendingRequests.Values)
                 {
-                    if(tmpReq.ItemID == m_itemID)
+                    if(m_itemID.Equals(tmpReq.ItemID))
                     {
                         tmpReq.Stop();
                         toremove.Add(tmpReq.ReqID);
@@ -467,7 +467,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
             if (m_RequestsThrottle.TryGetValue(localID, out ThrottleData th))
             {
                 if (th.control + m_primOwnerPerSec * (Util.GetTimeStamp() - th.lastTime) >= m_primBurst)
-                    m_RequestsThrottle.TryRemove(localID, out ThrottleData dummy);
+                    m_RequestsThrottle.TryRemove(localID, out _);
             }
         }
 

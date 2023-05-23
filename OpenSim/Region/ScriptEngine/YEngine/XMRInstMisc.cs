@@ -424,10 +424,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public static int ListInt(object element)
         {
-            if(element is LSL_Integer linteger)
-            {
-                return (int)linteger;
-            }
+            if (element is LSL_Integer linteger)
+                return linteger.value;
             return (int)element;
         }
 
@@ -437,9 +435,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public static string ListStr(object element)
         {
             if(element is LSL_String ls)
-            {
                 return ls.m_string;
-            }
             return (string)element;
         }
     }
