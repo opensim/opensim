@@ -1008,16 +1008,27 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
                 // Various values for simulation limits
                 PhysScene.PE.SetDamping(PhysBody, BSParam.LinearDamping, BSParam.AngularDamping);
-                PhysScene.PE.SetDeactivationTime(PhysBody, BSParam.DeactivationTime);
+
+                // Whether to allow deactivation of this body when it is at rest.
+                if (this.DisableDeactivation)
+                {
+                    // The user has asked that the physical object never be deactivated.
+                    PhysScene.PE.ForceActivationState(PhysBody, ActivationState.DISABLE_DEACTIVATION);
+                    // DetailLog("{0},BSPrim.MakeDynamic,set ActivationState=DISABLE_DEACTIVATION", LocalID);
+                }
+                else
+                {
+                    // Force activation of the object so Bullet will act on it.
+                    // Must do the ForceActivationState() to overcome the DISABLE_SIMULATION from static objects.
+                    PhysScene.PE.ForceActivationState(PhysBody, ActivationState.ACTIVE_TAG);
+                    // DetailLog("{0},BSPrim.MakeDynamic,set ActivationState=ACTIVE_TAG", LocalID);
+                }
+
                 PhysScene.PE.SetSleepingThresholds(PhysBody, BSParam.LinearSleepingThreshold, BSParam.AngularSleepingThreshold);
                 PhysScene.PE.SetContactProcessingThreshold(PhysBody, BSParam.ContactProcessingThreshold);
 
                 // This collides like an object.
                 PhysBody.collisionType = CollisionType.Dynamic;
-
-                // Force activation of the object so Bullet will act on it.
-                // Must do the ForceActivationState2() to overcome the DISABLE_SIMULATION from static objects.
-                PhysScene.PE.ForceActivationState(PhysBody, ActivationState.ACTIVE_TAG);
             }
         }
 
@@ -1642,6 +1653,9 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 case ExtendedPhysics.PhysFunctAxisLockLimits:
                     ret = SetAxisLockLimitsExtension(pParams);
                     break;
+                case ExtendedPhysics.PhysFunctDisableDeactivation:
+                    ret = DisableDeactivationExtension(pParams);
+                    break;
                 default:
                     ret = base.Extension(pFunct, pParams);
                     break;
@@ -1673,58 +1687,54 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             object ret = null;
             try
             {
-                if (pParams.GetLength(0) > 1)
+                int index = 2;
+                while (index < pParams.GetLength(0))
                 {
-                    int index = 2;
-                    while (index < pParams.GetLength(0))
+                    var funct = PassedParam<int>(pParams, index, 1);
+                    DetailLog("{0} SetAxisLockLimitsExtension. op={1}, index={2}", LocalID, funct, index);
+                    switch (funct)
                     {
-                        var funct = pParams[index];
-                        DetailLog("{0} SetAxisLockLimitsExtension. op={1}, index={2}", LocalID, funct, index);
-                        if (funct is Int32 || funct is Int64)
-                        {
-                            switch ((int)funct)
-                            {
-                                // Those that take no parameters
-                                case ExtendedPhysics.PHYS_AXIS_LOCK_LINEAR:
-                                case ExtendedPhysics.PHYS_AXIS_LOCK_LINEAR_X:
-                                case ExtendedPhysics.PHYS_AXIS_LOCK_LINEAR_Y:
-                                case ExtendedPhysics.PHYS_AXIS_LOCK_LINEAR_Z:
-                                case ExtendedPhysics.PHYS_AXIS_LOCK_ANGULAR:
-                                case ExtendedPhysics.PHYS_AXIS_LOCK_ANGULAR_X:
-                                case ExtendedPhysics.PHYS_AXIS_LOCK_ANGULAR_Y:
-                                case ExtendedPhysics.PHYS_AXIS_LOCK_ANGULAR_Z:
-                                case ExtendedPhysics.PHYS_AXIS_UNLOCK_LINEAR:
-                                case ExtendedPhysics.PHYS_AXIS_UNLOCK_LINEAR_X:
-                                case ExtendedPhysics.PHYS_AXIS_UNLOCK_LINEAR_Y:
-                                case ExtendedPhysics.PHYS_AXIS_UNLOCK_LINEAR_Z:
-                                case ExtendedPhysics.PHYS_AXIS_UNLOCK_ANGULAR:
-                                case ExtendedPhysics.PHYS_AXIS_UNLOCK_ANGULAR_X:
-                                case ExtendedPhysics.PHYS_AXIS_UNLOCK_ANGULAR_Y:
-                                case ExtendedPhysics.PHYS_AXIS_UNLOCK_ANGULAR_Z:
-                                case ExtendedPhysics.PHYS_AXIS_UNLOCK:
-                                    ApplyAxisLimits((int)funct, 0f, 0f);
-                                    index += 1;
-                                    break;
-                                // Those that take two parameters (the limits)
-                                case ExtendedPhysics.PHYS_AXIS_LIMIT_LINEAR_X:
-                                case ExtendedPhysics.PHYS_AXIS_LIMIT_LINEAR_Y:
-                                case ExtendedPhysics.PHYS_AXIS_LIMIT_LINEAR_Z:
-                                case ExtendedPhysics.PHYS_AXIS_LIMIT_ANGULAR_X:
-                                case ExtendedPhysics.PHYS_AXIS_LIMIT_ANGULAR_Y:
-                                case ExtendedPhysics.PHYS_AXIS_LIMIT_ANGULAR_Z:
-                                    ApplyAxisLimits((int)funct, (float)pParams[index + 1], (float)pParams[index + 2]);
-                                    index += 3;
-                                    break;
-                                default:
-                                    m_log.WarnFormat("{0} SetSxisLockLimitsExtension. Unknown op={1}", LogHeader, funct);
-                                    index += 1;
-                                    break;
-                            }
-                        }
+                        // Those that take no parameters
+                        case ExtendedPhysics.PHYS_AXIS_LOCK_LINEAR:
+                        case ExtendedPhysics.PHYS_AXIS_LOCK_LINEAR_X:
+                        case ExtendedPhysics.PHYS_AXIS_LOCK_LINEAR_Y:
+                        case ExtendedPhysics.PHYS_AXIS_LOCK_LINEAR_Z:
+                        case ExtendedPhysics.PHYS_AXIS_LOCK_ANGULAR:
+                        case ExtendedPhysics.PHYS_AXIS_LOCK_ANGULAR_X:
+                        case ExtendedPhysics.PHYS_AXIS_LOCK_ANGULAR_Y:
+                        case ExtendedPhysics.PHYS_AXIS_LOCK_ANGULAR_Z:
+                        case ExtendedPhysics.PHYS_AXIS_UNLOCK_LINEAR:
+                        case ExtendedPhysics.PHYS_AXIS_UNLOCK_LINEAR_X:
+                        case ExtendedPhysics.PHYS_AXIS_UNLOCK_LINEAR_Y:
+                        case ExtendedPhysics.PHYS_AXIS_UNLOCK_LINEAR_Z:
+                        case ExtendedPhysics.PHYS_AXIS_UNLOCK_ANGULAR:
+                        case ExtendedPhysics.PHYS_AXIS_UNLOCK_ANGULAR_X:
+                        case ExtendedPhysics.PHYS_AXIS_UNLOCK_ANGULAR_Y:
+                        case ExtendedPhysics.PHYS_AXIS_UNLOCK_ANGULAR_Z:
+                        case ExtendedPhysics.PHYS_AXIS_UNLOCK:
+                            ApplyAxisLimits((int)funct, 0f, 0f);
+                            index += 1;
+                            break;
+                        // Those that take two parameters (the limits)
+                        case ExtendedPhysics.PHYS_AXIS_LIMIT_LINEAR_X:
+                        case ExtendedPhysics.PHYS_AXIS_LIMIT_LINEAR_Y:
+                        case ExtendedPhysics.PHYS_AXIS_LIMIT_LINEAR_Z:
+                        case ExtendedPhysics.PHYS_AXIS_LIMIT_ANGULAR_X:
+                        case ExtendedPhysics.PHYS_AXIS_LIMIT_ANGULAR_Y:
+                        case ExtendedPhysics.PHYS_AXIS_LIMIT_ANGULAR_Z:
+                            var low = PassedParam<float>(pParams, index + 1, 0f);
+                            var high = PassedParam<float>(pParams, index + 2, 0f);
+                            ApplyAxisLimits((int)funct, low, high);
+                            index += 3;
+                            break;
+                        default:
+                            m_log.WarnFormat("{0} SetSxisLockLimitsExtension. Unknown op={1}", LogHeader, funct);
+                            index += 1;
+                            break;
                     }
-                    InitializeAxisActor();
-                    ret = (object)index;
                 }
+                InitializeAxisActor();
+                ret = (object)index;
             }
             catch (Exception e)
             {
@@ -1733,11 +1743,45 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             }
             return ret;    // not implemented yet
         }
+        private object DisableDeactivationExtension(object[] pParams)
+        {
+            object ret = null;
+            try
+            {
+                var disable = PassedParam<int>(pParams, 2, 0);
+                DetailLog("{0} DisableDeactivationExtension. disable={1}", LocalID, disable);
+                this.DisableDeactivation = (disable != 0);
+                ret = (object)1;
 
-            // Set the locking parameters.
-            // If an axis is locked, the limits for the axis are set to zero,
-            // If the axis is being constrained, the high and low value are passed and set.
-            // When done here, LockedXXXAxis flags are set and LockedXXXAxixLow/High are set to the range.
+                // Update parameters so the prim is rebuilt with the new settings
+                PhysScene.TaintedObject(LocalID, "BSPrim.DisableDeactivationExtension", () => { UpdatePhysicalParameters(); });
+            }
+            catch (Exception e)
+            {
+                m_log.WarnFormat("{0} DisableDeactivationExtension exception in object {1}: {2}", LogHeader, this.Name, e);
+                ret = null;
+            }
+            return ret;    // not implemented yet
+        }
+
+        // Get the passed parameter if it exists and is of the right type.
+        // This returns the default value if the parameter is not present or is the wrong type.
+        private T PassedParam<T>(object[] pParams, int index, T defaultValue)
+        {
+            if (pParams.GetLength(0) > index)
+            {
+                if (pParams[index] is T)
+                {
+                    return (T)pParams[index];
+                }
+            }
+            return defaultValue;
+        }
+
+        // Set the locking parameters.
+        // If an axis is locked, the limits for the axis are set to zero,
+        // If the axis is being constrained, the high and low value are passed and set.
+        // When done here, LockedXXXAxis flags are set and LockedXXXAxixLow/High are set to the range.
         protected void ApplyAxisLimits(int funct, float low, float high)
         {
             DetailLog("{0} ApplyAxisLimits. op={1}, low={2}, high={3}", LocalID, funct, low, high);

@@ -114,6 +114,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             // All axis free.
             LockedLinearAxis = LockedAxisFree;
             LockedAngularAxis = LockedAxisFree;
+
+            DisableDeactivation = false;    // by default, objects can be deactivated (ie, not checked for collisions)
         }
 
         // Tell the object to clean up.
@@ -370,6 +372,9 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         //    computed center-of-mass (like in linksets).
         // Note this is a displacement from the root's coordinates. Zero means use the root prim as center-of-mass.
         public OMV.Vector3? UserSetCenterOfMassDisplacement { get; set; }
+
+        // Set 'true' if physical object should never be deactivated
+        public bool DisableDeactivation;
 
         public OMV.Vector3 LockedLinearAxis;   // zero means locked. one means free.
         public OMV.Vector3 LockedAngularAxis;  // zero means locked. one means free.
