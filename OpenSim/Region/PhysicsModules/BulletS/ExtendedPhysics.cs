@@ -91,7 +91,9 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             {
                 if ((Configuration = config.Configs["ExtendedPhysics"]) != null)
                 {
-                    Enabled = Configuration.GetBoolean("Enabled", Enabled);
+                    IConfig cStartup = config.Configs["Startup"];
+                    if (cStartup?.GetString("physics", string.Empty) == "BulletSim")
+                        Enabled = Configuration.GetBoolean("Enabled", Enabled);
                 }
             }
             catch (Exception e)
