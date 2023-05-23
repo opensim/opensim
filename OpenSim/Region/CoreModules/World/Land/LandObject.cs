@@ -750,13 +750,13 @@ namespace OpenSim.Region.CoreModules.World.Land
                 return false;
 
             if (m_scenePermissions.IsAdministrator(avatar))
-                return false;
+                return true;
 
             if (m_estateSettings.IsEstateManagerOrOwner(avatar))
-                return false;
+                return true;
 
             if (avatar.Equals(LandData.OwnerID))
-                return false;
+                return true;
 
             if (posHeight < m_scene.LandChannel.BanLineSafeHeight && IsBannedFromLand_inner(avatar))
                 return false;
