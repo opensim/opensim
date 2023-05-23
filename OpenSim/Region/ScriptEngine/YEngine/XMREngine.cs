@@ -335,8 +335,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private void OneTimeLateInitialization()
         {
             // Build list of defined APIs and their 'this' types and define a field in XMRInstanceSuperType.
-            ApiManager am = new ApiManager();
-            Dictionary<string, Type> apiCtxTypes = new Dictionary<string, Type>();
+            ApiManager am = new();
+            Dictionary<string, Type> apiCtxTypes = new();
             foreach(string api in am.GetApis())
             {
                 m_log.Debug("[YEngine]: adding api " + api);
@@ -346,8 +346,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     apiCtxType = typeof(XMRLSL_Api);
                 apiCtxTypes[api] = apiCtxType;
             }
-
-            if(ScriptCodeGen.xmrInstSuperType == null) // Only create type once!
+            bool doSuper = ScriptCodeGen.xmrInstSuperType == null;
+            if (doSuper) // Only create type once!
             {
                 // Start creating type XMRInstanceSuperType that contains a field
                 // m_ApiManager_<APINAME> that points to the per-instance context
@@ -360,8 +360,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 //      public OSSL_Api   m_ApiManager_OSSL;  // 'this' value for all os...() functions
                 //              ....
                 //  }
-                AssemblyName assemblyName = new AssemblyName();
-                assemblyName.Name = "XMRInstanceSuperAssembly";
+                AssemblyName assemblyName = new()
+                {
+                    Name = "XMRInstanceSuperAssembly"
+                };
                 AssemblyBuilder assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
                 ModuleBuilder moduleBuilder = assemblyBuilder.DefineDynamicModule("XMRInstanceSuperModule");
                 TypeBuilder typeBuilder = moduleBuilder.DefineType("XMRInstanceSuperType", TypeAttributes.Public | TypeAttributes.Class);
@@ -415,7 +417,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     MethodInfo mi = m.Method;
                     try
                     {
-                        CommsCallCodeGen cccg = new CommsCallCodeGen(mi, comms, m_XMRInstanceApiCtxFieldInfos["MOD"]);
+                        CommsCallCodeGen cccg = new(mi, comms, m_XMRInstanceApiCtxFieldInfos["MOD"]);
                         Verbose("[YEngine]: added comms function " + cccg.fullName);
                     }
                     catch(Exception e)
@@ -425,19 +427,23 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     }
                 }
 
-                // Add constants to list of built-in constants.
-                Dictionary<string, object> consts = comms.GetConstants();
-                foreach(KeyValuePair<string, object> kvp in consts)
+                //only do this once since constants are static
+                if(doSuper)
                 {
-                    try
+                    // Add constants to list of built-in constants.
+                    Dictionary<string, object> consts = comms.GetConstants();
+                    foreach(KeyValuePair<string, object> kvp in consts)
                     {
-                        ScriptConst sc = ScriptConst.AddConstant(kvp.Key, kvp.Value);
-                        Verbose("[YEngine]: added comms constant " + sc.name);
-                    }
-                    catch(Exception e)
-                    {
-                        m_log.Error("[YEngine]: failed to add comms constant " + kvp.Key);
-                        m_log.Error("[YEngine]: - " + e.Message);
+                        try
+                        {
+                            ScriptConst sc = ScriptConst.AddConstant(kvp.Key, kvp.Value);
+                            Verbose("[YEngine]: added comms constant " + sc.name);
+                        }
+                        catch(Exception e)
+                        {
+                            m_log.Error("[YEngine]: failed to add comms constant " + kvp.Key);
+                            m_log.Error("[YEngine]: - " + e.Message);
+                        }
                     }
                 }
             }
@@ -487,9 +493,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     : base(null, false, NameArgSig(mi), RetType(mi))
             {
                 methName = mi.Name;
-                string modInvokerName = comms.LookupModInvocation(methName);
-                if(modInvokerName == null)
-                    throw new Exception("cannot find comms method " + methName);
+                string modInvokerName = comms.LookupModInvocation(methName) ?? throw new Exception("cannot find comms method " + methName);
                 modInvokerMeth = typeof(MOD_Api).GetMethod(modInvokerName, modInvokerArgTypes);
                 xmrInstModApiCtxField = apictxfi;
             }
@@ -497,7 +501,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             // script-visible name(argtype,...) signature string
             private static string NameArgSig(MethodInfo mi)
             {
-                StringBuilder sb = new StringBuilder();
+                StringBuilder sb = new();
                 sb.Append(mi.Name);
                 sb.Append('(');
                 ParameterInfo[] mps = mi.GetParameters();

@@ -28,7 +28,6 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
 
 using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
 using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
@@ -54,15 +53,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public static ScriptConst Lookup(string name)
         {
-            ScriptConst sc;
-            if(!scriptConstants.TryGetValue(name, out sc))
-                sc = null;
-            return sc;
+            if(scriptConstants.TryGetValue(name, out ScriptConst sc))
+                return sc;
+            return null;
         }
 
         private static Dictionary<string, ScriptConst> Init()
         {
-            Dictionary<string, ScriptConst> sc = new Dictionary<string, ScriptConst>();
+            Dictionary<string, ScriptConst> sc = new();
 
              // For every event code, define XMREVENTCODE_<eventname> and XMREVENTMASKn_<eventname> symbols.
             for(int i = 0; i < 64; i++)
@@ -72,12 +70,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     string s = ((ScriptEventCode)i).ToString();
                     if((s.Length > 0) && (s[0] >= 'a') && (s[0] <= 'z'))
                     {
-                        new ScriptConst(sc,
+                        _ = new ScriptConst(sc,
                                          "XMREVENTCODE_" + s,
                                          new CompValuInteger(new TokenTypeInt(null), i));
                         int n = i / 32 + 1;
                         int m = 1 << (i % 32);
-                        new ScriptConst(sc,
+                        _ = new ScriptConst(sc,
                                          "XMREVENTMASK" + n + "_" + s,
                                          new CompValuInteger(new TokenTypeInt(null), m));
                     }
@@ -100,7 +98,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         // this one accepts only upper-case named fields
         public static void AddInterfaceConstants(Dictionary<string, ScriptConst> sc, FieldInfo[] allFields)
         {
-            List<FieldInfo> ucfs = new List<FieldInfo>(allFields.Length);
+            List<FieldInfo> ucfs = new(allFields.Length);
             foreach(FieldInfo f in allFields)
             {
                 string fieldName = f.Name;
@@ -119,8 +117,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         // this one accepts all fields given to it
         public static void AddInterfaceConstants(Dictionary<string, ScriptConst> sc, IEnumerator<FieldInfo> fields)
         {
-            if(sc == null)
-                sc = scriptConstants;
+            sc ??= scriptConstants;
 
             for(fields.Reset(); fields.MoveNext();)
             {
@@ -167,7 +164,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
 
                  // Add to dictionary.
-                new ScriptConst(sc, constField.Name, cv);
+                _ = new ScriptConst(sc, constField.Name, cv);
             }
         }
 
@@ -179,8 +176,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public static ScriptConst AddConstant(string name, object value)
         {
-            CompValu cv = null;
-
+            CompValu cv;
             if(value is char cvalue)
             {
                 cv = new CompValuChar(new TokenTypeChar(null), cvalue);
@@ -249,10 +245,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 CompValu z = new CompValuFloat(new TokenTypeFloat(null), ov.Z);
                 cv = new CompValuVec(new TokenTypeVec(null), x, y, z);
             }
-
-            if(cv == null)
+            else
                 throw new Exception("bad type " + value.GetType().Name);
-            return new ScriptConst(scriptConstants, name, cv);
+
+            var sc = new ScriptConst(name, cv);
+            scriptConstants[name] = sc;
+            return sc;
         }
 
         /*
@@ -263,7 +261,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         private ScriptConst(Dictionary<string, ScriptConst> lc, string name, CompValu rVal)
         {
+            this.name = name;
+            this.rVal = rVal;
             lc.Add(name, this);
+        }
+        private ScriptConst(string name, CompValu rVal)
+        {
             this.name = name;
             this.rVal = rVal;
         }
