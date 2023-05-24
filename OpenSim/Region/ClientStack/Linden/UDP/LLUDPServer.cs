@@ -1148,8 +1148,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         protected void RecordMalformedInboundPacket(IPEndPoint endPoint)
         {
-//                if (m_malformedCount < 100)
-//                    m_log.DebugFormat("[LLUDPSERVER]: Dropped malformed packet: " + e.ToString());
+            //if (m_malformedCount < 100)
+            //   m_log.DebugFormat("[LLUDPSERVER]: Dropped malformed packet: " + e.Message);
 
             IncomingMalformedPacketCount++;
 

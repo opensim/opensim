@@ -530,18 +530,17 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
         protected Hashtable NoEvents(UUID requestID, UUID sessionID)
         {
-            Hashtable response = new();
             UrlData url;
             int startTime = 0;
             lock (m_RequestMap)
             {
                 if (!m_RequestMap.TryGetValue(requestID, out url))
-                    return response;
+                    return new Hashtable();
                 startTime = url.requests[requestID].startTime;
             }
 
             if (System.Environment.TickCount - startTime < 25000)
-                return response;
+                return new Hashtable();
 
             //remove from map
             lock (url.requests)
@@ -553,11 +552,13 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 m_RequestMap.Remove(requestID);
             }
 
-            response["int_response_code"] = 500;
-            response["str_response_string"] = "Script timeout";
-            response["content_type"] = "text/plain";
-            response["keepalive"] = false;
-            return response;
+            return new Hashtable()
+            {
+                ["int_response_code"] = 500,
+                ["str_response_string"] = "Script timeout",
+                ["content_type"] = "text/plain",
+                ["keepalive"] = false
+            };
         }
 
         protected bool HasEvents(UUID requestID, UUID sessionID)
@@ -604,15 +605,21 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             lock (m_RequestMap)
             {
                 if (!m_RequestMap.TryGetValue(requestID, out url))
-                    return NoEvents(requestID,sessionID);
+                    return new Hashtable();
             }
 
             RequestData requestData = null;
+            bool timeout = false;
+
             lock (url.requests)
             {
                 requestData = url.requests[requestID];
-                if (requestData == null || !requestData.requestDone)
-                    return NoEvents(requestID, sessionID);
+                if (requestData == null)
+                    return new Hashtable();
+
+                timeout = System.Environment.TickCount - requestData.startTime > 25000;
+                if (!requestData.requestDone && !timeout)
+                    return new Hashtable();
 
                 url.requests.Remove(requestID);
                 lock (m_RequestMap)
@@ -621,27 +628,19 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 }
             }
 
-            Hashtable response = new();
-
-            if (System.Environment.TickCount - requestData.startTime > 25000)
+            if (timeout)
             {
-                response["int_response_code"] = 500;
-                response["str_response_string"] = "Script timeout";
-                response["content_type"] = "text/plain";
-                response["keepalive"] = false;
-                return response;
+                return new Hashtable()
+                {
+                    ["int_response_code"] = 500,
+                    ["str_response_string"] = "Script timeout",
+                    ["content_type"] = "text/plain",
+                    ["keepalive"] = false
+                };
             }
-            //put response
-            response["int_response_code"] = requestData.responseCode;
-            response["str_response_string"] = requestData.responseBody;
-            response["content_type"] = requestData.responseType;
-            response["keepalive"] = false;
-
-            if (url.allowXss)
-                response["access_control_allow_origin"] = "*";
 
             Hashtable headers = new();
-            if(url.scene != null)
+            if(url.scene is not null)
             {
                 SceneObjectPart sop = url.scene.GetSceneObjectPart(url.hostID);
                 if(sop != null)
@@ -651,8 +650,6 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                     Vector3 velocity = sop.Velocity;
                     Quaternion rotation = sop.GetWorldRotation();
 
-                    if (!string.IsNullOrWhiteSpace(m_lsl_shard))
-                        headers["X-SecondLife-Shard"] = m_lsl_shard;
                     headers["X-SecondLife-Object-Name"] = sop.Name;
                     headers["X-SecondLife-Object-Key"] = sop.UUID.ToString();
                     headers["X-SecondLife-Region"] = string.Format("{0} ({1}, {2})", ri.RegionName, ri.WorldLocX, ri.WorldLocY);
@@ -661,13 +658,27 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                     headers["X-SecondLife-Local-Rotation"] = string.Format("({0:0.000000}, {1:0.000000}, {2:0.000000}, {3:0.000000})", rotation.X, rotation.Y, rotation.Z, rotation.W);
                     //headers["X-SecondLife-Owner-Name"] = ownerName;
                     headers["X-SecondLife-Owner-Key"] = sop.OwnerID.ToString();
-                    if (!string.IsNullOrWhiteSpace(m_lsl_user_agent))
-                        headers["User-Agent"] = m_lsl_user_agent;
                 }
             }
-            if(url.isSsl)
+            if (!string.IsNullOrWhiteSpace(m_lsl_shard))
+                headers["X-SecondLife-Shard"] = m_lsl_shard;
+            if (!string.IsNullOrWhiteSpace(m_lsl_user_agent))
+                headers["User-Agent"] = m_lsl_user_agent;
+            if (url.isSsl)
                 headers.Add("Accept-CH","UA");
-            response["headers"] = headers;
+
+            Hashtable response = new()
+            {
+                ["int_response_code"] = requestData.responseCode,
+                ["str_response_string"] = requestData.responseBody,
+                ["content_type"] = requestData.responseType,
+                ["headers"] = headers,
+                ["keepalive"] = false
+            };
+
+            if (url.allowXss)
+                response["access_control_allow_origin"] = "*";
+
             return response;
         }
 
@@ -734,10 +745,9 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                         startTime = System.Environment.TickCount,
                         uri = uri,
                         hostID = url.hostID,
-                        scene = url.scene
+                        scene = url.scene,
+                        headers = new Dictionary<string, string>()
                     };
-
-                    requestData.headers ??= new Dictionary<string, string>();
 
                     NameValueCollection headers = request.Headers;
                     if (headers.Count > 0)
