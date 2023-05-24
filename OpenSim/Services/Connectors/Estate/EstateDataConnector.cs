@@ -39,6 +39,7 @@ using OpenSim.Framework.ServiceAuth;
 using OpenSim.Services.Connectors;
 using OpenSim.Services.Interfaces;
 using OpenSim.Server.Base;
+using System.Net.Http;
 
 namespace OpenSim.Services.Connectors
 {
@@ -319,25 +320,24 @@ namespace OpenSim.Services.Connectors
                 reply = SynchronousRestFormsRequester.MakeRequest(verb, uri, formdata, 30, m_Auth);
                 return reply;
             }
-            catch (WebException e)
+            catch (HttpRequestException e)
             {
-                using (HttpWebResponse hwr = (HttpWebResponse)e.Response)
+                if (e.StatusCode is HttpStatusCode status)
                 {
-                    if (hwr != null)
+                    if (status == HttpStatusCode.Unauthorized)
                     {
-                        if (hwr.StatusCode == HttpStatusCode.NotFound)
-                        {
-                            m_log.Error(string.Format("[ESTATE CONNECTOR]: Resource {0} not found ", uri));
-                            return reply;
-                        }
-                        if (hwr.StatusCode == HttpStatusCode.Unauthorized)
-                            m_log.Error(string.Format("[ESTATE CONNECTOR]: Web request {0} requires authentication ", uri));
+                        m_log.Error(string.Format("[ESTATE CONNECTOR]: Web request {0} requires authentication ", uri));
                     }
-                    else
-                        m_log.Error(string.Format(
-                            "[ESTATE CONNECTOR]: WebException for {0} {1} {2} {3}",
-                            verb, uri, formdata, e.Message));
+                    else if (status != HttpStatusCode.NotFound)
+                    {
+                        m_log.Error(string.Format("[ESTATE CONNECTOR]: Resource {0} not found ", uri));
+                        return reply;
+                    }
                 }
+                else
+                    m_log.Error(string.Format(
+                        "[ESTATE CONNECTOR]: WebException for {0} {1} {2} {3}",
+                        verb, uri, formdata, e.Message));
             }
             catch (Exception e)
             {

@@ -849,7 +849,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     {
                         userdata.ServerURLs = uConn.GetServerURLs(userID);
                     }
-                    catch(System.Net.WebException e)
+                    catch (System.Net.Http.HttpRequestException e)
                     {
                         m_log.DebugFormat("[USER MANAGEMENT MODULE]: GetServerURLs call failed {0}", e.Message);
                         WebUtil.GlobalExpiringBadURLs.Add(homeuri, BADURLEXPIRE * 1000);
@@ -857,7 +857,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     }
                     catch (Exception e)
                     {
-                        m_log.Debug("[USER MANAGEMENT MODULE]: GetServerURLs call failed ", e);
+                        m_log.Debug($"[USER MANAGEMENT MODULE]: GetServerURLs call failed {e.Message}");
                         userdata.ServerURLs = new Dictionary<string, object>();
                     }
 
@@ -919,7 +919,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     {
                         userdata.ServerURLs = uConn.GetServerURLs(userID);
                     }
-                    catch (System.Net.WebException e)
+                    catch (System.Net.Http.HttpRequestException e)
                     {
                         m_log.DebugFormat("[USER MANAGEMENT MODULE]: GetServerURLs call failed {0}", e.Message);
                         userdata.ServerURLs = new Dictionary<string, object>();
@@ -929,7 +929,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     }
                     catch (Exception e)
                     {
-                        m_log.Debug("[USER MANAGEMENT MODULE]: GetServerURLs call failed ", e);
+                        m_log.Debug($"[USER MANAGEMENT MODULE]: GetServerURLs call failed {e.Message}");
                         userdata.ServerURLs = new Dictionary<string, object>();
                         userdata.LastWebFail = Util.GetTimeStamp();
                         recentFail = true;
