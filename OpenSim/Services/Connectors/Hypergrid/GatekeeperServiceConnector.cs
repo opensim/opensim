@@ -94,7 +94,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
             XmlRpcResponse response = null;
             try
             {
-                response = request.Send(info.ServerURI, 10000);
+                response = request.Send(info.ServerURI, WebUtil.SharedHttpClientWithRedir, 10000);
             }
             catch (Exception e)
             {
@@ -230,7 +230,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
             XmlRpcResponse response = null;
             try
             {
-                response = request.Send(gatekeeper.ServerURI, 10000);
+                response = request.Send(gatekeeper.ServerURI, WebUtil.SharedHttpClientWithRedir, 10000);
             }
             catch (Exception e)
             {

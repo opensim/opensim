@@ -688,7 +688,7 @@ namespace OpenSim.Region.CoreModules.Scripting.XMLRPC
             XmlRpcRequest req = new XmlRpcRequest(mName, parameters);
             try
             {
-                XmlRpcResponse resp = req.Send(DestURL, 30000);
+                XmlRpcResponse resp = req.Send(DestURL, WebUtil.SharedHttpClientWithRedir, 30000);
                 if (resp != null)
                 {
                     Hashtable respParms;

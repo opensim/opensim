@@ -2202,7 +2202,7 @@ namespace OpenSim.Framework
         public static XmlRpcResponse SendXmlRpcCommand(string url, string methodName, object[] args)
         {
             XmlRpcRequest client = new(methodName, args);
-            return client.Send(url, 6000);
+            return client.Send(url, WebUtil.SharedHttpClientWithRedir, 6000);
         }
 
         /// <summary>

@@ -162,7 +162,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
             XmlRpcResponse response = null;
             try
             {
-                response = request.Send(m_ServerURL, 10000);
+                response = request.Send(m_ServerURL, WebUtil.SharedHttpClientWithRedir, 10000);
             }
             catch (Exception e)
             {
@@ -336,7 +336,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
             XmlRpcResponse response = null;
             try
             {
-                response = request.Send(m_ServerURL, 6000);
+                response = request.Send(m_ServerURL, WebUtil.SharedHttpClientWithRedir, 6000);
             }
             catch
             {
@@ -408,7 +408,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
             XmlRpcResponse response = null;
             try
             {
-                response = request.Send(m_ServerURL, 10000);
+                response = request.Send(m_ServerURL, WebUtil.SharedHttpClientWithRedir, 10000);
             }
             catch
             {
@@ -558,7 +558,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
             XmlRpcResponse response = null;
             try
             {
-                response = request.Send(m_ServerURL, 10000);
+                response = request.Send(m_ServerURL, WebUtil.SharedHttpClientWithRedir, 10000);
             }
             catch (Exception e)
             {

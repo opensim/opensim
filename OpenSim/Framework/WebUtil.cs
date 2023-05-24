@@ -1691,7 +1691,7 @@ namespace OpenSim.Framework
                     WebUtil.LogOutgoingDetail("SEND", reqnum, str);
                 }
 
-                XmlRpcResponse Resp = Req.Send(url, 30000);
+                XmlRpcResponse Resp = Req.Send(url, WebUtil.SharedHttpClientWithRedir, 30000);
 
                 try
                 {

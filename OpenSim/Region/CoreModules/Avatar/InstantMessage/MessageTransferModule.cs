@@ -599,7 +599,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             XmlRpcRequest GridReq = new XmlRpcRequest("grid_instant_message", SendParams);
             try
             {
-                XmlRpcResponse GridResp = GridReq.Send(reginfo.ServerURI, 3000);
+                XmlRpcResponse GridResp = GridReq.Send(reginfo.ServerURI, WebUtil.SharedHttpClientWithRedir, 6000);
                 Hashtable responseData = (Hashtable)GridResp.Value;
                 if (responseData.ContainsKey("success"))
                 {
