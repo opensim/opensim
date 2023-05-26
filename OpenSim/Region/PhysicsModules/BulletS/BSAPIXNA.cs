@@ -150,6 +150,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public BSAPIXNA(string paramName, BSScene physScene)
         {
             PhysicsScene = physScene;
+            BulletEngineVersion = "XNA";
         }
 
         /// <summary>

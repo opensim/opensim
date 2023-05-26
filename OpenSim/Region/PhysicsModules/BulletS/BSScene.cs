@@ -55,8 +55,6 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         // The name of the region we're working for.
         public string RegionName { get; private set; }
 
-        public string BulletSimVersion = "?";
-
         // The handle to the underlying managed or unmanaged version of Bullet being used.
         public string BulletEngineName { get; private set; }
         public BSAPITemplate PE;
@@ -213,11 +211,6 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             get { return "BulletSim"; }
         }
 
-        public string Version
-        {
-            get { return "1.0"; }
-        }
-
         public Type ReplaceableInterface
         {
             get { return null; }
@@ -255,10 +248,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             if (!m_Enabled)
                 return;
 
-            EngineType = Name;
             RegionName = scene.RegionInfo.RegionName;
-            PhysicsSceneName = EngineType + "/" + RegionName;
-            EngineName = Name + " " + Version;
+            PhysicsSceneName = Name + "/" + RegionName;
 
             scene.RegisterModuleInterface<PhysicsScene>(this);
             Vector3 extent = new Vector3(scene.RegionInfo.RegionSizeX, scene.RegionInfo.RegionSizeY, scene.RegionInfo.RegionSizeZ);
@@ -268,6 +259,15 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 (scene.Heightmap != null ? scene.Heightmap.GetFloatsSerialised() : new float[scene.RegionInfo.RegionSizeX * scene.RegionInfo.RegionSizeY]),
                 (float)scene.RegionInfo.RegionSettings.WaterHeight);
 
+            EngineName = Name + " " + PE.BulletEngineVersion;
+            EngineType = Name;
+            // the above usually sets:
+            //  EngineType = "BulletSim"
+            //  EngineName = "BulletSim 1.1,3.25" with the version being "BulletsimWrapperVersion,BulletPhysicsEngineVersion"
+            //  "EngineName" is returned by the LSL function "osGetPhysicsEngineName"
+            //  "EngineType" is returned by the LSL function "osGetPhysicsEngineType"
+            //  Note that there is also "BulletEngineName" which comes from the parameter files and
+            //    specifies which Bullet DLL to load.
         }
 
         public void RemoveRegion(Scene scene)

@@ -349,7 +349,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public abstract void Shutdown(BulletWorld sim);
         
         public abstract bool PushUpdate(BulletBody obj);
-        
+
         // =====================================================================================
         // Mesh, hull, shape and body creation helper routines
         public abstract BulletShape CreateMeshShape(BulletWorld world,
