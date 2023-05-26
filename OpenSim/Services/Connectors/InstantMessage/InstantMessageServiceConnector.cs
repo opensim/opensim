@@ -35,6 +35,7 @@ using Nwc.XmlRpc;
 using log4net;
 
 using OpenSim.Framework;
+using System.Net.Http;
 
 namespace OpenSim.Services.Connectors.InstantMessage
 {
@@ -60,8 +61,8 @@ namespace OpenSim.Services.Connectors.InstantMessage
             XmlRpcRequest GridReq = new XmlRpcRequest("grid_instant_message", SendParams);
             try
             {
-
-                XmlRpcResponse GridResp = GridReq.Send(url, WebUtil.SharedHttpClientWithRedir, 10000);
+                using HttpClient hclient = WebUtil.GetNewGlobalHttpClient(10000);
+                XmlRpcResponse GridResp = GridReq.Send(url, hclient);
 
                 Hashtable responseData = (Hashtable)GridResp.Value;
 

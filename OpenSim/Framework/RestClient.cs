@@ -88,7 +88,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// Default time out period
         /// </summary>
-        private const int DefaultTimeout = 90; // 90 seconds timeout
+        private const int DefaultTimeout = 90000; // 90 seconds timeout
 
         /// <summary>
         /// Default Buffer size of a block requested from the web-server
@@ -258,10 +258,10 @@ namespace OpenSim.Framework
                 Uri uri = null;
                 HttpResponseMessage responseMessage = null;
                 HttpRequestMessage request = null;
-                CancellationTokenSource cancellationToken = null;
+                HttpClient client = null;
                 try
                 {
-                    HttpClient client = WebUtil.SharedHttpClientWithRedir;
+                    client = WebUtil.GetNewGlobalHttpClient(DefaultTimeout);
                     uri = buildUri();
                     request = new(new HttpMethod(RequestMethod), uri);
 
@@ -278,13 +278,12 @@ namespace OpenSim.Framework
                     //else
                     //    request.Headers.TryAddWithoutValidation("Connection", "close");
 
-                    cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(DefaultTimeout));
 
                     if (WebUtil.DebugLevel >= 3)
                         m_log.DebugFormat("[REST CLIENT] {0} to {1}", RequestMethod, uri);
 
                     //_request.ContentType = "application/xml";
-                    responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken.Token);
+                    responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead);
                     responseMessage.EnsureSuccessStatusCode();
 
                     Stream respStream = responseMessage.Content.ReadAsStream();
@@ -326,7 +325,7 @@ namespace OpenSim.Framework
                 {
                     request?.Dispose();
                     responseMessage?.Dispose();
-                    cancellationToken?.Dispose();
+                    client?.Dispose();
                 }
 
                 if (_resource != null)
@@ -348,10 +347,10 @@ namespace OpenSim.Framework
             Uri uri = null;
             HttpResponseMessage responseMessage = null;
             HttpRequestMessage request = null;
-            CancellationTokenSource cancellationToken = null;
+            HttpClient client = null;
             try
             {
-                HttpClient client = WebUtil.SharedHttpClientWithRedir;
+                client = WebUtil.GetNewGlobalHttpClient(DefaultTimeout);
                 uri = buildUri();
                 request = new(HttpMethod.Post, uri);
 
@@ -368,13 +367,11 @@ namespace OpenSim.Framework
                 //else
                 //    request.Headers.TryAddWithoutValidation("Connection", "close");
 
-                cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(DefaultTimeout));
-
                 request.Content = new ByteArrayContent(src);
                 request.Content.Headers.TryAddWithoutValidation("Content-Type", "application/xml");
                 request.Content.Headers.TryAddWithoutValidation("Content-Length", src.Length.ToString());
 
-                responseMessage = client.Send(request, HttpCompletionOption.ResponseContentRead, cancellationToken.Token);
+                responseMessage = client.Send(request, HttpCompletionOption.ResponseContentRead);
                 responseMessage.EnsureSuccessStatusCode();
             }
             catch (HttpRequestException e)
@@ -402,7 +399,7 @@ namespace OpenSim.Framework
             {
                 request?.Dispose();
                 responseMessage?.Dispose();
-                cancellationToken?.Dispose();
+                client?.Dispose();
             }
         }
 

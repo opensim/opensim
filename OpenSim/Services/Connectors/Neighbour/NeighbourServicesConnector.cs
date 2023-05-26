@@ -108,10 +108,10 @@ namespace OpenSim.Services.Connectors
 
             HttpResponseMessage responseMessage = null;
             HttpRequestMessage request = null;
-            CancellationTokenSource cancellationToken = null;
+            HttpClient client = null;
             try
             {
-                HttpClient client = WebUtil.SharedHttpClientWithRedir;
+                client = WebUtil.GetNewGlobalHttpClient(10000);
                 request = new(HttpMethod.Post, uri);
                 request.Headers.ExpectContinue = false;
                 request.Headers.TransferEncodingChunked = false;
@@ -127,10 +127,9 @@ namespace OpenSim.Services.Connectors
                 request.Content.Headers.TryAddWithoutValidation("Content-Type", "application/json");
                 request.Content.Headers.TryAddWithoutValidation("Content-Length", buffer.Length.ToString());
 
-                cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(10));
                 //m_log.InfoFormat("[REST COMMS]: Posted HelloNeighbour request to remote sim {0}", uri);
 
-                responseMessage = client.Send(request, HttpCompletionOption.ResponseContentRead, cancellationToken.Token);
+                responseMessage = client.Send(request, HttpCompletionOption.ResponseContentRead);
                 responseMessage.EnsureSuccessStatusCode();
 
                 //using StreamReader sr = new(responseMessage.Content.ReadAsStream());
@@ -149,7 +148,7 @@ namespace OpenSim.Services.Connectors
             {
                 request?.Dispose();
                 responseMessage?.Dispose();
-                cancellationToken?.Dispose();
+                client?.Dispose();
             }
             return false;
         }

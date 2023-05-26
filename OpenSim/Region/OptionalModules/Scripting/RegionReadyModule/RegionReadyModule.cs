@@ -283,9 +283,10 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
 
             HttpResponseMessage responseMessage = null;
             HttpRequestMessage request = null;
+            HttpClient client = null;
             try
             {
-                HttpClient client = WebUtil.SharedHttpClientWithRedir;
+                client = WebUtil.GetNewGlobalHttpClient(-1);
 
                 request = new(HttpMethod.Post, m_uri);
                 request.Headers.ExpectContinue = false;
@@ -307,6 +308,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
             {
                 request?.Dispose();
                 responseMessage?.Dispose();
+                client?.Dispose();
             }
         }
     }

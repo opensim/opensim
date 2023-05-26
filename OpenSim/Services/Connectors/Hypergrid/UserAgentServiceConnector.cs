@@ -41,6 +41,7 @@ using OpenMetaverse.StructuredData;
 using log4net;
 using Nwc.XmlRpc;
 using Nini.Config;
+using System.Net.Http;
 
 namespace OpenSim.Services.Connectors.Hypergrid
 {
@@ -162,7 +163,8 @@ namespace OpenSim.Services.Connectors.Hypergrid
             XmlRpcResponse response = null;
             try
             {
-                response = request.Send(m_ServerURL, WebUtil.SharedHttpClientWithRedir, 10000);
+                using HttpClient hclient = WebUtil.GetNewGlobalHttpClient(10000);
+                response = request.Send(m_ServerURL, hclient);
             }
             catch (Exception e)
             {
@@ -336,7 +338,8 @@ namespace OpenSim.Services.Connectors.Hypergrid
             XmlRpcResponse response = null;
             try
             {
-                response = request.Send(m_ServerURL, WebUtil.SharedHttpClientWithRedir, 6000);
+                using HttpClient hclient = WebUtil.GetNewGlobalHttpClient(10000);
+                response = request.Send(m_ServerURL, hclient);
             }
             catch
             {
@@ -408,7 +411,8 @@ namespace OpenSim.Services.Connectors.Hypergrid
             XmlRpcResponse response = null;
             try
             {
-                response = request.Send(m_ServerURL, WebUtil.SharedHttpClientWithRedir, 10000);
+                using HttpClient hclient = WebUtil.GetNewGlobalHttpClient(10000);
+                response = request.Send(m_ServerURL, hclient);
             }
             catch
             {
@@ -558,7 +562,8 @@ namespace OpenSim.Services.Connectors.Hypergrid
             XmlRpcResponse response = null;
             try
             {
-                response = request.Send(m_ServerURL, WebUtil.SharedHttpClientWithRedir, 10000);
+                using HttpClient hclient = WebUtil.GetNewGlobalHttpClient(10000);
+                response = request.Send(m_ServerURL, hclient);
             }
             catch (Exception e)
             {

@@ -60,11 +60,8 @@ namespace OpenSim.Framework
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        public static SocketsHttpHandler SharedSocketsHttpHandlerNoRedir = null;
         public static SocketsHttpHandler SharedSocketsHttpHandler = null;
-        public static HttpClient SharedHttpClient = null;
-
-        public static SocketsHttpHandler SharedSocketsHttpHandlerWithRedir = null;
-        public static HttpClient SharedHttpClientWithRedir = null;
 
         public static ExpiringKey<string> GlobalExpiringBadURLs = new(30000);
         /// <summary>
@@ -177,15 +174,7 @@ namespace OpenSim.Framework
                 shh.UseProxy = true;
             }
 
-            var client = new HttpClient(shh)
-            {
-                Timeout = TimeSpan.FromMilliseconds(30000),
-                MaxResponseContentBufferSize = 250 * 1024 * 1024,
-            };
-            client.DefaultRequestHeaders.ExpectContinue = false;
-
-            SharedSocketsHttpHandler = shh;
-            SharedHttpClient = client;
+            SharedSocketsHttpHandlerNoRedir = shh;
 
             // ****************
 
@@ -250,16 +239,29 @@ namespace OpenSim.Framework
                 shh.Proxy = proxy;
                 shh.UseProxy = true;
             }
+            SharedSocketsHttpHandler = shh;
+        }
 
-            client = new HttpClient(shh)
+        public static HttpClient GetNewGlobalHttpClient(int timeout)
+        {
+            var client = new HttpClient(SharedSocketsHttpHandler, false)
             {
-                Timeout = TimeSpan.FromMilliseconds(30000),
+                Timeout = TimeSpan.FromMilliseconds(timeout > 0 ? timeout : 30000),
                 MaxResponseContentBufferSize = 250 * 1024 * 1024,
             };
             client.DefaultRequestHeaders.ExpectContinue = false;
+            return client;
+        }
 
-            SharedSocketsHttpHandlerWithRedir = shh;
-            SharedHttpClientWithRedir = client;
+        public static HttpClient GetGlobalNoRedirHttpClient(int timeout)
+        {
+            var client = new HttpClient(SharedSocketsHttpHandlerNoRedir, false)
+            {
+                Timeout = TimeSpan.FromMilliseconds(timeout > 0 ? timeout : 30000),
+                MaxResponseContentBufferSize = 250 * 1024 * 1024,
+            };
+            client.DefaultRequestHeaders.ExpectContinue = false;
+            return client;
         }
 
         /// <summary>
@@ -366,11 +368,10 @@ namespace OpenSim.Framework
             int rcvlen = 0;
             HttpResponseMessage responseMessage = null;
             HttpRequestMessage request = null;
-            CancellationTokenSource cancellationToken = null;
+            HttpClient client = null;
             try
             {
-                HttpClient client = SharedHttpClientWithRedir;
-
+                client = GetNewGlobalHttpClient(timeout);
                 request = new(new HttpMethod(method), url);
 
                 if (data is not null)
@@ -418,16 +419,9 @@ namespace OpenSim.Framework
                 else
                     request.Headers.TryAddWithoutValidation("Connection", "close");
 
-                if(timeout > 0)
-                    cancellationToken = new CancellationTokenSource(TimeSpan.FromMilliseconds(timeout));
-
                 request.Headers.TryAddWithoutValidation(OSHeaderRequestID, reqnum.ToString());
 
-                if (cancellationToken is null)
-                    responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead);
-                else
-                    responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken.Token);
-
+                responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead);
                 responseMessage.EnsureSuccessStatusCode();
 
                 Stream resStream = responseMessage.Content.ReadAsStream();
@@ -455,7 +449,7 @@ namespace OpenSim.Framework
             {
                 request?.Dispose();
                 responseMessage?.Dispose();
-                cancellationToken?.Dispose();
+                client?.Dispose();
 
                 ticks = Util.EnvironmentTickCountSubtract(ticks);
                 if (ticks > LongCallTime)
@@ -549,10 +543,10 @@ namespace OpenSim.Framework
 
             HttpResponseMessage responseMessage = null;
             HttpRequestMessage request = null;
-            CancellationTokenSource cancellationToken = null;
+            HttpClient client = null;
             try
             {
-                HttpClient client = WebUtil.SharedHttpClientWithRedir;
+                client = GetNewGlobalHttpClient(timeout);
 
                 request = new(HttpMethod.Post, url);
 
@@ -567,9 +561,6 @@ namespace OpenSim.Framework
                 //}
                 //else
                     request.Headers.TryAddWithoutValidation("Connection", "close");
-
-                if (timeout > 0)
-                    cancellationToken = new CancellationTokenSource(TimeSpan.FromMilliseconds(timeout));
 
                 request.Headers.TryAddWithoutValidation(OSHeaderRequestID, reqnum.ToString());
 
@@ -596,10 +587,7 @@ namespace OpenSim.Framework
                     request.Content.Headers.TryAddWithoutValidation("Content-Length", "0");
                 }
 
-                if (cancellationToken is null)
-                    responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead);
-                else
-                    responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken.Token);
+                responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead);
                 responseMessage.EnsureSuccessStatusCode();
 
                 using StreamReader reader = new(responseMessage.Content.ReadAsStream());
@@ -627,7 +615,7 @@ namespace OpenSim.Framework
             {
                 request?.Dispose();
                 responseMessage?.Dispose();
-                cancellationToken?.Dispose();
+                client?.Dispose();
 
                 ticks = Util.EnvironmentTickCountSubtract(ticks);
                 if (ticks > LongCallTime)
@@ -1160,13 +1148,13 @@ namespace OpenSim.Framework
             int ticks = Util.EnvironmentTickCount();
             HttpResponseMessage responseMessage = null;
             HttpRequestMessage request = null;
-            CancellationTokenSource cancellationToken = null;
+            HttpClient client = null;
             string respstring = String.Empty;
             int sendlen = 0;
             int rcvlen = 0;
             try
             {
-                HttpClient client = WebUtil.SharedHttpClientWithRedir;
+                client = WebUtil.GetNewGlobalHttpClient(timeoutsecs * 1000);
 
                 request = new(new HttpMethod(method), requestUrl);
 
@@ -1174,9 +1162,6 @@ namespace OpenSim.Framework
 
                 request.Headers.ExpectContinue = false;
                 request.Headers.TransferEncodingChunked = false; if (timeoutsecs > 0)
-
-                if(timeoutsecs > 0)
-                    cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutsecs));
 
                 if (keepalive)
                 {
@@ -1202,10 +1187,7 @@ namespace OpenSim.Framework
                     request.Content.Headers.TryAddWithoutValidation("Content-Length", sendlen.ToString());
                 }
 
-                if (cancellationToken is null)
-                    responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead);
-                else
-                    responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken.Token);
+                responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead);
                 responseMessage.EnsureSuccessStatusCode();
 
                 if ((responseMessage.Content.Headers.ContentLength is long contentLength) && contentLength != 0)
@@ -1224,7 +1206,7 @@ namespace OpenSim.Framework
             {
                 request?.Dispose();
                 responseMessage?.Dispose();
-                cancellationToken?.Dispose();
+                client?.Dispose();
             }
 
             ticks = Util.EnvironmentTickCountSubtract(ticks);
@@ -1259,14 +1241,13 @@ namespace OpenSim.Framework
             int ticks = Util.EnvironmentTickCount();
             HttpResponseMessage responseMessage = null;
             HttpRequestMessage request = null;
-            CancellationTokenSource cancellationToken = null;
+            HttpClient client = null;
             string respstring = String.Empty;
             int sendlen = 0;
             int rcvlen = 0;
             try
             {
-                HttpClient client = WebUtil.SharedHttpClientWithRedir;
-
+                client = WebUtil.GetNewGlobalHttpClient(timeoutsecs * 1000);
                 request = new(HttpMethod.Post, requestUrl);
 
                 auth?.AddAuthorization(request.Headers);
@@ -1283,9 +1264,6 @@ namespace OpenSim.Framework
                 else
                     request.Headers.TryAddWithoutValidation("Connection", "close");
 
-                if (timeoutsecs > 0)
-                    cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutsecs));
-
                 byte[] data = Util.UTF8NBGetbytes(obj);
                 sendlen = data.Length;
                 request.Content = new ByteArrayContent(data);
@@ -1295,10 +1273,7 @@ namespace OpenSim.Framework
                 if (WebUtil.DebugLevel >= 5)
                     WebUtil.LogOutgoingDetail("SEND", reqnum, System.Text.Encoding.UTF8.GetString(data));
 
-                if (cancellationToken is null)
-                    responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead);
-                else
-                    responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken.Token);
+                responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead);
 
                 if ((responseMessage.Content.Headers.ContentLength is long contentLength) && contentLength != 0)
                 {
@@ -1315,7 +1290,7 @@ namespace OpenSim.Framework
             {
                 request?.Dispose();
                 responseMessage?.Dispose();
-                cancellationToken?.Dispose();
+                client?.Dispose();
             }
 
             ticks = Util.EnvironmentTickCountSubtract(ticks);
@@ -1401,11 +1376,11 @@ namespace OpenSim.Framework
             TResponse deserial = default;
             HttpResponseMessage responseMessage = null;
             HttpRequestMessage request = null;
-            CancellationTokenSource cancellationToken = null;
+            HttpClient client = null;
 
             try
             {
-                HttpClient client = WebUtil.SharedHttpClientWithRedir;
+                client = WebUtil.GetNewGlobalHttpClient(pTimeout);
 
                 request = new(new HttpMethod(method), requestUrl);
 
@@ -1422,9 +1397,6 @@ namespace OpenSim.Framework
                 }
                 //else
                 //    request.Headers.TryAddWithoutValidation("Connection", "close");
-
-                if (pTimeout != 0)
-                    cancellationToken = new CancellationTokenSource(TimeSpan.FromMilliseconds(pTimeout));
 
                 if (method.Equals("POST",StringComparison.OrdinalIgnoreCase) || method.Equals("PUT", StringComparison.OrdinalIgnoreCase))
                 {
@@ -1448,10 +1420,7 @@ namespace OpenSim.Framework
                     request.Content.Headers.TryAddWithoutValidation("Content-Length", sendlen.ToString());
                 }
 
-                if(cancellationToken is null)
-                    responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead);
-                else
-                    responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken.Token);
+                responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead);
                 responseMessage.EnsureSuccessStatusCode();
 
                 int rcvlen = 0;
@@ -1508,7 +1477,7 @@ namespace OpenSim.Framework
             {
                 request?.Dispose();
                 responseMessage?.Dispose();
-                cancellationToken?.Dispose();
+                client?.Dispose();
             }
 
             return deserial;
@@ -1525,12 +1494,10 @@ namespace OpenSim.Framework
             TResponse deserial = default;
             HttpResponseMessage responseMessage = null;
             HttpRequestMessage request = null;
-            CancellationTokenSource cancellationToken = null;
+            HttpClient client = null;
             try
             {
-                HttpClient client = WebUtil.SharedHttpClientWithRedir;
-
-
+                client = WebUtil.GetNewGlobalHttpClient(pTimeout);
                 request = new(HttpMethod.Get, requestUrl);
 
                 auth?.AddAuthorization(request.Headers);
@@ -1547,13 +1514,7 @@ namespace OpenSim.Framework
                 //else
                 //    request.Headers.TryAddWithoutValidation("Connection", "close");
 
-                if (pTimeout != 0)
-                    cancellationToken = new CancellationTokenSource(TimeSpan.FromMilliseconds(pTimeout));
-
-                if (cancellationToken is null)
-                    responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead);
-                else
-                    responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken.Token);
+                responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead);
                 responseMessage.EnsureSuccessStatusCode();
 
                 int rcvlen = 0;
@@ -1608,7 +1569,7 @@ namespace OpenSim.Framework
             {
                 request?.Dispose();
                 responseMessage?.Dispose();
-                cancellationToken?.Dispose();
+                client?.Dispose();
             }
             return deserial;
         }
@@ -1674,7 +1635,7 @@ namespace OpenSim.Framework
 
             int tickstart = Util.EnvironmentTickCount();
             string responseStr = null;
-
+            HttpClient client = null;
             try
             {
                 ArrayList SendParams = new()
@@ -1691,7 +1652,8 @@ namespace OpenSim.Framework
                     WebUtil.LogOutgoingDetail("SEND", reqnum, str);
                 }
 
-                XmlRpcResponse Resp = Req.Send(url, WebUtil.SharedHttpClientWithRedir, 30000);
+                client = WebUtil.GetNewGlobalHttpClient(-1);
+                XmlRpcResponse Resp = Req.Send(url, client);
 
                 try
                 {
@@ -1719,6 +1681,8 @@ namespace OpenSim.Framework
             }
             finally
             {
+                client?.Dispose();
+
                 int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
                 if (tickdiff > WebUtil.LongCallTime)
                 {

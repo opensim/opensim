@@ -62,7 +62,7 @@ namespace OpenSim.Services.Connectors
         /// <remarks>
         /// In this case, -1 is default timeout (100 seconds), not infinite.
         /// </remarks>
-        private int m_requestTimeoutSecs = -1;
+        private int m_requestTimeout = -1;
         private readonly string m_configName = "InventoryService";
 
         private const double CACHE_EXPIRATION_SECONDS = 30.0;
@@ -114,7 +114,7 @@ namespace OpenSim.Services.Connectors
             else
                 m_InventoryURL = serviceURI + "/xinventory";
 
-            m_requestTimeoutSecs = config.GetInt("RemoteRequestTimeout", m_requestTimeoutSecs);
+             m_requestTimeout = 1000 * config.GetInt("RemoteRequestTimeout", -1);
 
             StatsManager.RegisterStat(
                 new Stat(
@@ -761,10 +761,10 @@ namespace OpenSim.Services.Connectors
             int rcvlen = 0;
             HttpResponseMessage responseMessage = null;
             HttpRequestMessage request = null;
-            CancellationTokenSource cancellationToken = null;
+            HttpClient client = null;
             try
             {
-                HttpClient client = WebUtil.SharedHttpClientWithRedir;
+                client = WebUtil.GetNewGlobalHttpClient(m_requestTimeout);
 
                 request = new(HttpMethod.Post, m_InventoryURL);
 
@@ -782,9 +782,6 @@ namespace OpenSim.Services.Connectors
                 request.Headers.ExpectContinue = false;
                 request.Headers.TransferEncodingChunked = false;
 
-                if (m_requestTimeoutSecs > 0)
-                    cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(m_requestTimeoutSecs));
-
                 byte[] data = Util.UTF8NBGetbytes(obj);
                 sendlen = data.Length;
 
@@ -792,10 +789,7 @@ namespace OpenSim.Services.Connectors
                 request.Content.Headers.TryAddWithoutValidation("Content-Type", "application/x-www-form-urlencoded");
                 request.Content.Headers.TryAddWithoutValidation("Content-Length", sendlen.ToString());
 
-                if (cancellationToken is null)
-                    responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead);
-                else
-                    responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken.Token);
+                responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead);
                 responseMessage.EnsureSuccessStatusCode();
 
                 if ((responseMessage.Content.Headers.ContentLength is long contentLength) && contentLength != 0)
@@ -813,7 +807,7 @@ namespace OpenSim.Services.Connectors
             {
                 request?.Dispose();
                 responseMessage?.Dispose();
-                cancellationToken?.Dispose();
+                client?.Dispose();
             }
 
             ticks = Util.EnvironmentTickCountSubtract(ticks);
