@@ -2678,6 +2678,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void llLinkPlaySound(LSL_Integer linknumber, string sound, double volume, LSL_Integer flags)
+        {
+            m_LSL_Functions.llLinkPlaySound(linknumber, sound, volume, flags);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void llLinkSetSoundQueueing(int linknumber, int queue)
         {
             m_LSL_Functions.llLinkSetSoundQueueing(linknumber, queue);

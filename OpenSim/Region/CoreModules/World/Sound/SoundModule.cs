@@ -26,7 +26,6 @@
  */
 using System;
 using System.IO;
-using System.Collections.Generic;
 using System.Reflection;
 
 using Nini.Config;
@@ -43,8 +42,7 @@ namespace OpenSim.Region.CoreModules.World.Sound
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "SoundModule")]
     public class SoundModule : INonSharedRegionModule, ISoundModule
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(
-//                MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Scene m_scene;
 
@@ -52,11 +50,11 @@ namespace OpenSim.Region.CoreModules.World.Sound
         {
             NONE =         0,
             LOOP =         1 << 0,
-            SYNC_MASTER =  1<<1,
-            SYNC_SLAVE =   1<<2,
-            SYNC_PENDING = 1<<3,
-            QUEUE =        1<<4,
-            STOP =         1<<5,
+            SYNC_MASTER =  1 << 1,
+            SYNC_SLAVE =   1 << 2,
+            SYNC_PENDING = 1 << 3,
+            QUEUE =        1 << 4,
+            STOP =         1 << 5,
             SYNC_MASK = SYNC_MASTER | SYNC_SLAVE | SYNC_PENDING
         }
 
@@ -127,8 +125,7 @@ namespace OpenSim.Region.CoreModules.World.Sound
         public virtual void PlayAttachedSound(
             UUID soundID, UUID ownerID, UUID objectID, double gain, Vector3 position, byte flags)
         {
-            SceneObjectPart part;
-            if (!m_scene.TryGetSceneObjectPart(objectID, out part))
+            if (!m_scene.TryGetSceneObjectPart(objectID, out SceneObjectPart part))
                 return;
 
             if (part.SoundRadius == 0)
@@ -170,9 +167,8 @@ namespace OpenSim.Region.CoreModules.World.Sound
             UUID soundId, UUID ownerID, UUID objectID, UUID parentID, double gain, Vector3 position, UInt64 handle)
         {
             float radius;
-            SceneObjectPart part;
             ScenePresence ssp = null;
-            if (!m_scene.TryGetSceneObjectPart(objectID, out part))
+            if (!m_scene.TryGetSceneObjectPart(objectID, out SceneObjectPart part))
             {
                 if (!m_scene.TryGetScenePresence(ownerID, out ssp))
                     return;
@@ -219,9 +215,8 @@ namespace OpenSim.Region.CoreModules.World.Sound
             UUID soundId, UUID ownerID, UUID objectID, UUID parentID, double gain, Vector3 position, UInt64 handle)
         {
             float radius;
-            SceneObjectPart part;
             ScenePresence ssp = null;
-            if (!m_scene.TryGetSceneObjectPart(objectID, out part))
+            if (!m_scene.TryGetSceneObjectPart(objectID, out SceneObjectPart part))
             {
                 if (!m_scene.TryGetScenePresence(ownerID, out ssp))
                     return;
@@ -269,11 +264,8 @@ namespace OpenSim.Region.CoreModules.World.Sound
 
         public virtual void StopSound(UUID objectID)
         {
-            SceneObjectPart m_host;
-            if (!m_scene.TryGetSceneObjectPart(objectID, out m_host))
-                return;
-
-            StopSound(m_host);
+            if (m_scene.TryGetSceneObjectPart(objectID, out SceneObjectPart m_host))
+                StopSound(m_host);
         }
 
         private static void StopSound(SceneObjectPart m_host)
@@ -287,11 +279,8 @@ namespace OpenSim.Region.CoreModules.World.Sound
 
         public virtual void PreloadSound(UUID objectID, UUID soundID)
         {
-            SceneObjectPart part;
-            if (soundID.IsZero() || !m_scene.TryGetSceneObjectPart(objectID, out part))
-            {
+            if (soundID.IsZero() || !m_scene.TryGetSceneObjectPart(objectID, out SceneObjectPart part))
                 return;
-            }
 
             float radius = (float)part.SoundRadius;
             if (radius == 0)
@@ -319,8 +308,7 @@ namespace OpenSim.Region.CoreModules.World.Sound
         public void LoopSound(UUID objectID, UUID soundID,
                 double volume, bool isMaster, bool isSlave)
         {
-            SceneObjectPart m_host;
-            if (!m_scene.TryGetSceneObjectPart(objectID, out m_host))
+            if (!m_scene.TryGetSceneObjectPart(objectID, out SceneObjectPart m_host))
                 return;
 
             byte iflags = 1; // looping
@@ -349,8 +337,7 @@ namespace OpenSim.Region.CoreModules.World.Sound
             if (soundID.IsZero())
                 return;
 
-            SceneObjectPart part;
-            if (!m_scene.TryGetSceneObjectPart(objectID, out part))
+            if (!m_scene.TryGetSceneObjectPart(objectID, out SceneObjectPart part))
                 return;
 
             volume = Utils.Clamp(volume, 0, 1);
@@ -381,14 +368,12 @@ namespace OpenSim.Region.CoreModules.World.Sound
             if (sound.IsZero())
                 return;
 
-            SceneObjectPart part;
-            if (!m_scene.TryGetSceneObjectPart(objectID, out part))
+            if (!m_scene.TryGetSceneObjectPart(objectID, out SceneObjectPart part))
                 return;
 
             m_scene.ForEachRootScenePresence(delegate(ScenePresence sp)
             {
-                double dis = Util.GetDistanceTo(sp.AbsolutePosition,
-                        part.AbsolutePosition);
+                double dis = Util.GetDistanceTo(sp.AbsolutePosition, part.AbsolutePosition);
 
                 if (dis > MaxDistance) // Max audio distance
                     return;
@@ -408,11 +393,8 @@ namespace OpenSim.Region.CoreModules.World.Sound
 
         public void SetSoundQueueing(UUID objectID, bool shouldQueue)
         {
-            SceneObjectPart part;
-            if (!m_scene.TryGetSceneObjectPart(objectID, out part))
-                return;
-
-            part.SoundQueueing = shouldQueue;
+            if (m_scene.TryGetSceneObjectPart(objectID, out SceneObjectPart part))
+                part.SoundQueueing = shouldQueue;
         }
 
         #endregion

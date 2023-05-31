@@ -70,6 +70,7 @@ using PresenceInfo = OpenSim.Services.Interfaces.PresenceInfo;
 using PrimType = OpenSim.Region.Framework.Scenes.PrimType;
 using RegionFlags = OpenSim.Framework.RegionFlags;
 using RegionInfo = OpenSim.Framework.RegionInfo;
+using System.Runtime.CompilerServices;
 
 #pragma warning disable IDE1006
 
@@ -2906,32 +2907,50 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_SoundModule.SendSound(m_host.UUID, soundID, volume, false, 0, false, false);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void llLinkPlaySound(LSL_Integer linknumber, string sound, double volume)
+        {
+            llLinkPlaySound(linknumber, sound, volume, 0);
+        }
+
+        public void llLinkPlaySound(LSL_Integer linknumber, string sound, double volume, LSL_Integer flags)
         {
             if (m_SoundModule is null)
                 return;
             if (m_host.ParentGroup is null || m_host.ParentGroup.IsDeleted)
                 return;
 
-            SceneObjectPart sop;
-            if (linknumber == ScriptBaseClass.LINK_THIS)
-                sop = m_host;
-            else if (linknumber < 0)
-                return;
-            else if (linknumber < 2)
-                sop = m_host.ParentGroup.RootPart;
-            else
-                sop = m_host.ParentGroup.GetLinkNumPart(linknumber);
-
-            if(sop == null)
-                return;
-
             UUID soundID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound, AssetType.Sound);
             if (soundID.IsZero())
                 return;
 
-            // send the sound, once, to all clients in range
-            m_SoundModule.SendSound(sop.UUID, soundID, volume, false, 0, false, false);
+            List<SceneObjectPart> parts = GetLinkParts(m_host, linknumber.value);
+            if (parts.Count == 0)
+                return;
+
+            switch (flags)
+            {
+                case 0: // play
+                    foreach (SceneObjectPart sop in parts)
+                        m_SoundModule.SendSound(sop.UUID, soundID, volume, false, 0, false, false);
+                    break;
+                case 1: // loop
+                    foreach (SceneObjectPart sop in parts)
+                        m_SoundModule.LoopSound(sop.UUID, soundID, volume, false, false);
+                    break;
+                case 2: //trigger
+                foreach (SceneObjectPart sop in parts)
+                    m_SoundModule.SendSound(sop.UUID, soundID, volume, true, 0, false, false);
+                    break;
+                case 4: // play slave
+                    foreach (SceneObjectPart sop in parts)
+                        m_SoundModule.SendSound(sop.UUID, soundID, volume, false, 0, true, false);
+                    break;
+                case 5: // loop slave
+                    foreach (SceneObjectPart sop in parts)
+                        m_SoundModule.LoopSound(sop.UUID, soundID, volume, false, true);
+                    break;
+            }
         }
 
         public void llLoopSound(string sound, double volume)
@@ -6026,7 +6045,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         }
 
-        private bool ListFind_areEqual(object l, object r)
+        private static bool ListFind_areEqual(object l, object r)
         {
             if (l is null || r is null)
                 return false;
