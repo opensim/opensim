@@ -217,8 +217,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     StatType.Pull,
                     MeasuresOfInterest.None,
                     stat => stat.Value = m_udpServer.AverageReceiveTicksForLastSamplePeriod,
-//                    stat =>
-//                        stat.Value = Math.Round(m_udpServer.AverageReceiveTicksForLastSamplePeriod, 7),
+                    //stat => stat.Value = Math.Round(m_udpServer.AverageReceiveTicksForLastSamplePeriod, 7),
                     StatVerbosity.Debug));
         }
 
@@ -473,7 +472,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // This thread will process the packets received that are placed on the packetInbox
             WorkManager.StartThread(
                 IncomingPacketHandler,
-                string.Format("Incoming Packets ({0})", Scene.Name),
+                $"Incoming Packets ({Scene.Name})",
                 ThreadPriority.Normal,
                 true,
                 true,
@@ -489,7 +488,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             WorkManager.StartThread(
                 OutgoingPacketHandler,
-                string.Format("Outgoing Packets ({0})", Scene.Name),
+                $"Outgoing Packets ({Scene.Name})",
                 ThreadPriority.Normal,
                 true,
                 true,
@@ -499,7 +498,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void Stop()
         {
-            m_log.Info("$[LLUDPSERVER]: Shutting down the LLUDP server for {Scene.Name}");
+            m_log.Info($"[LLUDPSERVER]: Shutting down the LLUDP server for {Scene.Name}");
             base.StopOutbound();
             base.StopInbound();
             //IpahEngine.Stop();
