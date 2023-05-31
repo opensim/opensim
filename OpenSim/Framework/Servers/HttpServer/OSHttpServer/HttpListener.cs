@@ -111,7 +111,7 @@ namespace OSHttpServer
                 if (m_certificate is not null)
                     m_logWriter.Write(this, LogPrio.Info, $"HTTPS({m_sslProtocols}) listening on {m_address}:{m_port}");
                 else
-                    m_logWriter.Write(this, LogPrio.Info, "$HTTP listening on {m_address}:{m_port}");
+                    m_logWriter.Write(this, LogPrio.Info, $"HTTP listening on {m_address}:{m_port}");
             }
         }
 
