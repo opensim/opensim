@@ -268,7 +268,7 @@ namespace OpenSim.Region.CoreModules.World.Sound
                 StopSound(m_host);
         }
 
-        private static void StopSound(SceneObjectPart m_host)
+        public void StopSound(SceneObjectPart m_host)
         {
             m_host.Sound = UUID.Zero;
             m_host.SoundFlags = (byte)SoundFlags.STOP;
@@ -290,10 +290,30 @@ namespace OpenSim.Region.CoreModules.World.Sound
             }
 
             radius *= 4.0f * radius; // avatars and prims do move
-            m_scene.ForEachRootScenePresence(delegate(ScenePresence sp)
+            m_scene.ForEachRootScenePresence(delegate (ScenePresence sp)
             {
                 if (Vector3.DistanceSquared(sp.AbsolutePosition, part.AbsolutePosition) < radius)
-                    sp.ControllingClient.SendPreLoadSound(objectID, objectID, soundID);
+                    sp.ControllingClient.SendPreLoadSound(objectID, part.OwnerID, soundID);
+            });
+        }
+
+        public virtual void PreloadSound(SceneObjectPart part, UUID soundID)
+        {
+            if (soundID.IsZero())
+                return;
+
+            float radius = (float)part.SoundRadius;
+            if (radius == 0)
+            {
+                radius = MaxDistance;
+                part.SoundRadius = radius;
+            }
+
+            radius *= 4.0f * radius; // avatars and prims do move
+            m_scene.ForEachRootScenePresence(delegate (ScenePresence sp)
+            {
+                if (Vector3.DistanceSquared(sp.AbsolutePosition, part.AbsolutePosition) < radius)
+                    sp.ControllingClient.SendPreLoadSound(part.UUID, part.OwnerID, soundID);
             });
         }
 
@@ -330,6 +350,28 @@ namespace OpenSim.Region.CoreModules.World.Sound
             m_host.SendFullUpdateToAllClients();
         }
 
+        public void LoopSound(SceneObjectPart host, UUID soundID,
+                double volume, bool isMaster, bool isSlave)
+        {
+            byte iflags = 1; // looping
+            if (isMaster)
+                iflags |= (byte)SoundFlags.SYNC_MASTER;
+            // TODO check viewer seems to accept both
+            if (isSlave)
+                iflags |= (byte)SoundFlags.SYNC_SLAVE;
+            if (host.SoundQueueing)
+                iflags |= (byte)SoundFlags.QUEUE;
+
+            host.Sound = soundID;
+            host.SoundGain = volume;
+            host.SoundFlags = iflags;
+            if (host.SoundRadius == 0)
+                host.SoundRadius = MaxDistance;
+
+            host.ScheduleFullUpdate();
+            host.SendFullUpdateToAllClients();
+        }
+
         public void SendSound(UUID objectID, UUID soundID, double volume,
                 bool triggered, byte flags, bool useMaster,
                 bool isMaster)
@@ -342,13 +384,38 @@ namespace OpenSim.Region.CoreModules.World.Sound
 
             volume = Utils.Clamp(volume, 0, 1);
 
-            UUID parentID = part.ParentGroup.UUID;
+            Vector3 position = part.AbsolutePosition; // region local
+            ulong regionHandle = m_scene.RegionInfo.RegionHandle;
+
+            if (triggered)
+                TriggerSound(soundID, part.OwnerID, part.UUID, part.ParentGroup.UUID, volume, position, regionHandle);
+            else
+            {
+                byte bflags = 0;
+
+                if (isMaster)
+                    bflags |= (byte)SoundFlags.SYNC_MASTER;
+                // TODO check viewer seems to accept both
+                if (useMaster)
+                    bflags |= (byte)SoundFlags.SYNC_SLAVE;
+                PlayAttachedSound(soundID, part.OwnerID, part.UUID, volume, position, bflags);
+            }
+        }
+
+        public void SendSound(SceneObjectPart part, UUID soundID, double volume,
+                bool triggered, byte flags, bool useMaster,
+                bool isMaster)
+        {
+            if (soundID.IsZero())
+                return;
+
+            volume = Utils.Clamp(volume, 0, 1);
 
             Vector3 position = part.AbsolutePosition; // region local
             ulong regionHandle = m_scene.RegionInfo.RegionHandle;
 
-            if(triggered)
-                TriggerSound(soundID, part.OwnerID, part.UUID, parentID, volume, position, regionHandle);
+            if (triggered)
+                TriggerSound(soundID, part.OwnerID, part.UUID, part.ParentGroup.UUID, volume, position, regionHandle);
             else
             {
                 byte bflags = 0;
