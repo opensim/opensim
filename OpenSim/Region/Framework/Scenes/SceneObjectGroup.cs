@@ -88,9 +88,10 @@ namespace OpenSim.Region.Framework.Scenes
         http_request = 38,
 
         path_update = 40,
+        linkset_data = 41,
 
         // marks highest numbered event
-        Size = 41
+        Size = 42
     }
 
     // this is not the right place for this
@@ -141,6 +142,7 @@ namespace OpenSim.Region.Framework.Scenes
         http_request = 1UL << 38,
 
         path_update = 1UL << 40,
+        linkset_data = 1UL << 41,
 
         anytouch = touch | touch_end | touch_start,
         anyTarget = at_target | not_at_target | at_rot_target | not_at_rot_target,
