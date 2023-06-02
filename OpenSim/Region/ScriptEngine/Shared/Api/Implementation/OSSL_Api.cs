@@ -2150,10 +2150,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void osDie(LSL_Key objectUUID)
         {
-//            CheckThreatLevel(ThreatLevel.VeryHigh, "osDie");
-            // if this is restricted to objects rezzed by this host level can be reduced
-
-            CheckThreatLevel(ThreatLevel.Low, "osDie");
+            //CheckThreatLevel(ThreatLevel.Low, "osDie");
 
             if (!UUID.TryParse(objectUUID, out UUID objUUID))
             {
@@ -2161,36 +2158,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
 
-            InitLSL();
-            // harakiri check
             if(objUUID.IsZero())
-            {
-                if (!m_host.ParentGroup.IsAttachment)
-                    m_LSL_Api.llDie();
                 return;
-            }
 
             SceneObjectGroup sceneOG = World.GetSceneObjectGroup(objUUID);
 
-            if (sceneOG == null || sceneOG.IsDeleted)
+            if (sceneOG is null || sceneOG.IsDeleted || sceneOG.IsAttachment)
                 return;
 
-            if(sceneOG.IsAttachment)
+            if (sceneOG.OwnerID.NotEqual(m_host.OwnerID))
                 return;
-
-            if (sceneOG.OwnerID != m_host.OwnerID)
-                return;
-
-            // harakiri check
-            if(sceneOG.UUID.Equals(m_host.ParentGroup.UUID))
-            {
-                m_LSL_Api.llDie();
-                return;
-            }
 
             // restrict to objects rezzed by host
             if(sceneOG.RezzerID.Equals(m_host.ParentGroup.UUID))
-                World.DeleteSceneObject(sceneOG, false);
+            {
+                // harakiri check should be true alwaya
+                if (sceneOG.UUID.NotEqual(m_host.ParentGroup.UUID))
+                    World.DeleteSceneObject(sceneOG, false);
+            }
         }
 
         /// <summary>
