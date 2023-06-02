@@ -2150,7 +2150,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void osDie(LSL_Key objectUUID)
         {
-            //CheckThreatLevel(ThreatLevel.Low, "osDie");
+            CheckThreatLevel(ThreatLevel.Low, "osDie");
 
             if (!UUID.TryParse(objectUUID, out UUID objUUID))
             {
