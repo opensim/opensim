@@ -17670,17 +17670,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         private static string ListToJson(object o)
         {
-            if (o is LSL_Float || o is double)
+            if (o is double od)
             {
-                if (o is not double float_val)
-                    float_val = ((LSL_Float)o).value;
-
-                if(double.IsInfinity(float_val))
+                 if(double.IsInfinity(od))
                     return  "\"Inf\"";
-                if(double.IsNaN(float_val))
+                if(double.IsNaN(od))
                     return  "\"NaN\"";
 
-                return ((LSL_Float)float_val).ToString();
+                return od.ToString();
+            }
+            if (o is LSL_Float olf)
+            {
+                 if (double.IsInfinity(olf.value))
+                    return "\"Inf\"";
+                if (double.IsNaN(olf.value))
+                    return "\"NaN\"";
+
+                return olf.value.ToString();
             }
             if (o is LSL_Integer LSL_Integero)
             {
@@ -17692,39 +17698,45 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             if (o is LSL_Rotation LSL_Rotationo)
             {
-                StringBuilder sb = new(128);
-                sb.Append('\"');
-                sb.Append(LSL_Rotationo.ToString());
-                sb.Append('\"');
-                return sb.ToString();
+                return $"\"{LSL_Rotationo}\"";
             }
             if (o is LSL_Vector LSL_Vectoro)
             {
-                StringBuilder sb = new(128);
-                sb.Append('\"');
-                sb.Append(LSL_Vectoro.ToString());
-                sb.Append('\"');
-                return sb.ToString();
+                return $"\"{LSL_Vectoro}\"";
             }
-            if (o is LSL_String || o is string)
+            if (o is string str)
             {
-                if (o is not string str)
-                    str = ((LSL_String)o).m_string;
-
-                if(str == ScriptBaseClass.JSON_TRUE || str == "true")
-                    return "true";
-                if(str == ScriptBaseClass.JSON_FALSE ||str == "false")
-                    return "false";
-                if(str == ScriptBaseClass.JSON_NULL || str == "null")
-                    return "null";
                 str = str.Trim();
-                if(str.Length == 0)
+                if (str.Length == 0)
                     return "\"\"";
                 if (str[0] == '{')
                     return str;
                 if (str[0] == '[')
                     return str;
+                if (str.Equals(ScriptBaseClass.JSON_TRUE) || str.Equals("true"))
+                    return "true";
+                if(str.Equals(ScriptBaseClass.JSON_FALSE) || str.Equals("false"))
+                    return "false";
+                if(str.Equals(ScriptBaseClass.JSON_NULL) || str.Equals("null"))
+                    return "null";
                 return EscapeForJSON(str, true);
+            }
+            if (o is LSL_String olstr)
+            {
+                string lstr = olstr.m_string.Trim();
+                if (lstr.Length == 0)
+                    return "\"\"";
+                if (lstr[0] == '{')
+                    return lstr;
+                if (lstr[0] == '[')
+                    return lstr;
+                if (lstr.Equals(ScriptBaseClass.JSON_TRUE) || lstr.Equals( "true"))
+                    return "true";
+                if (lstr.Equals(ScriptBaseClass.JSON_FALSE) || lstr.Equals("false"))
+                    return "false";
+                if (lstr.Equals(ScriptBaseClass.JSON_NULL) || lstr.Equals( "null"))
+                    return "null";
+                return EscapeForJSON(lstr, true);
             }
             throw new IndexOutOfRangeException();
         }
