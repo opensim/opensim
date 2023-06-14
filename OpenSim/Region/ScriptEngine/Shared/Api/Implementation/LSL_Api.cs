@@ -14118,7 +14118,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return 0;
 
             SceneObjectPart part = World.GetSceneObjectPart(id);
-            if (part == null)
+            if (part is null || part.ParentGroup.IsAttachment)
                 return 0;
 
             return part.ParentGroup.PrimCount;
