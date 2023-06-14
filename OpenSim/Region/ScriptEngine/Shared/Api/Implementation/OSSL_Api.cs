@@ -6153,5 +6153,39 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             return result;
         }
+
+        public LSL_Integer osGetPrimCount()
+        {
+            return m_host.ParentGroup.PrimCount;
+        }
+
+        public LSL_Integer osGetPrimCount(LSL_Key object_id)
+        {
+            if (!UUID.TryParse(object_id, out UUID id) || id.IsZero())
+                return 0;
+
+            SceneObjectPart part = World.GetSceneObjectPart(id);
+            if (part is null)
+                return 0;
+
+            return part.ParentGroup.PrimCount;
+        }
+
+        public LSL_Integer osGetSittingAvatarsCount()
+        {
+            return m_host.ParentGroup.GetSittingAvatarsCount();
+        }
+
+        public LSL_Integer osGetSittingAvatarsCount(LSL_Key object_id)
+        {
+            if (!UUID.TryParse(object_id, out UUID id) || id.IsZero())
+                return 0;
+
+            SceneObjectPart part = World.GetSceneObjectPart(id);
+            if (part is null)
+                return 0;
+
+            return part.ParentGroup.GetSittingAvatarsCount();
+        }
     }
 }

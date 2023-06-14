@@ -1676,5 +1676,30 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osOldList2ListStrided(src, start, end, stride);
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_Integer osGetPrimCount()
+        {
+            return m_OSSL_Functions.osGetPrimCount();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_Integer osGetPrimCount(LSL_Key object_id)
+        {
+            return m_OSSL_Functions.osGetPrimCount(object_id);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        LSL_Integer osGetSittingAvatarsCount()
+        {
+            return m_OSSL_Functions.osGetSittingAvatarsCount();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        LSL_Integer osGetSittingAvatarsCount(LSL_Key object_id)
+        {
+            return m_OSSL_Functions.osGetSittingAvatarsCount(object_id);
+        }
+
     }
 }

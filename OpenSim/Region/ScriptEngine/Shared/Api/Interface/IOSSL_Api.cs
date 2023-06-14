@@ -605,5 +605,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_List osGetParcelIDs();
         LSL_Key osGetParcelID();
         LSL_List osOldList2ListStrided(LSL_List src, int start, int end, int stride);
+        LSL_Integer osGetPrimCount();
+        LSL_Integer osGetPrimCount(LSL_Key object_id);
+        LSL_Integer osGetSittingAvatarsCount();
+        LSL_Integer osGetSittingAvatarsCount(LSL_Key object_id);
     }
 }
