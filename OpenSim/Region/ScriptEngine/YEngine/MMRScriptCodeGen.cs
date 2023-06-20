@@ -1106,6 +1106,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private void GenerateMethodBody(TokenDeclVar declFunc)
         {
+            if (declFunc.fullName == "$globalvarinit()")
+            {
+                if(declFunc.body?.statements == null)
+                    return;
+            }
+
             // Set up code generator for the function's contents.
             _ilGen = declFunc.ilGen;
             StartFunctionBody(declFunc);
@@ -1330,42 +1336,61 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             string methname = ilGen.methName;
             if(methname == "default state_entry")
             {
-
-                // if (!doGblInit) goto skipGblInit;
-                ScriptMyLabel skipGblInitLabel = ilGen.DefineLabel("__skipGblInit");
-                PushXMRInst();                                  // instance
-                ilGen.Emit(curDeclFunc, OpCodes.Ldfld, doGblInitFieldInfo);  // instance.doGblInit
-                ilGen.Emit(curDeclFunc, OpCodes.Brfalse, skipGblInitLabel);
-
-                // $globalvarinit();
                 TokenDeclVar gviFunc = tokenScript.globalVarInit;
-                if(gviFunc.body.statements != null)
+                bool dogblinitcheck = gviFunc.body.statements != null;
+                if(!dogblinitcheck)
                 {
-                    gviFunc.location.CallPre(this, gviFunc);
-                    gviFunc.location.CallPost(this, gviFunc);
-                }
-
-                // various $staticfieldinit();
-                foreach(TokenDeclSDType sdType in tokenScript.sdSrcTypesValues)
-                {
-                    if(sdType is TokenDeclSDTypeClass sdTypeClass)
+                    foreach (TokenDeclSDType sdType in tokenScript.sdSrcTypesValues)
                     {
-                        TokenDeclVar sfiFunc = sdTypeClass.staticFieldInit;
-                        if((sfiFunc is not null) && (sfiFunc.body.statements is not null))
+                        if (sdType is TokenDeclSDTypeClass sdTypeClass)
                         {
-                            sfiFunc.location.CallPre(this, sfiFunc);
-                            sfiFunc.location.CallPost(this, sfiFunc);
+                            TokenDeclVar sfiFunc = sdTypeClass.staticFieldInit;
+                            if ((sfiFunc is not null) && (sfiFunc.body.statements is not null))
+                            {
+                                dogblinitcheck = true;
+                                break;
+                            }
                         }
                     }
                 }
 
-                // doGblInit = 0;
-                PushXMRInst();                                  // instance
-                ilGen.Emit(curDeclFunc, OpCodes.Ldc_I4_0);
-                ilGen.Emit(curDeclFunc, OpCodes.Stfld, doGblInitFieldInfo);  // instance.doGblInit
+                if (dogblinitcheck)
+                {
+                    // generate if (!doGblInit) goto skipGblInit;
+                    ScriptMyLabel skipGblInitLabel = ilGen.DefineLabel("__skipGblInit");
+                    PushXMRInst();                                  // instance
+                    ilGen.Emit(curDeclFunc, OpCodes.Ldfld, doGblInitFieldInfo);  // instance.doGblInit
+                    ilGen.Emit(curDeclFunc, OpCodes.Brfalse, skipGblInitLabel);
 
-                //skipGblInit:
-                ilGen.MarkLabel(skipGblInitLabel);
+                    // $globalvarinit();                  
+                    if(gviFunc.body.statements != null)
+                    {
+                        gviFunc.location.CallPre(this, gviFunc);
+                        gviFunc.location.CallPost(this, gviFunc);
+                    }
+
+                    // various $staticfieldinit();
+                    foreach(TokenDeclSDType sdType in tokenScript.sdSrcTypesValues)
+                    {
+                        if(sdType is TokenDeclSDTypeClass sdTypeClass)
+                        {
+                            TokenDeclVar sfiFunc = sdTypeClass.staticFieldInit;
+                            if((sfiFunc is not null) && (sfiFunc.body.statements is not null))
+                            {
+                                sfiFunc.location.CallPre(this, sfiFunc);
+                                sfiFunc.location.CallPost(this, sfiFunc);
+                            }
+                        }
+                    }
+
+                    // doGblInit = 0;
+                    PushXMRInst();                                  // instance
+                    ilGen.Emit(curDeclFunc, OpCodes.Ldc_I4_0);
+                    ilGen.Emit(curDeclFunc, OpCodes.Stfld, doGblInitFieldInfo);  // instance.doGblInit
+
+                    //skipGblInit:
+                    ilGen.MarkLabel(skipGblInitLabel);
+                }
             }
 
              // If this is a script-defined type constructor, call the base constructor and call
