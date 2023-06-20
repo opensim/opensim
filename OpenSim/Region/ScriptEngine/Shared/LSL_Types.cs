@@ -1124,8 +1124,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 object[] tmp;
                 if (m_data is null || m_data.Length == 0)
                 {
-                    tmp = new object[1];
-                    tmp.SetValue(o, 0);
+                    tmp = new object[] {o};
                 }
                 else
                 {
@@ -1194,8 +1193,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 object[] tmp;
                 if (m_data is null || m_data.Length == 0)
                 {
-                    tmp = new object[1];
-                    tmp[0] = o;
+                    tmp = new object[] { o };
                 }
                 else
                 {

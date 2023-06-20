@@ -4908,12 +4908,17 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         ilGen.Emit(val, OpCodes.Newobj, lslFloatConstructorInfo);
                         ilGen.Emit(val, OpCodes.Box, typeof(LSL_Float));
                     }
-                    else if(eRVal.type is TokenTypeInt)
+                    else if (eRVal.type is TokenTypeInt)
                     {
                         ilGen.Emit(val, OpCodes.Newobj, lslIntegerConstructorInfo);
                         ilGen.Emit(val, OpCodes.Box, typeof(LSL_Integer));
                     }
-                    else if((eRVal.type is TokenTypeKey) || (eRVal.type is TokenTypeStr))
+                    else if (eRVal.type is TokenTypeBool)
+                    {
+                        ilGen.Emit(val, OpCodes.Newobj, lslIntegerConstructorInfo);
+                        ilGen.Emit(val, OpCodes.Box, typeof(LSL_Integer));
+                    }
+                    else if ((eRVal.type is TokenTypeKey) || (eRVal.type is TokenTypeStr))
                     {
                         ilGen.Emit(val, OpCodes.Newobj, lslStringConstructorInfo);
                         ilGen.Emit(val, OpCodes.Box, typeof(LSL_String));
