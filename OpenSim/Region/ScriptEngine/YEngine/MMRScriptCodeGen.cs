@@ -980,7 +980,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             ilGen.Emit(declFunc, OpCodes.Castclass, xmrInstSuperType);
             ilGen.Emit(declFunc, OpCodes.Stloc, instancePointer);
 
-            if (curDeclFunc.fullName != "$globalvarinit()")
+            if (!"$globalvarinit()".Equals(curDeclFunc.fullName))
             {
                 PushXMRInst();
                 ilGen.Emit(curDeclFunc, OpCodes.Ldfld, heapUsedFieldInfo);
