@@ -370,9 +370,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // <name>$get() and <name>$set(<type>) methods are in the table and they each get a slot.
             foreach(TokenDeclSDType sdType in tokenScript.sdSrcTypesValues)
             {
-                if(sdType is not TokenDeclSDTypeInterface)
+                if(sdType is not TokenDeclSDTypeInterface sdtIFace)
                     continue;
-                TokenDeclSDTypeInterface sdtIFace = (TokenDeclSDTypeInterface)sdType;
+
                 int vti = 0;
                 foreach(TokenDeclVar im in sdtIFace.methsNProps)
                 {
@@ -391,9 +391,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 didOne = false;
                 foreach(TokenDeclSDType sdType in tokenScript.sdSrcTypesValues)
                 {
-                    if(sdType is not TokenDeclSDTypeClass)
+                    if(sdType is not TokenDeclSDTypeClass sdtClass)
                         continue;
-                    TokenDeclSDTypeClass sdtClass = (TokenDeclSDTypeClass)sdType;
                     if(sdtClass.slotsAssigned)
                         continue;
 
@@ -669,9 +668,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
                 foreach(TokenDeclSDType sdType in tokenScript.sdSrcTypesValues)
                 {
-                    if(sdType is not TokenDeclSDTypeClass)
+                    if(sdType is not TokenDeclSDTypeClass TokenDeclSDTypeClasssdType)
                         continue;
-                    currentSDTClass = (TokenDeclSDTypeClass)sdType;
+                    currentSDTClass = TokenDeclSDTypeClasssdType;
                     foreach(TokenDeclVar tdv in currentSDTClass.members)
                     {
                         if(tdv.constant && tdv.init is not TokenRValConst)
@@ -701,9 +700,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
             foreach(TokenDeclSDType sdType in tokenScript.sdSrcTypesValues)
             {
-                if(sdType is not TokenDeclSDTypeClass)
+                if(sdType is not TokenDeclSDTypeClass TokenDeclSDTypeClasssdType)
                     continue;
-                currentSDTClass = (TokenDeclSDTypeClass)sdType;
+                currentSDTClass = TokenDeclSDTypeClasssdType;
                 foreach(TokenDeclVar tdv in currentSDTClass.members)
                 {
                     if(tdv.constant)
@@ -727,9 +726,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // class to be instantiated via the new operator.
             foreach(TokenDeclSDType sdType in tokenScript.sdSrcTypesValues)
             {
-                if(sdType is not TokenDeclSDTypeClass)
+                if(sdType is not TokenDeclSDTypeClass sdtClass)
                     continue;
-                TokenDeclSDTypeClass sdtClass = (TokenDeclSDTypeClass)sdType;
 
                  // See if the class as it stands would be able to fill every slot of its vtable.
                 bool[] filled = new bool[sdtClass.numVirtFuncs];
@@ -792,9 +790,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
             foreach(TokenDeclSDType sdType in tokenScript.sdSrcTypesValues)
             {
-                if(sdType is not TokenDeclSDTypeClass)
+                if(sdType is not TokenDeclSDTypeClass sdtClass)
                     continue;
-                TokenDeclSDTypeClass sdtClass = (TokenDeclSDTypeClass)sdType;
                 foreach(TokenDeclVar declVar in sdtClass.members)
                 {
                     if((declVar.sdtFlags & ScriptReduce.SDT_STATIC) != 0)
@@ -858,15 +855,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // Output default state event handler functions.
              // Each event handler is a private static method named 'default <eventname>'.
              // Splice in a default state_entry() handler if none defined so we can init global vars.
-            TokenDeclVar defaultStateEntry = null;
-            for(defaultStateEntry = tokenScript.defaultState.body.eventFuncs;
-                 defaultStateEntry != null;
-                 defaultStateEntry = (TokenDeclVar)defaultStateEntry.nextToken)
+            TokenDeclVar defaultStateEntry = tokenScript.defaultState.body.eventFuncs;
+            while(defaultStateEntry != null)
             {
-                if(defaultStateEntry.funcNameSig.val == "state_entry()")
+                if("state_entry()".Equals(defaultStateEntry.funcNameSig.val))
                     break;
+                defaultStateEntry = (TokenDeclVar)defaultStateEntry.nextToken;
             }
-            if(defaultStateEntry == null)
+            if (defaultStateEntry == null)
             {
                 defaultStateEntry = new TokenDeclVar(tokenScript.defaultState.body, null, tokenScript)
                 {
@@ -6225,9 +6221,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public static string ArgSigString(TokenType[] argsig)
         {
             if(argsig == null)
-                return "";
-            StringBuilder sb = new ('(');
-            for(int i = 0; i < argsig.Length; i++)
+                return string.Empty;
+            if(argsig.Length == 0)
+                return "()";
+
+            StringBuilder sb = new ();
+            sb.Append('(');
+            for (int i = 0; i < argsig.Length; i++)
             {
                 if(i > 0)
                     sb.Append(',');

@@ -1816,15 +1816,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             bool changedoverlay = false;
             bool changedneedupdate = false;
 
+            string arg;
+            int iarg;
             // Process the rules, not sure what the impact would be of changing owner or group
             for (int idx = 0; idx < rules.Length;)
             {
                 int code = rules.GetIntegerItem(idx++);
-                string arg = rules.GetStrictStringItem(idx++);
                 switch (code)
                 {
                     case ScriptBaseClass.PARCEL_DETAILS_NAME:
-                        if(newLand.Name != arg)
+                        arg = rules.GetStrictStringItem(idx++);
+                        if (newLand.Name != arg)
                         {
                             newLand.Name = arg;
                             changed = true;
@@ -1832,7 +1834,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         break;
 
                     case ScriptBaseClass.PARCEL_DETAILS_DESC:
-                        if(newLand.Description != arg)
+                        arg = rules.GetStrictStringItem(idx++);
+                        if (newLand.Description != arg)
                         {
                             newLand.Description = arg;
                             changed = true;
@@ -1840,7 +1843,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         break;
 
                     case ScriptBaseClass.PARCEL_DETAILS_OWNER:
-                        if(es is not null && !es.IsEstateManagerOrOwner(m_host.OwnerID))
+                        arg = rules.GetStrictStringItem(idx++);
+                        if (es is not null && !es.IsEstateManagerOrOwner(m_host.OwnerID))
                         {
                             OSSLShoutError("script owner does not have permission to modify the parcel owner");
                         }
@@ -1859,7 +1863,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         break;
 
                     case ScriptBaseClass.PARCEL_DETAILS_GROUP:
-                        if(m_host.OwnerID.Equals(newLand.OwnerID) || es == null || es.IsEstateManagerOrOwner(m_host.OwnerID))
+                        arg = rules.GetStrictStringItem(idx++);
+                        if (m_host.OwnerID.Equals(newLand.OwnerID) || es == null || es.IsEstateManagerOrOwner(m_host.OwnerID))
                         {
                             if (UUID.TryParse(arg, out uuid))
                             {
@@ -1899,7 +1904,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         else
                         {
-                            int date =  Convert.ToInt32(arg);
+                            int date = rules.GetIntegerItem(idx++);
                             if (date == 0)
                                 date = Util.UnixTimeSinceEpoch();
                             if(newLand.ClaimDate != date)
@@ -1911,7 +1916,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         break;
 
                     case ScriptBaseClass.PARCEL_DETAILS_SEE_AVATARS:
-                        bool newavs = (Convert.ToInt32(arg) != 0);
+                        iarg = rules.GetIntegerItem(idx++);
+                        bool newavs = iarg != 0;
                         if(newLand.SeeAVs != newavs)
                         {
                             changed = true;
@@ -1923,7 +1929,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         break;
 
                     case ScriptBaseClass.PARCEL_DETAILS_ANY_AVATAR_SOUNDS:
-                        bool newavsounds = (Convert.ToInt32(arg) != 0);
+                        iarg = rules.GetIntegerItem(idx++);
+                        bool newavsounds = iarg != 0;
                         if(newLand.AnyAVSounds != newavsounds)
                         {
                             changed = true;
@@ -1932,7 +1939,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         break;
 
                     case ScriptBaseClass.PARCEL_DETAILS_GROUP_SOUNDS:
-                        bool newgrpsounds = (Convert.ToInt32(arg) != 0);
+                        iarg = rules.GetIntegerItem(idx++);
+                        bool newgrpsounds = iarg != 0;
                         if(newLand.GroupAVSounds != newgrpsounds)
                         {
                             changed = true;
