@@ -74,71 +74,71 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                                                      // - must inherit from XMRInstAbstract
 
          // Static tables that there only needs to be one copy of for all.
-        private static VarDict legalEventHandlers = CreateLegalEventHandlers();
-        private static CompValu[] zeroCompValus = Array.Empty<CompValu>();
-        private static TokenType[] zeroArgs = Array.Empty<TokenType>();
-        private static TokenTypeBool tokenTypeBool = new(null);
-        private static TokenTypeExc tokenTypeExc = new(null);
-        private static TokenTypeFloat tokenTypeFlt = new(null);
-        private static TokenTypeInt tokenTypeInt = new(null);
-        private static TokenTypeObject tokenTypeObj = new(null);
-        private static TokenTypeRot tokenTypeRot = new(null);
-        private static TokenTypeStr tokenTypeStr = new(null);
-        private static TokenTypeVec tokenTypeVec = new(null);
-        private static Type[] instanceTypeArg = new Type[] { typeof(XMRInstAbstract) };
-        private static string[] instanceNameArg = new string[] { "$xmrthis" };
+        private static readonly VarDict legalEventHandlers = CreateLegalEventHandlers();
+        private static readonly CompValu[] zeroCompValus = Array.Empty<CompValu>();
+        private static readonly TokenType[] zeroArgs = Array.Empty<TokenType>();
+        private static readonly TokenTypeBool tokenTypeBool = new(null);
+        private static readonly TokenTypeExc tokenTypeExc = new(null);
+        private static readonly TokenTypeFloat tokenTypeFlt = new(null);
+        private static readonly TokenTypeInt tokenTypeInt = new(null);
+        private static readonly TokenTypeObject tokenTypeObj = new(null);
+        private static readonly TokenTypeRot tokenTypeRot = new(null);
+        private static readonly TokenTypeStr tokenTypeStr = new(null);
+        private static readonly TokenTypeVec tokenTypeVec = new(null);
+        private static readonly Type[] instanceTypeArg = new Type[] { typeof(XMRInstAbstract) };
+        private static readonly string[] instanceNameArg = new string[] { "$xmrthis" };
 
-        private static ConstructorInfo lslFloatConstructorInfo = typeof(LSL_Float).GetConstructor(new Type[] { typeof(double) });
-        private static ConstructorInfo lslIntegerConstructorInfo = typeof(LSL_Integer).GetConstructor(new Type[] { typeof(int) });
-        private static ConstructorInfo lslListConstructorInfo = typeof(LSL_List).GetConstructor(new Type[] { typeof(object[]) });
-        public static ConstructorInfo lslRotationConstructorInfo = typeof(LSL_Rotation).GetConstructor(new Type[] { typeof(double), typeof(double), typeof(double), typeof(double) });
-        private static ConstructorInfo lslStringConstructorInfo = typeof(LSL_String).GetConstructor(new Type[] { typeof(string) });
-        public static ConstructorInfo lslVectorConstructorInfo = typeof(LSL_Vector).GetConstructor(new Type[] { typeof(double), typeof(double), typeof(double) });
-        private static ConstructorInfo scriptBadCallNoExceptionConstructorInfo = typeof(ScriptBadCallNoException).GetConstructor(new Type[] { typeof(int) });
-        private static ConstructorInfo scriptChangeStateExceptionConstructorInfo = typeof(ScriptChangeStateException).GetConstructor(new Type[] { typeof(int) });
-        private static ConstructorInfo scriptRestoreCatchExceptionConstructorInfo = typeof(ScriptRestoreCatchException).GetConstructor(new Type[] { typeof(Exception) });
-        private static ConstructorInfo scriptUndefinedStateExceptionConstructorInfo = typeof(ScriptUndefinedStateException).GetConstructor(new Type[] { typeof(string) });
-        private static ConstructorInfo sdtClassConstructorInfo = typeof(XMRSDTypeClObj).GetConstructor(new Type[] { typeof(XMRInstAbstract), typeof(int) });
-        private static ConstructorInfo xmrArrayConstructorInfo = typeof(XMR_Array).GetConstructor(new Type[] { typeof(XMRInstAbstract) });
-        private static FieldInfo callModeFieldInfo = typeof(XMRInstAbstract).GetField("callMode");
-        private static FieldInfo doGblInitFieldInfo = typeof(XMRInstAbstract).GetField("doGblInit");
-        private static FieldInfo ehArgsFieldInfo = typeof(XMRInstAbstract).GetField("ehArgs");
-        private static FieldInfo rotationXFieldInfo = typeof(LSL_Rotation).GetField("x");
-        private static FieldInfo rotationYFieldInfo = typeof(LSL_Rotation).GetField("y");
-        private static FieldInfo rotationZFieldInfo = typeof(LSL_Rotation).GetField("z");
-        private static FieldInfo rotationSFieldInfo = typeof(LSL_Rotation).GetField("s");
-        private static FieldInfo sdtXMRInstFieldInfo = typeof(XMRSDTypeClObj).GetField("xmrInst");
-        private static FieldInfo stackLeftFieldInfo = typeof(XMRInstAbstract).GetField("m_StackLeft");
-        private static FieldInfo heapUsedFieldInfo = typeof(XMRInstAbstract).GetField("m_localsHeapUsed");
-        private static FieldInfo vectorXFieldInfo = typeof(LSL_Vector).GetField("x");
-        private static FieldInfo vectorYFieldInfo = typeof(LSL_Vector).GetField("y");
-        private static FieldInfo vectorZFieldInfo = typeof(LSL_Vector).GetField("z");
+        private static readonly ConstructorInfo lslFloatConstructorInfo = typeof(LSL_Float).GetConstructor(new Type[] { typeof(double) });
+        private static readonly ConstructorInfo lslIntegerConstructorInfo = typeof(LSL_Integer).GetConstructor(new Type[] { typeof(int) });
+        private static readonly ConstructorInfo lslListConstructorInfo = typeof(LSL_List).GetConstructor(new Type[] { typeof(object[]) });
+        public static  readonly ConstructorInfo lslRotationConstructorInfo = typeof(LSL_Rotation).GetConstructor(new Type[] { typeof(double), typeof(double), typeof(double), typeof(double) });
+        private static readonly ConstructorInfo lslStringConstructorInfo = typeof(LSL_String).GetConstructor(new Type[] { typeof(string) });
+        public static readonly ConstructorInfo lslVectorConstructorInfo = typeof(LSL_Vector).GetConstructor(new Type[] { typeof(double), typeof(double), typeof(double) });
+        private static readonly ConstructorInfo scriptBadCallNoExceptionConstructorInfo = typeof(ScriptBadCallNoException).GetConstructor(new Type[] { typeof(int) });
+        private static readonly ConstructorInfo scriptChangeStateExceptionConstructorInfo = typeof(ScriptChangeStateException).GetConstructor(new Type[] { typeof(int) });
+        private static readonly ConstructorInfo scriptRestoreCatchExceptionConstructorInfo = typeof(ScriptRestoreCatchException).GetConstructor(new Type[] { typeof(Exception) });
+        private static readonly ConstructorInfo scriptUndefinedStateExceptionConstructorInfo = typeof(ScriptUndefinedStateException).GetConstructor(new Type[] { typeof(string) });
+        private static readonly ConstructorInfo sdtClassConstructorInfo = typeof(XMRSDTypeClObj).GetConstructor(new Type[] { typeof(XMRInstAbstract), typeof(int) });
+        private static readonly ConstructorInfo xmrArrayConstructorInfo = typeof(XMR_Array).GetConstructor(new Type[] { typeof(XMRInstAbstract) });
+        private static readonly FieldInfo callModeFieldInfo = typeof(XMRInstAbstract).GetField("callMode");
+        private static readonly FieldInfo doGblInitFieldInfo = typeof(XMRInstAbstract).GetField("doGblInit");
+        private static readonly FieldInfo ehArgsFieldInfo = typeof(XMRInstAbstract).GetField("ehArgs");
+        private static readonly FieldInfo rotationXFieldInfo = typeof(LSL_Rotation).GetField("x");
+        private static readonly FieldInfo rotationYFieldInfo = typeof(LSL_Rotation).GetField("y");
+        private static readonly FieldInfo rotationZFieldInfo = typeof(LSL_Rotation).GetField("z");
+        private static readonly FieldInfo rotationSFieldInfo = typeof(LSL_Rotation).GetField("s");
+        private static readonly FieldInfo sdtXMRInstFieldInfo = typeof(XMRSDTypeClObj).GetField("xmrInst");
+        private static readonly FieldInfo stackLeftFieldInfo = typeof(XMRInstAbstract).GetField("m_StackLeft");
+        private static readonly FieldInfo heapUsedFieldInfo = typeof(XMRInstAbstract).GetField("m_localsHeapUsed");
+        private static readonly FieldInfo vectorXFieldInfo = typeof(LSL_Vector).GetField("x");
+        private static readonly FieldInfo vectorYFieldInfo = typeof(LSL_Vector).GetField("y");
+        private static readonly FieldInfo vectorZFieldInfo = typeof(LSL_Vector).GetField("z");
 
-        private static MethodInfo arrayClearMethodInfo = typeof(XMR_Array).GetMethod("__pub_clear", Array.Empty<Type>());
-        private static MethodInfo arrayCountMethodInfo = typeof(XMR_Array).GetMethod("__pub_count", Array.Empty<Type>());
-        private static MethodInfo arrayIndexMethodInfo = typeof(XMR_Array).GetMethod("__pub_index", new Type[] { typeof(int) });
-        private static MethodInfo arrayValueMethodInfo = typeof(XMR_Array).GetMethod("__pub_value", new Type[] { typeof(int) });
-        private static MethodInfo checkRunStackMethInfo = typeof(XMRInstAbstract).GetMethod("CheckRunStack", Array.Empty<Type>());
-        private static MethodInfo checkRunQuickMethInfo = typeof(XMRInstAbstract).GetMethod("CheckRunQuick", Array.Empty<Type>());
-        private static MethodInfo ehArgUnwrapFloat = GetStaticMethod(typeof(TypeCast), "EHArgUnwrapFloat", new Type[] { typeof(object) });
-        private static MethodInfo ehArgUnwrapInteger = GetStaticMethod(typeof(TypeCast), "EHArgUnwrapInteger", new Type[] { typeof(object) });
-        private static MethodInfo ehArgUnwrapRotation = GetStaticMethod(typeof(TypeCast), "EHArgUnwrapRotation", new Type[] { typeof(object) });
-        private static MethodInfo ehArgUnwrapString = GetStaticMethod(typeof(TypeCast), "EHArgUnwrapString", new Type[] { typeof(object) });
-        private static MethodInfo ehArgUnwrapVector = GetStaticMethod(typeof(TypeCast), "EHArgUnwrapVector", new Type[] { typeof(object) });
-        private static MethodInfo xmrArrPubIndexMethod = typeof(XMR_Array).GetMethod("__pub_index", new Type[] { typeof(int) });
-        private static MethodInfo xmrArrPubValueMethod = typeof(XMR_Array).GetMethod("__pub_value", new Type[] { typeof(int) });
-        private static MethodInfo captureStackFrameMethodInfo = typeof(XMRInstAbstract).GetMethod("CaptureStackFrame", new Type[] { typeof(string), typeof(int), typeof(int) });
-        private static MethodInfo restoreStackFrameMethodInfo = typeof(XMRInstAbstract).GetMethod("RestoreStackFrame", new Type[] { typeof(string), typeof(int).MakeByRefType() });
-        private static MethodInfo stringCompareMethodInfo = GetStaticMethod(typeof(String), "Compare", new Type[] { typeof(string), typeof(string), typeof(StringComparison) });
-        private static MethodInfo stringConcat2MethodInfo = GetStaticMethod(typeof(String), "Concat", new Type[] { typeof(string), typeof(string) });
-        private static MethodInfo stringConcat3MethodInfo = GetStaticMethod(typeof(String), "Concat", new Type[] { typeof(string), typeof(string), typeof(string) });
-        private static MethodInfo stringConcat4MethodInfo = GetStaticMethod(typeof(String), "Concat", new Type[] { typeof(string), typeof(string), typeof(string), typeof(string) });
-        private static MethodInfo lslRotationNegateMethodInfo = GetStaticMethod(typeof(ScriptCodeGen), "LSLRotationNegate", new Type[] { typeof(LSL_Rotation) });
-        private static MethodInfo lslVectorNegateMethodInfo = GetStaticMethod(typeof(ScriptCodeGen), "LSLVectorNegate", new Type[] { typeof(LSL_Vector) });
-        private static MethodInfo scriptRestoreCatchExceptionUnwrap = GetStaticMethod(typeof(ScriptRestoreCatchException), "Unwrap", new Type[] { typeof(Exception) });
-        private static MethodInfo thrownExceptionWrapMethodInfo = GetStaticMethod(typeof(ScriptThrownException), "Wrap", new Type[] { typeof(object) });
-        private static MethodInfo catchExcToStrMethodInfo = GetStaticMethod(typeof(ScriptCodeGen), "CatchExcToStr", new Type[] { typeof(Exception) });
-        private static MethodInfo consoleWriteMethodInfo = GetStaticMethod(typeof(ScriptCodeGen), "ConsoleWrite", new Type[] { typeof(object) });
+        private static readonly MethodInfo arrayClearMethodInfo = typeof(XMR_Array).GetMethod("__pub_clear", Array.Empty<Type>());
+        private static readonly MethodInfo arrayCountMethodInfo = typeof(XMR_Array).GetMethod("__pub_count", Array.Empty<Type>());
+        private static readonly MethodInfo arrayIndexMethodInfo = typeof(XMR_Array).GetMethod("__pub_index", new Type[] { typeof(int) });
+        private static readonly MethodInfo arrayValueMethodInfo = typeof(XMR_Array).GetMethod("__pub_value", new Type[] { typeof(int) });
+        private static readonly MethodInfo checkRunStackMethInfo = typeof(XMRInstAbstract).GetMethod("CheckRunStack", Array.Empty<Type>());
+        private static readonly MethodInfo checkRunQuickMethInfo = typeof(XMRInstAbstract).GetMethod("CheckRunQuick", Array.Empty<Type>());
+        private static readonly MethodInfo ehArgUnwrapFloat = GetStaticMethod(typeof(TypeCast), "EHArgUnwrapFloat", new Type[] { typeof(object) });
+        private static readonly MethodInfo ehArgUnwrapInteger = GetStaticMethod(typeof(TypeCast), "EHArgUnwrapInteger", new Type[] { typeof(object) });
+        private static readonly MethodInfo ehArgUnwrapRotation = GetStaticMethod(typeof(TypeCast), "EHArgUnwrapRotation", new Type[] { typeof(object) });
+        private static readonly MethodInfo ehArgUnwrapString = GetStaticMethod(typeof(TypeCast), "EHArgUnwrapString", new Type[] { typeof(object) });
+        private static readonly MethodInfo ehArgUnwrapVector = GetStaticMethod(typeof(TypeCast), "EHArgUnwrapVector", new Type[] { typeof(object) });
+        private static readonly MethodInfo xmrArrPubIndexMethod = typeof(XMR_Array).GetMethod("__pub_index", new Type[] { typeof(int) });
+        private static readonly MethodInfo xmrArrPubValueMethod = typeof(XMR_Array).GetMethod("__pub_value", new Type[] { typeof(int) });
+        private static readonly MethodInfo captureStackFrameMethodInfo = typeof(XMRInstAbstract).GetMethod("CaptureStackFrame", new Type[] { typeof(string), typeof(int), typeof(int) });
+        private static readonly MethodInfo restoreStackFrameMethodInfo = typeof(XMRInstAbstract).GetMethod("RestoreStackFrame", new Type[] { typeof(string), typeof(int).MakeByRefType() });
+        private static readonly MethodInfo stringCompareMethodInfo = GetStaticMethod(typeof(String), "Compare", new Type[] { typeof(string), typeof(string), typeof(StringComparison) });
+        private static readonly MethodInfo stringConcat2MethodInfo = GetStaticMethod(typeof(String), "Concat", new Type[] { typeof(string), typeof(string) });
+        private static readonly MethodInfo stringConcat3MethodInfo = GetStaticMethod(typeof(String), "Concat", new Type[] { typeof(string), typeof(string), typeof(string) });
+        private static readonly MethodInfo stringConcat4MethodInfo = GetStaticMethod(typeof(String), "Concat", new Type[] { typeof(string), typeof(string), typeof(string), typeof(string) });
+        private static readonly MethodInfo lslRotationNegateMethodInfo = GetStaticMethod(typeof(ScriptCodeGen), "LSLRotationNegate", new Type[] { typeof(LSL_Rotation) });
+        private static readonly MethodInfo lslVectorNegateMethodInfo = GetStaticMethod(typeof(ScriptCodeGen), "LSLVectorNegate", new Type[] { typeof(LSL_Vector) });
+        private static readonly MethodInfo scriptRestoreCatchExceptionUnwrap = GetStaticMethod(typeof(ScriptRestoreCatchException), "Unwrap", new Type[] { typeof(Exception) });
+        private static readonly MethodInfo thrownExceptionWrapMethodInfo = GetStaticMethod(typeof(ScriptThrownException), "Wrap", new Type[] { typeof(object) });
+        private static readonly MethodInfo catchExcToStrMethodInfo = GetStaticMethod(typeof(ScriptCodeGen), "CatchExcToStr", new Type[] { typeof(Exception) });
+        private static readonly MethodInfo consoleWriteMethodInfo = GetStaticMethod(typeof(ScriptCodeGen), "ConsoleWrite", new Type[] { typeof(object) });
         public static void ConsoleWrite(object o)
         {
             o ??= "<<null>>";
@@ -161,15 +161,15 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private BreakContTarg curContTarg = null;
         private int lastErrorLine = 0;
         private int nStates = 0;
-        private string sourceHash;
+        private readonly string sourceHash;
         private string lastErrorFile = "";
         private string[] stateNames;
-        private XMRInstArSizes glblSizes = new XMRInstArSizes();
+        private readonly XMRInstArSizes glblSizes = new ();
         private Token errorMessageToken = null;
         private TokenDeclVar curDeclFunc = null;
         private TokenStmtBlock curStmtBlock = null;
-        private BinaryWriter objFileWriter = null;
-        private TokenScript tokenScript = null;
+        private readonly BinaryWriter objFileWriter = null;
+        private readonly TokenScript tokenScript = null;
         public int tempCompValuNum = 0;
         private TokenDeclSDTypeClass currentSDTClass = null;
 
@@ -181,8 +181,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private ScriptMyLabel retLabel = null;  // where to jump to exit function
         private ScriptMyLocal retValue = null;
         private ScriptMyLocal actCallNo = null;  // for the active try/catch/finally stack or the big one outside them all
-        private LinkedList<CallLabel> actCallLabels = new LinkedList<CallLabel>();  // for the active try/catch/finally stack or the big one outside them all
-        private LinkedList<CallLabel> allCallLabels = new LinkedList<CallLabel>();  // this holds each and every one for all stacks in total
+        private LinkedList<CallLabel> actCallLabels = new();  // for the active try/catch/finally stack or the big one outside them all
+        private LinkedList<CallLabel> allCallLabels = new();  // this holds each and every one for all stacks in total
         public CallLabel openCallLabel = null;  // only one call label can be open at a time
                                                 // - the call label is open from the time of CallPre() until corresponding CallPost()
                                                 // - so no non-trivial pushes/pops etc allowed between a CallPre() and a CallPost()
@@ -285,7 +285,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                                     {
                                         // this is for the "$new()" static method that we create below.
                                         // See GenerateStmtNewobj() etc.
-                                        new TokenTypeSDTypeDelegate(declFunc, sdtClass.MakeRefToken(declFunc),
+                                        _ = new TokenTypeSDTypeDelegate(declFunc, sdtClass.MakeRefToken(declFunc),
                                                 declFunc.argDecl.types, tokenScript);
                                     }
                                 }
@@ -754,7 +754,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                  // Note that the reducer made sure there is at least a default constructor for every class.
                 if(numFilled >= sdtClass.numVirtFuncs)
                 {
-                    List<TokenDeclVar> newobjDeclFuncs = new List<TokenDeclVar>();
+                    List<TokenDeclVar> newobjDeclFuncs = new ();
                     foreach(TokenDeclVar ctorDeclFunc in sdtClass.members)
                     {
                         if((ctorDeclFunc.funcNameSig != null) && ctorDeclFunc.funcNameSig.val.StartsWith("$ctor("))
@@ -933,7 +933,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private void GenerateStateEventHandlers(string statename, TokenStateBody body)
         {
-            Dictionary<string, TokenDeclVar> statehandlers = new Dictionary<string, TokenDeclVar>();
+            Dictionary<string, TokenDeclVar> statehandlers = new ();
             for(Token t = body.eventFuncs; t != null; t = t.nextToken)
             {
                 TokenDeclVar tdv = (TokenDeclVar)t;
@@ -994,13 +994,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             // Output args as variable definitions and initialize each from __sw.ehArgs[].
             // If the script writer goofed, the typecast will complain.
-            int nArgs = argDecl.vars.Length;
-            for(int i = 0; i < nArgs; i++)
+            for(int i = 0; i < argDecl.vars.Length; i++)
             {
                  // Say that the argument variable is going to be located in a local var.
                 TokenDeclVar argVar = argDecl.vars[i];
                 TokenType argTokType = argVar.type;
-                CompValuLocalVar local = new CompValuLocalVar(argTokType, argVar.name.val, this);
+                CompValuLocalVar local = new (argTokType, argVar.name.val, this);
                 argVar.location = local;
 
                  // Copy from the ehArgs[i] element to the temp var.
@@ -1106,7 +1105,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private void GenerateMethodBody(TokenDeclVar declFunc)
         {
-            if (declFunc.fullName == "$globalvarinit()")
+            if ("$globalvarinit()".Equals(declFunc.fullName))
             {
                 if(declFunc.body?.statements == null)
                     return;
@@ -1131,7 +1130,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 ilGen.Emit(declFunc, OpCodes.Stloc, instancePointer);
             }
 
-            if (curDeclFunc.fullName != "$globalvarinit()")
+            if (!("$globalvarinit()".Equals(declFunc.fullName)))
             {
                 PushXMRInst();
                 ilGen.Emit(curDeclFunc, OpCodes.Ldfld, heapUsedFieldInfo);
@@ -1143,8 +1142,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             // The argument indices need to have +1 added to them because XMRInstance or 
             // XMRSDTypeClObj is spliced in at arg 0.
             TokenArgDecl argDecl = declFunc.argDecl;
-            int nArgs = argDecl.vars.Length;
-            for(int i = 0; i < nArgs; i++)
+            for(int i = 0; i < argDecl.vars.Length; i++)
             {
                 TokenDeclVar argVar = argDecl.vars[i];
                 argVar.location = new CompValuArg(argVar.type, i + 1);
@@ -1174,8 +1172,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private TokenDeclVar DefineNewobjFunc(TokenDeclVar ctorDeclFunc)
         {
-             // Set up 'static classname $new(params-same-as-ctor) { }'.
-            TokenDeclVar newobjDeclFunc = new TokenDeclVar(ctorDeclFunc, null, tokenScript);
+            // Set up 'static classname $new(params-same-as-ctor) { }'.
+            TokenDeclVar newobjDeclFunc = new (ctorDeclFunc, null, tokenScript);
             newobjDeclFunc.name = new TokenName(newobjDeclFunc, "$new");
             newobjDeclFunc.retType = ctorDeclFunc.sdtClass.MakeRefToken(newobjDeclFunc);
             newobjDeclFunc.argDecl = ctorDeclFunc.argDecl;
@@ -1184,22 +1182,22 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             // Declare local variable named '$objptr' in a frame just under 
             // what the '$new(...)' function's arguments are declared in.
-            TokenDeclVar objptrVar = new TokenDeclVar(newobjDeclFunc, newobjDeclFunc, tokenScript)
+            TokenDeclVar objptrVar = new (newobjDeclFunc, newobjDeclFunc, tokenScript)
             {
                 type = newobjDeclFunc.retType,
                 name = new TokenName(newobjDeclFunc, "$objptr")
             };
-            VarDict newFrame = new VarDict(false)
+            VarDict newFrame = new (false)
             {
                 outerVarDict = ctorDeclFunc.argDecl.varDict
             };
             newFrame.AddEntry(objptrVar);
 
-             // Set up '$objptr.$ctor'
-            TokenLValName objptrLValName = new TokenLValName(objptrVar.name, newFrame);
+            // Set up '$objptr.$ctor'
+            TokenLValName objptrLValName = new (objptrVar.name, newFrame);
 
             // ref a var by giving its name
-            TokenLValIField objptrDotCtor = new TokenLValIField(newobjDeclFunc)
+            TokenLValIField objptrDotCtor = new (newobjDeclFunc)
             {
                 baseRVal = objptrLValName,                        // '$objptr'
                 fieldName = ctorDeclFunc.name                     // '.' '$ctor'
@@ -1208,7 +1206,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             // Set up '$objptr.$ctor(arglist)' call for use in the '$new(...)' body.
             // Copy the arglist from the constructor declaration so triviality 
             // processing will pick the correct overloaded constructor.
-            TokenRValCall callCtorRVal = new TokenRValCall(newobjDeclFunc)
+            TokenRValCall callCtorRVal = new (newobjDeclFunc)
             {
                 meth = objptrDotCtor                        // calling $objptr.$ctor()
             };   // doing a call of some sort
@@ -1217,7 +1215,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             for(int i = argList.Length; --i >= 0;)
             {
                 TokenDeclVar arg = argList[i];                    // find out about one of the args
-                TokenLValName argLValName = new TokenLValName(arg.name, ctorDeclFunc.argDecl.varDict)
+                TokenLValName argLValName = new (arg.name, ctorDeclFunc.argDecl.varDict)
                 {
                     // pass arg of that name to $objptr.$ctor()
                     nextToken = callCtorRVal.args             // link to list of args passed to $objptr.$ctor()
@@ -1235,18 +1233,17 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             //        $objptr.$ctor (...);
             //        return $objptr;
             //    }
-            TokenStmtNewobj newobjStmtBody = new TokenStmtNewobj(ctorDeclFunc)
+            TokenStmtNewobj newobjStmtBody = new (ctorDeclFunc)
             {
                 objptrVar = objptrVar,
                 rValCall = callCtorRVal
             };
-            TokenStmtBlock newobjBody = new TokenStmtBlock(ctorDeclFunc)
+
+            // Link that code as the body of the function.
+            newobjDeclFunc.body = new TokenStmtBlock(ctorDeclFunc)
             {
                 statements = newobjStmtBody
             };
-
-            // Link that code as the body of the function.
-            newobjDeclFunc.body = newobjBody;
 
              // Say the function calls '$objptr.$ctor(arglist)' so we will inherit ctor's triviality.
             newobjDeclFunc.unknownTrivialityCalls.AddLast(callCtorRVal);
@@ -1325,8 +1322,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 ilGen.Emit(curDeclFunc, OpCodes.Bne_Un, cmRestore);
             }
 
-             // Splice in the code optimizer for the body of the function.
-            ScriptCollector collector = new ScriptCollector((ScriptObjWriter)ilGen);
+            // Splice in the code optimizer for the body of the function.
+            ScriptCollector collector = new ((ScriptObjWriter)ilGen);
             _ilGen = collector;
 
              // If this is the default state_entry() handler, output code to set all global
@@ -2114,7 +2111,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             curBreakTarg = new BreakContTarg(this, "foreachbreak_" + forEachStmt.Unique);
             curContTarg = new BreakContTarg(this, "foreachcont_" + forEachStmt.Unique);
 
-            CompValuTemp indexVar = new CompValuTemp(new TokenTypeInt(forEachStmt), this);
+            CompValuTemp indexVar = new (new TokenTypeInt(forEachStmt), this);
             ScriptMyLabel loopLabel = ilGen.DefineLabel("foreachloop_" + forEachStmt.Unique);
 
             // indexVar = 0
@@ -2281,7 +2278,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              //    }
             bool useLeave = false;
             TokenStmtBlock stmtBlock;
-            Stack<TokenStmtTry> finallyBlocksCalled = new Stack<TokenStmtTry>();
+            Stack<TokenStmtTry> finallyBlocksCalled = new ();
             for(stmtBlock = curStmtBlock; stmtBlock != targetsBlock; stmtBlock = stmtBlock.outerStmtBlock)
             {
                 if(stmtBlock == null)
@@ -2363,7 +2360,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // restore to that will properly jump back into the finally block.
             if(useLeave)
             {
-                new CallLabel(this, errorAt);
+                _ = new CallLabel(this, errorAt);
                 ilGen.Emit(errorAt, OpCodes.Leave, target);
                 openCallLabel = null;
             }
@@ -2482,7 +2479,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
             }
             if(brokeOutOfTry)
-                new CallLabel(this, retStmt);
+                _ = new CallLabel(this, retStmt);
             ilGen.Emit(retStmt, OpCodes.Leave, retLabel);
             if(brokeOutOfTry)
                 openCallLabel = null;
@@ -2781,7 +2778,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // Make sure value is in a temp so we don't compute it more than once.
             if(testRVal is not CompValuTemp)
             {
-                CompValuTemp temp = new CompValuTemp(testRVal.type, this);
+                CompValuTemp temp = new (testRVal.type, this);
                 testRVal.PushVal(this, switchStmt);
                 temp.Pop(this, switchStmt);
                 testRVal = temp;
@@ -3191,9 +3188,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private void GenerateStmtTryCatch(TokenStmtTry tryStmt)
         {
-            CompValuTemp tryCallNo = new CompValuTemp(tokenTypeInt, this);
-            CompValuTemp catCallNo = new CompValuTemp(tokenTypeInt, this);
-            CompValuTemp catThrown = new CompValuTemp(tokenTypeExc, this);
+            CompValuTemp tryCallNo = new (tokenTypeInt, this);
+            CompValuTemp catCallNo = new (tokenTypeInt, this);
+            CompValuTemp catThrown = new (tokenTypeExc, this);
 
             ScriptMyLabel tryCallSw = ilGen.DefineLabel("__tryCallSw_" + tryStmt.Unique);
             ScriptMyLabel catchRetro = ilGen.DefineLabel("__catchRetro_" + tryStmt.Unique);
@@ -3205,7 +3202,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             ilGen.Emit(tryStmt, OpCodes.Ldnull);
             catThrown.Pop(this, tryStmt);
 
-            new CallLabel(this, tryStmt);              //   <oldcalllabel>:
+            _ = new CallLabel(this, tryStmt);          //   <oldcalllabel>:
             ilGen.BeginExceptionBlock();               //     try {
             openCallLabel = null;
 
@@ -3221,12 +3218,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             bool tryBlockFallsOutBottom = mightGetHere;
             if(tryBlockFallsOutBottom)
             {
-                new CallLabel(this, tryStmt);          //       <tryCallLabel>:
+                _ = new CallLabel(this, tryStmt);          //       <tryCallLabel>:
                 ilGen.Emit(tryStmt, OpCodes.Leave, tryEnd);    //         leave tryEnd;
                 openCallLabel = null;
             }
 
-            CallLabel tryThrow = new CallLabel(this, tryStmt); //       tryThrow:<tryCallLabel>:
+            CallLabel tryThrow = new (this, tryStmt); //       tryThrow:<tryCallLabel>:
             catThrown.PushVal(this, tryStmt);          //         throw new ScriptRestoreCatchException (__catThrown);
             ilGen.Emit(tryStmt, OpCodes.Newobj, scriptRestoreCatchExceptionConstructorInfo);
             ilGen.Emit(tryStmt, OpCodes.Throw);
@@ -3291,7 +3288,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             if(mightGetHere)
             {
-                new CallLabel(this, tryStmt.catchStmt);
+                _ = new CallLabel(this, tryStmt.catchStmt);
                 ilGen.Emit(tryStmt.catchStmt, OpCodes.Leave, tryEnd);
                 openCallLabel = null;
             }
@@ -3362,14 +3359,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private void GenerateStmtTryFinally(TokenStmtTry tryStmt)
         {
-            CompValuTemp finCallNo = new CompValuTemp(tokenTypeInt, this);
-            CompValuTemp tryCallNo = new CompValuTemp(tokenTypeInt, this);
-            CompValuTemp catThrown = new CompValuTemp(tokenTypeExc, this);
+            CompValuTemp finCallNo = new (tokenTypeInt, this);
+            CompValuTemp tryCallNo = new (tokenTypeInt, this);
+            CompValuTemp catThrown = new (tokenTypeExc, this);
 
             ScriptMyLabel tryCallSw = ilGen.DefineLabel("__tryCallSw_" + tryStmt.Unique);
             ScriptMyLabel catchRetro = ilGen.DefineLabel("__catchRetro_" + tryStmt.Unique);
             ScriptMyLabel finCallSw = ilGen.DefineLabel("__finCallSw_" + tryStmt.Unique);
-            BreakContTarg finEnd = new BreakContTarg(this, "__finEnd_" + tryStmt.Unique);
+            BreakContTarg finEnd = new (this, "__finEnd_" + tryStmt.Unique);
             ScriptMyLabel tryEnd = ilGen.DefineLabel("__tryEnd_" + tryStmt.Unique);
 
             SetCallNo(tryStmt, finCallNo, -1);
@@ -3377,7 +3374,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             ilGen.Emit(tryStmt, OpCodes.Ldnull);
             catThrown.Pop(this, tryStmt);
 
-            new CallLabel(this, tryStmt);              //   <oldcalllabel>:
+            _ = new CallLabel(this, tryStmt);              //   <oldcalllabel>:
             ilGen.BeginExceptionBlock();               //     try {
             ilGen.BeginExceptionBlock();               //     try {
             openCallLabel = null;
@@ -3393,7 +3390,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             if(mightGetHere)
             {
-                new CallLabel(this, tryStmt);          //       <newCallLabel>:
+                _ = new CallLabel(this, tryStmt);          //       <newCallLabel>:
                 ilGen.Emit(tryStmt, OpCodes.Leave, tryEnd);    //         leave tryEnd;
                 openCallLabel = null;
             }
@@ -3401,12 +3398,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             foreach(IntermediateLeave iLeave in tryStmt.iLeaves.Values)
             {
                 ilGen.MarkLabel(iLeave.jumpIntoLabel);     //       intr2_exit:
-                new CallLabel(this, tryStmt);          //         tryCallNo = n;
+                _ = new CallLabel(this, tryStmt);          //         tryCallNo = n;
                 ilGen.Emit(tryStmt, OpCodes.Leave, iLeave.jumpAwayLabel);  //    __callNo_n_: leave int1_exit;
                 openCallLabel = null;
             }
 
-            CallLabel tryThrow = new CallLabel(this, tryStmt); //       tryThrow:<tryCallLabel>:
+            CallLabel tryThrow = new (this, tryStmt); //       tryThrow:<tryCallLabel>:
             catThrown.PushVal(this, tryStmt);          //         throw new ScriptRestoreCatchException (__catThrown);
             ilGen.Emit(tryStmt, OpCodes.Newobj, scriptRestoreCatchExceptionConstructorInfo);
             ilGen.Emit(tryStmt, OpCodes.Throw);
@@ -3612,7 +3609,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // Maybe it is accessing the $idxprop property of a script-defined class.
             if(baseCompValu.type is TokenTypeSDTypeClass typeclass)
             {
-                TokenName name = new TokenName(lVal, "$idxprop");
+                TokenName name = new (lVal, "$idxprop");
                 TokenTypeSDTypeClass sdtType = typeclass;
                 TokenDeclSDTypeClass sdtDecl = sdtType.decl;
                 TokenDeclVar idxProp = FindThisMember(sdtDecl, name, null);
@@ -3637,7 +3634,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // Maybe they are accessing $idxprop property of a script-defined interface.
             if(baseCompValu.type is TokenTypeSDTypeInterface TokenTypeSDTypeInterfacebaseCompValutype)
             {
-                TokenName name = new TokenName(lVal, "$idxprop");
+                TokenName name = new (lVal, "$idxprop");
                 TokenTypeSDTypeInterface sdtType = TokenTypeSDTypeInterfacebaseCompValutype;
                 TokenDeclVar idxProp = FindInterfaceMember(sdtType, name, null, ref baseCompValu);
                 if(idxProp == null)
@@ -4133,7 +4130,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
 
                  // We are adding something.  Maybe it's a bunch of strings together.
-                List<TokenRVal> scorvs = new List<TokenRVal>();
+                List<TokenRVal> scorvs = new ();
                 if(StringConcatOperands(token.rValLeft, token.rValRight, scorvs, token.opcode))
                 {
                      // Evaluate all the operands, right-to-left on purpose per LSL scripting.
@@ -4226,7 +4223,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     ilGen.MarkLabel(falseLabel);
                     ilGen.Emit(token, OpCodes.Ldc_I4_0);
                     ilGen.MarkLabel(doneLabel);
-                    CompValuTemp retRVal = new CompValuTemp(new TokenTypeInt(token), this);
+                    CompValuTemp retRVal = new (new TokenTypeInt(token), this);
                     retRVal.Pop(this, token);
                     return retRVal;
                 }
@@ -4240,7 +4237,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 if(!IsConstBoolExpr(right, out rightVal))
                 {
                     right.PushVal(this, tokenTypeBool);
-                    CompValuTemp retRVal = new CompValuTemp(new TokenTypeInt(token), this);
+                    CompValuTemp retRVal = new (new TokenTypeInt(token), this);
                     retRVal.Pop(this, token);
                     return retRVal;
                 }
@@ -4276,7 +4273,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     ilGen.MarkLabel(trueLabel);
                     ilGen.Emit(token, OpCodes.Ldc_I4_1);
                     ilGen.MarkLabel(doneLabel);
-                    CompValuTemp retRVal = new CompValuTemp(new TokenTypeInt(token), this);
+                    CompValuTemp retRVal = new (new TokenTypeInt(token), this);
                     retRVal.Pop(this, token);
                     return retRVal;
                 }
@@ -4290,7 +4287,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 if(!IsConstBoolExpr(right, out rightVal))
                 {
                     right.PushVal(this, tokenTypeBool);
-                    CompValuTemp retRVal = new CompValuTemp(new TokenTypeInt(token), this);
+                    CompValuTemp retRVal = new (new TokenTypeInt(token), this);
                     retRVal.Pop(this, token);
                     return retRVal;
                 }
@@ -4309,7 +4306,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                 TokenDeclSDTypeClass sdtDecl = sdtType.decl;
                 TokenType[] argsig = new TokenType[] { right.type };
-                TokenName funcName = new TokenName(token.opcode, "$op" + opcodeIndex);
+                TokenName funcName = new (token.opcode, "$op" + opcodeIndex);
                 TokenDeclVar declFunc = FindThisMember(sdtDecl, funcName, argsig);
                 if(declFunc != null)
                 {
@@ -4360,7 +4357,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             // It will show equal iff the memory addresses are equal and that is good enough.
             if (!leftType.ToSysType().IsValueType && !right.type.ToSysType().IsValueType && ((opcodeIndex == "==") || (opcodeIndex == "!=")))
             {
-                CompValuTemp retRVal = new CompValuTemp(new TokenTypeInt(token), this);
+                CompValuTemp retRVal = new (new TokenTypeInt(token), this);
                 left = GenerateFromRVal(token.rValLeft);
                 left.PushVal(this, token.rValLeft);
                 right.PushVal(this, token.rValRight);
@@ -4521,7 +4518,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             if (inRVal.type is TokenTypeSDTypeClass sdtType)
             {
                 TokenDeclSDTypeClass sdtDecl = sdtType.decl;
-                TokenName funcName = new TokenName(token.opcode, "$op" + token.opcode.ToString());
+                TokenName funcName = new (token.opcode, "$op" + token.opcode.ToString());
                 TokenDeclVar declFunc = FindThisMember(sdtDecl, funcName, zeroArgs);
                 if (declFunc != null)
                 {
@@ -4543,7 +4540,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             CompValu lVal = GenerateFromLVal(asnPost.lVal);
 
              // Make up a temp to save original value in.
-            CompValuTemp result = new CompValuTemp(lVal.type, this);
+            CompValuTemp result = new (lVal.type, this);
 
              // Prepare to pop incremented value back into variable being incremented.
             lVal.PopPre(this, asnPost.lVal);
@@ -4598,7 +4595,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             CompValu lVal = GenerateFromLVal(asnPre.lVal);
 
              // Make up a temp to put result in.
-            CompValuTemp result = new CompValuTemp(lVal.type, this);
+            CompValuTemp result = new (lVal.type, this);
 
              // Prepare to pop incremented value back into variable being incremented.
             lVal.PopPre(this, asnPre.lVal);
@@ -4769,7 +4766,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             if(operand.IsReadTrivial(this, errorAt))
                 return operand;
-            CompValuTemp temp = new CompValuTemp(operand.type, this);
+            CompValuTemp temp = new (operand.type, this);
             operand.PushVal(this, errorAt);
             temp.Pop(this, errorAt);
             return temp;
@@ -4840,7 +4837,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
 
             ilGen.MarkLabel(doneLabel);
-            CompValuTemp retRVal = new CompValuTemp(trueValu.type, this);
+            CompValuTemp retRVal = new (trueValu.type, this);
             retRVal.Pop(this, rValCondExpr);
             return retRVal;
         }
@@ -4849,7 +4846,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          * @brief Constant in the script somewhere
          * @returns where the constants value is stored
          */
-        private CompValu GenerateFromRValConst(TokenRValConst rValConst)
+        private static CompValu GenerateFromRValConst(TokenRValConst rValConst)
         {
             switch(rValConst.type)
             {
@@ -4900,7 +4897,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
 
              // This is the temp that will hold the created list.
-            CompValuTemp newList = new CompValuTemp(new TokenTypeList(rValList.rVal), this);
+            CompValuTemp newList = new (new TokenTypeList(rValList.rVal), this);
 
              // Create a temp object[] array to hold all the initial values.
             ilGen.Emit(rValList, OpCodes.Ldc_I4, rValList.nItems);
@@ -5002,7 +4999,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             // Output a call to malloc the array with all default values
             //    array = ArrayType.$new (dimSizes[0], dimSizes[1], ...)
-            CompValuTemp array = new CompValuTemp(arrayType, this);
+            CompValuTemp array = new (arrayType, this);
             PushXMRInst();
             for(int k = 0; k < rank; k++)
             {
@@ -5175,7 +5172,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          *        It is a runtime error to cast this value to any other type, eg, 
          *        we don't allow list or string variables to be null pointers.
          */
-        private CompValu GenerateFromRValUndef(TokenRValUndef rValUndef)
+        private static CompValu GenerateFromRValUndef(TokenRValUndef rValUndef)
         {
             return new CompValuNull(new TokenTypeUndef(rValUndef));
         }
@@ -5206,10 +5203,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
             if(type is TokenTypeRot)
             {
-                CompValuFloat x = new CompValuFloat(type, ScriptBaseClass.ZERO_ROTATION.x);
-                CompValuFloat y = new CompValuFloat(type, ScriptBaseClass.ZERO_ROTATION.y);
-                CompValuFloat z = new CompValuFloat(type, ScriptBaseClass.ZERO_ROTATION.z);
-                CompValuFloat s = new CompValuFloat(type, ScriptBaseClass.ZERO_ROTATION.s);
+                CompValuFloat x = new (type, ScriptBaseClass.ZERO_ROTATION.x);
+                CompValuFloat y = new (type, ScriptBaseClass.ZERO_ROTATION.y);
+                CompValuFloat z = new (type, ScriptBaseClass.ZERO_ROTATION.z);
+                CompValuFloat s = new (type, ScriptBaseClass.ZERO_ROTATION.s);
                 return new CompValuRot(type, x, y, z, s);
             }
             if((type is TokenTypeKey) || (type is TokenTypeStr))
@@ -5218,9 +5215,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
             if(type is TokenTypeVec)
             {
-                CompValuFloat x = new CompValuFloat(type, ScriptBaseClass.ZERO_VECTOR.x);
-                CompValuFloat y = new CompValuFloat(type, ScriptBaseClass.ZERO_VECTOR.y);
-                CompValuFloat z = new CompValuFloat(type, ScriptBaseClass.ZERO_VECTOR.z);
+                CompValuFloat x = new (type, ScriptBaseClass.ZERO_VECTOR.x);
+                CompValuFloat y = new (type, ScriptBaseClass.ZERO_VECTOR.y);
+                CompValuFloat z = new (type, ScriptBaseClass.ZERO_VECTOR.z);
                 return new CompValuVec(type, x, y, z);
             }
             if(type is TokenTypeInt)
@@ -5245,7 +5242,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
 
              // array and list
-            CompValuTemp temp = new CompValuTemp(type, this);
+            CompValuTemp temp = new (type, this);
             PushDefaultValue(type);
             temp.Pop(this, rValInitDef, type);
             return temp;
@@ -5275,7 +5272,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                 CompValu left = GenerateFromTypeExp(val, op1.leftOp);
                 CompValu right = GenerateFromTypeExp(val, op1.rightOp);
-                CompValuTemp result = new CompValuTemp(tokenTypeBool, this);
+                CompValuTemp result = new (tokenTypeBool, this);
                 Token op = op1.binOp;
                 left.PushVal(this, op1.leftOp);
                 right.PushVal(this, op1.rightOp);
@@ -5297,7 +5294,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             if(typeExp is TokenTypeExpNot expnot)
             {
                 CompValu interm = GenerateFromTypeExp(val, expnot.typeExp);
-                CompValuTemp result = new CompValuTemp(tokenTypeBool, this);
+                CompValuTemp result = new (tokenTypeBool, this);
                 interm.PushVal(this, expnot.typeExp, tokenTypeBool);
                 ilGen.Emit(typeExp, OpCodes.Ldc_I4_1);
                 ilGen.Emit(typeExp, OpCodes.Xor);
@@ -5310,7 +5307,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
             if(typeExp is TokenTypeExpType TokenTypeExpTypetypeExp)
             {
-                CompValuTemp result = new CompValuTemp(tokenTypeBool, this);
+                CompValuTemp result = new (tokenTypeBool, this);
                 val.PushVal(this, typeExp);
                 ilGen.Emit(typeExp, OpCodes.Isinst, TokenTypeExpTypetypeExp.typeToken.ToSysType());
                 ilGen.Emit(typeExp, OpCodes.Ldnull);
@@ -5322,7 +5319,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
             if(typeExp is TokenTypeExpUndef)
             {
-                CompValuTemp result = new CompValuTemp(tokenTypeBool, this);
+                CompValuTemp result = new (tokenTypeBool, this);
                 val.PushVal(this, typeExp);
                 ilGen.Emit(typeExp, OpCodes.Ldnull);
                 ilGen.Emit(typeExp, OpCodes.Ceq);
@@ -5428,12 +5425,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          * @returns true: expression is contant and has boolean value true
          *         false: otherwise
          */
-        private bool IsConstBoolExprTrue(CompValu expr)
+        private static bool IsConstBoolExprTrue(CompValu expr)
         {
             return IsConstBoolExpr(expr, out bool constVal) && constVal;
         }
 
-        private bool IsConstBoolExpr(CompValu expr, out bool constVal)
+        private static bool IsConstBoolExpr(CompValu expr, out bool constVal)
         {
             if(expr is CompValuChar CompValuCharexpr)
             {
@@ -5472,7 +5469,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          * @returns true: expression is contant and has integer value
          *         false: otherwise
          */
-        private bool IsConstIntExpr(CompValu expr, out int constVal)
+        private static bool IsConstIntExpr(CompValu expr, out int constVal)
         {
             if(expr is CompValuChar CompValuCharexpr)
             {
@@ -5496,7 +5493,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          * @returns true: expression is contant and has string value
          *         false: otherwise
          */
-        private bool IsConstStrExpr(CompValu expr, out string constVal)
+        private static bool IsConstStrExpr(CompValu expr, out string constVal)
         {
             if(expr is CompValuString exprstring)
             {
@@ -5530,13 +5527,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 int fullArgCount = fal.vars.Length;
                 for(i = 0; i < fullArgCount; i++)
                 {
-                    TokenArgDecl shortArgList = new TokenArgDecl(null);
+                    TokenArgDecl shortArgList = new (null);
                     for(int j = 0; j < i; j++)
                     {
                         TokenDeclVar var = fal.vars[j];
                         shortArgList.AddArg(var.type, var.name);
                     }
-                    TokenDeclVar shortArgProto = new TokenDeclVar(null, null, null)
+                    TokenDeclVar shortArgProto = new (null, null, null)
                     {
                         name = new TokenName(null, fap.GetSimpleName()),
                         retType = fap.retType,
@@ -5556,7 +5553,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             if(curDeclFunc.IsFuncTrivial(this))
                 throw new Exception(curDeclFunc.fullName + " is supposed to be trivial");
-            new CallLabel(this, errorAt);                               // jump here when stack restored
+            _ = new CallLabel(this, errorAt);                               // jump here when stack restored
             PushXMRInst();                                              // instance
             ilGen.Emit(errorAt, OpCodes.Call, stack ? checkRunStackMethInfo : checkRunQuickMethInfo);
             openCallLabel = null;
@@ -5613,7 +5610,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                 if(inRVal.type is TokenTypeFloat)
                 {
-                    CompValuTemp outRVal = new CompValuTemp(new TokenTypeFloat(opcode), this);
+                    CompValuTemp outRVal = new (new TokenTypeFloat(opcode), this);
                     inRVal.PushVal(this, opcode, outRVal.type);  // push value to negate, make sure not LSL-boxed
                     ilGen.Emit(opcode, OpCodes.Neg);     // compute the negative
                     outRVal.Pop(this, opcode);           // pop into result
@@ -5621,7 +5618,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
                 if(inRVal.type is TokenTypeInt)
                 {
-                    CompValuTemp outRVal = new CompValuTemp(new TokenTypeInt(opcode), this);
+                    CompValuTemp outRVal = new (new TokenTypeInt(opcode), this);
                     inRVal.PushVal(this, opcode, outRVal.type);  // push value to negate, make sure not LSL-boxed
                     ilGen.Emit(opcode, OpCodes.Neg);     // compute the negative
                     outRVal.Pop(this, opcode);           // pop into result
@@ -5629,7 +5626,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
                 if(inRVal.type is TokenTypeRot)
                 {
-                    CompValuTemp outRVal = new CompValuTemp(inRVal.type, this);
+                    CompValuTemp outRVal = new (inRVal.type, this);
                     inRVal.PushVal(this, opcode);        // push rotation, then call negate routine
                     ilGen.Emit(opcode, OpCodes.Call, lslRotationNegateMethodInfo);
                     outRVal.Pop(this, opcode);           // pop into result
@@ -5637,7 +5634,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
                 if(inRVal.type is TokenTypeVec)
                 {
-                    CompValuTemp outRVal = new CompValuTemp(inRVal.type, this);
+                    CompValuTemp outRVal = new (inRVal.type, this);
                     inRVal.PushVal(this, opcode);        // push vector, then call negate routine
                     ilGen.Emit(opcode, OpCodes.Call, lslVectorNegateMethodInfo);
                     outRVal.Pop(this, opcode);           // pop into result
@@ -5645,7 +5642,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
                 if (inRVal.type is TokenTypeBool)
                 {
-                    CompValuTemp outRVal = new CompValuTemp(new TokenTypeInt(opcode), this);
+                    CompValuTemp outRVal = new (new TokenTypeInt(opcode), this);
                     inRVal.PushVal(this, opcode, outRVal.type);  // push value to negate, make sure not LSL-boxed
                     ilGen.Emit(opcode, OpCodes.Neg);     // compute the negative
                     outRVal.Pop(this, opcode);           // pop into result
@@ -5660,7 +5657,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                 if(inRVal.type is TokenTypeInt)
                 {
-                    CompValuTemp outRVal = new CompValuTemp(new TokenTypeInt(opcode), this);
+                    CompValuTemp outRVal = new (new TokenTypeInt(opcode), this);
                     inRVal.PushVal(this, opcode, outRVal.type);  // push value to negate, make sure not LSL-boxed
                     ilGen.Emit(opcode, OpCodes.Not);     // compute the complement
                     outRVal.Pop(this, opcode);           // pop into result
@@ -5677,7 +5674,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // everything like that.
             if(opcode is TokenKwExclam)
             {
-                CompValuTemp outRVal = new CompValuTemp(new TokenTypeInt(opcode), this);
+                CompValuTemp outRVal = new (new TokenTypeInt(opcode), this);
                 inRVal.PushVal(this, opcode, tokenTypeBool);  // anything converts to boolean
                 ilGen.Emit(opcode, OpCodes.Ldc_I4_1);         // then XOR with 1 to flip it
                 ilGen.Emit(opcode, OpCodes.Xor);
@@ -5932,7 +5929,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 ScriptConst scriptConst = ScriptConst.Lookup(lValName.name.val);
                 if(scriptConst != null)
                 {
-                    TokenDeclVar var = new TokenDeclVar(lValName.name, null, tokenScript)
+                    TokenDeclVar var = new (lValName.name, null, tokenScript)
                     {
                         name = lValName.name,
                         type = scriptConst.rVal.type,
@@ -5995,7 +5992,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 TokenType subIntfType = impl.MakeRefToken(name);
 
                 // make a temp variable of the secondary interface type
-                CompValuTemp castBase = new CompValuTemp(subIntfType, this);
+                CompValuTemp castBase = new (subIntfType, this);
 
                 // output code to cast from the primary interface to the secondary interface
                 // this is 2 basic steps:
@@ -6229,7 +6226,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             if(argsig == null)
                 return "";
-            StringBuilder sb = new StringBuilder("(");
+            StringBuilder sb = new ('(');
             for(int i = 0; i < argsig.Length; i++)
             {
                 if(i > 0)
@@ -6265,12 +6262,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public static MethodInfo GetStaticMethod(Type owner, string name, Type[] args)
         {
-            MethodInfo mi = owner.GetMethod(name, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic, null, args, null);
-            if(mi == null)
-            {
-                throw new Exception("undefined method " + owner.ToString() + "." + name);
-            }
-            return mi;
+            return owner.GetMethod(name, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic, null, args, null) ??
+                    throw new Exception("undefined method " + owner.ToString() + "." + name);
         }
 
         // http://wiki.secondlife.com/wiki/Rotation 'negate a rotation' says just negate .s component
@@ -6392,7 +6385,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
     {
 
         // old code uses these
-        private object e;
+        private readonly object e;
         public ScriptRestoreCatchException(object e)
         {
             this.e = e;
@@ -6407,7 +6400,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         }
 
         // new code uses these
-        private Exception ee;
+        private readonly Exception ee;
         public ScriptRestoreCatchException(Exception ee)
         {
             this.ee = ee;
