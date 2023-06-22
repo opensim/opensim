@@ -1428,15 +1428,6 @@ namespace OpenSim.Region.Framework.Scenes
                 SceneObjectPart[] parts = m_parts.GetArray();
                 for(int i= 0; i < parts.Length; ++i)
                     parts[i].Dispose();
-
-                m_parts.Clear();
-                m_sittingAvatars.Clear();
-                // m_rootPart = null;
-
-                m_targets.Clear();
-                m_rotTargets.Clear();
-                m_targetsByScript.Clear();
-                m_partsNameToLinkMap.Clear();
             }
         }
 
@@ -2850,7 +2841,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             lock (m_parts.SyncRoot)
             {
-                List<SceneObjectPart> partsList = new(m_parts.GetArray());
+                SceneObjectPart[] partsList = m_parts.GetArray();
                 m_parts.Clear();
                 foreach (SceneObjectPart part in partsList)
                 {

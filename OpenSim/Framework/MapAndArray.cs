@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace OpenSim.Framework
 {
@@ -82,12 +83,10 @@ namespace OpenSim.Framework
         {
             lock (m_syncRoot)
             {
-                bool containedKey = m_dict.ContainsKey(key);
-
-                m_dict[key] = value;
+                ref TValue curvalue = ref CollectionsMarshal.GetValueRefOrAddDefault(m_dict, key, out bool existed);
+                curvalue = value;
                 m_array = null;
-
-                return !containedKey;
+                return existed;
             }
         }
 
@@ -117,9 +116,8 @@ namespace OpenSim.Framework
         {
             lock (m_syncRoot)
             {
-                bool removed = m_dict.Remove(key);
                 m_array = null;
-                return removed;
+                return m_dict.Remove(key);
             }
         }
 
@@ -156,7 +154,8 @@ namespace OpenSim.Framework
         {
             lock (m_syncRoot)
             {
-                m_dict = new Dictionary<TKey, TValue>();
+                if(m_dict.Count > 0)
+                    m_dict = new Dictionary<TKey, TValue>();
                 m_array = null;
             }
         }
@@ -174,7 +173,7 @@ namespace OpenSim.Framework
                 if (m_array == null)
                 {
                     if(m_dict.Count == 0)
-                        return new TValue[0];
+                        return Array.Empty<TValue>();
                     m_array = new TValue[m_dict.Count];
                     m_dict.Values.CopyTo(m_array, 0);
                 }
