@@ -3246,31 +3246,38 @@ namespace OpenSim.Region.Framework.Scenes
                 return null;
 
             // If the primitive the player clicked on has a sit target and that sit target is not full, that sit target is used.
-            // If the primitive the player clicked on has no sit target, and one or more other linked objects have sit targets that are not full, the sit target of the object with the lowest link number will be used.
+            if (targetPart.IsSitTargetSet && targetPart.SitTargetAvatar.IsZero() && targetPart.SitActiveRange >= 0)
+                return targetPart;
 
-            // Get our own copy of the part array, and sort into the order we want to test
+            // If the primitive the player clicked on has no sit target, and one or more other linked objects
+            // have sit targets that are not full, the sit target of the object with the lowest link number will be used.
+
             SceneObjectPart[] partArray = targetPart.ParentGroup.Parts;
-            Array.Sort(partArray, delegate(SceneObjectPart p1, SceneObjectPart p2)
-                       {
-                           // we want the originally selected part first, then the rest in link order -- so make the selected part link num (-1)
-                           int linkNum1 = p1==targetPart ? -1 : p1.LinkNum;
-                           int linkNum2 = p2==targetPart ? -1 : p2.LinkNum;
-                           return linkNum1 - linkNum2;
-                       }
-                );
+            if (partArray.Length < 2)
+                return targetPart;
 
+            SceneObjectPart lastPart = null;
             //look for prims with explicit sit targets that are available
             foreach (SceneObjectPart part in partArray)
             {
                 if (part.IsSitTargetSet && part.SitTargetAvatar.IsZero() && part.SitActiveRange >= 0)
                 {
-                    //switch the target to this prim
-                    return part;
+                    if(lastPart == null)
+                    {
+                        if (part.LinkNum < 2)
+                            return part;
+                        lastPart = part;
+                    }
+                    else
+                    {
+                        if(lastPart.LinkNum > part.LinkNum)
+                            lastPart = part;
+                    }
                 }
             }
 
             // no explicit sit target found - use original target
-            return targetPart;
+            return lastPart ?? targetPart;
         }
 
         private void SendSitResponse(UUID targetID, Vector3 offset, Quaternion sitOrientation)
