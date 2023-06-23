@@ -52,7 +52,7 @@ namespace OpenSim.Framework
         {
             lock (m_lock)
             {
-                if (m_agentCircuits.TryGetValue(circuitcode, out AgentCircuitData validcircuit) || validcircuit is null)
+                if (m_agentCircuits.TryGetValue(circuitcode, out AgentCircuitData validcircuit) && validcircuit is not null)
                 {
                     if (sessionID.Equals(validcircuit.SessionID) && agentID.Equals(validcircuit.AgentID))
                     {
