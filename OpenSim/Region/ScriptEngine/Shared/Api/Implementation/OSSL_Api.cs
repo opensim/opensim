@@ -1314,7 +1314,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public string osDrawText(string drawList, string text)
         {
-            CheckThreatLevel(ThreatLevel.None, "osDrawText");
+            CheckThreatLevel();
 
             drawList += "Text " + text + "; ";
             return drawList;
