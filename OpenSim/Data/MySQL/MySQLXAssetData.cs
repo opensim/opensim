@@ -32,12 +32,10 @@ using System.IO;
 using System.IO.Compression;
 using System.Reflection;
 using System.Security.Cryptography;
-using System.Text;
 using log4net;
-using MySql.Data.MySqlClient;
+using MySqlConnector;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Data;
 
 namespace OpenSim.Data.MySQL
 {
