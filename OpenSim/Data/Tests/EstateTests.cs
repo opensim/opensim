@@ -25,24 +25,18 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using log4net.Config;
 using NUnit.Framework;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Tests.Common;
-using System.Text;
-using log4net;
-using System.Reflection;
 using System.Data.Common;
 
 // DBMS-specific:
-using MySql.Data.MySqlClient;
 using OpenSim.Data.MySQL;
 
 using System.Data.SQLite;
 using OpenSim.Data.SQLite;
+using MySqlConnector;
 
 namespace OpenSim.Data.Tests
 {

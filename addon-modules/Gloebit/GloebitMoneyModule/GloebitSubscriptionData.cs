@@ -21,15 +21,13 @@ using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
 using System.Text;
-using MySql.Data.MySqlClient;
-using Nini.Config;
 using OpenSim.Data.MySQL;
 using OpenSim.Data.PGSQL;
 using OpenSim.Data.SQLite;
 using Npgsql;
 using NpgsqlTypes;
 using OpenMetaverse;  // Necessary for UUID type
-
+using MySqlConnector;
 
 namespace Gloebit.GloebitMoneyModule
 {
