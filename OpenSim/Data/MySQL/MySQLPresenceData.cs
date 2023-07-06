@@ -46,8 +46,7 @@ namespace OpenSim.Data.MySQL
 
         public PresenceData Get(UUID sessionID)
         {
-            PresenceData[] ret = Get("SessionID",
-                    sessionID.ToString());
+            PresenceData[] ret = Get("SessionID", sessionID.ToString());
 
             if (ret.Length == 0)
                 return null;

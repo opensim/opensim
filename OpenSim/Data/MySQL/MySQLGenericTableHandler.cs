@@ -107,8 +107,7 @@ namespace OpenSim.Data.MySQL
             DataTable schemaTable = reader.GetSchemaTable();
             foreach (DataRow row in schemaTable.Rows)
             {
-                if (row["ColumnName"] != null &&
-                        (!m_Fields.ContainsKey(row["ColumnName"].ToString())))
+                if (row["ColumnName"] != null && (!m_Fields.ContainsKey(row["ColumnName"].ToString())))
                     columnNames.Add(row["ColumnName"].ToString());
             }
 
