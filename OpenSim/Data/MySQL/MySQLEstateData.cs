@@ -496,7 +496,7 @@ namespace OpenSim.Data.MySQL
                 using (MySqlCommand cmd = dbcon.CreateCommand())
                 {
                     cmd.CommandText = "select estateID from estate_settings where EstateOwner = ?EstateOwner";
-                    cmd.Parameters.AddWithValue("?EstateOwner", ownerID);
+                    cmd.Parameters.AddWithValue("?EstateOwner", ownerID.ToString());
 
                     using (IDataReader reader = cmd.ExecuteReader())
                     {
@@ -528,7 +528,7 @@ namespace OpenSim.Data.MySQL
                      {
                         cmd.Transaction = transaction;
                         cmd.CommandText = "delete from estate_map where RegionID = ?RegionID";
-                        cmd.Parameters.AddWithValue("?RegionID", regionID);
+                        cmd.Parameters.AddWithValue("?RegionID", regionID.ToString());
 
                         cmd.ExecuteNonQuery();
                     }
@@ -537,7 +537,7 @@ namespace OpenSim.Data.MySQL
                     {
                         cmd.Transaction = transaction;
                         cmd.CommandText = "insert into estate_map values (?RegionID, ?EstateID)";
-                        cmd.Parameters.AddWithValue("?RegionID", regionID);
+                        cmd.Parameters.AddWithValue("?RegionID", regionID.ToString());
                         cmd.Parameters.AddWithValue("?EstateID", estateID);
 
                         int ret = cmd.ExecuteNonQuery();
