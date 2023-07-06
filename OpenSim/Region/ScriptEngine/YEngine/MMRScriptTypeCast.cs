@@ -26,7 +26,6 @@
  */
 
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
-using OpenSim.Region.ScriptEngine.Yengine;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -108,65 +107,64 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private static Dictionary<string, CastDelegate> CreateLegalTypeCasts()
         {
-            Dictionary<string, CastDelegate> ltc = new Dictionary<string, CastDelegate>();
-
-            // IMPLICIT type casts (a space is in middle of the key)
-            // EXPLICIT type casts (an * is in middle of the key)
-            // In general, only mark explicit if it might throw an exception
-            ltc.Add("array object", TypeCastArray2Object);
-            ltc.Add("bool float", TypeCastBool2Float);
-            ltc.Add("bool integer", TypeCastBool2Integer);
-            ltc.Add("bool list", TypeCastBool2List);
-            ltc.Add("bool object", TypeCastBool2Object);
-            ltc.Add("bool string", TypeCastBool2String);
-            ltc.Add("char integer", TypeCastChar2Integer);
-            ltc.Add("char list", TypeCastChar2List);
-            ltc.Add("char object", TypeCastChar2Object);
-            ltc.Add("char string", TypeCastChar2String);
-            ltc.Add("exception list", TypeCastExc2List);
-            ltc.Add("exception object", TypeCastExc2Object);
-            ltc.Add("exception string", TypeCastExc2String);
-            ltc.Add("float bool", TypeCastFloat2Bool);
-            ltc.Add("float*integer", TypeCastFloat2Integer);
-            ltc.Add("float list", TypeCastFloat2List);
-            ltc.Add("float object", TypeCastFloat2Object);
-            ltc.Add("float string", TypeCastFloat2String);
-            ltc.Add("integer bool", TypeCastInteger2Bool);
-            ltc.Add("integer char", TypeCastInteger2Char);
-            ltc.Add("integer float", TypeCastInteger2Float);
-            ltc.Add("integer list", TypeCastInteger2List);
-            ltc.Add("integer object", TypeCastInteger2Object);
-            ltc.Add("integer string", TypeCastInteger2String);
-            ltc.Add("list bool", TypeCastList2Bool);
-            ltc.Add("list object", TypeCastList2Object);
-            ltc.Add("list string", TypeCastList2String);
-            ltc.Add("object*array", TypeCastObject2Array);
-            ltc.Add("object*bool", TypeCastObject2Bool);
-            ltc.Add("object*char", TypeCastObject2Char);
-            ltc.Add("object*exception", TypeCastObject2Exc);
-            ltc.Add("object*float", TypeCastObject2Float);
-            ltc.Add("object*integer", TypeCastObject2Integer);
-            ltc.Add("object*list", TypeCastObject2List);
-            ltc.Add("object*rotation", TypeCastObject2Rotation);
-            ltc.Add("object string", TypeCastObject2String);
-            ltc.Add("object*vector", TypeCastObject2Vector);
-            ltc.Add("rotation bool", TypeCastRotation2Bool);
-            ltc.Add("rotation list", TypeCastRotation2List);
-            ltc.Add("rotation object", TypeCastRotation2Object);
-            ltc.Add("rotation string", TypeCastRotation2String);
-            ltc.Add("string bool", TypeCastString2Bool);
-            ltc.Add("string*float", TypeCastString2Float);
-            ltc.Add("string*integer", TypeCastString2Integer);
-            ltc.Add("string list", TypeCastString2List);
-            ltc.Add("string object", TypeCastString2Object);
-            ltc.Add("string*rotation", TypeCastString2Rotation);
-            ltc.Add("string*vector", TypeCastString2Vector);
-            ltc.Add("vector bool", TypeCastVector2Bool);
-            ltc.Add("vector list", TypeCastVector2List);
-            ltc.Add("vector object", TypeCastVector2Object);
-            ltc.Add("vector string", TypeCastVector2String);
-
-            return ltc;
+            return new Dictionary<string, CastDelegate>
+            {
+                // IMPLICIT type casts (a space is in middle of the key)
+                // EXPLICIT type casts (an * is in middle of the key)
+                // In general, only mark explicit if it might throw an exception
+                { "array object", TypeCastArray2Object },
+                { "bool float", TypeCastBool2Float },
+                { "bool integer", TypeCastBool2Integer },
+                { "bool list", TypeCastBool2List },
+                { "bool object", TypeCastBool2Object },
+                { "bool string", TypeCastBool2String },
+                { "char integer", TypeCastChar2Integer },
+                { "char list", TypeCastChar2List },
+                { "char object", TypeCastChar2Object },
+                { "char string", TypeCastChar2String },
+                { "exception list", TypeCastExc2List },
+                { "exception object", TypeCastExc2Object },
+                { "exception string", TypeCastExc2String },
+                { "float bool", TypeCastFloat2Bool },
+                { "float*integer", TypeCastFloat2Integer },
+                { "float list", TypeCastFloat2List },
+                { "float object", TypeCastFloat2Object },
+                { "float string", TypeCastFloat2String },
+                { "integer bool", TypeCastInteger2Bool },
+                { "integer char", TypeCastInteger2Char },
+                { "integer float", TypeCastInteger2Float },
+                { "integer list", TypeCastInteger2List },
+                { "integer object", TypeCastInteger2Object },
+                { "integer string", TypeCastInteger2String },
+                { "list bool", TypeCastList2Bool },
+                { "list object", TypeCastList2Object },
+                { "list string", TypeCastList2String },
+                { "object*array", TypeCastObject2Array },
+                { "object*bool", TypeCastObject2Bool },
+                { "object*char", TypeCastObject2Char },
+                { "object*exception", TypeCastObject2Exc },
+                { "object*float", TypeCastObject2Float },
+                { "object*integer", TypeCastObject2Integer },
+                { "object*list", TypeCastObject2List },
+                { "object*rotation", TypeCastObject2Rotation },
+                { "object string", TypeCastObject2String },
+                { "object*vector", TypeCastObject2Vector },
+                { "rotation bool", TypeCastRotation2Bool },
+                { "rotation list", TypeCastRotation2List },
+                { "rotation object", TypeCastRotation2Object },
+                { "rotation string", TypeCastRotation2String },
+                { "string bool", TypeCastString2Bool },
+                { "string*float", TypeCastString2Float },
+                { "string*integer", TypeCastString2Integer },
+                { "string list", TypeCastString2List },
+                { "string object", TypeCastString2Object },
+                { "string*rotation", TypeCastString2Rotation },
+                { "string*vector", TypeCastString2Vector },
+                { "vector bool", TypeCastVector2Bool },
+                { "vector list", TypeCastVector2List },
+                { "vector object", TypeCastVector2Object },
+                { "vector string", TypeCastVector2String }
+            };
         }
 
         /**
@@ -178,12 +176,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public static bool IsAssignableFrom(TokenType dstType, TokenType srcType)
         {
-             // Do a 'dry run' of the casting operation, discarding any emits and not printing any errors.
-             // But if the casting tries to print error(s), return false.
-             // Otherwise assume the cast is allowed and return true.
-            SCGIAF scg = new SCGIAF();
-            scg.ok = true;
-            scg._ilGen = migiaf;
+            // Do a 'dry run' of the casting operation, discarding any emits and not printing any errors.
+            // But if the casting tries to print error(s), return false.
+            // Otherwise assume the cast is allowed and return true.
+            SCGIAF scg = new()
+            {
+                ok = true,
+                _ilGen = migiaf
+            };
             CastTopOfStack(scg, null, srcType, dstType, false);
             return scg.ok;
         }
@@ -332,25 +332,25 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
 
              // Script-defined classes can be cast up and down the tree.
-            if((oldType is TokenTypeSDTypeClass) && (newType is TokenTypeSDTypeClass))
+            if((oldType is TokenTypeSDTypeClass oldT) && (newType is TokenTypeSDTypeClass newT))
             {
-                TokenDeclSDTypeClass oldSDTC = ((TokenTypeSDTypeClass)oldType).decl;
-                TokenDeclSDTypeClass newSDTC = ((TokenTypeSDTypeClass)newType).decl;
+                TokenDeclSDTypeClass oldSDTC = oldT.decl;
+                TokenDeclSDTypeClass newSDTC2 = newT.decl;
 
                 // implicit cast allowed from leaf toward root
-                for(TokenDeclSDTypeClass sdtc = oldSDTC; sdtc != null; sdtc = sdtc.extends)
+                for(TokenDeclSDTypeClass sdtc = oldSDTC; sdtc is not null; sdtc = sdtc.extends)
                 {
-                    if(sdtc == newSDTC)
+                    if(sdtc == newSDTC2)
                         return;
                 }
 
                 // explicit cast allowed from root toward leaf
-                for(TokenDeclSDTypeClass sdtc = newSDTC; sdtc != null; sdtc = sdtc.extends)
+                for(TokenDeclSDTypeClass sdtc = newSDTC2; sdtc is not null; sdtc = sdtc.extends)
                 {
                     if(sdtc == oldSDTC)
                     {
                         ExplCheck(scg, errorAt, explicitAllowed, oldString, newString);
-                        scg.ilGen.Emit(errorAt, OpCodes.Ldc_I4, newSDTC.sdTypeIndex);
+                        scg.ilGen.Emit(errorAt, OpCodes.Ldc_I4, newSDTC2.sdTypeIndex);
                         scg.ilGen.Emit(errorAt, OpCodes.Call, sdTypeClassCastClass2ClassMethodInfo);
                         return;
                     }
@@ -363,10 +363,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // One script-defined interface type cannot be cast to another script-defined interface type, 
              // unless the old interface declares that it implements the new interface.  That proves that 
              // the underlying object, no matter what type, implements the new interface.
-            if((oldType is TokenTypeSDTypeInterface) && (newType is TokenTypeSDTypeInterface))
+            if((oldType is TokenTypeSDTypeInterface oldT2) && (newType is TokenTypeSDTypeInterface newT2))
             {
-                TokenDeclSDTypeInterface oldDecl = ((TokenTypeSDTypeInterface)oldType).decl;
-                TokenDeclSDTypeInterface newDecl = ((TokenTypeSDTypeInterface)newType).decl;
+                TokenDeclSDTypeInterface oldDecl = oldT2.decl;
+                TokenDeclSDTypeInterface newDecl = newT2.decl;
                 if(!oldDecl.Implements(newDecl))
                     goto illcast;
                 scg.ilGen.Emit(errorAt, OpCodes.Ldstr, newType.ToString());
@@ -377,9 +377,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // A script-defined class type can be implicitly cast to a script-defined interface type that it 
              // implements.  The result is an array of delegates that give the class's implementation of the 
              // various methods defined by the interface.
-            if((oldType is TokenTypeSDTypeClass) && (newType is TokenTypeSDTypeInterface))
+            if((oldType is TokenTypeSDTypeClass oldtc) && (newType is TokenTypeSDTypeInterface))
             {
-                TokenDeclSDTypeClass oldSDTC = ((TokenTypeSDTypeClass)oldType).decl;
+                TokenDeclSDTypeClass oldSDTC = oldtc.decl;
                 int intfIndex;
                 if(!oldSDTC.intfIndices.TryGetValue(newType.ToString(), out intfIndex))
                     goto illcast;
@@ -394,11 +394,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // object and making sure it casts to the correct script-defined class type.
              //
              // But then only if the class type implements the interface type.
-            if((oldType is TokenTypeSDTypeInterface) && (newType is TokenTypeSDTypeClass))
+            if((oldType is TokenTypeSDTypeInterface oldSDTI) && (newType is TokenTypeSDTypeClass newSDTC))
             {
-                TokenTypeSDTypeInterface oldSDTI = (TokenTypeSDTypeInterface)oldType;
-                TokenTypeSDTypeClass newSDTC = (TokenTypeSDTypeClass)newType;
-
                 if(!newSDTC.decl.CanCastToIntf(oldSDTI.decl))
                     goto illcast;
 
@@ -448,10 +445,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // Script-defined classes can be explicitly cast from objects and other script-defined classes.
              // Note that we must manually check that it is the correct SDTypeClass however because as far as 
              // mono is concerned, all SDTypeClass's are the same.
-            if((oldType is TokenTypeObject) && (newType is TokenTypeSDTypeClass))
+            if((oldType is TokenTypeObject) && (newType is TokenTypeSDTypeClass newT3))
             {
                 ExplCheck(scg, errorAt, explicitAllowed, oldString, newString);
-                scg.ilGen.Emit(errorAt, OpCodes.Ldc_I4, ((TokenTypeSDTypeClass)newType).decl.sdTypeIndex);
+                scg.ilGen.Emit(errorAt, OpCodes.Ldc_I4, newT3.decl.sdTypeIndex);
                 scg.ilGen.Emit(errorAt, OpCodes.Call, sdTypeClassCastClass2ClassMethodInfo);
                 return;
             }
@@ -487,7 +484,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             illcast:
             scg.ErrorMsg(errorAt, "illegal to cast from " + oldString + " to " + newString);
-            if(!(oldType is TokenTypeVoid))
+            if(oldType is not TokenTypeVoid)
                 scg.ilGen.Emit(errorAt, OpCodes.Pop);
             scg.PushDefaultValue(newType);
         }

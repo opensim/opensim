@@ -332,7 +332,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             SceneObjectPart part;
 
             Vector3 fromRegionPos;
-            Quaternion q;
+            Vector3 forward_dir;
+            float mag_fwd; // to compensate in case rotation is not normalized
             if (sensorPart.ParentGroup.IsAttachment)
             {
                 // In attachments, rotate the sensor cone with the
@@ -350,25 +351,30 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                     return sensedEntities;
 
                 fromRegionPos = avatar.AbsolutePosition;
-                q = doarc ? Quaternion.Identity : avatar.Rotation;
+                if (doarc)
+                {
+                    forward_dir = Vector3.UnitXRotated(avatar.Rotation);
+                    mag_fwd = forward_dir.LengthSquared();
+                }
+                else
+                {
+                    forward_dir = Vector3.Zero;
+                    mag_fwd = 1;
+                }
             }
             else
             {
                 fromRegionPos = sensorPart.GetWorldPosition();
-                q = doarc ? Quaternion.Identity : sensorPart.GetWorldRotation();  // non-attached prim Sensor *always* uses World rotation!
-            }
-
-            Vector3 forward_dir;
-            float mag_fwd;
-            if (doarc)
-            {
-                forward_dir = Vector3.UnitXRotated(q);
-                mag_fwd = forward_dir.LengthSquared();
-            }
-            else
-            {
-                forward_dir = Vector3.Zero;
-                mag_fwd = 1;
+                if (doarc)
+                {
+                    forward_dir = Vector3.UnitXRotated(sensorPart.GetWorldRotation());
+                    mag_fwd = forward_dir.LengthSquared();
+                }
+                else
+                {
+                    forward_dir = Vector3.Zero;
+                    mag_fwd = 1;
+                }
             }
 
             float rangeSQ = ts.range * ts.range;
@@ -421,27 +427,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 // Right type too, what about the other params , key and name ?
                 if (doarc)
                 {
-                    // not omni-directional. Can you see it ?
-                    // vec forward_dir = llRot2Fwd(llGetRot())
-                    // vec obj_dir = toRegionPos-fromRegionPos
-                    // dot=dot(forward_dir,obj_dir)
-                    // mag_fwd = mag(forward_dir)
-                    // mag_obj = mag(obj_dir)
-                    // ang = acos(dot /(mag_fwd*mag_obj))
-                    float ang_obj;
                     try
                     {
-                        float mag_corr = MathF.Sqrt(mag_fwd * dis);
                         float dot = Vector3.Dot(forward_dir, diff);
-                        ang_obj = MathF.Acos(dot / mag_corr);
+                        float mag_corr = MathF.Sqrt(mag_fwd * dis);
+                        float ang_obj = MathF.Acos(dot / mag_corr);
+                        if (ang_obj > ts.arc)
+                            continue;
                     }
                     catch
                     {
                         continue;
                     }
-
-                    if (ang_obj > ts.arc)
-                        continue;
                 }
 
                 // add distance for sorting purposes later
