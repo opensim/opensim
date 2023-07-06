@@ -427,17 +427,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 // Right type too, what about the other params , key and name ?
                 if (doarc)
                 {
-                    try
+                    float mag = mag_fwd * dis;
+                    if(mag > 1e-6f)
                     {
-                        float dot = Vector3.Dot(forward_dir, diff);
-                        float mag_corr = MathF.Sqrt(mag_fwd * dis);
-                        float ang_obj = MathF.Acos(dot / mag_corr);
-                        if (ang_obj > ts.arc)
+                        float dot = Vector3.Dot(forward_dir, diff) / MathF.Sqrt(mag);
+                        if(dot < -1.0f)
                             continue;
-                    }
-                    catch
-                    {
-                        continue;
+                        if(dot < 1.0f)
+                        {
+                            if (ts.arc < MathF.Acos(dot))
+                                continue;
+                        }
+                        else if(dot > 1.00001f)
+                            continue;
                     }
                 }
 
