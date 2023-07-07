@@ -18,13 +18,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.SqlTypes;
 using System.Reflection;
-using System.Xml;
 using log4net;
-using MySql.Data.MySqlClient;
-using Nini.Config;
+using MySqlConnector;
 using OpenSim.Data.MySQL;
 using OpenSim.Data.PGSQL;
 using OpenSim.Data.SQLite;

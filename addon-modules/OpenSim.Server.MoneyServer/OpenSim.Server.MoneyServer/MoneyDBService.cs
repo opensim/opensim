@@ -33,7 +33,7 @@ using OpenSim.Region.OptionalModules.Currency;
 using log4net;
 using System.Reflection;
 using OpenMetaverse;
-
+using MySqlConnector;
 
 namespace OpenSim.Server.MoneyServer
 {
@@ -135,7 +135,7 @@ namespace OpenSim.Server.MoneyServer
                 return dbm.Manager.getBalance(userID);
             }
 #pragma warning disable CS0168 // Variable ist deklariert, wird jedoch niemals verwendet
-            catch (MySql.Data.MySqlClient.MySqlException e)
+            catch (MySqlException e)
             {
 #pragma warning restore CS0168 // Variable ist deklariert, wird jedoch niemals verwendet
                 dbm.Manager.Reconnect();
@@ -162,7 +162,7 @@ namespace OpenSim.Server.MoneyServer
                 return dbm.Manager.withdrawMoney(transactionID, senderID, amount);
             }
 #pragma warning disable CS0168 // Variable ist deklariert, wird jedoch niemals verwendet
-            catch (MySql.Data.MySqlClient.MySqlException e)
+            catch (MySqlException e)
             {
 #pragma warning restore CS0168 // Variable ist deklariert, wird jedoch niemals verwendet
                 dbm.Manager.Reconnect();
@@ -189,7 +189,7 @@ namespace OpenSim.Server.MoneyServer
                 return dbm.Manager.giveMoney(transactionID, receiverID, amount);
             }
 #pragma warning disable CS0168 // Variable ist deklariert, wird jedoch niemals verwendet
-            catch (MySql.Data.MySqlClient.MySqlException e)
+            catch (MySqlException e)
             {
 #pragma warning restore CS0168 // Variable ist deklariert, wird jedoch niemals verwendet
                 dbm.Manager.Reconnect();
@@ -219,10 +219,8 @@ namespace OpenSim.Server.MoneyServer
             {
                 return dbm.Manager.setTotalSale(transaction.Receiver, transaction.ObjectUUID, transaction.Type, 1, transaction.Amount, time);
             }
-#pragma warning disable CS0168 // Variable ist deklariert, wird jedoch niemals verwendet
-            catch (MySql.Data.MySqlClient.MySqlException e)
+            catch (MySqlException)
             {
-#pragma warning restore CS0168 // Variable ist deklariert, wird jedoch niemals verwendet
                 dbm.Manager.Reconnect();
                 return dbm.Manager.setTotalSale(transaction.Receiver, transaction.ObjectUUID, transaction.Type, 1, transaction.Amount, time);
             }
@@ -247,7 +245,7 @@ namespace OpenSim.Server.MoneyServer
                 return dbm.Manager.addTransaction(transaction);
             }
 #pragma warning disable CS0168 // Variable ist deklariert, wird jedoch niemals verwendet
-            catch (MySql.Data.MySqlClient.MySqlException e)
+            catch (MySqlException e)
             {
 #pragma warning restore CS0168 // Variable ist deklariert, wird jedoch niemals verwendet
                 dbm.Manager.Reconnect();
@@ -293,7 +291,7 @@ namespace OpenSim.Server.MoneyServer
                 ret = dbm.Manager.addUser(userID, 0, status, type);		// make Balance Table
             }
 #pragma warning disable CS0168 // Variable ist deklariert, wird jedoch niemals verwendet
-            catch (MySql.Data.MySqlClient.MySqlException e)
+            catch (MySqlException e)
             {
 #pragma warning restore CS0168 // Variable ist deklariert, wird jedoch niemals verwendet
                 dbm.Manager.Reconnect();
@@ -324,7 +322,7 @@ namespace OpenSim.Server.MoneyServer
                 return dbm.Manager.updateTransactionStatus(transactionID, status, description);
             }
 #pragma warning disable CS0168 // Variable ist deklariert, wird jedoch niemals verwendet
-            catch (MySql.Data.MySqlClient.MySqlException e)
+            catch (MySqlException e)
             {
 #pragma warning restore CS0168 // Variable ist deklariert, wird jedoch niemals verwendet
                 dbm.Manager.Reconnect();
@@ -351,7 +349,7 @@ namespace OpenSim.Server.MoneyServer
                 return dbm.Manager.SetTransExpired(deadTime);
             }
 #pragma warning disable CS0168 // Variable ist deklariert, wird jedoch niemals verwendet
-            catch (MySql.Data.MySqlClient.MySqlException e)
+            catch (MySqlException e)
             {
 #pragma warning restore CS0168 // Variable ist deklariert, wird jedoch niemals verwendet
                 dbm.Manager.Reconnect();
@@ -378,7 +376,7 @@ namespace OpenSim.Server.MoneyServer
                 return dbm.Manager.ValidateTransfer(secureCode, transactionID);
             }
 #pragma warning disable CS0168 // Variable ist deklariert, wird jedoch niemals verwendet
-            catch (MySql.Data.MySqlClient.MySqlException e)
+            catch (MySqlException e)
             {
 #pragma warning restore CS0168 // Variable ist deklariert, wird jedoch niemals verwendet
                 dbm.Manager.Reconnect();
@@ -405,7 +403,7 @@ namespace OpenSim.Server.MoneyServer
                 return dbm.Manager.FetchTransaction(transactionID);
             }
 #pragma warning disable CS0168 // Variable ist deklariert, wird jedoch niemals verwendet
-            catch (MySql.Data.MySqlClient.MySqlException e)
+            catch (MySqlException e)
             {
 #pragma warning restore CS0168 // Variable ist deklariert, wird jedoch niemals verwendet
                 dbm.Manager.Reconnect();
@@ -436,7 +434,7 @@ namespace OpenSim.Server.MoneyServer
                 arrTransaction = dbm.Manager.FetchTransaction(userID, startTime, endTime, index, 1);
             }
 #pragma warning disable CS0168 // Variable ist deklariert, wird jedoch niemals verwendet
-            catch (MySql.Data.MySqlClient.MySqlException e)
+            catch (MySqlException e)
             {
 #pragma warning restore CS0168 // Variable ist deklariert, wird jedoch niemals verwendet
                 dbm.Manager.Reconnect();
@@ -585,7 +583,7 @@ namespace OpenSim.Server.MoneyServer
                 userInfo = dbm.Manager.fetchUserInfo(user.UserID);
             }
 #pragma warning disable CS0168 // Variable ist deklariert, wird jedoch niemals verwendet
-            catch (MySql.Data.MySqlClient.MySqlException e)
+            catch (MySqlException e)
             {
 #pragma warning restore CS0168 // Variable ist deklariert, wird jedoch niemals verwendet
                 dbm.Manager.Reconnect();
@@ -636,7 +634,7 @@ namespace OpenSim.Server.MoneyServer
                 return userInfo;
             }
 #pragma warning disable CS0168 // Variable ist deklariert, wird jedoch niemals verwendet
-            catch (MySql.Data.MySqlClient.MySqlException e)
+            catch (MySqlException e)
             {
 #pragma warning restore CS0168 // Variable ist deklariert, wird jedoch niemals verwendet
                 dbm.Manager.Reconnect();
@@ -664,7 +662,7 @@ namespace OpenSim.Server.MoneyServer
                 return dbm.Manager.getTransactionNum(userID, startTime, endTime);
             }
 #pragma warning disable CS0168 // Variable ist deklariert, wird jedoch niemals verwendet
-            catch (MySql.Data.MySqlClient.MySqlException e)
+            catch (MySqlException e)
             {
 #pragma warning restore CS0168 // Variable ist deklariert, wird jedoch niemals verwendet
                 dbm.Manager.Reconnect();
