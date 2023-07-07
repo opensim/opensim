@@ -106,7 +106,7 @@
     <PackageReference Include="MailKit" Version="3.4.2" />
     <PackageReference Include="MimeKit" Version="3.4.2" />
     <PackageReference Include="Mono.Addins" Version="1.4.1" />
-    <PackageReference Include="MySql.Data" Version="8.0.31" />
+    <PackageReference Include="MySqlConnector" Version="2.2.6" />
     <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
   </ItemGroup>
 </Project>

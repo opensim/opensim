@@ -26,12 +26,10 @@
  */
 
 using System;
+using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Data;
-
-using MySql.Data.MySqlClient;
-using System.Collections.Generic;
 
 namespace OpenSim.Data.MySQL
 {

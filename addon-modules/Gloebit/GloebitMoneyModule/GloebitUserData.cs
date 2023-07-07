@@ -18,6 +18,8 @@
 
 using System;
 using Nini.Config;
+using MySqlConnector;
+
 using OpenSim.Data.MySQL;
 using OpenSim.Data.PGSQL;
 using OpenSim.Data.SQLite;
