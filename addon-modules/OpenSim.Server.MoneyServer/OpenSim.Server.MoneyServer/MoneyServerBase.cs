@@ -204,10 +204,17 @@ namespace OpenSim.Server.MoneyServer
                 string password = db_config.GetString("password", "password");
                 string pooling = db_config.GetString("pooling", "false");
                 string port = db_config.GetString("port", "3306");
+                string options = db_config.GetString("options", "");
+
                 MAX_DB_CONNECTION = db_config.GetInt("MaxConnection", MAX_DB_CONNECTION);
 
                 connectionString = "Server=" + sqlserver + ";Port=" + port + ";Database=" + database + ";User ID=" +
                                                 username + ";Password=" + password + ";Pooling=" + pooling + ";";
+
+                if (string.IsNullOrEmpty(options) == false)
+                {
+                    connectionString += options;
+                }
 
                 // [MoneyServer]
                 m_server_config = moneyConfig.m_config.Configs["MoneyServer"];
