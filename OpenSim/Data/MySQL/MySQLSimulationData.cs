@@ -858,7 +858,7 @@ namespace OpenSim.Data.MySQL
                 {
                     cmd.CommandText = "REPLACE INTO `regionenvironment` (`region_id`, `llsd_settings`) VALUES (?region_id, ?llsd_settings)";
 
-                    cmd.Parameters.AddWithValue("region_id", regionUUID);
+                    cmd.Parameters.AddWithValue("region_id", regionUUID.ToString());
                     cmd.Parameters.AddWithValue("llsd_settings", settings);
 
                     ExecuteNonQuery(cmd);
