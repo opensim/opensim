@@ -1,4 +1,10 @@
-﻿/*
+﻿
+
+
+
+
+
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -33,7 +39,7 @@ namespace OpenSim
     {
         public const string VersionNumber = "0.9.2.2";
         public const string AssemblyVersionNumber = "0.9.2.2";
-        public const string Release = "8588";
+        public const string Release = "8593";
 
         public const Flavour VERSION_FLAVOUR = Flavour.Dev;
 
