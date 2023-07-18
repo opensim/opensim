@@ -770,6 +770,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int CLICK_ACTION_PLAY = 5;
         public const int CLICK_ACTION_OPEN_MEDIA = 6;
         public const int CLICK_ACTION_ZOOM = 7;
+        public const int CLICK_ACTION_DISABLED = 8;
 
         // constants for the llDetectedTouch* functions
         public const int TOUCH_INVALID_FACE = -1;
@@ -1023,5 +1024,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int LINKSETDATA_EPROTECTED = 3;
         public const int LINKSETDATA_NOTFOUND = 4;
         public const int LINKSETDATA_NOUPDATE = 5;
+
+        //llLinkPlaySOunf flags
+        public const int SOUND_PLAY = 0;
+        public const int SOUND_LOOP = 1;
+        public const int SOUND_TRIGGER = 2;
+        public const int SOUND_SYNC = 4;
     }
 }
