@@ -229,10 +229,11 @@ namespace Gloebit.GloebitMoneyModule
             if ((string.IsNullOrEmpty(mmodule) == false) && ((mmodule == Name) || (mmodule == "Gloebit")))
             {
                 m_enabled = true;
+                m_log.InfoFormat("[GLOEBITMONEYMODULE]: The Gloebit MoneyModule is enabled");
             }
             else
             {
-                // some other money module selected
+                m_log.InfoFormat("[GLOEBITMONEYMODULE]: The Gloebit MoneyModule is disabled (not selected in OpenSim.ini)");
                 m_enabled = false;
                 return;
             }
