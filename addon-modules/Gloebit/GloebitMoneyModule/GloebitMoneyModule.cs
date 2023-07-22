@@ -6,7 +6,7 @@
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
+ *  
  * OpenSim-MoneyModule-Gloebit is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -69,7 +69,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Threading;
@@ -84,7 +83,6 @@ using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.OptionalModules.ViewerSupport;   // Necessary for SimulatorFeaturesHelper
 using OpenSim.Services.Interfaces;
 using OpenMetaverse.StructuredData;     // TODO: turn transactionData into a dictionary of <string, object> and remove this.
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;    // For ScriptBaseClass permissions constants
@@ -117,29 +115,16 @@ namespace Gloebit.GloebitMoneyModule
     {
         
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
-        /*** GMM CONFIGURATION ***/
-        private IConfigSource m_gConfig;
 
         // TODO: Consider moving these into the GAPI
         // Gloebit Service URLs
         private const string SANDBOX_URL = "https://sandbox.gloebit.com/";
         private const string PRODUCTION_URL = "https://www.gloebit.com/";
 
-        // populated from Startup and Economy
-        private string m_startupEconomyModule;
-        private string m_economyEconomyModule;
-
         // m_enabled = true signifies that GMM is enabled across entire sim process
-        // Combination of [Economy]/[Startup] EconomyModule set to "Gloebit" and [Gloebit] Enabled set to true
-        // If false, may still be enabled on individual regions.  see m_enabledRegions below.
+        // Combination of [Economy]/[Startup] EconomyModule set to "GloebitMoneyModule" and [Gloebit] Enabled set to true
         private bool m_enabled = true;
-        // Set to false if anything is misconfigured
-        private bool m_configured = true;
-        
-        // Populated from Gloebit.ini
-        private UUID[] m_enabledRegions = null;         // Regions on sim to individually enable GMM.
-                                                        // Only necessary if m_enabled is false
+
         private GLBEnv m_environment = GLBEnv.None;
         private string m_keyAlias;
         private string m_key;
@@ -208,7 +193,6 @@ namespace Gloebit.GloebitMoneyModule
         private bool m_newLandPassFlow = false;
         private bool m_newHTTPFlow = false;
 
-
         #region IRegionModuleBase Interface
 
         /**********************
@@ -218,11 +202,13 @@ namespace Gloebit.GloebitMoneyModule
          * --- registering Scene events for enabled regions to handle user management and commerce functionality
          **********************/
         
-        public string Name {
+        public string Name 
+        {
             get { return "GloebitMoneyModule"; }
         }
         
-        public Type ReplaceableInterface {
+        public Type ReplaceableInterface 
+        {
             get { return null; }
         }
 
@@ -233,66 +219,98 @@ namespace Gloebit.GloebitMoneyModule
         public void Initialise(IConfigSource config)
         {
             m_log.Info ("[GLOEBITMONEYMODULE] Initialising.");
-            m_gConfig = config;
 
-            LoadConfig(m_gConfig);
+            IConfig economyConfig = config.Configs["Economy"];
 
-            string[] sections = {"Startup", "Economy", "Gloebit"};
-            foreach (string section in sections) {
-                IConfig sec_config = m_gConfig.Configs[section];
+            var mmodule = economyConfig?.GetString("economymodule", "");
+            if (String.IsNullOrEmpty(mmodule))
+                mmodule = economyConfig?.GetString("EconomyModule", "");
 
-                if (null == sec_config) {
+            if ((string.IsNullOrEmpty(mmodule) == false) && ((mmodule == Name) || (mmodule == "Gloebit")))
+            {
+                m_enabled = true;
+                m_log.InfoFormat("[GLOEBITMONEYMODULE]: The Gloebit MoneyModule is enabled");
+            }
+            else
+            {
+                m_log.InfoFormat("[GLOEBITMONEYMODULE]: The Gloebit MoneyModule is disabled (not selected in OpenSim.ini)");
+                m_enabled = false;
+                return;
+            }
+
+            LoadConfig(config);
+
+            string[] sections = { "Economy", "Gloebit" };
+            foreach (var section in sections) 
+            {
+                IConfig sec_config = config.Configs[section];
+
+                if (null == sec_config) 
+                {
                     m_log.WarnFormat("[GLOEBITMONEYMODULE] Config section {0} is missing. Skipping.", section);
                     continue;
                 }
+
                 ReadConfigAndPopulate(sec_config, section);
             }
             
             // Load Grid info from GridInfoService if Standalone and GridInfo if Robust
-            IConfig standalone_config = m_gConfig.Configs["GridInfoService"];
-            IConfig robust_config = m_gConfig.Configs["GridInfo"];
-            if (standalone_config == null && robust_config == null) {
+            IConfig standalone_config = config.Configs["GridInfoService"];
+            IConfig robust_config = config.Configs["GridInfo"];
+
+            if (standalone_config == null && robust_config == null) 
+            {
                 m_log.Warn("[GLOEBITMONEYMODULE] GridInfoService and GridInfo are both missing.  Can not retrieve GridInfoURI, GridName and GridNick.");
                 // NOTE: we can continue and enable as this will just cause transaction history records to be missing some data.
-            } else {
-                if(standalone_config != null && robust_config != null) {
+            } 
+            else 
+            {
+                if (standalone_config != null && robust_config != null) 
+                {
                     m_log.Warn("[GLOEBITMONEYMODULE] GridInfoService and GridInfo are both present.  Deferring to GridInfo to retrieve GridInfoURI, GridName and GridNick.");
                 }
-                if (robust_config != null) {
+
+                if (robust_config != null) 
+                {
                     ReadConfigAndPopulate(robust_config, "GridInfo");
-                } else {
+                } 
+                else 
+                {
                     ReadConfigAndPopulate(standalone_config, "GridInfoService");
                 }
             }
             
-
             m_log.InfoFormat("[GLOEBITMONEYMODULE] Initialised. Gloebit enabled: {0}, GLBEnvironment: {1}, GLBApiUrl: {2} GLBKeyAlias {3}, GLBKey: {4}, GLBSecret {5}",
                 m_enabled, m_environment, m_apiUrl, m_keyAlias, m_key, (m_secret == null ? "null" : "configured"));
 
             // TODO: I've added GLBEnv.Custom for testing.  Remove before we ship
-            if(m_environment != GLBEnv.Sandbox && m_environment != GLBEnv.Production && m_environment != GLBEnv.Custom) {
+            if (m_environment != GLBEnv.Sandbox && m_environment != GLBEnv.Production && m_environment != GLBEnv.Custom) 
+            {
                 m_log.ErrorFormat("[GLOEBITMONEYMODULE] Unsupported environment selected: {0}, disabling GloebitMoneyModule", m_environment);
                 m_enabled = false;
-                m_configured = false;
             }
 
-            if (String.IsNullOrEmpty(m_dbProvider)) {
+            if (String.IsNullOrEmpty(m_dbProvider)) 
+            {
                 // GLBSpecificStorageProvider wasn't specified so fall back to using the global
                 // DatabaseService settings
                 m_log.Info("[GLOEBITMONEYMODULE] using default StorageProvider and ConnectionString from DatabaseService");
-                m_dbProvider = m_gConfig.Configs["DatabaseService"].GetString("StorageProvider");
-                m_dbConnectionString = m_gConfig.Configs["DatabaseService"].GetString("ConnectionString");
-            } else {
+                m_dbProvider = config.Configs["DatabaseService"].GetString("StorageProvider");
+                m_dbConnectionString = config.Configs["DatabaseService"].GetString("ConnectionString");
+            } 
+            else 
+            {
                 m_log.Info("[GLOEBITMONEYMODULE] using GLBSpecificStorageProvider and GLBSpecificConnectionString");
             }
 
-            if(String.IsNullOrEmpty(m_dbProvider) || String.IsNullOrEmpty(m_dbConnectionString)) {
+            if (String.IsNullOrEmpty(m_dbProvider) || String.IsNullOrEmpty(m_dbConnectionString)) 
+            {
                 m_log.Error("[GLOEBITMONEYMODULE] database connection misconfigured, disabling GloebitMoneyModule");
                 m_enabled = false;
-                m_configured = false;
             }
 
-            if(m_configured) {
+            if (m_enabled == true) 
+            {
                 InitGloebitAPI();
             }
         }
@@ -306,11 +324,13 @@ namespace Gloebit.GloebitMoneyModule
            string configPath = string.Empty;
            bool created;
            string assemblyDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+
            if (!Util.MergeConfigurationFile(config, "Gloebit.ini", Path.Combine(assemblyDirectory, "Gloebit.ini.example"), out configPath, out created))
            {
                m_log.WarnFormat("[GLOEBITMONEYMODULE]: Gloebit.ini configuration file not merged");
                return;
            }
+
            if (created)
            {
                m_log.ErrorFormat("[GLOEBITMONEYMODULE]: PLEASE EDIT {0} BEFORE RUNNING THIS ADDIN", configPath);
@@ -325,17 +345,9 @@ namespace Gloebit.GloebitMoneyModule
         /// <param name="section"></param>
         private void ReadConfigAndPopulate(IConfig config, string section)
         {
-            /********** [Startup] ************/
-            if (section == "Startup") {
-                m_startupEconomyModule = config.GetString("EconomyModule", String.Empty);
-                m_log.InfoFormat("[GLOEBITMONEYMODULE] Startup EconomyModule = {0}.", m_startupEconomyModule);
-            }
-
             /********** [Economy] ************/
-            if (section == "Economy") {
-                m_economyEconomyModule = config.GetString("EconomyModule", String.Empty);
-                m_log.InfoFormat("[GLOEBITMONEYMODULE] Economy EconomyModule = {0}.", m_economyEconomyModule);
-
+            if (section == "Economy") 
+            {
                 /*** Get OpenSim built in pricing configuration info ***/
                 PriceEnergyUnit = config.GetInt("PriceEnergyUnit", 100);
                 PriceObjectClaim = config.GetInt("PriceObjectClaim", 10);
@@ -356,96 +368,47 @@ namespace Gloebit.GloebitMoneyModule
             }
             
             /********** [Gloebit] ************/
-            if (section == "Gloebit") {
-                /*** Determine what the sim EconomyModule setting is ***/
-                // Original standard is to be in the Startup section.  New standard is to be in Economy section.  Need to check both.
-                // Two money modules should never be enabled on the same region as they'll conflict.
-                // If all respect this param then this can't happen across the entire sim process.
-                // Unfortunately, this does not handle per-region configuration on a multi-region sim.
-                // Gloebit for instance allows enabling by region if not enabled globally,
-                // but many other money modules can not be enabled/disabled by region.
-                string economyModule; 
-                if (String.IsNullOrEmpty(m_startupEconomyModule) && String.IsNullOrEmpty(m_economyEconomyModule)) {
-                    m_log.Warn("[GLOEBITMONEYMODULE] no sim-wide EconomyModule is set.  Defaulting to Gloebit since dll is present.");
-                    economyModule = "Gloebit";
-                } else if (!String.IsNullOrEmpty(m_startupEconomyModule) && !String.IsNullOrEmpty(m_economyEconomyModule)) {
-                    m_log.Warn("[GLOEBITMONEYMODULE] EconomyModule is set in 2 places.  Should only be defined once.");
-                    if (m_startupEconomyModule != m_economyEconomyModule) {
-                        m_log.Error("[GLOEBITMONEYMODULE] EconomyModule in [Startup] does not match setting in [Economy].  Sim-wide setting is undefined.");
-                        economyModule = String.Empty;
-                    } else {
-                        m_log.InfoFormat("[GLOEBITMONEYMODULE] EconomyModule settings match as {0}", m_startupEconomyModule);
-                        economyModule = m_startupEconomyModule;
-                    }
-                } else if (!String.IsNullOrEmpty(m_startupEconomyModule)) {
-                    m_log.InfoFormat("[GLOEBITMONEYMODULE] EconomyModule is {0}.", m_startupEconomyModule);
-                    economyModule = m_startupEconomyModule;
-                } else {
-                    m_log.InfoFormat("[GLOEBITMONEYMODULE] EconomyModule is {0}.", m_economyEconomyModule);
-                    economyModule = m_economyEconomyModule;
-                }
-                        
-                if (economyModule == "Gloebit") {
-                    m_log.Info("[GLOEBITMONEYMODULE] selected as global sim EconomyModule.");
-                    m_enabled = true;
-                } else {
-                    m_log.Info("[GLOEBITMONEYMODULE] not selected as global sim EconomyModule.");
-                    m_enabled = false;
-                }
-
+            if (section == "Gloebit") 
+            {
                 /*** Get GloebitMoneyModule configuration details ***/
-                // Is Gloebit disabled, enabled across the entire sim process, or on certain regions?
-                bool enabled = config.GetBoolean("Enabled", false);
-                m_log.InfoFormat("[GLOEBITMONEYMODULE] [Gloebit] Enabled flag set to {0}.", enabled);
-                m_enabled = m_enabled && enabled;
-                if (!m_enabled) {
-                    m_log.Info("[GLOEBITMONEYMODULE] Not enabled globally for sim. (to enable set \"Enabled = true\" in [Gloebit] and \"EconomyModule = Gloebit\" in [Economy])");
-                }
-                string enabledRegionIdsStr = config.GetString("GLBEnabledOnlyInRegions");
-                if(!String.IsNullOrEmpty(enabledRegionIdsStr)) {
-                    // null for the delimiter argument means split on whitespace
-                    string[] enabledRegionIds = enabledRegionIdsStr.Split((string[])null, StringSplitOptions.RemoveEmptyEntries);
-                    int numRegions = enabledRegionIds.Length;
-                    m_log.InfoFormat("[GLOEBITMONEYMODULE] GLBEnabledOnlyInRegions num regions: {0}", numRegions);
-                    m_enabledRegions = new UUID[numRegions];
-                    for(int i = 0; i < numRegions; i++) {
-                        m_enabledRegions[i] = UUID.Parse(enabledRegionIds[i]);
-                        m_log.InfoFormat("[GLOEBITMONEYMODULE] selected as local EconomyModule for region {0}", enabledRegionIds[i]);
-                    }
-                    if ((numRegions > 0) && (economyModule != "Gloebit")) {
-                        m_log.WarnFormat("[GLOEBITMONEYMODULE] Gloebit enabled by region on sim with global EconomyModule set to {0}.  Ensure that sim-wide EconomyModule is disabled in Gloebit enabled regions.", economyModule);
-                    }
-                }
                 // Get region/grid owner contact details for transaction failure contact instructions.
                 string ownerName = config.GetString("GLBOwnerName", "region or grid owner");
                 string ownerEmail = config.GetString("GLBOwnerEmail", null);
                 m_contactOwner = ownerName;
-                if (!String.IsNullOrEmpty(ownerEmail)) {
+                if (!String.IsNullOrEmpty(ownerEmail)) 
+                {
                     m_contactOwner = String.Format("{0} at {1}", ownerName, ownerEmail);
                 }
+
                 // Should we disable adding info to OpenSimExtras map
                 m_disablePerSimCurrencyExtras = config.GetBoolean("DisablePerSimCurrencyExtras", false);
+                
                 // Should we send new session IMs informing user how to auth or purchase gloebits
                 m_showNewSessionPurchaseIM = config.GetBoolean("GLBShowNewSessionPurchaseIM", false);
                 m_showNewSessionAuthIM = config.GetBoolean("GLBShowNewSessionAuthIM", true);
+                
                 // Should we send a welcome message informing user that Gloebit is enabled
                 m_showWelcomeMessage = config.GetBoolean("GLBShowWelcomeMessage", true);
                 string nsms_msg = "\n\t";
                 nsms_msg = String.Format("{0}Welcome Message: {1},\tTo modify, set GLBShowWelcomeMessage in [Gloebit] section of config\n\t", nsms_msg, m_showWelcomeMessage);
                 nsms_msg = String.Format("{0}Auth Message: {1},\tTo modify, set GLBShowNewSessionAuthIM in [Gloebit] section of config\n\t", nsms_msg, m_showNewSessionAuthIM);
                 nsms_msg = String.Format("{0}Purchase Message: {1},\tTo modify, set GLBShowNewSessionPurchaseIM in [Gloebit] section of config", nsms_msg, m_showNewSessionPurchaseIM);
+                
                 m_log.InfoFormat("[GLOEBITMONEYMODULE] [Gloebit] is configured with the following settings for messaging users connecting to a new session{0}", nsms_msg);
+                
                 // If version cannot be detected override workflow selection via config
                 // Currently not documented because last resort if all version checking fails
                 m_forceNewLandPassFlow = config.GetBoolean("GLBNewLandPassFlow", false);
                 m_forceNewHTTPFlow = config.GetBoolean("GLBNewHTTPFlow", false);
+                
                 // Are we using custom db connection info
                 m_dbProvider = config.GetString("GLBSpecificStorageProvider");
                 m_dbConnectionString = config.GetString("GLBSpecificConnectionString");
                 
                 /*** Get Gloebit API configuration details ***/
                 string envString = config.GetString("GLBEnvironment", "sandbox");
-                switch(envString) {
+                switch(envString) 
+                {
                     case "sandbox":
                         m_environment = GLBEnv.Sandbox;
                         m_apiUrl = SANDBOX_URL;
@@ -469,40 +432,50 @@ namespace Gloebit.GloebitMoneyModule
                         m_log.WarnFormat("[GLOEBITMONEYMODULE] GLBEnvironment \"{0}\" unrecognized, setting to None", envString); 
                         break;
                 }
+                
                 m_keyAlias = config.GetString("GLBKeyAlias", null);
                 m_key = config.GetString("GLBKey", null);
                 m_secret = config.GetString("GLBSecret", null);
             }
 
             /********** [GridInfoService] ************/
-            if (section == "GridInfoService") {
+            if (section == "GridInfoService") 
+            {
                 // If we're here, this is a standalone mode grid
                 /*** Grab the grid info locally ***/
                 setGridInfo(config.GetString("gridname", m_gridname), config.GetString("gridnick", m_gridnick), config.GetString("economy", null));
             }
             
             /********** [GridInfo] ************/
-            if (section == "GridInfo") {
+            if (section == "GridInfo") 
+            {
                 // If we're here, this is a robust mode grid
                 /*** Grab the grid info via the grid info uri ***/
                 string gridInfoURI = config.GetString("GridInfoURI", null);
                 // TODO: Should we store the info url?
                 m_log.InfoFormat("[GLOEBITMONEYMODULE] GRID INFO URL = {0}", gridInfoURI);
-                if (String.IsNullOrEmpty(gridInfoURI)) {
+            
+                if (String.IsNullOrEmpty(gridInfoURI)) 
+                {
                     m_log.ErrorFormat("[GloebitMoneyModule] Failed to retrieve GridInfoURI from [GridInfo] section of config.");
                     return;
                 }
+
                 // Create http web request from URL
                 Uri requestURI = new Uri(new Uri(gridInfoURI), "json_grid_info");
                 m_log.InfoFormat("[GLOEBITMONEYMODULE] Constructed and requesting URI = {0}", requestURI);
+                
                 HttpWebRequest request = (HttpWebRequest) WebRequest.Create(requestURI);
                 request.Method = "GET";
-                try {
+                try 
+                {
                     // Get the response
                     HttpWebResponse response = (HttpWebResponse) request.GetResponse();
                     string status = response.StatusDescription;
                     m_log.InfoFormat("[GLOEBITMONEYMODULE] Grid Info status:{0}", status);
-                    using(StreamReader response_stream = new StreamReader(response.GetResponseStream())) {
+
+                    using(StreamReader response_stream = new StreamReader(response.GetResponseStream())) 
+                    {
                         string response_str = response_stream.ReadToEnd();
                         m_log.InfoFormat("[GLOEBITMONEYMODULE] Grid Info:{0}", response_str);
                         // Parse the response
@@ -511,7 +484,9 @@ namespace Gloebit.GloebitMoneyModule
                         setGridInfo(responseData["gridname"], responseData["gridnick"], responseData["economy"]);
                         // TODO: do we want anything else from grid info?
                     }
-                } catch (Exception e) {
+                } 
+                catch (Exception e) 
+                {
                     m_log.ErrorFormat("[GloebitMoneyModule] Failed to retrieve Grid Info. {0}", e);
                 }
             }
@@ -543,7 +518,6 @@ namespace Gloebit.GloebitMoneyModule
         public void Close()
         {
             m_enabled = false;
-            m_configured = false;
         }
 
         // Helper funciton used in AddRegion for post 0.9.2.0 XML RPC Handlers 
@@ -556,95 +530,93 @@ namespace Gloebit.GloebitMoneyModule
 
         public void AddRegion(Scene scene)
         {
-            if(!m_configured) {
+            if (m_enabled == false)
+            {
                 return;
             }
 
-            if (m_enabled || (m_enabledRegions != null && m_enabledRegions.Contains(scene.RegionInfo.RegionID)))
+            m_log.InfoFormat("[GLOEBITMONEYMODULE] region added {0}", scene.RegionInfo.RegionID.ToString());
+            scene.RegisterModuleInterface<IMoneyModule>(this);
+            IHttpServer httpServer = MainServer.Instance;
+
+            lock (m_scenel)
             {
-                m_log.InfoFormat("[GLOEBITMONEYMODULE] region added {0}", scene.RegionInfo.RegionID.ToString());
-                scene.RegisterModuleInterface<IMoneyModule>(this);
-                IHttpServer httpServer = MainServer.Instance;
-
-                lock (m_scenel)
+                // TODO: What happens if all regions are removed and one is re-created without a sim restart?
+                //       Should we use a bool instead of the count here?
+                if (m_scenel.Count == 0)
                 {
-                    // TODO: What happens if all regions are removed and one is re-created without a sim restart?
-                    //       Should we use a bool instead of the count here?
-                    if (m_scenel.Count == 0)
+                    /*
+                        * For land sales, buy-currency button, and the insufficient funds flows to operate,
+                        * the economy helper uri needs to be present.
+                        * 
+                        * The GMM provides this helper-uri and the currency symbol via the OpenSim Extras.  
+                        * Some viewers (Firestorm & Alchemy at time of writing) consume these so this requires no
+                        * configuration to work for a user on a Gloebit enabled region.  For users with other or older viewers,
+                        * the helper-uri will have to be configured properly, and if not pointed at a Gloebit enabled sim,
+                        * the grid will have to handle these calls, which it has traditionally done with an XMLRPC server and
+                        * currency.php and landtool.php helper scripts.  That is rather complex, so we recommend that all 
+                        * viewers adopt this patch and that grids request that their users update to a viewer with this patch.
+                        * --- Patch Info: http://dev.gloebit.com/blog/Upgrade-Viewer/
+                        * --- Patch Info: https://medium.com/@colosi/multi-currency-support-coming-to-opensim-viewers-cd20e75f7990
+                        * --- Patch Download: http://dev.gloebit.com/opensim/downloads/ColosiOpenSimMultiCurrencySupport.patch
+                        * --- Firestorm Jira: https://jira.phoenixviewer.com/browse/FIRE-21587
+                        */
+
+                    // These functions can handle the calls to the economy helper-uri if it is configured to point at the sim.  
+                    // They will enable land purchasing, buy-currency, and insufficient-funds flows.
+                    // *NOTE* gloebits can not currently be purchased from a viewer, but this allows Gloebit to control the
+                    // messaging in this flow and send users to the Gloebit website for purchasing.
+
+                    // Post version 0.9.2.0 the httpserver changed requiring different approach to the preflights
+                    if (m_newHTTPFlow == true)
                     {
-                        /*
-                         * For land sales, buy-currency button, and the insufficient funds flows to operate,
-                         * the economy helper uri needs to be present.
-                         * 
-                         * The GMM provides this helper-uri and the currency symbol via the OpenSim Extras.  
-                         * Some viewers (Firestorm & Alchemy at time of writing) consume these so this requires no
-                         * configuration to work for a user on a Gloebit enabled region.  For users with other or older viewers,
-                         * the helper-uri will have to be configured properly, and if not pointed at a Gloebit enabled sim,
-                         * the grid will have to handle these calls, which it has traditionally done with an XMLRPC server and
-                         * currency.php and landtool.php helper scripts.  That is rather complex, so we recommend that all 
-                         * viewers adopt this patch and that grids request that their users update to a viewer with this patch.
-                         * --- Patch Info: http://dev.gloebit.com/blog/Upgrade-Viewer/
-                         * --- Patch Info: https://medium.com/@colosi/multi-currency-support-coming-to-opensim-viewers-cd20e75f7990
-                         * --- Patch Download: http://dev.gloebit.com/opensim/downloads/ColosiOpenSimMultiCurrencySupport.patch
-                         * --- Firestorm Jira: https://jira.phoenixviewer.com/browse/FIRE-21587
-                         */
-
-                        // These functions can handle the calls to the economy helper-uri if it is configured to point at the sim.  
-                        // They will enable land purchasing, buy-currency, and insufficient-funds flows.
-                        // *NOTE* gloebits can not currently be purchased from a viewer, but this allows Gloebit to control the
-                        // messaging in this flow and send users to the Gloebit website for purchasing.
-
-                        // Post version 0.9.2.0 the httpserver changed requiring different approach to the preflights
-                        if (m_newHTTPFlow == true)
-                        {
-                            m_rpcHandlers = new Dictionary<string, XmlRpcMethod>();
-                            m_rpcHandlers.Add("getCurrencyQuote", quote_func);
-                            m_rpcHandlers.Add("buyCurrency", buy_func);
-                            m_rpcHandlers.Add("preflightBuyLandPrep", preflightBuyLandPrep_func);
-                            m_rpcHandlers.Add("buyLandPrep", landBuy_func);
+                        m_rpcHandlers = new Dictionary<string, XmlRpcMethod>();
+                        m_rpcHandlers.Add("getCurrencyQuote", quote_func);
+                        m_rpcHandlers.Add("buyCurrency", buy_func);
+                        m_rpcHandlers.Add("preflightBuyLandPrep", preflightBuyLandPrep_func);
+                        m_rpcHandlers.Add("buyLandPrep", landBuy_func);
 #if NEWHTTPFLOW
-                            MainServer.Instance.AddSimpleStreamHandler(new SimpleStreamHandler("/landtool.php", processPHP));
-                            MainServer.Instance.AddSimpleStreamHandler(new SimpleStreamHandler("/currency.php", processPHP));
+                        MainServer.Instance.AddSimpleStreamHandler(new SimpleStreamHandler("/landtool.php", processPHP));
+                        MainServer.Instance.AddSimpleStreamHandler(new SimpleStreamHandler("/currency.php", processPHP));
 #endif
-                        } else {
-                            httpServer.AddXmlRPCHandler("getCurrencyQuote", quote_func);
-                            httpServer.AddXmlRPCHandler("buyCurrency", buy_func);
-                            httpServer.AddXmlRPCHandler("preflightBuyLandPrep", preflightBuyLandPrep_func);
-                            httpServer.AddXmlRPCHandler("buyLandPrep", landBuy_func);
-                        }
-
-                        /********** Register endpoints the Gloebit Service will call back into **********/
-                        RegisterGloebitWebhooks(httpServer);
+                    } else {
+                        httpServer.AddXmlRPCHandler("getCurrencyQuote", quote_func);
+                        httpServer.AddXmlRPCHandler("buyCurrency", buy_func);
+                        httpServer.AddXmlRPCHandler("preflightBuyLandPrep", preflightBuyLandPrep_func);
+                        httpServer.AddXmlRPCHandler("buyLandPrep", landBuy_func);
                     }
 
-                    if (m_scenel.ContainsKey(scene.RegionInfo.RegionHandle))
-                    {
-                        m_scenel[scene.RegionInfo.RegionHandle] = scene;
-                    }
-                    else
-                    {
-                        m_scenel.Add(scene.RegionInfo.RegionHandle, scene);
-                    }
+                    /********** Register endpoints the Gloebit Service will call back into **********/
+                    RegisterGloebitWebhooks(httpServer);
                 }
 
-                // Register for events for user management
-                scene.EventManager.OnNewClient += OnNewClient;                              // Registers client events
-                scene.EventManager.OnClientLogin += OnClientLogin;                          // Handles a login issue
-
-                // Register for commerce events that come through scene
-                scene.EventManager.OnMoneyTransfer += OnMoneyTransfer;                      // Handles 5001 (pay user) & 5008 (pay object) events
-                scene.EventManager.OnValidateLandBuy += ValidateLandBuy;                    // Handles validation for free land transactions
-                scene.EventManager.OnLandBuy += ProcessLandBuy;                             // Handles land purchases
-                
-            } else {
-                if(m_enabledRegions != null) {
-                    m_log.InfoFormat("[GLOEBITMONEYMODULE] SKIPPING region add {0} is not in enabled region list", scene.RegionInfo.RegionID.ToString());
+                if (m_scenel.ContainsKey(scene.RegionInfo.RegionHandle))
+                {
+                    m_scenel[scene.RegionInfo.RegionHandle] = scene;
+                }
+                else
+                {
+                    m_scenel.Add(scene.RegionInfo.RegionHandle, scene);
                 }
             }
+
+            // Register for events for user management
+            scene.EventManager.OnNewClient += OnNewClient;                              // Registers client events
+            scene.EventManager.OnClientLogin += OnClientLogin;                          // Handles a login issue
+
+            // Register for commerce events that come through scene
+            scene.EventManager.OnMoneyTransfer += OnMoneyTransfer;                      // Handles 5001 (pay user) & 5008 (pay object) events
+            scene.EventManager.OnValidateLandBuy += ValidateLandBuy;                    // Handles validation for free land transactions
+            scene.EventManager.OnLandBuy += ProcessLandBuy;                             // Handles land purchases
         }
 
         public void RemoveRegion(Scene scene)
         {
+            if (m_enabled == false)
+            {
+                return;
+            }
+
             lock (m_scenel)
             {
                 m_scenel.Remove(scene.RegionInfo.RegionHandle);
@@ -653,10 +625,11 @@ namespace Gloebit.GloebitMoneyModule
 
         public void RegionLoaded(Scene scene)
         {
-            if (!m_enabled && (m_enabledRegions == null || !m_enabledRegions.Contains(scene.RegionInfo.RegionID))) {
-                m_log.InfoFormat("[GLOEBITMONEYMODULE] region not loaded as not enabled {0}", scene.RegionInfo.RegionID.ToString());
+            if (m_enabled == false)
+            {
                 return;
             }
+
             m_log.InfoFormat("[GLOEBITMONEYMODULE] region loaded {0}", scene.RegionInfo.RegionID.ToString());
             
             ISimulatorFeaturesModule featuresModule = scene.RequestModuleInterface<ISimulatorFeaturesModule>();
@@ -668,26 +641,32 @@ namespace Gloebit.GloebitMoneyModule
         
         private void OnSimulatorFeaturesRequest(UUID agentID, ref OSDMap features, Scene scene)
         {
+            if (m_enabled == false)
+            {
+                return;
+            }
+
             UUID regionID = scene.RegionInfo.RegionID;
 
-            if (m_enabled || (m_enabledRegions != null && m_enabledRegions.Contains(regionID))) {
-                // Get or create the extras section of the features map
-                OSDMap extrasMap;
-                if (features.ContainsKey("OpenSimExtras")) {
-                    extrasMap = (OSDMap)features["OpenSimExtras"];
-                } else {
-                    extrasMap = new OSDMap();
-                    features["OpenSimExtras"] = extrasMap;
-                }
-                
-                // Add our values to the extras map
-                extrasMap["currency"] = "G$";
-                // replaced G$ with ₲ (hex 0x20B2 / unicode U+20B2), but screwed up balance display in Firestorm
-                extrasMap["currency-base-uri"] = GetCurrencyBaseURI(scene);
+            // Get or create the extras section of the features map
+            OSDMap extrasMap;
+            if (features.ContainsKey("OpenSimExtras")) 
+            {
+                extrasMap = (OSDMap)features["OpenSimExtras"];
+            } 
+            else 
+            {
+                extrasMap = new OSDMap();
+                features["OpenSimExtras"] = extrasMap;
             }
+                
+            // Add our values to the extras map
+            extrasMap["currency"] = "G$";
+            extrasMap["currency-base-uri"] = GetCurrencyBaseURI(scene);
         }
         
-        private string GetCurrencyBaseURI(Scene scene) {
+        private string GetCurrencyBaseURI(Scene scene) 
+        {
             return scene.RegionInfo.ServerURI;
         }
         
