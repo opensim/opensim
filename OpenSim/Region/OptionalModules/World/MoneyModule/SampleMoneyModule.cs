@@ -253,24 +253,11 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         {
             // we are enabled by default
 
-            IConfig startupConfig = m_gConfig.Configs["Startup"];
-
-            if(startupConfig == null) // should not happen
-                return;
-
             IConfig economyConfig = m_gConfig.Configs["Economy"];
 
-            // economymodule may be at startup or Economy (legacy)
-            string mmodule = startupConfig.GetString("economymodule","");
-            if(string.IsNullOrEmpty(mmodule))
-            {
-                if(economyConfig != null)
-                {
-                    mmodule = economyConfig.GetString("economymodule", "");
-                    if (String.IsNullOrEmpty(mmodule))
-                        mmodule = economyConfig.GetString("EconomyModule", "");
-                }
-            }
+            var mmodule = economyConfig?.GetString("economymodule", "");
+            if (String.IsNullOrEmpty(mmodule))
+                mmodule = economyConfig?.GetString("EconomyModule", "");
 
             if (!string.IsNullOrEmpty(mmodule) && mmodule != Name)
             {
