@@ -1025,7 +1025,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int LINKSETDATA_NOTFOUND = 4;
         public const int LINKSETDATA_NOUPDATE = 5;
 
-        //llLinkPlaySOunf flags
+        //llLinkPlaySound flags
         public const int SOUND_PLAY = 0;
         public const int SOUND_LOOP = 1;
         public const int SOUND_TRIGGER = 2;
