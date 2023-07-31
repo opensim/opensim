@@ -1690,13 +1690,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        LSL_Integer osGetSittingAvatarsCount()
+        public LSL_Integer osGetSittingAvatarsCount()
         {
             return m_OSSL_Functions.osGetSittingAvatarsCount();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        LSL_Integer osGetSittingAvatarsCount(LSL_Key object_id)
+        public LSL_Integer osGetSittingAvatarsCount(LSL_Key object_id)
         {
             return m_OSSL_Functions.osGetSittingAvatarsCount(object_id);
         }

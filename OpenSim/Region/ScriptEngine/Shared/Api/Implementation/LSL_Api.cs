@@ -2927,23 +2927,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             switch (flags)
             {
-                case 0: // play
+                case ScriptBaseClass.SOUND_PLAY: // play
                     foreach (SceneObjectPart sop in parts)
                         m_SoundModule.SendSound(sop, soundID, volume, false, 0, false, false);
                     break;
-                case 1: // loop
+                case ScriptBaseClass.SOUND_LOOP: // loop
                     foreach (SceneObjectPart sop in parts)
                         m_SoundModule.LoopSound(sop, soundID, volume, false, false);
                     break;
-                case 2: //trigger
+                case ScriptBaseClass.SOUND_TRIGGER: //trigger
                 foreach (SceneObjectPart sop in parts)
                     m_SoundModule.SendSound(sop, soundID, volume, true, 0, false, false);
                     break;
-                case 4: // play slave
+                case ScriptBaseClass.SOUND_SYNC: // play slave
                     foreach (SceneObjectPart sop in parts)
                         m_SoundModule.SendSound(sop, soundID, volume, false, 0, true, false);
                     break;
-                case 5: // loop slave
+                case ScriptBaseClass.SOUND_SYNC | ScriptBaseClass.SOUND_LOOP: // loop slave
                     foreach (SceneObjectPart sop in parts)
                         m_SoundModule.LoopSound(sop, soundID, volume, false, true);
                     break;
