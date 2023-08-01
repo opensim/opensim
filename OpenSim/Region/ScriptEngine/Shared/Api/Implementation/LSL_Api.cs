@@ -2936,8 +2936,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         m_SoundModule.LoopSound(sop, soundID, volume, false, false);
                     break;
                 case ScriptBaseClass.SOUND_TRIGGER: //trigger
-                foreach (SceneObjectPart sop in parts)
-                    m_SoundModule.SendSound(sop, soundID, volume, true, 0, false, false);
+                    foreach (SceneObjectPart sop in parts)
+                        m_SoundModule.SendSound(sop, soundID, volume, true, 0, false, false);
                     break;
                 case ScriptBaseClass.SOUND_SYNC: // play slave
                     foreach (SceneObjectPart sop in parts)
