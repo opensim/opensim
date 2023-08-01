@@ -5519,27 +5519,28 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     LLSDxmlEncode2.AddEndMapAndArray(sbinner);
                     LLSDxmlEncode2.AddEnd(sbinner);
                     */
-                    OSDMap data = new OSDMap();
+                    OSDMap data = new OSDMap(6);
+                    data["local_id"] = sop.LocalId;
                     data["object_id"] = sop.UUID;
                     data["region_handle_x"]= (int)m_scene.RegionInfo.WorldLocX;
                     data["region_handle_y"]= (int)m_scene.RegionInfo.WorldLocY;
                     OSDArray sides = new OSDArray();
-                    foreach (Primitive.RenderMaterials.RenderMaterialOverrideEntry ovr in overrides)
-                        sides.Add(ovr.te_index);
-                    data["sides"] = sides;
-
                     OSDArray gltf = new OSDArray();
                     foreach (Primitive.RenderMaterials.RenderMaterialOverrideEntry ovr in overrides)
+                    {
+                        sides.Add(ovr.te_index);
                         gltf.Add(ovr.data);
+                    }
+                    data["sides"] = sides;
                     data["gltf_json"] = gltf;
 
                     string inner = OSDParser.SerializeLLSDNotationFull(data);
 
                     osUTF8 sb = eq.StartEvent("LargeGenericMessage");
                     LLSDxmlEncode2.AddArrayAndMap("AgentData", sb);
-                        LLSDxmlEncode2.AddElem("AgentID", AgentId, sb);
-                        //LLSDxmlEncode2.AddElem("TransactionID", transationID.Value, sb);
-                        //LLSDxmlEncode2.AddElem("SessionID", sessionID.Value, sb);
+                        LLSDxmlEncode2.AddElem("AgentID", m_agentId, sb);
+                        //LLSDxmlEncode2.AddElem("TransactionID", UUID.Zero, sb);
+                        //LLSDxmlEncode2.AddElem("SessionID", m_sessionId, sb);
                     LLSDxmlEncode2.AddEndMapAndArray(sb);
 
                     LLSDxmlEncode2.AddArrayAndMap("MethodData", sb);
