@@ -836,8 +836,8 @@ namespace Gloebit.GloebitMoneyModule {
             m_log.DebugFormat("[GLOEBITMONEYMODULE] GloebitAPI.CreateSubscription about to BeginGetResponse");
             // **** Asynchronously make web request **** //
             IAsyncResult r = request.BeginGetResponse(GloebitWebResponseCallback,
-			                                          new GloebitRequestState(request, 
-			                        delegate(OSDMap responseDataMap) {
+			                                          new GloebitRequestState(request, delegate(OSDMap responseDataMap) 
+            {
                                         
                 m_log.DebugFormat("[GLOEBITMONEYMODULE] GloebitAPI.CreateSubscription response: {0}", responseDataMap);
 
@@ -849,16 +849,21 @@ namespace Gloebit.GloebitMoneyModule {
                 string status = responseDataMap["status"];
                 m_log.InfoFormat("[GLOEBITMONEYMODULE] GloebitAPI.CreateSubscription success: {0} reason: {1} status: {2}", success, reason, status);
                 
-                if (success) {
+                if (success)                        
+                {
                     string subscriptionIDStr = responseDataMap["id"];
                     bool enabled = (bool) responseDataMap["enabled"];
-                    subscription.SubscriptionID = UUID.Parse(subscriptionIDStr);
+                    subscription.SubscriptionID = subscriptionIDStr;
                     subscription.Enabled = enabled;
                     GloebitSubscriptionData.Instance.UpdateFromGloebit(subscription);
-                    if (status == "duplicate") {
+
+                    if (status == "duplicate") 
+                    {
                         m_log.DebugFormat("[GLOEBITMONEYMODULE] GloebitAPI.CreateSubscription duplicate request to create subscription");
                     }
-                } else {
+                } 
+                else 
+                {
                     switch(reason) {
                         case "Unexpected DB insert integrity error.  Please try again.":
                             m_log.ErrorFormat("[GLOEBITMONEYMODULE] GloebitAPI.CreateSubscription failed from {0}", reason);
