@@ -30,10 +30,9 @@ using System.Reflection;
 using System.Collections.Generic;
 using System.Data;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
 using log4net;
-using MySql.Data.MySqlClient;
 using OpenMetaverse;
+using MySqlConnector;
 
 namespace OpenSim.Data.MySQL
 {
@@ -256,7 +255,7 @@ namespace OpenSim.Data.MySQL
             catch(Exception e)
             {
                 m_log.Error("[FSAssets] Failed to store asset with ID " + meta.ID);
-        m_log.Error(e.ToString());
+                m_log.Error(e.ToString());
                 return false;
             }
         }

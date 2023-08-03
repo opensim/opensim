@@ -39,11 +39,13 @@ namespace Gloebit.GloebitMoneyModule {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         // These 3 make up the primary key -- allows sim to swap back and forth between apps or GlbEnvs without getting errors
-        public UUID ObjectID;       // ID of object with an LLGiveMoney or LLTransferLinden's script - local subscription ID
+        // public UUID ObjectID;       // ID of object with an LLGiveMoney or LLTransferLinden's script - local subscription ID
+        public string ObjectID;       // ID of object with an LLGiveMoney or LLTransferLinden's script - local subscription ID
         public string AppKey;       // AppKey active when created
         public string GlbApiUrl;    // GlbEnv Url active when created
 
-        public UUID SubscriptionID; // ID returned by create-subscription Gloebit endpoint
+        //public UUID SubscriptionID; // ID returned by create-subscription Gloebit endpoint
+        public string SubscriptionID; // ID returned by create-subscription Gloebit endpoint
         public bool Enabled;        // enabled returned by Gloebit Endpoint - if not enabled, can't use.
         public DateTime cTime;      // time of creation
 
@@ -59,7 +61,7 @@ namespace Gloebit.GloebitMoneyModule {
         public GloebitSubscription() {
         }
 
-        private GloebitSubscription(UUID objectID, string appKey, string apiURL, string objectName, string objectDescription) {
+        private GloebitSubscription(string objectID, string appKey, string apiURL, string objectName, string objectDescription) {
             this.ObjectID = objectID;
             this.AppKey = appKey;
             this.GlbApiUrl = apiURL;
@@ -68,7 +70,7 @@ namespace Gloebit.GloebitMoneyModule {
             this.Description = objectDescription;
 
             // Set defaults until we fill them in
-            SubscriptionID = UUID.Zero;
+            SubscriptionID = UUID.Zero.ToString();
             this.cTime = DateTime.UtcNow;
             this.Enabled = false;
 
@@ -76,13 +78,15 @@ namespace Gloebit.GloebitMoneyModule {
 
         }
 
-        public static GloebitSubscription Init(UUID objectID, string appKey, string apiUrl, string objectName, string objectDescription) {
-            string objectIDstr = objectID.ToString();
-
+        public static GloebitSubscription Init(string objectID, string appKey, string apiUrl, string objectName, string objectDescription) 
+        {
             GloebitSubscription s = new GloebitSubscription(objectID, appKey, apiUrl, objectName, objectDescription);
-            lock(s_subscriptionMap) {
-                s_subscriptionMap[objectIDstr] = s;
+
+            lock(s_subscriptionMap) 
+            {
+                s_subscriptionMap[objectID] = s;
             }
+
             GloebitSubscriptionData.Instance.Store(s);
             return s;
         }

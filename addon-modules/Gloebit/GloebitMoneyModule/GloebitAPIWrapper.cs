@@ -433,9 +433,19 @@ namespace Gloebit.GloebitMoneyModule {
 
             // TODO: Should we wrap TransactU2U or request.BeginGetResponse in Try/Catch?
             bool result = false;
-            if (u2u) {
-                result = m_api.TransactU2U(txn, description, descMap, GloebitUser.Get(m_key, txn.PayerID), GloebitUser.Get(m_key, txn.PayeeID), m_platformAccessors.resolveAgentEmail(txn.PayeeID), m_platformAccessors.GetBaseURI());
-            } else {
+            if (u2u) 
+            {
+                result = m_api.TransactU2U(
+                    txn, 
+                    description, 
+                    descMap, 
+                    GloebitUser.Get(m_key, txn.PayerID), 
+                    GloebitUser.Get(m_key, txn.PayeeID), 
+                    m_platformAccessors.resolveAgentEmail(UUID.Parse(txn.PayeeID)), 
+                    m_platformAccessors.GetBaseURI());
+            } 
+            else 
+            {
                 result = m_api.Transact(txn, description, descMap, GloebitUser.Get(m_key, txn.PayerID), m_platformAccessors.GetBaseURI());
             }
 
@@ -477,18 +487,33 @@ namespace Gloebit.GloebitMoneyModule {
             // TODO: Should we wrap TransactU2U or request.GetResponse in Try/Catch?
             GloebitAPI.TransactionStage stage = GloebitAPI.TransactionStage.BUILD;
             GloebitAPI.TransactionFailure failure = GloebitAPI.TransactionFailure.NONE;
-            bool result = m_api.TransactU2USync(txn, description, descMap, GloebitUser.Get(m_key, txn.PayerID), GloebitUser.Get(m_key, txn.PayeeID), m_platformAccessors.resolveAgentEmail(txn.PayeeID), m_platformAccessors.GetBaseURI(), out stage, out failure);
 
-            if (!result) {
+            bool result = m_api.TransactU2USync(
+                txn, 
+                description, 
+                descMap, 
+                GloebitUser.Get(m_key, txn.PayerID), 
+                GloebitUser.Get(m_key, txn.PayeeID), 
+                m_platformAccessors.resolveAgentEmail(UUID.Parse(txn.PayeeID)), 
+                m_platformAccessors.GetBaseURI(), 
+                out stage, 
+                out failure);
+
+            if (!result) 
+            {
                 m_log.ErrorFormat("[GLOEBITMONEYMODULE] SubmitSyncTransaction failed in stage: {0} with failure: {1}", stage, failure);
-                if (stage == GloebitAPI.TransactionStage.SUBMIT) {
+                if (stage == GloebitAPI.TransactionStage.SUBMIT) 
+                {
                     // currently need to handle these errors here as the TransactU2UCallback is not called unless submission is successful and we receive a response
                     m_transactionAlerts.AlertTransactionFailed(txn, GloebitAPI.TransactionStage.SUBMIT, failure, String.Empty, new OSDMap());
                 }
-            } else {
+            } 
+            else 
+            {
                 // TODO: figure out how/where to send this alert in a synchronous transaction.  Maybe it should always come from the API.
                 // m_transactionAlerts.AlertTransactionStageCompleted(txn, GloebitAPI.TransactionStage.SUBMIT, String.Empty);
             }
+
             return result;
         }
 
@@ -746,8 +771,10 @@ namespace Gloebit.GloebitMoneyModule {
         public UUID CreateSubscription(UUID appSubID, string subName, string subDesc)
         {
             m_log.InfoFormat("[GLOEBITMONEYMODULE] GloebitAPIWrapper.CreateSubscription for appSubID:{0}, subName:{1}, subDesc:{2}", appSubID, subName, subDesc);
+            
             // Validate that subName and subDesc are not empty or null as Gloebit requires both for a Subscription creation
-            if (String.IsNullOrEmpty(subName) || String.IsNullOrEmpty(subDesc)) {
+            if (String.IsNullOrEmpty(subName) || String.IsNullOrEmpty(subDesc)) 
+            {
                 m_log.WarnFormat("[GLOEBITMONEYMODULE] GloebitAPIWrapper.CreateSubscription - Can not create subscription because subscription name or description is blank - Name:{0} Description:{1}", subName, subDesc);
                 //TODO: should this throw an exception?
                 return UUID.Zero;
@@ -755,7 +782,8 @@ namespace Gloebit.GloebitMoneyModule {
 
             // If no local appSubID provided, then generate one randomly
             bool idIsRandom = false;
-            if (appSubID == UUID.Zero) {
+            if (appSubID == UUID.Zero) 
+            {
                 // Create a transaction ID
                 appSubID = UUID.Random();
                 idIsRandom = true;
@@ -763,28 +791,38 @@ namespace Gloebit.GloebitMoneyModule {
 
             // Create a local subscription
             GloebitSubscription sub = null;
+
             // Double check that a local subscription hasn't already been created
             sub = GloebitSubscription.Get(appSubID, m_key, m_url);
-            if(sub != null) {
+
+            if (sub != null) 
+            {
                 m_log.WarnFormat("[GLOEBITMONEYMODULE] GloebitAPIWrapper.CreateSubscription found existing local sub for appSubID:{0}", appSubID);
+
                 // TODO: Should we check to see if there is a SubscriptionID on sub which would mean that this was already created on Gloebit as well?
                 //       For now, we'll assume that this could be an attempt to recreate after an issue and that Gloebit will return the Subscription ID
                 //       on a duplicate create request and that this will refresh that ID for the app.
-                if(idIsRandom) {
+                if(idIsRandom) 
+                {
                     m_log.ErrorFormat("[GLOEBITMONEYMODULE] GloebitAPIWrapper.CreateSubscription randomly generated appSubID:{0} conflicted with existing sub", appSubID);
                     return UUID.Zero;
                 }
+
                 // TODO: Should consider checking that name and desc match, but can't do so until we verify that OpenSim integration doesn't need adjustment.
                 //       Can't recall if the UUID of an object is changed when the name or desc are updated.  If not, we need to handle that in GMM first.
             }
-            if(sub == null) {
+
+            if (sub == null) 
+            {
                 m_log.DebugFormat("[GLOEBITMONEYMODULE] GloebitAPIWrapper.CreateSubscription - creating local subscription for {0}", subName);
+            
                 // Create local sub in cache and db
-                sub = GloebitSubscription.Init(appSubID, m_key, m_url.ToString(), subName, subDesc);
+                sub = GloebitSubscription.Init(appSubID.ToString(), m_key, m_url.ToString(), subName, subDesc);
             }
 
             // Ask Gloebit to create this subscription on the server
             m_api.CreateSubscription(sub, m_platformAccessors.GetBaseURI());
+
             // TODO: should we handle false return from api call?
             return appSubID;
         }
