@@ -6,7 +6,7 @@
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
+ *  
  * OpenSim-MoneyModule-Gloebit is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -69,7 +69,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Threading;
@@ -84,7 +83,6 @@ using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.OptionalModules.ViewerSupport;   // Necessary for SimulatorFeaturesHelper
 using OpenSim.Services.Interfaces;
 using OpenMetaverse.StructuredData;     // TODO: turn transactionData into a dictionary of <string, object> and remove this.
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;    // For ScriptBaseClass permissions constants
@@ -117,29 +115,16 @@ namespace Gloebit.GloebitMoneyModule
     {
         
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
-        /*** GMM CONFIGURATION ***/
-        private IConfigSource m_gConfig;
 
         // TODO: Consider moving these into the GAPI
         // Gloebit Service URLs
         private const string SANDBOX_URL = "https://sandbox.gloebit.com/";
         private const string PRODUCTION_URL = "https://www.gloebit.com/";
 
-        // populated from Startup and Economy
-        private string m_startupEconomyModule;
-        private string m_economyEconomyModule;
-
         // m_enabled = true signifies that GMM is enabled across entire sim process
-        // Combination of [Economy]/[Startup] EconomyModule set to "Gloebit" and [Gloebit] Enabled set to true
-        // If false, may still be enabled on individual regions.  see m_enabledRegions below.
+        // Combination of [Economy]/[Startup] EconomyModule set to "GloebitMoneyModule" and [Gloebit] Enabled set to true
         private bool m_enabled = true;
-        // Set to false if anything is misconfigured
-        private bool m_configured = true;
-        
-        // Populated from Gloebit.ini
-        private UUID[] m_enabledRegions = null;         // Regions on sim to individually enable GMM.
-                                                        // Only necessary if m_enabled is false
+
         private GLBEnv m_environment = GLBEnv.None;
         private string m_keyAlias;
         private string m_key;
@@ -208,7 +193,6 @@ namespace Gloebit.GloebitMoneyModule
         private bool m_newLandPassFlow = false;
         private bool m_newHTTPFlow = false;
 
-
         #region IRegionModuleBase Interface
 
         /**********************
@@ -218,11 +202,13 @@ namespace Gloebit.GloebitMoneyModule
          * --- registering Scene events for enabled regions to handle user management and commerce functionality
          **********************/
         
-        public string Name {
+        public string Name 
+        {
             get { return "GloebitMoneyModule"; }
         }
         
-        public Type ReplaceableInterface {
+        public Type ReplaceableInterface 
+        {
             get { return null; }
         }
 
@@ -233,66 +219,98 @@ namespace Gloebit.GloebitMoneyModule
         public void Initialise(IConfigSource config)
         {
             m_log.Info ("[GLOEBITMONEYMODULE] Initialising.");
-            m_gConfig = config;
 
-            LoadConfig(m_gConfig);
+            IConfig economyConfig = config.Configs["Economy"];
 
-            string[] sections = {"Startup", "Economy", "Gloebit"};
-            foreach (string section in sections) {
-                IConfig sec_config = m_gConfig.Configs[section];
+            var mmodule = economyConfig?.GetString("economymodule", "");
+            if (String.IsNullOrEmpty(mmodule))
+                mmodule = economyConfig?.GetString("EconomyModule", "");
 
-                if (null == sec_config) {
+            if ((string.IsNullOrEmpty(mmodule) == false) && ((mmodule == Name) || (mmodule == "Gloebit")))
+            {
+                m_enabled = true;
+                m_log.InfoFormat("[GLOEBITMONEYMODULE]: The Gloebit MoneyModule is enabled");
+            }
+            else
+            {
+                m_log.InfoFormat("[GLOEBITMONEYMODULE]: The Gloebit MoneyModule is disabled (not selected in OpenSim.ini)");
+                m_enabled = false;
+                return;
+            }
+
+            LoadConfig(config);
+
+            string[] sections = { "Economy", "Gloebit" };
+            foreach (var section in sections) 
+            {
+                IConfig sec_config = config.Configs[section];
+
+                if (null == sec_config) 
+                {
                     m_log.WarnFormat("[GLOEBITMONEYMODULE] Config section {0} is missing. Skipping.", section);
                     continue;
                 }
+
                 ReadConfigAndPopulate(sec_config, section);
             }
             
             // Load Grid info from GridInfoService if Standalone and GridInfo if Robust
-            IConfig standalone_config = m_gConfig.Configs["GridInfoService"];
-            IConfig robust_config = m_gConfig.Configs["GridInfo"];
-            if (standalone_config == null && robust_config == null) {
+            IConfig standalone_config = config.Configs["GridInfoService"];
+            IConfig robust_config = config.Configs["GridInfo"];
+
+            if (standalone_config == null && robust_config == null) 
+            {
                 m_log.Warn("[GLOEBITMONEYMODULE] GridInfoService and GridInfo are both missing.  Can not retrieve GridInfoURI, GridName and GridNick.");
                 // NOTE: we can continue and enable as this will just cause transaction history records to be missing some data.
-            } else {
-                if(standalone_config != null && robust_config != null) {
+            } 
+            else 
+            {
+                if (standalone_config != null && robust_config != null) 
+                {
                     m_log.Warn("[GLOEBITMONEYMODULE] GridInfoService and GridInfo are both present.  Deferring to GridInfo to retrieve GridInfoURI, GridName and GridNick.");
                 }
-                if (robust_config != null) {
+
+                if (robust_config != null) 
+                {
                     ReadConfigAndPopulate(robust_config, "GridInfo");
-                } else {
+                } 
+                else 
+                {
                     ReadConfigAndPopulate(standalone_config, "GridInfoService");
                 }
             }
             
-
             m_log.InfoFormat("[GLOEBITMONEYMODULE] Initialised. Gloebit enabled: {0}, GLBEnvironment: {1}, GLBApiUrl: {2} GLBKeyAlias {3}, GLBKey: {4}, GLBSecret {5}",
                 m_enabled, m_environment, m_apiUrl, m_keyAlias, m_key, (m_secret == null ? "null" : "configured"));
 
             // TODO: I've added GLBEnv.Custom for testing.  Remove before we ship
-            if(m_environment != GLBEnv.Sandbox && m_environment != GLBEnv.Production && m_environment != GLBEnv.Custom) {
+            if (m_environment != GLBEnv.Sandbox && m_environment != GLBEnv.Production && m_environment != GLBEnv.Custom) 
+            {
                 m_log.ErrorFormat("[GLOEBITMONEYMODULE] Unsupported environment selected: {0}, disabling GloebitMoneyModule", m_environment);
                 m_enabled = false;
-                m_configured = false;
             }
 
-            if (String.IsNullOrEmpty(m_dbProvider)) {
+            if (String.IsNullOrEmpty(m_dbProvider)) 
+            {
                 // GLBSpecificStorageProvider wasn't specified so fall back to using the global
                 // DatabaseService settings
                 m_log.Info("[GLOEBITMONEYMODULE] using default StorageProvider and ConnectionString from DatabaseService");
-                m_dbProvider = m_gConfig.Configs["DatabaseService"].GetString("StorageProvider");
-                m_dbConnectionString = m_gConfig.Configs["DatabaseService"].GetString("ConnectionString");
-            } else {
+                m_dbProvider = config.Configs["DatabaseService"].GetString("StorageProvider");
+                m_dbConnectionString = config.Configs["DatabaseService"].GetString("ConnectionString");
+            } 
+            else 
+            {
                 m_log.Info("[GLOEBITMONEYMODULE] using GLBSpecificStorageProvider and GLBSpecificConnectionString");
             }
 
-            if(String.IsNullOrEmpty(m_dbProvider) || String.IsNullOrEmpty(m_dbConnectionString)) {
+            if (String.IsNullOrEmpty(m_dbProvider) || String.IsNullOrEmpty(m_dbConnectionString)) 
+            {
                 m_log.Error("[GLOEBITMONEYMODULE] database connection misconfigured, disabling GloebitMoneyModule");
                 m_enabled = false;
-                m_configured = false;
             }
 
-            if(m_configured) {
+            if (m_enabled == true) 
+            {
                 InitGloebitAPI();
             }
         }
@@ -306,11 +324,13 @@ namespace Gloebit.GloebitMoneyModule
            string configPath = string.Empty;
            bool created;
            string assemblyDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+
            if (!Util.MergeConfigurationFile(config, "Gloebit.ini", Path.Combine(assemblyDirectory, "Gloebit.ini.example"), out configPath, out created))
            {
                m_log.WarnFormat("[GLOEBITMONEYMODULE]: Gloebit.ini configuration file not merged");
                return;
            }
+
            if (created)
            {
                m_log.ErrorFormat("[GLOEBITMONEYMODULE]: PLEASE EDIT {0} BEFORE RUNNING THIS ADDIN", configPath);
@@ -325,17 +345,9 @@ namespace Gloebit.GloebitMoneyModule
         /// <param name="section"></param>
         private void ReadConfigAndPopulate(IConfig config, string section)
         {
-            /********** [Startup] ************/
-            if (section == "Startup") {
-                m_startupEconomyModule = config.GetString("EconomyModule", String.Empty);
-                m_log.InfoFormat("[GLOEBITMONEYMODULE] Startup EconomyModule = {0}.", m_startupEconomyModule);
-            }
-
             /********** [Economy] ************/
-            if (section == "Economy") {
-                m_economyEconomyModule = config.GetString("EconomyModule", String.Empty);
-                m_log.InfoFormat("[GLOEBITMONEYMODULE] Economy EconomyModule = {0}.", m_economyEconomyModule);
-
+            if (section == "Economy") 
+            {
                 /*** Get OpenSim built in pricing configuration info ***/
                 PriceEnergyUnit = config.GetInt("PriceEnergyUnit", 100);
                 PriceObjectClaim = config.GetInt("PriceObjectClaim", 10);
@@ -356,96 +368,47 @@ namespace Gloebit.GloebitMoneyModule
             }
             
             /********** [Gloebit] ************/
-            if (section == "Gloebit") {
-                /*** Determine what the sim EconomyModule setting is ***/
-                // Original standard is to be in the Startup section.  New standard is to be in Economy section.  Need to check both.
-                // Two money modules should never be enabled on the same region as they'll conflict.
-                // If all respect this param then this can't happen across the entire sim process.
-                // Unfortunately, this does not handle per-region configuration on a multi-region sim.
-                // Gloebit for instance allows enabling by region if not enabled globally,
-                // but many other money modules can not be enabled/disabled by region.
-                string economyModule; 
-                if (String.IsNullOrEmpty(m_startupEconomyModule) && String.IsNullOrEmpty(m_economyEconomyModule)) {
-                    m_log.Warn("[GLOEBITMONEYMODULE] no sim-wide EconomyModule is set.  Defaulting to Gloebit since dll is present.");
-                    economyModule = "Gloebit";
-                } else if (!String.IsNullOrEmpty(m_startupEconomyModule) && !String.IsNullOrEmpty(m_economyEconomyModule)) {
-                    m_log.Warn("[GLOEBITMONEYMODULE] EconomyModule is set in 2 places.  Should only be defined once.");
-                    if (m_startupEconomyModule != m_economyEconomyModule) {
-                        m_log.Error("[GLOEBITMONEYMODULE] EconomyModule in [Startup] does not match setting in [Economy].  Sim-wide setting is undefined.");
-                        economyModule = String.Empty;
-                    } else {
-                        m_log.InfoFormat("[GLOEBITMONEYMODULE] EconomyModule settings match as {0}", m_startupEconomyModule);
-                        economyModule = m_startupEconomyModule;
-                    }
-                } else if (!String.IsNullOrEmpty(m_startupEconomyModule)) {
-                    m_log.InfoFormat("[GLOEBITMONEYMODULE] EconomyModule is {0}.", m_startupEconomyModule);
-                    economyModule = m_startupEconomyModule;
-                } else {
-                    m_log.InfoFormat("[GLOEBITMONEYMODULE] EconomyModule is {0}.", m_economyEconomyModule);
-                    economyModule = m_economyEconomyModule;
-                }
-                        
-                if (economyModule == "Gloebit") {
-                    m_log.Info("[GLOEBITMONEYMODULE] selected as global sim EconomyModule.");
-                    m_enabled = true;
-                } else {
-                    m_log.Info("[GLOEBITMONEYMODULE] not selected as global sim EconomyModule.");
-                    m_enabled = false;
-                }
-
+            if (section == "Gloebit") 
+            {
                 /*** Get GloebitMoneyModule configuration details ***/
-                // Is Gloebit disabled, enabled across the entire sim process, or on certain regions?
-                bool enabled = config.GetBoolean("Enabled", false);
-                m_log.InfoFormat("[GLOEBITMONEYMODULE] [Gloebit] Enabled flag set to {0}.", enabled);
-                m_enabled = m_enabled && enabled;
-                if (!m_enabled) {
-                    m_log.Info("[GLOEBITMONEYMODULE] Not enabled globally for sim. (to enable set \"Enabled = true\" in [Gloebit] and \"EconomyModule = Gloebit\" in [Economy])");
-                }
-                string enabledRegionIdsStr = config.GetString("GLBEnabledOnlyInRegions");
-                if(!String.IsNullOrEmpty(enabledRegionIdsStr)) {
-                    // null for the delimiter argument means split on whitespace
-                    string[] enabledRegionIds = enabledRegionIdsStr.Split((string[])null, StringSplitOptions.RemoveEmptyEntries);
-                    int numRegions = enabledRegionIds.Length;
-                    m_log.InfoFormat("[GLOEBITMONEYMODULE] GLBEnabledOnlyInRegions num regions: {0}", numRegions);
-                    m_enabledRegions = new UUID[numRegions];
-                    for(int i = 0; i < numRegions; i++) {
-                        m_enabledRegions[i] = UUID.Parse(enabledRegionIds[i]);
-                        m_log.InfoFormat("[GLOEBITMONEYMODULE] selected as local EconomyModule for region {0}", enabledRegionIds[i]);
-                    }
-                    if ((numRegions > 0) && (economyModule != "Gloebit")) {
-                        m_log.WarnFormat("[GLOEBITMONEYMODULE] Gloebit enabled by region on sim with global EconomyModule set to {0}.  Ensure that sim-wide EconomyModule is disabled in Gloebit enabled regions.", economyModule);
-                    }
-                }
                 // Get region/grid owner contact details for transaction failure contact instructions.
                 string ownerName = config.GetString("GLBOwnerName", "region or grid owner");
                 string ownerEmail = config.GetString("GLBOwnerEmail", null);
                 m_contactOwner = ownerName;
-                if (!String.IsNullOrEmpty(ownerEmail)) {
+                if (!String.IsNullOrEmpty(ownerEmail)) 
+                {
                     m_contactOwner = String.Format("{0} at {1}", ownerName, ownerEmail);
                 }
+
                 // Should we disable adding info to OpenSimExtras map
                 m_disablePerSimCurrencyExtras = config.GetBoolean("DisablePerSimCurrencyExtras", false);
+                
                 // Should we send new session IMs informing user how to auth or purchase gloebits
                 m_showNewSessionPurchaseIM = config.GetBoolean("GLBShowNewSessionPurchaseIM", false);
                 m_showNewSessionAuthIM = config.GetBoolean("GLBShowNewSessionAuthIM", true);
+                
                 // Should we send a welcome message informing user that Gloebit is enabled
                 m_showWelcomeMessage = config.GetBoolean("GLBShowWelcomeMessage", true);
                 string nsms_msg = "\n\t";
                 nsms_msg = String.Format("{0}Welcome Message: {1},\tTo modify, set GLBShowWelcomeMessage in [Gloebit] section of config\n\t", nsms_msg, m_showWelcomeMessage);
                 nsms_msg = String.Format("{0}Auth Message: {1},\tTo modify, set GLBShowNewSessionAuthIM in [Gloebit] section of config\n\t", nsms_msg, m_showNewSessionAuthIM);
                 nsms_msg = String.Format("{0}Purchase Message: {1},\tTo modify, set GLBShowNewSessionPurchaseIM in [Gloebit] section of config", nsms_msg, m_showNewSessionPurchaseIM);
+                
                 m_log.InfoFormat("[GLOEBITMONEYMODULE] [Gloebit] is configured with the following settings for messaging users connecting to a new session{0}", nsms_msg);
+                
                 // If version cannot be detected override workflow selection via config
                 // Currently not documented because last resort if all version checking fails
                 m_forceNewLandPassFlow = config.GetBoolean("GLBNewLandPassFlow", false);
                 m_forceNewHTTPFlow = config.GetBoolean("GLBNewHTTPFlow", false);
+                
                 // Are we using custom db connection info
                 m_dbProvider = config.GetString("GLBSpecificStorageProvider");
                 m_dbConnectionString = config.GetString("GLBSpecificConnectionString");
                 
                 /*** Get Gloebit API configuration details ***/
                 string envString = config.GetString("GLBEnvironment", "sandbox");
-                switch(envString) {
+                switch(envString) 
+                {
                     case "sandbox":
                         m_environment = GLBEnv.Sandbox;
                         m_apiUrl = SANDBOX_URL;
@@ -469,40 +432,50 @@ namespace Gloebit.GloebitMoneyModule
                         m_log.WarnFormat("[GLOEBITMONEYMODULE] GLBEnvironment \"{0}\" unrecognized, setting to None", envString); 
                         break;
                 }
+                
                 m_keyAlias = config.GetString("GLBKeyAlias", null);
                 m_key = config.GetString("GLBKey", null);
                 m_secret = config.GetString("GLBSecret", null);
             }
 
             /********** [GridInfoService] ************/
-            if (section == "GridInfoService") {
+            if (section == "GridInfoService") 
+            {
                 // If we're here, this is a standalone mode grid
                 /*** Grab the grid info locally ***/
                 setGridInfo(config.GetString("gridname", m_gridname), config.GetString("gridnick", m_gridnick), config.GetString("economy", null));
             }
             
             /********** [GridInfo] ************/
-            if (section == "GridInfo") {
+            if (section == "GridInfo") 
+            {
                 // If we're here, this is a robust mode grid
                 /*** Grab the grid info via the grid info uri ***/
                 string gridInfoURI = config.GetString("GridInfoURI", null);
                 // TODO: Should we store the info url?
                 m_log.InfoFormat("[GLOEBITMONEYMODULE] GRID INFO URL = {0}", gridInfoURI);
-                if (String.IsNullOrEmpty(gridInfoURI)) {
+            
+                if (String.IsNullOrEmpty(gridInfoURI)) 
+                {
                     m_log.ErrorFormat("[GloebitMoneyModule] Failed to retrieve GridInfoURI from [GridInfo] section of config.");
                     return;
                 }
+
                 // Create http web request from URL
                 Uri requestURI = new Uri(new Uri(gridInfoURI), "json_grid_info");
                 m_log.InfoFormat("[GLOEBITMONEYMODULE] Constructed and requesting URI = {0}", requestURI);
+                
                 HttpWebRequest request = (HttpWebRequest) WebRequest.Create(requestURI);
                 request.Method = "GET";
-                try {
+                try 
+                {
                     // Get the response
                     HttpWebResponse response = (HttpWebResponse) request.GetResponse();
                     string status = response.StatusDescription;
                     m_log.InfoFormat("[GLOEBITMONEYMODULE] Grid Info status:{0}", status);
-                    using(StreamReader response_stream = new StreamReader(response.GetResponseStream())) {
+
+                    using(StreamReader response_stream = new StreamReader(response.GetResponseStream())) 
+                    {
                         string response_str = response_stream.ReadToEnd();
                         m_log.InfoFormat("[GLOEBITMONEYMODULE] Grid Info:{0}", response_str);
                         // Parse the response
@@ -511,7 +484,9 @@ namespace Gloebit.GloebitMoneyModule
                         setGridInfo(responseData["gridname"], responseData["gridnick"], responseData["economy"]);
                         // TODO: do we want anything else from grid info?
                     }
-                } catch (Exception e) {
+                } 
+                catch (Exception e) 
+                {
                     m_log.ErrorFormat("[GloebitMoneyModule] Failed to retrieve Grid Info. {0}", e);
                 }
             }
@@ -543,7 +518,6 @@ namespace Gloebit.GloebitMoneyModule
         public void Close()
         {
             m_enabled = false;
-            m_configured = false;
         }
 
         // Helper funciton used in AddRegion for post 0.9.2.0 XML RPC Handlers 
@@ -556,95 +530,93 @@ namespace Gloebit.GloebitMoneyModule
 
         public void AddRegion(Scene scene)
         {
-            if(!m_configured) {
+            if (m_enabled == false)
+            {
                 return;
             }
 
-            if (m_enabled || (m_enabledRegions != null && m_enabledRegions.Contains(scene.RegionInfo.RegionID)))
+            m_log.InfoFormat("[GLOEBITMONEYMODULE] region added {0}", scene.RegionInfo.RegionID.ToString());
+            scene.RegisterModuleInterface<IMoneyModule>(this);
+            IHttpServer httpServer = MainServer.Instance;
+
+            lock (m_scenel)
             {
-                m_log.InfoFormat("[GLOEBITMONEYMODULE] region added {0}", scene.RegionInfo.RegionID.ToString());
-                scene.RegisterModuleInterface<IMoneyModule>(this);
-                IHttpServer httpServer = MainServer.Instance;
-
-                lock (m_scenel)
+                // TODO: What happens if all regions are removed and one is re-created without a sim restart?
+                //       Should we use a bool instead of the count here?
+                if (m_scenel.Count == 0)
                 {
-                    // TODO: What happens if all regions are removed and one is re-created without a sim restart?
-                    //       Should we use a bool instead of the count here?
-                    if (m_scenel.Count == 0)
+                    /*
+                        * For land sales, buy-currency button, and the insufficient funds flows to operate,
+                        * the economy helper uri needs to be present.
+                        * 
+                        * The GMM provides this helper-uri and the currency symbol via the OpenSim Extras.  
+                        * Some viewers (Firestorm & Alchemy at time of writing) consume these so this requires no
+                        * configuration to work for a user on a Gloebit enabled region.  For users with other or older viewers,
+                        * the helper-uri will have to be configured properly, and if not pointed at a Gloebit enabled sim,
+                        * the grid will have to handle these calls, which it has traditionally done with an XMLRPC server and
+                        * currency.php and landtool.php helper scripts.  That is rather complex, so we recommend that all 
+                        * viewers adopt this patch and that grids request that their users update to a viewer with this patch.
+                        * --- Patch Info: http://dev.gloebit.com/blog/Upgrade-Viewer/
+                        * --- Patch Info: https://medium.com/@colosi/multi-currency-support-coming-to-opensim-viewers-cd20e75f7990
+                        * --- Patch Download: http://dev.gloebit.com/opensim/downloads/ColosiOpenSimMultiCurrencySupport.patch
+                        * --- Firestorm Jira: https://jira.phoenixviewer.com/browse/FIRE-21587
+                        */
+
+                    // These functions can handle the calls to the economy helper-uri if it is configured to point at the sim.  
+                    // They will enable land purchasing, buy-currency, and insufficient-funds flows.
+                    // *NOTE* gloebits can not currently be purchased from a viewer, but this allows Gloebit to control the
+                    // messaging in this flow and send users to the Gloebit website for purchasing.
+
+                    // Post version 0.9.2.0 the httpserver changed requiring different approach to the preflights
+                    if (m_newHTTPFlow == true)
                     {
-                        /*
-                         * For land sales, buy-currency button, and the insufficient funds flows to operate,
-                         * the economy helper uri needs to be present.
-                         * 
-                         * The GMM provides this helper-uri and the currency symbol via the OpenSim Extras.  
-                         * Some viewers (Firestorm & Alchemy at time of writing) consume these so this requires no
-                         * configuration to work for a user on a Gloebit enabled region.  For users with other or older viewers,
-                         * the helper-uri will have to be configured properly, and if not pointed at a Gloebit enabled sim,
-                         * the grid will have to handle these calls, which it has traditionally done with an XMLRPC server and
-                         * currency.php and landtool.php helper scripts.  That is rather complex, so we recommend that all 
-                         * viewers adopt this patch and that grids request that their users update to a viewer with this patch.
-                         * --- Patch Info: http://dev.gloebit.com/blog/Upgrade-Viewer/
-                         * --- Patch Info: https://medium.com/@colosi/multi-currency-support-coming-to-opensim-viewers-cd20e75f7990
-                         * --- Patch Download: http://dev.gloebit.com/opensim/downloads/ColosiOpenSimMultiCurrencySupport.patch
-                         * --- Firestorm Jira: https://jira.phoenixviewer.com/browse/FIRE-21587
-                         */
-
-                        // These functions can handle the calls to the economy helper-uri if it is configured to point at the sim.  
-                        // They will enable land purchasing, buy-currency, and insufficient-funds flows.
-                        // *NOTE* gloebits can not currently be purchased from a viewer, but this allows Gloebit to control the
-                        // messaging in this flow and send users to the Gloebit website for purchasing.
-
-                        // Post version 0.9.2.0 the httpserver changed requiring different approach to the preflights
-                        if (m_newHTTPFlow == true)
-                        {
-                            m_rpcHandlers = new Dictionary<string, XmlRpcMethod>();
-                            m_rpcHandlers.Add("getCurrencyQuote", quote_func);
-                            m_rpcHandlers.Add("buyCurrency", buy_func);
-                            m_rpcHandlers.Add("preflightBuyLandPrep", preflightBuyLandPrep_func);
-                            m_rpcHandlers.Add("buyLandPrep", landBuy_func);
+                        m_rpcHandlers = new Dictionary<string, XmlRpcMethod>();
+                        m_rpcHandlers.Add("getCurrencyQuote", quote_func);
+                        m_rpcHandlers.Add("buyCurrency", buy_func);
+                        m_rpcHandlers.Add("preflightBuyLandPrep", preflightBuyLandPrep_func);
+                        m_rpcHandlers.Add("buyLandPrep", landBuy_func);
 #if NEWHTTPFLOW
-                            MainServer.Instance.AddSimpleStreamHandler(new SimpleStreamHandler("/landtool.php", processPHP));
-                            MainServer.Instance.AddSimpleStreamHandler(new SimpleStreamHandler("/currency.php", processPHP));
+                        MainServer.Instance.AddSimpleStreamHandler(new SimpleStreamHandler("/landtool.php", processPHP));
+                        MainServer.Instance.AddSimpleStreamHandler(new SimpleStreamHandler("/currency.php", processPHP));
 #endif
-                        } else {
-                            httpServer.AddXmlRPCHandler("getCurrencyQuote", quote_func);
-                            httpServer.AddXmlRPCHandler("buyCurrency", buy_func);
-                            httpServer.AddXmlRPCHandler("preflightBuyLandPrep", preflightBuyLandPrep_func);
-                            httpServer.AddXmlRPCHandler("buyLandPrep", landBuy_func);
-                        }
-
-                        /********** Register endpoints the Gloebit Service will call back into **********/
-                        RegisterGloebitWebhooks(httpServer);
+                    } else {
+                        httpServer.AddXmlRPCHandler("getCurrencyQuote", quote_func);
+                        httpServer.AddXmlRPCHandler("buyCurrency", buy_func);
+                        httpServer.AddXmlRPCHandler("preflightBuyLandPrep", preflightBuyLandPrep_func);
+                        httpServer.AddXmlRPCHandler("buyLandPrep", landBuy_func);
                     }
 
-                    if (m_scenel.ContainsKey(scene.RegionInfo.RegionHandle))
-                    {
-                        m_scenel[scene.RegionInfo.RegionHandle] = scene;
-                    }
-                    else
-                    {
-                        m_scenel.Add(scene.RegionInfo.RegionHandle, scene);
-                    }
+                    /********** Register endpoints the Gloebit Service will call back into **********/
+                    RegisterGloebitWebhooks(httpServer);
                 }
 
-                // Register for events for user management
-                scene.EventManager.OnNewClient += OnNewClient;                              // Registers client events
-                scene.EventManager.OnClientLogin += OnClientLogin;                          // Handles a login issue
-
-                // Register for commerce events that come through scene
-                scene.EventManager.OnMoneyTransfer += OnMoneyTransfer;                      // Handles 5001 (pay user) & 5008 (pay object) events
-                scene.EventManager.OnValidateLandBuy += ValidateLandBuy;                    // Handles validation for free land transactions
-                scene.EventManager.OnLandBuy += ProcessLandBuy;                             // Handles land purchases
-                
-            } else {
-                if(m_enabledRegions != null) {
-                    m_log.InfoFormat("[GLOEBITMONEYMODULE] SKIPPING region add {0} is not in enabled region list", scene.RegionInfo.RegionID.ToString());
+                if (m_scenel.ContainsKey(scene.RegionInfo.RegionHandle))
+                {
+                    m_scenel[scene.RegionInfo.RegionHandle] = scene;
+                }
+                else
+                {
+                    m_scenel.Add(scene.RegionInfo.RegionHandle, scene);
                 }
             }
+
+            // Register for events for user management
+            scene.EventManager.OnNewClient += OnNewClient;                              // Registers client events
+            scene.EventManager.OnClientLogin += OnClientLogin;                          // Handles a login issue
+
+            // Register for commerce events that come through scene
+            scene.EventManager.OnMoneyTransfer += OnMoneyTransfer;                      // Handles 5001 (pay user) & 5008 (pay object) events
+            scene.EventManager.OnValidateLandBuy += ValidateLandBuy;                    // Handles validation for free land transactions
+            scene.EventManager.OnLandBuy += ProcessLandBuy;                             // Handles land purchases
         }
 
         public void RemoveRegion(Scene scene)
         {
+            if (m_enabled == false)
+            {
+                return;
+            }
+
             lock (m_scenel)
             {
                 m_scenel.Remove(scene.RegionInfo.RegionHandle);
@@ -653,10 +625,11 @@ namespace Gloebit.GloebitMoneyModule
 
         public void RegionLoaded(Scene scene)
         {
-            if (!m_enabled && (m_enabledRegions == null || !m_enabledRegions.Contains(scene.RegionInfo.RegionID))) {
-                m_log.InfoFormat("[GLOEBITMONEYMODULE] region not loaded as not enabled {0}", scene.RegionInfo.RegionID.ToString());
+            if (m_enabled == false)
+            {
                 return;
             }
+
             m_log.InfoFormat("[GLOEBITMONEYMODULE] region loaded {0}", scene.RegionInfo.RegionID.ToString());
             
             ISimulatorFeaturesModule featuresModule = scene.RequestModuleInterface<ISimulatorFeaturesModule>();
@@ -668,26 +641,32 @@ namespace Gloebit.GloebitMoneyModule
         
         private void OnSimulatorFeaturesRequest(UUID agentID, ref OSDMap features, Scene scene)
         {
+            if (m_enabled == false)
+            {
+                return;
+            }
+
             UUID regionID = scene.RegionInfo.RegionID;
 
-            if (m_enabled || (m_enabledRegions != null && m_enabledRegions.Contains(regionID))) {
-                // Get or create the extras section of the features map
-                OSDMap extrasMap;
-                if (features.ContainsKey("OpenSimExtras")) {
-                    extrasMap = (OSDMap)features["OpenSimExtras"];
-                } else {
-                    extrasMap = new OSDMap();
-                    features["OpenSimExtras"] = extrasMap;
-                }
-                
-                // Add our values to the extras map
-                extrasMap["currency"] = "G$";
-                // replaced G$ with ₲ (hex 0x20B2 / unicode U+20B2), but screwed up balance display in Firestorm
-                extrasMap["currency-base-uri"] = GetCurrencyBaseURI(scene);
+            // Get or create the extras section of the features map
+            OSDMap extrasMap;
+            if (features.ContainsKey("OpenSimExtras")) 
+            {
+                extrasMap = (OSDMap)features["OpenSimExtras"];
+            } 
+            else 
+            {
+                extrasMap = new OSDMap();
+                features["OpenSimExtras"] = extrasMap;
             }
+                
+            // Add our values to the extras map
+            extrasMap["currency"] = "G$";
+            extrasMap["currency-base-uri"] = GetCurrencyBaseURI(scene);
         }
         
-        private string GetCurrencyBaseURI(Scene scene) {
+        private string GetCurrencyBaseURI(Scene scene) 
+        {
             return scene.RegionInfo.ServerURI;
         }
         
@@ -980,7 +959,9 @@ namespace Gloebit.GloebitMoneyModule
             // Check subscription table.  If not exists, send create call to Gloebit
             m_log.DebugFormat("[GLOEBITMONEYMODULE] ObjectGiveMoney - looking for local subscription");
             GloebitSubscription sub = GloebitSubscription.Get(objectID, m_key, m_apiUrl);
-            if (sub == null || sub.SubscriptionID == UUID.Zero) {
+
+            if (sub == null || (sub.SubscriptionID == UUID.Zero.ToString()))
+            {
                 // null means we haven't attempted creation yet
                 // SubscriptionID == UUID.Zero means we have a local sub, but haven't created this on Gloebit through API.  Likely a previous creation request failed
                 // In either case, we need to create a subscription on Gloebit before proceeding
@@ -1019,7 +1000,8 @@ namespace Gloebit.GloebitMoneyModule
             
             // Check that user has authed Gloebit and token is on file.
             GloebitUser payerUser = GloebitUser.Get(m_key, fromID);
-            if (payerUser != null && String.IsNullOrEmpty(payerUser.GloebitToken)) {
+            if (payerUser != null && String.IsNullOrEmpty(payerUser.GloebitToken)) 
+            {
                 // send message asking to auth Gloebit.
                 alertUsersSubscriptionTransactionFailedForGloebitAuthorization(fromID, toID, amount, sub);
                 reason = "Owner has not authorized this app with Gloebit.";
@@ -1029,13 +1011,15 @@ namespace Gloebit.GloebitMoneyModule
             // Checks done.  Ready to build and submit transaction.
             
             OSDMap descMap = buildOpenSimTransactionDescMap(regionname, regionID, "ObjectGiveMoney", part);
-            
+            UUID subId = UUID.Parse(sub.SubscriptionID);
+
             GloebitTransaction txn = buildTransaction(transactionID: txnID, transactionType: TransactionType.OBJECT_PAYS_USER,
-                                                          payerID: fromID, payeeID: toID, amount: amount, subscriptionID: sub.SubscriptionID,
+                                                          payerID: fromID, payeeID: toID, amount: amount, subscriptionID: subId,
                                                           partID: objectID, partName: part.Name, partDescription: part.Description,
                                                           categoryID: UUID.Zero, localID: 0, saleType: 0);
             
-            if (txn == null) {
+            if (txn == null) 
+            {
                 // build failed, likely due to a reused transactionID.  Shouldn't happen, but possible in ObjectGiveMoney.
                 IClientAPI payerClient = LocateClientObject(fromID);
                 alertUsersTransactionPreparationFailure(TransactionType.OBJECT_PAYS_USER, TransactionPrecheckFailure.EXISTING_TRANSACTION_ID, payerClient);
@@ -1580,12 +1564,45 @@ namespace Gloebit.GloebitMoneyModule
                 partDescription = String.Empty;
             }
             
-            GloebitTransaction txn = GloebitTransaction.Create(transactionID, payerID, payerName, payeeID, payeeName, amount, (int)transactionType, transactionTypeString, isSubscriptionDebit, subscriptionID, partID, partName, partDescription, categoryID, localID, saleType);
+            GloebitTransaction txn = GloebitTransaction.Create(
+                transactionID.ToString(), 
+                payerID.ToString(), 
+                payerName, 
+                payeeID.ToString(), 
+                payeeName, 
+                amount, 
+                (int)transactionType, 
+                transactionTypeString, 
+                isSubscriptionDebit, 
+                subscriptionID.ToString(), 
+                partID.ToString(), 
+                partName, 
+                partDescription, 
+                categoryID.ToString(), 
+                localID, 
+                saleType);
             
-            if (txn == null && isRandomID) {
+            if (txn == null && isRandomID) 
+            {
                 // Try one more time in case the incredibly unlikely event of a UUID.Random overlap has occurred.
                 transactionID = UUID.Random();
-                txn = GloebitTransaction.Create(transactionID, payerID, payerName, payeeID, payeeName, amount, (int)transactionType, transactionTypeString, isSubscriptionDebit, subscriptionID, partID, partName, partDescription, categoryID, localID, saleType);
+                txn = GloebitTransaction.Create(
+                    transactionID.ToString(), 
+                    payerID.ToString(), 
+                    payerName, 
+                    payeeID.ToString(), 
+                    payeeName, 
+                    amount, 
+                    (int)transactionType, 
+                    transactionTypeString, 
+                    isSubscriptionDebit, 
+                    subscriptionID.ToString(), 
+                    partID.ToString(), 
+                    partName, 
+                    partDescription, 
+                    categoryID.ToString(), 
+                    localID, 
+                    saleType);
             }
             
             return txn;
@@ -1722,18 +1739,23 @@ namespace Gloebit.GloebitMoneyModule
                         return false;
                     }
                     break;
+
                 case TransactionType.USER_PAYS_USER:
                     // 5001 - OnMoneyTransfer - Pay User
                     // nothing to enact
                     break;
+
                 case TransactionType.USER_PAYS_OBJECT:
                     // 5008 - OnMoneyTransfer - Pay Object
                     // need to alert the object that it has been paid.
                     ObjectPaid handleObjectPaid = OnObjectPaid;
-                    if(handleObjectPaid != null) {
-                        handleObjectPaid(txn.PartID, txn.PayerID, txn.Amount);
+                    if(handleObjectPaid != null) 
+                    {
+                        handleObjectPaid(UUID.Parse(txn.PartID), UUID.Parse(txn.PayerID), txn.Amount);
                         // This doesn't provide a return or ability to query state, so we assume success
-                    } else {
+                    } 
+                    else 
+                    {
                         // This really shouldn't happen, as it would mean that the OpenSim region is not properly set up
                         // However, we won't fail here as expectation is unclear
                         // We have received this when a sim has another active money module which didn't respect the config and tried to enable on
@@ -1741,27 +1763,34 @@ namespace Gloebit.GloebitMoneyModule
                         m_log.ErrorFormat("[GLOEBITMONEYMODULE].processAssetEnactHold - IMoneyModule OnObjectPaid event not properly subscribed.  Object payment may have failed.");
                     }
                     break;
+
                 case TransactionType.OBJECT_PAYS_USER:
                     // 5009 - ObjectGiveMoney
                     // nothing to enact.
                     break;
+
                 case TransactionType.USER_BUYS_LAND:
                     // 5002 - OnLandBuy
                     // Need to transfer land
                     bool transferred = transferLand(txn, out returnMsg);
-                    if (!transferred) {
+                    
+                    if (!transferred) 
+                    {
                         // Local Asset Enact failed - set returnMsg
                         returnMsg = String.Format("Asset enact failed: {0}", returnMsg);
                         // remove land asset from map since cancel will not get called
                         // TODO: should we do this here, or 
                         //       - adjust ProcessAssetCancelHold to always be called and check state to see if something needs to be undone?
                         //       - do this from AlertTransactionFailed()
-                        lock(m_landAssetMap) {
-                            m_landAssetMap.Remove(txn.TransactionID);
+                        lock(m_landAssetMap) 
+                        {
+                            m_landAssetMap.Remove(UUID.Parse(txn.TransactionID));
                         }
+                    
                         return false;
                     }
                     break;
+
                 case TransactionType.USER_BUYS_LANDPASS:
                     // 5006 - OnParcelBuyPass prior to 0.9.1; MoveMoney after;
                     // NOTE: new flow: delivery is outside of our system.  Nothing to enact.
@@ -1774,18 +1803,22 @@ namespace Gloebit.GloebitMoneyModule
                         }
                     }
                     break;
+
                 case TransactionType.FEE_GROUP_CREATION:
                     // 1002 - ApplyCharge
                     // Nothing to do since the group was already created.  Ideally, this would create group or finalize creation.
                     break;
+
                 case TransactionType.FEE_UPLOAD_ASSET:
                     // 1101 - ApplyUploadCharge
                     // Nothing to do since the asset was already uploaded.  Ideally, this would upload asset or finalize upload.
                     break;
+
                 case TransactionType.FEE_CLASSIFIED_AD:
                     // 1103 - ApplyCharge
                     // Nothing to do since the ad was already placed.  Ideally, this would create ad finalize ad.
                     break;
+
                 default:
                     m_log.ErrorFormat("[GLOEBITMONEYMODULE] processAssetEnactHold called on unknown transaction type: {0}", txn.TransactionType);
                     // TODO: should we throw an exception?  return null?  just continue?
@@ -1799,54 +1832,65 @@ namespace Gloebit.GloebitMoneyModule
             return true;
         }
             
-        public bool processAssetConsumeHold(GloebitTransaction txn, out string returnMsg) {
-
+        public bool processAssetConsumeHold(GloebitTransaction txn, out string returnMsg) 
+        {
             m_log.InfoFormat("[GLOEBITMONEYMODULE].processAssetConsumeHold SUCCESS - transaction complete");
 
             // If we've gotten this call, then the Gloebit components have enacted successfully
             // all transferred funds have been committed.
             // ITransactionAlert.AlertTransactionStageCompleted for CONSUME_GLOEBIT just fired
 
-            switch ((TransactionType)txn.TransactionType) {
+            switch ((TransactionType)txn.TransactionType) 
+            {
                 case TransactionType.USER_BUYS_OBJECT:
                     // 5000 - ObjectBuy
                     // nothing to finalize
                     break;
+
                 case TransactionType.USER_PAYS_USER:
                     // 5001 - OnMoneyTransfer - Pay User
                     // nothing to finalize
                     break;
+
                 case TransactionType.USER_PAYS_OBJECT:
                     // 5008 - OnMoneyTransfer - Pay Object
                     // nothing to finalize
                     break;
+
                 case TransactionType.OBJECT_PAYS_USER:
                     // 5009 - ObjectGiveMoney
                     // nothing to finalize
                     break;
+
                 case TransactionType.USER_BUYS_LAND:
                     // 5002 - OnLandBuy
                     // Remove land asset from map
-                    lock(m_landAssetMap) {
-                        m_landAssetMap.Remove(txn.TransactionID);
+                    lock(m_landAssetMap) 
+                    {
+                        m_landAssetMap.Remove(UUID.Parse(txn.TransactionID));
                     }
                     break;
+
                 case TransactionType.USER_BUYS_LANDPASS:
                     // 5006 - OnParcelBuyPass pre 0.9.1; MoveMoney after;
                     // nothing to finalize
                     break;
+
                 case TransactionType.FEE_GROUP_CREATION:
                     // 1002 - ApplyCharge
                     // Nothing to do since the group was already created.  Ideally, this would finalize creation.
                     break;
+
                 case TransactionType.FEE_UPLOAD_ASSET:
                     // 1101 - ApplyUploadCharge
                     // Nothing to do since the asset was already uploaded.  Ideally, this would finalize upload.
                     break;
+
                 case TransactionType.FEE_CLASSIFIED_AD:
                     // 1103 - ApplyCharge
                     // Nothing to do since the ad was already placed.  Ideally, this would finalize ad.
                     break;
+
                 default:
                     m_log.ErrorFormat("[GLOEBITMONEYMODULE] processAssetConsumeHold called on unknown transaction type: {0}", txn.TransactionType);
                     // TODO: should we throw an exception?  return null?  just continue?
@@ -1867,43 +1911,53 @@ namespace Gloebit.GloebitMoneyModule
         {
             m_log.InfoFormat("[GLOEBITMONEYMODULE].processAssetCancelHold SUCCESS - transaction rolled back");
             // nothing to cancel - either enact of asset failed or was never called if we're here.
-            switch ((TransactionType)txn.TransactionType) {
+            switch ((TransactionType)txn.TransactionType) 
+            {
                 case TransactionType.USER_BUYS_OBJECT:
                     // 5000 - ObjectBuy
                     // no mechanism for reversing delivery
                     break;
+
                 case TransactionType.USER_PAYS_USER:
                     // 5001 - OnMoneyTransfer - Pay User
                     // nothing to cancel
                     break;
+
                 case TransactionType.USER_PAYS_OBJECT:
                     // 5008 - OnMoneyTransfer - Pay Object
                     // no mechanism for notifying object
                     break;
+
                 case TransactionType.OBJECT_PAYS_USER:
                     // 5009 - ObjectGiveMoney
                     // nothing to cancel
                     break;
+
                 case TransactionType.USER_BUYS_LAND:
                     // 5002 - OnLandBuy
                     // nothing to cancel, if we're here, it is because land was not transferred successfully.
                     break;
+
                 case TransactionType.USER_BUYS_LANDPASS:
                     // 5006 - OnParcelBuyPass pre 0.9.1; MoveMoney after;
                     // nothing to cancel, if we're here, it is because landpass was not granted successfully.
                     break;
+
                 case TransactionType.FEE_GROUP_CREATION:
                     // 1002 - ApplyCharge
                     // TODO: can we delete the group?
                     break;
+
                 case TransactionType.FEE_UPLOAD_ASSET:
                     // 1101 - ApplyUploadCharge
                     // TODO: can we delete the asset?
                     break;
+
                 case TransactionType.FEE_CLASSIFIED_AD:
                     // 1103 - ApplyCharge
                     // TODO: can we delete the ad?
                     break;
+
                 default:
                     m_log.ErrorFormat("[GLOEBITMONEYMODULE] processAssetCancelHold called on unknown transaction type: {0}", txn.TransactionType);
                     // TODO: should we throw an exception?  return null?  just continue?
@@ -1941,9 +1995,12 @@ namespace Gloebit.GloebitMoneyModule
 
             // Handle any functional/flow requirements of any failures.
             // Since OpenSim uses subscriptions in an odd way and doesn't yet store subscription authorizations, those need special handling here.
-            if (stage == GloebitAPI.TransactionStage.VALIDATE) {
-                IClientAPI payerClient = LocateClientObject(txn.PayerID);
-                switch(failure) {
+            if (stage == GloebitAPI.TransactionStage.VALIDATE) 
+            {
+                IClientAPI payerClient = LocateClientObject(UUID.Parse(txn.PayerID));
+
+                switch(failure) 
+                {
                     case GloebitAPI.TransactionFailure.SUBSCRIPTION_AUTH_NOT_FOUND:           /* No sub_auth has been created for this user for this subscription */
                         m_log.InfoFormat("[GLOEBITMONEYMODULE].AlertTransactionFailed No subscription authorization in place.  Asking payer to auth.  transactionID:{0}, app-subscription-id:{1} PayerID:{2} PayerName:{3}", txn.TransactionID, txn.SubscriptionID, txn.PayerID, txn.PayerName);
                         // TODO: Should we store auths so we know if we need to create it or just to ask user to auth after failed transaction?
@@ -1951,35 +2008,75 @@ namespace Gloebit.GloebitMoneyModule
 
                         // Ask user if they would like to authorize
                         // Don't call CreateSubscriptionAuthorization unless they do.  If this is fraud, the user will not want to see a pending auth on Gloebit.
-                        if (payerClient != null) {
-                            Dialog.Send(new CreateSubscriptionAuthorizationDialog(payerClient, txn.PayerID, txn.PayerName, txn.PartID, txn.PartName, txn.PartDescription, txn.TransactionID, txn.PayeeID, txn.PayeeName, txn.Amount, txn.SubscriptionID, m_apiW, BaseURI));
-                        } else {
+                        if (payerClient != null) 
+                        {
+                            Dialog.Send(new CreateSubscriptionAuthorizationDialog(
+                                payerClient, 
+                                UUID.Parse(txn.PayerID), 
+                                txn.PayerName, 
+                                UUID.Parse(txn.PartID), 
+                                txn.PartName, 
+                                txn.PartDescription, 
+                                UUID.Parse(txn.TransactionID), 
+                                UUID.Parse(txn.PayeeID), 
+                                txn.PayeeName, 
+                                txn.Amount, 
+                                UUID.Parse(txn.SubscriptionID),
+                                m_apiW, 
+                                BaseURI));
+                        } 
+                        else 
+                        {
                             // TODO: does the message eventually make it if the user is offline?  Is there a way to send a Dialog to a user the next time they log in?
                             // Should we just create the subscription_auth in this case?
                             // TODO: This is an issue with restoring of auto-debit scripted objects with new UUID.  If owner isn't online, they won't get asked to re-auth on failure.
                         }
                         break;
+
                     case GloebitAPI.TransactionFailure.SUBSCRIPTION_AUTH_PENDING:             /* User has not yet approved or declined the authorization for this subscription */
                         // User has been asked and chose to auth already.
                         // Subscription-authorization has already been created.
                         // User has not yet responded to that request, so send a dialog again to ask for auth and allow reporting of fraud.
 
                         m_log.InfoFormat("[GLOEBITMONEYMODULE].AlertTransactionFailed subscription authorization pending.  Asking payer to auth again.  transactionID:{0}, app-subscription-id:{1} PayerID:{2} PayerName:{3}", txn.TransactionID, txn.SubscriptionID, txn.PayerID, txn.PayerName);
+
                         // Send request to user again
-                        if (payerClient != null) {
+                        if (payerClient != null) 
+                        {
                             UUID subscriptionAuthID = UUID.Zero;
                             // pull from extraData because not in transaction
-                            if (extraData.ContainsKey("subscription-authorization-id")) {
+                            if (extraData.ContainsKey("subscription-authorization-id")) 
+                            {
                                 subscriptionAuthID = UUID.Parse(extraData["subscription-authorization-id"]);
-                            } else {
+                            } 
+                            else 
+                            {
                                 m_log.Error("[GLOEBITMONEYMODULE].AlertTransactionFailed subscription-authorization-id expected, but missing from extraData");
                             }
-                            Dialog.Send(new PendingSubscriptionAuthorizationDialog(payerClient, txn.PayerID, txn.PayerName, txn.PartID, txn.PartName, txn.PartDescription, txn.TransactionID, txn.PayeeID, txn.PayeeName, txn.Amount, txn.SubscriptionID, subscriptionAuthID, m_apiW, BaseURI));
-                        } else {
+
+                            Dialog.Send(new PendingSubscriptionAuthorizationDialog(
+                                payerClient, 
+                                UUID.Parse(txn.PayerID), 
+                                txn.PayerName, 
+                                UUID.Parse(txn.PartID), 
+                                txn.PartName, 
+                                txn.PartDescription, 
+                                UUID.Parse(txn.TransactionID), 
+                                UUID.Parse(txn.PayeeID), 
+                                txn.PayeeName, 
+                                txn.Amount, 
+                                UUID.Parse(txn.SubscriptionID), 
+                                subscriptionAuthID, 
+                                m_apiW, 
+                                BaseURI));
+                        } 
+                        else 
+                        {
                             // TODO: does the message eventually make it if the user is offline?  Is there a way to send a Dialog to a user the next time they log in?
                             // Should we just create the subscription_auth in this case?
                         }
                         break;
+
                     case GloebitAPI.TransactionFailure.SUBSCRIPTION_AUTH_DECLINED:            /* User has declined the authorization for this subscription */
                         m_log.InfoFormat("[GLOEBITMONEYMODULE].AlertTransactionFailed subscription authorization declined.  Asking payer to auth again.  transactionID:{0}, app-subscription-id:{1} PayerID:{2} PayerName:{3}", txn.TransactionID, txn.SubscriptionID, txn.PayerID, txn.PayerName);
 
@@ -1987,13 +2084,17 @@ namespace Gloebit.GloebitMoneyModule
                         // Send dialog asking user to auth or report --- needs different message.
                         string subscriptionAuthIDStr = String.Empty;
                         // pull from extraData because not in transaction
-                        if (extraData.ContainsKey("subscription-authorization-id")) {
+                        if (extraData.ContainsKey("subscription-authorization-id")) 
+                        {
                             subscriptionAuthIDStr = extraData["subscription-authorization-id"];
-                        } else {
+                        } 
+                        else 
+                        {
                             m_log.Error("[GLOEBITMONEYMODULE].AlertTransactionFailed subscription-authorization-id expected, but missing from extraData");
                         }
+                        
                         GloebitSubscription sub = GloebitSubscription.GetBySubscriptionID(txn.SubscriptionID.ToString(), m_apiW.m_url.ToString());
-                        m_apiW.AuthorizeSubscription(txn.PayerID, subscriptionAuthIDStr, sub, true);
+                        m_apiW.AuthorizeSubscription(UUID.Parse(txn.PayerID), subscriptionAuthIDStr, sub, true);
                         break;
                 }
             }
@@ -2150,6 +2251,7 @@ namespace Gloebit.GloebitMoneyModule
         public void AlertSubscriptionCreated(GloebitSubscription subscription)
         {
             m_log.InfoFormat ("[GLOEBITMONEYMODULE].AlertSubscriptionCreated appSubID:{0} GloebitSubID:{1}", subscription.ObjectID, subscription.SubscriptionID);
+
             // TODO: Do we need to message any client?
                 
             // OpenSim needs to handle this specially because we are using subscriptions for auto-debit and therefore creating
@@ -2159,24 +2261,34 @@ namespace Gloebit.GloebitMoneyModule
             // Look at authWaitingForSubMap - if auth waiting, start that flow.
             IClientAPI client = null;
             bool foundClient = false;
-            lock (m_authWaitingForSubMap) {
-                foundClient = m_authWaitingForSubMap.TryGetValue (subscription.ObjectID, out client);
-                if (foundClient) {
-                    m_authWaitingForSubMap.Remove (subscription.ObjectID);
+            UUID objectId = UUID.Parse(subscription.ObjectID);
+
+            lock (m_authWaitingForSubMap) 
+            {
+                foundClient = m_authWaitingForSubMap.TryGetValue (objectId, out client);
+                if (foundClient) 
+                {
+                    m_authWaitingForSubMap.Remove (objectId);
                 }
             }
+
             // TODO: Not sending dialog.  Just creating auth.  Should we separate flow from transaction failure and deliver dialog?
-            if (foundClient) {
+            if (foundClient) 
+            {
                 m_apiW.AuthorizeSubscription(client.AgentId, String.Empty, subscription, false);
             }
         }
 
         public void AlertSubscriptionCreationFailed(GloebitSubscription subscription)
         {
-            m_log.InfoFormat ("[GLOEBITMONEYMODULE].AlertSubscriptionCreationFailed appSubID:{0}", subscription.ObjectID);
+            UUID objectId = UUID.Parse(subscription.ObjectID);
+
+            m_log.InfoFormat ("[GLOEBITMONEYMODULE].AlertSubscriptionCreationFailed appSubID:{0}", objectId);
+
             // If we added to this map.  remove so we're not leaking memory in failure cases.
-            lock(m_authWaitingForSubMap) {
-                m_authWaitingForSubMap.Remove(subscription.ObjectID);
+            lock(m_authWaitingForSubMap) 
+            {
+                m_authWaitingForSubMap.Remove(objectId);
             }
         }
         
@@ -2723,11 +2835,13 @@ namespace Gloebit.GloebitMoneyModule
             m_log.InfoFormat("[GLOEBITMONEYMODULE] ObjectBuy Transaction queued {0}", txn.TransactionID.ToString());
         }
 
-        private bool deliverObject(GloebitTransaction txn, out string returnMsg) {
+        private bool deliverObject(GloebitTransaction txn, out string returnMsg) 
+        {
             // TODO: this could fail if user logs off right after submission.  Is this what we want?
             // TODO: This basically always fails when you crash opensim and recover during a transaction.  Is this what we want?
-            IClientAPI buyerClient = LocateClientObject(txn.PayerID);
-            if (buyerClient == null) {
+            IClientAPI buyerClient = LocateClientObject(UUID.Parse(txn.PayerID));
+            if (buyerClient == null) 
+            {
                 m_log.ErrorFormat("[GLOEBITMONEYMODULE].deliverObject FAILED to locate buyer agent.  Agent may have logged out prior to delivery.");
                 returnMsg = "Can't locate buyer.";
                 return false;
@@ -2735,9 +2849,11 @@ namespace Gloebit.GloebitMoneyModule
 
             // Retrieve BuySellModule used for delivering this asset
             Scene s = LocateSceneClientIn(buyerClient.AgentId);
+            
             // TODO: we should be locating the scene the part is in instead of the agent in case the agent moved (to a non Gloebit region) -- maybe store scene ID in asset -- see processLandBuy?
             IBuySellModule module = s.RequestModuleInterface<IBuySellModule>();
-            if (module == null) {
+            if (module == null) 
+            {
                 m_log.ErrorFormat("[GLOEBITMONEYMODULE].deliverObject FAILED to access to IBuySellModule");
                 returnMsg = "Can't access IBuySellModule.";
                 return false;
@@ -2745,24 +2861,33 @@ namespace Gloebit.GloebitMoneyModule
 
             // Rebuild delivery params from Asset and attempt delivery of object
             uint localID;
-            if (!txn.TryGetLocalID(out localID)) {
+            if (!txn.TryGetLocalID(out localID)) 
+            {
                 SceneObjectPart part;
-                if (s.TryGetSceneObjectPart(txn.PartID, out part)) {
+                if (s.TryGetSceneObjectPart(UUID.Parse(txn.PartID), out part)) 
+                {
                     localID = part.LocalId;
-                } else {
+                } 
+                else 
+                {
                     m_log.ErrorFormat("[GLOEBITMONEYMODULE].deliverObject FAILED to deliver asset - could not retrieve SceneObjectPart from ID");
                     returnMsg = "Failed to deliver asset.  Could not retrieve SceneObjectPart from ID.";
                     return false;
                 }
             }
-            bool success = module.BuyObject(buyerClient, txn.CategoryID, localID, (byte)txn.SaleType, txn.Amount);
-            if (!success) {
+
+            bool success = module.BuyObject(buyerClient, UUID.Parse(txn.CategoryID), localID, (byte)txn.SaleType, txn.Amount);
+            if (!success) 
+            {
                 m_log.ErrorFormat("[GLOEBITMONEYMODULE].deliverObject FAILED to deliver asset");
                 returnMsg = "IBuySellModule.BuyObject failed delivery attempt.";
-            } else {
+            } 
+            else 
+            {
                 m_log.InfoFormat("[GLOEBITMONEYMODULE].deliverObject SUCCESS - delivered asset");
                 returnMsg = "object delivery succeeded";
             }
+
             return success;
         }
 
@@ -2876,8 +3001,9 @@ namespace Gloebit.GloebitMoneyModule
                 return false;
             }
             int parcelLocalID = (int)localID;
-            UUID agentID = txn.PayerID;
-            UUID regionID = txn.CategoryID;
+            UUID agentID = UUID.Parse(txn.PayerID);
+            UUID regionID = UUID.Parse(txn.CategoryID);
+
             Scene s = GetSceneByUUID(regionID);
             if (s == null) {
                 // Should probably never happen
@@ -2901,11 +3027,13 @@ namespace Gloebit.GloebitMoneyModule
                 return false;
             }
             // Make sure owner hasn't changed
-            if ((parcel.LandData.OwnerID != txn.PayeeID)) {
+            if (parcel.LandData.OwnerID != UUID.Parse(txn.PayeeID)) 
+            {
                 m_log.WarnFormat("[GLOEBITMONEYMODULE] AgentID:{0} attempted to buy a pass on parcel:{1} which changed ownership before transaction completed.", agentID, parcel.LandData.GlobalID);
                 returnMsg = "Parcel ownership has changed.  Please retry purchase.";
                 return false;
             }
+
             // Make sure price hasn't changed
             if(parcel.LandData.PassPrice != txn.Amount)
             {
@@ -3133,27 +3261,36 @@ namespace Gloebit.GloebitMoneyModule
                     // Add region UUID and LandBuyArgs to dictionary accessible for callback and wait for callback
                     // Needs to happen before we submit because C# can delay wakeup for this synchronous call and
                     // the enact could be received before we know if the submission succeeded.
-                    lock(m_landAssetMap) {
-                        m_landAssetMap[txn.TransactionID] = new Object[2]{s.RegionInfo.originRegionID, e};
+                    lock(m_landAssetMap) 
+                    {
+                        m_landAssetMap[UUID.Parse(txn.TransactionID)] = new Object[2]{s.RegionInfo.originRegionID, e};
                     }
                     bool submission_result = m_apiW.SubmitTransaction(txn, description, descMap, true);
                     // See GloebitAPIWrapper.TransactU2UCompleted and helper messaging functions for error messaging on failure - no action required.
                     // See ProcessAssetEnactHold for proceeding with txn on success.
                     
-                    if (!submission_result) {
+                    if (!submission_result) 
+                    {
                         // payment failed.  message user and halt attempt to transfer land
                         //// TODO: message error
-                        lock(m_landAssetMap) {
-                            m_landAssetMap.Remove(txn.TransactionID);
+                        lock(m_landAssetMap) 
+                        {
+                            m_landAssetMap.Remove(UUID.Parse(txn.TransactionID));
                         }
+
                         return;
                     }
                 }
-            } else {                            /* economy is validated.  Second time through or 0G txn */
-                if (e.parcelPrice == 0) {
+            } 
+            else 
+            {                            /* economy is validated.  Second time through or 0G txn */
+                if (e.parcelPrice == 0) 
+                {
                     // Free land.  No economic part.
                     e.amountDebited = 0;
-                } else {
+                } 
+                else 
+                {
                     // Second time through.  Completing a transaction we launched the first time through.
                     // if e.landValidated, land has or will transfer.
                     // We can't verify here because the land process may happen after economy, so do nothing here.
@@ -3162,16 +3299,20 @@ namespace Gloebit.GloebitMoneyModule
             }
         }
 
-        private bool transferLand(GloebitTransaction txn, out string returnMsg) {
+        private bool transferLand(GloebitTransaction txn, out string returnMsg) 
+        {
             //// retrieve LandBuyArgs from assetMap
-            bool foundArgs = m_landAssetMap.ContainsKey(txn.TransactionID);
-            if (!foundArgs) {
+            bool foundArgs = m_landAssetMap.ContainsKey(UUID.Parse(txn.TransactionID));
+            if (!foundArgs) 
+            {
                 returnMsg = "Could not locate land asset for transaction.";
                 return false;
             }
-            Object[] landBuyAsset = m_landAssetMap[txn.TransactionID];
+
+            Object[] landBuyAsset = m_landAssetMap[UUID.Parse(txn.TransactionID)];
             UUID regionID = (UUID)landBuyAsset[0];
             EventManager.LandBuyArgs e = (EventManager.LandBuyArgs)landBuyAsset[1];
+
             // Set land buy args that need setting
             // TODO: should we be creating a new LandBuyArgs and copying the data instead in case anything else subscribes to the LandBuy events and mucked with these?
             e.economyValidated = true;
@@ -3179,12 +3320,14 @@ namespace Gloebit.GloebitMoneyModule
             e.landValidated = false;
 
             //// retrieve client
-            IClientAPI sender = LocateClientObject(txn.PayerID);
-            if (sender == null) {
+            IClientAPI sender = LocateClientObject(UUID.Parse(txn.PayerID));
+            if (sender == null) 
+            {
                 // TODO: Does it matter if we can't locate the client?  Does this break if sender is null?
                 returnMsg = "Could not locate buyer.";
                 return false;
             }
+
             //// retrieve scene
             Scene s = GetSceneByUUID(regionID);
             if (s == null) {
@@ -3194,12 +3337,16 @@ namespace Gloebit.GloebitMoneyModule
 
             //// Trigger validate
             s.EventManager.TriggerValidateLandBuy(sender, e);
+
             // Check land validation
-            if (!e.landValidated) {
+            if (!e.landValidated) 
+            {
                 returnMsg = "Land validation failed.";
                 return false;
             }
-            if (e.parcelOwnerID != txn.PayeeID) {
+
+            if (e.parcelOwnerID != UUID.Parse(txn.PayeeID)) 
+            {
                 returnMsg = "Parcel owner changed.";
                 return false;
             }
@@ -3209,7 +3356,8 @@ namespace Gloebit.GloebitMoneyModule
             // Verify that land transferred successfully - sad that we have to check this.
             ILandObject parcel = s.LandChannel.GetLandObject(e.parcelLocalID);
             UUID newOwnerID = parcel.LandData.OwnerID;
-            if (newOwnerID != txn.PayerID) {
+            if (newOwnerID != UUID.Parse(txn.PayerID)) 
+            {
                 // This should only happen if due to race condition.  Unclear if possible or result.
                 returnMsg = "Land transfer failed.  Owner is not buyer.";
                 return false;
@@ -3231,7 +3379,8 @@ namespace Gloebit.GloebitMoneyModule
         /// <param name="objectID">SceneObjectPart UUID of the item the client is granting permissions on</param>
         /// <param name="itemID">UUID of the TaskInventoryItem associated with this SceneObjectPart which handles permissions</param>
         /// <param name="answer">Bitmap of the permissions which are being granted</param>
-        private void handleScriptAnswer(IClientAPI client, UUID objectID, UUID itemID, int answer) {
+        private void handleScriptAnswer(IClientAPI client, UUID objectID, UUID itemID, int answer) 
+        {
             // m_log.InfoFormat("[GLOEBITMONEYMODULE] handleScriptAnswer for client:{0} with objectID:{1}, itemID:{2}, answer:{3}", client.AgentId, objectID, itemID, answer);
 
             if ((answer & ScriptBaseClass.PERMISSION_DEBIT) == 0)
@@ -3248,16 +3397,22 @@ namespace Gloebit.GloebitMoneyModule
             // Check subscription table.  If not exists, send create call to Gloebit.
             m_log.DebugFormat("[GLOEBITMONEYMODULE] handleScriptAnswer - looking for local subscription");
             GloebitSubscription sub = GloebitSubscription.Get(objectID, m_key, m_apiUrl);
-            if (sub == null || sub.SubscriptionID == UUID.Zero) {
+
+            if (sub == null || (sub.SubscriptionID == UUID.Zero.ToString())) 
+            {
                 // Don't create unless the object has a name and description
                 // Make sure Name and Description are not null to avoid pgsql issue with storing null values
                 // Make sure neither are empty as they are required by Gloebit to create a subscription
                 SceneObjectPart part = findPrim(objectID);
-                if (part == null) {
+
+                if (part == null) 
+                {
                     m_log.ErrorFormat("[GLOEBITMONEYMODULE] handleScriptAnswer - Could not find object - ID:{0}", objectID);
                     return;
                 }
-                if (String.IsNullOrEmpty(part.Name) || String.IsNullOrEmpty(part.Description)) {
+
+                if (String.IsNullOrEmpty(part.Name) || String.IsNullOrEmpty(part.Description)) 
+                {
                     m_log.WarnFormat("[GLOEBITMONEYMODULE] handleScriptAnswer - Can not create local subscription because part name or description is blank - Name:{0} Description:{1}", part.Name, part.Description);
                     // Send message to the owner to let them know they must edit the object and add a name and description
                     String imMsg = String.Format("Object with auto-debit script is missing a name or description.  Name and description are required by Gloebit in order to create a subscription for this auto-debit object.  Please enter a name and description in the object.  Current values are Name:[{0}] and Description:[{1}].", part.Name, part.Description);
@@ -3266,7 +3421,8 @@ namespace Gloebit.GloebitMoneyModule
                 }
 
                 // Add this user to map of waiting for sub to create auth.
-                lock(m_authWaitingForSubMap) {
+                lock(m_authWaitingForSubMap) 
+                {
                     m_authWaitingForSubMap[objectID] = client;
                 }
 
@@ -3568,7 +3724,7 @@ namespace Gloebit.GloebitMoneyModule
         /// </summary>
         private void sendTxnStatusToClient(GloebitTransaction txn, IClientAPI client, string baseStatus, bool showTxnDetails, bool showTxnID)
         {
-            sendTxnStatusToClient(txn, client, baseStatus, showTxnDetails, showTxnID, txn.PayerID);
+            sendTxnStatusToClient(txn, client, baseStatus, showTxnDetails, showTxnID, UUID.Parse(txn.PayerID));
         }
         
         /// <summary>
@@ -3889,19 +4045,22 @@ namespace Gloebit.GloebitMoneyModule
             }
             
             // Alert payer
-            IClientAPI payerClient = LocateClientObject(txn.PayerID);
+            IClientAPI payerClient = LocateClientObject(UUID.Parse(txn.PayerID));
+
             // TODO: remove description once in txn and managed in sendTxnStatusToClient
             //string baseStatus = String.Format("Submitting transaction request...\n   {0}", actionStr);
             string baseStatus = String.Format("Submitting transaction request...\n   {0}\nDescription: {1}", actionStr, description);
             sendTxnStatusToClient(txn, payerClient, baseStatus, showDetailsWithTxnBegun, showIDWithTxnBegun);
             
             // If necessary, alert Payee
-            if (messagePayee && (txn.PayerID != txn.PayeeID)) {
-                IClientAPI payeeClient = LocateClientObject(txn.PayeeID);
+            if (messagePayee && (txn.PayerID != txn.PayeeID)) 
+            {
+                IClientAPI payeeClient = LocateClientObject(UUID.Parse(txn.PayeeID));
+
                 // TODO: remove description once in txn and managed in sendTxnStatusToClient
                 // string payeeBaseStatus = String.Format("Submitting transaction request...\n   {0}", payeeActionStr);
                 string payeeBaseStatus = String.Format("Submitting transaction request...\n   {0}\nDescription: {1}", payeeActionStr, description);
-                sendTxnStatusToClient(txn, payeeClient, payeeBaseStatus, showDetailsWithTxnBegun, showIDWithTxnBegun, txn.PayeeID);
+                sendTxnStatusToClient(txn, payeeClient, payeeBaseStatus, showDetailsWithTxnBegun, showIDWithTxnBegun, UUID.Parse(txn.PayeeID));
             }
         }
         
@@ -4061,7 +4220,7 @@ namespace Gloebit.GloebitMoneyModule
             }
             
             // for now, we're only going to send these to the payer.
-            IClientAPI payerClient = LocateClientObject(txn.PayerID);
+            IClientAPI payerClient = LocateClientObject(UUID.Parse(txn.PayerID));
             sendTxnStatusToClient(txn, payerClient, status, showDetailsWithTxnStage, showIDWithTxnStage);
         }
         
@@ -4267,32 +4426,36 @@ namespace Gloebit.GloebitMoneyModule
             }
             
             // send failure alert to payer
-            IClientAPI payerClient = LocateClientObject(txn.PayerID);
+            IClientAPI payerClient = LocateClientObject(UUID.Parse(txn.PayerID));
             sendTxnStatusToClient(txn, payerClient, statusAndInstruction, showDetailsWithTxnFailed, showIDWithTxnFailed);
             
             // Determine if alert needs to be sent to payee and send
             IClientAPI payeeClient = null;
-            if (txn.TransactionType == (int)TransactionType.OBJECT_PAYS_USER || messagePayee) {
+            if (txn.TransactionType == (int)TransactionType.OBJECT_PAYS_USER || messagePayee) 
+            {
                 // locate payee since we'll need to message
-                payeeClient = LocateClientObject(txn.PayeeID);
+                payeeClient = LocateClientObject(UUID.Parse(txn.PayeeID));
             }
+
             // If this is a transaction type where we notified the payer the txn started, we should alert to failure as payer may have triggered the txn
-            if (txn.TransactionType == (int)TransactionType.OBJECT_PAYS_USER) {
+            if (txn.TransactionType == (int)TransactionType.OBJECT_PAYS_USER) 
+            {
                 // build failure alert from temp strings
                 statusAndInstruction = status;
                 if (!String.IsNullOrEmpty(payeeInstruction)) {
                     statusAndInstruction = String.Format("{0}\n{1}", status, payeeInstruction);
                 }
-                sendTxnStatusToClient(txn, payeeClient, statusAndInstruction, showDetailsWithTxnFailed, showIDWithTxnFailed, txn.PayeeID);
+                sendTxnStatusToClient(txn, payeeClient, statusAndInstruction, showDetailsWithTxnFailed, showIDWithTxnFailed, UUID.Parse(txn.PayeeID));
             }
             
             // If necessary, send separate message to Payee
             if (messagePayee) {
-                sendMessageToClient(payeeClient, payeeMessage, txn.PayeeID);
+                sendMessageToClient(payeeClient, payeeMessage, UUID.Parse(txn.PayeeID));
                 // TODO: this message should be delivered to email if client is not online and didn't trigger this message.
                 
                 // Since unidentified seller can now be fixed by auth, send the auth link if they are online
-                if (payeeClient != null && failure == GloebitAPI.TransactionFailure.PAYEE_CANNOT_BE_IDENTIFIED) {
+                if (payeeClient != null && failure == GloebitAPI.TransactionFailure.PAYEE_CANNOT_BE_IDENTIFIED) 
+                {
                     m_apiW.Authorize(payeeClient.AgentId, payeeClient.Name);
                 }
             }
@@ -4310,20 +4473,20 @@ namespace Gloebit.GloebitMoneyModule
             bool showDetailsWithTxnSucceeded = false;
             bool showIDWithTxnSucceeded = false;
             
-            IClientAPI payerClient = LocateClientObject(txn.PayerID);
-            IClientAPI payeeClient = LocateClientObject(txn.PayeeID);   // get this regardless of messaging since we'll try to update balance
+            IClientAPI payerClient = LocateClientObject(UUID.Parse(txn.PayerID));
+            IClientAPI payeeClient = LocateClientObject(UUID.Parse(txn.PayeeID));   // get this regardless of messaging since we'll try to update balance
             
             // send success message to payer
             sendTxnStatusToClient(txn, payerClient, "Transaction SUCCEEDED.", showDetailsWithTxnSucceeded, showIDWithTxnSucceeded);
             
             // If this is a transaction type where we notified the payee the txn started, we should alert to successful completion
             if ((txn.TransactionType == (int)TransactionType.OBJECT_PAYS_USER) && (txn.PayerID != txn.PayeeID)) {
-                sendTxnStatusToClient(txn, payeeClient, "Transaction SUCCEEDED.", showDetailsWithTxnSucceeded, showIDWithTxnSucceeded, txn.PayeeID);
+                sendTxnStatusToClient(txn, payeeClient, "Transaction SUCCEEDED.", showDetailsWithTxnSucceeded, showIDWithTxnSucceeded, UUID.Parse(txn.PayeeID));
             }
             // If this transaction was one user paying another, if the user is online, we should let them know they received a payment
             if (txn.TransactionType == (int)TransactionType.USER_PAYS_USER) {
                 string message = String.Format("You've received Gloebits from {0}.", resolveAgentName(payerClient.AgentId));
-                sendTxnStatusToClient(txn, payeeClient, message, true, showIDWithTxnSucceeded, txn.PayeeID);
+                sendTxnStatusToClient(txn, payeeClient, message, true, showIDWithTxnSucceeded, UUID.Parse(txn.PayeeID));
             }
             // TODO: consider if we want to send an alert that payee earned money with transaction details for other transaction types
             
@@ -4332,19 +4495,58 @@ namespace Gloebit.GloebitMoneyModule
             // TODO: Once we store description in txn, change 3rd arg in SMB below to Utils.StringToBytes(description)
             
             // Update Payer & Payee balances if still logged in.
-            if (payerClient != null) {
-                if (txn.PayerEndingBalance >= 0) {  /* if -1, got an invalid balance in response.  possible this shouldn't ever happen */
-                    payerClient.SendMoneyBalance(txn.TransactionID, true, new byte[0], txn.PayerEndingBalance, txn.TransactionType, txn.PayerID, false, txn.PayeeID, false, txn.Amount, txn.PartDescription);
-                } else {
+            if (payerClient != null) 
+            {
+                if (txn.PayerEndingBalance >= 0) 
+                {  /* if -1, got an invalid balance in response.  possible this shouldn't ever happen */
+                    payerClient.SendMoneyBalance(
+                        UUID.Parse(txn.TransactionID), 
+                        true, 
+                        new byte[0], 
+                        txn.PayerEndingBalance, 
+                        txn.TransactionType, 
+                        UUID.Parse(txn.PayerID), 
+                        false, 
+                        UUID.Parse(txn.PayeeID), 
+                        false, 
+                        txn.Amount, 
+                        txn.PartDescription);
+                } 
+                else 
+                {
                     // TODO: consider what this delays while it makes non async call GetBalance from GetUserBalance call get balance
-                    int payerBalance = (int)m_apiW.GetUserBalance(txn.PayerID, true, payerClient.Name);
-                    payerClient.SendMoneyBalance(txn.TransactionID, true, new byte[0], payerBalance, txn.TransactionType, txn.PayerID, false, txn.PayeeID, false, txn.Amount, txn.PartDescription);
+                    int payerBalance = (int)m_apiW.GetUserBalance(UUID.Parse(txn.PayerID), true, payerClient.Name);
+                    payerClient.SendMoneyBalance(
+                        UUID.Parse(txn.TransactionID), 
+                        true, 
+                        new byte[0], 
+                        payerBalance, 
+                        txn.TransactionType, 
+                        UUID.Parse(txn.PayerID), 
+                        false, 
+                        UUID.Parse(txn.PayeeID), 
+                        false, 
+                        txn.Amount, 
+                        txn.PartDescription);
                 }
             }
-            if ((payeeClient != null) && (txn.PayerID != txn.PayeeID)) {
+
+            if ((payeeClient != null) && (txn.PayerID != txn.PayeeID)) 
+            {
                 // TODO: consider what this delays while it makes non async call GetBalance from GetUserBalance call get balance
-                int payeeBalance = (int)m_apiW.GetUserBalance(txn.PayeeID, false, payeeClient.Name);
-                payeeClient.SendMoneyBalance(txn.TransactionID, true, new byte[0], payeeBalance, txn.TransactionType, txn.PayerID, false, txn.PayeeID, false, txn.Amount, txn.PartDescription);
+                int payeeBalance = (int)m_apiW.GetUserBalance(UUID.Parse(txn.PayeeID), false, payeeClient.Name);
+                payeeClient.SendMoneyBalance(
+                    UUID.Parse(txn.TransactionID), 
+                    true, 
+                    new byte[0], 
+                    payeeBalance, 
+                    txn.TransactionType, 
+                    UUID.Parse(txn.PayerID), 
+                    false, 
+                    UUID.Parse(txn.PayeeID), 
+                    false, 
+                    txn.Amount, 
+                    txn.PartDescription);
             }
         }
         

@@ -31,9 +31,8 @@ using System.Reflection;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using log4net;
-using MySql.Data.MySqlClient;
 using OpenMetaverse;
-
+using MySqlConnector;
 
 namespace OpenSim.Data.MySQL.MoneyData
 {

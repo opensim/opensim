@@ -26,14 +26,12 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
-using MySql.Data.MySqlClient;
+using MySqlConnector;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Data;
 using RegionFlags = OpenSim.Framework.RegionFlags;
 
 namespace OpenSim.Data.MySQL

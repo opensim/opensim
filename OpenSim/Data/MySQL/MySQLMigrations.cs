@@ -25,15 +25,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using MySqlConnector;
 using System;
-using System.Collections.Generic;
-using System.Data;
 using System.Data.Common;
-using System.IO;
 using System.Reflection;
-using System.Text.RegularExpressions;
-using log4net;
-using MySql.Data.MySqlClient;
 
 namespace OpenSim.Data.MySQL
 {
@@ -65,19 +60,35 @@ namespace OpenSim.Data.MySQL
                 base.ExecuteScript(conn, script);
                 return;
             }
-
-            MySqlScript scr = new MySqlScript((MySqlConnection)conn);
+            foreach (string sql in script)
             {
-                foreach (string sql in script)
+                try
                 {
-                    scr.Query = sql;
-                    scr.Error += delegate(object sender, MySqlScriptErrorEventArgs args)
+                    using (MySqlCommand cmd = new MySqlCommand(sql, (MySqlConnection)conn))
                     {
-                        throw new Exception(sql);
-                    };
-                    scr.Execute();
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+                catch (Exception)
+                {
+                    throw new Exception(sql);
+
                 }
             }
+
+            // XXX Was
+            //MySqlScript scr = new MySqlScript((MySqlConnection)conn);
+            //{
+            //    foreach (string sql in script)
+            //    {
+            //        scr.Query = sql;
+            //        scr.Error += delegate(object sender, MySqlScriptErrorEventArgs args)
+            //        {
+            //            throw new Exception(sql);
+            //        };
+            //        scr.Execute();
+            //    }
+            //}
         }
     }
 }

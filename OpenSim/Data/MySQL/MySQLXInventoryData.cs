@@ -31,9 +31,9 @@ using System.Data;
 using System.Text;
 using System.Reflection;
 using log4net;
-using MySql.Data.MySqlClient;
 using OpenMetaverse;
 using OpenSim.Framework;
+using MySqlConnector;
 
 namespace OpenSim.Data.MySQL
 {

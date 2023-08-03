@@ -36,12 +36,15 @@ namespace Gloebit.GloebitMoneyModule {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         // Primary Key value
-        public UUID TransactionID;
+        //public UUID TransactionID;
+        public string TransactionID;
 
         // Common, vital transaction details
-        public UUID PayerID;
+        //public UUID PayerID;
+        public string PayerID;
         public string PayerName;    // TODO: do we need to ensure this is not larger than the db field on hypergrid? - VARCHAR(255)
-        public UUID PayeeID;
+        //public UUID PayeeID;
+        public string PayeeID;
         public string PayeeName;    // TODO: do we need to ensure this is not larger than the db field on hypergrid? - VARCHAR(255)
         public int Amount;
 
@@ -51,15 +54,18 @@ namespace Gloebit.GloebitMoneyModule {
 
         // Subscription info
         public bool IsSubscriptionDebit;
-        public UUID SubscriptionID;
+        //public UUID SubscriptionID;
+        public string SubscriptionID;
 
         // Object info required when enacting/consume/canceling, delivering, and handling subscriptions
-        public UUID PartID;         // UUID of object
+        //public UUID PartID;         // UUID of object
+        public string PartID;         // UUID of object
         public string PartName;     // object name
         public string PartDescription;
 
         // Details required by IBuySellModule when delivering an object
-        public UUID CategoryID;     // Appears to be a folder id used when saleType is copy
+        //public UUID CategoryID;     // Appears to be a folder id used when saleType is copy
+        public string CategoryID;     // Appears to be a folder id used when saleType is copy
         private uint? m_localID;    // Region specific ID of object.  Unclear why this is passed instead of UUID
         public int SaleType;        // object, copy, or contents
 
@@ -97,8 +103,24 @@ namespace Gloebit.GloebitMoneyModule {
             m_localID = null;
         }
 
-        private GloebitTransaction(UUID transactionID, UUID payerID, string payerName, UUID payeeID, string payeeName, int amount, int transactionType, string transactionTypeString, bool isSubscriptionDebit, UUID subscriptionID, UUID partID, string partName, string partDescription, UUID categoryID, uint localID, int saleType) {
-
+        private GloebitTransaction(
+            string transactionID, 
+            string payerID, 
+            string payerName, 
+            string payeeID, 
+            string payeeName, 
+            int amount, 
+            int transactionType, 
+            string transactionTypeString, 
+            bool isSubscriptionDebit, 
+            string subscriptionID, 
+            string partID, 
+            string partName, 
+            string partDescription, 
+            string categoryID, 
+            uint localID, 
+            int saleType) 
+        {
             // Primary Key value
             this.TransactionID = transactionID;
 
@@ -145,6 +167,7 @@ namespace Gloebit.GloebitMoneyModule {
             this.cTime = DateTime.UtcNow;
             this.enactedTime = null; // set to null instead of DateTime.MinValue to avoid crash on reading 0 timestamp
             this.finishedTime = null; // set to null instead of DateTime.MinValue to avoid crash on reading 0 timestamp
+
             // TODO: We have made these nullable and initialize to null.  We could alternatively choose a time that is not zero
             // and avoid any potential conflicts from allowing null.
             // On MySql, I had to set the columns to allow NULL, otherwise, inserting null defaulted to the current local time.
@@ -156,7 +179,23 @@ namespace Gloebit.GloebitMoneyModule {
         // First verifies that a transaction with this ID does not already exist
         // --- If existing txn is found, returns null
         // Creates new Transaction, stores it in the cache and db
-        public static GloebitTransaction Create(UUID transactionID, UUID payerID, string payerName, UUID payeeID, string payeeName, int amount, int transactionType, string transactionTypeString, bool isSubscriptionDebit, UUID subscriptionID, UUID partID, string partName, string partDescription, UUID categoryID, uint localID, int saleType)
+        public static GloebitTransaction Create(
+            string transactionID, 
+            string payerID, 
+            string payerName, 
+            string payeeID, 
+            string payeeName, 
+            int amount, 
+            int transactionType, 
+            string transactionTypeString, 
+            bool isSubscriptionDebit, 
+            string subscriptionID, 
+            string partID, 
+            string partName, 
+            string partDescription, 
+            string categoryID, 
+            uint localID, 
+            int saleType)
         {
             // Create the Transaction
             GloebitTransaction txn = new GloebitTransaction(transactionID, payerID, payerName, payeeID, payeeName, amount, transactionType, transactionTypeString, isSubscriptionDebit, subscriptionID, partID, partName, partDescription, categoryID, localID, saleType);
