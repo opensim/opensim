@@ -1392,7 +1392,7 @@ namespace OpenSim.Data.MySQL.MoneyData
             MySqlCommand cmd = new MySqlCommand(sql, dbcon);
             cmd.Parameters.AddWithValue("?status", status);
             cmd.Parameters.AddWithValue("?desc", description);
-            cmd.Parameters.AddWithValue("?tranid", transactionID);
+            cmd.Parameters.AddWithValue("?tranid", transactionID.ToString());
 
             if (cmd.ExecuteNonQuery() > 0) bRet = true;
 
