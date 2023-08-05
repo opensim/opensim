@@ -93,7 +93,7 @@ namespace OpenSim.Data.MySQL
                 dbcon.Open();
                 using (MySqlCommand cmd = new MySqlCommand(query, dbcon))
                 {
-                    cmd.Parameters.AddWithValue("?Id", creatorId);
+                    cmd.Parameters.AddWithValue("?Id", creatorId.ToString());
                     using( MySqlDataReader reader = cmd.ExecuteReader(CommandBehavior.Default))
                     {
                         if(reader.HasRows)
@@ -142,8 +142,8 @@ namespace OpenSim.Data.MySQL
                 +  "`simname`,"
                 +  "`posglobal`,"
                 +  "`parcelname`,"
-                + "`classifiedflags`,"
-                + "`priceforlisting`) "
+                +  "`classifiedflags`,"
+                +  "`priceforlisting`) "
                 + "VALUES ("
                 + "?ClassifiedId,"
                 + "?CreatorId,"
