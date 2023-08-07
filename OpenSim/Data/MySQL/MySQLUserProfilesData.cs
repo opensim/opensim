@@ -288,7 +288,7 @@ namespace OpenSim.Data.MySQL
                                 ad.ExpirationDate = Convert.ToInt32(reader["expirationdate"]);
                                 ad.ParentEstate = Convert.ToInt32(reader["parentestate"]);
                                 ad.Flags = (byte)reader.GetUInt32("classifiedflags");
-                                ad.Category = reader.GetInt32("category");
+                                ad.Category = Convert.ToInt32(reader["category"]);
                                 ad.Price = reader.GetInt16("priceforlisting");
                                 ad.Name = reader.GetString("name");
                                 ad.Description = reader.GetString("description");
