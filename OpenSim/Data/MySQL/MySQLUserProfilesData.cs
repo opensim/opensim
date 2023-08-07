@@ -93,7 +93,7 @@ namespace OpenSim.Data.MySQL
                 dbcon.Open();
                 using (MySqlCommand cmd = new MySqlCommand(query, dbcon))
                 {
-                    cmd.Parameters.AddWithValue("?Id", creatorId);
+                    cmd.Parameters.AddWithValue("?Id", creatorId.ToString());
                     using( MySqlDataReader reader = cmd.ExecuteReader(CommandBehavior.Default))
                     {
                         if(reader.HasRows)
@@ -142,8 +142,8 @@ namespace OpenSim.Data.MySQL
                 +  "`simname`,"
                 +  "`posglobal`,"
                 +  "`parcelname`,"
-                + "`classifiedflags`,"
-                + "`priceforlisting`) "
+                +  "`classifiedflags`,"
+                +  "`priceforlisting`) "
                 + "VALUES ("
                 + "?ClassifiedId,"
                 + "?CreatorId,"
@@ -288,7 +288,7 @@ namespace OpenSim.Data.MySQL
                                 ad.ExpirationDate = Convert.ToInt32(reader["expirationdate"]);
                                 ad.ParentEstate = Convert.ToInt32(reader["parentestate"]);
                                 ad.Flags = (byte)reader.GetUInt32("classifiedflags");
-                                ad.Category = reader.GetInt32("category");
+                                ad.Category = Convert.ToInt32(reader["category"]);
                                 ad.Price = reader.GetInt16("priceforlisting");
                                 ad.Name = reader.GetString("name");
                                 ad.Description = reader.GetString("description");

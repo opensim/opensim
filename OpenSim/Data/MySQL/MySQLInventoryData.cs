@@ -494,7 +494,7 @@ namespace OpenSim.Data.MySQL
                         result.Parameters.AddWithValue("?salePrice", item.SalePrice);
                         result.Parameters.AddWithValue("?saleType", unchecked((sbyte)item.SaleType));
                         result.Parameters.AddWithValue("?creationDate", item.CreationDate);
-                        result.Parameters.AddWithValue("?groupID", item.GroupID);
+                        result.Parameters.AddWithValue("?groupID", item.GroupID.ToString());
                         result.Parameters.AddWithValue("?groupOwned", item.GroupOwned);
                         result.Parameters.AddWithValue("?flags", item.Flags);
 
