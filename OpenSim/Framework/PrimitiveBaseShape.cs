@@ -154,10 +154,36 @@ namespace OpenSim.Framework
 
         [XmlIgnore]
         public Primitive.RenderMaterials RenderMaterials = null;
-
         public bool MeshFlagEntry
         {
-            get { return _meshFlagsEntry;}
+            get { return _meshFlagsEntry; }
+        }
+
+        public bool AnimeshEnabled
+        {
+            get
+            {
+                return(_meshFlagsEntry &&
+                        (_meshFlags & 0x01) != 0 &&
+                        (_sculptType & 0x07) == (int)OpenMetaverse.SculptType.Mesh);
+            }
+            set
+            {
+                if((_sculptType & 0x07) != (int)OpenMetaverse.SculptType.Mesh)
+                {
+                    _meshFlagsEntry = false;
+                    _meshFlags = 0;
+                    return;
+                }
+
+                if (value)
+                {
+                    _meshFlagsEntry = true;
+                    _meshFlags |= 1;
+                }
+                else
+                    _meshFlags &= 0xfe;
+            }
         }
 
         public byte ProfileCurve
@@ -1115,6 +1141,7 @@ namespace OpenSim.Framework
                     if (!inUse)
                     {
                         _meshFlagsEntry = false;
+                        _meshFlags = 0;
                         return;
                     }
                     ReadMeshFlagsData(data, 0);
@@ -1324,16 +1351,8 @@ namespace OpenSim.Framework
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ReadMeshFlagsData(byte[] data, int pos)
         {
-            if (data.Length - pos >= 4)
-            {
-                _meshFlagsEntry = true;
-                _meshFlags = Utils.BytesToUInt(data, pos);
-            }
-            else
-            {
-                _meshFlagsEntry = true;
-                _meshFlags = 0;
-            }
+            _meshFlagsEntry = true;
+            _meshFlags = data.Length - pos >= 4 ? Utils.BytesToUInt(data, pos) : 0;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

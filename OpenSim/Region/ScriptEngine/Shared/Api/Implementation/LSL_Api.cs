@@ -8458,16 +8458,42 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         }
 
         // Prim type sculpt.
-        protected void SetPrimitiveShapeParams(SceneObjectPart part, string map, int type, byte pathcurve)
+        protected void SetPrimitiveShapeSculptParams(SceneObjectPart part, string map, int type, byte pathcurve)
         {
-            if (part is null || part.ParentGroup is null || part.ParentGroup.IsDeleted)
+            bool partIsMesh = part.Shape.SculptEntry && (part.Shape.SculptType & ScriptBaseClass.PRIM_SCULPT_TYPE_MASK) == ScriptBaseClass.PRIM_SCULPT_TYPE_MESH;
+
+            int base_type = type & ScriptBaseClass.PRIM_SCULPT_TYPE_MASK;
+            if(base_type == ScriptBaseClass.PRIM_SCULPT_TYPE_MESH)
+            {
+                if(!partIsMesh)
+                    return;
+
+                bool animeshEnable = (type & ScriptBaseClass.PRIM_SCULPT_FLAG_ANIMESH) != 0;
+                if (animeshEnable != part.Shape.AnimeshEnabled)
+                {
+                    part.Shape.AnimeshEnabled = animeshEnable;
+                    part.ParentGroup.HasGroupChanged = true;
+                    part.TriggerScriptChangedEvent(Changed.SHAPE);
+                    part.ScheduleFullAnimUpdate();
+                }
                 return;
+            }
+            if (base_type > 5)
+                return;
+
+            if (partIsMesh)
+                return;
+
+            type &= ~ScriptBaseClass.PRIM_SCULPT_FLAG_ANIMESH;
 
             if (!UUID.TryParse(map, out UUID sculptId))
                 sculptId = ScriptUtils.GetAssetIdFromItemName(m_host, map, (int)AssetType.Texture);
 
             if (sculptId.IsZero())
                 return;
+
+            part.Shape.SetSculptProperties((byte)type, sculptId);
+            part.Shape.SculptEntry = true;
 
             ObjectShapePacket.ObjectDataBlock shapeBlock = new()
             {
@@ -8476,20 +8502,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 PathScaleX = 100,
                 PathScaleY = 150
             };
-
-            int flag = type & (ScriptBaseClass.PRIM_SCULPT_FLAG_INVERT | ScriptBaseClass.PRIM_SCULPT_FLAG_MIRROR);
-
-            if (type != (ScriptBaseClass.PRIM_SCULPT_TYPE_CYLINDER | flag) &&
-                type != (ScriptBaseClass.PRIM_SCULPT_TYPE_PLANE | flag) &&
-                type != (ScriptBaseClass.PRIM_SCULPT_TYPE_SPHERE | flag) &&
-                type != (ScriptBaseClass.PRIM_SCULPT_TYPE_TORUS | flag))
-            {
-                // default
-                type |= ScriptBaseClass.PRIM_SCULPT_TYPE_SPHERE;
-            }
-
-            part.Shape.SetSculptProperties((byte)type, sculptId);
-            part.Shape.SculptEntry = true;
             part.UpdateShape(shapeBlock);
         }
 
@@ -9457,7 +9469,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                         Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TYPE, PRIM_TYPE_SCULPT: arg #{1} - parameter 4 must be integer", rulesParsed, idx - idxStart - 1));
                                         return new LSL_List();
                                     }
-                                    SetPrimitiveShapeParams(part, map, face, (byte)Extrusion.Curve1);
+                                    SetPrimitiveShapeSculptParams(part, map, face, (byte)Extrusion.Curve1);
                                     break;
                             }
 
@@ -11143,7 +11155,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                             case ScriptBaseClass.PRIM_TYPE_SCULPT:
                                 res.Add(new LSL_String(Shape.SculptTexture.ToString()));
-                                res.Add(new LSL_Integer(Shape.SculptType));
+                                int stype = Shape.SculptType;
+                                if (Shape.AnimeshEnabled)
+                                    stype |= ScriptBaseClass.PRIM_SCULPT_FLAG_ANIMESH;
+                                else
+                                    stype &= ScriptBaseClass.PRIM_SCULPT_FLAG_ANIMESH;
+                                res.Add(new LSL_Integer(stype));
                                 break;
 
                             case ScriptBaseClass.PRIM_TYPE_RING:
