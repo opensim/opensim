@@ -3113,7 +3113,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Float llGetWallclock()
         {
-            return DateTime.Now.TimeOfDay.TotalSeconds;
+            var tzinfo = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+            var dateTime = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, tzinfo).DateTime;
+            return (float)Math.Truncate(dateTime.TimeOfDay.TotalSeconds);
         }
 
         public LSL_Float llGetTime()
