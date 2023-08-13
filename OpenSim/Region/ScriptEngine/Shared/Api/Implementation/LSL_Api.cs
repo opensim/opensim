@@ -114,6 +114,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected float m_recoilScaleFactor = 0.0f;
         protected bool m_AllowGodFunctions;
 
+        protected string m_GetWallclockTimeZone = String.Empty;     // Defaults to UTC
         protected double m_timer = Util.GetTimeStampMS();
         protected bool m_waitingForScriptAnswer = false;
         protected bool m_automaticLinkPermission = false;
@@ -430,6 +431,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 m_MinTimerInterval         = seConfig.GetFloat("MinTimerInterval", m_MinTimerInterval);
                 m_automaticLinkPermission  = seConfig.GetBoolean("AutomaticLinkPermission", m_automaticLinkPermission);
                 m_notecardLineReadCharsMax = seConfig.GetInt("NotecardLineReadCharsMax", m_notecardLineReadCharsMax);
+
+                m_GetWallclockTimeZone = seConfig.GetString("GetWallclockTimeZone", m_GetWallclockTimeZone);
 
                 // Rezzing an object with a velocity can create recoil. This feature seems to have been
                 //    removed from recent versions of SL. The code computes recoil (vel*mass) and scales
@@ -3113,9 +3116,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Float llGetWallclock()
         {
-            var tzinfo = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
-            var dateTime = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, tzinfo).DateTime;
-            return Math.Truncate(dateTime.TimeOfDay.TotalSeconds);
+            DateTimeOffset dateTimeOffset = DateTimeOffset.Now;
+
+            if (string.IsNullOrEmpty(m_GetWallclockTimeZone) == false)
+            {
+                dateTimeOffset = 
+                    TimeZoneInfo.ConvertTimeBySystemTimeZoneId(
+                        DateTimeOffset.UtcNow, m_GetWallclockTimeZone);
+            }
+
+            return Math.Truncate(dateTimeOffset.DateTime.TimeOfDay.TotalSeconds);
         }
 
         public LSL_Float llGetTime()
