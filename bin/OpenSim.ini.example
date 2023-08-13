@@ -1017,6 +1017,12 @@
     ;; Increasing this to large values potentially opens
     ;; up the system to malicious scripters
     ; NotecardLineReadCharsMax = 255
+    
+    ; llGetWallclock returns a float that is the time in seconds since midnight Pacific time (PST/PDT), truncated to whole seconds.
+    ; How you specify that time zone varies based on system type (Linux, Windows or Mac).  If this value is not set (the default)
+    ; we will return whatever the system time is.   You can define the timezone id for PST if you prefer that behaviour.
+    ; Normal default for Linux is "America/Los_Angeles" from the ICU database and for Windows is: "Pacific Standard Time"
+    ; GetWallclockTimeZone = "America/Los_Angeles"
 
     ;# {SensorMaxRange} {} {Sensor range} {} 96.0
     ;; Sensor settings
@@ -1131,6 +1137,12 @@
     ;# {SensorMaxResults} {} {Max sensor results returned?} {}
     ; SensorMaxResults = 16
 
+    ; llGetWallclock returns a float that is the time in seconds since midnight Pacific time (PST/PDT), truncated to whole seconds.
+    ; How you specify that time zone varies based on system type (Linux, Windows or Mac).  If this value is not set (the default)
+    ; we will return whatever the system time is.   You can define the timezone id for PST if you prefer that behaviour.
+    ; Normal default for Linux is "America/Los_Angeles" from the ICU database and for Windows is: "Pacific Standard Time"
+    ; GetWallclockTimeZone = "America/Los_Angeles"
+
     ;# {DisableUndergroundMovement} {} {Disable underground movement of prims} {true false} true
     ;; Disable underground movement of prims (default true); set to
     ;; false to allow script controlled underground positioning of
@@ -1146,7 +1158,6 @@
     ;# {Include-osslDefaultEnable} {} {Include file for enabling and permissions for OSSL functions} {}
     ;; If this INI file is not included, the OSSL functions are disabled.
     Include-osslDefaultEnable = "config-include/osslDefaultEnable.ini"
-
 
 [FreeSwitchVoice]
     ;; In order for this to work you need a functioning FreeSWITCH PBX set up.
