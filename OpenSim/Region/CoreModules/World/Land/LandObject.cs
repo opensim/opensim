@@ -747,7 +747,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         public bool CanBeOnThisLand(UUID avatar, float posHeight)
         {
             if (m_estateSettings.TaxFree) // estate access only
-                return false;
+                return true;
 
             if (m_scenePermissions.IsAdministrator(avatar))
                 return true;
