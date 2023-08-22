@@ -895,8 +895,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 glblVars.iarObjects = XMRInstArrays.noObjects;
                 glblVars.iarSDTClObjs = XMRInstArrays.noSDTClObjs;
                 glblVars.iarSDTIntfObjs = XMRInstArrays.noSDTIntfObjs;
-
-                CheckRunLockInvariants(true);
             }
 
             lock (m_QueueLock)
@@ -957,9 +955,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             if (itemType == "OpenMetaverse.UUID")
             {
-                UUID val = new UUID();
-                UUID.TryParse(tag.InnerText, out val);
-
+                UUID.TryParse(tag.InnerText, out UUID val);
                 return val;
             }
 
@@ -1148,7 +1144,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 this.MigrateIn(br);
 
                 //m_RunOnePhase = "MigrateInEventHandler finished";
-                CheckRunLockInvariants(true);
+                //CheckRunLockInvariants(true);
             }
         }
     }

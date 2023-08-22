@@ -314,8 +314,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     }
 
                     //m_RunOnePhase = "resume old event handler";
-                    CheckRunLockInvariants(true);
-
                     m_LastRanAt = now;
                     m_InstEHSlice++;
                     callMode = CallMode_NORMAL;
@@ -391,8 +389,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     // finishes or it calls CheckRun().
                     //m_RunOnePhase = "start event handler";
 
-                    CheckRunLockInvariants(true);
-
                     m_DetectParams = evt.DetectParams;
                     m_LastRanAt = now;
                     m_InstEHEvent++;
@@ -417,7 +413,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     m_DetectParams = null;
 
                 //m_RunOnePhase += "; checking exit invariants and unlocking";
-                CheckRunLockInvariants(false);
                 Monitor.Exit(m_RunLock);
             }
 
@@ -796,8 +791,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // This thread transitioned the instance to RESETTING so reset it.
             lock(m_RunLock)
             {
-                CheckRunLockInvariants(true);
-
                 // No other thread should have transitioned it from RESETTING.
                 if (m_IState != XMRInstState.SUSPENDED)
                 {
