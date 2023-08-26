@@ -318,8 +318,7 @@ namespace OpenSim.Framework
                 ["type"] = "sky"
             };
 
-            if (reflectionProbeAmbiance != 0f)
-                map["reflection_probe_ambiance"] = reflectionProbeAmbiance;
+            map["reflection_probe_ambiance"] = reflectionProbeAmbiance;
 
             return map;
         }

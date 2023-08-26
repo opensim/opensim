@@ -30,6 +30,12 @@
     <Key Name="assetType" Value="56" />
     <Key Name="fileName" Value="Midday.dat" />
   </Section>
+  <Section Name="MiddayB">
+    <Key Name="assetID" Value="651510b8-5f4d-8991-1592-e7eeab2a5a06" />
+    <Key Name="name" Value="MiddayB" />
+    <Key Name="assetType" Value="56" />
+    <Key Name="fileName" Value="MiddayB.dat" />
+  </Section>
   <Section Name="Sunset">
     <Key Name="assetID" Value="084e26cd-a900-28e8-08d0-64a9de5c15e2" />
     <Key Name="name" Value="Sunset" />
