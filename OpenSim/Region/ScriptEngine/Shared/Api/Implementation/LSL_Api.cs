@@ -10376,7 +10376,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 part.Shape.ProjectionEntry = true;
                                 part.Shape.ProjectionTextureUUID = stexID;
                                 part.Shape.ProjectionFOV = Util.Clamp(fov, 0, 3.0f);
-                                part.Shape.ProjectionFocus = Util.Clamp(focus, 0, 20.0f);
+                                part.Shape.ProjectionFocus = Util.Clamp(focus, -20.0f, 20.0f);
                                 part.Shape.ProjectionAmbiance = Util.Clamp(amb, 0, 1.0f);
 
                                 part.ParentGroup.HasGroupChanged = true;
