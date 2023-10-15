@@ -725,17 +725,6 @@ namespace Gloebit.GloebitMoneyModule
                     // 0.9.0.1, 0.9.0.2, etc.
                     detectedOSVersion = "=>0.9.0.1";
                     m_newLandPassFlow = true;
-                } else {
-                    // Need to pull version flavour and check it.
-                    // TODO: may need to split on spaces or hyphens and then pull last field because flavour is not friggin public
-                    char[] dChars = { '-', ' ' };
-                    string[] versionParts = m_opensimVersion.Split(dChars, System.StringSplitOptions.RemoveEmptyEntries);
-                    string flavour = versionParts[versionParts.Length - 1];     // TODO: do we every have to worry about this being length 0?
-                    if (flavour == OpenSim.VersionInfo.Flavour.Release.ToString()) {
-                        // 0.9.0 release
-                        detectedOSVersion = "=0.9.0";
-                        m_newLandPassFlow = true;
-                    }
                 }
                 // TODO: Unclear if post-fixes is a necessary flavour check yet.
             } else {
