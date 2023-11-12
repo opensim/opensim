@@ -60,6 +60,11 @@ namespace OpenSim.Data.SQLite
                     conn, "inventoryitems", String.Empty);
         }
 
+        public XInventoryFolder[] GetFolder(string field, string val)
+        {
+            return m_Folders.Get(field, val);
+        }
+        
         public XInventoryFolder[] GetFolders(string[] fields, string[] vals)
         {
             return m_Folders.Get(fields, vals);

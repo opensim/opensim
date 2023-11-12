@@ -64,6 +64,11 @@ namespace OpenSim.Data.PGSQL
             return newUUID;
         }
 
+        public XInventoryFolder[] GetFolder(string field, string val)
+        {
+            return m_Folders.Get(field, val);
+        }
+
         public XInventoryFolder[] GetFolders(string[] fields, string[] vals)
         {
             return m_Folders.Get(fields, vals);

@@ -2831,6 +2831,11 @@ namespace OpenSim.Data.SQLite
             da.InsertCommand.Connection = conn;
             da.UpdateCommand = createUpdateCommand("regionenvironment", "region_id=:region_id", ds.Tables["regionenvironment"]);
             da.UpdateCommand.Connection = conn;
+
+            SqliteCommand delete = new SqliteCommand("delete from regionenvironment where region_id= :region_id");
+            delete.Parameters.Add(createSqliteParameter("region_id", typeof(String)));
+            da.DeleteCommand = delete;
+            da.DeleteCommand.Connection = conn;
         }
 
         private void setupRegionSpawnPointsCommands(SqliteDataAdapter da, SqliteConnection conn)
