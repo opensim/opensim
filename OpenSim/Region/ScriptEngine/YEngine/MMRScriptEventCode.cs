@@ -83,8 +83,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         http_request = 38,
         //
         path_update = 40,
+        linkset_data = 41,
 
         // marks highest numbered event
-        Size = 41
+        Size = 42
     }
 }
