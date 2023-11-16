@@ -29,9 +29,12 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Text;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Serialization;
 using log4net;
@@ -42,6 +45,10 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Region.PhysicsModules.SharedBase;
 using PermissionMask = OpenSim.Framework.PermissionMask;
+using System.Runtime.InteropServices.WindowsRuntime;
+using System.Data.Entity.ModelConfiguration.Configuration;
+using System.Runtime.Serialization.Json;
+using OpenMetaverse.Rendering;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -196,6 +203,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         public PhysicsActor PhysActor { get; set; }
 
+        [XmlIgnore]
+        public SortedList<string, LinksetDataEntry> LinksetData = null;
+        //private Dictionary<String, LinksetDataEntry> LinksetData = null;
+
+        private static readonly object linksetDataLock = new object();
+        
         //Xantor 20080528 Sound stuff:
         //  Note: This isn't persisted in the database right now, as the fields for that aren't just there yet.
         //        Not a big problem as long as the script that sets it remains in the prim on startup.
@@ -2231,6 +2244,7 @@ namespace OpenSim.Region.Framework.Scenes
                 dupe.PhysActor.LocalID = plocalID;
 
             dupe.PseudoCRC = (int)(DateTime.UtcNow.Ticks);
+            dupe.DeserializeLinksetData(SerializeLinksetData());
 
             ParentGroup.Scene.EventManager.TriggerOnSceneObjectPartCopy(dupe, this, userExposed);
 
@@ -5765,7 +5779,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void DeSerializeAnimations(Byte[] data)
         {
-            if(data == null)
+            if (data == null)
             {
                 Animations = null;
                 AnimationsNames = null;
@@ -5810,10 +5824,326 @@ namespace OpenSim.Region.Framework.Scenes
             AnimationsNames = null;
         }
 
+        /// <summary>
+        /// FindLinksetDataKeys - Given a Regex pattern and start, count return the 
+        /// list of matchingkeys in the LinksetData store.
+        /// </summary>
+        /// <param name="pattern">A Regex pattern to match</param>
+        /// <param name="start">starting offset into the list of keys</param>
+        /// <param name="count">how many to return, < 1 means all keys</param>
+        /// <returns></returns>
+        public string[] FindLinksetDataKeys(string pattern, int start, int count)
+        {
+            List<string> all_keys = new List<string>(GetLinksetDataSubList(0, 0));
+            Regex rx = new Regex(pattern, RegexOptions.CultureInvariant);
+
+            if (count < 1) 
+                count = all_keys.Count;
+
+            List<string> matches = new List<string>();
+            foreach (var str in all_keys)
+            {
+                if (rx.IsMatch(str)) 
+                    matches.Add(str);
+            }
+
+            return matches.Skip(start).Take(count).ToArray();
+        }
+
+        /// <summary>
+        /// Adds or updates a entry to linkset data
+        /// </summary>
+        /// <returns>
+        /// -1 if the password did not match
+        /// -1 is the data was protected
+        /// 0 if the data was successfully added or updated
+        /// 1 if the data could not be added or updated due to memory
+        /// 2 if the data is unchanged
+        /// </returns>
+        public int AddOrUpdateLinksetDataKey(string key, string value, string pass)
+        {
+            lock (linksetDataLock)
+            {
+                if (LinksetData == null)
+                    LinksetData = new SortedList<string, LinksetDataEntry>();
+
+                if (LinksetDataOverLimit)
+                    return 1;
+
+                LinksetDataEntry entry = null;
+                if (LinksetData.TryGetValue(key, out entry) == true)
+                {
+                    if (entry.CheckPassword(pass) == false)
+                        return -1;
+
+                    if (entry.Value == value)
+                        return 2;
+                }
+                
+                // Add New or Update handled here.
+                LinksetDataEntry newEntry = new LinksetDataEntry(value, pass);
+                LinksetData[key] = newEntry;
+
+                UpdateLinksetDataAccounting();
+
+                if (ParentGroup != null)
+                    ParentGroup.HasGroupChanged = true;
+
+                return 0;
+            }          
+        }
+
+        /// <summary>
+        /// Reads a value from the key value pair
+        /// </summary>
+        /// <param name="key">The key value we're retrieving</param>
+        /// <param name="pass">The password for a protected field (or string.Empty if not protected)</param>
+        /// <returns>Blank if no key or pass mismatch. Value if no password or pass matches</returns>
+        public string ReadLinksetData(string key, string pass)
+        {
+            lock (linksetDataLock)
+            {
+                if (LinksetData == null)
+                    return string.Empty;
+
+                LinksetDataEntry entry;
+                if (LinksetData.TryGetValue(key, out entry) == true)
+                    return entry.CheckPasswordAndGetValue(pass);
+
+                return string.Empty;
+            }
+        }
+
+        /// <summary>
+        /// Deletes a named key from the key value store
+        /// </summary>
+        /// <param name="key">The key value we're removing</param>
+        /// <param name="pass">The password for a protected field (or string.Empty if not protected)</param>
+        /// <returns>
+        /// 0 if successful.
+        /// 1 if not due to the password.
+        /// -1 if no such key was found
+        /// </returns>
+        public int DeleteLinksetDataKey(string key, string pass)
+        {
+            lock (linksetDataLock)
+            {
+                if (LinksetData == null)
+                    return -1;
+
+                LinksetDataEntry entry;
+                if (LinksetData.TryGetValue(key, out entry) == false)
+                    return -1;
+
+                if (entry.CheckPassword(pass) == false)
+                    return 1;
+
+                LinksetData.Remove(key);
+
+                UpdateLinksetDataAccounting();
+
+                if (ParentGroup != null)
+                    ParentGroup.HasGroupChanged = true;
+
+                return 0;
+            }
+        }
+
+        /// <summary>
+        /// GetLinksetDataSubList - Return a subset of key values from start for count
+        /// </summary>
+        /// <param name="start">Offset in the list for the first key</param>
+        /// <param name="count">How many keys to return, < 1 means all keys</param>
+        /// <returns></returns>
+        public string[] GetLinksetDataSubList(int start, int count)
+        {
+            lock (linksetDataLock)
+            {
+                if (LinksetData == null)
+                    return new string[0];
+
+                if (count < 1) 
+                    count = LinksetData.Count;
+                
+                List<string> ret = LinksetData.Keys.Skip(start).Take(count).ToList();
+                return ret.ToArray();
+            }
+        }
+
+        /// <summary>
+        /// ResetLinksetData - If unallocated leave it that way, otherwise 
+        /// clear the list and update the accounting.
+        /// </summary>
+        public void ResetLinksetData()
+        {
+            lock (linksetDataLock)
+            {
+                if (LinksetData == null)
+                    return;
+
+                LinksetData.Clear();
+                
+                UpdateLinksetDataAccounting();
+
+                if (ParentGroup != null)
+                    ParentGroup.HasGroupChanged = true;
+            }
+        }
+
+        /// <summary>
+        /// LinksetDataCountMatches - Return a count of the # of keys that match pattern.
+        /// </summary>
+        /// <param name="pattern">The Regex pattern to match</param>
+        /// <returns>An integer count or zero if none</returns>
+        public int LinksetDataCountMatches(string pattern)
+        {
+            lock (linksetDataLock)
+            {
+                if (LinksetData == null)
+                    return 0;                
+                
+                Regex reg = new Regex(pattern, RegexOptions.CultureInvariant);
+
+                int count = 0;
+                foreach (var kvp in LinksetData)
+                {
+                    if (reg.IsMatch(kvp.Key))
+                        count++;
+                }
+
+                return count;
+            }
+        }
+
+        public string[] LinksetDataMultiDelete(string pattern, string pass, out int deleted, out int not_deleted)
+        {
+            lock (linksetDataLock)
+            {
+                deleted = 0;
+                not_deleted = 0;
+
+                if (LinksetData == null)
+                    return new string[0];
+
+                Regex reg = new Regex(pattern, RegexOptions.CultureInvariant);
+                List<string> matches = new List<string>();
+
+                // Take a copy so we can delete as we iterate
+                foreach (var kvp in LinksetData.ToArray())
+                {
+                    if (reg.IsMatch(kvp.Key))
+                    {
+                        if (kvp.Value.CheckPassword(pass))
+                        {
+                            LinksetData.Remove(kvp.Key);
+                            matches.Add(kvp.Key);
+                            deleted += 1;
+                        }
+                        else
+                        {
+                            not_deleted += 1;
+                        }
+                    }
+                }
+
+                if (deleted > 0)
+                {
+                    UpdateLinksetDataAccounting();
+
+                    if (ParentGroup != null)
+                        ParentGroup.HasGroupChanged = true;
+                }
+
+                return matches.ToArray();
+            }
+        }
+
+        /// <summary>
+        /// Recalculates the amount of memory used by linkset data.
+        /// Caller should be holding the linksetData lock
+        /// </summary>
+        private void UpdateLinksetDataAccounting()
+        {
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (BinaryWriter bw = new BinaryWriter(ms))
+                {
+                    foreach (var entry in LinksetData)
+                    {
+                        bw.Write(Encoding.UTF8.GetBytes(entry.Key));
+                        bw.Write(Encoding.UTF8.GetBytes(entry.Value.Value));
+
+                        // For parity, the pass adds 32 bytes regardless of the length. See LL caveats
+                        if (entry.Value.IsProtected())
+                            bw.Write(new byte[32]);
+                    }
+                }
+
+                linksetDataBytesUsed = ms.ToArray().Length;
+                linksetDataBytesFree = LINKSETDATA_MAX - linksetDataBytesUsed;
+            }
+        }
+
+        public const int LINKSETDATA_MAX = 131072; // 128 KB
+
+        public int linksetDataBytesUsed;
+        public int linksetDataBytesFree = LINKSETDATA_MAX; // Default
+
+        public bool HasLinksetData
+        {
+            get
+            {
+                if (LinksetData == null)
+                    return false;
+
+                return LinksetData.Count > 0;
+            }
+        }
+
+        public bool LinksetDataOverLimit
+        {
+            get { return linksetDataBytesFree < 0; }
+        }
+
+        public int LinksetDataKeys
+        {
+            get
+            {
+                if (LinksetData == null)
+                    return 0;
+
+                return LinksetData.Count;
+            }
+        }
+
+        public string SerializeLinksetData()
+        {
+            if (!IsRoot || LinksetData == null)
+                return null;
+
+            lock (linksetDataLock)
+            {
+                return JsonSerializer.Serialize<SortedList<string, LinksetDataEntry>>(LinksetData);
+            }
+        }
+
+        public void DeserializeLinksetData(string data)
+        {
+            if (data == null || data.Length == 0)
+                return;
+
+            lock (linksetDataLock)
+            {
+                LinksetData = JsonSerializer.Deserialize<SortedList<string, LinksetDataEntry>>(data);
+                UpdateLinksetDataAccounting();
+            }
+        }
+
         public bool GetOwnerName(out string FirstName, out string LastName)
         {
-            if(ParentGroup != null)
+            if (ParentGroup != null)
                 return ParentGroup.GetOwnerName(out FirstName, out LastName);
+
             FirstName = string.Empty;
             LastName = string.Empty;
             return false;

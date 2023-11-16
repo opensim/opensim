@@ -44,7 +44,7 @@
     <EmbeddedResource Include="Resources\os_groups_Store.migrations" />
     <EmbeddedResource Include="Resources\Presence.migrations" />
     <EmbeddedResource Include="Resources\RegionStore.migrations" />
-	<EmbeddedResource Include="Resources\UserAlias.migrations" />
+	  <EmbeddedResource Include="Resources\UserAlias.migrations" />
     <EmbeddedResource Include="Resources\UserAccount.migrations" />
     <EmbeddedResource Include="Resources\UserProfiles.migrations" />
     <EmbeddedResource Include="Resources\XAssetStore.migrations" />

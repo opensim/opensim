@@ -241,7 +241,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {"on_rez", ScriptEventCode.on_rez},
             {"sensor", ScriptEventCode.sensor},
             {"http_request", ScriptEventCode.http_request},
-            {"path_update", ScriptEventCode.path_update}
+            {"path_update", ScriptEventCode.path_update},
+            {"linkset_data", ScriptEventCode.linkset_data}
         };
     }
 }
