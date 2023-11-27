@@ -2,7 +2,7 @@ name: .msbuildnet6
 
 on:
   push:
-    branches: [ "dotnet6" ]
+    branches: [ "master" ]
     paths:
       - '**.cs'
   workflow_dispatch:
@@ -10,11 +10,10 @@ on:
 jobs:
   build:
 
+    if: github.repository == 'opensim/opensim'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-      with:
-       ref: dotnet6
     - name: shortsha
       id: vars
       run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"   
