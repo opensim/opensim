@@ -692,6 +692,7 @@ namespace Prebuild.Core.Targets
                 //ps.WriteLine("    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>");
                 ps.WriteLine("    <ProduceReferenceAssembly>false</ProduceReferenceAssembly>");
                 ps.WriteLine("    <GenerateDependencyFile>false</GenerateDependencyFile>");
+                ps.WriteLine("    <EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>");
                 if (listFiles)
                     ps.WriteLine("    <EnableDefaultItems>false</EnableDefaultItems>");
                 ps.WriteLine("  </PropertyGroup>");

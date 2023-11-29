@@ -109,6 +109,7 @@ namespace Prebuild.Core.Targets
                 case FrameworkVersion.net5_0:
                 case FrameworkVersion.net6_0:
                 case FrameworkVersion.net7_0:
+                case FrameworkVersion.net8_0:
                     return "ToolsVersion=\"17.0\"";
                 case FrameworkVersion.netstandard2_0:
                 case FrameworkVersion.v4_8:
