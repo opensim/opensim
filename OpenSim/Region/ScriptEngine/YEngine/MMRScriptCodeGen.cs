@@ -929,20 +929,15 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private void GenerateStateEventHandlers(string statename, TokenStateBody body)
         {
-            Dictionary<string, TokenDeclVar> statehandlers = new ();
+            Dictionary<string, TokenDeclVar> statehandlers = new();
             for(Token t = body.eventFuncs; t != null; t = t.nextToken)
             {
                 TokenDeclVar tdv = (TokenDeclVar)t;
                 string eventname = tdv.GetSimpleName();
-                if(statehandlers.ContainsKey(eventname))
-                {
-                    ErrorMsg(tdv, "event handler " + eventname + " already defined for state " + statename);
-                }
-                else
-                {
-                    statehandlers.Add(eventname, tdv);
+                if(statehandlers.TryAdd(eventname, tdv))
                     GenerateEventHandler(statename, tdv);
-                }
+                else
+                    ErrorMsg(tdv, "event handler " + eventname + " already defined for state " + statename);
             }
         }
 
@@ -3575,7 +3570,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
              // Maybe it is a fixed array access.
             string basetypestring = baseCompValu.type.ToString();
-            if(basetypestring.EndsWith("]"))
+            if(basetypestring.EndsWith(']'))
             {
                 TokenRVal subRVal = lVal.subRVal;
                 int nSubs = 1;
@@ -4328,7 +4323,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 //
                 // Make sure we don't include comparisons (such as ==, >=, etc).
                 // Nothing like +=, -=, %=, etc, generate a boolean, only the comparisons.
-                if ((binOpStr.outtype != typeof(bool)) && opcodeIndex.EndsWith("=") && (opcodeIndex != "!="))
+                if ((binOpStr.outtype != typeof(bool)) && opcodeIndex.EndsWith('=') && (opcodeIndex != "!="))
                 {
                     if (token.rValLeft is not TokenLVal)
                     {
@@ -4371,7 +4366,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // So look up the key as if we didn't have the "=" to tell us if the operation is legal.
              // Also, the binary operation's output type must be the same as the L-value type.
              // Likewise, integer += float not allowed because result is float, but float += integer is ok.
-            if(opcodeIndex.EndsWith("="))
+            if(opcodeIndex.EndsWith('='))
             {
                 string op = opcodeIndex[..^1];
                 key = leftIndex + op + rightIndex;
