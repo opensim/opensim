@@ -6320,9 +6320,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             this.stateName = stateName;
         }
-        protected ScriptUndefinedStateException(SerializationInfo info, StreamingContext context) : base(info, context)
-        {
-        }
     }
 
     /**
@@ -6346,13 +6343,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             this.thrown = thrown;
         }
-
-        /**
-         * @brief Used by serialization/deserialization.
-         */
-        protected ScriptThrownException(SerializationInfo info, StreamingContext context) : base(info, context)
-        {
-        }
     }
 
     /**
@@ -6365,9 +6355,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public ScriptChangeStateException(int newState)
         {
             this.newState = newState;
-        }
-        protected ScriptChangeStateException(SerializationInfo info, StreamingContext context) : base(info, context)
-        {
         }
     }
 
@@ -6419,9 +6406,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
     public class ScriptBadCallNoException: Exception
     {
         public ScriptBadCallNoException(int callNo) : base("bad callNo " + callNo) { }
-        protected ScriptBadCallNoException(SerializationInfo info, StreamingContext context) : base(info, context)
-        {
-        }
     }
 
     public class CVVMismatchException: Exception

@@ -433,7 +433,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PRIM_FULLBRIGHT = 20;
         public const int PRIM_FLEXIBLE = 21;
         public const int PRIM_TEXGEN = 22;
-        public const int PRIM_POINT_LIGHT = 23; // Huh?
+        public const int PRIM_POINT_LIGHT = 23;
         //ApiDesc not supported
         public const int PRIM_CAST_SHADOWS = 24; // Not implemented, here for completeness sake
         public const int PRIM_GLOW = 25;
@@ -456,6 +456,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PRIM_SCRIPTED_SIT_ONLY = 40; // experiences related. unsupported
         public const int PRIM_SIT_TARGET = 41;
         public const int PRIM_PROJECTOR = 42;
+
+        public const int PRIM_REFLECTION_PROBE = 44;
 
 
         // parameters
@@ -528,6 +530,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PRIM_PHYSICS_SHAPE_PRIM = 0;
         public const int PRIM_PHYSICS_SHAPE_NONE = 1;
         public const int PRIM_PHYSICS_SHAPE_CONVEX = 2;
+
+        // PRIM_REFLECTION_PROBE flags
+        public const int PRIM_REFLECTION_PROBE_BOX = 1 << 0; // 1
+        public const int PRIM_REFLECTION_PROBE_DYNAMIC = 1 << 1; // 2
 
         public const int PROFILE_NONE = 0;
         public const int PROFILE_SCRIPT_MEMORY = 1;

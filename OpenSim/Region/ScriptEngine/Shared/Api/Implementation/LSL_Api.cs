@@ -9694,6 +9694,83 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                             break;
 
+                        case ScriptBaseClass.PRIM_REFLECTION_PROBE:
+                            if (remain < 4)
+                                return new LSL_List();
+
+                            bool reflection_probe_active;
+                            float reflection_probe_ambiance;
+                            float reflection_probe_clip_distance;
+                            int reflection_probe_flags;
+
+                            try
+                            {
+                                reflection_probe_active = rules.GetIntegerItem(idx++) != 0;
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error(originFunc, $"Error running rule #{rulesParsed} -> PRIM_REFLECTION_PROBE: arg #{idx - idxStart - 1} - parameter 1 (active) must be integer");
+                                return new LSL_List();
+                            }
+                            try
+                            {
+                                reflection_probe_ambiance = rules.GetStrictFloatItem(idx++);
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error(originFunc, $"Error running rule #{rulesParsed} -> PRIM_REFLECTION_PROBE: arg #{idx - idxStart - 1} - parameter 2 (ambiance) must be float");
+                                return new LSL_List();
+                            }
+                            try
+                            {
+                                reflection_probe_clip_distance = rules.GetStrictFloatItem(idx++);
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error(originFunc, $"Error running rule #{rulesParsed} -> PRIM_REFLECTION_PROBE: arg #{idx - idxStart - 1} - parameter 3 (clip_distance) must be float");
+                                return new LSL_List();
+                            }
+                            try
+                            {
+                                reflection_probe_flags = rules.GetIntegerItem(idx++);
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error(originFunc, $"Error running rule #{rulesParsed} -> PRIM_REFLECTION_PROBE: arg #{idx - idxStart - 1} - parameter 4 (flags) must be integer");
+                                return new LSL_List();
+                            }
+
+                            bool probechanged;
+                            if(reflection_probe_active)
+                            {
+                                probechanged = part.Shape.ReflectionProbe is null;
+                                if(probechanged)
+                                    part.Shape.ReflectionProbe = new();
+
+                                reflection_probe_ambiance = Utils.Clamp(reflection_probe_ambiance, 0f, 100f);
+                                probechanged |= part.Shape.ReflectionProbe.Ambiance != reflection_probe_ambiance;
+                                part.Shape.ReflectionProbe.Ambiance = reflection_probe_ambiance;
+
+                                reflection_probe_clip_distance = Utils.Clamp(reflection_probe_clip_distance, 0f, 1024f);
+                                probechanged |= part.Shape.ReflectionProbe.ClipDistance != reflection_probe_clip_distance;
+                                part.Shape.ReflectionProbe.ClipDistance = reflection_probe_clip_distance;
+
+                                probechanged |= part.Shape.ReflectionProbe.Flags != reflection_probe_flags;
+                                part.Shape.ReflectionProbe.Flags = (byte)reflection_probe_flags;
+                            }
+                            else
+                            {
+                                probechanged = part.Shape.ReflectionProbe is not null;
+                                part.Shape.ReflectionProbe = null;
+                            }
+
+                            if(probechanged)
+                            {
+                                part.ParentGroup.HasGroupChanged = true;
+                                part.ScheduleFullUpdate();
+                            }
+                            break;
+
                         case ScriptBaseClass.PRIM_GLOW:
                             if (remain < 2)
                                 return new LSL_List();
@@ -11448,6 +11525,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         res.Add(new LSL_Float(shape.LightIntensity)); // intensity
                         res.Add(new LSL_Float(shape.LightRadius));    // radius
                         res.Add(new LSL_Float(shape.LightFalloff));   // falloff
+                        break;
+
+                    case ScriptBaseClass.PRIM_REFLECTION_PROBE:
+                        shape = part.Shape;
+                        if (shape.ReflectionProbe is null)
+                        {
+                            res.Add(new LSL_Integer(0));
+                            res.Add(new LSL_Float(0f)); // ambiance
+                            res.Add(new LSL_Float(0f)); // clip
+                            res.Add(new LSL_Float(0f)); // flags
+                        }
+                        else
+                        {
+                            res.Add(new LSL_Integer(1));
+                            res.Add(new LSL_Float(shape.ReflectionProbe.Ambiance)); // ambiance
+                            res.Add(new LSL_Float(shape.ReflectionProbe.ClipDistance)); // clip
+                            res.Add(new LSL_Float(shape.ReflectionProbe.Flags)); // flags
+                        }
                         break;
 
                     case ScriptBaseClass.PRIM_GLOW:
@@ -17208,10 +17303,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case ScriptBaseClass.PRIM_POINT_LIGHT:
                         res.Add(new LSL_Integer(0));
-                        res.Add(new LSL_Vector(0f,0f,0f));
+                        res.Add(new LSL_Vector(0f, 0f, 0f));
                         res.Add(new LSL_Float(0f)); // intensity
                         res.Add(new LSL_Float(0f));    // radius
                         res.Add(new LSL_Float(0f));   // falloff
+                        break;
+
+                    case ScriptBaseClass.PRIM_REFLECTION_PROBE:
+                        res.Add(new LSL_Integer(0));
+                        res.Add(new LSL_Float(0f)); // ambiance
+                        res.Add(new LSL_Float(0f)); // clip
+                        res.Add(new LSL_Float(0f)); // flags
                         break;
 
                     case ScriptBaseClass.PRIM_GLOW:
