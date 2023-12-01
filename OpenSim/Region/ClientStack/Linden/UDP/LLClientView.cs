@@ -5499,62 +5499,43 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 foreach (SceneObjectPart sop in needMaterials)
                 {
                     Primitive.RenderMaterials.RenderMaterialOverrideEntry[] overrides = sop.Shape.RenderMaterials.overrides;
-                    /*
-                    osUTF8 sbinner = LLSDxmlEncode2.Start();
-                    LLSDxmlEncode2.AddArray(sbinner);
-                    LLSDxmlEncode2.AddMap(sbinner);
-                        LLSDxmlEncode2.AddElem("object_id", sop.UUID, sbinner);
-                        LLSDxmlEncode2.AddElem("region_handle_low", (int)m_scene.RegionInfo.WorldLocX, sbinner);
-                        LLSDxmlEncode2.AddElem("region_handle_high", (int)m_scene.RegionInfo.WorldLocY, sbinner);
-                        LLSDxmlEncode2.AddArray("sides", sbinner);
-                            foreach (Primitive.RenderMaterials.RenderMaterialOverrideEntry ovr in overrides)
-                                LLSDxmlEncode2.AddElem(ovr.te_index, sbinner);
-                        LLSDxmlEncode2.AddEndArray(sbinner);
-                        LLSDxmlEncode2.AddArray("gltf_json", sbinner);
-                            foreach (Primitive.RenderMaterials.RenderMaterialOverrideEntry ovr in overrides)
-                            {
-                                LLSDxmlEncode2.AddElem(ovr.data, sbinner);
-                            }
-                        LLSDxmlEncode2.AddEndArray(sbinner);
-                    LLSDxmlEncode2.AddEndMapAndArray(sbinner);
-                    LLSDxmlEncode2.AddEnd(sbinner);
-                    */
-                    OSDMap data = new OSDMap(6);
-                    data["local_id"] = sop.LocalId;
-                    data["object_id"] = sop.UUID;
-                    data["region_handle_x"]= (int)m_scene.RegionInfo.WorldLocX;
-                    data["region_handle_y"]= (int)m_scene.RegionInfo.WorldLocY;
+ 
+                    OSDMap data = new OSDMap(3);
+                    data["id"] = (int)sop.LocalId;
                     OSDArray sides = new OSDArray();
-                    OSDArray gltf = new OSDArray();
+                    OSDArray sidesdata = new OSDArray();
                     foreach (Primitive.RenderMaterials.RenderMaterialOverrideEntry ovr in overrides)
                     {
                         sides.Add(ovr.te_index);
-                        gltf.Add(ovr.data);
+                        sidesdata.Add(new OSDllsdxml(ovr.data));
                     }
-                    data["sides"] = sides;
-                    data["gltf_json"] = gltf;
+                    data["te"] = sides;
+                    data["od"] = sidesdata;
 
-                    string inner = OSDParser.SerializeLLSDNotationFull(data);
+                    string inner = OSDParser.SerializeLLSDNotation(data);
+                    if (inner.Length < 4)
+                        continue;
 
-                    osUTF8 sb = eq.StartEvent("LargeGenericMessage");
-                    LLSDxmlEncode2.AddArrayAndMap("AgentData", sb);
-                        LLSDxmlEncode2.AddElem("AgentID", m_agentId, sb);
-                        //LLSDxmlEncode2.AddElem("TransactionID", UUID.Zero, sb);
-                        //LLSDxmlEncode2.AddElem("SessionID", m_sessionId, sb);
-                    LLSDxmlEncode2.AddEndMapAndArray(sb);
+                    byte[] innerB = Util.UTF8NBGetbytes(inner);
+                    if (innerB.Length > 4096 - 32)
+                    {
+                        m_log.Debug($"[LLCLIENTVIEW]: GenericStreamingMessage packet too large ({innerB.Length})");
+                        continue;
+                    }
 
-                    LLSDxmlEncode2.AddArrayAndMap("MethodData", sb);
-                    LLSDxmlEncode2.AddElem("Method", "GLTFMaterialOverride", sb);
-                    LLSDxmlEncode2.AddElem("Invoice", UUID.Zero, sb);
-                    LLSDxmlEncode2.AddEndMapAndArray(sb);
+                    UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                    byte[] dataptr = buf.Data;
 
-                    LLSDxmlEncode2.AddArrayAndMap("ParamList", sb);
-                        //LLSDxmlEncode2.AddElem("Parameter", sbinner, sb);
-                        LLSDxmlEncode2.AddElem("Parameter", inner, sb);
-                    LLSDxmlEncode2.AddEndMapAndArray(sb);
+                    //setup header
+                    Buffer.BlockCopy(GenericStreamingMessageHeader, 0, dataptr, 0, 7);
+                    Utils.UInt16ToBytes(16757, dataptr, 7);
+                    dataptr[9] = (byte)(innerB.Length);
+                    dataptr[10] = (byte)(innerB.Length >> 8);
 
-                    //OSUTF8Cached.Release(sbinner);
-                    eq.Enqueue(eq.EndEventToBytes(sb), AgentId);
+                    Buffer.BlockCopy(innerB, 0, dataptr, 11, innerB.Length);
+                    buf.DataLength = innerB.Length + 11;
+                    // send it
+                    m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task);
                 }
             }
             #endregion Packet Sending
@@ -5583,35 +5564,42 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             #endregion
         }
 
+        static private readonly byte[] GenericStreamingMessageHeader = new byte[] {
+                Helpers.MSG_RELIABLE,
+                0, 0, 0, 0, // sequence number
+                0, // extra
+                31 // ID 31 (high frequency)
+                };
+
         // hack.. dont use
-/*
-        public void SendPartFullUpdate(ISceneEntity ent, uint? parentID)
-        {
-            if (ent is SceneObjectPart)
-            {
-                SceneObjectPart part = (SceneObjectPart)ent;
-                ObjectUpdatePacket packet = (ObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ObjectUpdate);
-                packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
-                packet.RegionData.TimeDilation = Utils.FloatToUInt16(m_scene.TimeDilation, 0.0f, 1.0f);
-                packet.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
-
-                ObjectUpdatePacket.ObjectDataBlock blk = CreatePrimUpdateBlock(part, mysp);
-                if (parentID.HasValue)
+        /*
+                public void SendPartFullUpdate(ISceneEntity ent, uint? parentID)
                 {
-                    blk.ParentID = parentID.Value;
+                    if (ent is SceneObjectPart)
+                    {
+                        SceneObjectPart part = (SceneObjectPart)ent;
+                        ObjectUpdatePacket packet = (ObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ObjectUpdate);
+                        packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
+                        packet.RegionData.TimeDilation = Utils.FloatToUInt16(m_scene.TimeDilation, 0.0f, 1.0f);
+                        packet.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
+
+                        ObjectUpdatePacket.ObjectDataBlock blk = CreatePrimUpdateBlock(part, mysp);
+                        if (parentID.HasValue)
+                        {
+                            blk.ParentID = parentID.Value;
+                        }
+
+                        packet.ObjectData[0] = blk;
+
+                        OutPacket(packet, ThrottleOutPacketType.Task, true);
+                    }
+
+        //            m_log.DebugFormat(
+        //                "[LLCLIENTVIEW]: Sent {0} updates in ProcessEntityUpdates() for {1} {2} in {3}",
+        //                updatesThisCall, Name, SceneAgent.IsChildAgent ? "child" : "root", Scene.Name);
+        //
                 }
-
-                packet.ObjectData[0] = blk;
-
-                OutPacket(packet, ThrottleOutPacketType.Task, true);
-            }
-
-//            m_log.DebugFormat(
-//                "[LLCLIENTVIEW]: Sent {0} updates in ProcessEntityUpdates() for {1} {2} in {3}",
-//                updatesThisCall, Name, SceneAgent.IsChildAgent ? "child" : "root", Scene.Name);
-//
-        }
-*/
+        */
         public void ReprioritizeUpdates()
         {
             m_entityUpdates.Reprioritize(UpdatePriorityHandler);

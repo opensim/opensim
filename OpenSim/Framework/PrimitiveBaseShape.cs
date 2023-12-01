@@ -1554,6 +1554,8 @@ namespace OpenSim.Framework
                     int ovrlen = data[indx++];
                     ovrlen += data[indx++] << 8;
                     overrides[i].data = Utils.BytesToString(data,indx, ovrlen);
+                    if(overrides[i].data.StartsWith("{\"asset")) // ignore old test data
+                        return;
                     indx += ovrlen;
                 }
                 RenderMaterials ??= new Primitive.RenderMaterials();

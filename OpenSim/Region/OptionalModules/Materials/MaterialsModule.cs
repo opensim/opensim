@@ -1076,9 +1076,317 @@ namespace OpenSim.Region.OptionalModules.Materials
             }
             return true;
         }
+        public static readonly UUID llUUIDNull = new("ffffffff-ffff-ffff-ffff-ffffffffffff"); 
         
         private static bool AddMaterialOverride(ref RenderMaterials.RenderMaterialOverrideEntry[] overrides, string data, int side)
         {
+            OSD tst;
+            try
+            {
+                tst = OSDParser.DeserializeJson(data);
+                if(tst is not OSDMap mainArr)
+                    return false;
+                OSD tmposd;
+                if (!mainArr.TryGetValue("asset", out tmposd) )
+                    return false;
+
+                if (mainArr.TryGetValue("materials", out tmposd) && tmposd is OSDArray materialsArray && materialsArray.Count > 0 && materialsArray[0] is OSDMap material)
+                {
+                    OSDMap outosd = new();
+                    OSDArray ti = new OSDArray(4);
+
+                    UUID[] texturesURIs = null;
+                    if (mainArr.TryGetValue("images", out tmposd) && tmposd is OSDArray imagesArray && imagesArray.Count > 0)
+                    {
+                        UUID[] imageURIs = new UUID[imagesArray.Count];
+                        for (int i = 0; i < imagesArray.Count; i++)
+                        {
+                            if (imagesArray[i] is OSDMap tmpim && tmpim.TryGetValue("uri", out OSD tmpimuri) && tmpimuri is OSDString tmpimuristr)
+                            {
+                                if(UUID.TryParse(tmpimuristr.value, out UUID tmpid))
+                                    imageURIs[i] = tmpid;
+                                else
+                                    imageURIs[i] = UUID.Zero;
+                            }
+                            else
+                                imageURIs[i] = UUID.Zero;
+                        }
+
+                        if (mainArr.TryGetValue("textures", out tmposd) && tmposd is OSDArray texturesArray && texturesArray.Count > 0)
+                        {
+                            texturesURIs = new UUID[texturesArray.Count];
+                            for (int i = 0; i < texturesArray.Count; i++)
+                            {
+                                if (texturesArray[i] is OSDMap tmptm && tmptm.TryGetValue("source", out OSD tmptmsrc) && tmptmsrc is OSDInteger tmptmsrci)
+                                {
+                                    int v = tmptmsrci.value;
+                                    if( v < imageURIs.Length)
+                                        texturesURIs[i] = imageURIs[v];
+                                }
+                            }
+                        }
+                    }
+
+                    bool texturesChanged = false;
+                    UUID[] textureIDs = new UUID[4];
+                    bool[] textureIDchanged = new bool[4];
+                    if (material.TryGetValue("pbrMetallicRoughness", out tmposd) && tmposd is OSDMap pmrMap && pmrMap.Count > 0)
+                    {
+                        if (pmrMap.TryGetValue("baseColorTexture", out tmposd) && tmposd is OSDMap pmrMapbct && pmrMapbct.Count > 0)
+                        {
+                            if (pmrMapbct.TryGetValue("index", out tmposd) && tmposd is OSDInteger pmrMapbcti)
+                            {
+                                int v = pmrMapbcti.value;
+                                if (v < texturesURIs.Length)
+                                {
+                                    textureIDs[0] = texturesURIs[v];
+                                    textureIDchanged[0] = true;
+                                    texturesChanged = true;
+                                }
+                            }
+                            if (pmrMapbct.TryGetValue("extensions", out tmposd) && tmposd is OSDMap bcext)
+                            {
+                                if (bcext.TryGetValue("KHR_texture_transform", out tmposd) && tmposd is OSDMap bctr)
+                                {
+                                    OSDMap tmpmap = new OSDMap();
+                                    if (bctr.TryGetValue("offset", out tmposd) && tmposd is OSDArray bcoffset)
+                                    {
+                                        tmpmap["o"] = bcoffset;
+                                    }
+                                    if (bctr.TryGetValue("rotation", out tmposd) && tmposd is OSDReal bcrotation)
+                                    {
+                                        tmpmap["r"] = bcrotation;
+                                    }
+                                    if (bctr.TryGetValue("scale", out tmposd) && tmposd is OSDArray bcscale)
+                                    {
+                                        tmpmap["s"] = bcscale;
+                                    }
+                                    ti.Add(tmpmap);
+                                }
+                            }
+                        }
+                        if (pmrMap.TryGetValue("metallicRoughnessTexture", out tmposd) && tmposd is OSDMap pmrMapmrt && pmrMapmrt.Count > 0)
+                        {
+                            if (pmrMapmrt.TryGetValue("index", out tmposd) && tmposd is OSDInteger pmrMapbcti)
+                            {
+                                int v = pmrMapbcti.value;
+                                if (v < texturesURIs.Length)
+                                {
+                                    textureIDs[2] = texturesURIs[v];
+                                    textureIDchanged[2] = true;
+                                    texturesChanged = true;
+                                }
+                            }
+                            if (pmrMapmrt.TryGetValue("extensions", out tmposd) && tmposd is OSDMap bcext)
+                            {
+                                if (bcext.TryGetValue("KHR_texture_transform", out tmposd) && tmposd is OSDMap bctr)
+                                {
+                                    OSDMap tmpmap = new OSDMap();
+                                    if (bctr.TryGetValue("offset", out tmposd) && tmposd is OSDArray bcoffset)
+                                    {
+                                        tmpmap["o"] = bcoffset;
+                                    }
+                                    if (bctr.TryGetValue("rotation", out tmposd) && tmposd is OSDReal bcrotation)
+                                    {
+                                        tmpmap["r"] = bcrotation;
+                                    }
+                                    if (bctr.TryGetValue("scale", out tmposd) && tmposd is OSDArray bcscale)
+                                    {
+                                        tmpmap["s"] = bcscale;
+                                    }
+                                    while(ti.Count < 2)
+                                        ti.Add(new OSD());
+                                    ti.Add(tmpmap);
+                                }
+                            }
+                        }
+                        if (pmrMap.TryGetValue("baseColorFactor", out tmposd) && tmposd is OSDArray baseColorFactor)
+                        {
+                            outosd["bc"] = baseColorFactor;
+                        }
+                        if (pmrMap.TryGetValue("metallicFactor", out tmposd) && tmposd is OSDReal metallicFactor)
+                        {
+                            outosd["mf"] = metallicFactor;
+                        }
+                        if (pmrMap.TryGetValue("roughnessFactor", out tmposd) && tmposd is OSDReal roughnessFactor)
+                        {
+                            outosd["rf"] = roughnessFactor;
+                        }
+                    }
+
+                    if (material.TryGetValue("normalTexture", out tmposd) && tmposd is OSDMap ntMap && ntMap.Count > 0)
+                    {
+                        if (ntMap.TryGetValue("index", out tmposd) && tmposd is OSDInteger ntMapi)
+                        {
+                            int v = ntMapi.value;
+                            if (v < texturesURIs.Length)
+                            {
+                                textureIDs[1] = texturesURIs[v];
+                                textureIDchanged[1] = true;
+                                texturesChanged = true;
+                            }
+                        }
+                        if (ntMap.TryGetValue("extensions", out tmposd) && tmposd is OSDMap bcext)
+                        {
+                            if (bcext.TryGetValue("KHR_texture_transform", out tmposd) && tmposd is OSDMap bctr)
+                            {
+                                OSDMap tmpmap = new OSDMap();
+                                if (bctr.TryGetValue("offset", out tmposd) && tmposd is OSDArray bcoffset)
+                                {
+                                    tmpmap["o"] = bcoffset;
+                                }
+                                if (bctr.TryGetValue("rotation", out tmposd) && tmposd is OSDReal bcrotation)
+                                {
+                                    tmpmap["r"] = bcrotation;
+                                }
+                                if (bctr.TryGetValue("scale", out tmposd) && tmposd is OSDArray bcscale)
+                                {
+                                    tmpmap["s"] = bcscale;
+                                }
+                                if (ti.Count < 2)
+                                {
+                                    if (ti.Count == 0)
+                                        ti.Add(new OSD());
+                                    ti.Add(tmpmap);
+                                }
+                                else
+                                    ti[1] = tmpmap;
+                            }
+                        }
+                    }
+
+                    if (material.TryGetValue("occlusionTexture", out tmposd) && tmposd is OSDMap otMap && otMap.Count > 0)
+                    {
+                        if (otMap.TryGetValue("index", out tmposd) && tmposd is OSDInteger otMapi)
+                        {
+                            int v = otMapi.value;
+                            if (v < texturesURIs.Length)
+                            {
+                                textureIDs[2] = texturesURIs[v];
+                                textureIDchanged[2] = true;
+                                texturesChanged = true;
+                            }
+                        }
+                        if (otMap.TryGetValue("extensions", out tmposd) && tmposd is OSDMap bcext)
+                        {
+                            if (bcext.TryGetValue("KHR_texture_transform", out tmposd) && tmposd is OSDMap bctr)
+                            {
+                                OSDMap tmpmap = new OSDMap();
+                                if (bctr.TryGetValue("offset", out tmposd) && tmposd is OSDArray bcoffset)
+                                {
+                                    tmpmap["o"] = bcoffset;
+                                }
+                                if (bctr.TryGetValue("rotation", out tmposd) && tmposd is OSDReal bcrotation)
+                                {
+                                    tmpmap["r"] = bcrotation;
+                                }
+                                if (bctr.TryGetValue("scale", out tmposd) && tmposd is OSDArray bcscale)
+                                {
+                                    tmpmap["s"] = bcscale;
+                                }
+                                while (ti.Count < 2)
+                                    ti.Add(new OSD());
+                                if (ti.Count > 2)
+                                    ti[2] = tmpmap;
+                                else
+                                    ti.Add(tmpmap);
+                            }
+                        }
+                    }
+
+                    if (material.TryGetValue("emissiveTexture", out tmposd) && tmposd is OSDMap etMap && etMap.Count > 0)
+                    {
+                        if (etMap.TryGetValue("index", out tmposd) && tmposd is OSDInteger etMapi)
+                        {
+                            int v = etMapi.value;
+                            if (v < texturesURIs.Length)
+                            {
+                                textureIDs[3] = texturesURIs[v];
+                                textureIDchanged[3] = true;
+                                texturesChanged = true;
+                            }
+                        }
+                        if (etMap.TryGetValue("extensions", out tmposd) && tmposd is OSDMap bcext)
+                        {
+                            if (bcext.TryGetValue("KHR_texture_transform", out tmposd) && tmposd is OSDMap bctr)
+                            {
+                                OSDMap tmpmap = new OSDMap();
+                                if (bctr.TryGetValue("offset", out tmposd) && tmposd is OSDArray bcoffset)
+                                {
+                                    tmpmap["o"] = bcoffset;
+                                }
+                                if (bctr.TryGetValue("rotation", out tmposd) && tmposd is OSDReal bcrotation)
+                                {
+                                    tmpmap["r"] = bcrotation;
+                                }
+                                if (bctr.TryGetValue("scale", out tmposd) && tmposd is OSDArray bcscale)
+                                {
+                                    tmpmap["s"] = bcscale;
+                                }
+                                while (ti.Count < 3)
+                                    ti.Add(new OSD());
+                                if (ti.Count > 4)
+                                    ti[3] = tmpmap;
+                                else
+                                    ti.Add(tmpmap);
+                            }
+                        }
+                    }
+
+                    if (material.TryGetValue("alphaMode", out tmposd) && tmposd is OSDString aMode)
+                    {
+                        outosd["am"] = aMode.value switch
+                        {
+                            "BLEND" => 1,
+                            "MASK"  => 2,
+                            _ => 0
+                        };
+                    }
+
+                    if (material.TryGetValue("alphaCutoff", out tmposd) && tmposd is OSDReal alphaCutoff)
+                    {
+                        outosd["ac"] = alphaCutoff;
+                    }
+
+                    if (material.TryGetValue("emissiveFactor", out tmposd) && tmposd is OSDArray emissiveFactor)
+                    {
+                        outosd["ec"] = emissiveFactor;
+                    }
+                    if (material.TryGetValue("doubleSided", out tmposd) && tmposd is OSDBoolean doubleSided)
+                    {
+                        outosd["ds"] = doubleSided;
+                    }
+
+                    if (texturesChanged)
+                    {
+                        OSDArray tex = new(textureIDs.Length);
+                        for(int i = 0; i < textureIDs.Length; i++)
+                        {
+                            if (textureIDchanged[i])
+                                tex.Add(textureIDs[i]);
+                            else
+                                tex.Add(new OSD());
+                        }
+                        outosd["tex"] = tex;
+                    }
+
+                    if(ti.Count > 0)
+                        outosd["ti"] = ti;
+
+                    if (outosd.Count == 0)
+                        return false;
+
+                    data = OSDParser.SerializeLLSDNotation(outosd);
+                }
+                else
+                    return false;
+
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+
             if (overrides is null)
             {
                 var entries = new RenderMaterials.RenderMaterialOverrideEntry[1];
