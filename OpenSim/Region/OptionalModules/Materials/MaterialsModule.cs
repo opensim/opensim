@@ -1008,7 +1008,7 @@ namespace OpenSim.Region.OptionalModules.Materials
                 foreach (SceneObjectPart sop in changedSOPs)
                 {
                     sop.ParentGroup.HasGroupChanged = true;
-                    sop.ScheduleFullUpdate();
+                    sop.ScheduleUpdate(PrimUpdateFlags.MaterialOvr | PrimUpdateFlags.FullUpdate);
                 }
 
                 httpResponse.RawBuffer = XMLkeyMaterialSucess;
@@ -1382,7 +1382,7 @@ namespace OpenSim.Region.OptionalModules.Materials
                     return false;
 
             }
-            catch (Exception e)
+            catch
             {
                 return false;
             }

@@ -4969,11 +4969,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         useCompressUpdate = grp.IsViewerCachable;
 
                     istree = (part.Shape.PCode == (byte)PCode.Grass || part.Shape.PCode == (byte)PCode.NewTree || part.Shape.PCode == (byte)PCode.Tree);
-                    if(!istree && part.Shape.RenderMaterials is not null &&
-                        part.Shape.ReflectionProbe is null &&
-                        part.Shape.RenderMaterials.overrides is not null &&
-                        part.Shape.RenderMaterials.overrides.Length > 0)
-                        hasMaterialOverride = true;
+                    if((updateFlags & PrimUpdateFlags.MaterialOvr) != 0)
+                        hasMaterialOverride = !istree;
                 }
                 else if (update.Entity is ScenePresence presence)
                 {
@@ -5498,16 +5495,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 foreach (SceneObjectPart sop in needMaterials)
                 {
-                    Primitive.RenderMaterials.RenderMaterialOverrideEntry[] overrides = sop.Shape.RenderMaterials.overrides;
- 
-                    OSDMap data = new OSDMap(3);
+                    OSDMap data = new(3);
                     data["id"] = (int)sop.LocalId;
-                    OSDArray sides = new OSDArray();
-                    OSDArray sidesdata = new OSDArray();
-                    foreach (Primitive.RenderMaterials.RenderMaterialOverrideEntry ovr in overrides)
+                    OSDArray sides = new();
+                    OSDArray sidesdata = new();
+                    if(sop.Shape.RenderMaterials is not null &&
+                        sop.Shape.RenderMaterials.overrides is not null &&
+                        sop.Shape.RenderMaterials.overrides.Length > 0)
                     {
-                        sides.Add(ovr.te_index);
-                        sidesdata.Add(new OSDllsdxml(ovr.data));
+                        foreach (Primitive.RenderMaterials.RenderMaterialOverrideEntry ovr in sop.Shape.RenderMaterials.overrides)
+                        {
+                            sides.Add(ovr.te_index);
+                            sidesdata.Add(string.IsNullOrEmpty(ovr.data) ? new OSD() : new OSDllsdxml(ovr.data));
+                        }
                     }
                     data["te"] = sides;
                     data["od"] = sidesdata;

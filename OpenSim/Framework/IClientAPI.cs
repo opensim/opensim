@@ -607,7 +607,7 @@ namespace OpenSim.Framework
     {
         None = 0,
         AttachmentPoint = 1 << 0,
-        Material = 1 << 1,
+        MaterialOvr = 1 << 1,
         ClickAction = 1 << 2,
         Scale = 1 << 3,
         ParentID = 1 << 4,
@@ -630,11 +630,12 @@ namespace OpenSim.Framework
         Sound = 1 << 21,
 
         TerseUpdate = Position | Rotation | Velocity | Acceleration | AngularVelocity,
-        FullUpdate =    0x00ffffff,
+        FullUpdate =    0x00ffffff & ~MaterialOvr,
 
         Animations = 1 << 24,
 
         FullUpdatewithAnim = FullUpdate | Animations,
+        FullUpdatewithMatOvr = FullUpdate | MaterialOvr,
 
         UpdateProbe   = 0x10000000, // 1 << 28
         SendInTransit = 0x20000000, // 1 << 29

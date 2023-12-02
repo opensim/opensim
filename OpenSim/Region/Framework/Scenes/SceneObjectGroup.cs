@@ -2460,18 +2460,32 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="remoteClient"></param>
         public void SendFullAnimUpdateToClient(IClientAPI remoteClient)
         {
-            PrimUpdateFlags update = PrimUpdateFlags.FullUpdate;
-            if (RootPart.Shape.MeshFlagEntry)
-                update = PrimUpdateFlags.FullUpdatewithAnim;
+            PrimUpdateFlags update = RootPart.Shape.MeshFlagEntry ?
+                        PrimUpdateFlags.FullUpdatewithAnim :
+                        PrimUpdateFlags.FullUpdate;
 
-            RootPart.SendUpdate(remoteClient, update);
+            if (RootPart.Shape.RenderMaterials is not null &&
+                        RootPart.Shape.ReflectionProbe is null &&
+                        RootPart.Shape.RenderMaterials.overrides is not null &&
+                        RootPart.Shape.RenderMaterials.overrides.Length > 0)
+                RootPart.SendUpdate(remoteClient, update | PrimUpdateFlags.MaterialOvr);
+            else
+                RootPart.SendUpdate(remoteClient, update);
 
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
             {
                 SceneObjectPart part = parts[i];
-                if (part != RootPart)
-                    part.SendUpdate(remoteClient, update);
+                if (part.LocalId != RootPart.LocalId)
+                {
+                    if (part.Shape.RenderMaterials is not null &&
+                                part.Shape.ReflectionProbe is null &&
+                                part.Shape.RenderMaterials.overrides is not null &&
+                                part.Shape.RenderMaterials.overrides.Length > 0)
+                        part.SendUpdate(remoteClient, update | PrimUpdateFlags.MaterialOvr);
+                    else
+                        part.SendUpdate(remoteClient, update);
+                }
             }
         }
 
@@ -2485,7 +2499,7 @@ namespace OpenSim.Region.Framework.Scenes
             for (int i = 0; i < parts.Length; i++)
             {
                 SceneObjectPart part = parts[i];
-                if (part != RootPart)
+                if (part.LocalId != RootPart.LocalId)
                     part.SendUpdate(remoteClient, update);
             }
         }
