@@ -113,7 +113,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
                 { typeof(TokenKwOrOr), 100 },
 
-                { typeof(TokenKwAndAnd), 120 },
+                //{ typeof(TokenKwAndAnd), 120 },
+                { typeof(TokenKwAndAnd), 100 },
 
                 { typeof(TokenKwOr), 140 },
 
