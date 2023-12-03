@@ -935,11 +935,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             TraceCalls("[YEngine]: YEngine.PostObjectEvent({0},{1})", localID.ToString(), parms.EventName);
 
-            // In SecondLife, attach events go to all scripts of all prims
+            // In SecondLife, attach and linkset_data events go to all scripts of all prims
             // in a linked object.  So here we duplicate that functionality,
             // as all we ever get is a single attach event for the whole
             // object.
-            if(parms.EventName == "attach")
+            if ((parms.EventName == "attach") || (parms.EventName == "linkset_data"))
             {
                 bool posted = false;
                 foreach(SceneObjectPart primpart in part.ParentGroup.Parts)
