@@ -1620,7 +1620,7 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("Restitution", prim.Restitution);
             cmd.Parameters.AddWithValue("RotationAxisLocks", prim.RotationAxisLocks);
 
-            if (prim.Animations!= null)
+            if (prim.Animations != null)
                 cmd.Parameters.AddWithValue("sopanims", prim.SerializeAnimations());
             else
                 cmd.Parameters.AddWithValue("sopanims", null);
@@ -1628,7 +1628,7 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("sitactrange", prim.SitActiveRange);
             cmd.Parameters.AddWithValue("pseudocrc", prim.PseudoCRC);
 
-            if (prim.HasLinksetData)
+            if (prim.LinksetData != null)
             {
                 cmd.Parameters.AddWithValue("linksetdata", prim.SerializeLinksetData());
             }

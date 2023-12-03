@@ -2664,10 +2664,17 @@ namespace OpenSim.Region.Framework.Scenes
         public void CopyRootPart(SceneObjectPart part, UUID cAgentID, UUID cGroupID, bool userExposed)
         {
             SceneObjectPart newpart = part.Copy(m_scene.AllocateLocalId(), OwnerID, GroupID, 0, userExposed);
-//            SceneObjectPart newpart = part.Copy(part.LocalId, OwnerID, GroupID, 0, userExposed);
-//            newpart.LocalId = m_scene.AllocateLocalId();
+            //            SceneObjectPart newpart = part.Copy(part.LocalId, OwnerID, GroupID, 0, userExposed);
+            //            newpart.LocalId = m_scene.AllocateLocalId();
+
+            // If the rootpart we're copying has LinksetData do a deep copy of that to the new rootpart.
+            if (part.LinksetData != null)
+            {
+                newpart.LinksetData = part.LinksetData.Copy();
+            }
 
             SetRootPart(newpart);
+
             if (userExposed)
                 RootPart.Velocity = Vector3.Zero; // In case source is moving
         }
@@ -3251,6 +3258,15 @@ namespace OpenSim.Region.Framework.Scenes
 
             // 'linkPart' == the root of the group being linked into this group
             SceneObjectPart linkPart = objectGroup.m_rootPart;
+
+            // Merge linksetData if there is any
+            if (linkPart.LinksetData != null)
+            {
+                if (m_rootPart.LinksetData == null)
+                    m_rootPart.LinksetData = new LinksetData();
+
+                m_rootPart.LinksetData.MergeLinksetData(linkPart.LinksetData);
+            }
 
             if (m_rootPart.PhysActor != null)
                 m_rootPart.PhysActor.Building = true;
