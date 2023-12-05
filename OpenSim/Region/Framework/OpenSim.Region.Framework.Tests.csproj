@@ -141,6 +141,8 @@
     <Compile Remove="Scenes\EventManager.cs" />
     <Compile Remove="Scenes\GodController.cs" />
     <Compile Remove="Scenes\KeyframeMotion.cs" />
+    <Compile Remove="Scenes\LinksetData.cs" />
+    <Compile Remove="Scenes\LinksetDataEntry.cs" />
     <Compile Remove="Scenes\Prioritizer.cs" />
     <Compile Remove="Scenes\PriorityQueue.cs" />
     <Compile Remove="Scenes\RegionStatsHandler.cs" />

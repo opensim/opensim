@@ -1001,5 +1001,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int NPCLOOKAT_FOCUS = 8;
         public const int NPCLOOKAT_MOUSELOOK = 9;
         public const int NPCLOOKAT_CLEAR = 10;
+
+        public const int LINKSETDATA_RESET = 0;
+        public const int LINKSETDATA_UPDATE = 1;
+        public const int LINKSETDATA_DELETE = 2;
+        public const int LINKSETDATA_MULTIDELETE = 3;
+
+        public const int LINKSETDATA_OK = 0;
+        public const int LINKSETDATA_EMEMORY = 1;
+        public const int LINKSETDATA_ENOKEY = 2;
+        public const int LINKSETDATA_EPROTECTED = 3;
+        public const int LINKSETDATA_NOTFOUND = 4;
+        public const int LINKSETDATA_NOUPDATE = 5;
     }
 }

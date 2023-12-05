@@ -29,9 +29,12 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Text;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Serialization;
 using log4net;
@@ -42,6 +45,11 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Region.PhysicsModules.SharedBase;
 using PermissionMask = OpenSim.Framework.PermissionMask;
+using System.Runtime.InteropServices.WindowsRuntime;
+using System.Data.Entity.ModelConfiguration.Configuration;
+using System.Runtime.Serialization.Json;
+using OpenMetaverse.Rendering;
+using System.Web.Configuration;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -196,6 +204,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         public PhysicsActor PhysActor { get; set; }
 
+        [XmlIgnore]
+        public LinksetData LinksetData { get; set; } = null;
+        
         //Xantor 20080528 Sound stuff:
         //  Note: This isn't persisted in the database right now, as the fields for that aren't just there yet.
         //        Not a big problem as long as the script that sets it remains in the prim on startup.
@@ -2231,6 +2242,7 @@ namespace OpenSim.Region.Framework.Scenes
                 dupe.PhysActor.LocalID = plocalID;
 
             dupe.PseudoCRC = (int)(DateTime.UtcNow.Ticks);
+            dupe.DeserializeLinksetData(SerializeLinksetData());
 
             ParentGroup.Scene.EventManager.TriggerOnSceneObjectPartCopy(dupe, this, userExposed);
 
@@ -5765,7 +5777,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void DeSerializeAnimations(Byte[] data)
         {
-            if(data == null)
+            if (data == null)
             {
                 Animations = null;
                 AnimationsNames = null;
@@ -5810,10 +5822,35 @@ namespace OpenSim.Region.Framework.Scenes
             AnimationsNames = null;
         }
 
+        public string SerializeLinksetData()
+        {
+            if (IsRoot && (LinksetData != null))
+            {
+                if (LinksetData.HasLinksetData())
+                    return LinksetData.SerializeLinksetData();
+            }
+
+            return string.Empty;
+        }
+
+        public void DeserializeLinksetData(string data)
+        {
+            if (string.IsNullOrEmpty(data) || data.Length == 0)
+                return;
+
+            if (LinksetData == null)
+            {
+                LinksetData = new LinksetData();
+            }
+
+            LinksetData.DeserializeLinksetData(data);
+        }
+
         public bool GetOwnerName(out string FirstName, out string LastName)
         {
-            if(ParentGroup != null)
+            if (ParentGroup != null)
                 return ParentGroup.GetOwnerName(out FirstName, out LastName);
+
             FirstName = string.Empty;
             LastName = string.Empty;
             return false;

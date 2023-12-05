@@ -1261,3 +1261,8 @@ BEGIN;
 ALTER TABLE `prims` ADD COLUMN `sopanims` bytea NULL;
 ALTER TABLE `primshapes` ADD COLUMN `MatOvrd` bytea NULL;
 COMMIT;
+
+:VERSION 53         #----- add linkset data storage column
+BEGIN;
+ALTER TABLE `prims` ADD COLUMN `linksetdata` varchar default NULL;
+COMMIT;
