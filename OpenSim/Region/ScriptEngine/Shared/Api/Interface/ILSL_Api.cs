@@ -489,10 +489,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
          LSL_String llReplaceSubString(LSL_String src, LSL_String pattern, LSL_String replacement, int count);
 
-               void llLinkAdjustSoundVolume(LSL_Integer linknumber, LSL_Float volume);
-               void llLinkStopSound(LSL_Integer linknumber);
-               void llLinkPlaySound(LSL_Integer linknumber, string sound, double volume);
-               void llLinkSetSoundQueueing(int linknumber, int queue);
-               void llLinkSetSoundRadius(int linknumber, double radius);
+         void llLinkAdjustSoundVolume(LSL_Integer linknumber, LSL_Float volume);
+         void llLinkStopSound(LSL_Integer linknumber);
+         void llLinkPlaySound(LSL_Integer linknumber, string sound, double volume);
+         void llLinkSetSoundQueueing(int linknumber, int queue);
+         void llLinkSetSoundRadius(int linknumber, double radius);
+
+         LSL_Integer llLinksetDataWrite(LSL_String name, LSL_String value);
+         LSL_Integer llLinksetDataWriteProtected(LSL_String name, LSL_String value, LSL_String pass);
+         void llLinksetDataReset();
+         LSL_Integer llLinksetDataAvailable();
+         LSL_Integer llLinksetDataCountKeys();
+         LSL_Integer llLinksetDataDelete(LSL_String name);
+         LSL_Integer llLinksetDataDeleteProtected(LSL_String name, LSL_String pass);
+         LSL_List llLinksetDataDeleteFound(LSL_String pattern, LSL_String pass);
+         LSL_Integer llLinksetDataCountFound(LSL_String pattern);
+         LSL_List llLinksetDataFindKeys(LSL_String pattern, LSL_Integer start, LSL_Integer count);
+         LSL_List llLinksetDataListKeys(LSL_Integer start, LSL_Integer count);
+         LSL_String llLinksetDataRead(LSL_String name);
+         LSL_String llLinksetDataReadProtected(LSL_String name, LSL_String pass);     
     }
 }

@@ -88,9 +88,10 @@ namespace OpenSim.Region.Framework.Scenes
         http_request = 38,
 
         path_update = 40,
+        linkset_data = 41,
 
         // marks highest numbered event
-        Size = 41
+        Size = 42
     }
 
     // this is not the right place for this
@@ -145,7 +146,9 @@ namespace OpenSim.Region.Framework.Scenes
         anytouch = touch | touch_end | touch_start,
         anyTarget = at_target | not_at_target | at_rot_target | not_at_rot_target,
         anyobjcollision = collision | collision_end | collision_start,
-        anylandcollision = land_collision | land_collision_end | land_collision_start
+        anylandcollision = land_collision | land_collision_end | land_collision_start,
+
+        linkset_data = 1UL << 41
     }
 
     public struct scriptPosTarget
@@ -2661,10 +2664,17 @@ namespace OpenSim.Region.Framework.Scenes
         public void CopyRootPart(SceneObjectPart part, UUID cAgentID, UUID cGroupID, bool userExposed)
         {
             SceneObjectPart newpart = part.Copy(m_scene.AllocateLocalId(), OwnerID, GroupID, 0, userExposed);
-//            SceneObjectPart newpart = part.Copy(part.LocalId, OwnerID, GroupID, 0, userExposed);
-//            newpart.LocalId = m_scene.AllocateLocalId();
+            //            SceneObjectPart newpart = part.Copy(part.LocalId, OwnerID, GroupID, 0, userExposed);
+            //            newpart.LocalId = m_scene.AllocateLocalId();
+
+            // If the rootpart we're copying has LinksetData do a deep copy of that to the new rootpart.
+            if (part.LinksetData != null)
+            {
+                newpart.LinksetData = part.LinksetData.Copy();
+            }
 
             SetRootPart(newpart);
+
             if (userExposed)
                 RootPart.Velocity = Vector3.Zero; // In case source is moving
         }
@@ -3248,6 +3258,15 @@ namespace OpenSim.Region.Framework.Scenes
 
             // 'linkPart' == the root of the group being linked into this group
             SceneObjectPart linkPart = objectGroup.m_rootPart;
+
+            // Merge linksetData if there is any
+            if (linkPart.LinksetData != null)
+            {
+                if (m_rootPart.LinksetData == null)
+                    m_rootPart.LinksetData = new LinksetData();
+
+                m_rootPart.LinksetData.MergeLinksetData(linkPart.LinksetData);
+            }
 
             if (m_rootPart.PhysActor != null)
                 m_rootPart.PhysActor.Building = true;
