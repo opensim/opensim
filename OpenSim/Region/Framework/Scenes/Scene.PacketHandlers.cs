@@ -177,8 +177,9 @@ namespace OpenSim.Region.Framework.Scenes
                 if(!sog.IsDeleted)
                 {
                     PrimUpdateFlags update = sog.RootPart.Shape.MeshFlagEntry ? 
-                            PrimUpdateFlags.FullUpdatewithAnim | PrimUpdateFlags.MaterialOvr :
-                            PrimUpdateFlags.FullUpdatewithMatOvr;
+                            PrimUpdateFlags.FullUpdatewithAnim : PrimUpdateFlags.FullUpdate;
+                    if(part.Shape.RenderMaterials is not null)
+                        update |= PrimUpdateFlags.MaterialOvr;
                     part.SendUpdate(remoteClient, update);
                 }
             }
