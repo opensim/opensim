@@ -971,15 +971,11 @@ namespace OpenSim.Framework
                 TotalBytesLength += 9 + 2 + 4; // data
             }
 
-            if (RenderMaterials != null)
+            bool hasRenderMaterials = RenderMaterials is not null && RenderMaterials.entries is not null && RenderMaterials.entries.Length > 0;
+            if (hasRenderMaterials)
             {
                 ExtraParamsNum++;
-                if (RenderMaterials.entries == null || RenderMaterials.entries.Length == 0)
-                    TotalBytesLength++;
-                else
-                {
-                    TotalBytesLength += 1 + 17 * RenderMaterials.entries.Length + 2 + 4; // data
-                }
+                TotalBytesLength += 1 + 17 * RenderMaterials.entries.Length + 2 + 4; // data
             }
 
             byte[] safeReturnBytes = new byte[TotalBytesLength];
@@ -1067,7 +1063,7 @@ namespace OpenSim.Framework
                     *returnBytes++ = ReflectionProbe.Flags;
                 }
 
-                if (RenderMaterials != null && RenderMaterials.entries != null && RenderMaterials.entries.Length > 0)
+                if (hasRenderMaterials)
                 {
                     *returnBytes = MaterialsEP; returnBytes += 2;
 
@@ -1508,10 +1504,12 @@ namespace OpenSim.Framework
             // byte: high entry override utf8 length
             // utf8 bytes: override 
 
-            if (RenderMaterials is null || RenderMaterials.overrides is null || RenderMaterials.overrides.Length == 0)
+            if (RenderMaterials is null)
                 return null;
 
-            osUTF8 sb = OSUTF8Cached.Acquire();
+            if (RenderMaterials.overrides is null || RenderMaterials.overrides.Length == 0)
+                return new byte[] { 0 };  // store so outdated viewer caches can be updated
+
             int nentries = 0;
             for (int i = 0; i < RenderMaterials.overrides.Length; i++)
             {
@@ -1519,8 +1517,9 @@ namespace OpenSim.Framework
                     nentries++;
             }
             if(nentries == 0)
-                return null;
+                return new byte[] { 0 };
 
+            osUTF8 sb = OSUTF8Cached.Acquire();
             sb.Append((byte)nentries);
             for (int i = 0; i < RenderMaterials.overrides.Length; i++)
             {
@@ -1537,13 +1536,20 @@ namespace OpenSim.Framework
 
         public void RenderMaterialsOvrFromRawBin(byte[] data)
         {
-            if (RenderMaterials is not null && RenderMaterials.overrides != null)
+            if (RenderMaterials is not null && RenderMaterials.overrides is not null)
                 RenderMaterials.overrides = null;
-            if (data is null || data.Length < 16)
+
+            if (data is null || data.Length < 1)
                 return;
             int nentries = data[0];
-            if(nentries > 128)
+            if (nentries > 128)
                 return;
+            if (nentries == 0) // for outdated viewer caches
+            {
+                RenderMaterials ??= new Primitive.RenderMaterials();
+                return;
+            }
+
             int indx = 1;
             Primitive.RenderMaterials.RenderMaterialOverrideEntry[] overrides = new Primitive.RenderMaterials.RenderMaterialOverrideEntry[nentries];
             try
@@ -1558,12 +1564,14 @@ namespace OpenSim.Framework
                         return;
                     indx += ovrlen;
                 }
-                RenderMaterials ??= new Primitive.RenderMaterials();
-                RenderMaterials.overrides = overrides;
             }
             catch
             {
+                return;
             }
+
+            RenderMaterials ??= new Primitive.RenderMaterials();
+            RenderMaterials.overrides = overrides;
         }
 
         /// <summary>

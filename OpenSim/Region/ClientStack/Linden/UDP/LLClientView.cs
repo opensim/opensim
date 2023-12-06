@@ -4970,7 +4970,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     istree = (part.Shape.PCode == (byte)PCode.Grass || part.Shape.PCode == (byte)PCode.NewTree || part.Shape.PCode == (byte)PCode.Tree);
                     if((updateFlags & PrimUpdateFlags.MaterialOvr) != 0)
-                        hasMaterialOverride = !istree;
+                        hasMaterialOverride = !istree && part.Shape.RenderMaterials is not null;
                 }
                 else if (update.Entity is ScenePresence presence)
                 {
@@ -5495,12 +5495,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 foreach (SceneObjectPart sop in needMaterials)
                 {
-                    OSDMap data = new(3);
-                    data["id"] = (int)sop.LocalId;
+                    if(sop.Shape.RenderMaterials is null)
+                        continue;
+                    OSDMap data = new(3)
+                    {
+                        ["id"] = (int)sop.LocalId
+                    };
                     OSDArray sides = new();
                     OSDArray sidesdata = new();
-                    if(sop.Shape.RenderMaterials is not null &&
-                        sop.Shape.RenderMaterials.overrides is not null &&
+                    if( sop.Shape.RenderMaterials.overrides is not null &&
                         sop.Shape.RenderMaterials.overrides.Length > 0)
                     {
                         foreach (Primitive.RenderMaterials.RenderMaterialOverrideEntry ovr in sop.Shape.RenderMaterials.overrides)
