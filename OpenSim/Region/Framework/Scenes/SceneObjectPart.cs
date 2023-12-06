@@ -62,6 +62,7 @@ namespace OpenSim.Region.Framework.Scenes
         TELEPORT = 512,
         REGION_RESTART = 1024,
         MEDIA = 2048,
+        MATERIAL = 4096,
         ANIMATION = 16384,
         POSITION = 32768
     }

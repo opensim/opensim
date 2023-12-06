@@ -1041,53 +1041,33 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
             }
 
-            if (newName.Length == 0)
+            if (string.IsNullOrEmpty(newName))
                 newName = item.Name;
 
-            AssetBase asset = AssetService.Get(item.AssetID.ToString());
-
-            if (asset is not null)
+            if (remoteClient.AgentId.Equals(oldAgentID)
+                || (LibraryService is not null
+                    && LibraryService.LibraryRootFolder is not null
+                    && oldAgentID.Equals(LibraryService.LibraryRootFolder.Owner)))
             {
-                if (newName.Length != 0)
-                {
-                    asset.Name = newName;
-                }
-                else
-                {
-                    newName = item.Name;
-                }
-
-                if (remoteClient.AgentId.Equals(oldAgentID)
-                    || (LibraryService is not null
-                        && LibraryService.LibraryRootFolder is not null
-                        && oldAgentID.Equals(LibraryService.LibraryRootFolder.Owner)))
-                {
-                    CreateNewInventoryItem(
-                        remoteClient, item.CreatorId, item.CreatorData, newFolderID,
-                        newName, item.Description, item.Flags, callbackID, item.AssetID, (sbyte)item.AssetType, (sbyte)item.InvType,
-                        item.BasePermissions, item.CurrentPermissions, item.EveryOnePermissions,
-                        item.NextPermissions, item.GroupPermissions, Util.UnixTimeSinceEpoch(), false);
-                }
-                else
-                {
-                    // If item is transfer or permissions are off or calling agent is allowed to copy item owner's inventory item.
-                    if (((item.CurrentPermissions & (uint)PermissionMask.Transfer) != 0)
-                        && (m_permissions.BypassPermissions()
-                            || m_permissions.CanCopyUserInventory(remoteClient.AgentId, oldItemID)))
-                    {
-                        CreateNewInventoryItem(
-                            remoteClient, item.CreatorId, item.CreatorData, newFolderID, newName, item.Description, item.Flags, callbackID,
-                            item.AssetID, (sbyte)item.AssetType, (sbyte)item.InvType,
-                            item.NextPermissions, item.NextPermissions, item.EveryOnePermissions & item.NextPermissions,
-                            item.NextPermissions, item.GroupPermissions, Util.UnixTimeSinceEpoch(), false);
-                    }
-                }
+                CreateNewInventoryItem(
+                    remoteClient, item.CreatorId, item.CreatorData, newFolderID,
+                    newName, item.Description, item.Flags, callbackID, item.AssetID, (sbyte)item.AssetType, (sbyte)item.InvType,
+                    item.BasePermissions, item.CurrentPermissions, item.EveryOnePermissions,
+                    item.NextPermissions, item.GroupPermissions, Util.UnixTimeSinceEpoch());
             }
             else
             {
-                m_log.ErrorFormat(
-                    "[AGENT INVENTORY]: Could not copy item {0} since asset {1} could not be found",
-                    item.Name, item.AssetID);
+                // If item is transfer or permissions are off or calling agent is allowed to copy item owner's inventory item.
+                if (((item.CurrentPermissions & (uint)PermissionMask.Transfer) != 0)
+                    && (m_permissions.BypassPermissions()
+                        || m_permissions.CanCopyUserInventory(remoteClient.AgentId, oldItemID)))
+                {
+                    CreateNewInventoryItem(
+                        remoteClient, item.CreatorId, item.CreatorData, newFolderID, newName, item.Description, item.Flags, callbackID,
+                        item.AssetID, (sbyte)item.AssetType, (sbyte)item.InvType,
+                        item.NextPermissions, item.NextPermissions, item.EveryOnePermissions & item.NextPermissions,
+                        item.NextPermissions, item.GroupPermissions, Util.UnixTimeSinceEpoch());
+                }
             }
         }
 
@@ -1170,6 +1150,17 @@ namespace OpenSim.Region.Framework.Scenes
             string name, string description, uint flags, uint callbackID, UUID assetID, sbyte assetType, sbyte invType,
             uint baseMask, uint currentMask, uint everyoneMask, uint nextOwnerMask, uint groupMask, int creationDate,
             bool assetUpload)
+        {
+            CreateNewInventoryItem(
+                remoteClient, creatorID, creatorData, folderID,
+                name, description, flags, callbackID, assetID, assetType, invType,
+                baseMask, currentMask, everyoneMask, nextOwnerMask, groupMask, creationDate);
+        }
+
+        public void CreateNewInventoryItem(
+            IClientAPI remoteClient, string creatorID, string creatorData, UUID folderID,
+            string name, string description, uint flags, uint callbackID, UUID assetID, sbyte assetType, sbyte invType,
+            uint baseMask, uint currentMask, uint everyoneMask, uint nextOwnerMask, uint groupMask, int creationDate)
         {
             InventoryItemBase item = new()
             {

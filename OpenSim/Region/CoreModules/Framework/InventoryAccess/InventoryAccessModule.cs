@@ -222,7 +222,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         name, description, flags, callbackID, asset.FullID, asset.Type, invType,
                         (uint)PermissionMask.AllAndExport, (uint)PermissionMask.AllAndExport,
                         everyonemask, nextOwnerMask, groupmask,
-                        creationDate, false); // Data from viewer
+                        creationDate);
                     return;
                 }
                 switch (assetType)
@@ -245,7 +245,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                                 name, description, flags, callbackID, assetID, (sbyte)AssetType.Settings, invType,
                                 (uint)PermissionMask.AllAndExport, (uint)PermissionMask.AllAndExport,
                                 everyonemask, nextOwnerMask, groupmask,
-                                creationDate, false); // Data from viewer
+                                creationDate);
                         return;
                     }
                     case (sbyte)AssetType.LSLText:
@@ -255,7 +255,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                                 name, description, flags, callbackID, Constants.DefaultScriptID, (sbyte)AssetType.LSLText, invType,
                                 (uint)PermissionMask.AllAndExport, (uint)PermissionMask.AllAndExport,
                                 everyonemask, nextOwnerMask, groupmask,
-                                creationDate, false); // Data from viewer
+                                creationDate); // Data from viewer
                         return;
                     }
                     case (sbyte)AssetType.Notecard:
@@ -265,7 +265,17 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                                 name, description, flags, callbackID, Constants.EmptyNotecardID, (sbyte)AssetType.Notecard, invType,
                                 (uint)PermissionMask.AllAndExport, (uint)PermissionMask.AllAndExport,
                                 everyonemask, nextOwnerMask, groupmask,
-                                creationDate, false); // Data from viewer
+                                creationDate);
+                        return;
+                    }
+                    case (sbyte)AssetType.Material:
+                    {
+                        m_Scene.CreateNewInventoryItem(
+                                remoteClient, remoteClient.AgentId.ToString(), string.Empty, folderID,
+                                name, description, flags, callbackID, Constants.DefaultMaterialID, (sbyte)AssetType.Material, invType,
+                                (uint)PermissionMask.AllAndExport, (uint)PermissionMask.AllAndExport,
+                                everyonemask, nextOwnerMask, groupmask,
+                                creationDate);
                         return;
                     }
 
@@ -282,7 +292,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         name, description, flags, callbackID, UUID.Zero, assetType, invType,
                         (uint)PermissionMask.AllAndExport, (uint)PermissionMask.AllAndExport,
                         everyonemask, nextOwnerMask, groupmask,
-                        creationDate, false); // Data from viewer
+                        creationDate);
             }
             else
             {

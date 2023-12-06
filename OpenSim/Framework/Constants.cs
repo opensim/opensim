@@ -68,6 +68,9 @@ namespace OpenSim.Framework
         public static readonly UUID EmptyNotecardID = new UUID(EmptyNotecard);
         public static readonly byte[] EmptyNotecardData = osUTF8.GetASCIIBytes("Linden text version 2\n{\nLLEmbeddedItems version 1\n{\ncount 0\n}\nText length 0\n}\n\0");
 
+        public static readonly string DefaultMaterial = "968cbad0-4dad-d64e-71b5-72bf13ad051a";
+        public static readonly UUID DefaultMaterialID = new UUID(DefaultMaterial);
+
         public static readonly string m_MrOpenSimIDString = "11111111-1111-0000-0000-000100bba000";
         public static readonly UUID m_MrOpenSimID = new UUID(m_MrOpenSimIDString);
         public static readonly DateTime m_MrOpenSimBorn = new DateTime(2007, 1, 1, 0, 0, 0, DateTimeKind.Utc);
