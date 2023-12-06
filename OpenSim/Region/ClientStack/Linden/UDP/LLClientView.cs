@@ -5497,30 +5497,36 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     if(sop.Shape.RenderMaterials is null)
                         continue;
-                    OSDMap data = new(3)
-                    {
-                        ["id"] = (int)sop.LocalId
-                    };
-                    OSDArray sides = new();
-                    OSDArray sidesdata = new();
-                    if( sop.Shape.RenderMaterials.overrides is not null &&
+
+                    string inner;
+                    if (sop.Shape.RenderMaterials.overrides is not null &&
                         sop.Shape.RenderMaterials.overrides.Length > 0)
                     {
+                        OSDMap data = new(3)
+                        {
+                            ["id"] = (int)sop.LocalId
+                        };
+                        OSDArray sides = new();
+                        OSDArray sidesdata = new();
+                   
                         foreach (Primitive.RenderMaterials.RenderMaterialOverrideEntry ovr in sop.Shape.RenderMaterials.overrides)
                         {
                             sides.Add(ovr.te_index);
                             sidesdata.Add(string.IsNullOrEmpty(ovr.data) ? new OSD() : new OSDllsdxml(ovr.data));
                         }
-                    }
-                    data["te"] = sides;
-                    data["od"] = sidesdata;
 
-                    string inner = OSDParser.SerializeLLSDNotation(data);
-                    if (inner.Length < 4)
-                        continue;
+                        data["te"] = sides;
+                        data["od"] = sidesdata;
+
+                        inner = OSDParser.SerializeLLSDNotation(data);
+                        if (inner.Length < 4)
+                            continue;
+                    }
+                    else
+                        inner = $"{{'id':i{sop.LocalId},'od':[],'te':[]}}";
 
                     byte[] innerB = Util.UTF8NBGetbytes(inner);
-                    if (innerB.Length > 4096 - 32)
+                    if (innerB.Length > 4096 - 16)
                     {
                         m_log.Debug($"[LLCLIENTVIEW]: GenericStreamingMessage packet too large ({innerB.Length})");
                         continue;

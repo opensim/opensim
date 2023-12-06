@@ -217,7 +217,9 @@ namespace OpenSim.Region.Framework.Scenes
             new UUID("9f496bd2-589a-709f-16cc-69bf7df1d36c"),
             new UUID("15dd911d-be82-2856-26db-27659b142875"),
             new UUID("b8c8b2a3-9008-1771-3bfc-90924955ab2d"),
-            new UUID("42ecd00b-9947-a97c-400a-bbc9174c7aeb")
+            new UUID("42ecd00b-9947-a97c-400a-bbc9174c7aeb"),
+            new UUID("ffffffff-ffff-ffff-ffff-ffffffffffff"),
+            Constants.DefaultMaterialID
         };
 
     /// <summary>
