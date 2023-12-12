@@ -497,7 +497,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             if (sendClientUpdates)
-                sceneObject.ScheduleGroupForFullAnimUpdate();
+                sceneObject.ScheduleGroupForUpdate(PrimUpdateFlags.FullUpdatewithAnimMatOvr);
 
             if (attachToBackup)
                 sceneObject.AttachToBackup();
@@ -2189,7 +2189,7 @@ namespace OpenSim.Region.Framework.Scenes
                     copy.ResumeScripts();
 
                     copy.HasGroupChanged = true;
-                    copy.ScheduleGroupForFullAnimUpdate();
+                    copy.ScheduleGroupForUpdate(PrimUpdateFlags.FullUpdatewithAnimMatOvr);
                     return copy;
                 }
             }

@@ -293,7 +293,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     rootGroup.LinkToGroup(allparts[j]);
                 }
 
-                rootGroup.ScheduleGroupForFullAnimUpdate();
+                rootGroup.ScheduleGroupForUpdate(PrimUpdateFlags.FullUpdatewithAnimMatOvr);
 
                 httpResponse.StatusCode = (int)HttpStatusCode.OK;
                 httpResponse.RawBuffer = Util.UTF8NBGetbytes(String.Format("<llsd><map><key>local_id</key>{0}</map></llsd>", ConvertUintToBytes(allparts[0].LocalId)));

@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace OpenSim.Framework
@@ -170,7 +171,7 @@ namespace OpenSim.Framework
         {
             lock (m_syncRoot)
             {
-                if (m_array == null)
+                if (m_array is null)
                 {
                     if(m_dict.Count == 0)
                         return Array.Empty<TValue>();
@@ -179,6 +180,12 @@ namespace OpenSim.Framework
                 }
                 return m_array;
             }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Span<TValue> GetSpan()
+        {
+            return new Span<TValue>(GetArray());
         }
     }
 }

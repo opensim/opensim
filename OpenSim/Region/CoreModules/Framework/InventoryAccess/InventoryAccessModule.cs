@@ -1109,7 +1109,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     group.CreateScriptInstances(0, true, m_Scene.DefaultScriptEngine, 1);
                     rootPart.ParentGroup.ResumeScripts();
 
-                    group.ScheduleGroupForFullAnimUpdate();
+                    group.ScheduleGroupForUpdate(PrimUpdateFlags.FullUpdatewithAnimMatOvr);
                 }
                 else
                     m_Scene.AddNewSceneObject(group, true, false);

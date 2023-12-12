@@ -2807,7 +2807,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if(humanRez)
                     group.ResumeScripts();
 
-                group.ScheduleGroupForFullAnimUpdate();
+                group.ScheduleGroupForUpdate(PrimUpdateFlags.FullUpdatewithAnimMatOvr);
             }
 
             return objlist;

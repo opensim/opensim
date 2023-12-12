@@ -636,6 +636,7 @@ namespace OpenSim.Framework
 
         FullUpdatewithAnim = FullUpdate | Animations,
         FullUpdatewithMatOvr = FullUpdate | MaterialOvr,
+        FullUpdatewithAnimMatOvr = FullUpdate | Animations | MaterialOvr,
 
         UpdateProbe   = 0x10000000, // 1 << 28
         SendInTransit = 0x20000000, // 1 << 29

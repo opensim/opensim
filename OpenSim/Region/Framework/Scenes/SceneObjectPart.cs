@@ -3230,11 +3230,14 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void ScheduleUpdate(PrimUpdateFlags update)
         {
-            if (ParentGroup == null || ParentGroup.IsDeleted || ParentGroup.Scene == null)
+            if (ParentGroup is null || ParentGroup.IsDeleted)
                 return;
 
-            if (Animations == null)
+            if (Animations is null)
                 update &= ~PrimUpdateFlags.Animations;
+            if (Shape is null || Shape.RenderMaterials is null)
+                update &= ~PrimUpdateFlags.MaterialOvr;
+
             if (update == PrimUpdateFlags.None)
                 return;
 
@@ -3244,12 +3247,14 @@ namespace OpenSim.Region.Framework.Scenes
             if (ParentGroup.Scene.GetNumberOfClients() == 0)
                 return;
 
-            bool isfull = false;
+            bool isfull;
             if (ParentGroup.IsAttachment)
             {
                 update |= PrimUpdateFlags.FullUpdate;
                 isfull = true;
             }
+            else
+                isfull = (update & PrimUpdateFlags.FullUpdate) == PrimUpdateFlags.FullUpdate;
 
             lock (UpdateFlagLock)
                 UpdateFlag |= update;

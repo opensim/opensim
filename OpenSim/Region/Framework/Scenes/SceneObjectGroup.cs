@@ -1025,7 +1025,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             sog.inTransit = false;
             AttachToBackup();
-            sog.ScheduleGroupForFullAnimUpdate();
+            sog.ScheduleGroupForUpdate(PrimUpdateFlags.FullUpdatewithAnimMatOvr);
         }
 
         private class TeleportObjectData
@@ -1520,10 +1520,9 @@ namespace OpenSim.Region.Framework.Scenes
                 m_rootPart.LocalId = m_scene.AllocateLocalId();
 
             SceneObjectPart[] parts = m_parts.GetArray();
-            SceneObjectPart part;
             for (int i = 0; i < parts.Length; i++)
             {
-                part = parts[i];
+                SceneObjectPart part = parts[i];
                 part.KeyframeMotion?.UpdateSceneObject(this);
 
                 if (Object.ReferenceEquals(part, m_rootPart))
@@ -1602,10 +1601,9 @@ namespace OpenSim.Region.Framework.Scenes
             maxZ = scale.Z;
 
             SceneObjectPart[] parts = m_parts.GetArray();
-            SceneObjectPart part;
             for (int i = 0; i < parts.Length; ++i)
             {
-                part = parts[i];
+                SceneObjectPart part = parts[i];
                 if(part.LocalId == rootid)
                     continue;
 
@@ -1673,10 +1671,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             Vector3 absPos = AbsolutePosition;
             SceneObjectPart[] parts = m_parts.GetArray();
-            SceneObjectPart part;
             for(int i = 0; i< parts.Length; ++i)
             {
-                part = parts[i];
+                SceneObjectPart part = parts[i];
                 Vector3 offset = part.GetWorldPosition() - absPos;
                 Vector3 scale = part.Scale * 0.5f;
 
@@ -1796,12 +1793,12 @@ namespace OpenSim.Region.Framework.Scenes
                 float areaF = 0;
                 float partR;
                 Vector3 offset = Vector3.Zero;
-                SceneObjectPart p;
+
                 SceneObjectPart[] parts = m_parts.GetArray();
 
                 for (int i = 0; i < parts.Length; i++)
                 {
-                    p = parts[i];
+                    SceneObjectPart p = parts[i];
                     partR = 0.5f * p.Scale.Length();
                     if(p != RootPart)
                     {
@@ -1840,13 +1837,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             bool ComplexCost = false;
 
-            SceneObjectPart p;
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
             {
-                p = parts[i];
-
-                if (p.UsesComplexCost)
+                if (parts[i].UsesComplexCost)
                 {
                     ComplexCost = true;
                     break;
@@ -1862,7 +1856,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 for (int i = 0; i < parts.Length; i++)
                 {
-                    p = parts[i];
+                    SceneObjectPart p = parts[i];
 
                     cost = p.StreamingCost;
                     tmpcost = p.SimulationCost;
@@ -2579,7 +2573,7 @@ namespace OpenSim.Region.Framework.Scenes
                 dupe.HasGroupChanged = true;
                 dupe.AttachToBackup();
 
-                dupe.ScheduleGroupForFullAnimUpdate();
+                dupe.ScheduleGroupForUpdate(PrimUpdateFlags.FullUpdatewithAnimMatOvr);
             }
 
             dupe.InvalidatePartsLinkMaps();
@@ -2976,6 +2970,26 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public void ScheduleGroupForUpdate(PrimUpdateFlags update)
+        {
+            //if (IsAttachment)
+            //    m_log.DebugFormat("[SOG]: Scheduling full update for {0} {1}", Name, LocalId);
+            if (Scene.GetNumberOfClients() == 0)
+                return;
+
+            SceneObjectPart[] parts = m_parts.GetArray();
+            if (!RootPart.Shape.MeshFlagEntry)
+                update &= ~PrimUpdateFlags.Animations;
+
+            RootPart.ScheduleUpdate(update);
+
+            for (int i = 0; i < parts.Length; i++)
+            {
+                SceneObjectPart part = parts[i];
+                if (part != RootPart)
+                    part.ScheduleUpdate(update);
+            }
+        }
         /// <summary>
         /// Schedule a terse update for this scene object to all interested viewers.
         /// </summary>
@@ -3062,10 +3076,9 @@ namespace OpenSim.Region.Framework.Scenes
                 return RootPart;
 
             Span<SceneObjectPart> parts = m_parts.GetArray().AsSpan();
-            SceneObjectPart sop;
             if (linknum <= parts.Length)
             {
-                sop = parts[linknum - 1];
+                SceneObjectPart sop = parts[linknum - 1];
                 if (sop.LinkNum == linknum)
                     return sop;
             }
@@ -4079,7 +4092,7 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectPart[] parts = m_parts.GetArray();
 
             // fix scaling factors so parts don't violate dimensions
-            for(int i = 0;i < parts.Length;i++)
+            for(int i = 0; i < parts.Length; i++)
             {
                 SceneObjectPart obPart = parts[i];
                 if(obPart.UUID != m_rootPart.UUID)
@@ -4443,7 +4456,7 @@ namespace OpenSim.Region.Framework.Scenes
             for (int i = 0; i < parts.Length; i++)
             {
                 SceneObjectPart obPart = parts[i];
-                if (obPart.UUID != m_rootPart.UUID)
+                if (obPart != m_rootPart)
                     obPart.OffsetPosition += diff;
             }
 
@@ -4594,7 +4607,7 @@ namespace OpenSim.Region.Framework.Scenes
             for (int i = 0; i < parts.Length; i++)
             {
                 SceneObjectPart prim = parts[i];
-                if (prim.UUID != m_rootPart.UUID)
+                if (prim != m_rootPart)
                 {
                     Quaternion NewRot = oldParentRot * prim.RotationOffset;
                     NewRot = Quaternion.Inverse(axRot) * NewRot;
