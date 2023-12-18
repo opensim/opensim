@@ -4164,7 +4164,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 SceneObjectPart obPart = parts[i];
 
-                if (obPart.UUID.NotEqual(m_rootPart.UUID))
+                if (obPart != m_rootPart)
                 {
                     Vector3 currentpos = obPart.OffsetPosition;
                     currentpos.X *= x;

@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using log4net;
 using OpenMetaverse;
@@ -344,7 +345,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_assetUuidsToInspect.Contains(uuid))
                 return false;
 
-//            m_log.DebugFormat("[UUID GATHERER]: Adding asset {0} for inspection", uuid);
+            //m_log.DebugFormat("[UUID GATHERER]: Adding asset {0} for inspection", uuid);
 
             m_assetUuidsToInspect.Enqueue(uuid);
             return true;
@@ -361,8 +362,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="sceneObject">The scene object for which to gather assets</param>
         public void AddForInspection(SceneObjectGroup sceneObject)
         {
-            //            m_log.DebugFormat(
-            //                "[UUID GATHERER]: Getting assets for object {0}, {1}", sceneObject.Name, sceneObject.UUID);
+            //m_log.DebugFormat(
+            //    "[UUID GATHERER]: Getting assets for object {0}, {1}", sceneObject.Name, sceneObject.UUID);
             if(sceneObject.IsDeleted)
                 return;
 
@@ -417,8 +418,8 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             for (int j = 0; j < part.Shape.RenderMaterials.overrides.Length; ++j)
                             {
-                                //if(!string.IsNullOrEmpty(part.Shape.RenderMaterials.overrides[j].data))
-                                //AddForInspection(part.Shape.RenderMaterials.overrides[j].data, (sbyte)AssetType.Material);
+                                if(!string.IsNullOrEmpty(part.Shape.RenderMaterials.overrides[j].data))
+                                    RecordEmbeddedAssetDataUuids(part.Shape.RenderMaterials.overrides[j].data);
                             }
                         }
                     }
@@ -583,7 +584,6 @@ namespace OpenSim.Region.Framework.Scenes
             if(UncertainAssetsUUIDs.Contains(assetUuid))
                 UncertainAssetsUUIDs.Remove(assetUuid);
 
-            sbyte assetType = assetBase.Type;
 
             if(assetBase.Data == null || assetBase.Data.Length == 0)
             {
@@ -593,7 +593,12 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
 
+            sbyte assetType = assetBase.Type;
             GatheredUuids[assetUuid] = assetType;
+
+            if (assetBase.Data.Length < 36)
+                return;
+
             try
             {
                 switch ((AssetType)assetType)
@@ -768,6 +773,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="uuid"></param>
         /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected virtual AssetBase GetAsset(UUID uuid)
         {
             return m_assetService.Get(uuid.ToString());
@@ -777,23 +783,63 @@ namespace OpenSim.Region.Framework.Scenes
         /// Record the asset uuids embedded within the given text (e.g. a script).
         /// </summary>
         /// <param name="textAsset"></param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void RecordEmbeddedAssetDataUuids(AssetBase textAsset)
         {
-            // m_log.DebugFormat("[ASSET GATHERER]: Getting assets for uuid references in asset {0}", embeddingAssetId);
+            RecordEmbeddedAssetDataUuids(new osUTF8(textAsset.Data));
+        }
 
-            if(textAsset.Data.Length < 36)
-                return;
+        private unsafe void RecordEmbeddedAssetDataUuids(osUTF8 data)
+        {
+            //if (data.Length < 36)
+            //    return;
 
-            List<UUID> ids = Util.GetUUIDsOnData(textAsset.Data, 0, textAsset.Data.Length);
-            if (ids is null)
-                return;
-
-            for (int i = 0; i < ids.Count; ++i)
+            int indx = 8;
+            while(indx < data.Length - 28)
             {
-                if (ids[i].IsZero())
-                    continue;
-                UncertainAssetsUUIDs.Add(ids[i]);
-                AddForInspection(ids[i]);
+                if (data[indx] == (byte)'-')
+                {
+                    if (osUTF8Slice.TryParseUUID(new osUTF8Slice(data.GetArray(), indx - 8 , 36), out UUID id))
+                    {
+                        if (id.IsNotZero())
+                        {
+                            UncertainAssetsUUIDs.Add(id);
+                            AddForInspection(id);
+                        }
+                        indx += 37;
+                    }
+                    else
+                        indx += 9;
+                }
+                else
+                    indx++;
+            }
+        }
+
+        private unsafe void RecordEmbeddedAssetDataUuids(ReadOnlySpan<char> data)
+        {
+            if (data.Length < 36)
+                return;
+
+            int indx = 8;
+            while (indx < data.Length - 28)
+            {
+                if (data[indx] == '-')
+                {
+                    if (UUID.TryParse(data.Slice(indx - 8, 36), out UUID id))
+                    {
+                        if (id.IsNotZero())
+                        {
+                            UncertainAssetsUUIDs.Add(id);
+                            AddForInspection(id);
+                        }
+                        indx += 37;
+                    }
+                    else
+                        indx += 9;
+                }
+                else
+                    indx++;
             }
         }
 
@@ -925,7 +971,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return false;
 
                 osUTF8Slice tmp = data.SubUTF8(0, indx);
-                data.SubUTF8Self(indx + 1);
+                data.SubUTF8Self(indx);
 
                 return osUTF8Slice.TryParseUUID(tmp, out id);
             }
@@ -939,7 +985,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return false;
 
                 osUTF8Slice tmp = data.SubUTF8(0, indx);
-                data.SubUTF8Self(indx + 1);
+                data.SubUTF8Self(indx);
 
                 return osUTF8Slice.TryParseUUID(tmp, out id);
             }
@@ -955,7 +1001,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return false;
 
             osUTF8Slice tmp = data.SubUTF8(0, indx);
-            data.SubUTF8Self(indx + 1);
+            data.SubUTF8Self(indx);
 
             tmp.SelfTrim();
             if(tmp.Length == 0)
@@ -986,6 +1032,7 @@ namespace OpenSim.Region.Framework.Scenes
         private static readonly byte[] AssetIDB = osUTF8.GetASCIIBytes("AssetID");
         private static readonly byte[] texturesB = osUTF8.GetASCIIBytes("textures");
         private static readonly byte[] parametersB = osUTF8.GetASCIIBytes("parameters");
+        private static readonly byte[] MatOvrdB = osUTF8.GetASCIIBytes("MatOvrd");
 
         /// <summary>
         /// Get all the asset uuids associated with a given object.  This includes both those directly associated with
@@ -1073,11 +1120,16 @@ namespace OpenSim.Region.Framework.Scenes
                             {
                                 GatheredUuids[teid] = (sbyte)AssetType.Texture;
                             }
-                            if(ps.RenderMaterials is not null && ps.RenderMaterials.entries is not null &&
-                                ps.RenderMaterials.entries.Length > 0)
-                            {
-                                foreach(Primitive.RenderMaterials.RenderMaterialEntry re in ps.RenderMaterials.entries)
-                                    AddForInspection(re.id, (sbyte)AssetType.Material);
+                            if(ps.RenderMaterials is not null)
+                            { 
+                                if (ps.RenderMaterials.entries is not null)
+                                {   
+                                    for (int j = 0; j < ps.RenderMaterials.entries.Length; ++j)
+                                    {
+                                        if (ps.RenderMaterials.entries[j].id.IsNotZero())
+                                            AddForInspection(ps.RenderMaterials.entries[j].id, (sbyte)AssetType.Material);
+                                    }
+                                }
                             }
                             /* multiple store
                             teid = ps.SculptTexture; //??
@@ -1160,6 +1212,16 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                         else if (nodeName.StartsWith(endTaskInventoryB))
                             break;
+                    }
+                }
+                else if (nodeName.StartsWith(MatOvrdB))
+                {
+                    if (nodeName.EndsWith((byte)'/'))
+                        continue;
+
+                    if (TryGetXMLBinary(data, out byte[] ovrbytes) && ovrbytes != null && ovrbytes.Length > 36)
+                    {
+                        RecordEmbeddedAssetDataUuids(new osUTF8(ovrbytes));
                     }
                 }
             }
@@ -1245,7 +1307,7 @@ namespace OpenSim.Region.Framework.Scenes
                     osUTF8Slice tmp = data.SubUTF8(0, indx);
                     if(osUTF8Slice.TryParseUUID(tmp, out UUID id) && id.IsNotZero())
                         GatheredUuids[id] = (sbyte)AssetType.Texture;
-                    data.SubUTF8Self(indx + 1);
+                    data.SubUTF8Self(indx);
                 }
             }
         }
