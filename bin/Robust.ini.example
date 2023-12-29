@@ -572,6 +572,10 @@
     ; a RSS page for grid status
     ;GridStatusRSS = ${Const|BaseURL}:${Const|PublicPort}/GridStatusRSS
 
+    ; optional web page for profiles
+    ;[AGENT_NAME] will be converted to Firstname.LastName by viewers
+    ; web_profile_url = http://webprofilesurl:ItsPort?name=[AGENT_NAME]
+
 [Messaging]
     ; OfflineIM
     OfflineIMService = "OpenSim.Addons.OfflineIM.dll:OfflineIMService"
