@@ -623,11 +623,6 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             return prim;
         }
 
-        // This is a call from the simulator saying that some physical property has been updated.
-        // The BulletSim driver senses the changing of relevant properties so this taint
-        // information call is not needed.
-        public override void AddPhysicsActorTaint(PhysicsActor prim) { }
-
         #endregion // Prim and Avatar addition and removal
 
         #region Simulation

@@ -1549,16 +1549,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             ChangesQueue.Enqueue(item);
         }
 
-        /// <summary>
-        /// Called after our prim properties are set Scale, position etc.
-        /// We use this event queue like method to keep changes to the physical scene occuring in the threadlocked mutex
-        /// This assures us that we have no race conditions
-        /// </summary>
-        /// <param name="prim"></param>
-        public override void AddPhysicsActorTaint(PhysicsActor prim)
-        {
-        }
-
         // does all pending changes generated during region load process
         public override void ProcessPreSimulation()
         {

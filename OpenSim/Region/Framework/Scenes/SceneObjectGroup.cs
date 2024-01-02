@@ -2638,7 +2638,6 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     // false to be applied as a impulse
                     pa.AddForce(impulse, false);
-                    m_scene.PhysicsScene.AddPhysicsActorTaint(pa);
                 }
             }
         }
@@ -2652,7 +2651,6 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     // false to be applied as a impulse
                     pa.AddAngularForce(impulse, false);
-                    m_scene.PhysicsScene.AddPhysicsActorTaint(pa);
                 }
             }
         }
@@ -3271,7 +3269,6 @@ namespace OpenSim.Region.Framework.Scenes
                 if (linkPart.PhysActor is not null && m_rootPart.PhysActor is not null && m_rootPart.PhysActor.IsPhysical)
                 {
                     linkPart.PhysActor.link(m_rootPart.PhysActor);
-                    this.Scene.PhysicsScene.AddPhysicsActorTaint(linkPart.PhysActor);
                 }
 
                 linkPart.LinkNum = linkNum++;
@@ -3300,7 +3297,6 @@ namespace OpenSim.Region.Framework.Scenes
                         if (part.PhysActor is not null && m_rootPart.PhysActor is not null && m_rootPart.PhysActor.IsPhysical)
                         {
                             part.PhysActor.link(m_rootPart.PhysActor);
-                            this.Scene.PhysicsScene.AddPhysicsActorTaint(part.PhysActor);
                         }
                     }
                     part.ClearUndoState();
@@ -3688,7 +3684,6 @@ namespace OpenSim.Region.Framework.Scenes
                     Vector3 grabforce = pos - AbsolutePosition;
                     grabforce *= pa.Mass * 0.1f;
                     pa.AddForce(grabforce, false);
-                    m_scene.PhysicsScene.AddPhysicsActorTaint(pa);
                 }
                 else
                 {
@@ -3810,7 +3805,6 @@ namespace OpenSim.Region.Framework.Scenes
                         else
                            spinforce = spinforce * pa.Mass * -0.1f; // 0.1 is an arbitrary torque scaling
                         pa.AddAngularForce(spinforce,true);
-                        m_scene.PhysicsScene.AddPhysicsActorTaint(pa);
                     }
                 }
                 else
@@ -4041,15 +4035,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void UpdateShape(ObjectShapePacket.ObjectDataBlock shapeBlock, uint localID)
         {
             SceneObjectPart part = GetPart(localID);
-            if (part is not null)
-            {
-                part.UpdateShape(shapeBlock);
-
-                PhysicsActor pa = m_rootPart.PhysActor;
-
-                if (pa is not null)
-                    m_scene.PhysicsScene.AddPhysicsActorTaint(pa);
-            }
+            part?.UpdateShape(shapeBlock);
             InvalidBoundsRadius();
         }
 
@@ -4513,7 +4499,6 @@ namespace OpenSim.Region.Framework.Scenes
             if (actor is not null)
             {
                 actor.Orientation = m_rootPart.RotationOffset;
-                m_scene.PhysicsScene.AddPhysicsActorTaint(actor);
             }
 
             if (IsAttachment)
@@ -4600,7 +4585,6 @@ namespace OpenSim.Region.Framework.Scenes
             if (pa is not null)
             {
                 pa.Orientation = m_rootPart.RotationOffset;
-                m_scene.PhysicsScene.AddPhysicsActorTaint(pa);
             }
 
             SceneObjectPart[] parts = m_parts.GetArray();

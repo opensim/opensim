@@ -220,7 +220,8 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
             get { return 1.0f; }
         }
 
-        public abstract void AddPhysicsActorTaint(PhysicsActor prim);
+        //legacy for any modules that may still call it
+        public virtual void AddPhysicsActorTaint(PhysicsActor prim) { }
 
         public virtual void ProcessPreSimulation() { }
 
