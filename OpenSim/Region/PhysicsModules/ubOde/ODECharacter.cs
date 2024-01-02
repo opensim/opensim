@@ -1607,7 +1607,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetSmooth(ref Vector3 dst, ref Vector3 value, int rounddigits)
+        public static void SetSmooth(ref Vector3 dst, ref Vector3 value, int rounddigits)
         {
             dst.X = 0.4f * dst.X + 0.6f * value.X;
             dst.X = MathF.Round(dst.X, rounddigits);
@@ -1626,10 +1626,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         /// copy and outbounds now done in move(..) at ode rate
         ///
         /// </summary>
+        /*
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void UpdatePositionAndVelocity()
         {
         }
+        */
 
         /// <summary>
         /// Cleanup the things we use in the scene.
@@ -2107,10 +2109,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             m_useHoverPID = active;
         }
 
+        /*
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void donullchange()
         {
         }
+        */
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void UpdateAABB2D()

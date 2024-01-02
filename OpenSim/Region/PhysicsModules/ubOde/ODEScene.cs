@@ -2099,10 +2099,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     UBOdeNative.GeomSetCategoryBits(TerrainGeom, (uint)(CollisionCategories.Land));
                     UBOdeNative.GeomSetCollideBits(TerrainGeom, 0);
 
-                    PhysicsActor pa = new NullPhysicsActor();
-                    pa.Name = "Terrain";
-                    pa.PhysicsActorType = (int)ActorTypes.Ground;
-                    actor_name_map[TerrainGeom] = pa;
+                        PhysicsActor pa = new NullPhysicsActor
+                        {
+                            Name = "Terrain",
+                            PhysicsActorType = (int)ActorTypes.Ground
+                        };
+                        actor_name_map[TerrainGeom] = pa;
 
                     //geom_name_map[GroundGeom] = "Terrain";
 
@@ -2196,8 +2198,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                 UBOdeNative.AllocateODEDataForThread(~0U);
 
-                if (m_meshWorker != null)
-                    m_meshWorker.Stop();
+                m_meshWorker?.Stop();
 
                 if (m_rayCastManager != null)
                 {
@@ -2444,8 +2445,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             Util.FireAndForget( delegate
             {
                 ODESitAvatar sitAvatar = new(this, m_rayCastManager);
-                if(sitAvatar is not null)
-                    sitAvatar.Sit(actor, AbsolutePosition, CameraPosition, offset, AvatarSize, PhysicsSitResponse);
+                sitAvatar?.Sit(actor, AbsolutePosition, CameraPosition, offset, AvatarSize, PhysicsSitResponse);
             });
             return 1;
         }

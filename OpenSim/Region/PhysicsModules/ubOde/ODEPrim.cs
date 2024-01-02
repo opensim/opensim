@@ -58,13 +58,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         private byte m_angularlocks = 0;
 
-        private Quaternion m_lastorientation;
+        //private Quaternion m_lastorientation;
         private Quaternion m_orientation;
 
         private Vector3 m_position;
         private Vector3 _velocity;
-        private Vector3 m_lastVelocity;
-        private Vector3 m_lastposition;
+        //private Vector3 m_lastVelocity;
+        //private Vector3 m_lastposition;
         private Vector3 m_rotationalVelocity;
         private Vector3 m_size;
         private Vector3 m_acceleration;
@@ -120,7 +120,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private readonly object m_meshlock = new();
         private PrimitiveBaseShape m_pbs;
 
-        private UUID? m_assetID;
+        //private UUID? m_assetID;
         private MeshState m_meshState;
 
 
@@ -155,7 +155,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         public Vector3 m_OBB;
         public float primOOBradiusSQ;
 
-        private bool m_hasOBB = true;
+        //private bool m_hasOBB = true;
 
         private float m_physCost;
         private float m_streamCost;
@@ -200,8 +200,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 // and also to stop imediatly some updates
                 // but real change will only happen in taintprocessing
 
-                if (!value) // Zero the remembered last velocity
-                    m_lastVelocity = Vector3.Zero;
+                //if (!value) // Zero the remembered last velocity
+                    //m_lastVelocity = Vector3.Zero;
                 AddChange(changes.Physical, value);
             }
         }
@@ -547,8 +547,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             if(childPrim)
             {
-                if(_parent != null)
-                    _parent.SetInertiaData(inertia);
+                _parent?.SetInertiaData(inertia);
                 return;
             }
 
@@ -993,12 +992,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     m_position.Y = Utils.Clamp(m_position.Y, 0.5f, m_parentScene.WorldExtents.Y - 0.5f);
                     m_position.Z = Utils.Clamp(m_position.Z + 0.2f, Constants.MinSimulationHeight, Constants.MaxSimulationHeight);
 
-                    m_lastposition = m_position;
+                    //m_lastposition = m_position;
                     _velocity = Vector3.Zero;
 
                     UBOdeNative.AllocateODEDataForThread(0);
 
-                    m_lastVelocity = _velocity;
+                    //m_lastVelocity = _velocity;
                     if (m_vehicle != null && m_vehicle.Type != Vehicle.TYPE_NONE)
                         m_vehicle.Stop();
 
@@ -1023,8 +1022,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                 m_outbounds = true;
 
-                m_lastposition = m_position;
-                m_lastorientation = m_orientation;
+                //m_lastposition = m_position;
+                //m_lastorientation = m_orientation;
 
                 UBOdeNative.AllocateODEDataForThread(0);
                 if(Body != IntPtr.Zero)
@@ -1655,7 +1654,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 m_log.WarnFormat("[PHYSICS]: Invalid mesh data on OdePrim {0}, mesh {1} at {2}",
                     Name, m_pbs.SculptEntry ? m_pbs.SculptTexture.ToString() : "primMesh", m_position.ToString());
 
-                m_hasOBB = false;
+                //m_hasOBB = false;
                 m_OBBOffset = Vector3.Zero;
                 m_OBB = m_size * 0.5f;
 
@@ -1701,7 +1700,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 }
                 _triMeshData = IntPtr.Zero;
 
-                m_hasOBB = false;
+                //m_hasOBB = false;
                 m_OBBOffset = Vector3.Zero;
                 m_OBB = m_size * 0.5f;
                 m_physCost = 0.1f;
@@ -1814,7 +1813,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
 
             Body = IntPtr.Zero;
-            m_hasOBB = false;
+            //m_hasOBB = false;
         }
 
         //sets non physical prim m_targetSpace to right space in spaces grid for static prims
@@ -2217,6 +2216,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             m_collisionscore = 0;
         }
 
+        /*
         private void FixInertia(Vector3 NewPos,Quaternion newrot)
         {
             UBOdeNative.BodyGetMass(Body, out UBOdeNative.Mass tmpdmass);
@@ -2289,6 +2289,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             UBOdeNative.BodySetMass(Body, ref objdmass);
             m_mass = objdmass.mass;
         }
+        */
 
         private void FixInertia(Vector3 NewPos)
         {
@@ -2353,6 +2354,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             m_mass = objdmass.mass;
         }
 
+        /*
         private void FixInertia(Quaternion newrot)
         {
             UBOdeNative.Matrix3 mat;
@@ -2416,7 +2418,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             UBOdeNative.BodySetMass(Body, ref objdmass);
             m_mass = objdmass.mass;
         }
-
+        */
 
         #region Mass Calculation
 
@@ -2517,6 +2519,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
         }
 
+        /*
         private void UpdateChildsfromgeom()
         {
             if (childrenPrim.Count > 0)
@@ -2525,6 +2528,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     prm.UpdateDataFromGeom();
             }
         }
+        */
 
         private void UpdateDataFromGeom()
         {
@@ -2692,10 +2696,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         (_parent as OdePrim).ChildDelink(this, false); // for now...
                         childPrim = false;
 
-                        if (NewParent != null)
-                        {
-                            NewParent.ParentPrim(this);
-                        }
+                        NewParent?.ParentPrim(this);
                     }
                 }
             }
@@ -2985,6 +2986,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             resetCollisionAccounting();
         }
 
+        /*
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void changePositionAndOrientation(Vector3 newPos, Quaternion newOri)
         {
@@ -3062,6 +3064,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 m_givefakeori = 0;
             resetCollisionAccounting();
         }
+        */
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void changeDisable(bool disable)
@@ -3106,12 +3109,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void changeSize(Vector3 newSize)
+        private static void changeSize(Vector3 newSize)
         {
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void changeShape(PrimitiveBaseShape newShape)
+        private static void changeShape(PrimitiveBaseShape newShape)
         {
         }
 
@@ -3123,10 +3126,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             m_mesh = repData.mesh;
 
-            m_assetID = repData.assetID;
+            //m_assetID = repData.assetID;
             m_meshState = repData.meshState;
 
-            m_hasOBB = repData.hasOBB;
+            //m_hasOBB = repData.hasOBB;
             m_OBBOffset = repData.OBBOffset;
             m_OBB = repData.OBB;
 
@@ -3185,10 +3188,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             if (chp)
             {
-                if (parent != null)
-                {
-                    parent.DestroyBody();
-                }
+                parent?.DestroyBody();
             }
             else
             {
@@ -3202,10 +3202,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             m_mesh = repData.mesh;
 
-            m_assetID = repData.assetID;
+            //m_assetID = repData.assetID;
             m_meshState = repData.meshState;
 
-            m_hasOBB = repData.hasOBB;
+            //m_hasOBB = repData.hasOBB;
             m_OBBOffset = repData.OBBOffset;
             m_OBB = repData.OBB;
 
@@ -3230,10 +3230,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                 if (chp)
                 {
-                    if (parent != null)
-                    {
-                        parent.MakeBody();
-                    }
+                    parent?.MakeBody();
                 }
                 else
                     MakeBody();
@@ -3816,8 +3813,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         UBOdeNative.BodySetLinearVel(Body, 0, 0, 0); // stop it
                         UBOdeNative.BodySetAngularVel(Body, 0, 0, 0); // stop it
                         UBOdeNative.BodySetPosition(Body, lpos.X, lpos.Y, lpos.Z); // put it somewhere
-                        m_lastposition = m_position;
-                        m_lastorientation = m_orientation;
+                        //m_lastposition = m_position;
+                        //m_lastorientation = m_orientation;
 
                         base.RequestPhysicsterseUpdate();
 
@@ -3852,8 +3849,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                     if (m_outbounds)
                     {
-                        m_lastposition = m_position;
-                        m_lastorientation = m_orientation;
+                        //m_lastposition = m_position;
+                        //m_lastorientation = m_orientation;
 
                         _velocity = UBOdeNative.BodyGetLinearVelOMV(Body);
                         m_rotationalVelocity = UBOdeNative.BodyGetAngularVelOMV(Body);
@@ -4007,7 +4004,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             theobj.I.M22 -= part.I.M22;
         }
 
-        private void donullchange()
+        private static void donullchange()
         {
         }
 

@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Text;
 using System.Xml;
@@ -1675,12 +1676,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                float cost;
-                if (PhysActor != null)
-                    cost = PhysActor.StreamCost;
-                else
-                    cost = 1.0f;
-                return 1.0f;
+                //float cost = PhysActor is null ? 1.0f : PhysActor.StreamCost;
+                return 1.0f; // disabled ?
             }
         }
 
@@ -1838,16 +1835,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         #endregion Public Properties with only Get
 
-        private uint ApplyMask(uint val, bool set, uint mask)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static uint ApplyMask(uint val, bool set, uint mask)
         {
-            if (set)
-            {
-                return val |= mask;
-            }
-            else
-            {
-                return val &= ~mask;
-            }
+            return set ? val |= mask : val &= ~mask;
         }
 
         /// <summary>
@@ -3349,7 +3340,7 @@ namespace OpenSim.Region.Framework.Scenes
         private const float POSITION_TOLERANCE = 0.05f; // I don't like this, but I suppose it's necessary
         private const double TIME_MS_TOLERANCE = 250.0; //llSetPos has a 200ms delay. This should NOT be 3 seconds.
 
-        private Vector3 ClampVectorForTerseUpdate(Vector3 v, float max)
+        private static Vector3 ClampVectorForTerseUpdate(Vector3 v, float max)
         {
             float a, b;
 
@@ -3941,11 +3932,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SetPhysicsAxisRotation()
         {
-            PhysicsActor pa = PhysActor;
-            if (pa is not null)
-            {
-                pa.LockAngularMotion(RotationAxisLocks);
-            }
+            PhysActor?.LockAngularMotion(RotationAxisLocks);
         }
 
         /// <summary>
@@ -4524,19 +4511,15 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="addRemTF"></param>
         public void UpdatePermissions(UUID AgentID, byte field, uint localID, uint mask, byte addRemTF)
         {
-            bool set = addRemTF == 1;
             bool god = ParentGroup.Scene.Permissions.IsGod(AgentID);
 
-            uint baseMask = BaseMask;
-            if (god)
-                baseMask = 0x7ffffff0;
-
-            bool canChange = (AgentID == OwnerID) || god;
-            if(!canChange)
-                canChange = ParentGroup.Scene.Permissions.CanEditObjectPermissions(ParentGroup, AgentID);
+            bool canChange = god || AgentID.Equals(OwnerID) ||
+                        ParentGroup.Scene.Permissions.CanEditObjectPermissions(ParentGroup, AgentID);
 
             if (canChange)
             {
+                bool set = addRemTF == 1;
+                uint baseMask = god ? 0x7ffffff0 : BaseMask;
                 switch (field)
                 {
                     case 1:
@@ -4548,12 +4531,10 @@ namespace OpenSim.Region.Framework.Scenes
 
                         break;
                     case 2:
-                        OwnerMask = ApplyMask(OwnerMask, set, mask) &
-                                baseMask;
+                        OwnerMask = ApplyMask(OwnerMask, set, mask) & baseMask;
                         break;
                     case 4:
-                        GroupMask = ApplyMask(GroupMask, set, mask) &
-                                baseMask;
+                        GroupMask = ApplyMask(GroupMask, set, mask) & baseMask;
                         break;
                     case 8:
                         // Trying to set export permissions - extra checks
@@ -5273,7 +5254,8 @@ namespace OpenSim.Region.Framework.Scenes
             ParentGroup.Scene.StatsReporter.AddObjectUpdates(1);
         }
 
-        public void AddScriptLPS(int count)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AddScriptLPS(int count)
         {
             //legacy, do nothing
             //ParentGroup.AddScriptLPS(count);
