@@ -928,7 +928,7 @@ namespace OpenSim.Framework
                 if (indx != next)
                     continue;
 
-                if (UUID.TryParse(s.Substring(idbase, 36), out UUID u))
+                if (UUID.TryParse(s.AsSpan(idbase, 36), out UUID u))
                 {
                     ids.Add(u);
                 }
@@ -937,7 +937,33 @@ namespace OpenSim.Framework
 
             return ids;
         }
+        public static List<UUID> GetUUIDsOnString(ReadOnlySpan<char> s)
+        {
+            var ids = new List<UUID>();
+            if (s.Length < 36)
+                return ids;
 
+            int indx = 8;
+            while (indx < s.Length - 28)
+            {
+                if (s[indx] == '-')
+                {
+                    if (UUID.TryParse(s.Slice(indx - 8, 36), out UUID id))
+                    {
+                        if (id.IsNotZero())
+                            ids.Add(id);
+                        indx += 37;
+                    }
+                    else
+                        indx += 9;
+                }
+                else
+                    indx++;
+            }
+            return ids;
+        }
+
+        /*
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static bool IsHexa(byte c)
         {
@@ -1061,6 +1087,7 @@ namespace OpenSim.Framework
 
             return ids;
         }
+        */
 
         /// <summary>
         /// Is the platform Windows?

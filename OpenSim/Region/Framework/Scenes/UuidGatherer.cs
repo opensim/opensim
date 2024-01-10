@@ -816,7 +816,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        private unsafe void RecordEmbeddedAssetDataUuids(ReadOnlySpan<char> data)
+        private void RecordEmbeddedAssetDataUuids(ReadOnlySpan<char> data)
         {
             if (data.Length < 36)
                 return;

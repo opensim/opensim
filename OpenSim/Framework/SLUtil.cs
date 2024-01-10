@@ -615,8 +615,8 @@ namespace OpenSim.Framework
             if(indx > 0)
             {
                 indx += 14;
-                List<UUID> textIDs = Util.GetUUIDsOnString(ref note, indx, note.Length - indx);
-                if(textIDs.Count > 0)
+                List<UUID> textIDs = Util.GetUUIDsOnString(note.AsSpan(indx, note.Length - indx));
+                if (textIDs.Count > 0)
                     ids.AddRange(textIDs);
             }
             if (ids.Count == 0)

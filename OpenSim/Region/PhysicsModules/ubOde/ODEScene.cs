@@ -103,11 +103,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         //  or removes from a object if arg is null
         DeLink,
         Position,           // arg Vector3 new position in world coords. Changes prim position. Prim must know if it is root or child
-        Orientation,        // arg Quaternion new orientation in world coords. Changes prim position. Prim must know it it is root or child
+        Orientation,        // arg Quaternion new orientation in world coords. Changes prim orientation. Prim must know it it is root or child
         PosOffset,          // not in use
         // arg Vector3 new position in local coords. Changes prim position in object
         OriOffset,          // not in use
-        // arg Vector3 new position in local coords. Changes prim position in object
+        // arg Vector3 new orientation in local coords. Changes prim orientation in object
         Velocity,
         TargetVelocity,
         AngVelocity,
@@ -156,11 +156,18 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         Null             //keep this last used do dim the methods array. does nothing but pulsing the prim
     }
 
-    public struct ODEchangeitem
+    public readonly struct ODEchangeitem
     {
-        public PhysicsActor actor;
-        public changes what;
-        public Object arg;
+        public readonly PhysicsActor actor;
+        public readonly changes what;
+        public readonly Object arg;
+
+        public ODEchangeitem(PhysicsActor _actor, changes _what, Object _arg)
+        {
+            actor = _actor;
+            what = _what;
+            arg = _arg;
+        }
     }
 
     public partial class ODEScene : PhysicsScene
@@ -1533,20 +1540,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         /// <summary>
         /// Called to queue a change to a actor
-        /// to use in place of old taint mechanism so changes do have a time sequence
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void AddChange(PhysicsActor _actor, changes _what, Object _arg)
+        internal void AddChange(PhysicsActor _actor, changes _what, Object _arg)
         {
             if (world == IntPtr.Zero)
                 return;
-            ODEchangeitem item = new()
-            { 
-                actor = _actor,
-                what = _what,
-                arg = _arg
-            };
-            ChangesQueue.Enqueue(item);
+            ChangesQueue.Enqueue(new ODEchangeitem(_actor, _what, _arg));
         }
 
         // does all pending changes generated during region load process
@@ -1567,22 +1567,28 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                     while (ChangesQueue.TryDequeue(out ODEchangeitem item))
                     {
-                        if (item.actor != null)
+                        try
+                        {
+                            lock (SimulationLock)
+                            {
+                                if (item.actor is OdePrim prim)
+                                {
+                                    if (prim.DoAChange(item.what, item.arg))
+                                        RemovePrimThreadLocked((OdePrim)item.actor);
+                                }
+                                else
+                                    ((OdeCharacter)item.actor).DoAChange(item.what, item.arg);
+                            }
+                        }
+                        catch
                         {
                             try
                             {
-                                lock (SimulationLock)
-                                {
-                                    if (item.actor is OdeCharacter character)
-                                        character.DoAChange(item.what, item.arg);
-                                    else if (((OdePrim)item.actor).DoAChange(item.what, item.arg))
-                                        RemovePrimThreadLocked((OdePrim)item.actor);
-                                }
+                                m_log.WarnFormat($"[PHYSICS]: Operation failed for a actor {item.actor.Name} {item.what}");
                             }
                             catch
                             {
-                                m_log.WarnFormat("[PHYSICS]: Operation failed for a actor {0} {1}",
-                                    item.actor.Name, item.what.ToString());
+                                m_log.WarnFormat("[PHYSICS]: Operation failed for a unknown actor");
                             }
                         }
                         donechanges++;
@@ -1657,16 +1663,25 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     {
                         lock (SimulationLock)
                         {
-                            if (item.actor is OdeCharacter ch)
-                                ch.DoAChange(item.what, item.arg);
-                            else if (((OdePrim)item.actor).DoAChange(item.what, item.arg))
-                                RemovePrimThreadLocked((OdePrim)item.actor);
+                            if (item.actor is OdePrim prim)
+                            {
+                                if (prim.DoAChange(item.what, item.arg))
+                                    RemovePrimThreadLocked((OdePrim)item.actor);
+                            }
+                            else
+                                ((OdeCharacter)item.actor).DoAChange(item.what, item.arg);
                         }
                     }
                     catch
                     {
-                        m_log.WarnFormat("[PHYSICS]: doChange failed for a actor {0} {1}",
-                            item.actor.Name, item.what.ToString());
+                        try
+                        {
+                            m_log.WarnFormat($"[PHYSICS]: Operation failed for a actor {item.actor.Name} {item.what}");
+                        }
+                        catch
+                        {
+                            m_log.WarnFormat("[PHYSICS]: Operation failed for a unknown actor");
+                        }
                     }
                     if (maxChangestime < Util.GetTimeStampMS())
                         break;

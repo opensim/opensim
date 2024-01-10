@@ -4060,6 +4060,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     changeOrientation((Quaternion)arg);
                     break;
 
+                /*
                 case changes.PosOffset:
                     donullchange();
                     break;
@@ -4067,7 +4068,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 case changes.OriOffset:
                     donullchange();
                     break;
-
+                */
                 case changes.Velocity:
                     changevelocity((Vector3)arg);
                     break;
