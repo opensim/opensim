@@ -3070,8 +3070,13 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (linknum < 0)
                 return null;
-            //if (linknum < 2)
-            //    return RootPart;
+            if (linknum < 2)
+            {
+                // old code and sl do ignore linknum = 0 on linksets with more than one prim
+                if (linknum == 0 && m_parts.Count > 1)
+                    return null;
+                return RootPart;
+            }
 
             Span<SceneObjectPart> parts = m_parts.GetArray().AsSpan();
             if (linknum <= parts.Length)
