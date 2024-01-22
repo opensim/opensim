@@ -1775,9 +1775,12 @@ namespace OpenSim.Region.Framework.Scenes
 
                     if (!LoginsEnabled && Frame == 20)
                     {
+                        GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
                         GC.Collect();
                         GC.WaitForPendingFinalizers();
                         GC.Collect();
+                        GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.Default;
+
                         if (!LoginLock)
                         {
                             if (!StartDisabled)
