@@ -3070,8 +3070,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (linknum < 0)
                 return null;
-            if (linknum < 2)
-                return RootPart;
+            //if (linknum < 2)
+            //    return RootPart;
 
             Span<SceneObjectPart> parts = m_parts.GetArray().AsSpan();
             if (linknum <= parts.Length)
