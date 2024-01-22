@@ -87,10 +87,6 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                 bool textureTerrain, bool averagetextureTerrain,
                 int twidth, int theight)
         {
-            Debug.Assert(textureIDs.Length == 4);
-            Debug.Assert(startHeights.Length == 4);
-            Debug.Assert(heightRanges.Length == 4);
-
             Bitmap[] detailTexture = new Bitmap[4];
 
             byte[] mapColorsRed = new byte[4];
