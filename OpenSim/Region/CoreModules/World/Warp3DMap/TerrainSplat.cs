@@ -29,6 +29,7 @@ using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -119,7 +120,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                         {
                             try
                             {
-                                using(System.IO.MemoryStream stream = new System.IO.MemoryStream(asset.Data))
+                                using(MemoryStream stream = new MemoryStream(asset.Data))
                                     detailTexture[i] = (Bitmap)Image.FromStream(stream);
 
                                 if(detailTexture[i].PixelFormat != PixelFormat.Format24bppRgb ||
@@ -153,14 +154,18 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
                             if(detailTexture[i] != null)
                             {
-                                if(detailTexture[i].PixelFormat != PixelFormat.Format24bppRgb ||
+                                //detailTexture[i].Save("terrOri" + i.ToString() + ".png");
+
+                                if (detailTexture[i].PixelFormat != PixelFormat.Format24bppRgb ||
                                    detailTexture[i].Width != 16 || detailTexture[i].Height != 16)
                                     using(Bitmap origBitmap = detailTexture[i])
                                         detailTexture[i] = Util.ResizeImageSolid(origBitmap, 16, 16);
 
+                                //detailTexture[i].Save("terr" + i.ToString() + ".png");
+
                                 // Save the decoded and resized texture to the cache
                                 byte[] data;
-                                using(System.IO.MemoryStream stream = new System.IO.MemoryStream())
+                                using(MemoryStream stream = new MemoryStream())
                                 {
                                     detailTexture[i].Save(stream, ImageFormat.Png);
                                     data = stream.ToArray();
@@ -235,9 +240,9 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                 else
                 {
                     // Fill in any missing textures with a solid color
-                    for(int i = 0; i < 4; i++)
+                    for (int i = 0; i < 4; i++)
                     {
-                        if(detailTexture[i] == null)
+                        if (detailTexture[i] == null)
                         {
                             m_log.DebugFormat("{0} Missing terrain texture for layer {1}. Filling with solid default color", LogHeader, i);
 
