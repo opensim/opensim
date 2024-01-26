@@ -413,9 +413,9 @@ namespace OpenSim.Services.MapImageService
                 output.UnlockBits(dstData);
                 input.UnlockBits(srcData);
             }
-            catch (InvalidOperationException e)
+            //catch (InvalidOperationException e)
+            catch
             {
-
             }
         }
 
