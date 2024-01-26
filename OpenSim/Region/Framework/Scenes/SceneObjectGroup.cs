@@ -3068,14 +3068,15 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>null if no child part with that linknum or child part</returns>
         public SceneObjectPart GetLinkNumPart(int linknum)
         {
-            if (linknum < 0)
-                return null;
             if (linknum < 2)
             {
-                // old code and sl do ignore linknum = 0 on linksets with more than one prim
-                if (linknum == 0 && m_parts.Count > 1)
-                    return null;
-                return RootPart;
+                return linknum switch
+                {
+                    <0 => null,
+                    // old code and sl do ignore linknum = 0 on linksets with more than one prim
+                    0 => m_parts.Count > 1 ? null : RootPart,
+                    _ => RootPart
+                };
             }
 
             Span<SceneObjectPart> parts = m_parts.GetArray().AsSpan();
