@@ -141,11 +141,11 @@ namespace OpenSim.Services.MapImageService
         //    this multi-resolution routine to be called a zillion times an causes much CPU
         //    time to be spent creating multi-resolution tiles that will be replaced when
         //    the next maptile arrives.
-        private readonly struct MapToMultiRez
+        private struct MapToMultiRez
         {
-            public readonly int x;
-            public readonly int y;
-            public readonly UUID scopeID;
+            public int x;
+            public int y;
+            public UUID scopeID;
             public mapToMultiRez(int pX, int pY, UUID pscopeID)
             {
                 x = pX;
