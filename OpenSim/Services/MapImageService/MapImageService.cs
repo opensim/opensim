@@ -146,13 +146,7 @@ namespace OpenSim.Services.MapImageService
             public int x;
             public int y;
             public UUID scopeID;
-            public mapToMultiRez(int pX, int pY, UUID pscopeID)
-            {
-                x = pX;
-                y = pY;
-                scopeID = pscopeID;
-            }
-        };
+        }
 
         private readonly Queue<MapToMultiRez> m_MultiRezToBuild = new Queue<MapToMultiRez>();
 
@@ -161,7 +155,15 @@ namespace OpenSim.Services.MapImageService
             lock (m_MultiRezToBuild)
             {
                 // m_log.DebugFormat("{0} UpdateMultiResolutionFilesAsync: scheduling update for <{1},{2}>", LogHeader, x, y);
-                m_MultiRezToBuild.Enqueue(new MapToMultiRez(x, y, scopeID));
+                m_MultiRezToBuild.Enqueue(
+                    new MapToMultiRez
+                    {
+                        x = x,
+                        y = y,
+                        scopeID = scopeID
+                    }
+                );
+
                 if (m_MultiRezToBuild.Count == 1)
                     Util.FireAndForget(DoUpdateMultiResolutionFilesAsync);
             }
