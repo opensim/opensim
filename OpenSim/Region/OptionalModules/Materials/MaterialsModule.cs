@@ -1042,7 +1042,7 @@ namespace OpenSim.Region.OptionalModules.Materials
                 entries = null;
             else
             {
-                var newentries = new Primitive.RenderMaterials.RenderMaterialEntry[entries.Length - 1];
+                var newentries = new RenderMaterialEntry[entries.Length - 1];
                 if (indx > 0)
                     Array.Copy(entries, newentries, indx);
                 int left = newentries.Length - indx;
@@ -1068,7 +1068,7 @@ namespace OpenSim.Region.OptionalModules.Materials
                 overrides = null;
             else
             {
-                var entries = new Primitive.RenderMaterials.RenderMaterialOverrideEntry[overrides.Length - 1];
+                var entries = new RenderMaterialOverrideEntry[overrides.Length - 1];
                 if (indx > 0)
                     Array.Copy(overrides, entries, indx);
                 int left = entries.Length - indx;
@@ -1079,7 +1079,7 @@ namespace OpenSim.Region.OptionalModules.Materials
             return true;
         }
         
-        private static bool AddMaterialOverride(ref RenderMaterials.RenderMaterialOverrideEntry[] overrides, string data, int side)
+        private static bool AddMaterialOverride(ref RenderMaterialOverrideEntry[] overrides, string data, int side)
         {
             OSD tst;
             try
@@ -1127,7 +1127,7 @@ namespace OpenSim.Region.OptionalModules.Materials
                 bool hasTexURIS = texturesURIs is not null;
 
                 OSDMap outosd = new();
-                OSDArray ti = new OSDArray(4);
+                OSDArray ti = new(4);
 
                 bool texturesChanged = false;
                 Span<UUID> textureIDs = stackalloc UUID[4];
@@ -1151,18 +1151,26 @@ namespace OpenSim.Region.OptionalModules.Materials
                         {
                             if (bcext.TryGetValue("KHR_texture_transform", out tmposd) && tmposd is OSDMap bctr)
                             {
-                                OSDMap tmpmap = new OSDMap();
+                                OSDMap tmpmap = new();
                                 if (bctr.TryGetValue("offset", out tmposd) && tmposd is OSDArray bcoffset)
                                 {
-                                    tmpmap["o"] = bcoffset;
+                                    tmpmap["o"] = new OSDArray()
+                                    {
+                                        Math.Round((double)bcoffset[0], 6),
+                                        Math.Round((double)bcoffset[1], 6)
+                                    };
                                 }
                                 if (bctr.TryGetValue("rotation", out tmposd) && tmposd is OSDReal bcrotation)
                                 {
-                                    tmpmap["r"] = bcrotation;
+                                    tmpmap["r"] = Math.Round((double)bcrotation, 6);
                                 }
                                 if (bctr.TryGetValue("scale", out tmposd) && tmposd is OSDArray bcscale)
                                 {
-                                    tmpmap["s"] = bcscale;
+                                    tmpmap["s"] = new OSDArray()
+                                    {
+                                        Math.Round((double)bcscale[0], 6),
+                                        Math.Round((double)bcscale[1], 6)
+                                    };
                                 }
                                 ti.Add(tmpmap);
                             }
@@ -1187,17 +1195,25 @@ namespace OpenSim.Region.OptionalModules.Materials
                                 OSDMap tmpmap = new OSDMap();
                                 if (bctr.TryGetValue("offset", out tmposd) && tmposd is OSDArray bcoffset)
                                 {
-                                    tmpmap["o"] = bcoffset;
+                                    tmpmap["o"] = new OSDArray()
+                                    {
+                                        Math.Round((double)bcoffset[0], 6),
+                                        Math.Round((double)bcoffset[1], 6)
+                                    };
                                 }
                                 if (bctr.TryGetValue("rotation", out tmposd) && tmposd is OSDReal bcrotation)
                                 {
-                                    tmpmap["r"] = bcrotation;
+                                    tmpmap["r"] = Math.Round((double)bcrotation, 6);
                                 }
                                 if (bctr.TryGetValue("scale", out tmposd) && tmposd is OSDArray bcscale)
                                 {
-                                    tmpmap["s"] = bcscale;
+                                    tmpmap["s"] = new OSDArray()
+                                    {
+                                        Math.Round((double) bcscale[0], 6),
+                                        Math.Round((double) bcscale[1], 6)
+                                    };
                                 }
-                                while(ti.Count < 2)
+                                while (ti.Count < 2)
                                     ti.Add(new OSD());
                                 ti.Add(tmpmap);
                             }
@@ -1209,11 +1225,11 @@ namespace OpenSim.Region.OptionalModules.Materials
                     }
                     if (pmrMap.TryGetValue("metallicFactor", out tmposd) && tmposd is OSDReal metallicFactor)
                     {
-                        outosd["mf"] = metallicFactor;
+                        outosd["mf"] = Math.Round((double)metallicFactor, 6);
                     }
                     if (pmrMap.TryGetValue("roughnessFactor", out tmposd) && tmposd is OSDReal roughnessFactor)
                     {
-                        outosd["rf"] = roughnessFactor;
+                        outosd["rf"] = Math.Round((double)roughnessFactor, 6);
                     }
                 }
 
@@ -1236,15 +1252,23 @@ namespace OpenSim.Region.OptionalModules.Materials
                             OSDMap tmpmap = new OSDMap();
                             if (bctr.TryGetValue("offset", out tmposd) && tmposd is OSDArray bcoffset)
                             {
-                                tmpmap["o"] = bcoffset;
+                                tmpmap["o"] = new OSDArray()
+                                    {
+                                        Math.Round((double) bcoffset[0], 6),
+                                        Math.Round((double) bcoffset[1], 6)
+                                    };
                             }
                             if (bctr.TryGetValue("rotation", out tmposd) && tmposd is OSDReal bcrotation)
                             {
-                                tmpmap["r"] = bcrotation;
+                                tmpmap["r"] = Math.Round((double)bcrotation, 6);
                             }
                             if (bctr.TryGetValue("scale", out tmposd) && tmposd is OSDArray bcscale)
                             {
-                                tmpmap["s"] = bcscale;
+                                tmpmap["s"] = new OSDArray()
+                                    {
+                                        Math.Round((double) bcscale[0], 6),
+                                        Math.Round((double) bcscale[1], 6)
+                                    };
                             }
                             if (ti.Count < 2)
                             {
@@ -1274,18 +1298,26 @@ namespace OpenSim.Region.OptionalModules.Materials
                     {
                         if (bcext.TryGetValue("KHR_texture_transform", out tmposd) && tmposd is OSDMap bctr)
                         {
-                            OSDMap tmpmap = new OSDMap();
+                            OSDMap tmpmap = new();
                             if (bctr.TryGetValue("offset", out tmposd) && tmposd is OSDArray bcoffset)
                             {
-                                tmpmap["o"] = bcoffset;
+                                tmpmap["o"] = new OSDArray()
+                                    {
+                                        Math.Round((double) bcoffset[0], 6),
+                                        Math.Round((double) bcoffset[1], 6)
+                                    };
                             }
                             if (bctr.TryGetValue("rotation", out tmposd) && tmposd is OSDReal bcrotation)
                             {
-                                tmpmap["r"] = bcrotation;
+                                tmpmap["r"] = Math.Round((double)bcrotation, 6);
                             }
                             if (bctr.TryGetValue("scale", out tmposd) && tmposd is OSDArray bcscale)
                             {
-                                tmpmap["s"] = bcscale;
+                                tmpmap["s"] = new OSDArray()
+                                    {
+                                        Math.Round((double) bcscale[0], 6),
+                                        Math.Round((double) bcscale[1], 6)
+                                    };
                             }
                             if (ti.Count > 2)
                                 ti[2] = tmpmap;
@@ -1315,18 +1347,26 @@ namespace OpenSim.Region.OptionalModules.Materials
                     {
                         if (bcext.TryGetValue("KHR_texture_transform", out tmposd) && tmposd is OSDMap bctr)
                         {
-                            OSDMap tmpmap = new OSDMap();
+                            OSDMap tmpmap = new();
                             if (bctr.TryGetValue("offset", out tmposd) && tmposd is OSDArray bcoffset)
                             {
-                                tmpmap["o"] = bcoffset;
+                                tmpmap["o"] = new OSDArray()
+                                    {
+                                        Math.Round((double) bcoffset[0], 6),
+                                        Math.Round((double) bcoffset[1], 6)
+                                    };
                             }
                             if (bctr.TryGetValue("rotation", out tmposd) && tmposd is OSDReal bcrotation)
                             {
-                                tmpmap["r"] = bcrotation;
+                                tmpmap["r"] = Math.Round((double)bcrotation, 6);
                             }
                             if (bctr.TryGetValue("scale", out tmposd) && tmposd is OSDArray bcscale)
                             {
-                                tmpmap["s"] = bcscale;
+                                tmpmap["s"] = new OSDArray()
+                                    {
+                                        Math.Round((double) bcscale[0], 6),
+                                        Math.Round((double) bcscale[1], 6)
+                                    };
                             }
                             if (ti.Count > 3)
                                 ti[3] = tmpmap;
@@ -1352,12 +1392,17 @@ namespace OpenSim.Region.OptionalModules.Materials
 
                 if (material.TryGetValue("alphaCutoff", out tmposd) && tmposd is OSDReal alphaCutoff)
                 {
-                    outosd["ac"] = alphaCutoff;
+                    outosd["ac"] = Math.Round((double)alphaCutoff, 6);
                 }
 
                 if (material.TryGetValue("emissiveFactor", out tmposd) && tmposd is OSDArray emissiveFactor)
                 {
-                    outosd["ec"] = emissiveFactor;
+                    outosd["ec"] = new OSDArray()
+                        {
+                            Math.Round((double) emissiveFactor[0], 6),
+                            Math.Round((double) emissiveFactor[1], 6),
+                            Math.Round((double) emissiveFactor[2], 6)
+                        };
                 }
                 if (material.TryGetValue("doubleSided", out tmposd) && tmposd is OSDBoolean doubleSided)
                 {
