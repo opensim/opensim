@@ -222,8 +222,7 @@ namespace OpenSim.Region.CoreModules.Framework
                 m_capsPaths[agent.AgentID] = agent.CapsPath;
 
             lock (m_childrenSeeds)
-                m_childrenSeeds[agent.AgentID]
-                    = ((agent.ChildrenCapSeeds == null) ? new Dictionary<ulong, string>() : agent.ChildrenCapSeeds);
+                m_childrenSeeds[agent.AgentID] = (agent.ChildrenCapSeeds ?? new Dictionary<ulong, string>());
         }
 
         public string GetCapsPath(UUID agentId)

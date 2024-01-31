@@ -40,8 +40,8 @@ namespace OpenSim.Framework.Capabilities
     /// </summary>
     public class CapsHandlers
     {
-        private Dictionary<string, IRequestHandler> m_capsHandlers = new Dictionary<string, IRequestHandler>();
-        private ConcurrentDictionary<string, ISimpleStreamHandler> m_capsSimpleHandlers = new ConcurrentDictionary<string, ISimpleStreamHandler>();
+        private readonly Dictionary<string, IRequestHandler> m_capsHandlers = new Dictionary<string, IRequestHandler>();
+        private readonly ConcurrentDictionary<string, ISimpleStreamHandler> m_capsSimpleHandlers = new ConcurrentDictionary<string, ISimpleStreamHandler>();
         private IHttpServer m_httpListener;
         private string m_httpListenerHostName;
         private uint m_httpListenerPort;
@@ -188,10 +188,51 @@ namespace OpenSim.Framework.Capabilities
 
             lock (m_capsHandlers)
             {
-                for(int i = 0; i < requestedCaps.Count; ++i)
+                for (int i = 0; i < requestedCaps.Count; ++i)
                 {
                     string capsName = requestedCaps[i];
                     if (excludeSeed && "SEED" == capsName)
+                        continue;
+
+                    if (m_capsSimpleHandlers.TryGetValue(capsName, out ISimpleStreamHandler shdr))
+                    {
+                        caps[capsName] = baseUrl + shdr.Path;
+                        continue;
+                    }
+                    if (m_capsHandlers.TryGetValue(capsName, out IRequestHandler chdr))
+                    {
+                        caps[capsName] = baseUrl + chdr.Path;
+                    }
+                }
+            }
+
+            return caps;
+        }
+
+        public Hashtable GetCapsDetails2(bool excludeSeed, HashSet<string> requestedCaps)
+        {
+            Hashtable caps = new Hashtable();
+
+            string protocol = m_useSSL ? "https://" : "http://";
+            string baseUrl = protocol + m_httpListenerHostName + ":" + m_httpListenerPort.ToString();
+
+            if (requestedCaps is null)
+            {
+                lock (m_capsHandlers)
+                {
+                    foreach (KeyValuePair<string, ISimpleStreamHandler> kvp in m_capsSimpleHandlers)
+                        caps[kvp.Key] = baseUrl + kvp.Value.Path;
+                    foreach (KeyValuePair<string, IRequestHandler> kvp in m_capsHandlers)
+                        caps[kvp.Key] = baseUrl + kvp.Value.Path;
+                }
+                return caps;
+            }
+
+            lock (m_capsHandlers)
+            {
+                foreach(string capsName in requestedCaps)
+                {
+                    if (excludeSeed && "SEED".Equals(capsName))
                         continue;
 
                     if (m_capsSimpleHandlers.TryGetValue(capsName, out ISimpleStreamHandler shdr))

@@ -27,8 +27,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Runtime;
@@ -348,6 +346,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private const uint MaxTransferBytesPerPacket = 600;
 
         private bool m_SupportObjectAnimations;
+        private bool m_SupportPBR;
 
         /// <value>
         /// Maintain a record of all the objects killed.  This allows us to stop an update being sent from the
@@ -4969,7 +4968,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         useCompressUpdate = grp.IsViewerCachable;
 
                     istree = (part.Shape.PCode == (byte)PCode.Grass || part.Shape.PCode == (byte)PCode.NewTree || part.Shape.PCode == (byte)PCode.Tree);
-                    if((updateFlags & PrimUpdateFlags.MaterialOvr) != 0)
+                    if((m_SupportPBR && (updateFlags & PrimUpdateFlags.MaterialOvr) != 0))
                         hasMaterialOverride = !istree && part.Shape.RenderMaterials is not null;
                 }
                 else if (update.Entity is ScenePresence presence)
@@ -5490,8 +5489,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
 
-            IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();
-            if (needMaterials is not null && eq is not null)
+            if (needMaterials is not null)
             {
                 foreach (SceneObjectPart sop in needMaterials)
                 {
@@ -13993,6 +13991,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         ret |= 0x4000;
                     if ((cap.Flags & Caps.CapsFlags.AdvEnv) != 0)
                         ret |= 0x8000;
+                    if ((cap.Flags & Caps.CapsFlags.PBR) != 0)
+                        m_SupportPBR = true;
                 }
             }
 

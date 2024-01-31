@@ -35,7 +35,6 @@ using System.Net;
 using System.Threading;
 using System.Reflection;
 using System.Text;
-using System.Web;
 
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
@@ -82,8 +81,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
     public partial class BunchOfCaps
     {
-        private static readonly ILog m_log =
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Scene m_Scene;
         private UUID m_AgentID;
@@ -421,7 +419,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 return;
             }
 
-            List<string> validCaps = new List<string>();
+            HashSet<string> validCaps = new();
 
             foreach (OSD c in capsRequested)
             {
@@ -432,10 +430,12 @@ namespace OpenSim.Region.ClientStack.Linden
                     m_HostCapsObj.Flags |= Caps.CapsFlags.WLEnv;
                 else if (cstr.Equals("ExtEnvironment"))
                     m_HostCapsObj.Flags |= Caps.CapsFlags.AdvEnv;
+                else if(cstr.Equals("ModifyMaterialParams"))
+                    m_HostCapsObj.Flags |= Caps.CapsFlags.PBR;
                 validCaps.Add(cstr);
             }
 
-            string result = LLSDHelpers.SerialiseLLSDReply(m_HostCapsObj.GetCapsDetails(true, validCaps));
+            string result = LLSDHelpers.SerialiseLLSDReply(m_HostCapsObj.GetCapsDetails2(true, validCaps));
             httpResponse.RawBuffer = Util.UTF8NBGetbytes(result);
             httpResponse.StatusCode = (int)HttpStatusCode.OK;
             //m_log.DebugFormat("[CAPS] CapsRequest {0}", result);
