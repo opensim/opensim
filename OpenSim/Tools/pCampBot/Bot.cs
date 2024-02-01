@@ -650,7 +650,7 @@ namespace pCampBot
 
             Primitive prim = args.Prim;
 
-            if (prim != null)
+            if (prim is not null && prim.Textures.DefaultTexture is not null)
             {
                 lock (m_objects)
                     m_objects[prim.ID] = prim;
