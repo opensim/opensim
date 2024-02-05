@@ -2658,7 +2658,7 @@ namespace OpenSim.Framework
         /// </param>
         /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static byte[] StringToBytes256(string str)
+        public static byte[] StringToBytes256(ReadOnlySpan<char> str)
         {
             return Utils.StringToBytes(str, 255);
         }
@@ -2689,7 +2689,7 @@ namespace OpenSim.Framework
         /// </param>
         /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static byte[] StringToBytes1024(string str)
+        public static byte[] StringToBytes1024(ReadOnlySpan<char> str)
         {
             return Utils.StringToBytes(str, 1024);
         }
@@ -2720,26 +2720,26 @@ namespace OpenSim.Framework
         /// </param>
         /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static byte[] StringToBytes(string str, int MaxLength)
+        public static byte[] StringToBytes(ReadOnlySpan<char> str, int MaxLength)
         {
             return Utils.StringToBytes(str, MaxLength);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static byte[] StringToBytesNoTerm(string str, int MaxLength)
+        public static byte[] StringToBytesNoTerm(ReadOnlySpan<char> str, int MaxLength)
         {
             return Utils.StringToBytesNoTerm(str, MaxLength);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int osUTF8Getbytes(string srcstr, byte[] dstarray, int maxdstlen, bool NullTerm = true)
+        public static int osUTF8Getbytes(ReadOnlySpan<char> srcstr, byte[] dstarray, int maxdstlen, bool NullTerm = true)
         {
             return osUTF8Getbytes(srcstr, dstarray, 0, maxdstlen, NullTerm);
         }
 
-        public static unsafe int osUTF8Getbytes(string srcstr, byte* dstarray, int maxdstlen, bool NullTerm = true)
+        public static unsafe int osUTF8Getbytes(ReadOnlySpan<char> srcstr, byte* dstarray, int maxdstlen, bool NullTerm = true)
         {
-            if (string.IsNullOrEmpty(srcstr))
+            if (srcstr.Length == 0)
                 return 0;
 
             fixed (char* srcbase = srcstr)
@@ -2748,9 +2748,9 @@ namespace OpenSim.Framework
             }
         }
 
-        public static unsafe int osUTF8Getbytes(string srcstr, byte[] dstarray, int pos, int maxdstlen, bool NullTerm = true)
+        public static unsafe int osUTF8Getbytes(ReadOnlySpan<char> srcstr, byte[] dstarray, int pos, int maxdstlen, bool NullTerm = true)
         {
-            if (string.IsNullOrEmpty(srcstr))
+            if (srcstr.Length == 0)
                 return 0;
 
             if (pos + maxdstlen > dstarray.Length)

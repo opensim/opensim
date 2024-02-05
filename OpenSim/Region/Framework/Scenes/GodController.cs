@@ -26,22 +26,12 @@
  */
 
 using System;
-using System.Xml;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Threading;
-using System.Timers;
-using Timer = System.Timers.Timer;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
-using log4net;
+//using log4net;
 using Nini.Config;
 using OpenSim.Framework;
-using OpenSim.Framework.Client;
-using OpenSim.Framework.Monitoring;
-using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.Framework.Scenes.Types;
-using OpenSim.Services.Interfaces;
+
 
 namespace OpenSim.Region.Framework.Scenes
 {

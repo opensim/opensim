@@ -424,9 +424,8 @@ namespace OpenSim.Region.ClientStack.Linden
             LLSDxmlEncode2.AddEndMapAndArray(sb);
 
             LLSDxmlEncode2.AddRawElem("<key>FolderData</key><array><map><key>FolderID</key><uuid>00000000-0000-0000-0000-000000000000</uuid><key>Name</key><string></string><key>ParentID</key><uuid>00000000-0000-0000-0000-000000000000</uuid ><key>Type</key ><integer>-1</integer></map ></array>",sb);
-
-            osUTF8 osName = new osUTF8(Utils.StringToBytesNoTerm(item.Name, 255));
-            osUTF8 osDesc = new osUTF8(Utils.StringToBytesNoTerm(item.Description, 255));
+            osUTF8 osName = new osUTF8(item.Name, 255);
+            osUTF8 osDesc = new osUTF8(item.Description, 255);
 
             LLSDxmlEncode2.AddArray("ItemData", sb);
                 LLSDxmlEncode2.AddMap(sb);
