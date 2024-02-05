@@ -459,6 +459,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 
         public const int PRIM_REFLECTION_PROBE = 44;
 
+        public const int PRIM_GLTF_NORMAL = 45;
+        public const int PRIM_GLTF_EMISSIVE = 46;
+        public const int PRIM_GLTF_METALLIC_ROUGHNESS = 47;
+        public const int PRIM_GLTF_BASE_COLOR = 48;
+        public const int PRIM_RENDER_MATERIAL = 49;
 
         // parameters
 

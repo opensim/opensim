@@ -3708,7 +3708,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 Position = pos,
                 RegionID = World.RegionInfo.RegionID.Guid,
                 message = (message.Length > 1024) ? message[..1024] : message,
-                binaryBucket = Util.StringToBytes256("{0}/{1}/{2}/{3}", m_regionName, (int)pos.X, (int)pos.Y, (int)pos.Z)
+                binaryBucket = Util.StringToBytes256($"{m_regionName}/{(int)pos.X}/{(int)pos.Y}/{(int)pos.Z}")
             };
 
             m_TransferModule?.SendInstantMessage(msg, delegate(bool success) {});

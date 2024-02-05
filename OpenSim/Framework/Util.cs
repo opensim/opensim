@@ -2643,12 +2643,13 @@ namespace OpenSim.Framework
         /// Arguments to substitute into the string via the {} mechanism.
         /// </param>
         /// <returns></returns>
+        /*
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte[] StringToBytes256(string str, params object[] args)
         {
             return Utils.StringToBytes(string.Format(str, args), 255);
         }
-
+        */
         /// <summary>
         /// Convert a string to a byte format suitable for transport in an LLUDP packet.  The output is truncated to 256 bytes if necessary.
         /// </summary>
@@ -2674,11 +2675,13 @@ namespace OpenSim.Framework
         /// Arguments to substitute into the string via the {} mechanism.
         /// </param>
         /// <returns></returns>
+        /*
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte[] StringToBytes1024(string str, params object[] args)
         {
-            return Utils.StringToBytes(string.Format(str, args), 1024);
+            return Utils.StringToBytes(string.Format(str, args).AsSpan(), 1024);
         }
+        */
 
         /// <summary>
         /// Convert a string to a byte format suitable for transport in an LLUDP packet.  The output is truncated to 1024 bytes if necessary.
@@ -2705,11 +2708,13 @@ namespace OpenSim.Framework
         /// Arguments to substitute into the string via the {} mechanism.
         /// </param>
         /// <returns></returns>
+        /*
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte[] StringToBytes(string str, int MaxLength, params object[] args)
         {
-            return StringToBytes1024(string.Format(str, args), MaxLength);
+            return Utils.StringToBytes(string.Format(str, args).AsSpan(), MaxLength);
         }
+        */
 
         /// <summary>
         /// Convert a string to a byte format suitable for transport in an LLUDP packet.  The output is truncated to MaxLength bytes if necessary.
