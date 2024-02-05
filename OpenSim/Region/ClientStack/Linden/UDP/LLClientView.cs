@@ -3624,8 +3624,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             reply.AgentData.AgentID = m_agentId;
             reply.Data.ParcelID = parcelID;
             reply.Data.OwnerID = land.OwnerID;
-            reply.Data.Name = Utils.StringToBytes(land.Name);
-            reply.Data.Desc = Utils.StringToBytes(land.Description, 254);
+            reply.Data.Name = Utils.StringToBytes(land.Name, 63);
+            reply.Data.Desc = Utils.StringToBytes(land.Description, 255);
             reply.Data.ActualArea = land.Area;
             reply.Data.BillableArea = land.Area; // TODO: what is this?
 
