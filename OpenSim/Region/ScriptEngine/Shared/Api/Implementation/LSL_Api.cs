@@ -263,6 +263,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         private string m_lsl_shard = "OpenSim";
         private string m_lsl_user_agent = string.Empty;
 
+        private int m_linksetDataLimit = 32 * 1024;
+
         private static readonly Dictionary<string, string> MovementAnimationsForLSL = new(StringComparer.InvariantCultureIgnoreCase)
         {
             {"CROUCH", "Crouching"},
@@ -420,7 +422,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             IConfig seConfig = m_ScriptEngine.Config;
 
-            if (seConfig != null)
+            if (seConfig is not null)
             {
                 float scriptDistanceFactor = seConfig.GetFloat("ScriptDistanceLimitFactor", 1.0f);
                 m_Script10mDistance = 10.0f * scriptDistanceFactor;
@@ -438,6 +440,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 m_AllowGodFunctions = seConfig.GetBoolean("AllowGodFunctions", false);
 
                 m_disable_underground_movement = seConfig.GetBoolean("DisableUndergroundMovement", true);
+
+                m_linksetDataLimit = seConfig.GetInt("LinksetDataLimit", m_linksetDataLimit);
             }
 
             if (m_notecardLineReadCharsMax > 65535)
@@ -18559,6 +18563,184 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return new LSL_Vector(Util.sRGBtoLinear((float)src.x), Util.sRGBtoLinear((float)src.y), Util.sRGBtoLinear((float)src.z));
         }
 
+        public LSL_Integer llLinksetDataAvailable()
+        {
+            if (m_host.ParentGroup.LinksetData is null)
+                return m_linksetDataLimit;
+
+            return new LSL_Integer(m_host.ParentGroup.LinksetData.Free());
+        }
+
+        public LSL_Integer llLinksetDataCountKeys()
+        {
+            if (m_host.ParentGroup.LinksetData is null)
+                return 0;
+
+            return new LSL_Integer(m_host.ParentGroup.LinksetData.Count());
+        }
+
+        public LSL_String llLinksetDataRead(LSL_String name)
+        {
+            if (m_host.ParentGroup.LinksetData is null || string.IsNullOrEmpty(name.m_string))
+                return new LSL_String(string.Empty);
+
+            return new LSL_String(m_host.ParentGroup.LinksetData.Get(name.m_string));
+        }
+
+        public LSL_String llLinksetDataReadProtected(LSL_String name, LSL_String pass)
+        {
+            if (m_host.ParentGroup.LinksetData is null || string.IsNullOrEmpty(name.m_string))
+                return new LSL_String(string.Empty);
+
+            return new LSL_String(m_host.ParentGroup.LinksetData.Get(name.m_string, pass.m_string));
+        }
+
+        public LSL_Integer llLinksetDataDelete(LSL_String name)
+        {
+            if (string.IsNullOrEmpty(name.m_string))
+                return ScriptBaseClass.LINKSETDATA_ENOKEY;
+            if (m_host.ParentGroup.LinksetData is null)
+                return ScriptBaseClass.LINKSETDATA_NOTFOUND;
+
+            int ret = m_host.ParentGroup.LinksetData.Remove(name.m_string);
+            if (ret == 0)
+            {
+                m_ScriptEngine.PostObjectLinksetDataEvent(m_host.LocalId, ScriptBaseClass.LINKSETDATA_DELETE, name.m_string, string.Empty);
+                m_host.ParentGroup.HasGroupChanged = true;
+            }
+            return ret;
+        }
+
+        public LSL_Integer llLinksetDataDeleteProtected(LSL_String name, LSL_String pass)
+        {
+            if (string.IsNullOrEmpty(name.m_string))
+                return ScriptBaseClass.LINKSETDATA_ENOKEY;
+            if (m_host.ParentGroup.LinksetData is null)
+                return ScriptBaseClass.LINKSETDATA_NOTFOUND;
+
+            int ret = m_host.ParentGroup.LinksetData.Remove(name.m_string, pass.m_string);
+            if (ret == 0)
+            {
+                m_ScriptEngine.PostObjectLinksetDataEvent(m_host.LocalId, ScriptBaseClass.LINKSETDATA_DELETE, name.m_string, string.Empty);
+                m_host.ParentGroup.HasGroupChanged = true;
+            }
+            return ret;
+        }
+
+        public void llLinksetDataReset()
+        {
+            if (m_host.ParentGroup.LinksetData is null)
+                return;
+
+            bool changed = m_host.ParentGroup.LinksetData.Count() > 0;
+            m_host.ParentGroup.LinksetData = null;
+
+            if(changed)
+            {
+                m_ScriptEngine.PostObjectLinksetDataEvent(m_host.LocalId, ScriptBaseClass.LINKSETDATA_RESET, string.Empty, string.Empty);
+                m_host.ParentGroup.HasGroupChanged = true;
+            }
+        }
+
+        public LSL_Integer llLinksetDataWrite(LSL_String name, LSL_String value)
+        {
+            if (string.IsNullOrEmpty(name.m_string))
+                return ScriptBaseClass.LINKSETDATA_ENOKEY;
+
+            int ret;
+            if (string.IsNullOrEmpty(value.m_string))
+            {
+                if (m_host.ParentGroup.LinksetData is null)
+                    return ScriptBaseClass.LINKSETDATA_NOTFOUND;
+
+                ret = m_host.ParentGroup.LinksetData.Remove(name.m_string);
+                if (ret == 0)
+                {
+                    m_ScriptEngine.PostObjectLinksetDataEvent(m_host.LocalId, ScriptBaseClass.LINKSETDATA_DELETE, name.m_string, string.Empty);
+                    m_host.ParentGroup.HasGroupChanged = true;
+                }
+                return ret;
+            }
+
+            m_host.ParentGroup.LinksetData ??= new(m_linksetDataLimit);
+            ret = m_host.ParentGroup.LinksetData.AddOrUpdate(name.m_string, value.m_string);
+            if (ret == 0)
+            {
+                m_ScriptEngine.PostObjectLinksetDataEvent(m_host.LocalId, ScriptBaseClass.LINKSETDATA_UPDATE, name.m_string, value.m_string);
+                m_host.ParentGroup.HasGroupChanged = true;
+            }
+            return ret;
+        }
+
+        public LSL_Integer llLinksetDataWriteProtected(LSL_String name, LSL_String value, LSL_String pass)
+        {
+            if (string.IsNullOrEmpty(name.m_string))
+                return ScriptBaseClass.LINKSETDATA_ENOKEY;
+
+            int ret;
+            if (string.IsNullOrEmpty(value.m_string))
+            {
+                if (m_host.ParentGroup.LinksetData is null)
+                    return ScriptBaseClass.LINKSETDATA_NOTFOUND;
+
+                ret = m_host.ParentGroup.LinksetData.Remove(name.m_string, pass.m_string);
+                if (ret == 0)
+                {
+                    m_ScriptEngine.PostObjectLinksetDataEvent(m_host.LocalId, ScriptBaseClass.LINKSETDATA_DELETE, name.m_string, string.Empty);
+                    m_host.ParentGroup.HasGroupChanged = true;
+                }
+                return ret;
+            }
+
+            m_host.ParentGroup.LinksetData ??= new(m_linksetDataLimit);
+            ret = m_host.ParentGroup.LinksetData.AddOrUpdate(name.m_string, value.m_string, pass.m_string);
+            if (ret == 0)
+            {
+                m_ScriptEngine.PostObjectLinksetDataEvent(m_host.LocalId, ScriptBaseClass.LINKSETDATA_UPDATE, name.m_string, string.Empty);
+                m_host.ParentGroup.HasGroupChanged = true;
+            }
+            return ret;
+        }
+
+        public LSL_List llLinksetDataDeleteFound(LSL_String pattern, LSL_String pass)
+        {
+            if (string.IsNullOrEmpty(pattern.m_string) || m_host.ParentGroup.LinksetData is null)
+                return new LSL_List(new object[] { new LSL_Integer(0), new LSL_Integer(0)});
+
+            string[] deleted = m_host.ParentGroup.LinksetData.RemoveByPattern(pattern.m_string, pass.m_string, out int notDeleted);
+            int deletedCount = deleted.Length;
+            if(deleted.Length > 0)
+            {
+                string deletedList = string.Join(",", deleted);
+                m_ScriptEngine.PostObjectLinksetDataEvent(m_host.LocalId, ScriptBaseClass.LINKSETDATA_MULTIDELETE, deletedList, string.Empty);
+                m_host.ParentGroup.HasGroupChanged = true;
+            }
+            return new LSL_List(new object[] { new LSL_Integer(deleted.Length), new LSL_Integer(notDeleted) });
+        }
+
+        public LSL_Integer llLinksetDataCountFound(LSL_String pattern)
+        {
+            if (string.IsNullOrEmpty(pattern.m_string) || m_host.ParentGroup.LinksetData is null)
+                return new LSL_Integer(0);
+
+            return m_host.ParentGroup.LinksetData.CountByPattern(pattern.m_string);
+        }
+
+        public LSL_List llLinksetDataListKeys(LSL_Integer start, LSL_Integer count)
+        {
+            if (m_host.ParentGroup.LinksetData is null)
+                return new LSL_List();
+
+            return new LSL_List(m_host.ParentGroup.LinksetData.ListKeys(start, count));
+        }
+
+        public LSL_List llLinksetDataFindKeys(LSL_String pattern, LSL_Integer start, LSL_Integer count)
+        {
+            if (string.IsNullOrEmpty(pattern.m_string) || m_host.ParentGroup.LinksetData is null)
+                return new LSL_List();
+
+            return new LSL_List(m_host.ParentGroup.LinksetData.ListKeysByPatttern(pattern.m_string, start, count));
+        }
     }
 
     public class NotecardCache

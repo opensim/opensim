@@ -500,5 +500,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
          LSL_Vector llLinear2sRGB(LSL_Vector src);
          LSL_Vector llsRGB2Linear(LSL_Vector src);
+        LSL_Integer llLinksetDataAvailable();
+        LSL_Integer llLinksetDataCountFound(LSL_String pattern);
+        LSL_Integer llLinksetDataCountKeys();
+        LSL_Integer llLinksetDataDelete(LSL_String name);
+           LSL_List llLinksetDataDeleteFound(LSL_String pattern, LSL_String pass);
+        LSL_Integer llLinksetDataDeleteProtected(LSL_String name, LSL_String pass);
+           LSL_List llLinksetDataFindKeys(LSL_String pattern, LSL_Integer start, LSL_Integer count);
+           LSL_List llLinksetDataListKeys(LSL_Integer start, LSL_Integer count);
+         LSL_String llLinksetDataRead(LSL_String name);
+         LSL_String llLinksetDataReadProtected(LSL_String name, LSL_String pass);
+               void llLinksetDataReset();
+        LSL_Integer llLinksetDataWrite(LSL_String name, LSL_String value);
+        LSL_Integer llLinksetDataWriteProtected(LSL_String name, LSL_String value, LSL_String pass);
     }
 }

@@ -237,6 +237,8 @@ namespace OpenSim.Region.Framework.Scenes
         ///
         public int m_linksetPhysCapacity = 0;
 
+        public int m_LinkSetDataLimit = 32 * 1024;
+
         /// <summary>
         /// When placed outside the region's border, do we transfer the objects or
         /// do we keep simulating them here?
@@ -984,7 +986,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_persistAfter = startupConfig.GetLong("MaximumTimeBeforePersistenceConsidered", DEFAULT_MAX_TIME_FOR_PERSISTENCE);
                 m_persistAfter *= 10000000;
 
-                m_defaultScriptEngine = startupConfig.GetString("DefaultScriptEngine", "XEngine");
+                m_defaultScriptEngine = startupConfig.GetString("DefaultScriptEngine", "YEngine");
                 m_log.InfoFormat("[SCENE]: Default script engine {0}", m_defaultScriptEngine);
 
                 m_strictAccessControl = startupConfig.GetBoolean("StrictAccessControl", m_strictAccessControl);
@@ -1064,6 +1066,8 @@ namespace OpenSim.Region.Framework.Scenes
                 m_update_terrain          = startupConfig.GetInt("UpdateTerrainEveryNFrames",         m_update_terrain);
                 m_update_temp_cleaning    = startupConfig.GetInt("UpdateTempCleaningEveryNSeconds",   m_update_temp_cleaning);
 
+                string[] possibleScriptConfigSections = new string[] { "YEngine", "Xengine", "Scripts" };
+                m_LinkSetDataLimit = Util.GetConfigVarFromSections<int>(config, "LinksetDataLimit", possibleScriptConfigSections, m_LinkSetDataLimit);
             }
 
             #endregion Region Config

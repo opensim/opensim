@@ -1,4 +1,4 @@
-08743d8a-ea46-11ed-ac8d-406c8fbbb495
+a0998e19-4782-1ad9-a949-bb34c64b02f4
 <llsd><map><key>llsd-lsl-syntax-version</key><integer>2</integer>
 <key>controls</key>
 <map>
@@ -803,6 +803,10 @@
   <key>type</key><string>integer</string>
   <key>value</key><string>2</string>
  </map>
+ <key>CLICK_ACTION_DISABLED</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>8</string>
+ </map>
  <key>CLICK_ACTION_NONE</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>0</string>
@@ -1266,6 +1270,46 @@
  <key>LINK_THIS</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>-4</string>
+ </map>
+ <key>LINKSETDATA_DELETE</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>2</string>
+ </map>
+ <key>LINKSETDATA_EMEMORY</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>1</string>
+ </map>
+ <key>LINKSETDATA_ENOKEY</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>2</string>
+ </map>
+ <key>LINKSETDATA_EPROTECTED</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>3</string>
+ </map>
+ <key>LINKSETDATA_MULTIDELETE</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>3</string>
+ </map>
+ <key>LINKSETDATA_NOTFOUND</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>4</string>
+ </map>
+ <key>LINKSETDATA_NOUPDATE</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>5</string>
+ </map>
+ <key>LINKSETDATA_OK</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>0</string>
+ </map>
+ <key>LINKSETDATA_RESET</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>0</string>
+ </map>
+ <key>LINKSETDATA_UPDATE</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>1</string>
  </map>
  <key>LIST_STAT_GEOMETRIC_MEAN</key><map>
   <key>type</key><string>integer</string>
@@ -2223,6 +2267,22 @@
   <key>type</key><string>integer</string>
   <key>value</key><string>25</string>
  </map>
+ <key>PRIM_GLTF_BASE_COLOR</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>48</string>
+ </map>
+ <key>PRIM_GLTF_EMISSIVE</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>46</string>
+ </map>
+ <key>PRIM_GLTF_METALLIC_ROUGHNESS</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>47</string>
+ </map>
+ <key>PRIM_GLTF_NORMAL</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>45</string>
+ </map>
  <key>PRIM_HOLE_CIRCLE</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>16</string>
@@ -2419,6 +2479,22 @@
   <key>type</key><string>integer</string>
   <key>value</key><string>42</string>
  </map>
+ <key>PRIM_REFLECTION_PROBE</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>44</string>
+ </map>
+ <key>PRIM_REFLECTION_PROBE_BOX</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>1</string>
+ </map>
+ <key>PRIM_REFLECTION_PROBE_DYNAMIC</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>2</string>
+ </map>
+ <key>PRIM_RENDER_MATERIAL</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>49</string>
+ </map>
  <key>PRIM_ROT_LOCAL</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>29</string>
@@ -2431,6 +2507,10 @@
   <key>type</key><string>integer</string>
   <key>value</key><string>40</string>
   <key>tooltip</key><string>not supported</string>
+ </map>
+ <key>PRIM_SCULPT_FLAG_ANIMESH</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>0x20</string>
  </map>
  <key>PRIM_SCULPT_FLAG_INVERT</key><map>
   <key>type</key><string>integer</string>
@@ -2448,6 +2528,10 @@
   <key>type</key><string>integer</string>
   <key>value</key><string>0x07</string>
   <key>tooltip</key><string>Auxiliar to clear flags keeping scultp type</string>
+ </map>
+ <key>PRIM_SCULPT_TYPE_MESH</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>5</string>
  </map>
  <key>PRIM_SCULPT_TYPE_PLANE</key><map>
   <key>type</key><string>integer</string>
@@ -2904,6 +2988,22 @@
  <key>SMOOTH</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>16</string>
+ </map>
+ <key>SOUND_LOOP</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>1</string>
+ </map>
+ <key>SOUND_PLAY</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>0</string>
+ </map>
+ <key>SOUND_SYNC</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>4</string>
+ </map>
+ <key>SOUND_TRIGGER</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>2</string>
  </map>
  <key>SQRT2</key><map>
   <key>type</key><string>float</string>
@@ -4893,6 +4993,108 @@
    <map><key>linknumber</key><map><key>type</key><string>integer</string></map></map>
    <map><key>sound</key><map><key>type</key><string>string</string></map></map>
    <map><key>volume</key><map><key>type</key><string>float</string></map></map>
+   <map><key>flags</key><map><key>type</key><string>integer</string></map></map>
+  </array>
+ </map>
+ <key>llLinkPlaySound</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>linknumber</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>sound</key><map><key>type</key><string>string</string></map></map>
+   <map><key>volume</key><map><key>type</key><string>float</string></map></map>
+  </array>
+ </map>
+ <key>llLinksetDataAvailable</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><undef/>
+ </map>
+ <key>llLinksetDataCountFound</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>pattern</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
+ <key>llLinksetDataCountKeys</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><undef/>
+ </map>
+ <key>llLinksetDataDelete</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>name</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
+ <key>llLinksetDataDeleteFound</key>
+ <map>
+  <key>return</key><string>list</string>
+  <key>arguments</key><array>
+   <map><key>pattern</key><map><key>type</key><string>string</string></map></map>
+   <map><key>pass</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
+ <key>llLinksetDataDeleteProtected</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>name</key><map><key>type</key><string>string</string></map></map>
+   <map><key>pass</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
+ <key>llLinksetDataFindKeys</key>
+ <map>
+  <key>return</key><string>list</string>
+  <key>arguments</key><array>
+   <map><key>pattern</key><map><key>type</key><string>string</string></map></map>
+   <map><key>start</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>count</key><map><key>type</key><string>integer</string></map></map>
+  </array>
+ </map>
+ <key>llLinksetDataListKeys</key>
+ <map>
+  <key>return</key><string>list</string>
+  <key>arguments</key><array>
+   <map><key>start</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>count</key><map><key>type</key><string>integer</string></map></map>
+  </array>
+ </map>
+ <key>llLinksetDataRead</key>
+ <map>
+  <key>return</key><string>string</string>
+  <key>arguments</key><array>
+   <map><key>name</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
+ <key>llLinksetDataReadProtected</key>
+ <map>
+  <key>return</key><string>string</string>
+  <key>arguments</key><array>
+   <map><key>name</key><map><key>type</key><string>string</string></map></map>
+   <map><key>pass</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
+ <key>llLinksetDataReset</key>
+ <map>
+  <key>arguments</key><undef/>
+ </map>
+ <key>llLinksetDataWrite</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>name</key><map><key>type</key><string>string</string></map></map>
+   <map><key>value</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
+ <key>llLinksetDataWriteProtected</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>name</key><map><key>type</key><string>string</string></map></map>
+   <map><key>value</key><map><key>type</key><string>string</string></map></map>
+   <map><key>pass</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
  <key>llLinkSetSoundQueueing</key>
@@ -6594,17 +6796,8 @@
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
-   <map><key>va</key><map><key>type</key><string>vector</string></map></map>
-   <map><key>vb</key><map><key>type</key><string>vector</string></map></map>
-  </array>
- </map>
- <key>osApproxEquals</key>
- <map>
-  <key>return</key><string>integer</string>
-  <key>arguments</key><array>
-   <map><key>va</key><map><key>type</key><string>vector</string></map></map>
-   <map><key>vb</key><map><key>type</key><string>vector</string></map></map>
-   <map><key>margin</key><map><key>type</key><string>float</string></map></map>
+   <map><key>a</key><map><key>type</key><string>float</string></map></map>
+   <map><key>b</key><map><key>type</key><string>float</string></map></map>
   </array>
  </map>
  <key>osApproxEquals</key>
@@ -6620,8 +6813,17 @@
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
-   <map><key>a</key><map><key>type</key><string>float</string></map></map>
-   <map><key>b</key><map><key>type</key><string>float</string></map></map>
+   <map><key>ra</key><map><key>type</key><string>rotation</string></map></map>
+   <map><key>rb</key><map><key>type</key><string>rotation</string></map></map>
+  </array>
+ </map>
+ <key>osApproxEquals</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>va</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>vb</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>margin</key><map><key>type</key><string>float</string></map></map>
   </array>
  </map>
  <key>osApproxEquals</key>
@@ -6637,8 +6839,8 @@
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
-   <map><key>ra</key><map><key>type</key><string>rotation</string></map></map>
-   <map><key>rb</key><map><key>type</key><string>rotation</string></map></map>
+   <map><key>va</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>vb</key><map><key>type</key><string>vector</string></map></map>
   </array>
  </map>
  <key>osAvatarName2Key</key>
@@ -6667,15 +6869,15 @@
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
-   <map><key>avkey</key><map><key>type</key><string>key</string></map></map>
+   <map><key>sFirstName</key><map><key>type</key><string>string</string></map></map>
+   <map><key>sLastName</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
  <key>osAvatarType</key>
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
-   <map><key>sFirstName</key><map><key>type</key><string>string</string></map></map>
-   <map><key>sLastName</key><map><key>type</key><string>string</string></map></map>
+   <map><key>avkey</key><map><key>type</key><string>key</string></map></map>
   </array>
  </map>
  <key>osCauseDamage</key>
@@ -6933,13 +7135,13 @@
  <map>
   <key>arguments</key><array>
    <map><key>avatar</key><map><key>type</key><string>string</string></map></map>
-   <map><key>target</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
  <key>osForceOtherSit</key>
  <map>
   <key>arguments</key><array>
    <map><key>avatar</key><map><key>type</key><string>string</string></map></map>
+   <map><key>target</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
  <key>osFormatString</key>
@@ -7215,6 +7417,18 @@
   <key>return</key><string>string</string>
   <key>arguments</key><undef/>
  </map>
+ <key>osGetPrimCount</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>object_id</key><map><key>type</key><string>key</string></map></map>
+  </array>
+ </map>
+ <key>osGetPrimCount</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><undef/>
+ </map>
  <key>osGetPrimitiveParams</key>
  <map>
   <key>return</key><string>list</string>
@@ -7274,6 +7488,18 @@
  <map>
   <key>return</key><string>float</string>
   <key>arguments</key><undef/>
+ </map>
+ <key>osGetSittingAvatarsCount</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><undef/>
+ </map>
+ <key>osGetSittingAvatarsCount</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>object_id</key><map><key>type</key><string>key</string></map></map>
+  </array>
  </map>
  <key>osGetStandTarget</key>
  <map>
@@ -7430,14 +7656,14 @@
  <map>
   <key>arguments</key><array>
    <map><key>notecardName</key><map><key>type</key><string>string</string></map></map>
-   <map><key>contents</key><map><key>type</key><string>string</string></map></map>
+   <map><key>contents</key><map><key>type</key><string>list</string></map></map>
   </array>
  </map>
  <key>osMakeNotecard</key>
  <map>
   <key>arguments</key><array>
    <map><key>notecardName</key><map><key>type</key><string>string</string></map></map>
-   <map><key>contents</key><map><key>type</key><string>list</string></map></map>
+   <map><key>contents</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
  <key>osMatchString</key>
@@ -7498,6 +7724,7 @@
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
+   <map><key>options</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>osNpcCreate</key>
@@ -7508,7 +7735,6 @@
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
-   <map><key>options</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>osNpcGetOwner</key>
@@ -7583,7 +7809,6 @@
   <key>arguments</key><array>
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
-   <map><key>includeHuds</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>osNpcSaveAppearance</key>
@@ -7592,13 +7817,7 @@
   <key>arguments</key><array>
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
-  </array>
- </map>
- <key>osNpcSay</key>
- <map>
-  <key>arguments</key><array>
-   <map><key>npc</key><map><key>type</key><string>key</string></map></map>
-   <map><key>message</key><map><key>type</key><string>string</string></map></map>
+   <map><key>includeHuds</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>osNpcSay</key>
@@ -7606,6 +7825,13 @@
   <key>arguments</key><array>
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
    <map><key>channel</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>message</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
+ <key>osNpcSay</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>npc</key><map><key>type</key><string>key</string></map></map>
    <map><key>message</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
@@ -7791,6 +8017,7 @@
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
    <map><key>seconds</key><map><key>type</key><string>float</string></map></map>
+   <map><key>msg</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
  <key>osRegionRestart</key>
@@ -7798,7 +8025,6 @@
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
    <map><key>seconds</key><map><key>type</key><string>float</string></map></map>
-   <map><key>msg</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
  <key>osReplaceAgentEnvironment</key>
@@ -8038,15 +8264,16 @@
   <key>return</key><string>string</string>
   <key>arguments</key><array>
    <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
-   <map><key>color</key><map><key>type</key><string>string</string></map></map>
+   <map><key>color</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>alpha</key><map><key>type</key><string>float</string></map></map>
   </array>
  </map>
-  <key>osSetPenColor</key>
+ <key>osSetPenColor</key>
  <map>
   <key>return</key><string>string</string>
   <key>arguments</key><array>
    <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
-   <map><key>color</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>color</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
  <key>osSetPenColor</key>
@@ -8055,7 +8282,6 @@
   <key>arguments</key><array>
    <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
    <map><key>color</key><map><key>type</key><string>vector</string></map></map>
-   <map><key>alpha</key><map><key>type</key><string>float</string></map></map>
   </array>
  </map>
  <key>osSetPenColour</key>
@@ -8090,6 +8316,17 @@
  <key>osSetProjectionParams</key>
  <map>
   <key>arguments</key><array>
+   <map><key>linknumber</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>projection</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>texture</key><map><key>type</key><string>key</string></map></map>
+   <map><key>fov</key><map><key>type</key><string>float</string></map></map>
+   <map><key>focus</key><map><key>type</key><string>float</string></map></map>
+   <map><key>amb</key><map><key>type</key><string>float</string></map></map>
+  </array>
+ </map>
+ <key>osSetProjectionParams</key>
+ <map>
+  <key>arguments</key><array>
    <map><key>projection</key><map><key>type</key><string>integer</string></map></map>
    <map><key>texture</key><map><key>type</key><string>key</string></map></map>
    <map><key>fov</key><map><key>type</key><string>float</string></map></map>
@@ -8101,17 +8338,6 @@
  <map>
   <key>arguments</key><array>
    <map><key>prim</key><map><key>type</key><string>key</string></map></map>
-   <map><key>projection</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>texture</key><map><key>type</key><string>key</string></map></map>
-   <map><key>fov</key><map><key>type</key><string>float</string></map></map>
-   <map><key>focus</key><map><key>type</key><string>float</string></map></map>
-   <map><key>amb</key><map><key>type</key><string>float</string></map></map>
-  </array>
- </map>
- <key>osSetProjectionParams</key>
- <map>
-  <key>arguments</key><array>
-   <map><key>linknumber</key><map><key>type</key><string>integer</string></map></map>
    <map><key>projection</key><map><key>type</key><string>integer</string></map></map>
    <map><key>texture</key><map><key>type</key><string>key</string></map></map>
    <map><key>fov</key><map><key>type</key><string>float</string></map></map>
@@ -8311,7 +8537,6 @@
   <key>arguments</key><array>
    <map><key>src</key><map><key>type</key><string>string</string></map></map>
    <map><key>start</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>length</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>osStringSubString</key>
@@ -8320,6 +8545,7 @@
   <key>arguments</key><array>
    <map><key>src</key><map><key>type</key><string>string</string></map></map>
    <map><key>start</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>length</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>osSunGetParam</key>
@@ -8340,7 +8566,6 @@
  <map>
   <key>arguments</key><array>
    <map><key>agent</key><map><key>type</key><string>string</string></map></map>
-   <map><key>regionName</key><map><key>type</key><string>string</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>
@@ -8359,6 +8584,7 @@
  <map>
   <key>arguments</key><array>
    <map><key>agent</key><map><key>type</key><string>string</string></map></map>
+   <map><key>regionName</key><map><key>type</key><string>string</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>
@@ -8376,6 +8602,14 @@
  <key>osTeleportOwner</key>
  <map>
   <key>arguments</key><array>
+   <map><key>regionName</key><map><key>type</key><string>string</string></map></map>
+   <map><key>position</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
+  </array>
+ </map>
+ <key>osTeleportOwner</key>
+ <map>
+  <key>arguments</key><array>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>
@@ -8385,14 +8619,6 @@
   <key>arguments</key><array>
    <map><key>regionX</key><map><key>type</key><string>integer</string></map></map>
    <map><key>regionY</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>position</key><map><key>type</key><string>vector</string></map></map>
-   <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
-  </array>
- </map>
- <key>osTeleportOwner</key>
- <map>
-  <key>arguments</key><array>
-   <map><key>regionName</key><map><key>type</key><string>string</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>

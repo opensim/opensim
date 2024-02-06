@@ -537,8 +537,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PRIM_PHYSICS_SHAPE_CONVEX = 2;
 
         // PRIM_REFLECTION_PROBE flags
-        public const int PRIM_REFLECTION_PROBE_BOX = 1 << 0; // 1
-        public const int PRIM_REFLECTION_PROBE_DYNAMIC = 1 << 1; // 2
+        public const int PRIM_REFLECTION_PROBE_BOX = 1; // 1
+        public const int PRIM_REFLECTION_PROBE_DYNAMIC = 2; // 2
 
         public const int PROFILE_NONE = 0;
         public const int PROFILE_SCRIPT_MEMORY = 1;
@@ -1030,6 +1030,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int LINKSETDATA_RESET = 0;
         public const int LINKSETDATA_UPDATE = 1;
         public const int LINKSETDATA_DELETE = 2;
+        public const int LINKSETDATA_MULTIDELETE = 3;
 
         public const int LINKSETDATA_OK = 0;
         public const int LINKSETDATA_EMEMORY = 1;

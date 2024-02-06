@@ -361,7 +361,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 {
                     Name = "XMRInstanceSuperAssembly"
                 };
-                AssemblyBuilder assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+                //AssemblyBuilder assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+                AssemblyBuilder assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndCollect);
                 ModuleBuilder moduleBuilder = assemblyBuilder.DefineDynamicModule("XMRInstanceSuperModule");
                 TypeBuilder typeBuilder = moduleBuilder.DefineType("XMRInstanceSuperType", TypeAttributes.Public | TypeAttributes.Class);
                 typeBuilder.SetParent(typeof(XMRInstance));
@@ -904,8 +905,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             TraceCalls("[YEngine]: YEngine.PostScriptEvent({0},{1})", itemID.ToString(), parms.EventName);
 
-            instance.PostEvent(parms);
-            return true;
+            return instance.PostEvent(parms);
         }
 
         public void CancelScriptEvent(UUID itemID, string eventName)
@@ -952,6 +952,32 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             return PostPrimEvent(part, parms);
         }
 
+        public bool PostObjectLinksetDataEvent(uint localID, int action, ReadOnlySpan<char> name, ReadOnlySpan<char> value)
+        {
+            if (m_Exiting)
+                return false;
+
+            if (m_HeapSize < name.Length + value.Length)
+                return false;
+
+            SceneObjectPart part = m_Scene.GetSceneObjectPart(localID);
+            if (part is null || part.ParentGroup is null)
+                return false;
+
+            EventParams parms = new("linkset_data", new object[] {
+                                new LSL_Integer(action),
+                                new LSL_String(name.ToString()),
+                                value.Length == 0 ? LSL_String.Empty : new LSL_String(value.ToString())
+                                },
+                                Array.Empty<DetectParams>());;
+
+            bool posted = false;
+            foreach (SceneObjectPart primpart in part.ParentGroup.Parts)
+                posted |= PostPrimEvent(primpart, parms);
+
+            return posted;
+        }
+
         private bool PostPrimEvent(SceneObjectPart part, EventParams parms)
         {
             UUID partUUID = part.UUID;
@@ -974,10 +1000,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             if(objInstArray.Length <= 0)
                 return false;
 
+            bool posted = false;
             foreach (XMRInstance inst in objInstArray)
-                inst.PostEvent(parms);
+                posted |= inst.PostEvent(parms);
 
-            return true;
+            return posted;
         }
 
         public DetectParams GetDetectParams(UUID itemID, int number)

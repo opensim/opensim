@@ -52,13 +52,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          * @brief This can be called in any thread (including the script thread itself)
          *        to queue event to script for processing.
          */
-        public void PostEvent(EventParams evt)
+        public bool PostEvent(EventParams evt)
         {
             if (!m_eventCodeMap.TryGetValue(evt.EventName, out ScriptEventCode evc))
-                return;
+                return false;
 
             if (!m_HaveEventHandlers[(int)evc]) // don't bother if we don't have such a handler in any state
-                return;
+                return false;
 
             // Put event on end of event queue.
             bool startIt = false;
@@ -80,7 +80,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                                 m_EventQueue.AddFirst(llns);
                             }
                         }
-                        return;
+                        return true;
                     }
                 }
 
@@ -101,7 +101,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         {
                             double now = Util.GetTimeStamp();
                             if (now < m_nextEventTime)
-                                return;
+                                return false;
                             m_nextEventTime = now + m_minEventDelay;
                             break;
                         }
@@ -110,12 +110,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                             const int canignore = ~(CHANGED_SCALE | CHANGED_POSITION);
                             int change = (int)evt.Params[0];
                             if(change == 0) // what?
-                                return;
+                                return false;
                             if((change & canignore) == 0)
                             {
                                 double now = Util.GetTimeStamp();
                                 if (now < m_nextEventTime)
-                                    return;
+                                    return false;
                                 m_nextEventTime = now + m_minEventDelay;
                             }
                             break;
@@ -128,14 +128,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 if(evc == ScriptEventCode.timer)
                 {
                     if (m_EventCounts[(int)evc] >= 1)
-                        return;
+                        return false;
                     m_EventCounts[(int)evc]++;
                     m_EventQueue.AddLast(new LinkedListNode<EventParams>(evt));
                 }
                 else
                 {
                     if (m_EventCounts[(int)evc] >= MAXEVENTQUEUE)
-                        return;
+                        return false;
 
                     m_EventCounts[(int)evc]++;
 
@@ -221,6 +221,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 m_SleepUntil = DateTime.MinValue;
                 m_Engine.WakeFromSleep(this);
             }
+            return true;
         }
 
         public void CancelEvent(string eventName)
