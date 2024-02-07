@@ -163,15 +163,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>A reference to the LLUDPServer that is managing this client</summary>
         private readonly LLUDPServer m_udpServer;
 
-        /// <summary>Caches packed throttle information</summary>
-        private byte[] m_packedThrottles;
-
         private readonly int m_defaultRTO = 1000; // 1sec is the recommendation in the RFC
         private readonly int m_maxRTO = 3000;
         private readonly int m_minRTO = 250;
 
         private readonly float m_burstTime;
-        private readonly int m_maxRate;
+        private readonly float m_maxRate;
 
         public double m_lastStartpingTimeMS;
         public int m_pingMS;
@@ -355,7 +352,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void SendPacketStats()
         {
             PacketStats callback = OnPacketStats;
-            if (callback != null)
+            if (callback is not null)
             {
                 int newPacketsReceived = PacketsReceived - m_packetsReceivedReported;
                 int newPacketsSent = PacketsSent - m_packetsSentReported;
@@ -376,7 +373,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void SetThrottles(byte[] throttleData, float factor)
         {
             byte[] adjData;
-            int pos = 0;
 
             if (!BitConverter.IsLittleEndian)
             {
@@ -395,30 +391,38 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // 0.125f converts from bits to bytes
             float scale = 0.125f * factor;
-            int resend = (int)(BitConverter.ToSingle(adjData, pos) * scale); pos += 4;
-            int land = (int)(BitConverter.ToSingle(adjData, pos) * scale); pos += 4;
-            int wind = (int)(BitConverter.ToSingle(adjData, pos) * scale); pos += 4;
-            int cloud = (int)(BitConverter.ToSingle(adjData, pos) * scale); pos += 4;
-            int task = (int)(BitConverter.ToSingle(adjData, pos) * scale); pos += 4;
-            int texture = (int)(BitConverter.ToSingle(adjData, pos) * scale); pos += 4;
-            int asset = (int)(BitConverter.ToSingle(adjData, pos) * scale);
+            float resend = Utils.BytesToFloat(adjData) * scale;
+            float land = Utils.BytesToFloat(adjData, 4) * scale;
+            float wind = Utils.BytesToFloat(adjData, 8) * scale;
+            float cloud = Utils.BytesToFloat(adjData, 12) * scale;
+            float task = Utils.BytesToFloat(adjData, 16) * scale;
+            float texture = Utils.BytesToFloat(adjData, 20) * scale;
+            float asset = Utils.BytesToFloat(adjData, 24) * scale;
 
-            int total = resend + land + wind + cloud + task + texture + asset;
+            resend = Math.Clamp(resend, 1000, m_maxRate);
+            land = Math.Clamp(land, 1000, m_maxRate);
+            wind = Math.Clamp(wind, 50, m_maxRate);
+            cloud = Math.Clamp(cloud, 50, m_maxRate);
+            task = Math.Clamp(task, 1000, m_maxRate);
+            texture = Math.Clamp(texture, 1000, m_maxRate);
+            asset = Math.Clamp(asset, 1000, m_maxRate);
+
+            float total = resend + land + wind + cloud + task + texture + asset;
             if(total > m_maxRate)
             {
-                scale = (float)total / m_maxRate;
-                resend = (int)(resend * scale);
-                land = (int)(land * scale);
-                wind = (int)(wind * scale);
-                cloud = (int)(cloud * scale);
-                task = (int)(task * scale);
-                texture = (int)(texture * scale);
-                asset = (int)(texture * scale);
-                int ntotal = resend + land + wind + cloud + task + texture + asset;
-                m_log.DebugFormat("[LLUDPCLIENT]: limiting {0} bandwith from {1} to {2}",AgentID, ntotal, total);
+                scale = m_maxRate / total;
+                resend *= scale;
+                land *= scale;
+                wind *= scale;
+                cloud *= scale;
+                task *= scale;
+                texture *= scale;
+                asset *= scale;
+                float ntotal = total * scale;
+                m_log.Debug($"[LLUDPCLIENT]: limiting {AgentID} bandwith from {total} to {ntotal}");
                 total = ntotal;
             }
-
+            
             if (ThrottleDebugLevel > 0)
             {
                 m_log.DebugFormat(
@@ -454,47 +458,36 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             bucket = m_throttleCategories[(int)ThrottleOutPacketType.Texture];
             bucket.RequestedDripRate = texture;
             bucket.RequestedBurst = texture * m_burstTime;
-
-            m_packedThrottles = null;
         }
 
         public byte[] GetThrottlesPacked(float multiplier)
         {
-            byte[] data = m_packedThrottles;
+            byte[] data = new byte[7 * 4];
+     
+            // multiply by 8 to convert bytes back to bits
+            multiplier *= 8;
+            float rate;
 
-            if (data == null)
-            {
-                float rate;
+            rate = (float)m_throttleCategories[(int)ThrottleOutPacketType.Resend].RequestedDripRate * multiplier;
+            Utils.FloatToBytes(rate, data, 0);
 
-                data = new byte[7 * 4];
-                int i = 0;
+            rate = (float)m_throttleCategories[(int)ThrottleOutPacketType.Land].RequestedDripRate * multiplier;
+            Utils.FloatToBytes(rate, data, 4);
 
-                // multiply by 8 to convert bytes back to bits
-                multiplier *= 8;
+            rate = (float)m_throttleCategories[(int)ThrottleOutPacketType.Wind].RequestedDripRate * multiplier;
+            Utils.FloatToBytes(rate, data, 8);
 
-                rate = (float)m_throttleCategories[(int)ThrottleOutPacketType.Resend].RequestedDripRate * multiplier;
-                Buffer.BlockCopy(Utils.FloatToBytes(rate), 0, data, i, 4); i += 4;
+            rate = (float)m_throttleCategories[(int)ThrottleOutPacketType.Cloud].RequestedDripRate * multiplier;
+            Utils.FloatToBytes(rate, data, 12);
 
-                rate = (float)m_throttleCategories[(int)ThrottleOutPacketType.Land].RequestedDripRate * multiplier;
-                Buffer.BlockCopy(Utils.FloatToBytes(rate), 0, data, i, 4); i += 4;
+            rate = (float)m_throttleCategories[(int)ThrottleOutPacketType.Task].RequestedDripRate * multiplier;
+            Utils.FloatToBytes(rate, data, 16);
 
-                rate = (float)m_throttleCategories[(int)ThrottleOutPacketType.Wind].RequestedDripRate * multiplier;
-                Buffer.BlockCopy(Utils.FloatToBytes(rate), 0, data, i, 4); i += 4;
+            rate = (float)m_throttleCategories[(int)ThrottleOutPacketType.Texture].RequestedDripRate * multiplier;
+            Utils.FloatToBytes(rate, data, 20);
 
-                rate = (float)m_throttleCategories[(int)ThrottleOutPacketType.Cloud].RequestedDripRate * multiplier;
-                Buffer.BlockCopy(Utils.FloatToBytes(rate), 0, data, i, 4); i += 4;
-
-                rate = (float)m_throttleCategories[(int)ThrottleOutPacketType.Task].RequestedDripRate * multiplier;
-                Buffer.BlockCopy(Utils.FloatToBytes(rate), 0, data, i, 4); i += 4;
-
-                rate = (float)m_throttleCategories[(int)ThrottleOutPacketType.Texture].RequestedDripRate * multiplier;
-                Buffer.BlockCopy(Utils.FloatToBytes(rate), 0, data, i, 4); i += 4;
-
-                rate = (float)m_throttleCategories[(int)ThrottleOutPacketType.Asset].RequestedDripRate * multiplier;
-                Buffer.BlockCopy(Utils.FloatToBytes(rate), 0, data, i, 4); //i += 4;
-
-                m_packedThrottles = data;
-            }
+            rate = (float)m_throttleCategories[(int)ThrottleOutPacketType.Asset].RequestedDripRate * multiplier;
+            Utils.FloatToBytes(rate, data, 24);
 
             return data;
         }

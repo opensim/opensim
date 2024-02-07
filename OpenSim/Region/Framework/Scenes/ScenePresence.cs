@@ -4790,10 +4790,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             Vector3 offset = new(shiftx, shifty, 0f);
 
-            DrawDistance = cAgentData.Far;
-
             m_pos = cAgentData.Position + offset;
             CameraPosition = cAgentData.Center + offset;
+            DrawDistance = cAgentData.Far;
 
             if (cAgentData.ChildrenCapSeeds is not null && cAgentData.ChildrenCapSeeds.Count > 0)
             {
