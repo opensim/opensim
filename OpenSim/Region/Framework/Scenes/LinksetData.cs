@@ -25,12 +25,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using OpenMetaverse;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 //using log4net;
-using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -74,13 +72,10 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Adds or updates a entry to linkset data
+        /// Adds or updates a entry to linkset data with optional password
         /// </summary>
         /// <returns>
-        /// 0 if the data was successfully added or updated
-        /// 1 if the data could not be added or updated due to memory
-        /// 3 if the password did not match
-        /// 5 if the data is unchanged
+        /// return values must match values expected by LSL
         /// </returns>
         public int AddOrUpdate(string key, string value, string pass)
         {
@@ -165,9 +160,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="key">The key value we're removing</param>
         /// <param name="pass">The password for a protected field (or string.Empty if not protected)</param>
         /// <returns>
-        /// 0 if successful.
-        /// 1 if not due to the password.
-        /// -1 if no such key was found
+        /// return values must match values expected by LSL
         /// </returns>
         public int Remove(string key, string pass)
         {
@@ -389,7 +382,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         /// <summary>
         /// Merge the linksetData present in another Linkset into this one.
-        /// The current root will have the new linkset for the merged sog.
         /// If a key is present in our linksetData it wins, dont overide it.
         /// </summary>
         /// <param name="otherLinkset"></param>

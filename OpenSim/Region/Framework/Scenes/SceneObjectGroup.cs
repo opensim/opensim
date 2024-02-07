@@ -2527,6 +2527,9 @@ namespace OpenSim.Region.Framework.Scenes
             // new group as no sitting avatars
             dupe.m_sittingAvatars = new List<ScenePresence>();
 
+            if(LinksetData is not null)
+                dupe.LinksetData = LinksetData.Copy();
+
             dupe.CopyRootPart(m_rootPart, OwnerID, GroupID, userExposed);
             dupe.m_rootPart.LinkNum = m_rootPart.LinkNum;
 
