@@ -1,4 +1,4 @@
-a0998e19-4782-1ad9-a949-bb34c64b02f4
+14b37185-d3a8-cd00-2a99-1e161b07e054
 <llsd><map><key>llsd-lsl-syntax-version</key><integer>2</integer>
 <key>controls</key>
 <map>
@@ -198,6 +198,15 @@ a0998e19-4782-1ad9-a949-bb34c64b02f4
    <map><key>ID</key><map><key>type</key><string>key</string></map></map>
   </array>
   <key>tooltip</key><string>Triggered when object receives a link message via llMessageLinked function call</string>
+ </map>
+ <key>linkset_data</key><map>
+  <key>arguments</key><array>
+   <map><key>action</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>name</key><map><key>type</key><string>string</string></map></map>
+   <map><key>value</key><map><key>type</key><string>string</string></map></map>
+   <map><key>ID</key><map><key>type</key><string>key</string></map></map>
+  </array>
+  <key>tooltip</key><string>Triggered when the linksetdata store is modified</string>
  </map>
  <key>listen</key><map>
   <key>arguments</key><array>
