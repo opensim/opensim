@@ -1636,7 +1636,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             sop.PhysicsInertia?.ToXml2(writer);
 
-            if(sop.RotationAxisLocks != 0)
+            if(sop.IsRoot && sop.RotationAxisLocks != 0)
                 writer.WriteElementString("RotationAxisLocks", sop.RotationAxisLocks.ToString().ToLower());
             writer.WriteElementString("PhysicsShapeType", sop.PhysicsShapeType.ToString().ToLower());
             if (sop.Density != 1000.0f)

@@ -220,15 +220,6 @@ namespace OpenSim.Region.Framework.Scenes
         [XmlIgnore]
         public Quaternion AttachRotation = Quaternion.Identity;
 
-        [XmlIgnore]
-        public int STATUS_ROTATE_X; // this should not be used
-
-        [XmlIgnore]
-        public int STATUS_ROTATE_Y;  // this should not be used
-
-        [XmlIgnore]
-        public int STATUS_ROTATE_Z;  // this should not be used
-
         private int m_CollisionFilterType = 0; // -1 not in use, 0 accept false, 1 accept true
         private string m_CollisionFilterString = string.Empty;
 
@@ -3499,16 +3490,6 @@ namespace OpenSim.Region.Framework.Scenes
         public void SetAxisRotation(int axis, int rotate)
         {
             ParentGroup.SetAxisRotation(axis, rotate);
-
-            //Cannot use ScriptBaseClass constants as no referance to it currently.
-            if ((axis & (int)SceneObjectGroup.axisSelect.STATUS_ROTATE_X) != 0)
-                STATUS_ROTATE_X = rotate;
-
-            if ((axis & (int)SceneObjectGroup.axisSelect.STATUS_ROTATE_Y) != 0)
-                STATUS_ROTATE_Y = rotate;
-
-            if ((axis & (int)SceneObjectGroup.axisSelect.STATUS_ROTATE_Z) != 0)
-                STATUS_ROTATE_Z = rotate;
         }
 
         public void SetBuoyancy(float fvalue)

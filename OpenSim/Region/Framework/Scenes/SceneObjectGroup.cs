@@ -4753,45 +4753,41 @@ namespace OpenSim.Region.Framework.Scenes
 
         #endregion
 
-        internal void SetAxisRotation(int axis, int rotate10)
+        public void SetAxisRotation(int axis, int rotate10)
         {
-            bool setX = ((axis & (int)SceneObjectGroup.axisSelect.STATUS_ROTATE_X) != 0);
-            bool setY = ((axis & (int)SceneObjectGroup.axisSelect.STATUS_ROTATE_Y) != 0);
-            bool setZ = ((axis & (int)SceneObjectGroup.axisSelect.STATUS_ROTATE_Z) != 0);
+            if((axis & (int)(axisSelect.STATUS_ROTATE_X | axisSelect.STATUS_ROTATE_Y | axisSelect.STATUS_ROTATE_Z)) == 0)
+                return;
 
-            if (setX || setY || setZ)
+            bool lockaxis = rotate10 == 0; // zero means axis locked
+
+            byte locks = RootPart.RotationAxisLocks;
+
+            if ((axis & (int)axisSelect.STATUS_ROTATE_X) != 0)
             {
-                bool lockaxis = (rotate10 == 0); // zero means axis locked
+                if (lockaxis)
+                    locks |= (byte)axisSelect.STATUS_ROTATE_X;
+                else
+                    locks &= (byte)axisSelect.NOT_STATUS_ROTATE_X;
+            }
 
-                byte locks = RootPart.RotationAxisLocks;
+            if ((axis & (int)axisSelect.STATUS_ROTATE_Y) != 0)
+            {
+                if (lockaxis)
+                    locks |= (byte)axisSelect.STATUS_ROTATE_Y;
+                else
+                    locks &= (byte)axisSelect.NOT_STATUS_ROTATE_Y;
+            }
 
-                if (setX)
-                    {
-                    if(lockaxis)
-                        locks |= (byte)SceneObjectGroup.axisSelect.STATUS_ROTATE_X;
-                    else
-                        locks &= (byte)SceneObjectGroup.axisSelect.NOT_STATUS_ROTATE_X;
-                    }
+            if ((axis & (int)axisSelect.STATUS_ROTATE_Z) != 0)
+            {
+                if (lockaxis)
+                    locks |= (byte)axisSelect.STATUS_ROTATE_Z;
+                else
+                    locks &= (byte)axisSelect.NOT_STATUS_ROTATE_Z;
+            }
 
-                if (setY)
-                    {
-                    if(lockaxis)
-                        locks |= (byte)SceneObjectGroup.axisSelect.STATUS_ROTATE_Y;
-                    else
-                        locks &= (byte)SceneObjectGroup.axisSelect.NOT_STATUS_ROTATE_Y;
-                    }
-
-                if (setZ)
-                    {
-                    if(lockaxis)
-                        locks |= (byte)SceneObjectGroup.axisSelect.STATUS_ROTATE_Z;
-                    else
-                        locks &= (byte)SceneObjectGroup.axisSelect.NOT_STATUS_ROTATE_Z;
-                    }
-
-                RootPart.RotationAxisLocks = locks;
-                RootPart.SetPhysicsAxisRotation();
-                }
+            RootPart.RotationAxisLocks = locks;
+            RootPart.SetPhysicsAxisRotation();
         }
 
         public int GetAxisRotation(int axis)
@@ -4799,11 +4795,11 @@ namespace OpenSim.Region.Framework.Scenes
             byte  rotAxislocks = RootPart.RotationAxisLocks;
 
             // if multiple return the one with higher id
-            if (axis == (int)SceneObjectGroup.axisSelect.STATUS_ROTATE_Z)
-                return (rotAxislocks & (byte)SceneObjectGroup.axisSelect.STATUS_ROTATE_Z) == 0 ? 1:0;
-            if (axis == (int)SceneObjectGroup.axisSelect.STATUS_ROTATE_Y)
-                return (rotAxislocks & (byte)SceneObjectGroup.axisSelect.STATUS_ROTATE_Y) == 0 ? 1:0;
-            if (axis == (int)SceneObjectGroup.axisSelect.STATUS_ROTATE_X)
+            if (axis == (int)axisSelect.STATUS_ROTATE_Z)
+                return (rotAxislocks & (byte)axisSelect.STATUS_ROTATE_Z) == 0 ? 1:0;
+            if (axis == (int)axisSelect.STATUS_ROTATE_Y)
+                return (rotAxislocks & (byte)axisSelect.STATUS_ROTATE_Y) == 0 ? 1:0;
+            if (axis == (int)axisSelect.STATUS_ROTATE_X)
                 return (rotAxislocks & (byte)SceneObjectGroup.axisSelect.STATUS_ROTATE_X) == 0 ? 1:0;
 
             return 0;

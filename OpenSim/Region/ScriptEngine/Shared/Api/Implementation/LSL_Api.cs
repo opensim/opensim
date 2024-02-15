@@ -922,62 +922,58 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return VecDist(a, b);
         }
 
-        //Now we start getting into quaternions which means sin/cos, matrices and vectors. ckrinke
-
-        // Utility function for llRot2Euler
-
         public LSL_Vector llRot2Euler(LSL_Rotation q1)
         {
-            LSL_Vector eul = new();
+            double sqw = q1.s * q1.s;
+            double sqx = q1.x * q1.x;
+            double sqy = q1.z * q1.z;
+            double sqz = q1.y * q1.y;
+            double norm = sqx + sqy + sqz + sqw; // if normalised is one, otherwise is correction factor
+            double halfnorm = 0.49999 * norm;
 
-            double sqw = q1.s*q1.s;
-            double sqx = q1.x*q1.x;
-            double sqy = q1.z*q1.z;
-            double sqz = q1.y*q1.y;
-            double unit = sqx + sqy + sqz + sqw; // if normalised is one, otherwise is correction factor
-            double test = q1.x*q1.z + q1.y*q1.s;
-            if (test > 0.4999*unit) { // singularity at north pole
-                eul.z = 2 * Math.Atan2(q1.x,q1.s);
-                eul.y = Math.PI/2;
-                eul.x = 0;
-                return eul;
+            double test = q1.x * q1.z + q1.y * q1.s;
+            if (test > halfnorm) // singularity at north pole
+            {
+                return new LSL_Vector(
+                    0,
+                    Math.PI / 2,
+                    2 * Math.Atan2(q1.x, q1.s)
+                    );
             }
-            if (test < -0.4999*unit) { // singularity at south pole
-                eul.z = -2 * Math.Atan2(q1.x,q1.s);
-                eul.y = -Math.PI/2;
-                eul.x = 0;
-                return eul;
+            if (test < -halfnorm) // singularity at south pole
+            {
+                return new LSL_Vector(
+                    0,
+                    -Math.PI / 2,
+                    -2 * Math.Atan2(q1.x, q1.s)
+                    );
             }
-            eul.z = Math.Atan2(2*q1.z*q1.s-2*q1.x*q1.y , sqx - sqy - sqz + sqw);
-            eul.y = Math.Asin(2*test/unit);
-            eul.x = Math.Atan2(2*q1.x*q1.s-2*q1.z*q1.y , -sqx + sqy - sqz + sqw);
-            return eul;
+
+            return new LSL_Vector(
+                Math.Atan2(2 * q1.x * q1.s - 2 * q1.z * q1.y , -sqx + sqy - sqz + sqw),
+                Math.Asin( 2 * test / norm),
+                Math.Atan2(2 * q1.z * q1.s - 2 * q1.x * q1.y, sqx - sqy - sqz + sqw)
+                );
         }
 
         public LSL_Rotation llEuler2Rot(LSL_Vector v)
         {
+            double a = v.x * 0.5;
+            double s1 = Math.Sin(a);
+            double c1 = Math.Cos(a);
+            a = v.y * 0.5;
+            double s2 = Math.Sin(a);
+            double c2 = Math.Cos(a);
+            a = v.z * 0.5;
+            double s3 = Math.Sin(a);
+            double c3 = Math.Cos(a);
 
-            double x,y,z,s;
-            v.x *= 0.5;
-            v.y *= 0.5;
-            v.z *= 0.5;
-            double c1 = Math.Cos(v.x);
-            double c2 = Math.Cos(v.y);
-            double c1c2 = c1 * c2;
-            double s1 = Math.Sin(v.x);
-            double s2 = Math.Sin(v.y);
-            double s1s2 = s1 * s2;
-            double c1s2 = c1 * s2;
-            double s1c2 = s1 * c2;
-            double c3 = Math.Cos(v.z);
-            double s3 = Math.Sin(v.z);
-
-            x = s1c2 * c3 + c1s2 * s3;
-            y = c1s2 * c3 - s1c2 * s3;
-            z = s1s2 * c3 + c1c2 * s3;
-            s = c1c2 * c3 - s1s2 * s3;
-
-            return new LSL_Rotation(x, y, z, s);
+            return new LSL_Rotation(
+                s1 * c2 * c3 + c1 * s2 * s3,
+                c1 * s2 * c3 - s1 * c2 * s3,
+                s1 * s2 * c3 + c1 * c2 * s3,
+                c1 * c2 * c3 - s1 * s2 * s3
+                );
         }
 
         public LSL_Rotation llAxes2Rot(LSL_Vector fwd, LSL_Vector left, LSL_Vector up)
@@ -1036,12 +1032,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Vector llRot2Fwd(LSL_Rotation r)
         {
-
-            double x, y, z, m;
-
-            m = r.x * r.x + r.y * r.y + r.z * r.z + r.s * r.s;
-            // m is always greater than zero
-            // if m is not equal to 1 then Rotation needs to be normalized
+            double m = r.x * r.x + r.y * r.y + r.z * r.z + r.s * r.s;
             if (Math.Abs(1.0 - m) > 0.000001)
             {
                 m = 1.0 / Math.Sqrt(m);
@@ -1051,21 +1042,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 r.s *= m;
             }
 
-            // Fast Algebric Calculations instead of Vectors & Quaternions Product
-            x = r.x * r.x - r.y * r.y - r.z * r.z + r.s * r.s;
-            y = 2 * (r.x * r.y + r.z * r.s);
-            z = 2 * (r.x * r.z - r.y * r.s);
-            return (new LSL_Vector(x, y, z));
+            return new LSL_Vector(
+                r.x * r.x - r.y * r.y - r.z * r.z + r.s * r.s,
+                2 * (r.x * r.y + r.z * r.s),
+                2 * (r.x * r.z - r.y * r.s)
+                );
         }
 
         public LSL_Vector llRot2Left(LSL_Rotation r)
         {
-
-            double x, y, z, m;
-
-            m = r.x * r.x + r.y * r.y + r.z * r.z + r.s * r.s;
-            // m is always greater than zero
-            // if m is not equal to 1 then Rotation needs to be normalized
+            double m = r.x * r.x + r.y * r.y + r.z * r.z + r.s * r.s;
             if (Math.Abs(1.0 - m) > 0.000001) // allow a little slop here for calculation precision
             {
                 m = 1.0 / Math.Sqrt(m);
@@ -1075,20 +1061,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 r.s *= m;
             }
 
-            // Fast Algebric Calculations instead of Vectors & Quaternions Product
-            x = 2 * (r.x * r.y - r.z * r.s);
-            y = -r.x * r.x + r.y * r.y - r.z * r.z + r.s * r.s;
-            z = 2 * (r.x * r.s + r.y * r.z);
-            return (new LSL_Vector(x, y, z));
+            return new LSL_Vector(
+                2 * (r.x * r.y - r.z * r.s),
+                -r.x * r.x + r.y * r.y - r.z * r.z + r.s * r.s,
+                2 * (r.x * r.s + r.y * r.z)
+                );
         }
 
         public LSL_Vector llRot2Up(LSL_Rotation r)
         {
-            double x, y, z, m;
-
-            m = r.x * r.x + r.y * r.y + r.z * r.z + r.s * r.s;
-            // m is always greater than zero
-            // if m is not equal to 1 then Rotation needs to be normalized
+            double m = r.x * r.x + r.y * r.y + r.z * r.z + r.s * r.s;
             if (Math.Abs(1.0 - m) > 0.000001) // allow a little slop here for calculation precision
             {
                 m = 1.0 / Math.Sqrt(m);
@@ -1098,11 +1080,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 r.s *= m;
             }
 
-            // Fast Algebric Calculations instead of Vectors & Quaternions Product
-            x = 2 * (r.x * r.z + r.y * r.s);
-            y = 2 * (-r.x * r.s + r.y * r.z);
-            z = -r.x * r.x - r.y * r.y + r.z * r.z + r.s * r.s;
-            return (new LSL_Vector(x, y, z));
+            return new LSL_Vector(
+                2 * (r.x * r.z + r.y * r.s),
+                2 * (-r.x * r.s + r.y * r.z),
+                -r.x * r.x - r.y * r.y + r.z * r.z + r.s * r.s
+                );
         }
 
         public LSL_Rotation llRotBetween(LSL_Vector a, LSL_Vector b)
@@ -1514,7 +1496,30 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m_host is null || m_host.ParentGroup is null || m_host.ParentGroup.IsDeleted)
                 return;
 
-            int statusrotationaxis = 0;
+            if ((status & ScriptBaseClass.STATUS_CAST_SHADOWS) != 0)
+                m_host.AddFlag(PrimFlags.CastShadows);
+
+            if ((status & ScriptBaseClass.STATUS_BLOCK_GRAB) != 0)
+                m_host.BlockGrab = value != 0;
+
+            if ((status & ScriptBaseClass.STATUS_BLOCK_GRAB_OBJECT) != 0)
+                m_host.ParentGroup.BlockGrabOverride = value != 0;
+
+            if ((status & ScriptBaseClass.STATUS_DIE_AT_EDGE) != 0)
+                    m_host.SetDieAtEdge(value != 0);
+
+            if ((status & ScriptBaseClass.STATUS_RETURN_AT_EDGE) != 0)
+                m_host.SetReturnAtEdge(value != 0);
+
+            if ((status & ScriptBaseClass.STATUS_SANDBOX) != 0)
+                m_host.SetStatusSandbox(value != 0);
+
+            int statusrotationaxis = status & (ScriptBaseClass.STATUS_ROTATE_X | ScriptBaseClass.STATUS_ROTATE_Y | ScriptBaseClass.STATUS_ROTATE_Z);
+            if (statusrotationaxis != 0)
+                m_host.ParentGroup.SetAxisRotation(statusrotationaxis, value);
+
+            if ((status & ScriptBaseClass.STATUS_PHANTOM) != 0)
+                m_host.ParentGroup.ScriptSetPhantomStatus(value != 0);
 
             if ((status & ScriptBaseClass.STATUS_PHYSICS) != 0)
             {
@@ -1557,39 +1562,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     m_host.ScriptSetPhysicsStatus(false);
                 }
             }
-
-            if ((status & ScriptBaseClass.STATUS_PHANTOM) != 0)
-                m_host.ParentGroup.ScriptSetPhantomStatus(value != 0);
-
-            if ((status & ScriptBaseClass.STATUS_CAST_SHADOWS) != 0)
-                m_host.AddFlag(PrimFlags.CastShadows);
-
-            if ((status & ScriptBaseClass.STATUS_ROTATE_X) != 0)
-                statusrotationaxis |= ScriptBaseClass.STATUS_ROTATE_X;
-
-            if ((status & ScriptBaseClass.STATUS_ROTATE_Y) !=0)
-                statusrotationaxis |= ScriptBaseClass.STATUS_ROTATE_Y;
-
-            if ((status & ScriptBaseClass.STATUS_ROTATE_Z) != 0)
-                statusrotationaxis |= ScriptBaseClass.STATUS_ROTATE_Z;
-
-            if ((status & ScriptBaseClass.STATUS_BLOCK_GRAB) != 0)
-                m_host.BlockGrab = value != 0;
-
-            if ((status & ScriptBaseClass.STATUS_BLOCK_GRAB_OBJECT) != 0)
-                m_host.ParentGroup.BlockGrabOverride = value != 0;
-
-            if ((status & ScriptBaseClass.STATUS_DIE_AT_EDGE) != 0)
-                    m_host.SetDieAtEdge(value != 0);
-
-            if ((status & ScriptBaseClass.STATUS_RETURN_AT_EDGE) != 0)
-                m_host.SetReturnAtEdge(value != 0);
-
-            if ((status & ScriptBaseClass.STATUS_SANDBOX) != 0)
-                m_host.SetStatusSandbox(value != 0);
-
-            if (statusrotationaxis != 0)
-                m_host.SetAxisRotation(statusrotationaxis, value);
         }
 
         private bool IsPhysical()
