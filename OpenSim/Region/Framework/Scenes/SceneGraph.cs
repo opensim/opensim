@@ -1042,6 +1042,32 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        protected internal bool TryGetSceneRootPresence(UUID agentID, out ScenePresence avatar)
+        {
+            bool entered = false;
+            try
+            {
+                try { }
+                finally
+                {
+                    m_scenePresencesLock.EnterReadLock();
+                    entered = true;
+                }
+                return m_scenePresenceMap.TryGetValue(agentID, out avatar) && !avatar.IsChildAgent;
+            }
+            catch
+            {
+                avatar = null;
+                return false;
+            }
+            finally
+            {
+                if (entered)
+                    m_scenePresencesLock.ExitReadLock();
+            }
+        }
+
+
         protected internal bool TryGetAvatarByName(string name, out ScenePresence avatar)
         {
             List<ScenePresence> presences = GetScenePresences();

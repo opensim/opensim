@@ -207,7 +207,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             if (!m_Enabled)
                 return;
 
-//            m_log.DebugFormat("[FRIENDS MODULE]: AddRegion on {0}", Name);
+            //m_log.DebugFormat("[FRIENDS MODULE]: AddRegion on {0}", Name);
 
             m_Scenes.Add(scene);
             scene.RegisterModuleInterface<IFriendsModule>(this);
@@ -252,6 +252,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 }
             }
             return 0;
+        }
+
+        public bool IsFriend(UUID principalID, UUID friendID)
+        {
+            FriendInfo[] friends = GetFriendsFromCache(principalID);
+            if (friends.Length > 0)
+            {
+                FriendInfo finfo = GetFriend(friends, friendID);
+                return (finfo is not null && finfo.TheirFlags != -1);
+            }
+            return false;
         }
 
         public bool IsFriendOnline(UUID userID, UUID friendID)

@@ -496,11 +496,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>null if there is no registered module implementing that interface</returns>
         public T RequestModuleInterface<T>()
         {
-            if (ModuleInterfaces.ContainsKey(typeof(T)) &&
-                    (ModuleInterfaces[typeof(T)].Count > 0))
-                return (T)ModuleInterfaces[typeof(T)][0];
-            else
-                return default(T);
+            if (ModuleInterfaces.TryGetValue(typeof(T), out List<object> mio ) && mio.Count > 0)
+                return (T)mio[0];
+
+            return default;
         }
 
         /// <summary>

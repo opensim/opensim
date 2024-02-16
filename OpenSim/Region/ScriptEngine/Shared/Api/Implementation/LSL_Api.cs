@@ -18513,7 +18513,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (string.IsNullOrEmpty(pattern.m_string))
                     return src;
 
-                Regex rx = new(pattern, RegexOptions, new TimeSpan(500000)); // 50ms)
+                Regex rx = new(pattern, RegexOptions, TimeSpan.FromMilliseconds(10));
                 if (replacement == null)
                     return rx.Replace(src.m_string, string.Empty, count);
 
@@ -18723,18 +18723,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (parentsog.OwnerID.Equals(parentsog.GroupID))
                 return llSameGroup(agent_id);
 
+            if (!UUID.TryParse(agent_id, out UUID agent) || agent.IsZero())
+                return 0;
+
             IFriendsModule fm = World.RequestModuleInterface<IFriendsModule>();
             if(fm is null)
                 return 0;
 
-            if (World.GetScenePresence(parentsog.OwnerID) is null)
-                return 0;
-            if (!UUID.TryParse(agent_id, out UUID agent))
-                return 0;
-            if (World.GetScenePresence(agent) is null)
-                return 0;
+            if (World.TryGetSceneRootPresence(agent, out _))
+                return fm.IsFriend(agent, parentsog.OwnerID) ? 1 : 0;
 
-            return fm.IsFriendOnline(parentsog.OwnerID, agent) ? 1 : 0;
+            if (World.TryGetSceneRootPresence(parentsog.OwnerID, out _))
+                return fm.IsFriend(parentsog.OwnerID, agent) ? 1 : 0;
+
+            return 0;
         }
     }
 
