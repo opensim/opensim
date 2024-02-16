@@ -513,5 +513,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
                void llLinksetDataReset();
         LSL_Integer llLinksetDataWrite(LSL_String name, LSL_String value);
         LSL_Integer llLinksetDataWriteProtected(LSL_String name, LSL_String value, LSL_String pass);
+
+        LSL_Integer llIsFriend(LSL_Key agent_id);
     }
 }

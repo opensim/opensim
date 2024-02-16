@@ -2784,5 +2784,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_LSL_Functions.llLinksetDataFindKeys(pattern, start, count);
         }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_Integer llIsFriend(LSL_Key agent_id)
+        {
+            return m_LSL_Functions.llIsFriend(agent_id);
+        }
     }
 }

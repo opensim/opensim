@@ -18713,6 +18713,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             return new LSL_List(m_host.ParentGroup.LinksetData.ListKeysByPatttern(pattern.m_string, start, count));
         }
+
+        public LSL_Integer llIsFriend(LSL_Key agent_id)
+        {
+            SceneObjectGroup parentsog = m_host.ParentGroup;
+            if (parentsog is null || parentsog.IsDeleted)
+                return 0;
+
+            if (parentsog.OwnerID.Equals(parentsog.GroupID))
+                return llSameGroup(agent_id);
+
+            IFriendsModule fm = World.RequestModuleInterface<IFriendsModule>();
+            if(fm is null)
+                return 0;
+
+            if (World.GetScenePresence(parentsog.OwnerID) is null)
+                return 0;
+            if (!UUID.TryParse(agent_id, out UUID agent))
+                return 0;
+            if (World.GetScenePresence(agent) is null)
+                return 0;
+
+            return fm.IsFriendOnline(parentsog.OwnerID, agent) ? 1 : 0;
+        }
     }
 
     public class NotecardCache

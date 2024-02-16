@@ -2821,7 +2821,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public LSLFloat(int i)
             {
-                value = (double)i;
+                value = i;
             }
 
             public LSLFloat(double d)
@@ -2834,7 +2834,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public LSLFloat(ReadOnlySpan<char> s)
             {
-                if(!double.TryParse(s, System.Globalization.NumberStyles.Float, Culture.NumberFormatInfo, out value))
+                if (!double.TryParse(s, NumberStyles.Float, Culture.NumberFormatInfo, out value))
                     value = 0;
             }
 
