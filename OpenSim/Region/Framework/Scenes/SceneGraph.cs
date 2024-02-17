@@ -28,15 +28,13 @@
 using System;
 using System.Threading;
 using System.Collections.Generic;
-using System.Collections.Concurrent;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 using log4net;
 using OpenSim.Framework;
-using OpenSim.Region.Framework.Scenes.Types;
 using OpenSim.Region.PhysicsModules.SharedBase;
-using OpenSim.Region.Framework.Interfaces;
 using System.Runtime.InteropServices;
 
 namespace OpenSim.Region.Framework.Scenes
@@ -199,6 +197,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <remarks>
         /// Called only from the main scene loop.
         /// </remarks>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected internal void UpdatePresences()
         {
             ForEachScenePresence(delegate(ScenePresence presence)
@@ -207,6 +206,7 @@ namespace OpenSim.Region.Framework.Scenes
             });
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected internal void UpdateScenePresenceMovement()
         {
             ForEachScenePresence(delegate (ScenePresence presence)
@@ -220,11 +220,13 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="elapsed"></param>
         /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected internal float UpdatePhysics(double elapsed)
         {
             return PhysicsScene is null ? 0 : PhysicsScene.Simulate((float)elapsed);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected internal void ProcessPhysicsPreSimulation()
         {
             PhysicsScene?.ProcessPreSimulation();
@@ -583,22 +585,26 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="obj">
         /// A <see cref="SceneObjectGroup"/>
         /// </param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected internal void AddToUpdateList(SceneObjectGroup obj)
         {
             lock(m_updateLock)
                 m_updateList[obj.UUID] = obj;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void FireAttachToBackup(SceneObjectGroup obj)
         {
             OnAttachToBackup?.Invoke(obj);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void FireDetachFromBackup(SceneObjectGroup obj)
         {
             OnDetachFromBackup?.Invoke(obj);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void FireChangeBackup(SceneObjectGroup obj)
         {
             OnChangeBackup?.Invoke(obj);
@@ -638,11 +644,13 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected internal void AddPhysicalPrim(int number)
         {
             Interlocked.Add(ref m_physicalPrim, number);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected internal void RemovePhysicalPrim(int number)
         {
             Interlocked.Add(ref m_physicalPrim, -number);
@@ -653,11 +661,13 @@ namespace OpenSim.Region.Framework.Scenes
             //m_scriptLPS += number;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected internal void AddActiveScripts(int number)
         {
             Interlocked.Add(ref m_activeScripts, number);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected internal void HandleUndo(IClientAPI remoteClient, UUID primId)
         {
             if (primId.IsNotZero())
@@ -667,6 +677,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected internal void HandleRedo(IClientAPI remoteClient, UUID primId)
         {
             if (primId.IsNotZero())
@@ -816,46 +827,55 @@ namespace OpenSim.Region.Framework.Scenes
             m_numRootNPC = rootnpccount;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetChildAgentCount()
         {
             return m_numChildAgents;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetRootAgentCount()
         {
             return m_numRootAgents;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetRootNPCCount()
         {
             return m_numRootNPC;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetTotalObjectsCount()
         {
             return m_scenePartsByID.Count;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetTotalPrimObjectsCount()
         {
             return m_numPrim;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetTotalMeshObjectsCount()
         {
             return m_numMesh;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetActiveObjectsCount()
         {
             return m_physicalPrim;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetActiveScriptsCount()
         {
             return m_activeScripts;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetScriptLPS()
         {
             //int returnval = m_scriptLPS;
@@ -1099,13 +1119,11 @@ namespace OpenSim.Region.Framework.Scenes
                     m_scenePartsLock.EnterReadLock();
                     entered = true;
                 }
-                if(m_scenePartsByLocalID.TryGetValue(localID, out SceneObjectPart sop))
-                    return sop.ParentGroup;
-                return null;
+                return m_scenePartsByLocalID.TryGetValue(localID, out SceneObjectPart sop) ? sop.ParentGroup : null;
             }
             finally
             {
-                if(entered)
+                if (entered)
                     m_scenePartsLock.ExitReadLock();
             }
         }
@@ -1126,9 +1144,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_scenePartsLock.EnterReadLock();
                     entered = true;
                 }
-                if (m_scenePartsByID.TryGetValue(fullID, out SceneObjectPart sop))
-                    return sop.ParentGroup;
-                return null;
+                return m_scenePartsByID.TryGetValue(fullID, out SceneObjectPart sop) ? sop.ParentGroup : null;
             }
             finally
             {
@@ -1182,6 +1198,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="fullID">UUID of the group</param>
         /// <returns>null if no such group was found</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected internal SceneObjectGroup GetSceneObjectGroup(UUID fullID)
         {
             if (Entities.TryGetValue(fullID, out EntityBase entity) && (entity is SceneObjectGroup sog))
@@ -1192,7 +1209,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Get a group in the scene
         /// <param name="localID">Local id of the root part of the group</param>
-        /// <returns>null if no such group was found</returns>
+        /// <returns>null if no such group was found</retu
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected internal SceneObjectGroup GetSceneObjectGroup(uint localID)
         {
             if (Entities.TryGetValue(localID, out EntityBase entity) && (entity is SceneObjectGroup sog))
@@ -1232,13 +1250,30 @@ namespace OpenSim.Region.Framework.Scenes
                     m_scenePartsLock.EnterReadLock();
                     entered = true;
                 }
-                if (m_scenePartsByLocalID.TryGetValue(localID, out SceneObjectPart sop))
+                 return m_scenePartsByLocalID.TryGetValue(localID, out SceneObjectPart sop) &&
+                                                                sop.ParentGroup is not null && !sop.ParentGroup.IsDeleted ? sop : null;
+            }
+            finally
+            {
+                if (entered)
+                    m_scenePartsLock.ExitReadLock();
+            }
+        }
+
+        protected internal bool TryGetSceneObjectPart(uint localID, out SceneObjectPart sop)
+        {
+            bool entered = false;
+            try
+            {
+                try { }
+                finally
                 {
-                    if (sop.ParentGroup is null || sop.ParentGroup.IsDeleted)
-                        return null;
-                    return sop;
+                    m_scenePartsLock.EnterReadLock();
+                    entered = true;
                 }
-                return null;
+                return m_scenePartsByLocalID.TryGetValue(localID, out sop) && 
+                                               sop.ParentGroup is not null &&
+                                                !sop.ParentGroup.IsDeleted;
             }
             finally
             {
@@ -1262,13 +1297,8 @@ namespace OpenSim.Region.Framework.Scenes
                     m_scenePartsLock.EnterReadLock();
                     entered = true;
                 }
-                if (m_scenePartsByID.TryGetValue(fullID, out SceneObjectPart sop))
-                {
-                    if (sop.ParentGroup is null || sop.ParentGroup.IsDeleted)
-                        return null;
-                    return sop;
-                }
-                return null;
+                return m_scenePartsByID.TryGetValue(fullID, out SceneObjectPart sop) &&
+                                                         sop.ParentGroup is not null && !sop.ParentGroup.IsDeleted ? sop : null;
             }
             finally
             {
@@ -1288,16 +1318,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_scenePartsLock.EnterReadLock();
                     entered = true;
                 }
-                if (m_scenePartsByID.TryGetValue(fullID, out sop))
-                {
-                    if (sop.ParentGroup is null || sop.ParentGroup.IsDeleted)
-                    {
-                        sop = null;
-                        return false;
-                    }
-                    return true;
-                }
-                return false;
+                return m_scenePartsByID.TryGetValue(fullID, out sop) && sop.ParentGroup is not null && !sop.ParentGroup.IsDeleted;
             }
             finally
             {
@@ -1354,6 +1375,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// it
         /// </summary>
         /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected internal EntityBase[] GetEntities()
         {
             return Entities.GetEntities();
@@ -1363,6 +1385,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Other Methods
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected internal void physicsBasedCrash()
         {
             UnRecoverableError?.Invoke();
@@ -1494,9 +1517,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="remoteClient"></param>
         protected internal void UpdatePrimScale(uint localID, in Vector3 scale, IClientAPI remoteClient)
         {
-            SceneObjectPart part = GetSceneObjectPart(localID);
-
-            if (part is not null)
+            if(TryGetSceneObjectPart(localID, out SceneObjectPart part))
             {
                 if (m_parentScene.Permissions.CanEditObject(part.ParentGroup, remoteClient))
                 {
