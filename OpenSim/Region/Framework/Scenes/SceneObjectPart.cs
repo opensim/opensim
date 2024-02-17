@@ -769,8 +769,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // If I'm an attachment, my position is reported as the position of who I'm attached to
                 if (ParentGroup.IsAttachment)
                 {
-                    ScenePresence sp = ParentGroup.Scene.GetScenePresence(ParentGroup.AttachedAvatar);
-                    if (sp != null)
+                    if(ParentGroup.Scene.TryGetScenePresence(ParentGroup.AttachedAvatar, out ScenePresence sp))
                         return sp.AbsolutePosition;
                 }
 
@@ -2412,53 +2411,28 @@ namespace OpenSim.Region.Framework.Scenes
             // http://wiki.secondlife.com/wiki/llGetGeometricCenter
             // ignoring tortured prims details since sl also seems to ignore
             // so no real use in doing it on physics
-            if (ParentGroup.IsDeleted)
-                return new Vector3(0, 0, 0);
-
-            return ParentGroup.GetGeometricCenter();
+            return ParentGroup.IsDeleted ? Vector3.Zero : ParentGroup.GetGeometricCenter();
         }
 
         public float GetMass()
         {
             PhysicsActor pa = PhysActor;
-
-            if (pa != null)
-                return pa.Mass;
-            else
-                return 0;
+            return pa is null ? 0 : pa.Mass;
         }
 
         public Vector3 GetCenterOfMass()
         {
             if (ParentGroup.RootPart == this)
-            {
-                if (ParentGroup.IsDeleted)
-                    return AbsolutePosition;
-                return ParentGroup.GetCenterOfMass();
-            }
+                return ParentGroup.IsDeleted ? AbsolutePosition : ParentGroup.GetCenterOfMass();
 
             PhysicsActor pa = PhysActor;
-
-            if (pa != null)
-            {
-                Vector3 tmp = pa.CenterOfMass;
-                return tmp;
-            }
-            else
-                return AbsolutePosition;
+            return (pa is null) ? AbsolutePosition : pa.CenterOfMass;
         }
 
         public Vector3 GetPartCenterOfMass()
         {
             PhysicsActor pa = PhysActor;
-
-            if (pa != null)
-            {
-                Vector3 tmp = pa.CenterOfMass;
-                return tmp;
-            }
-            else
-                return AbsolutePosition;
+            return pa is null ? AbsolutePosition : pa.CenterOfMass;
         }
 
 
@@ -2476,13 +2450,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>A Linked Child Prim objects position in world</returns>
         public Vector3 GetWorldPosition()
         {
-            if (_parentID == 0)
-                return GroupPosition;
-
             // If a child SOP, my position is relative to the root SOP so take
             //    my info and add the root's position and rotation to
             //    get my world position.
-            return ParentGroup.AbsolutePosition + OffsetPosition * ParentGroup.RootPart.RotationOffset;
+            return _parentID == 0 ? GroupPosition : ParentGroup.AbsolutePosition + OffsetPosition * ParentGroup.RootPart.RotationOffset;
         }
 
         /// <summary>
@@ -2491,12 +2462,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         public Quaternion GetWorldRotation()
         {
-            if (_parentID == 0)
-                return RotationOffset;
-
             // A child SOP's rotation is relative to the root SOP's rotation.
             // Combine them to get my absolute rotation.
-            return ParentGroup.RootPart.RotationOffset * RotationOffset;
+            return _parentID == 0 ? RotationOffset : ParentGroup.RootPart.RotationOffset * RotationOffset;
         }
 
         /// <summary>
@@ -2925,14 +2893,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void RemFlag(PrimFlags flag)
         {
-            // PrimFlags prevflag = Flags;
-            if ((m_flags & flag) != 0)
-            {
-                //m_log.Debug("Removing flag: " + ((PrimFlags)flag).ToString());
-                m_flags &= ~flag;
-            }
-            //m_log.Debug("prev: " + prevflag.ToString() + " curr: " + Flags.ToString());
-            //ScheduleFullUpdate();
+            m_flags &= ~flag;
         }
 
         public void RemoveScriptEvents(UUID scriptid)
@@ -4847,11 +4808,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="rot"></param>
         public void UpdateRotation(Quaternion rot)
         {
-            if (rot != RotationOffset)
+            if (rot.NotEqual(RotationOffset))
             {
                 RotationOffset = rot;
-
-                if (ParentGroup != null)
+                if (ParentGroup is not null)
                 {
                     ParentGroup.HasGroupChanged = true;
                     ScheduleTerseUpdate();

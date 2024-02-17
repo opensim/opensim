@@ -304,9 +304,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (timeLastChanged == 0) timeLastChanged = currentTime;
             if (timeFirstChanged == 0) timeFirstChanged = currentTime;
 
-            if (currentTime - timeLastChanged > m_minPersistTime || currentTime - timeFirstChanged > m_maxPersistTime)
-                return true;
-            return false;
+            return currentTime - timeLastChanged > m_minPersistTime || currentTime - timeFirstChanged > m_maxPersistTime;
         }
 
         /// <summary>
@@ -1491,19 +1489,16 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public virtual void AttachToBackup()
         {
-            if (IsAttachment) return;
-            m_scene.SceneGraph.FireAttachToBackup(this);
+            if (IsAttachment)
+                return;
 
-            //if (InSceneBackup)
-            //{
-            //    m_log.DebugFormat(
-            //        "[SCENE OBJECT GROUP]: Attaching object {0} {1} to scene presistence sweep", Name, UUID);
+            if (!Backup)
+            { 
+                m_scene.SceneGraph.FireAttachToBackup(this);
+                m_scene.EventManager.OnBackup += ProcessBackup;
+            }
 
-                if (!Backup)
-                    m_scene.EventManager.OnBackup += ProcessBackup;
-
-                Backup = true;
-            //}
+            Backup = true;
         }
 
         /// <summary>
@@ -2081,13 +2076,7 @@ namespace OpenSim.Region.Framework.Scenes
             // Setting this SOG's absolute position also loops through and sets the positions
             //    of the SOP's in this SOG's linkset. This has the side affect of making sure
             //    the physics world matches the simulated world.
-            // AbsolutePosition = AbsolutePosition; // could someone in the know please explain how this works?
 
-            // teravus: AbsolutePosition is NOT a normal property!
-            // the code in the getter of AbsolutePosition is significantly different then the code in the setter!
-            // jhurliman: Then why is it a property instead of two methods?
-
-            // do only what is supposed to do
             Vector3 groupPosition = m_rootPart.GroupPosition;
             SceneObjectPart[] parts = m_parts.GetArray();
 
@@ -4512,11 +4501,12 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_rootPart.UpdateRotation(rot);
 
-            PhysicsActor actor = m_rootPart.PhysActor;
-            if (actor is not null)
-            {
-                actor.Orientation = m_rootPart.RotationOffset;
-            }
+            //already done above
+            //PhysicsActor actor = m_rootPart.PhysActor;
+            //if (actor is not null)
+            //{
+            //    actor.Orientation = m_rootPart.RotationOffset;
+            //}
 
             if (IsAttachment)
             {
@@ -4542,7 +4532,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (m_rootPart.PhysActor is not null)
                     m_rootPart.PhysActor.Building = true;
 
-                if (part.UUID == m_rootPart.UUID)
+                if (part == m_rootPart)
                 {
                     UpdateRootRotation(rot);
                 }
@@ -4592,17 +4582,15 @@ namespace OpenSim.Region.Framework.Scenes
         public void UpdateRootRotation(Quaternion rot)
         {
             // needs to be called with phys building true
-            Quaternion axRot = rot;
-            Quaternion oldParentRot = m_rootPart.RotationOffset;
+
+            Quaternion transformRot = Quaternion.Inverse(rot) * m_rootPart.RotationOffset;
 
             //Don't use UpdateRotation because it schedules an update prematurely
             m_rootPart.RotationOffset = rot;
 
             PhysicsActor pa = m_rootPart.PhysActor;
             if (pa is not null)
-            {
-                pa.Orientation = m_rootPart.RotationOffset;
-            }
+                pa.Orientation = rot;
 
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
@@ -4610,15 +4598,8 @@ namespace OpenSim.Region.Framework.Scenes
                 SceneObjectPart prim = parts[i];
                 if (prim != m_rootPart)
                 {
-                    Quaternion NewRot = oldParentRot * prim.RotationOffset;
-                    NewRot = Quaternion.Inverse(axRot) * NewRot;
-                    prim.RotationOffset = NewRot;
-
-                    Vector3 axPos = prim.OffsetPosition;
-
-                    axPos *= oldParentRot;
-                    axPos *= Quaternion.Inverse(axRot);
-                    prim.OffsetPosition = axPos;
+                    prim.RotationOffset = transformRot * prim.RotationOffset;
+                    prim.OffsetPosition *= transformRot;
                 }
             }
 
@@ -4642,9 +4623,8 @@ namespace OpenSim.Region.Framework.Scenes
             if (part is not null && part.ParentGroup is not null)
             {
                 ObjectChangeType change = data.change;
-                bool togroup = ((change & ObjectChangeType.Group) != 0);
-                //                bool uniform = ((what & ObjectChangeType.UniformScale) != 0);  not in use
-
+                bool togroup = (change & ObjectChangeType.Group) != 0;
+ 
                 SceneObjectGroup group = part.ParentGroup;
                 PhysicsActor pha = group.RootPart.PhysActor;
 
@@ -5029,12 +5009,11 @@ namespace OpenSim.Region.Framework.Scenes
             // ignoring tortured prims details since sl also seems to ignore
             // so no real use in doing it on physics
 
-            Vector3 gc = Vector3.Zero;
-
             SceneObjectPart[] parts = m_parts.GetArray();
             if (parts.Length < 2)
-                return gc;
+                return Vector3.Zero;
 
+            Vector3 gc = Vector3.Zero;
             // average all parts positions
             for (int i = 0; i < parts.Length; i++)
             {
