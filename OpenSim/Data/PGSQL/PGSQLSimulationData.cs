@@ -252,14 +252,6 @@ namespace OpenSim.Data.PGSQL
         /// <param name="regionUUID"></param>
         public void StoreObject(SceneObjectGroup obj, UUID regionUUID)
         {
-            uint flags = obj.RootPart.GetEffectiveObjectFlags();
-            // Eligibility check
-            //
-            if ((flags & (uint)PrimFlags.Temporary) != 0)
-                return;
-            if ((flags & (uint)PrimFlags.TemporaryOnRez) != 0)
-                return;
-
             //_Log.DebugFormat("[PGSQL]: Adding/Changing SceneObjectGroup: {0} to region: {1}, object has {2} prims.", obj.UUID, regionUUID, obj.Parts.Length);
 
             using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
