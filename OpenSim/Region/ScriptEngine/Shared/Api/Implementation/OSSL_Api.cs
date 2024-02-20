@@ -5583,7 +5583,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
             {
                 if (inv.Value.Type == type || type == -1)
-                    ret.Add(inv.Value.ItemID);
+                    ret.Add(inv.Value.ItemID.ToString());
             }
 
             m_host.TaskInventory.LockItemsForRead(false);
