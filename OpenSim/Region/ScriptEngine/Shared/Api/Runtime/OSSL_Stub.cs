@@ -1461,15 +1461,58 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_Key osGetLinkInventoryKey(LSL_Integer linkNumber, LSL_String name)
+        {
+            return m_OSSL_Functions.osGetLinkInventoryKey(linkNumber, name);
+
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_List osGetInventoryKeys(LSL_Integer type)
+        {
+            return m_OSSL_Functions.osGetInventoryKeys(type);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_List osGetLinkInventoryKeys(LSL_Integer linkNumber, LSL_Integer type)
+        {
+           return m_OSSL_Functions.osGetLinkInventoryKeys(linkNumber, type);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public LSL_String osGetInventoryName(LSL_Key itemId)
         {
             return m_OSSL_Functions.osGetInventoryName(itemId);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_String osGetLinkInventoryName(LSL_Integer linkNumber, LSL_Key itemId)
+        {
+            return m_OSSL_Functions.osGetLinkInventoryName(linkNumber, itemId);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_List osGetLinkInventoryNames(LSL_Integer linkNumber, LSL_Integer type)
+        {
+           return m_OSSL_Functions.osGetLinkInventoryNames(linkNumber, type);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public LSL_String osGetInventoryDesc(LSL_String itemNameOrId)
         {
             return m_OSSL_Functions.osGetInventoryDesc(itemNameOrId);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_String osGetLinkInventoryDesc(LSL_Integer linkNumber, LSL_String itemNameOrId)
+        {
+            return m_OSSL_Functions.osGetLinkInventoryDesc(linkNumber, itemNameOrId);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void osGiveLinkInventory(LSL_Integer linkNumber, LSL_Key destination, LSL_String inventory)
+        {
+            m_OSSL_Functions.osGiveLinkInventory(linkNumber, destination, inventory);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

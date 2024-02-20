@@ -161,6 +161,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected ISoundModule m_SoundModule = null;
         protected IEnvironmentModule m_envModule = null;
         protected IGroupsModule m_groupsModule = null;
+        protected IMessageTransferModule m_TransferModule = null;
         public void Initialize(IScriptEngine scriptEngine, SceneObjectPart host, TaskInventoryItem item)
         {
             //private init
@@ -172,6 +173,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_SoundModule = m_ScriptEngine.World.RequestModuleInterface<ISoundModule>();
             m_envModule = m_ScriptEngine.World.RequestModuleInterface<IEnvironmentModule>();
             m_groupsModule = m_ScriptEngine.World.RequestModuleInterface<IGroupsModule>();
+            m_TransferModule = m_ScriptEngine.World.RequestModuleInterface<IMessageTransferModule>();
 
             //private init
             lock (m_OSSLLock)
@@ -2135,7 +2137,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         private void MessageObject(UUID objUUID, string message)
         {
-            object[] resobj = new object[] { new LSL_Types.LSLString(m_host.UUID.ToString()), new LSL_Types.LSLString(message) };
+            object[] resobj = new object[] { new LSL_String(m_host.UUID.ToString()), new LSL_String(message) };
 
             SceneObjectPart sceneOP = World.GetSceneObjectPart(objUUID);
 
@@ -5505,6 +5507,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return (item is null) ? LSL_String.Empty : item.Name;
         }
 
+        public LSL_String osGetLinkInventoryName(LSL_Integer linkNumber, LSL_Key itemId)
+        {
+            if(linkNumber <= 1)
+                return LSL_String.Empty;
+
+            TaskInventoryItem item = null;
+            SceneObjectPart part = GetSingleLinkPart(linkNumber);
+            if(part == null)
+                return LSL_String.Empty;
+
+            if (UUID.TryParse(itemId, out UUID itemID))
+                item = part.Inventory.GetInventoryItem(itemID);
+
+            return (item is null) ? LSL_String.Empty : item.Name;
+        }
+
         public LSL_String osGetInventoryDesc(LSL_String itemNameorid)
         {
             TaskInventoryItem item;
@@ -5514,6 +5532,203 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 item = m_host.Inventory.GetInventoryItem(itemNameorid);
 
             return (item == null) ? LSL_String.Empty : item.Description;
+        }
+
+        public LSL_String osGetLinkInventoryDesc(LSL_Integer linkNumber, LSL_String itemNameorid)
+        {
+            if(linkNumber <= 1)
+                return LSL_String.Empty;
+
+            TaskInventoryItem item;
+            SceneObjectPart part = GetSingleLinkPart(linkNumber);
+            if(part == null)
+                return LSL_String.Empty;
+
+            if (UUID.TryParse(itemNameorid, out UUID itemID))
+                item = part.Inventory.GetInventoryItem(itemID);
+            else
+                item = part.Inventory.GetInventoryItem(itemNameorid);
+
+            return (item == null) ? LSL_String.Empty : item.Description;
+        }
+
+        public LSL_Key osGetLinkInventoryKey(LSL_Integer linkNumber, LSL_String name)
+        {
+            if(linkNumber <= 1)
+                return LSL_String.NullKey;            
+
+            SceneObjectPart part = GetSingleLinkPart(linkNumber);
+            if(part == null)
+                return LSL_String.NullKey;
+            
+            TaskInventoryItem item = part.Inventory.GetInventoryItem(name);
+            if (item is null)
+                return LSL_String.NullKey;
+
+            if ((item.CurrentPermissions
+                 & (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify))
+                    == (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify))
+            {
+                return new LSL_Key(item.ItemID.ToString());
+            }
+
+            return LSL_String.NullKey;
+        }
+
+        public LSL_List osGetInventoryKeys(LSL_Integer type)
+        {
+            LSL_List ret = new();
+
+            m_host.TaskInventory.LockItemsForRead(true);
+            foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
+            {
+                if (inv.Value.Type == type || type == -1)
+                    ret.Add(inv.Value.ItemID);
+            }
+
+            m_host.TaskInventory.LockItemsForRead(false);
+            return ret;
+        }
+
+        public LSL_List osGetLinkInventoryKeys(LSL_Integer linkNumber, LSL_Integer type)
+        {
+            LSL_List ret = new();
+            if(linkNumber <= 1)
+                return ret;
+            
+            SceneObjectPart part = GetSingleLinkPart(linkNumber);
+            if(part == null)
+                return ret;
+
+            part.TaskInventory.LockItemsForRead(true);
+            foreach (KeyValuePair<UUID, TaskInventoryItem> inv in part.TaskInventory)
+            {
+                if (inv.Value.Type == type || type == -1)
+                    ret.Add(inv.Value.ItemID.ToString());
+            }
+
+            part.TaskInventory.LockItemsForRead(false);
+            return ret;
+        }
+
+        public LSL_List osGetInventoryNames(LSL_Integer type)
+        {
+            LSL_List ret = new();
+
+            m_host.TaskInventory.LockItemsForRead(true);
+            foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
+            {
+                if (inv.Value.Type == type || type == -1)
+                    ret.Add(inv.Value.Name);
+            }
+
+            m_host.TaskInventory.LockItemsForRead(false);
+            return ret;
+        }
+
+        public LSL_List osGetLinkInventoryNames(LSL_Integer linkNumber, LSL_Integer type)
+        {
+            LSL_List ret = new();
+            if(linkNumber <= 1)
+                return ret;            
+
+            SceneObjectPart part = GetSingleLinkPart(linkNumber);
+            if(part == null)
+                return ret;
+
+            part.TaskInventory.LockItemsForRead(true);
+            foreach (KeyValuePair<UUID, TaskInventoryItem> inv in part.TaskInventory)
+            {
+                if (inv.Value.Type == type || type == -1)
+                    ret.Add(inv.Value.Name);
+            }
+
+            part.TaskInventory.LockItemsForRead(false);
+            return ret;
+        }
+
+        ///<summary>
+        /// Give a specified item from a child prim inventory 
+        /// to a destination (object or avatar).
+        ///</summary>
+        ///<param name="linkNumber">The link number of the child prim.</param>
+        ///<param name="destination">The UUID of the destination avatar or object.</param>
+        ///<param name="inventory">The name of the item to give.</param>
+        public void osGiveLinkInventory(LSL_Integer linkNumber, LSL_Key destination, LSL_String inventory)
+        {
+            if(linkNumber <= 1)
+                return;
+            
+            if (!UUID.TryParse(destination, out UUID destId) || destId.IsZero())
+                return;
+
+            SceneObjectPart part = GetSingleLinkPart(linkNumber);
+            if(part == null)
+                return;
+
+            UUID inventoryID = ScriptUtils.GetAssetIdFromKeyOrItemName(part, inventory);
+            if (inventoryID.IsZero())
+                return;
+
+            TaskInventoryItem item = part.Inventory.GetInventoryItem(inventory);
+            if (item == null)
+                return;
+
+            UUID objId = item.ItemID;
+
+            // check if destination is an object
+            if (World.GetSceneObjectPart(destId) != null)
+            {
+                // destination is an object
+                World.MoveTaskInventoryItem(destId, part, objId);
+            }
+            else
+            {
+                ScenePresence presence = World.GetScenePresence(destId);
+
+                if (presence == null)
+                {
+                     
+                    UserAccount account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, destId);
+
+                    if (account == null)
+                    {
+                        GridUserInfo info = World.GridUserService.GetGridUserInfo(destId.ToString());
+                        if(info == null || info.Online == false)
+                            return;
+                        
+                    }
+                }
+
+                // destination is an avatar
+                InventoryItemBase agentItem = World.MoveTaskInventoryItem(destId, UUID.Zero, part, objId, out string message);
+
+                if (agentItem == null)
+                {
+                    m_LSL_Api.llSay(0, message);
+                    return;
+                }
+
+                byte[] bucket = new byte[1];
+                bucket[0] = (byte)item.Type;
+
+                GridInstantMessage msg = new GridInstantMessage(World,
+                        m_host.OwnerID, m_host.Name, destId,
+                        (byte)InstantMessageDialog.TaskInventoryOffered,
+                        m_host.OwnerID.Equals(m_host.GroupID), "'"+item.Name+"'. ("+m_host.Name+" is located at "+
+                        World.RegionInfo.RegionName + " "+ m_host.AbsolutePosition.ToString() + ")",
+                        agentItem.ID, true, m_host.AbsolutePosition,
+                        bucket, true);
+
+                if (World.TryGetScenePresence(destId, out ScenePresence sp)){
+                    sp.ControllingClient.SendInstantMessage(msg);
+                }
+                else{
+                    m_TransferModule?.SendInstantMessage(msg, delegate(bool success) {});
+                }
+                //This delay should only occur when giving inventory to avatars.
+                ScriptSleep(3000);
+            }
         }
 
         public LSL_Key osGetLastChangedEventKey()
