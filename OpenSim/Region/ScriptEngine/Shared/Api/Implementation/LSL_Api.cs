@@ -4573,7 +4573,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             // check if destination is an object
-            if (World.GetSceneObjectPart(destId) is not null)
+            if (World.TryGetSceneObjectPart(destId, out _))
             {
                 // destination is an object
                 World.MoveTaskInventoryItem(destId, m_host, item.ItemID);

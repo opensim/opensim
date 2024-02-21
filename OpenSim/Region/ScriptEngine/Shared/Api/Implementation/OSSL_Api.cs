@@ -5652,11 +5652,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             TaskInventoryItem item = part.Inventory.GetInventoryItem(inventory);
-            if (item == null || item.AssetID.IsZero())
+            if (item is null)
                 return;
 
-            // check if destination is an object
-            if (World.GetSceneObjectPart(destId) != null)
+            if (World.TryGetSceneObjectPart(destId, out _))
             {
                 // destination is an object
                 World.MoveTaskInventoryItem(destId, part, item.ItemID);
@@ -5677,7 +5676,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 // destination is an avatar
                 InventoryItemBase agentItem = World.MoveTaskInventoryItem(destId, UUID.Zero, part, item.ItemID, out string message);
-                if (agentItem == null)
+                if (agentItem is null)
                 {
                     m_LSL_Api.llSay(0, message);
                     return;
@@ -5694,12 +5693,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         agentItem.ID, true, m_host.AbsolutePosition,
                         bucket, true);
 
-                if (World.TryGetScenePresence(destId, out ScenePresence sp)){
+                if (World.TryGetScenePresence(destId, out ScenePresence sp))
                     sp.ControllingClient.SendInstantMessage(msg);
-                }
-                else{
+                else
                     m_TransferModule?.SendInstantMessage(msg, delegate(bool success) {});
-                }
+
                 //This delay should only occur when giving inventory to avatars.
                 ScriptSleep(3000);
             }
