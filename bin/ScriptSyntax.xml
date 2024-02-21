@@ -7303,11 +7303,34 @@ fc2639fd-5d16-66bf-d8ab-2e4d754c816d
    <map><key>itemNameOrId</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
+ <key>osGetLinkInventoryDesc</key>
+ <map>
+  <key>return</key><string>string</string>
+  <key>arguments</key><array>
+   <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>itemNameOrId</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
  <key>osGetInventoryItemKey</key>
  <map>
   <key>return</key><string>key</string>
   <key>arguments</key><array>
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
+<key>osGetLinkInventoryKey</key>
+ <map>
+  <key>return</key><string>key</string>
+  <key>arguments</key><array>
+   <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>name</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
+ <key>osGetInventoryKeys</key>
+ <map>
+  <key>return</key><string>list</string>
+  <key>arguments</key><array>
+   <map><key>type</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>osGetInventoryLastOwner</key>
@@ -7322,6 +7345,38 @@ fc2639fd-5d16-66bf-d8ab-2e4d754c816d
   <key>return</key><string>string</string>
   <key>arguments</key><array>
    <map><key>itemId</key><map><key>type</key><string>key</string></map></map>
+  </array>
+ </map>
+ <key>osGetLinkInventoryName</key>
+ <map>
+  <key>return</key><string>string</string>
+  <key>arguments</key><array>
+   <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>itemId</key><map><key>type</key><string>key</string></map></map>
+  </array>
+ </map>
+ <key>osGetLinkInventoryNames</key>
+ <map>
+  <key>return</key><string>list</string>
+  <key>arguments</key><array>
+   <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>type</key><map><key>type</key><string>integer</string></map></map>
+  </array>
+ </map>
+ <key>osGetLinkInventoryKeys</key>
+ <map>
+  <key>return</key><string>list</string>
+  <key>arguments</key><array>
+   <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>type</key><map><key>type</key><string>integer</string></map></map>
+  </array>
+ </map>
+ <key>osGiveLinkInventory</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>destination</key><map><key>type</key><string>key</string></map></map>
+   <map><key>inventory</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
  <key>osGetLastChangedEventKey</key>
