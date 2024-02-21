@@ -5468,11 +5468,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Key osGetInventoryLastOwner(LSL_String itemNameorid)
         {
-            TaskInventoryItem item;
-            if (UUID.TryParse(itemNameorid, out UUID itemID))
-                item = m_host.Inventory.GetInventoryItem(itemID);
-            else
-                item = m_host.Inventory.GetInventoryItem(itemNameorid);
+            TaskInventoryItem item = UUID.TryParse(itemNameorid, out UUID itemID) ?
+                                m_host.Inventory.GetInventoryItem(itemID) :
+                                m_host.Inventory.GetInventoryItem(itemNameorid);
 
             if (item is null)
                 return LSL_String.NullKey;
@@ -5509,54 +5507,42 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_String osGetLinkInventoryName(LSL_Integer linkNumber, LSL_Key itemId)
         {
-            if(linkNumber <= 1)
-                return LSL_String.Empty;
-
             TaskInventoryItem item = null;
-            SceneObjectPart part = GetSingleLinkPart(linkNumber);
-            if(part == null)
-                return LSL_String.Empty;
-
             if (UUID.TryParse(itemId, out UUID itemID))
-                item = part.Inventory.GetInventoryItem(itemID);
+            {
+                SceneObjectPart part = GetSingleLinkPart(linkNumber);
+                if(part == null)
+                    return LSL_String.Empty;
 
+                item = part.Inventory.GetInventoryItem(itemID);
+            }
             return (item is null) ? LSL_String.Empty : item.Name;
         }
 
         public LSL_String osGetInventoryDesc(LSL_String itemNameorid)
         {
-            TaskInventoryItem item;
-            if (UUID.TryParse(itemNameorid, out UUID itemID))
-                item = m_host.Inventory.GetInventoryItem(itemID);
-            else
-                item = m_host.Inventory.GetInventoryItem(itemNameorid);
+            TaskInventoryItem item = UUID.TryParse(itemNameorid, out UUID itemID) ?
+                            m_host.Inventory.GetInventoryItem(itemID) :
+                            m_host.Inventory.GetInventoryItem(itemNameorid);
 
             return (item == null) ? LSL_String.Empty : item.Description;
         }
 
         public LSL_String osGetLinkInventoryDesc(LSL_Integer linkNumber, LSL_String itemNameorid)
         {
-            if(linkNumber <= 1)
-                return LSL_String.Empty;
-
-            TaskInventoryItem item;
             SceneObjectPart part = GetSingleLinkPart(linkNumber);
             if(part == null)
                 return LSL_String.Empty;
 
-            if (UUID.TryParse(itemNameorid, out UUID itemID))
-                item = part.Inventory.GetInventoryItem(itemID);
-            else
-                item = part.Inventory.GetInventoryItem(itemNameorid);
+            TaskInventoryItem item = UUID.TryParse(itemNameorid, out UUID itemID) ?
+                                    part.Inventory.GetInventoryItem(itemID) :
+                                    part.Inventory.GetInventoryItem(itemNameorid);
 
             return (item == null) ? LSL_String.Empty : item.Description;
         }
 
         public LSL_Key osGetLinkInventoryKey(LSL_Integer linkNumber, LSL_String name)
         {
-            if(linkNumber <= 1)
-                return LSL_String.NullKey;            
-
             SceneObjectPart part = GetSingleLinkPart(linkNumber);
             if(part == null)
                 return LSL_String.NullKey;
@@ -5582,7 +5568,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.TaskInventory.LockItemsForRead(true);
             foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
             {
-                if (inv.Value.Type == type || type == -1)
+                if ((inv.Value.Type == type || type == -1) &&
+                                    (inv.Value.CurrentPermissions
+                                    & (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify))
+                                    == (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify))
                     ret.Add(inv.Value.ItemID.ToString());
             }
 
@@ -5593,8 +5582,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_List osGetLinkInventoryKeys(LSL_Integer linkNumber, LSL_Integer type)
         {
             LSL_List ret = new();
-            if(linkNumber <= 1)
-                return ret;
             
             SceneObjectPart part = GetSingleLinkPart(linkNumber);
             if(part == null)
@@ -5603,7 +5590,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             part.TaskInventory.LockItemsForRead(true);
             foreach (KeyValuePair<UUID, TaskInventoryItem> inv in part.TaskInventory)
             {
-                if (inv.Value.Type == type || type == -1)
+                if (inv.Value.Type == type || type == -1 &&
+                                    (inv.Value.CurrentPermissions
+                                    & (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify))
+                                    == (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify))
                     ret.Add(inv.Value.ItemID.ToString());
             }
 
@@ -5629,8 +5619,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_List osGetLinkInventoryNames(LSL_Integer linkNumber, LSL_Integer type)
         {
             LSL_List ret = new();
-            if(linkNumber <= 1)
-                return ret;            
 
             SceneObjectPart part = GetSingleLinkPart(linkNumber);
             if(part == null)
@@ -5656,9 +5644,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         ///<param name="inventory">The name of the item to give.</param>
         public void osGiveLinkInventory(LSL_Integer linkNumber, LSL_Key destination, LSL_String inventory)
         {
-            if(linkNumber <= 1)
-                return;
-            
             if (!UUID.TryParse(destination, out UUID destId) || destId.IsZero())
                 return;
 
@@ -5666,29 +5651,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if(part == null)
                 return;
 
-            UUID inventoryID = ScriptUtils.GetAssetIdFromKeyOrItemName(part, inventory);
-            if (inventoryID.IsZero())
-                return;
-
             TaskInventoryItem item = part.Inventory.GetInventoryItem(inventory);
-            if (item == null)
+            if (item == null || item.AssetID.IsZero())
                 return;
-
-            UUID objId = item.ItemID;
 
             // check if destination is an object
             if (World.GetSceneObjectPart(destId) != null)
             {
                 // destination is an object
-                World.MoveTaskInventoryItem(destId, part, objId);
+                World.MoveTaskInventoryItem(destId, part, item.ItemID);
             }
             else
             {
-                ScenePresence presence = World.GetScenePresence(destId);
-
-                if (presence == null)
+                if(!World.TryGetScenePresence(destId, out ScenePresence _))
                 {
-                     
                     UserAccount account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, destId);
 
                     if (account == null)
@@ -5696,13 +5672,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         GridUserInfo info = World.GridUserService.GetGridUserInfo(destId.ToString());
                         if(info == null || info.Online == false)
                             return;
-                        
                     }
                 }
 
                 // destination is an avatar
-                InventoryItemBase agentItem = World.MoveTaskInventoryItem(destId, UUID.Zero, part, objId, out string message);
-
+                InventoryItemBase agentItem = World.MoveTaskInventoryItem(destId, UUID.Zero, part, item.ItemID, out string message);
                 if (agentItem == null)
                 {
                     m_LSL_Api.llSay(0, message);
