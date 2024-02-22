@@ -162,10 +162,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected IEnvironmentModule m_envModule = null;
         protected IGroupsModule m_groupsModule = null;
         protected IMessageTransferModule m_TransferModule = null;
+
+        public Scene World;
+
         public void Initialize(IScriptEngine scriptEngine, SceneObjectPart host, TaskInventoryItem item)
         {
             //private init
             m_ScriptEngine = scriptEngine;
+            World = scriptEngine.World;
+
             m_host = host;
             m_item = item;
 
@@ -248,11 +253,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 m_doneSharedInit = true;
             }
-        }
-
-        public Scene World
-        {
-            get { return m_ScriptEngine.World; }
         }
 
         internal static void OSSLError(string msg)
@@ -6356,14 +6356,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Integer osGetPrimCount(LSL_Key object_id)
         {
-            if (!UUID.TryParse(object_id, out UUID id) || id.IsZero())
+            if (!UUID.TryParse(object_id.m_string, out UUID id) || id.IsZero())
                 return 0;
 
-            SceneObjectPart part = World.GetSceneObjectPart(id);
-            if (part is null)
-                return 0;
-
-            return part.ParentGroup.PrimCount;
+            return World.TryGetSceneObjectPart(id, out SceneObjectPart part) ? part.ParentGroup.PrimCount : 0;
         }
 
         public LSL_Integer osGetSittingAvatarsCount()
@@ -6373,14 +6369,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Integer osGetSittingAvatarsCount(LSL_Key object_id)
         {
-            if (!UUID.TryParse(object_id, out UUID id) || id.IsZero())
+            if (!UUID.TryParse(object_id.m_string, out UUID id) || id.IsZero())
                 return 0;
 
-            SceneObjectPart part = World.GetSceneObjectPart(id);
-            if (part is null)
-                return 0;
-
-            return part.ParentGroup.GetSittingAvatarsCount();
+            return World.TryGetSceneObjectPart(id, out SceneObjectPart part) ? part.ParentGroup.GetSittingAvatarsCount() : 0;
         }
     }
 }

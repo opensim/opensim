@@ -45,6 +45,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Timers;
@@ -65,9 +66,8 @@ using SceneScriptEvents = OpenSim.Region.Framework.Scenes.scriptEvents;
 
 namespace OpenSim.Region.ScriptEngine.Yengine
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "YEngine")]
-    public partial class Yengine: INonSharedRegionModule, IScriptEngine,
-            IScriptModule
+    [Mono.Addins.Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "YEngine")]
+    public partial class Yengine: INonSharedRegionModule, IScriptEngine, IScriptModule
     {
         public static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -124,6 +124,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public string Name
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 return "YEngine";
@@ -132,6 +133,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public Type ReplaceableInterface
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 return null;
@@ -140,6 +142,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public string ScriptEnginePath
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 return m_ScriptBasePath;
@@ -148,6 +151,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public string ScriptClassName
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 return "YEngineScript";
@@ -156,6 +160,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public string ScriptBaseClassName
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 return typeof(XMRInstance).FullName;
@@ -164,6 +169,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public ParameterInfo[] ScriptBaseClassParameters
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 return typeof(XMRInstance).GetConstructor(new Type[] { typeof(WaitHandle) }).GetParameters();
@@ -172,6 +178,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public string[] ScriptReferencedAssemblies
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 return scriptReferencedAssemblies;
@@ -863,6 +870,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         // Not required when not using IScriptInstance
         //
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public IScriptWorkItem QueueEventHandler(object parms)
         {
             return null;
@@ -870,6 +878,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public Scene World
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 return m_Scene;
@@ -878,6 +887,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public IScriptModule ScriptModule
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 return this;
@@ -896,27 +906,26 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         // Events targeted at a specific script
         // ... like listen() for an llListen() call
-        //
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool PostScriptEvent(UUID itemID, EventParams parms)
         {
-            XMRInstance instance = GetInstance(itemID);
-            if (instance == null)
-                return false;
-
-            TraceCalls("[YEngine]: YEngine.PostScriptEvent({0},{1})", itemID.ToString(), parms.EventName);
-
-            return instance.PostEvent(parms);
+            if (TryGetInstance(itemID, out XMRInstance instance))
+            {
+                TraceCalls("[YEngine]: YEngine.PostScriptEvent({0},{1})", itemID.ToString(), parms.EventName);
+                return instance.PostEvent(parms);
+            }
+            return false;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void CancelScriptEvent(UUID itemID, string eventName)
         {
-            XMRInstance instance = GetInstance(itemID);
-            if (instance == null)
-                return;
-
-            TraceCalls("[YEngine]: YEngine.CancelScriptEvent({0},{1})", itemID.ToString(), eventName);
-
-            instance.CancelEvent(eventName);
+            if (TryGetInstance(itemID, out XMRInstance instance))
+            {
+                TraceCalls("[YEngine]: YEngine.CancelScriptEvent({0},{1})", itemID.ToString(), eventName);
+                instance.CancelEvent(eventName);
+            }
         }
 
         // Events targeted at all scripts in the given prim.
@@ -980,19 +989,17 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         private bool PostPrimEvent(SceneObjectPart part, EventParams parms)
         {
-            UUID partUUID = part.UUID;
-
             // Get list of script instances running in the object.
             XMRInstance[] objInstArray;
             lock(m_InstancesDict)
             {
-                if(!m_ObjectInstArray.TryGetValue(partUUID, out objInstArray))
+                if(!m_ObjectInstArray.TryGetValue(part.UUID, out objInstArray))
                     return false;
 
                 if (objInstArray == null)
                 {
-                    objInstArray = RebuildObjectInstArray(partUUID);
-                    m_ObjectInstArray[partUUID] = objInstArray;
+                    objInstArray = RebuildObjectInstArray(part.UUID);
+                    m_ObjectInstArray[part.UUID] = objInstArray;
                 }
             }
 
@@ -1007,39 +1014,40 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             return posted;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public DetectParams GetDetectParams(UUID itemID, int number)
         {
-            XMRInstance instance = GetInstance(itemID);
-            if(instance == null)
-                return null;
-            return instance.GetDetectParams(number);
+            if (TryGetInstance(itemID, out XMRInstance instance))
+                return instance.GetDetectParams(number);
+            return null;
         }
 
         public void SetMinEventDelay(UUID itemID, double delay)
         {
-            XMRInstance instance = GetInstance(itemID);
-            if (instance != null)
+            if (TryGetInstance(itemID, out XMRInstance instance))
                 instance.MinEventDelay = delay;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetStartParameter(UUID itemID)
         {
-            XMRInstance instance = GetInstance(itemID);
-            if (instance == null)
-                return 0;
-            return instance.StartParam;
+            if (TryGetInstance(itemID, out XMRInstance instance))
+                return instance.StartParam;
+            return 0;
         }
 
         // This is the "set running" method
-        //
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetScriptState(UUID itemID, bool state, bool self)
         {
             SetScriptState(itemID, state);
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetScriptState(UUID itemID, bool state)
         {
-            XMRInstance instance = GetInstance(itemID);
-            if(instance != null)
+            if (TryGetInstance(itemID, out XMRInstance instance))
             {
                 instance.Running = state;
                 if(instance.m_Item != null)
@@ -1048,29 +1056,31 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         }
 
         //
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool GetScriptState(UUID itemID)
         {
-            XMRInstance instance = GetInstance(itemID);
-            if(instance == null)
-                return false;
-            return instance.Running;
+            if (TryGetInstance(itemID, out XMRInstance instance))
+                return instance.Running;
+            return false;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetState(UUID itemID, string newState)
         {
             TraceCalls("[YEngine]: YEngine.SetState({0},{1})", itemID.ToString(), newState);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ApiResetScript(UUID itemID)
         {
-            XMRInstance instance = GetInstance(itemID);
-            instance?.ApiReset();
+            if (TryGetInstance(itemID, out XMRInstance instance))
+                instance.ApiReset();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ResetScript(UUID itemID)
         {
-            XMRInstance instance = GetInstance(itemID);
-            if(instance != null)
+            if (TryGetInstance(itemID, out XMRInstance instance))
             {
                 IUrlModule urlModule = m_Scene.RequestModuleInterface<IUrlModule>();
                 urlModule?.ScriptRemoved(itemID);
@@ -1081,6 +1091,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public IConfig Config
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 return m_Config;
@@ -1089,6 +1100,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public IConfigSource ConfigSource
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 return m_ConfigSource;
@@ -1097,20 +1109,22 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public string ScriptEngineName
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 return "YEngine";
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public IScriptApi GetApi(UUID itemID, string name)
         {
-            if(!m_XMRInstanceApiCtxFieldInfos.TryGetValue(name, out FieldInfo fi))
-                return null;
-            XMRInstance inst = GetInstance(itemID);
-            if(inst == null)
-                return null;
-            return (IScriptApi)fi.GetValue(inst);
+            if(m_XMRInstanceApiCtxFieldInfos.TryGetValue(name, out FieldInfo fi))
+            {
+                if (TryGetInstance(itemID, out XMRInstance instance))
+                    return (IScriptApi)fi.GetValue(instance);
+            }
+            return null;
         }
 
         /**
@@ -1220,6 +1234,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             return true;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool PostScriptEvent(UUID itemID, string name, Object[] p)
         {
             if(!m_Enabled)
@@ -1230,6 +1245,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             return PostScriptEvent(itemID, new EventParams(name, p, zeroDetectParams));
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool PostObjectEvent(UUID itemID, string name, Object[] p)
         {
             if(!m_Enabled)
@@ -1237,18 +1253,17 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             TraceCalls("[YEngine]: YEngine.PostObjectEvent({0},{1})", itemID.ToString(), name);
 
-            SceneObjectPart part = m_Scene.GetSceneObjectPart(itemID);
-            if(part == null)
-                return false;
-
-            return PostObjectEvent(part.LocalId, new EventParams(name, p, zeroDetectParams));
+            if(m_Scene.TryGetSceneObjectPart(itemID, out SceneObjectPart part))
+                return PostObjectEvent(part.LocalId, new EventParams(name, p, zeroDetectParams));
+            return false;
         }
 
         // about the 3523rd entrypoint for a script to put itself to sleep
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SleepScript(UUID itemID, int delay)
         {
-            XMRInstance instance = GetInstance(itemID);
-            instance?.Sleep(delay);
+            if (TryGetInstance(itemID, out XMRInstance instance))
+                instance.Sleep(delay);
         }
 
         // Get a script instance loaded, compiling it if necessary
@@ -1534,16 +1549,17 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             instance.Dispose();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void OnScriptReset(uint localID, UUID itemID)
         {
             TraceCalls("[YEngine]: YEngine.OnScriptReset({0},{1})", localID.ToString(), itemID.ToString());
             ResetScript(itemID);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void OnStartScript(uint localID, UUID itemID)
         {
-            XMRInstance instance = GetInstance(itemID);
-            if(instance != null)
+            if (TryGetInstance(itemID, out XMRInstance instance))
             {
                 instance.Running = true;
                 if (instance.m_Item != null)
@@ -1551,10 +1567,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void OnStopScript(uint localID, UUID itemID)
         {
-            XMRInstance instance = GetInstance(itemID);
-            if(instance != null)
+            if (TryGetInstance(itemID, out XMRInstance instance))
             {
                 instance.Running = false;
                 if (instance.m_Item != null)
@@ -1562,11 +1578,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void OnGetScriptRunning(IClientAPI controllingClient,
                 UUID objectID, UUID itemID)
         {
-            XMRInstance instance = GetInstance(itemID);
-            if(instance != null)
+            if (TryGetInstance(itemID, out XMRInstance instance))
             {
                 TraceCalls("[YEngine]: YEngine.OnGetScriptRunning({0},{1})", objectID.ToString(), itemID.ToString());
 
@@ -1576,22 +1592,24 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool HasScript(UUID itemID, out bool running)
         {
-            XMRInstance instance = GetInstance(itemID);
-            if(instance == null)
+            if (TryGetInstance(itemID, out XMRInstance instance))
             {
                 running = true;
                 return false;
             }
-            running = instance.Running;
-            return true;
+            running = true;
+            return false;
         }
 
         /**
          * @brief Called once per frame update to see if scripts have
          *        any such work to do.
          */
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void OnFrame()
         {
             if(m_FrameUpdateList != null)
@@ -1620,6 +1638,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          * @brief Gets called early as part of shutdown,
          *        right after "Persisting changed objects" message.
          */
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void OnShutdown()
         {
             TraceCalls("[YEngine]: YEngine.OnShutdown()");
@@ -1634,6 +1654,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          *        we don't get two threads trying to queue the same
          *        instance to the m_StartQueue at the same time.
          */
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void QueueToStart(XMRInstance inst)
         {
             if (inst.m_IState != XMRInstState.ONSTARTQ)
@@ -1645,6 +1667,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             WakeUpOne();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void QueueToYield(XMRInstance inst)
         {
             if (inst.m_IState != XMRInstState.ONYIELDQ)
@@ -1656,6 +1679,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             WakeUpOne();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveFromSleep(XMRInstance inst)
         {
             lock (m_SleepQueue)
@@ -1840,16 +1864,16 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Suspend(UUID itemID, int ms)
         {
-            XMRInstance instance = GetInstance(itemID);
-            instance?.Sleep(ms);
+            if (TryGetInstance(itemID, out XMRInstance instance))
+                instance.Sleep(ms);
         }
 
         public void Die(UUID itemID)
         {
-            XMRInstance instance = GetInstance(itemID);
-            if(instance != null)
+            if (TryGetInstance(itemID, out XMRInstance instance))
             {
                 TraceCalls("[YEngine]: YEngine.Die({0})", itemID.ToString());
                 instance.Die();
@@ -1864,15 +1888,31 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          * @returns null: not one of our scripts (maybe XEngine etc)
          *          else: points to the script instance
          */
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public XMRInstance GetInstance(UUID itemID)
         {
             XMRInstance instance;
-            lock(m_InstancesDict)
+            lock (m_InstancesDict)
             {
-                if(!m_InstancesDict.TryGetValue(itemID, out instance))
+                if (!m_InstancesDict.TryGetValue(itemID, out instance))
                     instance = null;
             }
             return instance;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetInstance(UUID itemID, out XMRInstance instance)
+        {
+            lock (m_InstancesDict)
+                return m_InstancesDict.TryGetValue(itemID, out instance);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool ConstainsInstance(UUID itemID)
+        {
+            lock (m_InstancesDict)
+                return m_InstancesDict.ContainsKey(itemID);
         }
 
         // Called occasionally to write script state to .state file so the
@@ -1990,8 +2030,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             float time = 0;
             foreach(UUID itemID in itemIDs)
             {
-                XMRInstance instance = GetInstance(itemID);
-                if((instance != null) && instance.Running)
+                if (TryGetInstance(itemID, out XMRInstance instance) && instance.Running)
                     time += (float)instance.m_CPUTime;
             }
             return time;
@@ -2005,8 +2044,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             int memory = 0;
             foreach (UUID itemID in itemIDs)
             {
-                XMRInstance instance = GetInstance(itemID);
-                if ((instance != null) && instance.Running)
+                if (TryGetInstance(itemID, out XMRInstance instance) && instance.Running)
                     memory += instance.xmrHeapUsed();
             }
             return memory;
@@ -2017,8 +2055,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public bool SuspendScript(UUID itemID)
         {
-            XMRInstance instance = GetInstance(itemID);
-            if(instance != null)
+            if (TryGetInstance(itemID, out XMRInstance instance))
             {
                 TraceCalls("[YEngine]: YEngine.SuspendScript({0})", itemID.ToString());
                 instance.SuspendIt();
@@ -2032,8 +2069,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public bool ResumeScript(UUID itemID)
         {
-            XMRInstance instance = GetInstance(itemID);
-            if(instance != null)
+            if (TryGetInstance(itemID, out XMRInstance instance))
             {
                 TraceCalls("[YEngine]: YEngine.ResumeScript({0})", itemID.ToString());
                 instance.ResumeIt();
