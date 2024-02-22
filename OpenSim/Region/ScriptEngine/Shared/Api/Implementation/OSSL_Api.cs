@@ -3969,7 +3969,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 obj.Shape.ProjectionEntry = true;
                 obj.Shape.ProjectionTextureUUID = texID;
                 obj.Shape.ProjectionFOV = Util.Clamp((float)fov, 0, 3.0f);
-                obj.Shape.ProjectionFocus = Util.Clamp((float)focus, 0, 20.0f);
+                obj.Shape.ProjectionFocus = Util.Clamp((float)focus, -20.0f, 20.0f);
                 obj.Shape.ProjectionAmbiance = Util.Clamp((float)amb, 0, 1.0f);
 
                 obj.ParentGroup.HasGroupChanged = true;
