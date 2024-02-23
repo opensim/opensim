@@ -6382,7 +6382,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             LSL_String ret = Util.AESEncrypt(secret, plainText);
             if(string.IsNullOrEmpty(ret)){
-                OSSLError("osAESEncrypt: Failed to encrypt!");
+                OSSLShoutError("osAESEncrypt: Failed to encrypt!");
                 return LSL_String.Empty;
             }else
             {
@@ -6397,7 +6397,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             LSL_String ret = Util.AESDecrypt(secret, encryptedText);
             if(string.IsNullOrEmpty(ret)){
-                OSSLError("osAESDecrypt: Failed to Decrypt!");
+                OSSLShoutError("osAESDecrypt: Failed to Decrypt!");
                 return LSL_String.Empty;
             }else
             {
@@ -6412,7 +6412,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             LSL_String ret = Util.AESEncryptTo(secret, plainText, ivString);
             if(string.IsNullOrEmpty(ret)){
-                OSSLError("osAESEncryptTo: Failed to encrypt!");
+                OSSLShoutError("osAESEncryptTo: Failed to encrypt!");
                 return LSL_String.Empty;
             }else
             {
@@ -6427,7 +6427,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             LSL_String ret = Util.AESDecryptFrom(secret, encryptedText, ivString);
             if(string.IsNullOrEmpty(ret)){
-                OSSLError("osAESDecryptFrom: Failed to decrypt!");
+                OSSLShoutError("osAESDecryptFrom: Failed to decrypt!");
                 return LSL_String.Empty;
             }else
             {
