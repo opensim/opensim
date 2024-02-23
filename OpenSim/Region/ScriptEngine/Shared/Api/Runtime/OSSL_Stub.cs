@@ -1750,5 +1750,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osGetSittingAvatarsCount(object_id);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_String osAESEncrypt(string secret, string plainText)
+        {
+            return m_OSSL_Functions.osAESEncrypt(secret, plainText);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_String osAESEncryptTo(string secret, string plainText, string ivString)
+        {
+            return m_OSSL_Functions.osAESEncryptTo(secret, plainText, ivString);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_String osAESDecrypt(string secret, string encryptedText)
+        {
+            return m_OSSL_Functions.osAESDecrypt(secret, encryptedText);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_String osAESDecryptFrom(string secret, string encryptedText, string ivString)
+        {
+            return m_OSSL_Functions.osAESDecryptFrom(secret, encryptedText, ivString);
+        }
+
     }
 }

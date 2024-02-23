@@ -617,5 +617,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_Integer osGetPrimCount(LSL_Key object_id);
         LSL_Integer osGetSittingAvatarsCount();
         LSL_Integer osGetSittingAvatarsCount(LSL_Key object_id);
+        LSL_String osAESEncrypt(string secret, string plainText);
+        LSL_String osAESEncryptTo(string secret, string plainText, string ivString);
+        LSL_String osAESDecrypt(string secret, string encryptedText);
+        LSL_String osAESDecryptFrom(string secret, string encryptedText, string ivString);
     }
 }
