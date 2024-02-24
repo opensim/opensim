@@ -261,11 +261,13 @@ namespace OpenSim.Region.UserStatistics
 
             // The request patch should be "/SStats/reportName" where 'reportName'
             // is one of the names added to the 'reports' hashmap.
-            regpath = regpath.Remove(0, 8);
-            if (regpath.Length == 0) regpath = "default.report";
-            if (reports.ContainsKey(regpath))
+            if (regpath.Length > 9)
+                regpath = regpath.Remove(0, 8);
+            else
+                regpath = "default.report";
+
+            if (reports.TryGetValue(regpath, out IStatsController rep))
             {
-                IStatsController rep = reports[regpath];
                 Hashtable repParams = new Hashtable();
 
                 if (request.ContainsKey("json"))
