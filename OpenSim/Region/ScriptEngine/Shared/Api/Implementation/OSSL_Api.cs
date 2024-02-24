@@ -5899,6 +5899,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return 0;
         }
 
+        public LSL_Vector osGetSitTargetPos()
+        {
+            return m_host.SitTargetPosition;
+        }
+
+        public LSL_Rotation osGetSitTargetRot()
+        {
+            return m_host.SitTargetOrientation;
+        }
+
         public void osSetSitActiveRange(LSL_Float v)
         {
             float fv = (float)v.value;
