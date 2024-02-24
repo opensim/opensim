@@ -1606,7 +1606,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Vector3 offset = part.OffsetPosition;
                 scale = part.Scale * 0.5f;
 
-                Matrix4 m = Matrix4.CreateFromQuaternion(Quaternion.Conjugate(part.RotationOffset));
+                Matrix4 m = Matrix4.CreateFromQuaternion(part.RotationOffset);
                 Vector3 a = m.AtAxis;
                 a.X = Math.Abs(a.X);
                 a.Y = Math.Abs(a.Y);
@@ -1673,7 +1673,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Vector3 offset = part.GetWorldPosition() - absPos;
                 Vector3 scale = part.Scale * 0.5f;
 
-                Matrix4 m = Matrix4.CreateFromQuaternion(Quaternion.Conjugate(part.GetWorldRotation()));
+                Matrix4 m = Matrix4.CreateFromQuaternion(part.GetWorldRotation());
                 Vector3 a = m.AtAxis;
                 a.X = MathF.Abs(a.X);
                 a.Y = MathF.Abs(a.Y);
