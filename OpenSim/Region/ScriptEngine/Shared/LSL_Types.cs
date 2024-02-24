@@ -2256,6 +2256,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 m_string = s;
             }
 
+            public LSLString(ReadOnlySpan<char> s)
+            {
+                m_string = s.ToString();
+            }
+
             public LSLString(double d)
             {
                 string s = String.Format(Culture.FormatProvider, "{0:0.000000}", d);
@@ -2297,6 +2302,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
             }
 
             static public implicit operator LSLString(string s)
+            {
+                return new LSLString(s);
+            }
+
+            static public implicit operator LSLString(ReadOnlySpan<char> s)
             {
                 return new LSLString(s);
             }
@@ -2353,10 +2363,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             static public explicit operator LSLString(bool b)
             {
-                if (b)
-                    return new LSLString("1");
-                else
-                    return new LSLString("0");
+                return new LSLString( b ? "1" : "0");
             }
 
             public static implicit operator Vector3(LSLString s)
@@ -2377,6 +2384,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
             public static implicit operator list(LSLString s)
             {
                 return new list(new object[] { s });
+            }
+
+            public static implicit operator ReadOnlySpan<char>(LSLString s)
+            {
+                return s.m_string.AsSpan();
             }
 
             #endregion

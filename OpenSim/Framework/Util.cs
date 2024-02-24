@@ -1368,13 +1368,13 @@ namespace OpenSim.Framework
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static string AESEncrypt(string secret, string plainText)
+        public static string AESEncrypt(ReadOnlySpan<char> secret, ReadOnlySpan<char> plainText)
         {
             return AESEncryptString(secret, plainText, string.Empty);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static string AESEncryptTo(string secret, string plainText, string ivString)
+        public static string AESEncryptTo(ReadOnlySpan<char> secret, ReadOnlySpan<char> plainText, ReadOnlySpan<char> ivString)
         {
             return AESEncryptString(secret, plainText, ivString);
         }
@@ -1388,15 +1388,15 @@ namespace OpenSim.Framework
         /// ID...</param>
         /// <returns>A string composed by the Initialization Vector bytes and the 
         /// encrypted text bytes converted to lower case HexString and separated by " : " </returns>
-        private static string AESEncryptString(string secret, string plainText, string ivString = null)
+        private static string AESEncryptString(ReadOnlySpan<char> secret, ReadOnlySpan<char> plainText, ReadOnlySpan<char> ivString)
         {
-            if(string.IsNullOrEmpty(secret) || string.IsNullOrEmpty(plainText))
+            if(secret.Length == 0 || plainText.Length == 0)
                 return string.Empty;
 
-            byte[] iv = string.IsNullOrEmpty(ivString) ?
+            byte[] iv = ivString.Length == 0 ?
                     MD5.Create().ComputeHash(UUID.Random().GetBytes()) :
-                    MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(ivString)); 
-            byte[] aesKey = SHA256.Create().ComputeHash(Encoding.UTF8.GetBytes(secret));
+                    MD5.Create().ComputeHash(Utils.StringToBytesNoTerm(ivString)); 
+            byte[] aesKey = SHA256.Create().ComputeHash(Utils.StringToBytesNoTerm(secret));
             byte[] encryptedText;
  
             using (Aes aes = Aes.Create())
@@ -1419,13 +1419,13 @@ namespace OpenSim.Framework
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static string AESDecrypt(string secret, string encryptedText)
+        public static ReadOnlySpan<char> AESDecrypt(ReadOnlySpan<char> secret, ReadOnlySpan<char> encryptedText)
         {
-            return AESDecryptString(secret, encryptedText, string.Empty);
+            return AESDecryptString(secret, encryptedText, new ReadOnlySpan<char>());
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static string AESDecryptFrom(string secret, string encryptedText, string ivString)
+        public static ReadOnlySpan<char> AESDecryptFrom(ReadOnlySpan<char> secret, ReadOnlySpan<char> encryptedText, ReadOnlySpan<char> ivString)
         {
             return AESDecryptString(secret, encryptedText, ivString);
         }
@@ -1440,31 +1440,30 @@ namespace OpenSim.Framework
         /// if used in the encription. eg; an avatarID, a SecureSessionID, an object or 
         /// script ID...</param>
         /// <returns>The decrypted string.</returns>
-        private static string AESDecryptString(string secret, string encryptedText, string ivString = null)
+        private static ReadOnlySpan<char> AESDecryptString(ReadOnlySpan<char> secret, ReadOnlySpan<char> encryptedText, ReadOnlySpan<char> ivString)
         {
-            if(string.IsNullOrEmpty(secret) || string.IsNullOrEmpty(encryptedText))
+            if(secret.Length == 0 || encryptedText.Length == 0)
                 return string.Empty;
 
-            string[] encodedParts = encryptedText.Split(":");
-            if(encodedParts.Length < 2 || encodedParts[1].Length == 0)
+            int sep = encryptedText.IndexOf(':');
+            if(sep < 0)
                 return string.Empty;
 
             byte[] iv;
             byte[] buffer;
             try
             {
-                iv = string.IsNullOrEmpty(ivString) ?
-                    Convert.FromHexString(encodedParts[0]) :
-                    MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(ivString));
-
-                buffer = Convert.FromHexString(encodedParts[1]);
+                iv = ivString.Length == 0 ?
+                    Convert.FromHexString(encryptedText[..sep]):
+                    MD5.Create().ComputeHash(Utils.StringToBytesNoTerm(ivString));
+                buffer = Convert.FromHexString(encryptedText[(sep + 1)..]);
             }
             catch
             {
                 return string.Empty;
             }
 
-            byte[] aesKey = SHA256.Create().ComputeHash(Encoding.UTF8.GetBytes(secret));
+            byte[] aesKey = SHA256.Create().ComputeHash(Utils.StringToBytesNoTerm(secret));
 
             using Aes aes = Aes.Create();
             aes.Key = aesKey;
