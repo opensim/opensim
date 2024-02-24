@@ -7347,6 +7347,13 @@ fc2639fd-5d16-66bf-d8ab-2e4d754c816d
    <map><key>itemId</key><map><key>type</key><string>key</string></map></map>
   </array>
  </map>
+ <key>osGetInventoryNames</key>
+ <map>
+  <key>return</key><string>list</string>
+  <key>arguments</key><array>
+   <map><key>type</key><map><key>type</key><string>integer</string></map></map>
+  </array>
+ </map>
  <key>osGetLinkInventoryName</key>
  <map>
   <key>return</key><string>string</string>
@@ -8756,6 +8763,40 @@ fc2639fd-5d16-66bf-d8ab-2e4d754c816d
  <map>
   <key>return</key><string>string</string>
   <key>arguments</key><undef/>
+ </map>
+ <key>osAESEncrypt</key>
+ <map>
+  <key>return</key><string>string</string>
+  <key>arguments</key><array>
+   <map><key>secret</key><map><key>type</key><string>string</string></map></map>
+   <map><key>plainText</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
+ <key>osAESEncryptTo</key>
+ <map>
+  <key>return</key><string>string</string>
+  <key>arguments</key><array>
+   <map><key>secret</key><map><key>type</key><string>string</string></map></map>
+   <map><key>plainText</key><map><key>type</key><string>string</string></map></map>
+   <map><key>ivString</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
+ <key>osAESDecrypt</key>
+ <map>
+  <key>return</key><string>string</string>
+  <key>arguments</key><array>
+   <map><key>secret</key><map><key>type</key><string>string</string></map></map>
+   <map><key>encryptedText</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
+ <key>osAESDecryptFrom</key>
+ <map>
+  <key>return</key><string>string</string>
+  <key>arguments</key><array>
+   <map><key>secret</key><map><key>type</key><string>string</string></map></map>
+   <map><key>encryptedText</key><map><key>type</key><string>string</string></map></map>
+   <map><key>ivString</key><map><key>type</key><string>string</string></map></map>
+  </array>
  </map>
 </map>
 </map></llsd>
