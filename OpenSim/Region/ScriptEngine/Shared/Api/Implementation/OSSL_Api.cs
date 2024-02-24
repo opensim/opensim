@@ -6380,14 +6380,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if(string.IsNullOrEmpty(secret) || string.IsNullOrEmpty(plainText))
                 return LSL_String.Empty;
 
-            LSL_String ret = Util.AESEncrypt(secret, plainText);
-            if(string.IsNullOrEmpty(ret)){
+            string ret = Util.AESEncrypt(secret, plainText);
+            if(string.IsNullOrEmpty(ret))
+            {
                 OSSLShoutError("osAESEncrypt: Failed to encrypt!");
                 return LSL_String.Empty;
-            }else
-            {
-                return ret;
             }
+            return ret;
         }
 
         public LSL_String osAESDecrypt(string secret, string encryptedText)
@@ -6395,14 +6394,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if(string.IsNullOrEmpty(secret) || string.IsNullOrEmpty(encryptedText))
                 return LSL_String.Empty;
 
-            LSL_String ret = Util.AESDecrypt(secret, encryptedText);
-            if(string.IsNullOrEmpty(ret)){
+            string ret = Util.AESDecrypt(secret, encryptedText);
+            if(string.IsNullOrEmpty(ret))
+            {
                 OSSLShoutError("osAESDecrypt: Failed to Decrypt!");
                 return LSL_String.Empty;
-            }else
-            {
-                return ret;
             }
+            return ret;
         }
 
         public LSL_String osAESEncryptTo(string secret, string plainText, string ivString)
@@ -6410,14 +6408,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if(string.IsNullOrEmpty(secret) || string.IsNullOrEmpty(plainText) || string.IsNullOrEmpty(ivString))
                 return LSL_String.Empty;
 
-            LSL_String ret = Util.AESEncryptTo(secret, plainText, ivString);
-            if(string.IsNullOrEmpty(ret)){
+            string ret = Util.AESEncryptTo(secret, plainText, ivString);
+            if(string.IsNullOrEmpty(ret))
+            {
                 OSSLShoutError("osAESEncryptTo: Failed to encrypt!");
                 return LSL_String.Empty;
-            }else
-            {
-                return ret;
             }
+            return ret;
         }
 
         public LSL_String osAESDecryptFrom(string secret, string encryptedText, string ivString)
@@ -6425,14 +6422,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if(string.IsNullOrEmpty(secret) || string.IsNullOrEmpty(encryptedText) || string.IsNullOrEmpty(ivString))
                 return LSL_String.Empty;
 
-            LSL_String ret = Util.AESDecryptFrom(secret, encryptedText, ivString);
-            if(string.IsNullOrEmpty(ret)){
+            string ret = Util.AESDecryptFrom(secret, encryptedText, ivString);
+            if(string.IsNullOrEmpty(ret))
+            {
                 OSSLShoutError("osAESDecryptFrom: Failed to decrypt!");
                 return LSL_String.Empty;
-            }else
-            {
-                return ret;
             }
+            return ret;
         }
     }
 }

@@ -1388,12 +1388,14 @@ namespace OpenSim.Framework
         /// ID...</param>
         /// <returns>A string composed by the Initialization Vector bytes and the 
         /// encrypted text bytes converted to lower case HexString and separated by " : " </returns>
-        private static string AESEncryptString(string secret, string plainText, string ivString= null)
+        private static string AESEncryptString(string secret, string plainText, string ivString = null)
         {
             if(string.IsNullOrEmpty(secret) || string.IsNullOrEmpty(plainText))
-            return string.Empty;
+                return string.Empty;
 
-            byte[] iv = string.IsNullOrEmpty(ivString) ? MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(UUID.Random().ToString())) : MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(ivString)); 
+            byte[] iv = string.IsNullOrEmpty(ivString) ?
+                    MD5.Create().ComputeHash(UUID.Random().GetBytes()) :
+                    MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(ivString)); 
             byte[] aesKey = SHA256.Create().ComputeHash(Encoding.UTF8.GetBytes(secret));
             byte[] encryptedText;
  
@@ -1407,18 +1409,13 @@ namespace OpenSim.Framework
                 ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
                 using MemoryStream memoryStream = new();
                 using CryptoStream cryptoStream = new(memoryStream, encryptor, CryptoStreamMode.Write);
-                using (StreamWriter streamWriter = new(cryptoStream))
-                {
-                    streamWriter.Write(plainText);
-                    streamWriter.Close();
-                }
+                using StreamWriter streamWriter = new(cryptoStream);
 
+                streamWriter.Write(plainText);
                 encryptedText = memoryStream.ToArray();
-                memoryStream.Dispose();
-                cryptoStream.Dispose();                
             }
-            
-            return string.Format("{0}:{1}", Convert.ToHexString(iv), Convert.ToHexString(encryptedText)).ToLower();
+
+            return $"{Convert.ToHexString(iv)}:{Convert.ToHexString(encryptedText).ToLower()}";
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1443,17 +1440,26 @@ namespace OpenSim.Framework
         /// if used in the encription. eg; an avatarID, a SecureSessionID, an object or 
         /// script ID...</param>
         /// <returns>The decrypted string.</returns>
-        private static string AESDecryptString(string secret, string encryptedText, string ivString= null)
+        private static string AESDecryptString(string secret, string encryptedText, string ivString = null)
         {
             if(string.IsNullOrEmpty(secret) || string.IsNullOrEmpty(encryptedText))
-            return string.Empty;
+                return string.Empty;
+
+            string[] encodedParts = encryptedText.Split(":");
+            if(encodedParts.Length < 2 || encodedParts[1].Length == 0)
+                return string.Empty;
 
             byte[] iv;
             byte[] buffer;
-            try{
-                iv = string.IsNullOrEmpty(ivString) ? Convert.FromHexString(encryptedText.Split(":")[0].ToUpper()) : MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(ivString));
-                buffer = Convert.FromHexString(encryptedText.Split(":")[1].ToUpper());
-            }catch
+            try
+            {
+                iv = string.IsNullOrEmpty(ivString) ?
+                    Convert.FromHexString(encodedParts[0]) :
+                    MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(ivString));
+
+                buffer = Convert.FromHexString(encodedParts[1]);
+            }
+            catch
             {
                 return string.Empty;
             }
@@ -1471,11 +1477,8 @@ namespace OpenSim.Framework
             using CryptoStream cryptoStream = new(memoryStream, decryptor, CryptoStreamMode.Read);
             using StreamReader streamReader = new(cryptoStream);
             
-            string ret = streamReader.ReadToEnd();
-            memoryStream.Dispose();
-            cryptoStream.Dispose();
-            streamReader.Close();
-            return ret;
+            //string ret = streamReader.ReadToEnd();
+            return streamReader.ReadToEnd();
         }
 
         public static int fast_distance2d(int x, int y)
