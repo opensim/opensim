@@ -7347,6 +7347,13 @@ fc2639fd-5d16-66bf-d8ab-2e4d754c816d
    <map><key>itemId</key><map><key>type</key><string>key</string></map></map>
   </array>
  </map>
+ <key>osGetInventoryNames</key>
+ <map>
+  <key>return</key><string>list</string>
+  <key>arguments</key><array>
+   <map><key>type</key><map><key>type</key><string>integer</string></map></map>
+  </array>
+ </map>
  <key>osGetLinkInventoryName</key>
  <map>
   <key>return</key><string>string</string>
