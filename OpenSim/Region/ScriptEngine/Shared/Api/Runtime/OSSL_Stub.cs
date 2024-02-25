@@ -1516,9 +1516,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void osRemoveLinkInventory(LSL_Integer linkNumber, LSL_String name)
+        {
+            m_OSSL_Functions.osRemoveLinkInventory(linkNumber, name);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void osGiveLinkInventory(LSL_Integer linkNumber, LSL_Key destination, LSL_String inventory)
         {
             m_OSSL_Functions.osGiveLinkInventory(linkNumber, destination, inventory);
+        }
+
+        public void osGiveLinkInventoryList(LSL_Integer linkNumber, LSL_Key destination, LSL_String category, LSL_List inventory)
+        {
+            m_OSSL_Functions.osGiveLinkInventoryList(linkNumber, destination, category, inventory);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

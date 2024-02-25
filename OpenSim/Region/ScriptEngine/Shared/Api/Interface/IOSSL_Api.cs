@@ -570,7 +570,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_List osGetLinkInventoryKeys(LSL_Integer linkNumber, LSL_Integer type);
         LSL_List osGetInventoryNames(LSL_Integer type);
         LSL_List osGetLinkInventoryNames(LSL_Integer linkNumber, LSL_Integer type);
+        void osRemoveLinkInventory(LSL_Integer linkNumber, LSL_String name);
         void osGiveLinkInventory(LSL_Integer linkNumber, LSL_Key destination, LSL_String inventory);
+        void osGiveLinkInventoryList(LSL_Integer linkNumber, LSL_Key destination, LSL_String category, LSL_List inventory);
         LSL_Key osGetLastChangedEventKey();
         LSL_Float osGetPSTWallclock();
         LSL_Rotation osSlerp(LSL_Rotation a, LSL_Rotation b, LSL_Float amount);

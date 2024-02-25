@@ -5635,6 +5635,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return ret;
         }
 
+        public void osRemoveLinkInventory(LSL_Integer linkNumber, LSL_String name)
+        {
+
+            SceneObjectPart part = GetSingleLinkPart(linkNumber);
+            if(part == null)
+                return;
+
+            TaskInventoryItem item = part.Inventory.GetInventoryItem(name);
+            if (item == null)
+                return;
+
+            if (item.ItemID == m_item.ItemID)
+                throw new ScriptDeleteException();
+            else
+                part.Inventory.RemoveInventoryItem(item.ItemID);
+        }
+
         ///<summary>
         /// Give a specified item from a child prim inventory 
         /// to a destination (object or avatar).
@@ -5701,6 +5718,100 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 //This delay should only occur when giving inventory to avatars.
                 ScriptSleep(3000);
             }
+        }
+
+        public void osGiveLinkInventoryList(LSL_Integer linkNumber, LSL_Key destination, LSL_String category, LSL_List inventory)
+        {
+            if (inventory.Length == 0)
+                return;
+
+            SceneObjectPart part = GetSingleLinkPart(linkNumber);
+            if(part == null)
+                return;
+            
+            if (!UUID.TryParse(destination, out UUID destID) || destID.IsZero())
+                return;
+
+            bool isNotOwner = true;
+            if (!World.TryGetSceneObjectPart(destID, out SceneObjectPart destSop))
+            {
+                if (!World.TryGetScenePresence(destID, out ScenePresence sp))
+                {
+                    // we could check if it is a grid user and allow the transfer as in older code
+                    // but that increases security risk
+                    OSSLShoutError("osGiveLinkInventoryList: Unable to give list, destination not found");
+                    ScriptSleep(100);
+                    return;
+                }
+                isNotOwner = sp.UUID.NotEqual(m_host.OwnerID);
+            }
+
+            List<UUID> itemList = new(inventory.Length);
+            foreach (object item in inventory.Data)
+            {
+                string rawItemString = item.ToString();
+                TaskInventoryItem taskItem = (UUID.TryParse(rawItemString, out UUID itemID)) ?
+                    part.Inventory.GetInventoryItem(itemID) : part.Inventory.GetInventoryItem(rawItemString);
+
+                if(taskItem is null)
+                    continue;
+
+                if ((taskItem.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
+                    continue;
+
+                if (destSop is not null)
+                {
+                    if(!World.Permissions.CanDoObjectInvToObjectInv(taskItem, m_host, destSop))
+                        continue;
+                }
+                else
+                {
+                    if(isNotOwner)
+                    {
+                        if ((taskItem.CurrentPermissions & (uint)PermissionMask.Transfer) == 0)
+                            continue;
+                    }
+                }
+
+                itemList.Add(taskItem.ItemID);
+            }
+
+            if (itemList.Count == 0)
+            {
+                OSSLShoutError("osGiveLinkInventoryList: Unable to give list, no items found");
+                ScriptSleep(100);
+                return;
+            }
+
+            UUID folderID = m_ScriptEngine.World.MoveTaskInventoryItems(destID, category, part, itemList, false);
+
+            if (folderID.IsZero())
+            {
+                OSSLShoutError("osGiveLinkInventoryList: Unable to give list");
+                ScriptSleep(100);
+                return;
+            }
+
+            if (destSop is not null)
+            {
+                ScriptSleep(100);
+                return;
+            }
+
+            if (m_TransferModule != null)
+            {
+                byte[] bucket = new byte[] { (byte)AssetType.Folder };
+
+                Vector3 pos = m_host.AbsolutePosition;
+
+                GridInstantMessage msg = new(World, m_host.OwnerID, m_host.Name, destID,
+                        (byte)InstantMessageDialog.TaskInventoryOffered,
+                        m_host.OwnerID.Equals(m_host.GroupID), string.Format("'{0}'", category), folderID, false, pos,bucket, false);
+
+                m_TransferModule.SendInstantMessage(msg, delegate(bool success) {});
+            }
+
+            ScriptSleep(3000);
         }
 
         public LSL_Key osGetLastChangedEventKey()
