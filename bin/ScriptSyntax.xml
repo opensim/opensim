@@ -7378,11 +7378,27 @@ fc2639fd-5d16-66bf-d8ab-2e4d754c816d
    <map><key>type</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
+ <key>osRemoveLinkInventory</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>name</key><map><key>type</key><string>integer</string></map></map>
+  </array>
+ </map>
  <key>osGiveLinkInventory</key>
  <map>
   <key>arguments</key><array>
    <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
    <map><key>destination</key><map><key>type</key><string>key</string></map></map>
+   <map><key>inventory</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
+ <key>osGiveLinkInventoryList</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>destination</key><map><key>type</key><string>key</string></map></map>
+   <map><key>category</key><map><key>type</key><string>string</string></map></map>
    <map><key>inventory</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
