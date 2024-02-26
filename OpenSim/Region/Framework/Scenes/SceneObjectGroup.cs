@@ -4229,11 +4229,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return false;
             }
 
-            Vector3 newSize = RootPart.Scale;
-            newSize.X = (float)(newSize.X * fscale);
-            newSize.Y = (float)(newSize.Y * fscale);
-            newSize.Z = (float)(newSize.Z * fscale);
-
+            Vector3 newSize = RootPart.Scale * (float)fscale;
             if(pa is not null)
                 pa.Building = true;
 
@@ -4243,20 +4239,10 @@ namespace OpenSim.Region.Framework.Scenes
             for (int i = 0; i < parts.Length; i++)
             {
                 SceneObjectPart obPart = parts[i];
-
-                if (obPart.UUID != m_rootPart.UUID)
+                if (obPart != m_rootPart)
                 {
-                    currentpos = obPart.OffsetPosition;
-                    currentpos.X = (float)(currentpos.X * fscale);
-                    currentpos.Y = (float)(currentpos.Y * fscale);
-                    currentpos.Z = (float)(currentpos.Z * fscale);
-
-                    newSize = obPart.Scale;
-                    newSize.X = (float)(newSize.X * fscale);
-                    newSize.Y = (float)(newSize.Y * fscale);
-                    newSize.Z = (float)(newSize.Z * fscale);
-
-                    obPart.Scale = newSize;
+                    obPart.Scale *= (float)fscale;
+                    currentpos = obPart.OffsetPosition * (float)fscale;
                     obPart.UpdateOffSet(currentpos);
                 }
             }

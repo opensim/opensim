@@ -1207,10 +1207,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                if (_parentID == 0)
-                    return GroupPosition;
-
-                return GroupPosition + (m_offsetPosition * ParentGroup.RootPart.RotationOffset);
+                return _parentID == 0 ? GroupPosition : GroupPosition + m_offsetPosition * ParentGroup.RootPart.RotationOffset;
             }
         }
 
@@ -4404,10 +4401,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void UpdateGroupPosition(Vector3 newPos)
         {
             Vector3 oldPos = GroupPosition;
-
-            if ((newPos.X != oldPos.X) ||
-                (newPos.Y != oldPos.Y) ||
-                (newPos.Z != oldPos.Z))
+            if (oldPos.NotEqual(newPos))
             {
                 GroupPosition = newPos;
                 ScheduleTerseUpdate();
@@ -4421,10 +4415,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void UpdateOffSet(Vector3 newPos)
         {
             Vector3 oldPos = OffsetPosition;
-
-            if ((newPos.X != oldPos.X) ||
-                (newPos.Y != oldPos.Y) ||
-                (newPos.Z != oldPos.Z))
+            if (oldPos.NotEqual(newPos))
             {
                 if (ParentGroup.RootPart.GetStatusSandbox())
                 {
