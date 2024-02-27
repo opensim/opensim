@@ -1407,12 +1407,13 @@ namespace OpenSim.Framework
                 aes.Padding = PaddingMode.PKCS7;
 
                 ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
-                using MemoryStream memoryStream = new();
-                using CryptoStream cryptoStream = new(memoryStream, encryptor, CryptoStreamMode.Write);
-                using StreamWriter streamWriter = new(cryptoStream);
-
-                streamWriter.Write(plainText);
-                encryptedText = memoryStream.ToArray();
+                using (MemoryStream memoryStream = new())
+                {
+                    using (CryptoStream cryptoStream = new(memoryStream, encryptor, CryptoStreamMode.Write))
+                        using (StreamWriter streamWriter = new(cryptoStream))
+                            streamWriter.Write(plainText);
+                    encryptedText = memoryStream.ToArray();
+                }
             }
 
             return $"{Convert.ToHexString(iv)}:{Convert.ToHexString(encryptedText).ToLower()}";
