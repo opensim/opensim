@@ -6497,7 +6497,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 OSSLShoutError("osAESEncrypt: Failed to encrypt!");
                 return LSL_String.Empty;
             }
-            return ret.ToString();
+            return ret.ToString().ToLower();
         }
 
         public LSL_String osAESDecrypt(string secret, string encryptedText)
@@ -6525,7 +6525,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 OSSLShoutError("osAESEncryptTo: Failed to encrypt!");
                 return LSL_String.Empty;
             }
-            return ret.ToString();
+            return ret.ToString().ToLower();
         }
 
         public LSL_String osAESDecryptFrom(string secret, string encryptedText, string ivString)
