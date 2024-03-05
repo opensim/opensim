@@ -561,12 +561,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
        LSL_Integer osApproxEquals(rotation ra, rotation rb, LSL_Float margin);
         LSL_Key osGetInventoryLastOwner(LSL_String itemNameOrId);
         LSL_Key osGetInventoryItemKey(LSL_String name);
-        LSL_Key osGetLinkInventoryKey(LSL_Integer linkNumber, LSL_String name);
+        LSL_Key osGetLinkInventoryItemKey(LSL_Integer linkNumber, LSL_String name);
      LSL_String osGetInventoryName(LSL_Key itemId);
      LSL_String osGetLinkInventoryName(LSL_Integer linkNumber, LSL_Key itemId);
      LSL_String osGetInventoryDesc(LSL_String itemNameOrId);
      LSL_String osGetLinkInventoryDesc(LSL_Integer linkNumber, LSL_String itemNameorid);
-       LSL_List osGetInventoryKeys(LSL_Integer type);
+       LSL_List osGetInventoryItemKeys(LSL_Integer type);
        LSL_List osGetLinkInventoryKeys(LSL_Integer linkNumber, LSL_Integer type);
        LSL_List osGetInventoryNames(LSL_Integer type);
        LSL_List osGetLinkInventoryNames(LSL_Integer linkNumber, LSL_Integer type);

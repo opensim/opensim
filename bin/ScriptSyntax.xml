@@ -7318,7 +7318,7 @@
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
-<key>osGetLinkInventoryKey</key>
+<key>osGetLinkInventoryItemKey</key>
  <map>
   <key>return</key><string>key</string>
   <key>arguments</key><array>
@@ -7326,7 +7326,7 @@
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
- <key>osGetInventoryKeys</key>
+ <key>osGetInventoryItemKeys</key>
  <map>
   <key>return</key><string>list</string>
   <key>arguments</key><array>
