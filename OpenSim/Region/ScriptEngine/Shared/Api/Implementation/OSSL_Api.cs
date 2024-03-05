@@ -5579,7 +5579,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return ret;
         }
 
-        public LSL_List osGetLinkInventoryKeys(LSL_Integer linkNumber, LSL_Integer type)
+        public LSL_List osGetLinkInventoryItemKeys(LSL_Integer linkNumber, LSL_Integer type)
         {
             LSL_List ret = new();
             

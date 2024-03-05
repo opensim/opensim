@@ -7370,7 +7370,7 @@
    <map><key>type</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
- <key>osGetLinkInventoryKeys</key>
+ <key>osGetLinkInventoryItemKeys</key>
  <map>
   <key>return</key><string>list</string>
   <key>arguments</key><array>

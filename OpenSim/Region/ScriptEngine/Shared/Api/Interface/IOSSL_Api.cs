@@ -567,7 +567,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
      LSL_String osGetInventoryDesc(LSL_String itemNameOrId);
      LSL_String osGetLinkInventoryDesc(LSL_Integer linkNumber, LSL_String itemNameorid);
        LSL_List osGetInventoryItemKeys(LSL_Integer type);
-       LSL_List osGetLinkInventoryKeys(LSL_Integer linkNumber, LSL_Integer type);
+       LSL_List osGetLinkInventoryItemKeys(LSL_Integer linkNumber, LSL_Integer type);
        LSL_List osGetInventoryNames(LSL_Integer type);
        LSL_List osGetLinkInventoryNames(LSL_Integer linkNumber, LSL_Integer type);
            void osRemoveLinkInventory(LSL_Integer linkNumber, LSL_String name);
