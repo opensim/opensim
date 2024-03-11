@@ -758,8 +758,10 @@ namespace OpenSim.Framework.Servers
                     buildVersion = CommitFile.ReadLine();
 
                 if (!string.IsNullOrEmpty(buildVersion))
-                    m_version += buildVersion[..7];
-                return;
+                {
+                    m_version += buildVersion;
+                    return;
+                }
             }
 
             string gitDir = Path.Combine("..", ".git");
