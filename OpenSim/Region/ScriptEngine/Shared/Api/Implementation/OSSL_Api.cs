@@ -5541,7 +5541,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return (item == null) ? LSL_String.Empty : item.Description;
         }
 
-        public LSL_Key osGetLinkInventoryKey(LSL_Integer linkNumber, LSL_String name)
+        public LSL_Key osGetLinkInventoryItemKey(LSL_Integer linkNumber, LSL_String name)
         {
             SceneObjectPart part = GetSingleLinkPart(linkNumber);
             if(part == null)
@@ -5561,7 +5561,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return LSL_String.NullKey;
         }
 
-        public LSL_List osGetInventoryKeys(LSL_Integer type)
+        public LSL_List osGetInventoryItemKeys(LSL_Integer type)
         {
             LSL_List ret = new();
 
@@ -5579,7 +5579,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return ret;
         }
 
-        public LSL_List osGetLinkInventoryKeys(LSL_Integer linkNumber, LSL_Integer type)
+        public LSL_List osGetLinkInventoryItemKeys(LSL_Integer linkNumber, LSL_Integer type)
         {
             LSL_List ret = new();
             
@@ -5897,6 +5897,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (double.IsPositiveInfinity(d))
                 return 3;
             return 0;
+        }
+
+        public LSL_Vector osGetSitTargetPos()
+        {
+            return m_host.SitTargetPosition;
+        }
+
+        public LSL_Rotation osGetSitTargetRot()
+        {
+            return m_host.SitTargetOrientation;
         }
 
         public void osSetSitActiveRange(LSL_Float v)

@@ -10,7 +10,7 @@
         <AllowUnsafe>true</AllowUnsafe>
         <WarningLevel>4</WarningLevel>
         <WarningsAsErrors>false</WarningsAsErrors>
-        <SuppressWarnings>CA1416,SYSLIB0011,SYSLIB0014</SuppressWarnings>
+        <SuppressWarnings>CA1416,SYSLIB0011,SYSLIB0014,SYSLIB0039</SuppressWarnings>
         <OutputPath>bin</OutputPath>
         <DebugInformation>true</DebugInformation>
         <IncrementalBuild>true</IncrementalBuild>
@@ -28,7 +28,7 @@
         <AllowUnsafe>true</AllowUnsafe>
         <WarningLevel>4</WarningLevel>
         <WarningsAsErrors>false</WarningsAsErrors>
-        <SuppressWarnings>CA1416,SYSLIB0011,SYSLIB0014</SuppressWarnings>
+        <SuppressWarnings>CA1416,SYSLIB0011,SYSLIB0014,SYSLIB0039</SuppressWarnings>
         <OutputPath>bin</OutputPath>
         <DebugInformation>false</DebugInformation>
         <IncrementalBuild>true</IncrementalBuild>

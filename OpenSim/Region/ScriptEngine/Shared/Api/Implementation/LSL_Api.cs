@@ -11205,7 +11205,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 if (Shape.AnimeshEnabled)
                                     stype |= ScriptBaseClass.PRIM_SCULPT_FLAG_ANIMESH;
                                 else
-                                    stype &= ScriptBaseClass.PRIM_SCULPT_FLAG_ANIMESH;
+                                    stype &= ~ScriptBaseClass.PRIM_SCULPT_FLAG_ANIMESH;
                                 res.Add(new LSL_Integer(stype));
                                 break;
 

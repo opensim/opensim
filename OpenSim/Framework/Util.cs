@@ -1476,8 +1476,7 @@ namespace OpenSim.Framework
             using MemoryStream memoryStream = new(buffer);
             using CryptoStream cryptoStream = new(memoryStream, decryptor, CryptoStreamMode.Read);
             using StreamReader streamReader = new(cryptoStream);
-            
-            //string ret = streamReader.ReadToEnd();
+          
             return streamReader.ReadToEnd();
         }
 

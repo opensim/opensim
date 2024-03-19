@@ -1,4 +1,4 @@
-fc2639fd-5d16-66bf-d8ab-2e4d754c816d
+3c8d15ee-d2ba-11ee-ae64-406c8fbbb495
 <llsd><map><key>llsd-lsl-syntax-version</key><integer>2</integer>
 <key>controls</key>
 <map>
@@ -7318,7 +7318,7 @@ fc2639fd-5d16-66bf-d8ab-2e4d754c816d
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
-<key>osGetLinkInventoryKey</key>
+<key>osGetLinkInventoryItemKey</key>
  <map>
   <key>return</key><string>key</string>
   <key>arguments</key><array>
@@ -7326,7 +7326,7 @@ fc2639fd-5d16-66bf-d8ab-2e4d754c816d
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
- <key>osGetInventoryKeys</key>
+ <key>osGetInventoryItemKeys</key>
  <map>
   <key>return</key><string>list</string>
   <key>arguments</key><array>
@@ -7370,7 +7370,7 @@ fc2639fd-5d16-66bf-d8ab-2e4d754c816d
    <map><key>type</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
- <key>osGetLinkInventoryKeys</key>
+ <key>osGetLinkInventoryItemKeys</key>
  <map>
   <key>return</key><string>list</string>
   <key>arguments</key><array>
@@ -7581,6 +7581,16 @@ fc2639fd-5d16-66bf-d8ab-2e4d754c816d
  <key>osGetSitActiveRange</key>
  <map>
   <key>return</key><string>float</string>
+  <key>arguments</key><undef/>
+ </map>
+ <key>osGetSitTargetPos</key>
+ <map>
+  <key>return</key><string>vector</string>
+  <key>arguments</key><undef/>
+ </map>
+ <key>osGetSitTargetRot</key>
+ <map>
+  <key>return</key><string>rotation</string>
   <key>arguments</key><undef/>
  </map>
  <key>osGetSittingAvatarsCount</key>

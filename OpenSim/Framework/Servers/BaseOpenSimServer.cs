@@ -180,11 +180,8 @@ namespace OpenSim.Framework.Servers
             m_log.Info("[STARTUP]: Beginning startup processing");
 
             m_log.Info("[STARTUP]: version: " + m_version);
-            m_log.InfoFormat("[STARTUP]: Operating system version: {0}, .NET platform {1}, Runtime {2}",
-                    Environment.OSVersion, Util.RuntimePlatformStr, Environment.Version.ToString());
-            m_log.InfoFormat("[STARTUP]: Processor Architecture: {0}({1} {2}bit)",
-                    RuntimeInformation.ProcessArchitecture.ToString(),
-                    BitConverter.IsLittleEndian ?"le":"be", Environment.Is64BitProcess ? "64" : "32");
+            m_log.Info($"[STARTUP]: Operating system version: {Environment.OSVersion}, .NET platform {Util.RuntimePlatformStr}, Runtime {Environment.Version}");
+            m_log.Info($"[STARTUP]: Processor Architecture: {RuntimeInformation.ProcessArchitecture}({(BitConverter.IsLittleEndian ? "le" : "be")} {(Environment.Is64BitProcess ? "64" : "32")}bit)");
             try
             {
                 StartupSpecific();
