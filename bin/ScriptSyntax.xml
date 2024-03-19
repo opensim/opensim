@@ -1,4 +1,4 @@
-fc2639fd-5d16-66bf-d8ab-2e4d754c816d
+3c8d15ee-d2ba-11ee-ae64-406c8fbbb495
 <llsd><map><key>llsd-lsl-syntax-version</key><integer>2</integer>
 <key>controls</key>
 <map>
@@ -7698,6 +7698,16 @@ fc2639fd-5d16-66bf-d8ab-2e4d754c816d
   <key>return</key><string>float</string>
   <key>arguments</key><undef/>
   <key>tooltip</key><string>Returns the sit active range of the prim see: osSetSitActiveRange\n- Threat Level: None.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
+ </map>
+ <key>osGetSitTargetPos</key>
+ <map>
+  <key>return</key><string>vector</string>
+  <key>arguments</key><undef/>
+ </map>
+ <key>osGetSitTargetRot</key>
+ <map>
+  <key>return</key><string>rotation</string>
+  <key>arguments</key><undef/>
  </map>
  <key>osGetSittingAvatarsCount</key>
  <map>
