@@ -5541,7 +5541,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return (item == null) ? LSL_String.Empty : item.Description;
         }
 
-        public LSL_Key osGetLinkInventoryAssetKey(LSL_Integer linkNumber, LSL_String name, LSL_Integer type)
+        public LSL_Key osGetLinkInventoryItemAssetKey(LSL_Integer linkNumber, LSL_String name, LSL_Integer type)
         {
             SceneObjectPart part = GetSingleLinkPart(linkNumber);
             if(part == null)

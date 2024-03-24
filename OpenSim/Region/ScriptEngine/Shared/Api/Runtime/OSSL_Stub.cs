@@ -1461,9 +1461,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public LSL_Key osGetLinkInventoryAssetKey(LSL_Integer linkNumber, LSL_String name, LSL_Integer type)
+        public LSL_Key osGetLinkInventoryItemAssetKey(LSL_Integer linkNumber, LSL_String name, LSL_Integer type)
         {
-            return m_OSSL_Functions.osGetLinkInventoryAssetKey(linkNumber, name, type);
+            return m_OSSL_Functions.osGetLinkInventoryItemAssetKey(linkNumber, name, type);
         }
     
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
