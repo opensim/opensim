@@ -308,7 +308,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             if(htype == UriHostNameType.Unknown || htype == UriHostNameType.Basic)
                 return false;
-            if(htype == UriHostNameType.Dns)
+            if(htype == UriHostNameType.Dns || htype == UriHostNameType.IPv4)
             {
                 foreach(string name in m_certNames)
                 {
