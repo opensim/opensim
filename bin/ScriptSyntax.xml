@@ -1,4 +1,4 @@
-3c8d15ee-d2ba-11ee-ae64-406c8fbbb495
+9a2d5a5e-484a-40b0-82bc-092443b08ff7
 <llsd><map><key>llsd-lsl-syntax-version</key><integer>2</integer>
 <key>controls</key>
 <map>
@@ -7392,6 +7392,15 @@
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
   </array>
   <key>tooltip</key><string>Returns id(key) of a inventory item within a prim inventory. If name is not unique result maybe unpredictable.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
+ </map>
+<key>osGetLinkInventoryAssetKey</key>
+ <map>
+  <key>return</key><string>key</string>
+  <key>arguments</key><array>
+   <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>name</key><map><key>type</key><string>string</string></map></map>
+   <map><key>type</key><map><key>type</key><string>integer</string></map></map>
+  </array>
  </map>
 <key>osGetLinkInventoryItemKey</key>
  <map>

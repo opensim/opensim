@@ -43,7 +43,7 @@ using LSL_Vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 
 namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 {
-    public partial class ScriptBaseClass : MarshalByRefObject
+    public partial class ScriptBaseClass
     {
         public ILSL_Api m_LSL_Functions;
 

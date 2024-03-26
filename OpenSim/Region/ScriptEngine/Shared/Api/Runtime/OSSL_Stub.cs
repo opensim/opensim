@@ -44,7 +44,7 @@ using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
 
 namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 {
-    public partial class ScriptBaseClass : MarshalByRefObject
+    public partial class ScriptBaseClass
     {
         public IOSSL_Api m_OSSL_Functions;
 
@@ -1460,6 +1460,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osGetInventoryItemKey(name);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_Key osGetLinkInventoryKey(LSL_Integer linkNumber, LSL_String name, LSL_Integer type)
+        {
+            return m_OSSL_Functions.osGetLinkInventoryKey(linkNumber, name, type);
+        }
+    
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public LSL_Key osGetLinkInventoryItemKey(LSL_Integer linkNumber, LSL_String name)
         {
