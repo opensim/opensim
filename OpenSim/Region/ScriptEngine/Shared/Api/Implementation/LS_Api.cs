@@ -54,7 +54,7 @@ using LSL_Vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 namespace OpenSim.Region.ScriptEngine.Shared.Api
 {
     [Serializable]
-    public class LS_Api : MarshalByRefObject, ILS_Api, IScriptApi
+    public class LS_Api : ILS_Api, IScriptApi
     {
         internal IScriptEngine m_ScriptEngine;
         internal SceneObjectPart m_host;

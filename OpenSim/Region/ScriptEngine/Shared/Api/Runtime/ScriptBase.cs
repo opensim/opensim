@@ -33,7 +33,7 @@ using OpenSim.Region.ScriptEngine.Interfaces;
 
 namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 {
-    public partial class ScriptBaseClass : MarshalByRefObject, IScript
+    public partial class ScriptBaseClass : IScript
     {
         private Dictionary<string, MethodInfo> inits = new Dictionary<string, MethodInfo>();
         public ScriptBaseClass()

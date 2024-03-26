@@ -54,7 +54,7 @@ using LSL_Vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 namespace OpenSim.Region.ScriptEngine.Shared.Api
 {
     [Serializable]
-    public class MOD_Api : MarshalByRefObject, IMOD_Api, IScriptApi
+    public class MOD_Api : IMOD_Api, IScriptApi
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 

@@ -134,7 +134,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     }
 
     [Serializable]
-    public class OSSL_Api : MarshalByRefObject, IOSSL_Api, IScriptApi
+    public class OSSL_Api : IOSSL_Api, IScriptApi
     {
         public const string GridInfoServiceConfigSectionName = "GridInfoService";
 

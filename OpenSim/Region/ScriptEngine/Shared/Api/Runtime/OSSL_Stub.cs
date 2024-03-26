@@ -44,7 +44,7 @@ using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
 
 namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 {
-    public partial class ScriptBaseClass : MarshalByRefObject
+    public partial class ScriptBaseClass
     {
         public IOSSL_Api m_OSSL_Functions;
 
