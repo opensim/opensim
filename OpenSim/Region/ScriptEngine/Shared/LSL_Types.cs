@@ -1398,6 +1398,10 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     LSLString r = (LSLString)right;
                     ret = string.CompareOrdinal(lsl.m_string, r.m_string);
                 }
+                else if (left is string ssl)
+                {
+                    ret =  string.CompareOrdinal(ssl, right as string);
+                }
                 else if (left is LSLFloat fl)
                 {
                     LSLFloat r = (LSLFloat)right;
@@ -1418,10 +1422,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     return 0;
                 }
 
-                if (ascending)
-                    return ret;
-
-                return -ret;
+                return ascending ? ret : -ret;
             }
 
             class HomogeneousComparer : IComparer
@@ -1448,6 +1449,10 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     {
                         LSLString r = (LSLString)right;
                         ret = string.CompareOrdinal(lsl.m_string, r.m_string);
+                    }
+                    else if (left is string ssl)
+                    {
+                        ret = string.CompareOrdinal(ssl, right as string);
                     }
                     else if (left is LSLFloat fl)
                     {
@@ -1491,6 +1496,10 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     LSLString r = (LSLString)right;
                     return string.CompareOrdinal(lsl.m_string, r.m_string) > 0;
                 }
+                else if (left is string ssl)
+                {
+                    return string.CompareOrdinal(ssl, right as string) > 0;
+                }
                 if (left is LSLFloat lf)
                 {
                     LSLFloat r = (LSLFloat)right;
@@ -1523,6 +1532,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 {
                     LSLString r = (LSLString)right;
                     return string.CompareOrdinal(lsl.m_string, r.m_string) < 0;
+                }
+                else if (left is string ssl)
+                {
+                    string sr = right as string;
+                    return string.CompareOrdinal(ssl, sr) < 0;
                 }
                 if (left is LSLFloat lf)
                 {
