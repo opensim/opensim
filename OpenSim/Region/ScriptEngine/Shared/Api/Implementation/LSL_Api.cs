@@ -13339,6 +13339,45 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return LSL_Rotation.Identity;
         }
 
+        public LSL_Float llGetCameraFOV()
+        {
+            if (m_item.PermsGranter.IsZero())
+                return LSL_Float.Zero;
+
+            if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_TRACK_CAMERA) == 0)
+            {
+                Error("llGetCameraAspect", "No permissions to track the camera");
+                return LSL_Float.Zero;
+            }
+
+            ScenePresence presence = World.GetScenePresence(m_item.PermsGranter);
+            if (presence is not null && presence.ControllingClient is not null)
+            {
+                return new LSL_Float(presence.ControllingClient.FOV);
+            }
+            return 1.4f;
+        }
+
+        public LSL_Float llGetCameraAspect()
+        {
+            if (m_item.PermsGranter.IsZero())
+                return 1f;
+
+            if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_TRACK_CAMERA) == 0)
+            {
+                Error("llGetCameraAspect", "No permissions to track the camera");
+                return 1f;
+            }
+
+            ScenePresence presence = World.GetScenePresence(m_item.PermsGranter);
+            if (presence is not null && presence.ControllingClient is not null)
+            {
+                int h = presence.ControllingClient.viewHeight;
+                return new LSL_Float(h > 0 ? (float)presence.ControllingClient.viewWidth / h : 1.0f);
+            }
+            return 1f;
+        }
+
         public void llSetPrimURL(string url)
         {
             Deprecated("llSetPrimURL", "Use llSetPrimMediaParams instead");

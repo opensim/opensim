@@ -648,6 +648,9 @@ namespace OpenSim.Framework
     {
         Vector3 StartPos { get; set; }
         float StartFar { get; set; }
+        float FOV { get; set; }
+        int viewHeight { get; set; }
+        int viewWidth { get; set; }
 
         UUID AgentId { get; }
 
