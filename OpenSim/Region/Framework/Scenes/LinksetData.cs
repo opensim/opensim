@@ -513,7 +513,10 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         bw.Write(kvp.Key);
                         bw.Write(kvp.Value.Value);
-                        bw.Write(kvp.Value.Password);
+                        if(kvp.Value.IsProtected)
+                            bw.Write(kvp.Value.Password);
+                        else
+                            bw.Write((byte)0);
                     }
                 }
                 return;
