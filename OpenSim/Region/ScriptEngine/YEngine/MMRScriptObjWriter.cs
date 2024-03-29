@@ -64,11 +64,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private static readonly Dictionary<string, Type> string2Type = PopulateS2T();
         private static readonly Dictionary<Type, string> type2String = PopulateT2S();
 
-        private static readonly MethodInfo monoGetCurrentOffset = typeof(ILGenerator).GetMethod("Mono_GetCurrentOffset",
-                        BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic, null,
-                        new Type[] { typeof(ILGenerator) }, null);
-
-        private static readonly OpCode[] opCodesLdcI4M1P8 = new OpCode[] {
+        private static readonly OpCode[] opCodesLdcI4M1P8 = new OpCode[]
+        {
             OpCodes.Ldc_I4_M1, OpCodes.Ldc_I4_0, OpCodes.Ldc_I4_1, OpCodes.Ldc_I4_2, OpCodes.Ldc_I4_3,
             OpCodes.Ldc_I4_4,  OpCodes.Ldc_I4_5, OpCodes.Ldc_I4_6, OpCodes.Ldc_I4_7, OpCodes.Ldc_I4_8
         };
@@ -394,11 +391,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             while(true)
             {
                 // Get IL instruction offset at beginning of instruction.
-                offset = 0;
-                if((ilGen != null) && (monoGetCurrentOffset != null))
-                {
-                    offset = (int)monoGetCurrentOffset.Invoke(null, ilGenArg);
-                }
+                offset = ilGen is null ? 0 : ilGen.ILOffset;
 
                 // Read and decode next internal format code from input file (.xmrobj file).
                 ScriptObjWriterCode code = (ScriptObjWriterCode)objReader.ReadByte();

@@ -129,6 +129,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
        LSL_Integer llGetAttached();
           LSL_List llGetAttachedList(LSL_Key id);
           LSL_List llGetBoundingBox(string obj);
+        LSL_Float  llGetCameraAspect();
+        LSL_Float  llGetCameraFOV();
         LSL_Vector llGetCameraPos();
       LSL_Rotation llGetCameraRot();
         LSL_Vector llGetCenterOfMass();

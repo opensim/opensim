@@ -513,6 +513,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_Float llGetCameraAspect()
+        {
+            return m_LSL_Functions.llGetCameraAspect();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_Float llGetCameraFOV()
+        {
+            return m_LSL_Functions.llGetCameraFOV();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public LSL_Vector llGetCameraPos()
         {
             return m_LSL_Functions.llGetCameraPos();

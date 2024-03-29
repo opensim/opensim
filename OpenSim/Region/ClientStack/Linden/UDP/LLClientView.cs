@@ -385,7 +385,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected Dictionary<UUID, ulong> m_groupPowers = new();
         protected int m_terrainCheckerCount;
         protected uint m_agentFOVCounter;
-
+        
         protected IAssetService m_assetService;
 
         protected bool m_supportViewerCache = false;
@@ -405,6 +405,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             set { m_startpos = value; }
         }
         public float StartFar { get; set; }
+        public float FOV { get; set; } = 1.25f;
+        public int viewHeight { get; set; } = 480;
+        public int viewWidth { get; set; } = 640;
+
 
         public UUID AgentId { get { return m_agentId; } }
         public UUID ScopeId { get { return m_scopeId; } }
@@ -11595,7 +11599,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (genCounter == 0 || genCounter > m_agentFOVCounter)
             {
                 m_agentFOVCounter = genCounter;
-                OnAgentFOV?.Invoke(this, fovPacket.FOVBlock.VerticalAngle);
+                FOV = fovPacket.FOVBlock.VerticalAngle;
+                OnAgentFOV?.Invoke(this, FOV);
             }
         }
 
@@ -11751,6 +11756,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private void HandleAgentHeightWidth(Packet Pack)
         {
+            AgentHeightWidthPacket hwPacket = (AgentHeightWidthPacket)Pack;
+            if (hwPacket.AgentData.AgentID.NotEqual(m_agentId) || hwPacket.AgentData.SessionID.NotEqual(m_sessionId))
+                return;
+
+            viewHeight = hwPacket.HeightWidthBlock.Height;
+            viewWidth = hwPacket.HeightWidthBlock.Width;
         }
 
 
