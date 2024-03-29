@@ -158,6 +158,11 @@ namespace OpenSim.Data.PGSQL
                             }
 
                             grp = new SceneObjectGroup(sceneObjectPart);
+                            if (reader["lnkstBinData"] is not DBNull)
+                            {
+                                byte[] data = (byte[])reader["lnkstBinData"];
+                                grp.LinksetData = LinksetData.FromBin(data);
+                            }
                         }
                         else
                         {
@@ -347,7 +352,7 @@ namespace OpenSim.Data.PGSQL
             ""ClickAction"" = :ClickAction, ""Material"" = :Material, ""CollisionSound"" = :CollisionSound, ""CollisionSoundVolume"" = :CollisionSoundVolume, ""PassTouches"" = :PassTouches,
             ""LinkNumber"" = :LinkNumber, ""MediaURL"" = :MediaURL, ""DynAttrs"" = :DynAttrs, ""Vehicle"" = :Vehicle,
             ""PhysInertia"" = :PhysInertia, ""standtargetx"" =:standtargetx, ""standtargety"" =:standtargety, ""standtargetz"" =:standtargetz,
-            ""sitactrange"" =:sitactrange, ""pseudocrc"" = :pseudocrc, ""sopanims"" = :sopanims
+            ""sitactrange"" =:sitactrange, ""pseudocrc"" = :pseudocrc, ""sopanims"" = :sopanims, ""lnkstBinData"" = :lnkstBinData
 
         WHERE ""UUID"" = :UUID ;
 
@@ -363,7 +368,7 @@ namespace OpenSim.Data.PGSQL
             ""ForceMouselook"", ""ScriptAccessPin"", ""AllowedDrop"", ""DieAtEdge"", ""SalePrice"", ""SaleType"", ""ColorR"", ""ColorG"", ""ColorB"", ""ColorA"",
             ""ParticleSystem"", ""ClickAction"", ""Material"", ""CollisionSound"", ""CollisionSoundVolume"", ""PassTouches"", ""LinkNumber"", ""MediaURL"", ""DynAttrs"",
             ""PhysicsShapeType"", ""Density"", ""GravityModifier"", ""Friction"", ""Restitution"", ""PassCollisions"", ""RotationAxisLocks"", ""RezzerID"" , ""Vehicle"", ""PhysInertia"",
-            ""standtargetx"", ""standtargety"", ""standtargetz"", ""sitactrange"", ""pseudocrc"",""sopanims""
+            ""standtargetx"", ""standtargety"", ""standtargetz"", ""sitactrange"", ""pseudocrc"",""sopanims"",""lnkstBinData""
             ) Select
             :UUID, :CreationDate, :Name, :Text, :Description, :SitName, :TouchName, :ObjectFlags, :OwnerMask, :NextOwnerMask, :GroupMask,
             :EveryoneMask, :BaseMask, :PositionX, :PositionY, :PositionZ, :GroupPositionX, :GroupPositionY, :GroupPositionZ, :VelocityX,
@@ -1870,6 +1875,11 @@ namespace OpenSim.Data.PGSQL
                 parameters.Add(_Database.CreateParameter("sopanims", prim.SerializeAnimations()));
             else
                 parameters.Add(_Database.CreateParameter("sopanims", null));
+
+            if (prim.IsRoot && prim.ParentGroup.LinksetData is not null)
+                parameters.Add(_Database.CreateParameter("lnkstBinData", prim.ParentGroup.LinksetData.ToBin()));
+            else
+                parameters.Add(_Database.CreateParameter("lnkstBinData", null));
 
             return parameters.ToArray();
         }

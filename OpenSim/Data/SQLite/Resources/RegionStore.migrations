@@ -405,3 +405,8 @@ BEGIN;
 ALTER TABLE `prims` ADD COLUMN `sopanims` blob default NULL;
 ALTER TABLE `primshapes` ADD COLUMN `MatOvrd` blob default NULL;
 COMMIT;
+
+:VERSION 41         #----- add linkset data binary storage column
+BEGIN;
+ALTER TABLE `prims` ADD COLUMN `lnkstBinData` blob default NULL;
+COMMIT;
