@@ -133,6 +133,19 @@ namespace OpenSim.Server.Base
                 m_configDirectory = startupConfig.GetString("ConfigDirectory", m_configDirectory);
 
                 prompt = startupConfig.GetString("Prompt", prompt);
+
+                if(startupConfig.GetBoolean("EnableRobustSelfsignedCertSupport"))
+                {
+                    if(!File.Exists("SSL\\ssl\\"+ startupConfig.GetString("RobustCertFileName") +".p12") || startupConfig.GetBoolean("RobustCertRenewOnStartup"))
+                    {               
+                        Util.CreateOrUpdateSelfsignedCert(
+                            string.IsNullOrEmpty(startupConfig.GetString("RobustCertFileName")) ? "Robust" : startupConfig.GetString("RobustCertFileName"),
+                            string.IsNullOrEmpty(startupConfig.GetString("RobustCertHostName")) ? "localhost" : startupConfig.GetString("RobustCertHostName"),
+                            string.IsNullOrEmpty(startupConfig.GetString("RobustCertHostIp")) ? "127.0.0.1" : startupConfig.GetString("RobustCertHostIp"),
+                            string.IsNullOrEmpty(startupConfig.GetString("RobustCertPassword")) ? string.Empty : startupConfig.GetString("RobustCertPassword")
+                        );
+                    }
+                }
             }
             // Allow derived classes to load config before the console is opened.
             ReadConfig();
