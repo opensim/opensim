@@ -7393,7 +7393,7 @@
   </array>
   <key>tooltip</key><string>Returns id(key) of a inventory item within a prim inventory. If name is not unique result maybe unpredictable.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
-<key>osGetLinkInventoryAssetKey</key>
+<key>osGetLinkInventoryKey</key>
  <map>
   <key>return</key><string>key</string>
   <key>arguments</key><array>
@@ -7401,6 +7401,16 @@
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
    <map><key>type</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the UUID (same as llGetInventoryKey) of an item within a linked prim inventory. If name is not unique result maybe unpredictable.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
+ </map>
+ <key>osGetLinkInventoryKeys</key>
+ <map>
+  <key>return</key><string>list</string>
+  <key>arguments</key><array>
+   <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>type</key><map><key>type</key><string>integer</string></map></map>
+  </array>
+  <key>tooltip</key><string>Returns a list of the UUIDs (same as llGetInventoryKey) of the items within a linked prim inventory filtred by type or INVENTORY_ALL.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
 <key>osGetLinkInventoryItemKey</key>
  <map>
@@ -7409,7 +7419,7 @@
    <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns id(key) of an item within a linked prim inventory. If name is not unique result maybe unpredictable.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
+  <key>tooltip</key><string>Returns the id(key) of an item within a linked prim inventory. If name is not unique result maybe unpredictable.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetInventoryItemKeys</key>
  <map>
