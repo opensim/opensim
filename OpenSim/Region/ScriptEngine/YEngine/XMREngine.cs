@@ -224,25 +224,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             bool err = false;
             for(int i = 0; i < (int)ScriptEventCode.Size; i++)
             {
-                string mycode = "undefined";
-                string oscode = "undefined";
-                try
-                {
-                    mycode = ((ScriptEventCode)i).ToString();
-                    Convert.ToInt64(mycode);
-                    mycode = "undefined";
-                }
-                catch { }
-                try
-                {
-                    oscode = ((SceneScriptEvents)(1ul << i)).ToString();
-                    Convert.ToInt64(oscode);
-                    oscode = "undefined";
-                }
-                catch { }
+                string mycode = Enum.GetName(typeof(ScriptEventCode), i);
+                string oscode = Enum.GetName(typeof(SceneScriptEvents), 1UL << i);
                 if(mycode != oscode)
                 {
-                    m_log.ErrorFormat("[YEngine]: {0} mycode={1}, oscode={2}", i, mycode, oscode);
+                    m_log.ErrorFormat($"[YEngine]: {i} mycode={mycode}, oscode={oscode}");
                     err = true;
                 }
             }
