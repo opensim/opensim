@@ -310,6 +310,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         public GridRegion GetRegionByURI(UUID scopeID, RegionURI uri)
         {
+            if(!uri.IsValid)
+                return null;
             GridRegion rinfo = m_LocalGridService.GetRegionByURI(scopeID, uri);
             if (rinfo != null)
             {

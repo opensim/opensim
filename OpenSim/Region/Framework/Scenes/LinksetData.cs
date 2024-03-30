@@ -472,14 +472,14 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (data.Length < 8)
                 return null;
-            var minLength = ((data.Length * 3) + 3) / 4;
-            var bindata = ArrayPool<byte>.Shared.Rent(minLength);
+            int minLength = ((data.Length * 3) + 3) / 4;
+            byte[] bindata = ArrayPool<byte>.Shared.Rent(minLength);
             try
             {
                 if (Convert.TryFromBase64Chars(data, bindata, out int bytesWritten))
                     return FromBin(bindata);
             }
-             catch
+            catch
             {
             }
             finally
@@ -496,7 +496,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             using MemoryStream ms = new(m_MemoryUsed);
             ToBin(ms);
-            return ms.ToArray();
+            return ms.Length > 0 ? ms.ToArray() : null;
         }
 
         public void ToBin(MemoryStream ms)
