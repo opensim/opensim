@@ -222,7 +222,7 @@ namespace OpenSim.Services.HypergridService
             }
         }
 
-        public bool LinkRegion(string regionName, out UUID regionID, out ulong regionHandle, out string externalName, out string imageURL, out string reason, out int sizeX, out int sizeY)
+        public bool LinkLocalRegion(string regionName, out UUID regionID, out ulong regionHandle, out string externalName, out string imageURL, out string reason, out int sizeX, out int sizeY)
         {
             regionID = UUID.Zero;
             regionHandle = 0;
@@ -251,7 +251,7 @@ namespace OpenSim.Services.HypergridService
             }
             else
             {
-                region = m_GridService.GetRegionByName(m_ScopeID, regionName);
+                region = m_GridService.GetLocalRegionByName(m_ScopeID, regionName);
                 if (region is null)
                 {
                     reason = "Region not found";
