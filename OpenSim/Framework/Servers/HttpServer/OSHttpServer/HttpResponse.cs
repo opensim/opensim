@@ -232,51 +232,61 @@ namespace OSHttpServer
         {
             HeadersSent = true;
 
-            var sb = osStringBuilderCache.Acquire();
+            osUTF8 osu = OSUTF8Cached.Acquire();
 
-            if(string.IsNullOrWhiteSpace(m_httpVersion))
-                sb.AppendFormat("HTTP/1.1 {0} {1}\r\n", (int)Status,
-                                string.IsNullOrEmpty(Reason) ? Status.ToString() : Reason);
+            if (string.IsNullOrWhiteSpace(m_httpVersion))
+            {
+                osu.AppendASCII($"HTTP/1.1 {(int)Status} ");
+                if (string.IsNullOrEmpty(Reason))
+                    osu.AppendASCII($"{Status}");
+                else
+                    osu.Append($"{Reason}");
+                osu.AppendASCII("\r\n");
+            }
             else
-                sb.AppendFormat("{0} {1} {2}\r\n", m_httpVersion, (int)Status,
-                                string.IsNullOrEmpty(Reason) ? Status.ToString() : Reason);
+            {
+                osu.AppendASCII($"{m_httpVersion} {(int)Status} ");
+                if (string.IsNullOrEmpty(Reason))
+                    osu.AppendASCII($"{Status}");
+                else
+                    osu.Append($"{Reason}");
+                osu.AppendASCII("\r\n");
+            }
 
-            sb.AppendFormat("Date: {0}\r\n", DateTime.Now.ToString("r"));
+            osu.AppendASCII($"Date: {DateTime.Now:r}\r\n");
 
-            long len = 0;
-            if(m_body is not null)
-                len = m_body.Length;
-            if (RawBuffer is not null && RawBufferLen > 0)
+            long len = m_body is null ? 0 : m_body.Length;
+            if (RawBuffer is not null)
                 len += RawBufferLen;
-            sb.AppendFormat("Content-Length: {0}\r\n", len);
+            osu.AppendASCII($"Content-Length: {len}\r\n");
 
             if (m_headers["Content-Type"] is null)
-                sb.AppendFormat("Content-Type: {0}\r\n", m_contentType ?? DefaultContentType);
+                osu.AppendASCII($"Content-Type: {m_contentType ?? DefaultContentType}\r\n");
 
-            switch(Status)
+            switch (Status)
             {
                 case HttpStatusCode.OK:
                 case HttpStatusCode.PartialContent:
                 case HttpStatusCode.Accepted:
                 case HttpStatusCode.Continue:
                 case HttpStatusCode.Found:
-                {
-                    int keepaliveS = m_context.TimeoutKeepAlive / 1000;
-                    if (Connection == ConnectionType.KeepAlive && keepaliveS > 0 && m_context.MaxRequests > 0)
                     {
-                        sb.AppendFormat("Keep-Alive:timeout={0}, max={1}\r\n", keepaliveS, m_context.MaxRequests);
-                        sb.Append("Connection: Keep-Alive\r\n");
+                        int keepaliveS = m_context.TimeoutKeepAlive / 1000;
+                        if (Connection == ConnectionType.KeepAlive && keepaliveS > 0 && m_context.MaxRequests > 0)
+                        {
+                            osu.AppendASCII($"Keep-Alive:timeout={keepaliveS}, max={m_context.MaxRequests}\r\n");
+                            osu.AppendASCII("Connection: Keep-Alive\r\n");
+                        }
+                        else
+                        {
+                            osu.AppendASCII("Connection: close\r\n");
+                            Connection = ConnectionType.Close;
+                        }
+                        break;
                     }
-                    else
-                    {
-                        sb.Append("Connection: close\r\n");
-                        Connection = ConnectionType.Close;
-                    }
-                    break;
-                }
 
                 default:
-                    sb.Append("Connection: close\r\n");
+                    osu.AppendASCII("Connection: close\r\n");
                     Connection = ConnectionType.Close;
                     break;
             }
@@ -284,7 +294,7 @@ namespace OSHttpServer
             for (int i = 0; i < m_headers.Count; ++i)
             {
                 string headerName = m_headers.AllKeys[i];
-                switch(headerName)
+                switch (headerName)
                 {
                     case "Connection":
                     case "Content-Length":
@@ -294,21 +304,27 @@ namespace OSHttpServer
                         continue;
                 }
                 string[] values = m_headers.GetValues(i);
-                if (values is null) continue;
-                foreach (string value in values)
-                    sb.AppendFormat("{0}: {1}\r\n", headerName, value);
+                if (values is not null)
+                {
+                    foreach (string value in values)
+                    {
+                        osu.AppendASCII($"{headerName}: ");
+                        osu.Append($"{value}");
+                        osu.AppendASCII("\r\n");
+                    }
+                }
             }
 
-            sb.Append("Server: OSWebServer\r\n");
+            osu.AppendASCII("Server: OSWebServer\r\n");
 
             foreach (ResponseCookie cookie in Cookies)
-                sb.AppendFormat("Set-Cookie: {0}\r\n", cookie);
+                osu.Append($"Set-Cookie: {cookie}\r\n");
 
-            sb.Append("\r\n");
+            osu.AppendASCII("\r\n");
 
             m_headers.Clear();
 
-            return Encoding.GetBytes(osStringBuilderCache.GetStringAndRelease(sb));
+            return OSUTF8Cached.GetArrayAndRelease(osu);
         }
 
         public void Send()
