@@ -25,7 +25,7 @@ namespace OSHttpServer
         public int RawBufferLen { get; set; }
         public double RequestTS { get; private set; }
 
-        internal byte[] m_headerBytes = null;
+        internal osUTF8 m_headerBytes = null;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="IHttpResponse"/> class.
@@ -228,7 +228,7 @@ namespace OSHttpServer
             m_headers[name] = value;
         }
 
-        public byte[] GetHeaders()
+        public void GetHeaders()
         {
             HeadersSent = true;
 
@@ -324,7 +324,7 @@ namespace OSHttpServer
 
             m_headers.Clear();
 
-            return OSUTF8Cached.GetArrayAndRelease(osu);
+            m_headerBytes = osu;
         }
 
         public void Send()
@@ -361,7 +361,7 @@ namespace OSHttpServer
                     RawBufferLen = RawBuffer.Length - RawBufferStart;
             }
 
-            m_headerBytes = GetHeaders();
+            GetHeaders();
 
             if (RawBuffer is not null && RawBufferLen > 0)
             {
@@ -369,17 +369,18 @@ namespace OSHttpServer
                 if(tlen < 8 * 1024)
                 {
                     byte[] tmp = new byte[tlen];
-                    Buffer.BlockCopy(m_headerBytes, 0, tmp, 0, m_headerBytes.Length);
+                    Buffer.BlockCopy(m_headerBytes.GetArray(), 0, tmp, 0, m_headerBytes.Length);
                     Buffer.BlockCopy(RawBuffer, RawBufferStart, tmp, m_headerBytes.Length, RawBufferLen);
+                    OSUTF8Cached.Release(m_headerBytes);
                     m_headerBytes = null;
                     RawBuffer = tmp;
                     RawBufferStart = 0;
                     RawBufferLen = tlen;
                 }
-
-                if (RawBufferLen == 0)
-                    RawBuffer = null;
             }
+
+            if (RawBufferLen == 0)
+                RawBuffer = null;
 
             if (m_body is not null && m_body.Length == 0)
             {
@@ -400,11 +401,14 @@ namespace OSHttpServer
         {
             if (m_headerBytes is not null)
             {
-                byte[] b = m_headerBytes;
-                m_headerBytes = null;
-
-                if (!m_context.SendAsyncStart(b, 0, b.Length))
+                if (!m_context.SendAsyncStart(m_headerBytes.GetArray(), 0, m_headerBytes.Length))
                 {
+                    if(m_headerBytes is not null)
+                    {
+                        OSUTF8Cached.Release(m_headerBytes);
+                        m_headerBytes = null;
+                    }
+
                     if (m_body is not null)
                     {
                         m_body.Dispose();
@@ -515,7 +519,13 @@ namespace OSHttpServer
 
         public void CheckSendNextAsyncContinue()
         {
-            if(m_headerBytes is null && RawBuffer is null && m_body is null)
+            if (m_headerBytes is not null)
+            {
+                OSUTF8Cached.Release(m_headerBytes);
+                m_headerBytes = null;
+            }
+
+            if (m_headerBytes is null && RawBuffer is null && m_body is null)
             {
                 Sent = true;
                 m_context.EndSendResponse(requestID, Connection);
@@ -528,6 +538,12 @@ namespace OSHttpServer
 
         public void Clear()
         {
+            if(m_headerBytes is not null)
+            {
+                OSUTF8Cached.Release(m_headerBytes);
+                m_headerBytes = null;
+            }
+
             if(m_body is not null && m_body.CanRead)
             {
                 m_body.Dispose();
