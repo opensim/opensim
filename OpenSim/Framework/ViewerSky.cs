@@ -52,12 +52,14 @@ namespace OpenSim.Framework
 
             public OSDMap ToOSD()
             {
-                OSDMap map = new OSDMap();
-                map["constant_term"] = constant_term;
-                map["exp_scale"] = exp_scale;
-                map["exp_term"] = exp_term;
-                map["linear_term"] = linear_term;
-                map["width"] = width;
+                OSDMap map = new OSDMap()
+                {
+                    ["constant_term"] = constant_term,
+                    ["exp_scale"] = exp_scale,
+                    ["exp_term"] = exp_term,
+                    ["linear_term"] = linear_term,
+                    ["width"] = width
+                };
                 return map;
             }
 
@@ -92,13 +94,15 @@ namespace OpenSim.Framework
 
             public OSDMap ToOSD()
             {
-                OSDMap map = new OSDMap();
-                map["anisotropy"] = anisotropy;
-                map["constant_term"] = constant_term;
-                map["exp_scale"] = exp_scale;
-                map["exp_term"] = exp_term;
-                map["linear_term"] = linear_term;
-                map["width"] = width;
+                OSDMap map = new OSDMap()
+                {
+                    ["anisotropy"] = anisotropy,
+                    ["constant_term"] = constant_term,
+                    ["exp_scale"] = exp_scale,
+                    ["exp_term"] = exp_term,
+                    ["linear_term"] = linear_term,
+                    ["width"] = width
+                };
                 return map;
             }
 
@@ -263,10 +267,11 @@ namespace OpenSim.Framework
         {
             OSDMap map = new OSDMap(64);
 
-            OSDArray abscfg = new OSDArray(2);
-            abscfg.Add(abscoefA.ToOSD());
-            abscfg.Add(abscoefB.ToOSD());
-            map["absorption_config"] = abscfg;
+            map["absorption_config"] = new OSDArray(2)
+            {
+                abscoefA.ToOSD(),
+                abscoefB.ToOSD()
+            };
 
             map["bloom_id"] = bloom_id;
             map["cloud_color"] = cloud_color;
@@ -285,24 +290,26 @@ namespace OpenSim.Framework
             map["halo_id"] = halo_id;
             map["ice_level"] = ice_level;
 
-            if (reflectionProbeAmbiance != 0f)
+            if(reflectionProbeAmbiance != 0f)
                 map["reflection_probe_ambiance"] = reflectionProbeAmbiance;
 
-            OSDMap lhaze = new OSDMap();
-            lhaze["ambient"] = ambient;
-            lhaze["blue_density"] = blue_density;
-            lhaze["blue_horizon"] = blue_horizon;
-            lhaze["density_multiplier"] = density_multiplier;
-            lhaze["distance_multiplier"] = distance_multiplier;
-            lhaze["haze_density"] = haze_density;
-            lhaze["haze_horizon"] = haze_horizon;
-            map["legacy_haze"] = lhaze;
+            map["legacy_haze"] = new OSDMap()
+            {
+                ["ambient"] = ambient,
+                ["blue_density"] = blue_density,
+                ["blue_horizon"] = blue_horizon,
+                ["density_multiplier"] = density_multiplier,
+                ["distance_multiplier"] = distance_multiplier,
+                ["haze_density"] = haze_density,
+                ["haze_horizon"] = haze_horizon
+            };
 
             map["max_y"] = max_y;
 
-            OSDArray miecfg = new OSDArray();
-            miecfg.Add(mieconf.ToOSD());
-            map["mie_config"] = miecfg;
+            map["mie_config"] = new OSDArray()
+            {
+                mieconf.ToOSD()
+            };
 
             map["moisture_level"] = moisture_level;
             map["moon_brightness"] = moon_brightness;
@@ -312,9 +319,10 @@ namespace OpenSim.Framework
             map["planet_radius"] = planet_radius;
             map["rainbow_id"] = rainbow_id;
 
-            OSDArray rayl = new OSDArray();
-            rayl.Add(rayleigh_config.ToOSD());
-            map["rayleigh_config"] = rayl;
+            map["rayleigh_config"] = new OSDArray()
+            {
+                rayleigh_config.ToOSD()
+            };
 
             map["sky_bottom_radius"] = sky_bottom_radius;
             map["sky_top_radius"] = sky_top_radius;
@@ -332,16 +340,14 @@ namespace OpenSim.Framework
 
         public void FromOSD(string name, OSDMap map)
         {
-            OSDArray tmpArray;
             OSD otmp;
-            if (map.TryGetValue("absorption_config",out otmp) && otmp is OSDArray)
+            if (map.TryGetValue("absorption_config", out otmp) && otmp is OSDArray absorptionArray)
             {
-                tmpArray = otmp as OSDArray;
-                if (tmpArray.Count > 0)
+                if (absorptionArray.Count > 0)
                 {
-                    abscoefA.FromOSD(tmpArray[0] as OSDMap);
-                    if (tmpArray.Count > 1)
-                        abscoefA.FromOSD(tmpArray[1] as OSDMap);
+                    abscoefA.FromOSD(absorptionArray[0] as OSDMap);
+                    if (absorptionArray.Count > 1)
+                        abscoefA.FromOSD(absorptionArray[1] as OSDMap);
                 }
             }
             if (map.TryGetValue("bloom_id", out otmp))
@@ -375,14 +381,13 @@ namespace OpenSim.Framework
             if (map.TryGetValue("halo_id", out otmp))
                 halo_id = otmp;
             if (map.TryGetValue("ice_level", out otmp))
-                ice_level = otmp;
+                halo_id = otmp;
 
             if (map.TryGetValue("reflection_probe_ambiance", out otmp))
                 reflectionProbeAmbiance = otmp;
 
-            if (map.TryGetValue("legacy_haze", out OSD tmp) && tmp is OSDMap)
+            if (map.TryGetValue("legacy_haze", out OSD tmp) && tmp is OSDMap lHaze)
             {
-                OSDMap lHaze = tmp as OSDMap;
                 if (lHaze.TryGetValue("ambient", out otmp))
                     ambient = otmp;
                 if (lHaze.TryGetValue("blue_density", out otmp))
@@ -402,9 +407,9 @@ namespace OpenSim.Framework
             if (map.TryGetValue("max_y", out otmp))
                 max_y = otmp;
 
-            if (map.TryGetValue("mie_config", out otmp) && otmp is OSDArray)
+            if (map.TryGetValue("mie_config", out otmp) && otmp is OSDArray mieArray)
             {
-                tmpArray = otmp as OSDArray;
+                var tmpArray = otmp as OSDArray;
                 if (tmpArray.Count > 0)
                     mieconf.FromOSD(tmpArray[0] as OSDMap);
             }
@@ -424,11 +429,10 @@ namespace OpenSim.Framework
             if (map.TryGetValue("rainbow_id", out otmp))
                 rainbow_id = otmp;
 
-            if (map.TryGetValue("rayleigh_config", out otmp) && otmp is OSDArray)
+            if (map.TryGetValue("rayleigh_config", out otmp) && otmp is OSDArray rayleighArray)
             {
-                tmpArray = otmp as OSDArray;
-                if (tmpArray.Count > 0)
-                    rayleigh_config.FromOSD(tmpArray[0] as OSDMap);
+                if (rayleighArray.Count > 0)
+                    rayleigh_config.FromOSD(rayleighArray[0] as OSDMap);
             }
 
             if (map.TryGetValue("sky_bottom_radius", out otmp))
@@ -447,10 +451,9 @@ namespace OpenSim.Framework
             if (map.TryGetValue("sun_scale", out otmp))
                 sun_scale = otmp;
 
-            if (map.TryGetValue("sunlight_color", out otmp) && otmp is OSDArray)
+            if (map.TryGetValue("sunlight_color", out otmp) && otmp is OSDArray sunlightArray)
             {
-                tmpArray = otmp as OSDArray;
-                if(tmpArray.Count == 4)
+                if(sunlightArray.Count == 4)
                     sunlight_color = otmp;
                 else
                 {
