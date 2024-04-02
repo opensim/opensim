@@ -232,7 +232,7 @@ namespace OSHttpServer
         {
             HeadersSent = true;
 
-            osUTF8 osu = OSUTF8Cached.Acquire();
+            osUTF8 osu = OSUTF8Cached.Acquire(8 * 1024);
 
             if (string.IsNullOrWhiteSpace(m_httpVersion))
             {
