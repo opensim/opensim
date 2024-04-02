@@ -361,6 +361,9 @@ namespace OSHttpServer
                     RawBufferLen = RawBuffer.Length - RawBufferStart;
             }
 
+            if (RawBufferLen == 0)
+                RawBuffer = null;
+
             GetHeaders();
 
             if (RawBuffer is not null && RawBufferLen > 0)
@@ -368,19 +371,11 @@ namespace OSHttpServer
                 int tlen = m_headerBytes.Length + RawBufferLen;
                 if(tlen < 8 * 1024)
                 {
-                    byte[] tmp = new byte[tlen];
-                    Buffer.BlockCopy(m_headerBytes.GetArray(), 0, tmp, 0, m_headerBytes.Length);
-                    Buffer.BlockCopy(RawBuffer, RawBufferStart, tmp, m_headerBytes.Length, RawBufferLen);
-                    OSUTF8Cached.Release(m_headerBytes);
-                    m_headerBytes = null;
-                    RawBuffer = tmp;
-                    RawBufferStart = 0;
-                    RawBufferLen = tlen;
+                    m_headerBytes.Append(RawBuffer, RawBufferStart, RawBufferLen);
+                    RawBuffer = null;
+                    RawBufferLen = 0;
                 }
             }
-
-            if (RawBufferLen == 0)
-                RawBuffer = null;
 
             if (m_body is not null && m_body.Length == 0)
             {
