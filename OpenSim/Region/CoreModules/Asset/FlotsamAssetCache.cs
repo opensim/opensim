@@ -352,10 +352,11 @@ namespace OpenSim.Region.CoreModules.Asset
         {
             lock(weakAssetReferencesLock)
             {
-                if(weakAssetReferences.TryGetValue(key , out WeakReference aref))
+                ref WeakReference aref = ref CollectionsMarshal.GetValueRefOrAddDefault(weakAssetReferences, key, out bool ex);
+                if(ex)
                     aref.Target = asset;
                 else
-                    weakAssetReferences[key] = new WeakReference(asset);
+                    aref = new WeakReference(asset);
             }
         }
 
@@ -463,20 +464,18 @@ namespace OpenSim.Region.CoreModules.Asset
 
         private AssetBase GetFromWeakReference(string id)
         {
-            AssetBase asset = null;
-
             lock(weakAssetReferencesLock)
             {
                 if (weakAssetReferences.TryGetValue(id, out WeakReference aref))
                 {
-                    asset = aref.Target as AssetBase;
-                    if(asset is null)
-                        weakAssetReferences.Remove(id);
-                    else
+                    if (aref.Target is AssetBase asset)
+                    {
                         m_weakRefHits++;
+                        return asset;
+                    }
                 }
             }
-            return asset;
+            return null;
         }
 
         /// <summary>
@@ -793,6 +792,9 @@ namespace OpenSim.Region.CoreModules.Asset
 
             // Purge all files last accessed prior to this point
             DoCleanExpiredFiles(DateTime.Now - m_FileExpiration);
+
+            lock (weakAssetReferencesLock)
+                weakAssetReferences = new Dictionary<string, WeakReference>();
         }
 
         private void DoCleanExpiredFiles(DateTime purgeLine)
