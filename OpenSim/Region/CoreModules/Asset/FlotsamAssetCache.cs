@@ -793,9 +793,6 @@ namespace OpenSim.Region.CoreModules.Asset
 
             // Purge all files last accessed prior to this point
             DoCleanExpiredFiles(DateTime.Now - m_FileExpiration);
-
-            lock (weakAssetReferencesLock)
-                weakAssetReferences = new Dictionary<string, WeakReference>();
         }
 
         private void DoCleanExpiredFiles(DateTime purgeLine)
@@ -824,6 +821,12 @@ namespace OpenSim.Region.CoreModules.Asset
                     Thread.Sleep(120);
                     cooldown = 0;
                 }
+            }
+
+            lock (weakAssetReferencesLock)
+            {
+                weakAssetReferences = new Dictionary<string, WeakReference>();
+                m_weakRefHits=0;
             }
 
             lock (timerLock)
