@@ -610,13 +610,6 @@
      <Key Name="fileName" Value="79504bf5-c3ec-0763-6563-d843de66d0a1.j2c" />
   </Section>
   
-  <Section Name="Grass 2">
-     <Key Name="assetID" Value="6c4727b8-ac79-ba44-3b81-f9aa887b47eb"/>
-     <Key Name="name" Value="Grass 2"/>
-     <Key Name="assetType" Value="0" />
-     <Key Name="fileName" Value="6c4727b8-ac79-ba44-3b81-f9aa887b47eb.j2c" />
-  </Section>
-  
   <Section Name="Grass 3">
      <Key Name="assetID" Value="99bd60a2-3250-efc9-2e39-2fbcadefbecc"/>
      <Key Name="name" Value="Grass 3"/>
