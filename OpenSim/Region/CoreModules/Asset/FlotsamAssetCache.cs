@@ -43,6 +43,7 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
+using System.Runtime.InteropServices;
 
 
 namespace OpenSim.Region.CoreModules.Asset
