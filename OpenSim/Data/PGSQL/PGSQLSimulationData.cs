@@ -196,12 +196,12 @@ namespace OpenSim.Data.PGSQL
                 {
                     while (itemReader.Read())
                     {
-                        if (!(itemReader["primID"] is DBNull))
+                        if (itemReader["primID"] is not DBNull)
                         {
-                            UUID primID = new UUID(itemReader["primID"].ToString());
-                            if (prims.ContainsKey(primID))
+                            if(UUID.TryParse(itemReader["primID"].ToString(), out UUID primID) &&
+                                    prims.TryGetValue(primID, out SceneObjectPart sop))
                             {
-                                primsWithInventory.Add(prims[primID]);
+                                primsWithInventory.Add(sop);
                             }
                         }
                     }
