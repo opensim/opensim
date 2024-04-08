@@ -185,9 +185,9 @@ namespace OpenSim
             MainServer.Instance.AddSimpleStreamHandler(new SimRobotsHandler());
             MainServer.Instance.AddSimpleStreamHandler(new IndexPHPHandler(MainServer.Instance));
 
-            if (managedStatsURI != String.Empty)
+            if (!string.IsNullOrEmpty(managedStatsURI))
             {
-                string urlBase = String.Format("/{0}/", managedStatsURI);
+                string urlBase = $"/{managedStatsURI}/";
                 StatsManager.StatsPassword = managedStatsPassword;
                 MainServer.Instance.AddHTTPHandler(urlBase, StatsManager.HandleStatsRequest);
                 m_log.InfoFormat("[OPENSIM] Enabling remote managed stats fetch. URL = {0}", urlBase);
