@@ -103,7 +103,7 @@ namespace OpenSim.Framework
         public bool IsBlocked(string key)
         {
             bool ret = false;
-             _blockLockSlim.EnterReadLock();
+            _blockLockSlim.EnterReadLock();
             ret = _tempBlocked.ContainsKey(key);
             _blockLockSlim.ExitReadLock();
             return ret;
@@ -140,11 +140,8 @@ namespace OpenSim.Framework
 
             if (_options.MaxConcurrentSessions > 0)
             {
-                int sessionscount = 0;
-
                 _sessionLockSlim.EnterReadLock();
-                if (_sessions.ContainsKey(key))
-                    sessionscount = _sessions[key];
+                _sessions.TryGetValue(key, out int sessionscount);
                 _sessionLockSlim.ExitReadLock();
 
                 if (sessionscount > _options.MaxConcurrentSessions)
