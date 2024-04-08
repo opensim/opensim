@@ -170,7 +170,8 @@ namespace OpenSim.Data.MySQL
                                     "AttachedPosY, AttachedPosZ, " +
                                     "PhysicsShapeType, Density, GravityModifier, " +
                                     "Friction, Restitution, Vehicle, PhysInertia, DynAttrs, " +
-                                    "RotationAxisLocks, sopanims, sitactrange, pseudocrc" + 
+                                    "RotationAxisLocks, sopanims, sitactrange, pseudocrc, " +
+                                    "lnkstBinData" +
                                     ") values (" + "?UUID, " +
                                     "?CreationDate, ?Name, ?Text, " +
                                     "?Description, ?SitName, ?TouchName, " +
@@ -204,8 +205,9 @@ namespace OpenSim.Data.MySQL
                                     "?LinkNumber, ?MediaURL, ?KeyframeMotion, ?AttachedPosX, " +
                                     "?AttachedPosY, ?AttachedPosZ, " +
                                     "?PhysicsShapeType, ?Density, ?GravityModifier, " +
-                                    "?Friction, ?Restitution, ?Vehicle, ?PhysInertia, ?DynAttrs," +
-                                    "?RotationAxisLocks, ?sopanims, ?sitactrange, ?pseudocrc)";
+                                    "?Friction, ?Restitution, ?Vehicle, ?PhysInertia, ?DynAttrs, " +
+                                    "?RotationAxisLocks, ?sopanims, ?sitactrange, ?pseudocrc, " +
+                                    "?lnkstBinData)";
 
                             FillPrimCommand(cmd, prim, obj.UUID, regionUUID);
 
@@ -344,11 +346,26 @@ namespace OpenSim.Data.MySQL
                                 else
                                     prim.Shape = BuildShape(reader);
 
-                                UUID parentID = DBGuid.FromDB(reader["SceneGroupID"].ToString());
-                                if (parentID != prim.UUID)
-                                    prim.ParentUUID = parentID;
-
                                 prims[prim.UUID] = prim;
+
+                                UUID parentID = DBGuid.FromDB(reader["SceneGroupID"].ToString());
+                                if (parentID.NotEqual(prim.UUID))
+                                    prim.ParentUUID = parentID;
+                                else
+                                {
+                                    //create linkset and extract its data stored on root
+                                    SceneObjectGroup newSog = new SceneObjectGroup(prim);
+                                    if(objects.TryAdd(prim.UUID, newSog))
+                                    {
+                                        if(reader["lnkstBinData"] is not  DBNull)
+                                        {
+                                            byte[] data = (byte[])reader["lnkstBinData"];
+                                            newSog.LinksetData = LinksetData.FromBin(data);
+                                        }
+                                    }
+                                    else
+                                        m_log.Warn($"[REGION DB]: duplicated SOG with root prim \"{prim.Name}\" {prim.UUID} in region {regionID}");
+                                }
 
                                 ++count;
                                 if (count % ROWS_PER_QUERY == 0)
@@ -362,24 +379,12 @@ namespace OpenSim.Data.MySQL
 
             #endregion Prim Loading
 
-            #region SceneObjectGroup Creation
-
-            // Create all of the SOGs from the root prims first
-            foreach (SceneObjectPart prim in prims.Values)
-            {
-                if (prim.ParentUUID.IsZero())
-                {
-                    objects[prim.UUID] = new SceneObjectGroup(prim);
-                }
-            }
-
             // Add all of the children objects to the SOGs
             foreach (SceneObjectPart prim in prims.Values)
             {
-                SceneObjectGroup sog;
-                if (prim.UUID != prim.ParentUUID)
+                if (prim.UUID.NotEqual(prim.ParentUUID))
                 {
-                    if (objects.TryGetValue(prim.ParentUUID, out sog))
+                    if (objects.TryGetValue(prim.ParentUUID, out SceneObjectGroup sog))
                     {
                         int originalLinkNum = prim.LinkNum;
 
@@ -392,16 +397,13 @@ namespace OpenSim.Data.MySQL
                     }
                     else
                     {
-                        m_log.WarnFormat(
-                            "[REGION DB]: Database contains an orphan child prim {0} {1} in region {2} pointing to missing parent {3}.  This prim will not be loaded.",
-                            prim.Name, prim.UUID, regionID, prim.ParentUUID);
+                        m_log.Warn(
+                            $"[REGION DB]: orphan child prim {prim.Name} {prim.UUID} in region {regionID} with missing parent {prim.ParentUUID}. Prim not loaded.");
                     }
                 }
             }
 
-            #endregion SceneObjectGroup Creation
-
-            m_log.DebugFormat("[REGION DB]: Loaded {0} objects using {1} prims", objects.Count, prims.Count);
+            m_log.Debug($"[REGION DB]: Loaded {objects.Count} objects using {prims.Count} prims");
 
             #region Prim Inventory Loading
 
@@ -1188,7 +1190,7 @@ namespace OpenSim.Data.MySQL
             int pseudocrc = (int)row["pseudocrc"];
             if(pseudocrc != 0)
                 prim.PseudoCRC = pseudocrc;
-
+ 
             return prim;
         }
 
@@ -1609,6 +1611,11 @@ namespace OpenSim.Data.MySQL
 
             cmd.Parameters.AddWithValue("sitactrange", prim.SitActiveRange);
             cmd.Parameters.AddWithValue("pseudocrc", prim.PseudoCRC);
+
+            if(prim.IsRoot && prim.ParentGroup.LinksetData is not null)
+                cmd.Parameters.AddWithValue("lnkstBinData", prim.ParentGroup.LinksetData.ToBin());
+            else
+                cmd.Parameters.AddWithValue("lnkstBinData", null);
         }
 
         /// <summary>

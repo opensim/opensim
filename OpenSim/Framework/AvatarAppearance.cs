@@ -32,6 +32,7 @@ using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using log4net;
 using System.Text;
+using System.Runtime.InteropServices;
 
 namespace OpenSim.Framework
 {
@@ -541,16 +542,20 @@ namespace OpenSim.Framework
 
             lock (m_attachments)
             {
-                if (!m_attachments.ContainsKey(attach.AttachPoint))
-                    m_attachments[attach.AttachPoint] = new List<AvatarAttachment>();
+                ref List<AvatarAttachment> atlst = ref CollectionsMarshal.GetValueRefOrAddDefault(m_attachments, attach.AttachPoint, out bool ex);
+                if(!ex)
+                { 
+                    atlst = new List<AvatarAttachment>() { attach };
+                    return;
+                }
 
-                foreach (AvatarAttachment prev in m_attachments[attach.AttachPoint])
+                foreach (AvatarAttachment prev in atlst)
                 {
                     if (prev.ItemID.Equals(attach.ItemID))
                         return;
                 }
 
-                m_attachments[attach.AttachPoint].Add(attach);
+                atlst.Add(attach);
             }
         }
 
@@ -562,8 +567,7 @@ namespace OpenSim.Framework
 
             lock (m_attachments)
             {
-                m_attachments[attach.AttachPoint] = new List<AvatarAttachment>();
-                m_attachments[attach.AttachPoint].Add(attach);
+                m_attachments[attach.AttachPoint] = new List<AvatarAttachment>() { attach };
             }
         }
 

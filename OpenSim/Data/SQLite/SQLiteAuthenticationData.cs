@@ -129,8 +129,7 @@ namespace OpenSim.Data.SQLite
 
         public bool Store(AuthenticationData data)
         {
-            if (data.Data.ContainsKey("UUID"))
-                data.Data.Remove("UUID");
+            data.Data.Remove("UUID");
 
             string[] fields = new List<string>(data.Data.Keys).ToArray();
             string[] values = new string[data.Data.Count];

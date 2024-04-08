@@ -1674,10 +1674,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                     catch (Exception e)
                     {
                         m_log.Debug(
-                            string.Format(
-                                "[PROFILES]: Request using the OpenProfile API for user {0} to {1} failed",
-                                properties.UserId, serverURI),
-                            e);
+                                $"[PROFILES]: Request using the OpenProfile API for user {properties.UserId} to {serverURI} failed: {e.Message}");
 
                         // Allow the return 'message' to say "JsonRpcRequest" and not "OpenProfile", because
                         // the most likely reason that OpenProfile failed is that the remote server

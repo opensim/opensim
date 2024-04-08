@@ -695,8 +695,8 @@ namespace OSHttpServer
                 m_stream.EndWrite(res);
 
                 ContextTimeoutManager.ContextLeaveActiveSend();
-                didleave = true;
                 m_currentResponse.CheckSendNextAsyncContinue();
+                didleave = true;
             }
             catch (Exception e)
             {

@@ -107,10 +107,8 @@ namespace OpenSim.Data.PGSQL
 
         public bool Store(AuthenticationData data)
         {
-            if (data.Data.ContainsKey("UUID"))
-                data.Data.Remove("UUID");
-            if (data.Data.ContainsKey("uuid"))
-                data.Data.Remove("uuid");
+            data.Data.Remove("UUID");
+            data.Data.Remove("uuid");
 
             /*
             Dictionary<string, object> oAuth = new Dictionary<string, object>();

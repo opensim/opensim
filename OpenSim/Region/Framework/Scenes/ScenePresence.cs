@@ -1234,7 +1234,9 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 */
                 scriptedcontrols.Clear();
+                // gc gets confused with this cycling
                 ControllingClient = null;
+                GodController = null; // gc gets confused with this cycling
             }
         }
 

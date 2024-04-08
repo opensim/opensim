@@ -26,11 +26,15 @@
  */
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.CompilerServices;
-//using log4net;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Xml;
+
+//using log4net;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -442,12 +446,141 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public string SerializeLinksetData()
+        public string ToJson()
         {
             lock (linksetDataLock)
             {
                 return JsonSerializer.Serialize<Dictionary<string, LinksetDataEntry>>(Data);
             }
+        }
+
+        public void ToXML(XmlTextWriter writer)
+        {
+            if (Data.Count < 1)
+                return;
+            using MemoryStream ms = new(m_MemoryUsed);
+            ToBin(ms);
+            if (ms.Length < 1)
+                return;
+
+            writer.WriteStartElement("lnkstdt");
+            writer.WriteBase64(ms.GetBuffer(), 0, (int)ms.Length);
+            writer.WriteEndElement();
+        }
+
+        public static LinksetData FromXML(ReadOnlySpan<char> data)
+        {
+            if (data.Length < 8)
+                return null;
+            int minLength = ((data.Length * 3) + 3) / 4;
+            byte[] bindata = ArrayPool<byte>.Shared.Rent(minLength);
+            try
+            {
+                if (Convert.TryFromBase64Chars(data, bindata, out int bytesWritten))
+                    return FromBin(bindata);
+            }
+            catch
+            {
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(bindata);
+            }
+            return  null;
+        }
+
+        public byte[] ToBin()
+        {
+            if(Data.Count < 1)
+                return null;
+
+            using MemoryStream ms = new(m_MemoryUsed);
+            ToBin(ms);
+            return ms.Length > 0 ? ms.ToArray() : null;
+        }
+
+        public void ToBin(MemoryStream ms)
+        {
+            try
+            {
+                using BinaryWriter bw = new BinaryWriter(ms, System.Text.Encoding.UTF8, true);
+                bw.Write((byte)1); // storage version
+                bw.Write7BitEncodedInt(m_MemoryLimit);
+                lock (linksetDataLock)
+                {
+                    bw.Write7BitEncodedInt(Data.Count);
+                    foreach (var kvp in Data)
+                    {
+                        bw.Write(kvp.Key);
+                        bw.Write(kvp.Value.Value);
+                        if(kvp.Value.IsProtected)
+                            bw.Write(kvp.Value.Password);
+                        else
+                            bw.Write((byte)0);
+                    }
+                }
+                return;
+            }
+            catch { }
+            ms.SetLength(0);
+        }
+        public static LinksetData FromBin(byte[] data)
+        {
+            if (data.Length < 8)
+                return null;
+
+            try
+            {
+                using BinaryReader br = new BinaryReader(new MemoryStream(data));
+                int version = br.Read7BitEncodedInt();
+                int memoryLimit = br.Read7BitEncodedInt();
+                if(memoryLimit < 0 || memoryLimit > 256 * 1024)
+                    memoryLimit = 256 * 1024;
+
+                int count = br.Read7BitEncodedInt();
+                if(count == 0)
+                    return null;
+                LinksetData ld = new LinksetData(memoryLimit);
+                for(int i = 0; i < count; i++)
+                {
+                    string key = br.ReadString();
+                    if (key.Length == 0)
+                        continue;
+                    ld.m_MemoryUsed += key.Length;
+
+                    string value = br.ReadString();
+                    if(value.Length == 0)
+                        continue;
+                    ld.m_MemoryUsed += value.Length;
+
+                    string pass = br.ReadString();
+                    ld.m_MemoryUsed += pass.Length;
+                    if(ld.m_MemoryUsed > memoryLimit)
+                        break;
+
+                    if(pass.Length > 0)
+                    {
+                        ld.Data[key] = new LinksetDataEntry()
+                        {
+                            Value = value,
+                            Password = pass
+                        };
+                    }
+                    else
+                    {
+                        ld.Data[key] = new LinksetDataEntry()
+                        {
+                            Value = value,
+                            Password = null
+                        };
+                    }
+                }
+                return ld;
+            }
+            catch
+            {
+            }
+            return null;
         }
     }
 

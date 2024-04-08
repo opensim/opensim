@@ -657,6 +657,12 @@ namespace OpenSim.Data.SQLite
 
                             SceneObjectGroup group = new SceneObjectGroup(prim);
 
+                            if (primRow["lnkstBinData"] is not DBNull)
+                            {
+                                byte[] data = (byte[])primRow["lnkstBinData"];
+                                group.LinksetData = LinksetData.FromBin(data);
+                            }
+
                             createdObjects.Add(group.UUID, group);
                             retvals.Add(group);
                             LoadItems(prim);
@@ -1243,6 +1249,8 @@ namespace OpenSim.Data.SQLite
 
             createCol(prims, "pseudocrc", typeof(int));
             createCol(prims, "sopanims", typeof(byte[]));
+
+            createCol(prims, "lnkstBinData", typeof(byte[]));
 
             // Add in contraints
             prims.PrimaryKey = new DataColumn[] { prims.Columns["UUID"] };
@@ -2196,6 +2204,10 @@ namespace OpenSim.Data.SQLite
             row["pseudocrc"] = prim.PseudoCRC;
             row["sopanims"] = prim.SerializeAnimations();
 
+            if (prim.IsRoot && prim.ParentGroup.LinksetData is not null)
+                row["lnkstBinData"] = prim.ParentGroup.LinksetData.ToBin();
+            else
+                row["lnkstBinData"] = null;
         }
 
         /// <summary>

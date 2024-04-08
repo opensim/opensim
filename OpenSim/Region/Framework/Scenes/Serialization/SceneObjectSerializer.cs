@@ -143,8 +143,12 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 string innerkeytxt = reader.ReadElementContentAsString();
                 sceneObject.RootPart.KeyframeMotion = KeyframeMotion.FromData(sceneObject, Convert.FromBase64String(innerkeytxt));
             }
-            else
-                sceneObject.RootPart.KeyframeMotion = null;
+
+            if (reader.Name == "lnkstdt" && reader.NodeType == XmlNodeType.Element)
+            {
+                string innerlnkstdttxt = reader.ReadElementContentAsString();
+                sceneObject.LinksetData = LinksetData.FromXML(innerlnkstdttxt.AsSpan());
+            }
 
             // Script state may, or may not, exist. Not having any, is NOT
             // ever a problem.
@@ -255,6 +259,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 writer.WriteEndElement();
             }
 
+            sceneObject.LinksetData?.ToXML(writer);
+
             if (doScriptStates)
                 sceneObject.SaveScriptedState(writer);
 
@@ -325,8 +331,10 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 XmlNodeList keymotion = doc.GetElementsByTagName("KeyframeMotion");
                 if (keymotion.Count > 0)
                     sceneObject.RootPart.KeyframeMotion = KeyframeMotion.FromData(sceneObject, Convert.FromBase64String(keymotion[0].InnerText));
-                else
-                    sceneObject.RootPart.KeyframeMotion = null;
+
+                XmlNodeList keylinksetdata = doc.GetElementsByTagName("lnkstdt");
+                if (keylinksetdata.Count > 0)
+                    sceneObject.LinksetData = LinksetData.FromXML(keylinksetdata[0].InnerText.AsSpan());
 
                 // Script state may, or may not, exist. Not having any, is NOT
                 // ever a problem.

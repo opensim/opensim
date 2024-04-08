@@ -546,7 +546,7 @@ namespace OpenSim.Services.GridService
 
             if (localGrid)
             {
-                if(uri.HasRegionName)
+                if (uri.HasRegionName)
                 {
                     RegionData rdata = m_Database.GetSpecific(uri.RegionName, scopeID);
                     if (rdata != null)
@@ -581,6 +581,40 @@ namespace OpenSim.Services.GridService
 
             GridRegion r = m_HypergridLinker.LinkRegion(scopeID, uri);
             return r;
+        }
+
+        public GridRegion GetLocalRegionByName(UUID scopeID, string name)
+        {
+            var nameURI = new RegionURI(name);
+            return GetLocalRegionByURI(scopeID, nameURI);
+        }
+
+        public GridRegion GetLocalRegionByURI(UUID scopeID, RegionURI uri)
+        {
+            if (!uri.IsValid)
+                return null;
+
+            if (uri.HasHost)
+            {
+                if (!uri.ResolveDNS())
+                    return null;
+                if(!m_HypergridLinker.IsLocalGrid(uri.HostUrl))
+                return null;
+            }
+
+            if (uri.HasRegionName)
+            {
+                RegionData rdata = m_Database.GetSpecific(uri.RegionName, scopeID);
+                if (rdata != null)
+                    return RegionData2RegionInfo(rdata);
+            }
+            else
+            {
+                List<GridRegion> defregs = GetDefaultRegions(scopeID);
+                if (defregs != null)
+                    return defregs[0];
+            }
+            return null;
         }
 
         public List<GridRegion> GetRegionsByName(UUID scopeID, string name, int maxNumber)
