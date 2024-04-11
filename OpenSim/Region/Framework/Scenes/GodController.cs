@@ -240,9 +240,8 @@ namespace OpenSim.Region.Framework.Scenes
             if(state != null)
             {
                 OSDMap s = (OSDMap)state;
-
-                if (s.ContainsKey("ViewerUiIsGod"))
-                    newstate = s["ViewerUiIsGod"].AsBoolean();
+                if (s.TryGetValue("ViewerUiIsGod", out OSD tmp))
+                    newstate = tmp.AsBoolean();
                 m_lastLevelToViewer = m_viewergodlevel; // we are not changing viewer level by default
             }       
             UpdateGodLevels(newstate);

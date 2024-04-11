@@ -846,6 +846,8 @@ namespace Amib.Threading
                     continue;
 
                 Thread thread = te.WorkThread;
+                if(thread is null)
+                    continue;
 
                 // Join don't work with negative numbers
                 if (!waitInfinitely && (millisecondsLeft < 0))
