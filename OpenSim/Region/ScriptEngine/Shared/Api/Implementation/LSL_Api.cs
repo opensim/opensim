@@ -833,9 +833,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return Math.Tan(f);
         }
 
-        public LSL_Float llAtan2(LSL_Float x, LSL_Float y)
+        public LSL_Float llAtan2(LSL_Float y, LSL_Float x)
         {
-            return Math.Atan2(x, y);
+            return Math.Atan2(y, x);
         }
 
         public LSL_Float llSqrt(double f)

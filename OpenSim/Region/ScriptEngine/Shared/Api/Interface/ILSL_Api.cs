@@ -43,7 +43,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
     {
         void state(string newState);
 
+                   //ApiDesc Returns absolute version as val (ie as postive value)
        LSL_Integer llAbs(LSL_Integer val);
+                   //ApiDesc Returns cosine of val (val in radians)
          LSL_Float llAcos(LSL_Float val);
                    //ApiDesc Sleep 0.1
               void llAddToLandBanList(LSL_Key avatarId, LSL_Float hours);
@@ -55,8 +57,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
          LSL_Float llAngleBetween(LSL_Rotation a, LSL_Rotation b);
               void llApplyImpulse(LSL_Vector force, LSL_Integer local);
               void llApplyRotationalImpulse(LSL_Vector force, int local);
+                   //ApiDesc Returns sine of val (val in radians)
          LSL_Float llAsin(LSL_Float val);
-         LSL_Float llAtan2(LSL_Float x, LSL_Float y);
+                   //ApiDesc Returns the angle whose tangent is the y/x
+         LSL_Float llAtan2(LSL_Float y, LSL_Float x);
               void llAttachToAvatar(LSL_Integer attachment);
               void llAttachToAvatarTemp(LSL_Integer attachmentPoint);
            LSL_Key llAvatarOnSitTarget();
