@@ -82,8 +82,8 @@ namespace OpenSim.Framework.Servers
             m_osSecret = UUID.Random().ToString();
         }
 
-        private static bool m_NoVerifyCertChain = false;
-        private static bool m_NoVerifyCertHostname = false;
+        private static bool m_NoVerifyCertChain = true;
+        private static bool m_NoVerifyCertHostname = true;
 
         public static bool ValidateServerCertificate(
             object sender,
