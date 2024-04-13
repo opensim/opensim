@@ -71,8 +71,9 @@ namespace OSHttpServer
         /// <returns><see cref="HttpInputItem.Empty"/> if no item was found.</returns>
         public HttpInputItem this[string name]
         {
-            get {
-                return _items.ContainsKey(name) ? _items[name] : Empty;
+            get
+            {
+                return _items.TryGetValue(name, out HttpInputItem hii) ? hii : Empty;
             }
         }
 
@@ -144,7 +145,7 @@ namespace OSHttpServer
         /// <returns>true if the sub-item exists and has a value; otherwise false.</returns>
         public bool Contains(string name)
         {
-            return _items.ContainsKey(name) && _items[name].Value != null;
+            return _items.TryGetValue(name, out HttpInputItem hii) && hii.Value != null;
         }
 
         /// <summary> Returns a formatted representation of the instance with the values of all contained parameters </summary>
@@ -216,7 +217,7 @@ namespace OSHttpServer
         {
             get 
             {
-                return _items.ContainsKey(name) ? _items[name] : Empty;
+                return _items.TryGetValue(name, out HttpInputItem hii) ? hii : Empty;
             }
         }
 

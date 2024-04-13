@@ -28,8 +28,17 @@ To run OpenSim from a command prompt
 
 # Running OpenSim on Linux/Mac
 
-You will need dotnet 6.0 runtime for linux or Mac (https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
+You will need
 
+ * [dotnet 6.0 Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
+ * libgdiplus 
+ 
+ if you have mono 6.x complete, you already have libgdiplus, otherwise you need to install it
+ using a package manager for your operating system, like apt, brew, macports, etc
+ for example on debian:
+ 
+ `apt-get update && apt-get install -y apt-utils libgdiplus libc6-dev`
+ 
 To run OpenSim, from the unpacked distribution type:
 
  * cd bin

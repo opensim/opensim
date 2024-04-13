@@ -123,9 +123,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public LSL_Float llAtan2(LSL_Float x, LSL_Float y)
+        public LSL_Float llAtan2(LSL_Float y, LSL_Float x)
         {
-            return m_LSL_Functions.llAtan2(x, y);
+            return m_LSL_Functions.llAtan2(y, x);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

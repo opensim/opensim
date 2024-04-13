@@ -799,21 +799,21 @@ namespace Amib.Threading
         /// </summary>
         public void Shutdown()
         {
-            Shutdown(true, 0);
+            Shutdown(0);
         }
 
         /// <summary>
         /// Force the SmartThreadPool to shutdown with timeout
         /// </summary>
-        public void Shutdown(bool forceAbort, TimeSpan timeout)
+        public void Shutdown(TimeSpan timeout)
         {
-            Shutdown(forceAbort, (int)timeout.TotalMilliseconds);
+            Shutdown((int)timeout.TotalMilliseconds);
         }
 
         /// <summary>
         /// Empties the queue of work items and abort the threads in the pool.
         /// </summary>
-        public void Shutdown(bool forceAbort, int millisecondsTimeout)
+        public void Shutdown(int millisecondsTimeout)
         {
             ValidateNotDisposed();
 
@@ -835,69 +835,41 @@ namespace Amib.Threading
 
             int millisecondsLeft = millisecondsTimeout;
             Stopwatch stopwatch = Stopwatch.StartNew();
-            //DateTime start = DateTime.UtcNow;
-            bool waitInfinitely = (Timeout.Infinite == millisecondsTimeout);
-            bool timeout = false;
-
-            // Each iteration we update the time left for the timeout.
-            foreach (ThreadEntry te in threadEntries)
+            if (millisecondsLeft >= Timeout.Infinite)
             {
-                if (te is null)
-                    continue;
-
-                Thread thread = te.WorkThread;
-
-                // Join don't work with negative numbers
-                if (!waitInfinitely && (millisecondsLeft < 0))
-                {
-                    timeout = true;
-                    break;
-                }
-
-                // Wait for the thread to terminate
-                bool success = thread.Join(millisecondsLeft);
-                if (!success)
-                {
-                    timeout = true;
-                    break;
-                }
-
-                if (!waitInfinitely)
-                {
-                    // Update the time left to wait
-                    //TimeSpan ts = DateTime.UtcNow - start;
-                    millisecondsLeft = millisecondsTimeout - (int)stopwatch.ElapsedMilliseconds;
-                }
-                te.WorkThread = null;
-            }
-
-            if (timeout && forceAbort)
-            {
-                // Abort the threads in the pool
                 foreach (ThreadEntry te in threadEntries)
                 {
                     if (te is null)
                         continue;
 
                     Thread thread = te.WorkThread;
-                    if (thread is not null && thread.IsAlive )
+                    if(thread is null)
+                        continue;
+
+                    if (thread.IsAlive)
                     {
-                        try
+                        // Wait for the thread to terminate
+                        _ = thread.Join(millisecondsLeft);
+
+                        if (millisecondsLeft > 0)
                         {
-                            //thread.Abort(); // Shutdown
-                            te.WorkThread = null;
-                        }
-                        catch (SecurityException e)
-                        {
-                            e.GetHashCode();
-                        }
-                        catch (ThreadStateException ex)
-                        {
-                            ex.GetHashCode();
-                            // In case the thread has been terminated 
-                            // after the check if it is alive.
+                            // Update the time left to wait
+                            millisecondsLeft = millisecondsTimeout - (int)stopwatch.ElapsedMilliseconds;
+                            if (millisecondsLeft < 0)
+                                millisecondsLeft= 0;
                         }
                     }
+                    te.WorkThread = null;
+                }
+            }
+            else
+            {
+                // there is no Abort in dotnet > 5, so we can't do anything
+                foreach (ThreadEntry te in threadEntries)
+                {
+                    if (te is null)
+                        continue;
+                    te.WorkThread = null;
                 }
             }
         }
