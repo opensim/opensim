@@ -34,6 +34,9 @@ namespace OpenSim.Framework
         public const int MaxAgentAttachments = 38;
         public const int MaxAgentGroups = 60;
 
+        public const int MaxEstateAccessIds = 500;
+        public const int MaxEstateManagers = 20;
+
         // 'RegionSize' is the legacy region size.
         // DO NOT USE THIS FOR ANY NEW CODE. Use Scene.RegionInfo.RegionSize[XYZ] as a region might not
         //      be the legacy region size.
@@ -55,6 +58,11 @@ namespace OpenSim.Framework
         public const float MaxTerrainHeightmap = 4000f;
         public const float MinWaterHeight = 0;
         public const float MaxWaterHeight = 8000f;
+
+        public const int MaxTextureResolution = 1024;
+
+        public const int RenderMaterialsCapability = 4;
+
 
         public static readonly string DefaultTexture = "89556747-24cb-43ed-920b-47caed15465f"; //plywood
         public static readonly UUID DefaultTextureID = new UUID(DefaultTexture);
@@ -88,10 +96,10 @@ namespace OpenSim.Framework
 
         public enum EstateAccessLimits : int
         {
-            AllowedAccess = 500,
+            AllowedAccess = MaxEstateAccessIds,
             AllowedGroups = 63,
             EstateBans = 500,
-            EstateManagers = 15
+            EstateManagers = MaxEstateManagers
         }
 
         [Flags]public enum TeleportFlags : uint
