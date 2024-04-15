@@ -128,8 +128,8 @@ namespace OpenSim.Region.OptionalModules.Materials
             ISimulatorFeaturesModule featuresModule = scene.RequestModuleInterface<ISimulatorFeaturesModule>();
             if (featuresModule is not null)
             {
-                featuresModule.AddOpenSimExtraFeature("MaxMaterialsPerTransaction", m_maxMaterialsPerTransaction);
-                featuresModule.AddOpenSimExtraFeature("RenderMaterialsCapability", 3.0f);
+                featuresModule.AddFeature("MaxMaterialsPerTransaction", m_maxMaterialsPerTransaction);
+                featuresModule.AddFeature("RenderMaterialsCapability", 4);
             }
         }
 

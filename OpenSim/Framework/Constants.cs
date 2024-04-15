@@ -61,9 +61,6 @@ namespace OpenSim.Framework
 
         public const int MaxTextureResolution = 1024;
 
-        public const int RenderMaterialsCapability = 4;
-
-
         public static readonly string DefaultTexture = "89556747-24cb-43ed-920b-47caed15465f"; //plywood
         public static readonly UUID DefaultTextureID = new UUID(DefaultTexture);
 
