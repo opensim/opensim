@@ -901,7 +901,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //TerrainBase1
             //TerrainBase2
             //TerrainBase3
-            // this seem not obsolete, sending zero uuids
+            // this seem now obsolete, sending zero uuids
             // we should send the basic low resolution default ?
             zc.AddZeros(16 * 4);
             //TerrainDetail0
@@ -5520,7 +5520,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         inner = $"{{'id':i{sop.LocalId},'od':[],'te':[]}}";
 
                     byte[] innerB = Util.UTF8NBGetbytes(inner);
-                    if (innerB.Length > 4096 - 16)
+                    if (innerB.Length > UDPPacketBuffer.BUFFER_SIZE - 16)
                     {
                         m_log.Debug($"[LLCLIENTVIEW]: GenericStreamingMessage packet too large ({innerB.Length})");
                         continue;

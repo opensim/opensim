@@ -26,8 +26,6 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Reflection;
 
 using log4net;
 using Nini.Config;
@@ -44,14 +42,35 @@ using Caps = OpenSim.Framework.Capabilities.Caps;
 [assembly: AddinDependency("OpenSim.Region.Framework", OpenSim.VersionInfo.VersionNumber)]
 namespace OpenSim.Region.ClientStack.Linden
 {
+    public class BunchOfCapsConfigOptions
+    {
+        public ModelCost ModelCost;
+
+        public bool persistBakedTextures = false;
+        public bool enableModelUploadTextureToInventory = true; // place uploaded textures also in inventory
+                                                                // may not be visible till relog
+        public bool enableFreeTestUpload = false; // allows "TEST-" prefix hack
+        public bool ForceFreeTestUpload = false; // forces all uploads to be test
+
+        public bool RestrictFreeTestUploadPerms = false; // reduces also the permitions. Needs a creator defined!!
+
+        public int levelUpload = 0;
+
+        public bool AllowCapHomeLocation = true;
+        public bool AllowCapGroupMemberData = true;
+        public bool AllowCapLandResources = true;
+        public bool AllowCapAttachmentResources = true;
+
+        public UUID testAssetsCreatorID = UUID.Zero;
+    }
 
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "BunchOfCapsModule")]
     public class BunchOfCapsModule : INonSharedRegionModule
     {
-//        private static readonly ILog m_log =
-//            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Scene m_Scene;
+        private BunchOfCapsConfigOptions ConfigOptions = new();
 
         #region INonSharedRegionModule
 
@@ -68,7 +87,6 @@ namespace OpenSim.Region.ClientStack.Linden
         public void AddRegion(Scene scene)
         {
             m_Scene = scene;
-            m_Scene.EventManager.OnRegisterCaps += OnRegisterCaps;
         }
 
         public void RemoveRegion(Scene scene)
@@ -77,6 +95,70 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void RegionLoaded(Scene scene)
         {
+            ConfigOptions.ModelCost = new ModelCost(m_Scene);
+
+            IConfigSource config = m_Scene.Config;
+            if (config is not null)
+            {
+                IConfig sconfig = config.Configs["Startup"];
+                if (sconfig is not null)
+                    ConfigOptions.levelUpload = sconfig.GetInt("LevelUpload", 0);
+
+                if (ConfigOptions.levelUpload == 0)
+                {
+                    IConfig pconfig = config.Configs["Permissions"];
+                    if (pconfig is not null)
+                        ConfigOptions.levelUpload = pconfig.GetInt("LevelUpload", 0);
+                }
+
+                IConfig appearanceConfig = config.Configs["Appearance"];
+                if (appearanceConfig is not null)
+                {
+                    ConfigOptions.persistBakedTextures = appearanceConfig.GetBoolean("PersistBakedTextures", ConfigOptions.persistBakedTextures);
+                }
+                // economy for model upload
+                IConfig EconomyConfig = config.Configs["Economy"];
+                if (EconomyConfig is not null)
+                {
+                    ConfigOptions.ModelCost.Econfig(EconomyConfig);
+
+                    ConfigOptions.enableModelUploadTextureToInventory =
+                        EconomyConfig.GetBoolean("MeshModelAllowTextureToInventory", ConfigOptions.enableModelUploadTextureToInventory);
+
+                    ConfigOptions.RestrictFreeTestUploadPerms =
+                        EconomyConfig.GetBoolean("m_RestrictFreeTestUploadPerms", ConfigOptions.RestrictFreeTestUploadPerms);
+
+                    ConfigOptions.enableFreeTestUpload = EconomyConfig.GetBoolean("AllowFreeTestUpload", ConfigOptions.enableFreeTestUpload);
+
+                    ConfigOptions.ForceFreeTestUpload =
+                        EconomyConfig.GetBoolean("ForceFreeTestUpload", ConfigOptions.ForceFreeTestUpload);
+
+                    string testcreator = EconomyConfig.GetString("TestAssetsCreatorID", "");
+                    if (!string.IsNullOrEmpty(testcreator))
+                    {
+                        if (UUID.TryParse(testcreator, out UUID id))
+                            ConfigOptions.testAssetsCreatorID = id;
+                    }
+                }
+
+                IConfig CapsConfig = config.Configs["ClientStack.LindenCaps"];
+                if (CapsConfig is not null)
+                {
+                    string homeLocationUrl = CapsConfig.GetString("Cap_HomeLocation", "localhost");
+                    ConfigOptions.AllowCapHomeLocation = !string.IsNullOrEmpty(homeLocationUrl);
+
+                    string GroupMemberDataUrl = CapsConfig.GetString("Cap_GroupMemberData", "localhost");
+                    ConfigOptions.AllowCapGroupMemberData = !string.IsNullOrEmpty(GroupMemberDataUrl);
+
+                    string LandResourcesUrl = CapsConfig.GetString("Cap_LandResources", "localhost");
+                    ConfigOptions.AllowCapLandResources = !string.IsNullOrEmpty(LandResourcesUrl);
+
+                    string AttachmentResourcesUrl = CapsConfig.GetString("Cap_AttachmentResources", "localhost");
+                    ConfigOptions.AllowCapAttachmentResources = !string.IsNullOrEmpty(AttachmentResourcesUrl);
+                }
+
+                m_Scene.EventManager.OnRegisterCaps += OnRegisterCaps;
+            }
         }
 
         public void PostInitialise() { }
@@ -84,7 +166,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private void OnRegisterCaps(UUID agentID, Caps caps)
         {
-            new BunchOfCaps(m_Scene, agentID, caps);
+            _ = new BunchOfCaps(m_Scene, agentID, caps, ConfigOptions);
         }
 
     }
