@@ -23,7 +23,7 @@ namespace OpenSim.Region.ClientStack.Linden
 {
         public void DispatchRegionInfo(IOSHttpRequest request, IOSHttpResponse response, OSDMap map)
         {
-            m_log.Debug("[CAPS]: DispatchRegionInfo Request in region: " + m_regionName + "\n");
+            //m_log.Debug("[CAPS]: DispatchRegionInfo Request in region: " + m_regionName + "\n");
 
             if (request.HttpMethod != "POST")
             {

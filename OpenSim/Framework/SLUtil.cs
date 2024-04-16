@@ -29,6 +29,7 @@ using OpenMetaverse;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 
 namespace OpenSim.Framework
 {
@@ -255,96 +256,77 @@ namespace OpenSim.Framework
             foreach (TypeMapping mapping in MAPPINGS)
             {
                 sbyte assetType = mapping.AssetTypeCode;
-                if (!asset2Content.ContainsKey(assetType))
-                    asset2Content.Add(assetType, mapping.ContentType);
+                asset2Content.TryAdd(assetType, mapping.ContentType);
+                asset2Extension.TryAdd(assetType, mapping.Extension);
 
-                if (!asset2Extension.ContainsKey(assetType))
-                    asset2Extension.Add(assetType, mapping.Extension);
+                inventory2Content.TryAdd(mapping.InventoryType, mapping.ContentType);
 
-                if (!inventory2Content.ContainsKey(mapping.InventoryType))
-                    inventory2Content.Add(mapping.InventoryType, mapping.ContentType);
+                content2Asset.TryAdd(mapping.ContentType, assetType);
 
-                if (!content2Asset.ContainsKey(mapping.ContentType))
-                    content2Asset.Add(mapping.ContentType, assetType);
-
-                if (!content2Inventory.ContainsKey(mapping.ContentType))
-                    content2Inventory.Add(mapping.ContentType, mapping.InventoryType);
+                content2Inventory.TryAdd(mapping.ContentType, mapping.InventoryType);
 
                 if (mapping.ContentType2 != null)
                 {
-                    if (!content2Asset.ContainsKey(mapping.ContentType2))
-                        content2Asset.Add(mapping.ContentType2, assetType);
-                    if (!content2Inventory.ContainsKey(mapping.ContentType2))
-                        content2Inventory.Add(mapping.ContentType2, mapping.InventoryType);
+                    content2Asset.TryAdd(mapping.ContentType2, assetType);
+                    content2Inventory.TryAdd(mapping.ContentType2, mapping.InventoryType);
                 }
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static AssetType SLAssetName2Type(string name)
         {
-            if (name2Asset.TryGetValue(name, out AssetType type))
-                return type;
-            return AssetType.Unknown;
+             return name2Asset.TryGetValue(name, out AssetType type) ? type : AssetType.Unknown;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static FolderType SLInvName2Type(string name)
         {
-            if (name2Inventory.TryGetValue(name, out FolderType type))
-                return type;
-            return FolderType.None;
+            return name2Inventory.TryGetValue(name, out FolderType type) ? type : FolderType.None;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string SLAssetTypeToContentType(int assetType)
         {
-            string contentType;
-            if (!asset2Content.TryGetValue((sbyte)assetType, out contentType))
-                contentType = asset2Content[(sbyte)AssetType.Unknown];
-            return contentType;
+            return asset2Content.TryGetValue((sbyte)assetType, out string contentType) ? contentType : asset2Content[(sbyte)AssetType.Unknown];
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string SLInvTypeToContentType(int invType)
         {
-            string contentType;
-            if (!inventory2Content.TryGetValue((sbyte)invType, out contentType))
-                contentType = inventory2Content[(sbyte)InventoryType.Unknown];
-            return contentType;
+            return inventory2Content.TryGetValue((sbyte)invType, out string contentType) ? contentType : inventory2Content[(sbyte)InventoryType.Unknown];
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static sbyte ContentTypeToSLAssetType(string contentType)
         {
-            sbyte assetType;
-            if (!content2Asset.TryGetValue(contentType, out assetType))
-                assetType = (sbyte)AssetType.Unknown;
-            return (sbyte)assetType;
+            return content2Asset.TryGetValue(contentType, out sbyte assetType) ? assetType : (sbyte)AssetType.Unknown;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static sbyte ContentTypeToSLInvType(string contentType)
         {
-            sbyte invType;
-            if (!content2Inventory.TryGetValue(contentType, out invType))
-                invType = (sbyte)InventoryType.Unknown;
-            return (sbyte)invType;
+            return content2Inventory.TryGetValue(contentType, out sbyte invType) ? invType : (sbyte)InventoryType.Unknown;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string SLAssetTypeToExtension(int assetType)
         {
-            string extension;
-            if (!asset2Extension.TryGetValue((sbyte)assetType, out extension))
-                extension = asset2Extension[(sbyte)AssetType.Unknown];
-            return extension;
+            return asset2Extension.TryGetValue((sbyte)assetType, out string extension) ? extension : asset2Extension[(sbyte)AssetType.Unknown];
         }
 
         #endregion SL / file extension / content-type conversions
 
-        static char[] seps = new char[] { '\t', '\n' };
-        static char[] stringseps = new char[] { '|', '\n' };
+        static readonly char[] seps = new char[] { '\t', '\n' };
+        static readonly char[] stringseps = new char[] { '|', '\n' };
 
         static byte[] moronize = new byte[16]
         {
             60, 17, 94, 81, 4, 244, 82, 60, 159, 166, 152, 175, 241, 3, 71, 48
         };
 
-        static int getField(string note, int start, string name, bool isString, out string value)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int SliceIndexOf(ReadOnlySpan<char> s, int start, ReadOnlySpan<char> n)
         {
             value = String.Empty;
             int end = -1;
