@@ -326,7 +326,7 @@ namespace OpenSim.Framework
         };
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int SliceIndexOf(ReadOnlySpan<char> s, int start, ReadOnlySpan<char> n)
+        static int getField(string note, int start, string name, bool isString, out string value)
         {
             value = String.Empty;
             int end = -1;
