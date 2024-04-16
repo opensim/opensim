@@ -73,7 +73,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private bool m_ExportSupported = false;
 
-        private bool m_doScriptSyntax;
+        private bool m_doScriptSyntax = true;
 
         static private readonly object m_scriptSyntaxLock = new();
         static private UUID m_scriptSyntaxID = UUID.Zero;
@@ -84,7 +84,6 @@ namespace OpenSim.Region.ClientStack.Linden
         public void Initialise(IConfigSource source)
         {
             IConfig config = source.Configs["SimulatorFeatures"];
-            m_doScriptSyntax = true;
             if (config != null)
             {
                 m_ExportSupported = config.GetBoolean("ExportSupported", m_ExportSupported);
@@ -134,39 +133,48 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             lock (m_features)
             {
-                m_features["MeshRezEnabled"] = true;
-                m_features["MeshUploadEnabled"] = true;
-                m_features["MeshXferEnabled"] = true;
+                m_features["AnimatedObjects"] = new OSDMap()
+                {
+                    ["AnimatedObjectMaxTris"] = OSD.FromInteger(150000),
+                    ["MaxAgentAnimatedObjectAttachments"] = OSD.FromInteger(2)
+                };
 
                 m_features["BakesOnMeshEnabled"] = true;
-
-                m_features["PhysicsMaterialsEnabled"] = true;
-                OSDMap typesMap = new();
-                typesMap["convex"] = true;
-                typesMap["none"] = true;
-                typesMap["prim"] = true;
-                m_features["PhysicsShapeTypes"] = typesMap;
 
                 if(m_doScriptSyntax && !m_scriptSyntaxID.IsZero())
                     m_features["LSLSyntaxId"] = OSD.FromUUID(m_scriptSyntaxID);
 
-                OSDMap meshAnim = new();
-                meshAnim["AnimatedObjectMaxTris"] = OSD.FromInteger(150000);
-                meshAnim["MaxAgentAnimatedObjectAttachments"] = OSD.FromInteger(2);
-                m_features["AnimatedObjects"] = meshAnim;
-
                 m_features["MaxAgentAttachments"] = OSD.FromInteger(Constants.MaxAgentAttachments);
+                m_features["MaxAgentGroups"] = OSD.FromInteger(Constants.MaxAgentGroups);
                 m_features["MaxAgentGroupsBasic"] = OSD.FromInteger(Constants.MaxAgentGroups);
                 m_features["MaxAgentGroupsPremium"] = OSD.FromInteger(Constants.MaxAgentGroups);
 
-                // Extra information for viewers that want to use it
-                OSDMap extrasMap;
-                if(m_features.TryGetValue("OpenSimExtras", out OSD oe))
+                m_features["MaxEstateAccessIds"] = OSD.FromInteger(Constants.MaxEstateAccessIds);
+                m_features["MaxEstateManagers"] = OSD.FromInteger(Constants.MaxEstateManagers);
+
+                m_features["MaxTextureResolution"] = OSD.FromInteger(Constants.MaxTextureResolution);
+
+                m_features["MeshRezEnabled"] = true;
+                m_features["MeshUploadEnabled"] = true;
+                m_features["MeshXferEnabled"] = true;
+
+                /*
+                m_features["MirrorsEnabled"] = false;
+                m_features["PBRMaterialSwatchEnabled"] = false;
+                m_features["PBRTerrainEnabled"] = false;
+                */
+
+                m_features["PhysicsMaterialsEnabled"] = true;
+
+                m_features["PhysicsShapeTypes"] = new OSDMap()
                 {
-                    extrasMap = oe as OSDMap;
-                }
-                else
-                    extrasMap = new OSDMap();
+                    ["convex"] = true,
+                    ["none"] = true,
+                    ["prim"] = true
+                };
+
+                // Extra information for viewers that want to use it
+                OSDMap extrasMap = m_features.TryGetValue("OpenSimExtras", out OSD oe) ? oe as OSDMap : new OSDMap();
 
                 extrasMap["AvatarSkeleton"] = true;
                 extrasMap["AnimationSet"] = true;

@@ -54,11 +54,12 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
     public class SpecialUIModule : INonSharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private const string VIEWER_SUPPORT_DIR = "ViewerSupport";
 
         private Scene m_scene;
         private SimulatorFeaturesHelper m_Helper;
-        private bool m_Enabled;
+        private bool m_Enabled = false;
         private int m_UserLevel;
 
         public string Name

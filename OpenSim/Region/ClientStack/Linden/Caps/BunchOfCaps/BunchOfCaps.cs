@@ -286,6 +286,9 @@ namespace OpenSim.Region.ClientStack.Linden
                     m_HostCapsObj.RegisterSimpleHandler("AttachmentResources",
                         new SimpleStreamHandler(GetNewCapPath(), AttachmentResources));
                 }
+
+                m_HostCapsObj.RegisterSimpleHandler("DispatchRegionInfo",
+                    new SimpleOSDMapHandler("POST", GetNewCapPath(), DispatchRegionInfo), true);
             }
             catch (Exception e)
             {
