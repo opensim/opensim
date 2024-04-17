@@ -313,30 +313,6 @@ namespace OpenSim.Framework.Capabilities
             return caps;
         }
 
-        public Hashtable GetCapsDetails2(bool excludeSeed, HashSet<string> requestedCaps)
-        {
-            Hashtable caps = CapsHandlers.GetCapsDetails2(excludeSeed, requestedCaps);
-
-            lock (m_pollServiceHandlers)
-            {
-                foreach (KeyValuePair<string, PollServiceEventArgs> kvp in m_pollServiceHandlers)
-                {
-                    if (!requestedCaps.Contains(kvp.Key))
-                        continue;
-                    caps[kvp.Key] = m_baseCapsURL + kvp.Value.Url;
-                }
-            }
-
-            // Add the external too
-            foreach (KeyValuePair<string, string> kvp in ExternalCapsHandlers)
-            {
-                if (requestedCaps.Contains(kvp.Key))
-                    caps[kvp.Key] = kvp.Value;
-            }
-
-            return caps;
-        }
-
         public void GetCapsDetailsLLSDxml(HashSet<string> requestedCaps, osUTF8 sb)
         {
 

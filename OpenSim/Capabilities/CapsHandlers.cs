@@ -208,38 +208,6 @@ namespace OpenSim.Framework.Capabilities
             return caps;
         }
 
-        public Hashtable GetCapsDetails2(bool excludeSeed, HashSet<string> requestedCaps)
-        {
-            Hashtable caps = new Hashtable();
-            if (requestedCaps is null)
-            {
-                lock (m_capsHandlers)
-                {
-                    foreach (KeyValuePair<string, ISimpleStreamHandler> kvp in m_capsSimpleHandlers)
-                        caps[kvp.Key] = m_baseURL + kvp.Value.Path;
-                    foreach (KeyValuePair<string, IRequestHandler> kvp in m_capsHandlers)
-                        caps[kvp.Key] = m_baseURL + kvp.Value.Path;
-                }
-                return caps;
-            }
-
-            lock (m_capsHandlers)
-            {
-                foreach(string capsName in requestedCaps)
-                {
-                    if (excludeSeed && "SEED".Equals(capsName))
-                        continue;
-
-                    if (m_capsSimpleHandlers.TryGetValue(capsName, out ISimpleStreamHandler shdr))
-                        caps[capsName] = m_baseURL + shdr.Path;
-                    else if (m_capsHandlers.TryGetValue(capsName, out IRequestHandler chdr))
-                        caps[capsName] = m_baseURL + chdr.Path;
-                }
-            }
-
-            return caps;
-        }
-
         public void GetCapsDetailsLLSDxml(HashSet<string> requestedCaps, osUTF8 sb)
         {
             lock (m_capsHandlers)
