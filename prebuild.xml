@@ -298,6 +298,7 @@
       <Reference name="OpenSim.Framework.Servers.HttpServer"/>
       <Reference name="OpenSim.Services.Interfaces"/>
       <Reference name="OpenMetaverse"/>
+      <Reference name="OpenMetaverse.StructuredData"/>
       <Reference name="OpenMetaverseTypes"/>
       <Reference name="Nini"/>
       <Reference name="log4net"/>

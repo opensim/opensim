@@ -304,9 +304,8 @@ namespace OpenSim.Region.ClientStack.Linden
         /// <returns></returns>
         public void SeedCapRequest(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-            UUID agentID = m_HostCapsObj.AgentID;
             m_log.Debug(
-                $"[CAPS]: Received SEED caps request in {m_regionName} for agent {agentID}");
+                $"[CAPS]: Received SEED caps request in {m_regionName} for agent {m_HostCapsObj.AgentID}");
 
             if(httpRequest.HttpMethod != "POST" || httpRequest.ContentType != "application/llsd+xml")
             {
@@ -321,11 +320,10 @@ namespace OpenSim.Region.ClientStack.Linden
                 return;
             }
 
-            if (!m_Scene.CheckClient(agentID, httpRequest.RemoteIPEndPoint))
+            if (!m_Scene.CheckClient(m_HostCapsObj.AgentID, httpRequest.RemoteIPEndPoint))
             {
                 m_log.WarnFormat(
-                    "[CAPS]: Unauthorized CAPS client {0} from {1}",
-                    agentID, httpRequest.RemoteIPEndPoint);
+                    $"[CAPS]: Unauthorized CAPS client {m_HostCapsObj.AgentID} from {httpRequest.RemoteIPEndPoint}");
                 httpResponse.StatusCode = (int)HttpStatusCode.Forbidden;
                 return;
             }
@@ -346,19 +344,39 @@ namespace OpenSim.Region.ClientStack.Linden
             foreach (OSD c in capsRequested)
             {
                 string cstr = c.AsString();
-                if (cstr.Equals("ObjectAnimation"))
-                    m_HostCapsObj.Flags |= Caps.CapsFlags.ObjectAnim;
-                else if (cstr.Equals("EnvironmentSettings"))
-                    m_HostCapsObj.Flags |= Caps.CapsFlags.WLEnv;
-                else if (cstr.Equals("ExtEnvironment"))
-                    m_HostCapsObj.Flags |= Caps.CapsFlags.AdvEnv;
-                else if(cstr.Equals("ModifyMaterialParams")) // will not work if a viewer has no edit features
-                    m_HostCapsObj.Flags |= Caps.CapsFlags.PBR;
+                if (string.IsNullOrEmpty(cstr))
+                    continue;
+                switch (cstr)
+                {
+                    case "SEED":
+                        continue;
+                    case "ViewerBenefits": // this may need a proper cap but not currently
+                        m_HostCapsObj.Flags |= Caps.CapsFlags.ViewerBenefits;
+                        continue;
+                    case "ObjectAnimation":
+                         m_HostCapsObj.Flags |= Caps.CapsFlags.ObjectAnim;
+                        break;
+                    case "EnvironmentSettings":
+                        m_HostCapsObj.Flags |= Caps.CapsFlags.WLEnv;
+                        break;
+                    case "ExtEnvironment":
+                        m_HostCapsObj.Flags |= Caps.CapsFlags.AdvEnv;
+                        break;
+                    case "ModifyMaterialParams": // will not work if a viewer has no edit features
+                        m_HostCapsObj.Flags |= Caps.CapsFlags.PBR;
+                        break;
+                    default:
+                        break;
+                }
                 validCaps.Add(cstr);
             }
+            
+            osUTF8 sb = LLSDxmlEncode2.Start();
+            LLSDxmlEncode2.AddMap(sb);
+            m_HostCapsObj.GetCapsDetailsLLSDxml(validCaps, sb);
+            LLSDxmlEncode2.AddEndMap(sb);
 
-            string result = LLSDHelpers.SerialiseLLSDReply(m_HostCapsObj.GetCapsDetails2(true, validCaps));
-            httpResponse.RawBuffer = Util.UTF8NBGetbytes(result);
+            httpResponse.RawBuffer = LLSDxmlEncode2.EndToBytes(sb);
             httpResponse.StatusCode = (int)HttpStatusCode.OK;
 
             m_HostCapsObj.Flags |= Caps.CapsFlags.SentSeeds;

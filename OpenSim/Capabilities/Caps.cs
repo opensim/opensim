@@ -33,6 +33,7 @@ using System.Reflection;
 using System.Threading;
 using log4net;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 
@@ -68,6 +69,7 @@ namespace OpenSim.Framework.Capabilities
         private readonly UUID m_agentID;
         private readonly string m_regionName;
         private ManualResetEvent m_capsActive = new(false);
+        private readonly string m_baseCapsURL;
 
         public UUID AgentID
         {
@@ -123,7 +125,8 @@ namespace OpenSim.Framework.Capabilities
             ObjectAnim =    0x100,
             WLEnv =         0x200,
             AdvEnv =        0x400,
-            PBR =           0x800
+            PBR =           0x800,
+            ViewerBenefits = 0x1000
         }
 
         public CapsFlags Flags { get; set;}
@@ -149,6 +152,15 @@ namespace OpenSim.Framework.Capabilities
             m_regionName = regionName;
             Flags = CapsFlags.None;
             m_capsActive.Reset();
+            if (MainServer.Instance.UseSSL)
+                m_baseCapsURL = $"https://{MainServer.Instance.SSLCommonName}:{MainServer.Instance.SSLPort}";
+            else
+            {
+                if (MainServer.Instance is null)
+                    m_baseCapsURL = $"http://{m_httpListenerHostName}:0";
+                else
+                    m_baseCapsURL = $"http://{m_httpListenerHostName}:{MainServer.Instance.Port}";
+            }
         }
 
         ~Caps()
@@ -311,16 +323,7 @@ namespace OpenSim.Framework.Capabilities
                 {
                     if (!requestedCaps.Contains(kvp.Key))
                         continue;
-
-                    if (MainServer.Instance.UseSSL)
-                        caps[kvp.Key] = $"https://{MainServer.Instance.SSLCommonName}:{MainServer.Instance.SSLPort}{kvp.Value.Url}";
-                    else
-                    {
-                        if(MainServer.Instance is null)
-                            caps[kvp.Key] = $"http://{m_httpListenerHostName}:0{kvp.Value.Url}";
-                        else
-                            caps[kvp.Key] = $"http://{m_httpListenerHostName}:{MainServer.Instance.Port}{kvp.Value.Url}";
-                    }
+                    caps[kvp.Key] = m_baseCapsURL + kvp.Value.Url;
                 }
             }
 
@@ -332,6 +335,28 @@ namespace OpenSim.Framework.Capabilities
             }
 
             return caps;
+        }
+
+        public void GetCapsDetailsLLSDxml(HashSet<string> requestedCaps, osUTF8 sb)
+        {
+
+            CapsHandlers.GetCapsDetailsLLSDxml(requestedCaps, sb);
+
+            lock (m_pollServiceHandlers)
+            {
+                foreach (KeyValuePair<string, PollServiceEventArgs> kvp in m_pollServiceHandlers)
+                {
+                    if (requestedCaps.Contains(kvp.Key))
+                        LLSDxmlEncode2.AddElem(kvp.Key, m_baseCapsURL + kvp.Value.Url, sb);
+                }
+            }
+
+            // Add the external too
+            foreach (KeyValuePair<string, string> kvp in ExternalCapsHandlers)
+            {
+                if (requestedCaps.Contains(kvp.Key))
+                    LLSDxmlEncode2.AddElem(kvp.Key, kvp.Value, sb);
+            }
         }
 
         public void Activate()
