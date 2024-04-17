@@ -47,7 +47,6 @@ namespace OpenSim.Framework.Capabilities
         private IHttpServer m_httpListener;
         private string m_httpListenerHostName;
         private uint m_httpListenerPort;
-        private bool m_useSSL = false;
         private readonly string m_baseURL;
 
         /// <summary></summary>
@@ -64,15 +63,9 @@ namespace OpenSim.Framework.Capabilities
             m_httpListenerHostName = httpListenerHostname;
             m_httpListenerPort = httpListenerPort;
             if (httpListener != null && httpListener.UseSSL)
-            {
-                m_useSSL = true;
                 m_baseURL = $"https://{m_httpListenerHostName}:{m_httpListenerPort}";
-            }
             else
-            {
-                m_useSSL = false;
                 m_baseURL = $"http://{m_httpListenerHostName}:{m_httpListenerPort}";
-            }
         }
 
         /// <summary>
