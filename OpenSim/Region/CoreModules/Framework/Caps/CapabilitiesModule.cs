@@ -175,7 +175,7 @@ namespace OpenSim.Region.CoreModules.Framework
                 {
                     foreach (KeyValuePair<uint, Caps> kvp in m_capsObjects)
                     {
-                        if (kvp.Value.AgentID == agentId)
+                        if (agentId.Equals(kvp.Value.AgentID))
                         {
                             m_scene.EventManager.TriggerOnDeregisterCaps(agentId, kvp.Value);
                             m_capsObjects.Remove(kvp.Key);
