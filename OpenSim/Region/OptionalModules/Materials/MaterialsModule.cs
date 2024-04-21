@@ -44,7 +44,6 @@ using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSimAssetType = OpenSim.Framework.SLUtil.OpenSimAssetType;
 
 using Ionic.Zlib;
 
@@ -742,7 +741,7 @@ namespace OpenSim.Region.OptionalModules.Materials
         private AssetBase MakeAsset(FaceMaterial fm, bool local)
         {
             byte[] data = fm.toLLSDxml();
-            AssetBase asset = new(fm.ID, "llmaterial", (sbyte)OpenSimAssetType.Material, "00000000-0000-0000-0000-000000000000")
+            AssetBase asset = new(fm.ID, "osmaterial", (sbyte)AssetType.OSMaterial, "00000000-0000-0000-0000-000000000000")
             {
                 Data = data,
                 Local = local
