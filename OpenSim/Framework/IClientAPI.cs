@@ -127,21 +127,21 @@ namespace OpenSim.Framework
     public delegate void ObjectDrop(uint localID, IClientAPI remoteClient);
 
     public delegate void UpdatePrimFlags(
-        uint localID, bool UsePhysics, bool IsTemporary, bool IsPhantom, ExtraPhysicsData PhysData, IClientAPI remoteClient);
+        uint localID, bool UsePhysics, bool IsTemporary, bool IsPhantom, in ExtraPhysicsData PhysData, IClientAPI remoteClient);
 
     public delegate void UpdatePrimTexture(uint localID, byte[] texture, IClientAPI remoteClient);
 
-    public delegate void UpdateVector(uint localID, Vector3 pos, IClientAPI remoteClient);
+    public delegate void UpdateVector(uint localID, in Vector3 pos, IClientAPI remoteClient);
 
     public delegate void ClientChangeObject(uint localID, object data ,IClientAPI remoteClient);
 
-    public delegate void UpdatePrimRotation(uint localID, Quaternion rot, IClientAPI remoteClient);
+    public delegate void UpdatePrimRotation(uint localID, in Quaternion rot, IClientAPI remoteClient);
 
-    public delegate void UpdatePrimSingleRotation(uint localID, Quaternion rot, IClientAPI remoteClient);
+    public delegate void UpdatePrimSingleRotation(uint localID, in Quaternion rot, IClientAPI remoteClient);
 
-    public delegate void UpdatePrimSingleRotationPosition(uint localID, Quaternion rot, Vector3 pos, IClientAPI remoteClient);
+    public delegate void UpdatePrimSingleRotationPosition(uint localID, in Quaternion rot, in Vector3 pos, IClientAPI remoteClient);
 
-    public delegate void UpdatePrimGroupRotation(uint localID, Vector3 pos, Quaternion rot, IClientAPI remoteClient);
+    public delegate void UpdatePrimGroupRotation(uint localID, in Vector3 pos, in Quaternion rot, IClientAPI remoteClient);
 
     public delegate void ObjectDuplicate(uint localID, Vector3 offset, uint dupeFlags, UUID AgentID, UUID GroupID);
 
@@ -607,7 +607,7 @@ namespace OpenSim.Framework
     {
         None = 0,
         AttachmentPoint = 1 << 0,
-        Material = 1 << 1,
+        MaterialOvr = 1 << 1,
         ClickAction = 1 << 2,
         Scale = 1 << 3,
         ParentID = 1 << 4,
@@ -630,11 +630,13 @@ namespace OpenSim.Framework
         Sound = 1 << 21,
 
         TerseUpdate = Position | Rotation | Velocity | Acceleration | AngularVelocity,
-        FullUpdate =    0x00ffffff,
+        FullUpdate =    0x00ffffff & ~MaterialOvr,
 
         Animations = 1 << 24,
 
         FullUpdatewithAnim = FullUpdate | Animations,
+        FullUpdatewithMatOvr = FullUpdate | MaterialOvr,
+        FullUpdatewithAnimMatOvr = FullUpdate | Animations | MaterialOvr,
 
         UpdateProbe   = 0x10000000, // 1 << 28
         SendInTransit = 0x20000000, // 1 << 29
@@ -646,6 +648,9 @@ namespace OpenSim.Framework
     {
         Vector3 StartPos { get; set; }
         float StartFar { get; set; }
+        float FOV { get; set; }
+        int viewHeight { get; set; }
+        int viewWidth { get; set; }
 
         UUID AgentId { get; }
 
@@ -757,7 +762,6 @@ namespace OpenSim.Framework
         event DeRezObject OnDeRezObject;
         event RezRestoreToWorld OnRezRestoreToWorld;
         event Action<IClientAPI> OnRegionHandShakeReply;
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1009:DeclareEventHandlersCorrectly")]
         event GenericCall1 OnRequestWearables;
         event Action<IClientAPI, bool> OnCompleteMovementToRegion;
 

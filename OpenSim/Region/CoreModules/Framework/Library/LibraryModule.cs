@@ -247,7 +247,7 @@ namespace OpenSim.Region.CoreModules.Framework.Library
 
         private string GetInventoryPathFromName(string name)
         {
-            string[] parts = name.Split(new char[] { ' ' });
+            string[] parts = name.Split();
             if (parts.Length == 3)
             {
                 name = string.Empty;

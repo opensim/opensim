@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <AssemblyTitle>OpenSim.Region.OptionalModules.Currency</AssemblyTitle>
     <Company>OpenSim</Company>
     <Product>DTL/NSL Group</Product>
@@ -11,7 +11,7 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Mono.Security.dll">
-      <HintPath>..\..\..\bin\lib\NET\Mono.Security.dll</HintPath>
+      <HintPath>..\..\..\bin\Mono.Security.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Nini">

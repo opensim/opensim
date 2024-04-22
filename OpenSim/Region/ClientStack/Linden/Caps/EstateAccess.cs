@@ -144,8 +144,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 return;
             }
 
-            ScenePresence avatar;
-            if (!m_scene.TryGetScenePresence(AgentId, out avatar) || m_scene.RegionInfo == null || m_scene.RegionInfo.EstateSettings == null)
+            if (!m_scene.TryGetScenePresence(AgentId, out ScenePresence _) || m_scene.RegionInfo == null || m_scene.RegionInfo.EstateSettings == null)
             {
                 response.StatusCode = (int)HttpStatusCode.Gone;
                 return;

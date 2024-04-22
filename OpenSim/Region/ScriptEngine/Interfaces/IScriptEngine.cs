@@ -64,6 +64,7 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         /// Post event to an entire prim
         /// </summary>
         bool PostObjectEvent(uint localID, EventParams parms);
+        bool PostObjectLinksetDataEvent(uint localID, int action, ReadOnlySpan<char> name, ReadOnlySpan<char> value);
 
         DetectParams GetDetectParams(UUID item, int number);
         void SetMinEventDelay(UUID itemID, double delay);

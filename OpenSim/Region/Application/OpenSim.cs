@@ -185,9 +185,9 @@ namespace OpenSim
             MainServer.Instance.AddSimpleStreamHandler(new SimRobotsHandler());
             MainServer.Instance.AddSimpleStreamHandler(new IndexPHPHandler(MainServer.Instance));
 
-            if (managedStatsURI != String.Empty)
+            if (!string.IsNullOrEmpty(managedStatsURI))
             {
-                string urlBase = String.Format("/{0}/", managedStatsURI);
+                string urlBase = $"/{managedStatsURI}/";
                 StatsManager.StatsPassword = managedStatsPassword;
                 MainServer.Instance.AddHTTPHandler(urlBase, StatsManager.HandleStatsRequest);
                 m_log.InfoFormat("[OPENSIM] Enabling remote managed stats fetch. URL = {0}", urlBase);
@@ -316,7 +316,7 @@ namespace OpenSim
                                             + "1: Rotation (around the incoming OARs region center)\n"
                                             + "2: Cropping (a bounding cube with origin and size)\n"
                                             + "3: Displacement (setting offset coordinates within the destination region)",
-                                          LoadOar); ;
+                                          LoadOar);
 
             m_console.Commands.AddCommand("Archiving", false, "save oar",
                                           //"save oar [-v|--version=<N>] [-p|--profile=<url>] [<OAR path>]",
@@ -614,7 +614,7 @@ namespace OpenSim
                 return;
             }
 
-            float angle = (float)(Convert.ToSingle(args[2]) / 180.0 * Math.PI);
+            float angle = Convert.ToSingle(args[2]) / 180.0f * MathF.PI;
             OpenMetaverse.Quaternion rot = OpenMetaverse.Quaternion.CreateFromAxisAngle(0, 0, 1, angle);
 
             if (args.Length > 4)

@@ -43,12 +43,12 @@ namespace OSHttpServer
         /// Use a Thread or a Timer to monitor the ugly
         /// </summary>
         private static Thread m_internalThread = null;
-        private static object m_threadLock = new object();
-        private static ConcurrentQueue<HttpClientContext> m_contexts = new ConcurrentQueue<HttpClientContext>();
-        private static ConcurrentQueue<HttpClientContext> m_highPrio = new ConcurrentQueue<HttpClientContext>();
-        private static ConcurrentQueue<HttpClientContext> m_midPrio = new ConcurrentQueue<HttpClientContext>();
-        private static ConcurrentQueue<HttpClientContext> m_lowPrio = new ConcurrentQueue<HttpClientContext>();
-        private static AutoResetEvent m_processWaitEven = new AutoResetEvent(false);
+        private static readonly object m_threadLock = new();
+        private static readonly ConcurrentQueue<HttpClientContext> m_contexts = new();
+        private static readonly ConcurrentQueue<HttpClientContext> m_highPrio = new();
+        private static readonly ConcurrentQueue<HttpClientContext> m_midPrio = new();
+        private static readonly ConcurrentQueue<HttpClientContext> m_lowPrio = new();
+        private static AutoResetEvent m_processWaitEven = new(false);
         private static bool m_shuttingDown;
 
         private static int m_ActiveSendingCount;
@@ -100,7 +100,7 @@ namespace OSHttpServer
                     break;
 
                 double now = GetTimeStamp();
-                if(m_contexts.Count > 0)
+                if(!m_contexts.IsEmpty)
                 {
                     ProcessSendQueues();
 

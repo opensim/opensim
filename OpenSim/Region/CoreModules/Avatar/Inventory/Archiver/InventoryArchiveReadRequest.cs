@@ -502,7 +502,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         {
             //IRegionSerialiser serialiser = scene.RequestModuleInterface<IRegionSerialiser>();
             // Right now we're nastily obtaining the UUID from the filename
-            string filename = assetPath.Remove(0, ArchiveConstants.ASSETS_PATH.Length);
+            string filename = assetPath[ArchiveConstants.ASSETS_PATH.Length..];
             int indx = filename.LastIndexOf(ArchiveConstants.ASSET_EXTENSION_SEPARATOR);
 
             if (indx < 32)
@@ -514,7 +514,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 return false;
             }
 
-            string extension = filename.Substring(indx);
+            string extension = filename[indx..];
             if (!ArchiveConstants.EXTENSION_TO_ASSET_TYPE.TryGetValue(extension, out sbyte assetType))
             {
                 m_log.ErrorFormat(

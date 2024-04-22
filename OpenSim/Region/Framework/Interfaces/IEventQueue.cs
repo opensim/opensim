@@ -109,6 +109,10 @@ namespace OpenSim.Region.Framework.Interfaces
         void SendBulkUpdateInventoryItem(InventoryItemBase item, UUID avatarID, UUID? transationID = null);
         osUTF8 StartEvent(string eventName);
         osUTF8 StartEvent(string eventName, int cap);
+        void SendLargeGenericMessage(UUID avatarID, UUID? transationID, UUID? sessionID,
+                string method, UUID invoice, List<byte[]> message);
+        void SendLargeGenericMessage(UUID avatarID, UUID? transationID, UUID? sessionID,
+                string method, UUID invoice, List<string> message);
         byte[] EndEventToBytes(osUTF8 sb);
     }
 }

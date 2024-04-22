@@ -42,9 +42,7 @@ namespace OpenSim.Services.ProfilesService
 {
     public class UserProfilesService: UserProfilesServiceBase, IUserProfilesService
     {
-        static readonly ILog m_log =
-            LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+        static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         IUserAccountService userAccounts;
 

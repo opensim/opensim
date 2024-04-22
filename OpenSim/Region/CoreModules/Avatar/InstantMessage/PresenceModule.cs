@@ -123,7 +123,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
         public void OnRequestOnlineNotification(Object sender, string method, List<String> args)
         {
-            if (!(sender is IClientAPI))
+            if (sender is not IClientAPI)
                 return;
 
             IClientAPI client = (IClientAPI)sender;
@@ -131,8 +131,8 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
             PresenceInfo[] status = PresenceService.GetAgents(args.ToArray());
 
-            List<UUID> online = new List<UUID>();
-            List<UUID> offline = new List<UUID>();
+            List<UUID> online = new();
+            List<UUID> offline = new();
 
             foreach (PresenceInfo pi in status)
             {

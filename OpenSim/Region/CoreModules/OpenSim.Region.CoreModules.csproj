@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <AssemblyTitle>OpenSim.Region.CoreModules</AssemblyTitle>
     <Product>OpenSim.Region.CoreModules.Properties</Product>
     <Description>Core modules for OpenSim</Description>

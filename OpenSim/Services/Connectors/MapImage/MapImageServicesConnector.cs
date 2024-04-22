@@ -224,7 +224,7 @@ namespace OpenSim.Services.Connectors
             {
                 // This just dumps a warning for any operation that takes more than 100 ms
                 int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
-                m_log.DebugFormat("[MAP IMAGE CONNECTOR]: AddMapTile time {0}ms", tickdiff);
+                m_log.DebugFormat("[MAP IMAGE CONNECTOR]: AddMapTile {1} Bytes in {0}ms", tickdiff, jpgData.Length);
             }
             return false;
         }

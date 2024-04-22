@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <ProjectType>Local</ProjectType>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <AssemblyTitle>OpenSim.Data.MySQL.MoneyData</AssemblyTitle>
     <Company>OpenSim</Company>
     <Product>OpenSim.Data.MySQL.MoneyData</Product>

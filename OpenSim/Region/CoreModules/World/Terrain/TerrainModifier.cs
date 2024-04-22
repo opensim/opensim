@@ -27,7 +27,7 @@
 using System;
 using System.Reflection;
 using log4net;
-
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.CoreModules.World.Terrain
@@ -83,7 +83,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                         {
                             data.shape = arg.StartsWith("-ell=") ? "ellipse" : "rectangle";
                             val = arg.Substring(arg.IndexOf("=") + 1);
-                            string[] coords = val.Split(new char[] {','});
+                            string[] coords = val.Split(Util.SplitCommaArray);
                             if ((coords.Length < 3) || (coords.Length > 4))
                             {
                                 result = String.Format("Bad format for shape parameter {0}", arg);

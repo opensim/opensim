@@ -116,7 +116,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if ((newFlags & PrimUpdateFlags.UpdateProbe) != 0)
                     m_flags = PrimUpdateFlags.UpdateProbe;
                 else
-                    newFlags = PrimUpdateFlags.FullUpdatewithAnim;
+                    m_flags = PrimUpdateFlags.FullUpdatewithAnim;
             }
             else
                 m_flags |= newFlags;

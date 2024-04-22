@@ -96,9 +96,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                 lock(m_CompileLock)
                 {
-                    ScriptObjCode objCode;
-
-                    if(m_CompiledScriptObjCode.TryGetValue(m_ScriptObjCodeKey, out objCode) &&
+                    if(m_CompiledScriptObjCode.TryGetValue(m_ScriptObjCodeKey, out ScriptObjCode objCode) &&
                         (objCode == m_ObjCode) &&
                         (--objCode.refCount == 0))
                     {
@@ -147,7 +145,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             if(flagFull)
             {
-                StringBuilder sb = new StringBuilder();
+                StringBuilder sb = new();
                 sb.AppendLine(m_DescName);
                 sb.AppendLine("    m_LocalID            = " + m_LocalID);
                 sb.AppendLine("    m_ItemID             = " + m_ItemID + "  (.state file)");
@@ -247,8 +245,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // Get new path, ie, files split up based on first 2 chars of name.
              //           string subdir = filename.Substring (0, 2);
              //           filename = filename.Substring (2);
-            string subdir = filename.Substring(0, 1);
-            filename = filename.Substring(1);
+            string subdir = filename[..1];
+            filename = filename[1..];
             scriptBasePath = Path.Combine(scriptBasePath, subdir);
             Directory.CreateDirectory(scriptBasePath);
             string newPath = Path.Combine(scriptBasePath, filename);
@@ -426,10 +424,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public static int ListInt(object element)
         {
-            if(element is LSL_Integer)
-            {
-                return (int)(LSL_Integer)element;
-            }
+            if (element is LSL_Integer linteger)
+                return linteger.value;
             return (int)element;
         }
 
@@ -438,10 +434,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public static string ListStr(object element)
         {
-            if(element is LSL_String)
-            {
-                return (string)(LSL_String)element;
-            }
+            if(element is LSL_String ls)
+                return ls.m_string;
             return (string)element;
         }
     }

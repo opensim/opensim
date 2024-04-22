@@ -40,15 +40,15 @@ namespace OpenSim.Framework
     {
         /// <summary>A dictionary mapping from <seealso cref="UUID"/>
         /// to <seealso cref="IClientAPI"/> references</summary>
-        private readonly Dictionary<UUID, IClientAPI> m_dictbyUUID = new Dictionary<UUID, IClientAPI>();
+        private readonly Dictionary<UUID, IClientAPI> m_dictbyUUID = new();
         /// <summary>A dictionary mapping from <seealso cref="IPEndPoint"/>
         /// to <seealso cref="IClientAPI"/> references</summary>
-        private readonly Dictionary<IPEndPoint, IClientAPI> m_dictbyIPe= new Dictionary<IPEndPoint, IClientAPI>();
+        private readonly Dictionary<IPEndPoint, IClientAPI> m_dictbyIPe= new();
         /// <summary>snapshot collection of current <seealso cref="IClientAPI"/>
         /// references</summary>
         private IClientAPI[] m_array = null;
         /// <summary>Synchronization object for writing to the collections</summary>
-        private readonly object m_syncRoot = new object();
+        private readonly object m_syncRoot = new();
 
         /// <summary>Number of clients in the collection</summary>
         public int Count
@@ -96,10 +96,8 @@ namespace OpenSim.Framework
         {
             lock (m_syncRoot)
             {
-                IClientAPI value;
-                if (m_dictbyUUID.TryGetValue(key, out value))
+                if (m_dictbyUUID.Remove(key, out IClientAPI value))
                 {
-                    m_dictbyUUID.Remove(key);
                     m_dictbyIPe.Remove(value.RemoteEndPoint);
                     m_array = null;
                     return true;
@@ -193,7 +191,7 @@ namespace OpenSim.Framework
             IClientAPI[] localArray;
             lock (m_syncRoot)
             {
-                if (m_array == null)
+                if (m_array is null)
                 {
                     if (m_dictbyUUID.Count == 0)
                         return;

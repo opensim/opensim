@@ -33,6 +33,8 @@ using System.Reflection;
 using log4net;
 using LukeSkywalker.IPNetwork;
 using Nini.Config;
+using IPNetwork = LukeSkywalker.IPNetwork.IPNetwork;
+
 
 namespace OpenSim.Framework
 {

@@ -322,7 +322,7 @@ namespace OpenSim.Framework.Console
 
                     for (i=0 ; i < cmd.Length ; i++)
                     {
-                        if (cmd[i].Contains(" "))
+                        if (cmd[i].Contains(' '))
                             cmd[i] = "\"" + cmd[i] + "\"";
                     }
                     return String.Empty;
@@ -721,12 +721,10 @@ namespace OpenSim.Framework.Console
             Hashtable result = new Hashtable();
 
             XmlDocument xmldoc = new XmlDocument();
-            XmlNode xmlnode = xmldoc.CreateNode(XmlNodeType.XmlDeclaration,
-                    "", "");
+            XmlNode xmlnode = xmldoc.CreateNode(XmlNodeType.XmlDeclaration, "", "");
 
             xmldoc.AppendChild(xmlnode);
-            XmlElement rootElement = xmldoc.CreateElement("", "ConsoleSession",
-                    "");
+            XmlElement rootElement = xmldoc.CreateElement("", "ConsoleSession", "");
 
             xmldoc.AppendChild(rootElement);
 

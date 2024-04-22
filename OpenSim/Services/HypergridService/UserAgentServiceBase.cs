@@ -26,11 +26,8 @@
  */
 
 using System;
-using System.Reflection;
 using Nini.Config;
-using OpenSim.Framework;
 using OpenSim.Data;
-using OpenSim.Services.Interfaces;
 using OpenSim.Services.Base;
 
 namespace OpenSim.Services.HypergridService
@@ -50,7 +47,7 @@ namespace OpenSim.Services.HypergridService
             // Try reading the [DatabaseService] section, if it exists
             //
             IConfig dbConfig = config.Configs["DatabaseService"];
-            if (dbConfig != null)
+            if (dbConfig is not null)
             {
                 if (dllName.Length == 0)
                     dllName = dbConfig.GetString("StorageProvider", String.Empty);
@@ -62,7 +59,7 @@ namespace OpenSim.Services.HypergridService
             // [UserAgentService] section overrides [DatabaseService], if it exists
             //
             IConfig gridConfig = config.Configs["UserAgentService"];
-            if (gridConfig != null)
+            if (gridConfig is not null)
             {
                 dllName = gridConfig.GetString("StorageProvider", dllName);
                 connString = gridConfig.GetString("ConnectionString", connString);
@@ -76,7 +73,7 @@ namespace OpenSim.Services.HypergridService
                 throw new Exception("No StorageProvider configured");
 
             m_Database = LoadPlugin<IHGTravelingData>(dllName, new Object[] { connString, realm });
-            if (m_Database == null)
+            if (m_Database is null)
                 throw new Exception("Could not find a storage interface in the given module");
 
         }

@@ -74,7 +74,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private List<Scene> m_sceneList = new List<Scene>();
+        private List<Scene> m_sceneList = new();
 
         private IMessageTransferModule m_msgTransferModule;
 
@@ -1701,12 +1701,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         private UUID GetRequestingAgentID(IClientAPI client)
         {
-            UUID requestingAgentID = UUID.Zero;
-            if (client != null)
-            {
-                requestingAgentID = client.AgentId;
-            }
-            return requestingAgentID;
+            return client is null ? UUID.Zero : client.AgentId;
         }
     }
 

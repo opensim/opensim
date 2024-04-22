@@ -91,8 +91,7 @@ namespace OpenSim.Region.UserStatistics
             if (!enabled)
                 return;
 
-            if (Util.IsWindows())
-                Util.LoadArchSpecificWindowsDll("sqlite3.dll");
+            DllmapConfigHelper.RegisterAssembly(typeof(SQLiteConnection).Assembly);
 
             //IConfig startupConfig = config.Configs["Startup"];
 
@@ -262,11 +261,13 @@ namespace OpenSim.Region.UserStatistics
 
             // The request patch should be "/SStats/reportName" where 'reportName'
             // is one of the names added to the 'reports' hashmap.
+            if (regpath.Length > 9)
             regpath = regpath.Remove(0, 8);
-            if (regpath.Length == 0) regpath = "default.report";
-            if (reports.ContainsKey(regpath))
+            else
+                regpath = "default.report";
+
+            if (reports.TryGetValue(regpath, out IStatsController rep))
             {
-                IStatsController rep = reports[regpath];
                 Hashtable repParams = new Hashtable();
 
                 if (request.ContainsKey("json"))

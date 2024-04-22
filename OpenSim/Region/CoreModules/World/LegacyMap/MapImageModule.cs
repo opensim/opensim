@@ -447,7 +447,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                                         Vector3[] FaceD = new Vector3[6]; // vertex D for Facei
 
                                         tScale = new Vector3(lscale.X, -lscale.Y, lscale.Z);
-                                        scale = ((tScale * rot));
+                                        scale = tScale * rot;
                                         vertexes[0] = (new Vector3((pos.X + scale.X), (pos.Y + scale.Y), (pos.Z + scale.Z)));
                                         // vertexes[0].x = pos.X + vertexes[0].x;
                                         //vertexes[0].y = pos.Y + vertexes[0].y;
@@ -458,7 +458,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                                         FaceA[4] = vertexes[0];
 
                                         tScale = lscale;
-                                        scale = ((tScale * rot));
+                                        scale = tScale * rot;
                                         vertexes[1] = (new Vector3((pos.X + scale.X), (pos.Y + scale.Y), (pos.Z + scale.Z)));
 
                                         // vertexes[1].x = pos.X + vertexes[1].x;
@@ -470,7 +470,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                                         FaceC[4] = vertexes[1];
 
                                         tScale = new Vector3(lscale.X, -lscale.Y, -lscale.Z);
-                                        scale = ((tScale * rot));
+                                        scale = tScale * rot;
                                         vertexes[2] = (new Vector3((pos.X + scale.X), (pos.Y + scale.Y), (pos.Z + scale.Z)));
 
                                         //vertexes[2].x = pos.X + vertexes[2].x;
@@ -482,7 +482,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                                         FaceC[5] = vertexes[2];
 
                                         tScale = new Vector3(lscale.X, lscale.Y, -lscale.Z);
-                                        scale = ((tScale * rot));
+                                        scale = tScale * rot;
                                         vertexes[3] = (new Vector3((pos.X + scale.X), (pos.Y + scale.Y), (pos.Z + scale.Z)));
 
                                         //vertexes[3].x = pos.X + vertexes[3].x;
@@ -494,7 +494,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                                         FaceA[5] = vertexes[3];
 
                                         tScale = new Vector3(-lscale.X, lscale.Y, lscale.Z);
-                                        scale = ((tScale * rot));
+                                        scale = tScale * rot;
                                         vertexes[4] = (new Vector3((pos.X + scale.X), (pos.Y + scale.Y), (pos.Z + scale.Z)));
 
                                         // vertexes[4].x = pos.X + vertexes[4].x;
@@ -506,7 +506,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                                         FaceD[4] = vertexes[4];
 
                                         tScale = new Vector3(-lscale.X, lscale.Y, -lscale.Z);
-                                        scale = ((tScale * rot));
+                                        scale = tScale * rot;
                                         vertexes[5] = (new Vector3((pos.X + scale.X), (pos.Y + scale.Y), (pos.Z + scale.Z)));
 
                                         // vertexes[5].x = pos.X + vertexes[5].x;
@@ -518,7 +518,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                                         FaceB[5] = vertexes[5];
 
                                         tScale = new Vector3(-lscale.X, -lscale.Y, lscale.Z);
-                                        scale = ((tScale * rot));
+                                        scale = tScale * rot;
                                         vertexes[6] = (new Vector3((pos.X + scale.X), (pos.Y + scale.Y), (pos.Z + scale.Z)));
 
                                         // vertexes[6].x = pos.X + vertexes[6].x;
@@ -530,7 +530,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                                         FaceB[4] = vertexes[6];
 
                                         tScale = new Vector3(-lscale.X, -lscale.Y, -lscale.Z);
-                                        scale = ((tScale * rot));
+                                        scale = tScale * rot;
                                         vertexes[7] = (new Vector3((pos.X + scale.X), (pos.Y + scale.Y), (pos.Z + scale.Z)));
 
                                         // vertexes[7].x = pos.X + vertexes[7].x;

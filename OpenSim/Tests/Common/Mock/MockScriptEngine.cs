@@ -285,5 +285,10 @@ namespace OpenSim.Tests.Common
             totalmemory = 0;
             return null;
         }
+
+        public bool PostObjectLinksetDataEvent(uint localID, int action, ReadOnlySpan<char> name, ReadOnlySpan<char> value)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

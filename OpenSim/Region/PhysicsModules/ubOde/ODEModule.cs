@@ -7,6 +7,7 @@ using Mono.Addins;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
+using OpenMetaverse;
 
 namespace OpenSim.Region.PhysicsModule.ubOde
 {
@@ -55,8 +56,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         //throw new Exception("Invalid physics meshing option");
                     }
 
-                    if (Util.IsWindows())
-                        Util.LoadArchSpecificWindowsDll("ubode.dll");
+                    DllmapConfigHelper.RegisterAssembly(typeof(ubOdeModule).Assembly);
 
                     UBOdeNative.InitODE();
 

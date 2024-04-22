@@ -185,11 +185,8 @@ namespace OpenSim.Framework
 
         public void RemoveItem(UUID itemID)
         {
-            if (m_items.ContainsKey(itemID))
-            {
-                m_ids.Remove(itemID);
-                m_items.Remove(itemID);
-            }
+            m_ids.Remove(itemID);
+            m_items.Remove(itemID);
         }
 
         public void RemoveAsset(UUID assetID)
@@ -225,9 +222,7 @@ namespace OpenSim.Framework
 
         public UUID GetAsset(UUID itemID)
         {
-            if (!m_items.ContainsKey(itemID))
-                return UUID.Zero;
-            return m_items[itemID];
+            return m_items.TryGetValue(itemID, out UUID id) ? id : UUID.Zero;
         }
 
         public static AvatarWearable[] DefaultWearables

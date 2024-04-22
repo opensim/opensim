@@ -162,7 +162,8 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             if (client != null)
                 im.offline = 0;
 
-            if (im.offline == 0)
+            //if (im.offline == 0)
+            if(im.timestamp == 0)
                 im.timestamp = (uint)Util.UnixTimeSinceEpoch();
 
             m_TransferModule.SendInstantMessage(im,

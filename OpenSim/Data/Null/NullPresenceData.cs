@@ -71,12 +71,7 @@ namespace OpenSim.Data.Null
             if (Instance != this)
                 return Instance.Get(sessionID);
 
-            if (m_presenceData.ContainsKey(sessionID))
-            {
-                return m_presenceData[sessionID];
-            }
-
-            return null;
+            return m_presenceData.TryGetValue(sessionID, out PresenceData pd) ? pd : null;
         }
 
         public void LogoutRegionAgents(UUID regionID)
@@ -101,9 +96,9 @@ namespace OpenSim.Data.Null
             if (Instance != this)
                 return Instance.ReportAgent(sessionID, regionID);
 
-            if (m_presenceData.ContainsKey(sessionID))
+            if (m_presenceData.TryGetValue(sessionID, out PresenceData pd))
             {
-                m_presenceData[sessionID].RegionID = regionID;
+                pd.RegionID = regionID;
                 return true;
             }
 
@@ -134,13 +129,12 @@ namespace OpenSim.Data.Null
             }
             else if (field == "SessionID")
             {
-                UUID session = UUID.Zero;
-                if (!UUID.TryParse(data, out session))
+                if (!UUID.TryParse(data, out UUID session))
                     return presences.ToArray();
 
-                if (m_presenceData.ContainsKey(session))
+                if (m_presenceData.TryGetValue(session, out PresenceData pd))
                 {
-                    presences.Add(m_presenceData[session]);
+                    presences.Add(pd);
                     return presences.ToArray();
                 }
             }
@@ -158,7 +152,7 @@ namespace OpenSim.Data.Null
             {
                 foreach (PresenceData p in m_presenceData.Values)
                 {
-                    if (p.Data.ContainsKey(field) && p.Data[field] == data)
+                    if (p.Data.TryGetValue(field, out string spd) && spd == data)
                         presences.Add(p);
                 }
                 return presences.ToArray();

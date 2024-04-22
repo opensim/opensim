@@ -43,7 +43,6 @@ namespace OpenSim.Framework.Servers.HttpServer
         long ContentLength { get; }
         long ContentLength64 { get; }
         string ContentType { get; }
-        HttpCookieCollection Cookies { get; }
         bool HasEntityBody { get; }
         NameValueCollection Headers { get; }
         string HttpMethod { get; }

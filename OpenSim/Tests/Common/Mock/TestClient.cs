@@ -1008,6 +1008,9 @@ namespace OpenSim.Tests.Common
         }
 
         public int DebugPacketLevel { get; set; }
+        public float FOV { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public int viewHeight { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public int viewWidth { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public void InPacket(object NewPack)
         {

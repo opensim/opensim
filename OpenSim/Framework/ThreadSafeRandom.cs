@@ -25,6 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// legacy Use Random.Shared instead
+
 using System;
 
 namespace OpenSim.Framework
@@ -35,37 +37,38 @@ namespace OpenSim.Framework
     /// </summary>
     public class ThreadSafeRandom : Random
     {
+        private readonly object mainLock = new();
         public ThreadSafeRandom() : base() {}
 
         public ThreadSafeRandom(int seed): base (seed) {}
 
         public override int Next()
         {
-            lock (this)
+            lock (mainLock)
                 return base.Next();
         }
 
         public override int Next(int maxValue)
         {
-            lock (this)
+            lock (mainLock)
                 return base.Next(maxValue);
         }
 
         public override int Next(int minValue, int maxValue)
         {
-            lock (this)
+            lock (mainLock)
                 return base.Next(minValue, maxValue);
         }
 
         public override void NextBytes(byte[] buffer)
         {
-            lock (this)
+            lock (mainLock)
                 base.NextBytes(buffer);
         }
 
         public override double NextDouble()
         {
-            lock (this)
+            lock (mainLock)
                 return base.NextDouble();
         }
     }

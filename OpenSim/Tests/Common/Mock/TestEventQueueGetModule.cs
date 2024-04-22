@@ -223,5 +223,15 @@ namespace OpenSim.Tests.Common
         {
             return Array.Empty<byte>();
         }
+
+        public void SendLargeGenericMessage(UUID avatarID, UUID? transationID, UUID? sessionID, string method, UUID invoice, List<byte[]> message)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SendLargeGenericMessage(UUID avatarID, UUID? transationID, UUID? sessionID, string method, UUID invoice, List<string> message)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

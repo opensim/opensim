@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <AssemblyTitle>OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet</AssemblyTitle>
     <Company>Intel Corporation</Company>
     <Product>OpenSim</Product>

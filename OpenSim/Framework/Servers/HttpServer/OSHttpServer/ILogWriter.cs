@@ -1,6 +1,4 @@
-using System;
-using System.Diagnostics;
-using System.Text;
+using System.Runtime.CompilerServices;
 
 namespace OSHttpServer
 {
@@ -68,7 +66,7 @@ namespace OSHttpServer
         /// <summary>
         /// The logging instance.
         /// </summary>
-        public static readonly NullLogWriter Instance = new NullLogWriter();
+        public static readonly NullLogWriter Instance = new();
 
         /// <summary>
         /// Writes everything to null
@@ -76,6 +74,7 @@ namespace OSHttpServer
         /// <param name="source">object that wrote the log entry.</param>
         /// <param name="prio">Importance of the log message</param>
         /// <param name="message">The message.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(object source, LogPrio prio, string message) {}
     }
 }

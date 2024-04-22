@@ -30,6 +30,18 @@
     <Key Name="assetType" Value="56" />
     <Key Name="fileName" Value="Midday.dat" />
   </Section>
+  <Section Name="MiddayRP">
+    <Key Name="assetID" Value="651510b8-5f4d-8991-1592-e7eeab2a5a06" />
+    <Key Name="name" Value="MiddayRP" />
+    <Key Name="assetType" Value="56" />
+    <Key Name="fileName" Value="MiddayRP.dat" />
+  </Section>
+  <Section Name="MiddayNRP">
+    <Key Name="assetID" Value="cef49723-0292-af49-9b14-9598a616b8a3" />
+    <Key Name="name" Value="MiddayNRP" />
+    <Key Name="assetType" Value="56" />
+    <Key Name="fileName" Value="MiddayNRP.dat" />
+  </Section>
   <Section Name="Sunset">
     <Key Name="assetID" Value="084e26cd-a900-28e8-08d0-64a9de5c15e2" />
     <Key Name="name" Value="Sunset" />

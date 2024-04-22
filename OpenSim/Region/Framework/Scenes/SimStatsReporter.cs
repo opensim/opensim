@@ -374,7 +374,7 @@ namespace OpenSim.Region.Framework.Scenes
                 newvalues[(int)StatsIndex.AgentUpdates] = m_agentUpdates * updateTimeFactor;
                 newvalues[(int)StatsIndex.Agents] = SG.GetRootAgentCount();
                 newvalues[(int)StatsIndex.ChildAgents] = SG.GetChildAgentCount();
-                newvalues[(int)StatsIndex.TotalPrim] = SG.GetTotalPrimObjectsCount();
+                newvalues[(int)StatsIndex.TotalPrim] = SG.GetTotalObjectsCount();
                 newvalues[(int)StatsIndex.ActivePrim] = SG.GetActiveObjectsCount();
                 newvalues[(int)StatsIndex.FrameMS] = totalFrameTime;
                 newvalues[(int)StatsIndex.NetMS] = (float)Math.Round(m_netMS * perframefactor, 3);

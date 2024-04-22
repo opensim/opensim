@@ -1,6 +1,6 @@
 using System;
-using System.Threading;
 using System.Diagnostics;
+using System.Threading;
 
 namespace Amib.Threading.Internal
 {
@@ -54,92 +54,92 @@ namespace Amib.Threading.Internal
         /// <summary>
         /// Callback delegate for the callback.
         /// </summary>
-        private WorkItemCallback _callback;
-        private WaitCallback _callbackNoResult;
+        private WorkItemCallback m_callback;
+        private WaitCallback m_callbackNoResult;
 
         /// <summary>
         /// State with which to call the callback delegate.
         /// </summary>
-        private object _state;
+        private object m_state;
 
         /// <summary>
         /// Stores the caller's context
         /// </summary>
-        private  ExecutionContext _callerContext = null;
+        private  ExecutionContext m_callerContext = null;
 
         /// <summary>
         /// Holds the result of the mehtod
         /// </summary>
-        private object _result;
+        private object m_result;
 
         /// <summary>
         /// Hold the exception if the method threw it
         /// </summary>
-        private Exception _exception;
+        private Exception m_exception;
 
         /// <summary>
         /// Hold the state of the work item
         /// </summary>
-        private WorkItemState _workItemState;
+        private WorkItemState m_workItemState;
 
         /// <summary>
         /// A ManualResetEvent to indicate that the result is ready
         /// </summary>
-        private ManualResetEvent _workItemCompleted;
+        private ManualResetEvent m_workItemCompleted;
 
         /// <summary>
         /// A reference count to the _workItemCompleted. 
         /// When it reaches to zero _workItemCompleted is Closed
         /// </summary>
-        private int _workItemCompletedRefCount;
+        private int m_workItemCompletedRefCount;
 
         /// <summary>
         /// Represents the result state of the work item
         /// </summary>
-        private readonly WorkItemResult _workItemResult;
+        private readonly WorkItemResult m_workItemResult;
 
         /// <summary>
         /// Work item info
         /// </summary>
-        private readonly WorkItemInfo _workItemInfo;
+        private readonly WorkItemInfo m_workItemInfo;
 
         /// <summary>
         /// Called when the WorkItem starts
         /// </summary>
-        private event WorkItemStateCallback _workItemStartedEvent;
+        private event WorkItemStateCallback m_workItemStartedEvent;
 
         /// <summary>
         /// Called when the WorkItem completes
         /// </summary>
-        private event WorkItemStateCallback _workItemCompletedEvent;
+        private event WorkItemStateCallback m_workItemCompletedEvent;
 
         /// <summary>
         /// A reference to an object that indicates whatever the 
         /// WorkItemsGroup has been canceled
         /// </summary>
-        private CanceledWorkItemsGroup _canceledWorkItemsGroup = CanceledWorkItemsGroup.NotCanceledWorkItemsGroup;
+        private CanceledWorkItemsGroup m_canceledWorkItemsGroup = CanceledWorkItemsGroup.NotCanceledWorkItemsGroup;
 
         /// <summary>
         /// A reference to an object that indicates whatever the 
         /// SmartThreadPool has been canceled
         /// </summary>
-        private CanceledWorkItemsGroup _canceledSmartThreadPool = CanceledWorkItemsGroup.NotCanceledWorkItemsGroup;
+        private CanceledWorkItemsGroup m_canceledSmartThreadPool = CanceledWorkItemsGroup.NotCanceledWorkItemsGroup;
 
         /// <summary>
         /// The work item group this work item belong to.
         /// </summary>
-        private readonly IWorkItemsGroup _workItemsGroup;
+        private readonly IWorkItemsGroup m_workItemsGroup;
 
         /// <summary>
         /// The thread that executes this workitem.
         /// This field is available for the period when the work item is executed, before and after it is null.
         /// </summary>
-        private Thread _executingThread;
+        private Thread m_executingThread;
 
         /// <summary>
         /// The absulote time when the work item will be timeout
         /// </summary>
-        private long _expirationTime;
+        private long m_expirationTime;
 
         #region Performance Counter fields
 
@@ -179,7 +179,7 @@ namespace Amib.Threading.Internal
         {
             get
             {
-                return _workItemInfo;
+                return m_workItemInfo;
             }
         }
 
@@ -199,42 +199,46 @@ namespace Amib.Threading.Internal
         /// that meant to run the callback
         public WorkItem(IWorkItemsGroup workItemsGroup, WorkItemInfo workItemInfo, WorkItemCallback callback, object state)
         {
-            _workItemsGroup = workItemsGroup;
-            _workItemInfo = workItemInfo;
+            m_workItemsGroup = workItemsGroup;
+            m_workItemInfo = workItemInfo;
 
-            if (_workItemInfo.UseCallerCallContext && !ExecutionContext.IsFlowSuppressed())
+            if (m_workItemInfo.UseCallerCallContext && !ExecutionContext.IsFlowSuppressed())
             {
                 ExecutionContext ec = ExecutionContext.Capture();
-                if (ec != null)
-                    _callerContext = ec.CreateCopy();
-                ec.Dispose();
-                ec = null;
+                if (ec is not null)
+                {
+                    m_callerContext = ec.CreateCopy();
+                    ec.Dispose();
+                    ec = null;
+                }
             }
 
-            _callback = callback;
-            _callbackNoResult = null;
-            _state = state;
-            _workItemResult = new WorkItemResult(this);
+            m_callback = callback;
+            m_callbackNoResult = null;
+            m_state = state;
+            m_workItemResult = new WorkItemResult(this);
             Initialize();
         }
 
         public WorkItem(IWorkItemsGroup workItemsGroup, WorkItemInfo workItemInfo, WaitCallback callback, object state)
         {
-            _workItemsGroup = workItemsGroup;
-            _workItemInfo = workItemInfo;
+            m_workItemsGroup = workItemsGroup;
+            m_workItemInfo = workItemInfo;
 
-            if (_workItemInfo.UseCallerCallContext && !ExecutionContext.IsFlowSuppressed())
+            if (m_workItemInfo.UseCallerCallContext && !ExecutionContext.IsFlowSuppressed())
             {
                 ExecutionContext ec = ExecutionContext.Capture();
-                if (ec != null)
-                    _callerContext = ec.CreateCopy();
-                ec.Dispose();
-                ec = null;
+                if (ec is not null)
+                {
+                    m_callerContext = ec.CreateCopy();
+                    ec.Dispose();
+                    ec = null;
+                }
             }
 
-            _callbackNoResult = callback;
-            _state = state;
-            _workItemResult = new WorkItemResult(this);
+            m_callbackNoResult = callback;
+            m_state = state;
+            m_workItemResult = new WorkItemResult(this);
             Initialize();
         }
 
@@ -242,18 +246,18 @@ namespace Amib.Threading.Internal
         {
             // The _workItemState is changed directly instead of using the SetWorkItemState
             // method since we don't want to go throught IsValidStateTransition.
-            _workItemState = WorkItemState.InQueue;
+            m_workItemState = WorkItemState.InQueue;
 
-            _workItemCompleted = null;
-            _workItemCompletedRefCount = 0;
+            m_workItemCompleted = null;
+            m_workItemCompletedRefCount = 0;
             _waitingOnQueueStopwatch = new Stopwatch();
             _processingStopwatch = new Stopwatch();
-            _expirationTime = _workItemInfo.Timeout > 0 ? DateTime.UtcNow.Ticks + _workItemInfo.Timeout * TimeSpan.TicksPerMillisecond :  long.MaxValue;
+            m_expirationTime = m_workItemInfo.Timeout > 0 ? DateTime.UtcNow.Ticks + m_workItemInfo.Timeout * TimeSpan.TicksPerMillisecond :  long.MaxValue;
         }
 
         internal bool WasQueuedBy(IWorkItemsGroup workItemsGroup)
         {
-            return (workItemsGroup == _workItemsGroup);
+            return (workItemsGroup == m_workItemsGroup);
         }
 
 
@@ -263,14 +267,14 @@ namespace Amib.Threading.Internal
 
         internal CanceledWorkItemsGroup CanceledWorkItemsGroup
         {
-            get { return _canceledWorkItemsGroup; }
-            set { _canceledWorkItemsGroup = value; }
+            get { return m_canceledWorkItemsGroup; }
+            set { m_canceledWorkItemsGroup = value; }
         }
 
         internal CanceledWorkItemsGroup CanceledSmartThreadPool
         {
-            get { return _canceledSmartThreadPool; }
-            set { _canceledSmartThreadPool = value; }
+            get { return m_canceledSmartThreadPool; }
+            set { m_canceledSmartThreadPool = value; }
         }
 
         /// <summary>
@@ -289,8 +293,8 @@ namespace Amib.Threading.Internal
             {
                 if (IsCanceled)
                 {
-                    if ((_workItemInfo.PostExecuteWorkItemCallback != null) &&
-                        ((_workItemInfo.CallToPostExecute & CallToPostExecute.WhenWorkItemCanceled) == CallToPostExecute.WhenWorkItemCanceled))
+                    if ((m_workItemInfo.PostExecuteWorkItemCallback is not null) &&
+                        ((m_workItemInfo.CallToPostExecute & CallToPostExecute.WhenWorkItemCanceled) == CallToPostExecute.WhenWorkItemCanceled))
                     {
                         return true;
                     }
@@ -301,7 +305,7 @@ namespace Amib.Threading.Internal
                 Debug.Assert(WorkItemState.InQueue == GetWorkItemState());
 
                 // No need for a lock yet, only after the state has changed to InProgress
-                _executingThread = Thread.CurrentThread;
+                m_executingThread = Thread.CurrentThread;
 
                 SetWorkItemState(WorkItemState.InProgress);
             }
@@ -332,7 +336,7 @@ namespace Amib.Threading.Internal
             }
 
             // Run the post execute as needed
-            if ((currentCallToPostExecute & _workItemInfo.CallToPostExecute) != 0)
+            if ((currentCallToPostExecute & m_workItemInfo.CallToPostExecute) != 0)
             {
                 PostExecute();
             }
@@ -344,7 +348,7 @@ namespace Amib.Threading.Internal
         {
             try
             {
-                _workItemCompletedEvent?.Invoke(this);
+                m_workItemCompletedEvent?.Invoke(this);
             }
             catch // Suppress exceptions
             { }
@@ -354,7 +358,7 @@ namespace Amib.Threading.Internal
         {
             try
             {
-                _workItemStartedEvent?.Invoke(this);
+                m_workItemStartedEvent?.Invoke(this);
             }
             catch // Suppress exceptions
             { }
@@ -372,32 +376,24 @@ namespace Amib.Threading.Internal
             {
                 try
                 {
-                    if(_callbackNoResult == null)
+                    if(m_callbackNoResult is null)
                     {
-                        if(_callerContext == null)
-                            result = _callback(_state);
+                        if(m_callerContext is null)
+                            result = m_callback(m_state);
                         else
                         {
-                            ContextCallback _ccb = new ContextCallback( o =>
-                            {
-                                result =_callback(o);
-                            });
-
-                            ExecutionContext.Run(_callerContext, _ccb, _state);
+                            ContextCallback _ccb = new( o => { result =m_callback(o); });
+                            ExecutionContext.Run(m_callerContext, _ccb, m_state);
                         }
                     }
                     else
                     {
-                        if (_callerContext == null)
-                            _callbackNoResult(_state);
+                        if (m_callerContext is null)
+                            m_callbackNoResult(m_state);
                         else
                         {
-                            ContextCallback _ccb = new ContextCallback(o =>
-                            {
-                                _callbackNoResult(o);
-                            });
-
-                            ExecutionContext.Run(_callerContext, _ccb, _state);
+                            ContextCallback _ccb = new(o => { m_callbackNoResult(o); });
+                            ExecutionContext.Run(m_callerContext, _ccb, m_state);
                         }
                     }
                 }
@@ -410,9 +406,9 @@ namespace Amib.Threading.Internal
                 // Remove the value of the execution thread, so it will be impossible to cancel the work item,
                 // since it is already completed.
                 // Cancelling a work item that already completed may cause the abortion of the next work item!!!
-                Thread executionThread = Interlocked.CompareExchange(ref _executingThread, null, _executingThread);
+                Thread executionThread = Interlocked.CompareExchange(ref m_executingThread, null, m_executingThread);
 
-                if (null == executionThread)
+                if (executionThread is null)
                 {
                     // Oops! we are going to be aborted..., Wait here so we can catch the ThreadAbortException
                     Thread.Sleep(60 * 1000);
@@ -427,12 +423,11 @@ namespace Amib.Threading.Internal
                 // If we got a ThreadAbortException and the STP is not shutting down, it means the 
                 // work items was cancelled.
                 tae.GetHashCode();
-                if (!SmartThreadPool.CurrentThreadEntry.AssociatedSmartThreadPool.IsShuttingdown)
-                {
-                    Thread.ResetAbort();
-                }
+                //if (!SmartThreadPool.CurrentThreadEntry.AssociatedSmartThreadPool.IsShuttingdown)
+                //{
+                //    Thread.ResetAbort();
+                //}
             }
-
             if (!SmartThreadPool.IsWorkItemCanceled)
             {
                 SetResult(result, exception);
@@ -444,15 +439,15 @@ namespace Amib.Threading.Internal
         /// </summary>
         private void PostExecute()
         {
-            if (null != _workItemInfo.PostExecuteWorkItemCallback)
+            if (m_workItemInfo.PostExecuteWorkItemCallback is not null)
             {
                 try
                 {
-                    _workItemInfo.PostExecuteWorkItemCallback(_workItemResult);
+                    m_workItemInfo.PostExecuteWorkItemCallback(m_workItemResult);
                 }
                 catch (Exception e)
                 {
-                    Debug.Assert(null != e);
+                    Debug.Assert(e is not null);
                 }
             }
         }
@@ -465,8 +460,8 @@ namespace Amib.Threading.Internal
         /// if there was no exception.</param>
         internal void SetResult(object result, Exception exception)
         {
-            _result = result;
-            _exception = exception;
+            m_result = result;
+            m_exception = exception;
             SignalComplete(false);
         }
 
@@ -476,7 +471,7 @@ namespace Amib.Threading.Internal
         /// <returns>The work item result</returns>
         internal IWorkItemResult GetWorkItemResult()
         {
-            return _workItemResult;
+            return m_workItemResult;
         }
 
         /// <summary>
@@ -503,7 +498,7 @@ namespace Amib.Threading.Internal
             WaitHandle[] waitHandles = new WaitHandle[waitableResults.Length];
             GetWaitHandles(waitableResults, waitHandles);
 
-            if ((null == cancelWaitHandle) && (waitHandles.Length <= 64))
+            if ((cancelWaitHandle is null) && (waitHandles.Length <= 64))
             {
                 success = STPEventWaitHandle.WaitAll(waitHandles, millisecondsTimeout, exitContext);
             }
@@ -513,15 +508,9 @@ namespace Amib.Threading.Internal
                 int millisecondsLeft = millisecondsTimeout;
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
-                WaitHandle[] whs;
-                if (null != cancelWaitHandle)
-                {
-                    whs = new WaitHandle[] { null, cancelWaitHandle };
-                }
-                else
-                {
-                    whs = new WaitHandle[] { null };
-                }
+                WaitHandle[] whs = cancelWaitHandle is null ?
+                        new WaitHandle[] { null } :
+                        new WaitHandle[] { null, cancelWaitHandle };
 
                 bool waitInfinitely = (Timeout.Infinite == millisecondsTimeout);
                 // Iterate over the wait handles and wait for each one to complete.
@@ -570,15 +559,11 @@ namespace Amib.Threading.Internal
         /// <returns>
         /// The array index of the work item result that satisfied the wait, or WaitTimeout if no work item result satisfied the wait and a time interval equivalent to millisecondsTimeout has passed or the work item has been canceled.
         /// </returns>
-        internal static int WaitAny(
-            IWaitableResult[] waitableResults,
-            int millisecondsTimeout,
-            bool exitContext,
-            WaitHandle cancelWaitHandle)
+        internal static int WaitAny( IWaitableResult[] waitableResults, int millisecondsTimeout,
+            bool exitContext, WaitHandle cancelWaitHandle)
         {
             WaitHandle[] waitHandles;
-
-            if (null != cancelWaitHandle)
+            if (cancelWaitHandle is not null)
             {
                 waitHandles = new WaitHandle[waitableResults.Length + 1];
                 GetWaitHandles(waitableResults, waitHandles);
@@ -593,7 +578,7 @@ namespace Amib.Threading.Internal
             int result = STPEventWaitHandle.WaitAny(waitHandles, millisecondsTimeout, exitContext);
 
             // Treat cancel as timeout
-            if (null != cancelWaitHandle)
+            if (cancelWaitHandle is not null)
             {
                 if (result == waitableResults.Length)
                 {
@@ -611,14 +596,13 @@ namespace Amib.Threading.Internal
         /// </summary>
         /// <param name="waitableResults">An array of work item results</param>
         /// <param name="waitHandles">An array of wait handles to fill</param>
-        private static void GetWaitHandles(
-            IWaitableResult[] waitableResults,
+        private static void GetWaitHandles(IWaitableResult[] waitableResults,
             WaitHandle[] waitHandles)
         {
             for (int i = 0; i < waitableResults.Length; ++i)
             {
                 WorkItemResult wir = waitableResults[i].GetWorkItemResult() as WorkItemResult;
-                Debug.Assert(null != wir, "All waitableResults must be WorkItemResult objects");
+                Debug.Assert(wir is not null, "All waitableResults must be WorkItemResult objects");
 
                 waitHandles[i] = wir.GetWorkItem().GetWaitHandle();
             }
@@ -646,23 +630,23 @@ namespace Amib.Threading.Internal
         {
             lock (this)
             {
-                if (WorkItemState.Completed == _workItemState)
+                if (WorkItemState.Completed == m_workItemState)
                 {
-                    return _workItemState;
+                    return m_workItemState;
                 }
-                if (WorkItemState.Canceled != _workItemState && DateTime.UtcNow.Ticks > _expirationTime)
+                if (WorkItemState.Canceled != m_workItemState && DateTime.UtcNow.Ticks > m_expirationTime)
                 {
-                    _workItemState = WorkItemState.Canceled;
-                    return _workItemState;
+                    m_workItemState = WorkItemState.Canceled;
+                    return m_workItemState;
                 }
-                if(WorkItemState.InProgress != _workItemState)
+                if(WorkItemState.InProgress != m_workItemState)
                 {
                     if (CanceledSmartThreadPool.IsCanceled || CanceledWorkItemsGroup.IsCanceled)
                     {
                         return WorkItemState.Canceled;
                     }
                 }
-                return _workItemState;
+                return m_workItemState;
             }
         }
 
@@ -675,9 +659,9 @@ namespace Amib.Threading.Internal
         {
             lock (this)
             {
-                if (IsValidStatesTransition(_workItemState, workItemState))
+                if (IsValidStatesTransition(m_workItemState, workItemState))
                 {
-                    _workItemState = workItemState;
+                    m_workItemState = workItemState;
                 }
             }
         }
@@ -692,10 +676,7 @@ namespace Amib.Threading.Internal
             lock (this)
             {
                 // If someone is waiting then signal.
-                if (null != _workItemCompleted)
-                {
-                    _workItemCompleted.Set();
-                }
+                m_workItemCompleted?.Set();
             }
         }
 
@@ -725,10 +706,10 @@ namespace Amib.Threading.Internal
                         //Debug.WriteLine("Work item already canceled");
                         if (abortExecution)
                         {
-                            Thread executionThread = Interlocked.CompareExchange(ref _executingThread, null, _executingThread);
-                            if (null != executionThread)
+                            Thread executionThread = Interlocked.CompareExchange(ref m_executingThread, null, m_executingThread);
+                            if (executionThread is not null)
                             {
-                                executionThread.Abort(); // "Cancel"
+                                //executionThread.Abort(); // "Cancel"
                                 // No need to signalComplete, because we already cancelled this work item
                                 // so it already signaled its completion.
                                 //signalComplete = true;
@@ -742,10 +723,10 @@ namespace Amib.Threading.Internal
                     case WorkItemState.InProgress:
                         if (abortExecution)
                         {
-                            Thread executionThread = Interlocked.CompareExchange(ref _executingThread, null, _executingThread);
-                            if (null != executionThread)
+                            Thread executionThread = Interlocked.CompareExchange(ref m_executingThread, null, m_executingThread);
+                            if (executionThread is not null)
                             {
-                                executionThread.Abort(); // "Cancel"
+                                //executionThread.Abort(); // "Cancel"
                                 success = true;
                                 signalComplete = true;
                             }
@@ -790,14 +771,11 @@ namespace Amib.Threading.Internal
         /// In case of error the method throws and exception
         /// </summary>
         /// <returns>The result of the work item</returns>
-        private object GetResult(
-            int millisecondsTimeout,
-            bool exitContext,
+        private object GetResult(int millisecondsTimeout, bool exitContext,
             WaitHandle cancelWaitHandle)
         {
-            Exception e;
-            object result = GetResult(millisecondsTimeout, exitContext, cancelWaitHandle, out e);
-            if (null != e)
+            object result = GetResult(millisecondsTimeout, exitContext, cancelWaitHandle, out Exception e);
+            if (e is not null)
             {
                 throw new WorkItemResultException("The work item caused an excpetion, see the inner exception for details", e);
             }
@@ -810,11 +788,8 @@ namespace Amib.Threading.Internal
         /// In case of error the e argument is filled with the exception
         /// </summary>
         /// <returns>The result of the work item</returns>
-        private object GetResult(
-            int millisecondsTimeout,
-            bool exitContext,
-            WaitHandle cancelWaitHandle,
-            out Exception e)
+        private object GetResult( int millisecondsTimeout, bool exitContext,
+            WaitHandle cancelWaitHandle, out Exception e)
         {
             e = null;
 
@@ -827,12 +802,12 @@ namespace Amib.Threading.Internal
             // Check for completion
             if (IsCompleted)
             {
-                e = _exception;
-                return _result;
+                e = m_exception;
+                return m_result;
             }
 
             // If no cancelWaitHandle is provided
-            if (null == cancelWaitHandle)
+            if (cancelWaitHandle is null)
             {
                 WaitHandle wh = GetWaitHandle();
 
@@ -876,10 +851,10 @@ namespace Amib.Threading.Internal
 
             Debug.Assert(IsCompleted);
 
-            e = _exception;
+            e = m_exception;
 
             // Return the result
-            return _result;
+            return m_result;
         }
 
         /// <summary>
@@ -889,26 +864,26 @@ namespace Amib.Threading.Internal
         {
             lock (this)
             {
-                if (null == _workItemCompleted)
+                if (m_workItemCompleted is null)
                 {
-                    _workItemCompleted = new ManualResetEvent(IsCompleted);
+                    m_workItemCompleted = new ManualResetEvent(IsCompleted);
                 }
-                ++_workItemCompletedRefCount;
+                ++m_workItemCompletedRefCount;
             }
-            return _workItemCompleted;
+            return m_workItemCompleted;
         }
 
         private void ReleaseWaitHandle()
         {
             lock (this)
             {
-                if (null != _workItemCompleted)
+                if (m_workItemCompleted is not null)
                 {
-                    --_workItemCompletedRefCount;
-                    if (0 == _workItemCompletedRefCount)
+                    --m_workItemCompletedRefCount;
+                    if (0 == m_workItemCompletedRefCount)
                     {
-                        _workItemCompleted.Close();
-                        _workItemCompleted = null;
+                        m_workItemCompleted.Close();
+                        m_workItemCompleted = null;
                     }
                 }
             }
@@ -950,11 +925,11 @@ namespace Amib.Threading.Internal
         {
             add
             {
-                _workItemStartedEvent += value;
+                m_workItemStartedEvent += value;
             }
             remove
             {
-                _workItemStartedEvent -= value;
+                m_workItemStartedEvent -= value;
             }
         }
 
@@ -962,39 +937,38 @@ namespace Amib.Threading.Internal
         {
             add
             {
-                _workItemCompletedEvent += value;
+                m_workItemCompletedEvent += value;
             }
             remove
             {
-                _workItemCompletedEvent -= value;
+                m_workItemCompletedEvent -= value;
             }
         }
 
         public void DisposeOfState()
         {
-            if(_callerContext != null)
+            if(m_callerContext is not null)
             {
-                _callerContext.Dispose();
-                _callerContext = null;
+                m_callerContext.Dispose();
+                m_callerContext = null;
             }
 
-            if(_workItemCompleted != null)
+            if(m_workItemCompleted is not null)
             {
-                _workItemCompleted.Dispose();
-                _workItemCompleted = null;
+                m_workItemCompleted.Dispose();
+                m_workItemCompleted = null;
             }
 
-            if (_workItemInfo.DisposeOfStateObjects)
+            if (m_workItemInfo.DisposeOfStateObjects)
             {
-                IDisposable disp = _state as IDisposable;
-                if (null != disp)
+                if (m_state is IDisposable disp)
                 {
                     disp.Dispose();
-                    _state = null;
+                    m_state = null;
                 }
             }
-            _callback = null;
-            _callbackNoResult = null;
+            m_callback = null;
+            m_callbackNoResult = null;
         }
     }
 }
