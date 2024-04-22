@@ -335,7 +335,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 if (m_dumpAssetToFile)
                 {
-                    Util.SaveAssetToFile("updateditem" + Util.RandomClass.Next(1, 1000) + ".dat", data);
+                    Util.SaveAssetToFile("updateditem" + Random.Shared.Next(1, 1000) + ".dat", data);
                 }
 
                 response.StatusCode = (int)HttpStatusCode.OK;
@@ -417,7 +417,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
                     if (m_dumpAssetToFile)
                     {
-                        Util.SaveAssetToFile("updatedtaskscript" + Util.RandomClass.Next(1, 1000) + ".dat", data);
+                        Util.SaveAssetToFile("updatedtaskscript" + Random.Shared.Next(1, 1000) + ".dat", data);
                     }
 
                     // m_log.InfoFormat("[CAPS]: TaskInventoryScriptUpdater.uploaderCaps res: {0}", res);

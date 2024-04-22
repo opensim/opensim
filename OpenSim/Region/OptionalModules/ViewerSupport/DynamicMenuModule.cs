@@ -49,6 +49,7 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        private bool m_Enabled = false;
         private class MenuItemData
         {
             public string Title;
@@ -75,6 +76,11 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
 
         public void Initialise(IConfigSource config)
         {
+            IConfig moduleConfig = config.Configs["DynamicMenuModule"];
+            if (moduleConfig != null)
+            {
+                m_Enabled = moduleConfig.GetBoolean("enabled", false);
+            }
         }
 
         public void Close()
@@ -83,17 +89,22 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
 
         public void AddRegion(Scene scene)
         {
-            m_scene = scene;
-            scene.EventManager.OnRegisterCaps += OnRegisterCaps;
-            m_scene.RegisterModuleInterface<IDynamicMenuModule>(this);
+            if (m_Enabled)
+            {
+                m_scene = scene;
+                scene.EventManager.OnRegisterCaps += OnRegisterCaps;
+                m_scene.RegisterModuleInterface<IDynamicMenuModule>(this);
+            }
         }
 
         public void RegionLoaded(Scene scene)
         {
-            ISimulatorFeaturesModule featuresModule = m_scene.RequestModuleInterface<ISimulatorFeaturesModule>();
-
-            if (featuresModule != null)
-                featuresModule.OnSimulatorFeaturesRequest += OnSimulatorFeaturesRequest;
+            if (m_Enabled)
+            {
+                ISimulatorFeaturesModule featuresModule = m_scene.RequestModuleInterface<ISimulatorFeaturesModule>();
+                if (featuresModule != null)
+                    featuresModule.OnSimulatorFeaturesRequest += OnSimulatorFeaturesRequest;
+            }
         }
 
         public void RemoveRegion(Scene scene)

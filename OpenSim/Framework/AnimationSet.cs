@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using OpenMetaverse;
 
 namespace OpenSim.Framework
@@ -127,20 +128,19 @@ namespace OpenSim.Framework
             Console.WriteLine("--------------------");
         }
 
+        public static readonly byte[] ZeroCountBytesReply = osUTF8.GetASCIIBytes("version 1\ncount 0\n");
         public Byte[] ToBytes()
         {
             // If there was an error parsing the input, we give back an
             // empty set rather than the original data.
-            if (m_parseError)
-            {
-                string dummy = "version 1\ncount 0\n";
-                return System.Text.Encoding.ASCII.GetBytes(dummy);
-            }
+            if (m_parseError || m_animations.Count == 0)
+                return ZeroCountBytesReply;
 
-            string assetData = String.Format("version 1\ncount {0}\n", m_animations.Count);
+            osUTF8 sb = OSUTF8Cached.Acquire();
+            sb.AppendASCII("$version 1\ncount {m_animations.Count}\n");
             foreach (KeyValuePair<string, KeyValuePair<string, UUID>> kvp in m_animations)
-                assetData += String.Format("{0} {1} {2}\n", kvp.Key, kvp.Value.Value.ToString(), kvp.Value.Key);
-            return System.Text.Encoding.ASCII.GetBytes(assetData);
+                sb.AppendASCII($"{kvp.Key} {kvp.Value.Value} {kvp.Value.Key}\n");
+            return OSUTF8Cached.GetArrayAndRelease(sb);
         }
 /*
         public bool Validate(AnimationSetValidator val)

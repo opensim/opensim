@@ -218,6 +218,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </returns>
         TaskInventoryItem GetInventoryItem(string name);
         TaskInventoryItem GetInventoryItem(string name, int assetType);
+
         /// <summary>
         /// Get inventory items by name.
         /// </summary>

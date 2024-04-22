@@ -167,19 +167,19 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             Joints[0].Priority = 7;
             Joints[0].positionkeys = new binBVHJointKey[1];
             Joints[0].rotationkeys = new binBVHJointKey[1];
-            Random rnd = new Random();
+
 
             Joints[0].rotationkeys[0] = new binBVHJointKey();
             Joints[0].rotationkeys[0].time = (0f);
-            Joints[0].rotationkeys[0].key_element.X = ((float)rnd.NextDouble() * 2 - 1);
-            Joints[0].rotationkeys[0].key_element.Y = ((float)rnd.NextDouble() * 2 - 1);
-            Joints[0].rotationkeys[0].key_element.Z = ((float)rnd.NextDouble() * 2 - 1);
+            Joints[0].rotationkeys[0].key_element.X = ((float)Random.Shared.NextDouble() * 2 - 1);
+            Joints[0].rotationkeys[0].key_element.Y = ((float)Random.Shared.NextDouble() * 2 - 1);
+            Joints[0].rotationkeys[0].key_element.Z = ((float)Random.Shared.NextDouble() * 2 - 1);
 
             Joints[0].positionkeys[0] = new binBVHJointKey();
             Joints[0].positionkeys[0].time = (0f);
-            Joints[0].positionkeys[0].key_element.X = ((float)rnd.NextDouble() * 2 - 1);
-            Joints[0].positionkeys[0].key_element.Y = ((float)rnd.NextDouble() * 2 - 1);
-            Joints[0].positionkeys[0].key_element.Z = ((float)rnd.NextDouble() * 2 - 1);
+            Joints[0].positionkeys[0].key_element.X = ((float)Random.Shared.NextDouble() * 2 - 1);
+            Joints[0].positionkeys[0].key_element.Y = ((float)Random.Shared.NextDouble() * 2 - 1);
+            Joints[0].positionkeys[0].key_element.Z = ((float)Random.Shared.NextDouble() * 2 - 1);
 
 
         }

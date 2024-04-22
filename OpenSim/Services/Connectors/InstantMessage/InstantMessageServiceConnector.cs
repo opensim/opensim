@@ -26,8 +26,6 @@
  */
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Net;
 using System.Reflection;
 
 using OpenMetaverse;
@@ -35,14 +33,13 @@ using Nwc.XmlRpc;
 using log4net;
 
 using OpenSim.Framework;
+using System.Net.Http;
 
 namespace OpenSim.Services.Connectors.InstantMessage
 {
     public class InstantMessageServiceConnector
     {
-        private static readonly ILog m_log =
-            LogManager.GetLogger(
-            MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// This actually does the XMLRPC Request
@@ -55,28 +52,17 @@ namespace OpenSim.Services.Connectors.InstantMessage
             Hashtable xmlrpcdata = ConvertGridInstantMessageToXMLRPC(im, messageKey);
             xmlrpcdata["region_handle"] = 0;
 
-            ArrayList SendParams = new ArrayList();
-            SendParams.Add(xmlrpcdata);
-            XmlRpcRequest GridReq = new XmlRpcRequest("grid_instant_message", SendParams);
+            XmlRpcRequest GridReq = new("grid_instant_message", new ArrayList { xmlrpcdata });
             try
             {
-
-                XmlRpcResponse GridResp = GridReq.Send(url, 10000);
+                using HttpClient hclient = WebUtil.GetNewGlobalHttpClient(10000);
+                XmlRpcResponse GridResp = GridReq.Send(url, hclient);
 
                 Hashtable responseData = (Hashtable)GridResp.Value;
 
                 if (responseData.ContainsKey("success"))
                 {
-                    if ((string)responseData["success"] == "TRUE")
-                    {
-                        //m_log.DebugFormat("[XXX] Success");
-                        return true;
-                    }
-                    else
-                    {
-                        //m_log.DebugFormat("[XXX] Fail");
-                        return false;
-                    }
+                    return ((string)responseData["success"] == "TRUE");
                 }
                 else
                 {
@@ -84,7 +70,7 @@ namespace OpenSim.Services.Connectors.InstantMessage
                     return false;
                 }
             }
-            catch (WebException e)
+            catch (Exception e)
             {
                 m_log.ErrorFormat("[GRID INSTANT MESSAGE]: Error sending message to {0} : {1}", url, e.Message);
             }
@@ -99,33 +85,31 @@ namespace OpenSim.Services.Connectors.InstantMessage
         /// <returns>Hashtable containing the XMLRPC request</returns>
         protected static Hashtable ConvertGridInstantMessageToXMLRPC(GridInstantMessage msg, string messageKey)
         {
-            Hashtable gim = new Hashtable();
-            gim["from_agent_id"] = msg.fromAgentID.ToString();
-            // Kept for compatibility
-            gim["from_agent_session"] = UUID.Zero.ToString();
-            gim["to_agent_id"] = msg.toAgentID.ToString();
-            gim["im_session_id"] = msg.imSessionID.ToString();
-            gim["timestamp"] = msg.timestamp.ToString();
-            gim["from_agent_name"] = msg.fromAgentName;
-            gim["message"] = msg.message;
-            byte[] dialogdata = new byte[1]; dialogdata[0] = msg.dialog;
-            gim["dialog"] = Convert.ToBase64String(dialogdata, Base64FormattingOptions.None);
+            Hashtable gim = new()
+            {
+                ["from_agent_id"] = msg.fromAgentID.ToString(),
+                // Kept for compatibility
+                ["from_agent_session"] = UUID.Zero.ToString(),
+                ["to_agent_id"] = msg.toAgentID.ToString(),
+                ["im_session_id"] = msg.imSessionID.ToString(),
+                ["timestamp"] = msg.timestamp.ToString(),
+                ["from_agent_name"] = msg.fromAgentName,
+                ["message"] = msg.message,
+                ["from_group"] = msg.fromGroup ? "TRUE" : "FALSE",
+                ["parent_estate_id"] = msg.ParentEstateID.ToString(),
+                ["position_x"] = msg.Position.X.ToString(),
+                ["position_y"] = msg.Position.Y.ToString(),
+                ["position_z"] = msg.Position.Z.ToString(),
+                ["region_id"] = msg.RegionID.ToString(),
 
-            if (msg.fromGroup)
-                gim["from_group"] = "TRUE";
-            else
-                gim["from_group"] = "FALSE";
-            byte[] offlinedata = new byte[1]; offlinedata[0] = msg.offline;
-            gim["offline"] = Convert.ToBase64String(offlinedata, Base64FormattingOptions.None);
-            gim["parent_estate_id"] = msg.ParentEstateID.ToString();
-            gim["position_x"] = msg.Position.X.ToString();
-            gim["position_y"] = msg.Position.Y.ToString();
-            gim["position_z"] = msg.Position.Z.ToString();
-            gim["region_id"] = msg.RegionID.ToString();
-            gim["binary_bucket"] = Convert.ToBase64String(msg.binaryBucket, Base64FormattingOptions.None);
-            gim["region_id"] = new UUID(msg.RegionID).ToString();
+                ["binary_bucket"] = Convert.ToBase64String(msg.binaryBucket, Base64FormattingOptions.None),
+                ["region_id"] = new UUID(msg.RegionID).ToString(),
 
-            if (messageKey != String.Empty)
+                ["dialog"] = Convert.ToBase64String(new byte[] { msg.dialog }, Base64FormattingOptions.None),
+                ["offline"] = Convert.ToBase64String(new byte[] { msg.offline }, Base64FormattingOptions.None)
+            };
+
+            if (!string.IsNullOrEmpty(messageKey))
                 gim["message_key"] = messageKey;
 
             return gim;

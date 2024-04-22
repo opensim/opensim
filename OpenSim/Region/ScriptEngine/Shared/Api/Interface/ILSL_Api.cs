@@ -43,7 +43,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
     {
         void state(string newState);
 
+                   //ApiDesc Returns absolute version as val (ie as postive value)
        LSL_Integer llAbs(LSL_Integer val);
+                   //ApiDesc Returns cosine of val (val in radians)
          LSL_Float llAcos(LSL_Float val);
                    //ApiDesc Sleep 0.1
               void llAddToLandBanList(LSL_Key avatarId, LSL_Float hours);
@@ -55,8 +57,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
          LSL_Float llAngleBetween(LSL_Rotation a, LSL_Rotation b);
               void llApplyImpulse(LSL_Vector force, LSL_Integer local);
               void llApplyRotationalImpulse(LSL_Vector force, int local);
+                   //ApiDesc Returns sine of val (val in radians)
          LSL_Float llAsin(LSL_Float val);
-         LSL_Float llAtan2(LSL_Float x, LSL_Float y);
+                   //ApiDesc Returns the angle whose tangent is the y/x
+         LSL_Float llAtan2(LSL_Float y, LSL_Float x);
               void llAttachToAvatar(LSL_Integer attachment);
               void llAttachToAvatarTemp(LSL_Integer attachmentPoint);
            LSL_Key llAvatarOnSitTarget();
@@ -129,6 +133,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
        LSL_Integer llGetAttached();
           LSL_List llGetAttachedList(LSL_Key id);
           LSL_List llGetBoundingBox(string obj);
+        LSL_Float  llGetCameraAspect();
+        LSL_Float  llGetCameraFOV();
         LSL_Vector llGetCameraPos();
       LSL_Rotation llGetCameraRot();
         LSL_Vector llGetCenterOfMass();
@@ -248,6 +254,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
            LSL_Key llList2Key(LSL_List src, int index);
           LSL_List llList2List(LSL_List src, int start, int end);
           LSL_List llList2ListStrided(LSL_List src, int start, int end, int stride);
+          LSL_List llList2ListSlice(LSL_List src, int start, int end, int stride, int stride_index);
       LSL_Rotation llList2Rot(LSL_List src, int index);
         LSL_String llList2String(LSL_List src, int index);
         LSL_Vector llList2Vector(LSL_List src, int index);
@@ -255,10 +262,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llListenControl(int number, int active);
               void llListenRemove(int number);
        LSL_Integer llListFindList(LSL_List src, LSL_List test);
+       LSL_Integer llListFindStrided(LSL_List src, LSL_List test, LSL_Integer lstart, LSL_Integer lend, LSL_Integer lstride);
           LSL_List llListInsertList(LSL_List dest, LSL_List src, int start);
           LSL_List llListRandomize(LSL_List src, int stride);
           LSL_List llListReplaceList(LSL_List dest, LSL_List src, int start, int end);
           LSL_List llListSort(LSL_List src, int stride, int ascending);
+          LSL_List llListSortStrided(LSL_List src, int stride, int stride_index, int ascending);
          LSL_Float llListStatistics(int operation, LSL_List src);
               void llLoadURL(string avatar_id, string message, string url);
          LSL_Float llLog(double val);
@@ -470,43 +479,48 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_String llJsonValueType(LSL_String json, LSL_List specifiers);
 
 
-        LSL_Integer llGetDayLength();
-        LSL_Integer llGetRegionDayLength();
-        LSL_Integer llGetDayOffset();
-        LSL_Integer llGetRegionDayOffset();
-        LSL_Vector llGetSunDirection();
-        LSL_Vector llGetRegionSunDirection();
-        LSL_Vector llGetMoonDirection();
-        LSL_Vector llGetRegionMoonDirection();
-        LSL_Rotation llGetSunRotation();
-        LSL_Rotation llGetRegionSunRotation();
-        LSL_Rotation llGetMoonRotation();
-        LSL_Rotation llGetRegionMoonRotation();
+      LSL_Integer llGetDayLength();
+      LSL_Integer llGetRegionDayLength();
+      LSL_Integer llGetDayOffset();
+      LSL_Integer llGetRegionDayOffset();
+      LSL_Vector llGetSunDirection();
+      LSL_Vector llGetRegionSunDirection();
+      LSL_Vector llGetMoonDirection();
+      LSL_Vector llGetRegionMoonDirection();
+      LSL_Rotation llGetSunRotation();
+      LSL_Rotation llGetRegionSunRotation();
+      LSL_Rotation llGetMoonRotation();
+      LSL_Rotation llGetRegionMoonRotation();
 
-         LSL_String llChar(LSL_Integer unicode);
-        LSL_Integer llOrd(LSL_String s, LSL_Integer index);
-        LSL_Integer llHash(LSL_String s);
+      LSL_String llChar(LSL_Integer unicode);
+      LSL_Integer llOrd(LSL_String s, LSL_Integer index);
+      LSL_Integer llHash(LSL_String s);
+      LSL_String llReplaceSubString(LSL_String src, LSL_String pattern, LSL_String replacement, int count);
 
-         LSL_String llReplaceSubString(LSL_String src, LSL_String pattern, LSL_String replacement, int count);
+      void llLinkAdjustSoundVolume(LSL_Integer linknumber, LSL_Float volume);
+      void llLinkStopSound(LSL_Integer linknumber);
+      void llLinkSetSoundQueueing(int linknumber, int queue);
+      void llLinkPlaySound(LSL_Integer linknumber, string sound, double volume);
+      void llLinkPlaySound(LSL_Integer linknumber, string sound, double volume, LSL_Integer flags);
+      void llLinkSetSoundRadius(int linknumber, double radius);
 
-         void llLinkAdjustSoundVolume(LSL_Integer linknumber, LSL_Float volume);
-         void llLinkStopSound(LSL_Integer linknumber);
-         void llLinkPlaySound(LSL_Integer linknumber, string sound, double volume);
-         void llLinkSetSoundQueueing(int linknumber, int queue);
-         void llLinkSetSoundRadius(int linknumber, double radius);
+      LSL_Vector llLinear2sRGB(LSL_Vector src);
+      LSL_Vector llsRGB2Linear(LSL_Vector src);
 
-         LSL_Integer llLinksetDataWrite(LSL_String name, LSL_String value);
-         LSL_Integer llLinksetDataWriteProtected(LSL_String name, LSL_String value, LSL_String pass);
-         void llLinksetDataReset();
-         LSL_Integer llLinksetDataAvailable();
-         LSL_Integer llLinksetDataCountKeys();
-         LSL_Integer llLinksetDataDelete(LSL_String name);
-         LSL_Integer llLinksetDataDeleteProtected(LSL_String name, LSL_String pass);
-         LSL_List llLinksetDataDeleteFound(LSL_String pattern, LSL_String pass);
-         LSL_Integer llLinksetDataCountFound(LSL_String pattern);
-         LSL_List llLinksetDataFindKeys(LSL_String pattern, LSL_Integer start, LSL_Integer count);
-         LSL_List llLinksetDataListKeys(LSL_Integer start, LSL_Integer count);
-         LSL_String llLinksetDataRead(LSL_String name);
-         LSL_String llLinksetDataReadProtected(LSL_String name, LSL_String pass);     
-    }
+      void llLinksetDataReset();
+      LSL_Integer llLinksetDataAvailable();
+      LSL_Integer llLinksetDataCountKeys();
+      LSL_Integer llLinksetDataCountFound(LSL_String pattern);
+      LSL_List llLinksetDataFindKeys(LSL_String pattern, LSL_Integer start, LSL_Integer count);
+      LSL_List llLinksetDataListKeys(LSL_Integer start, LSL_Integer count);
+      LSL_String llLinksetDataRead(LSL_String name);
+      LSL_String llLinksetDataReadProtected(LSL_String name, LSL_String pass);     
+      LSL_Integer llLinksetDataWrite(LSL_String name, LSL_String value);
+      LSL_Integer llLinksetDataWriteProtected(LSL_String name, LSL_String value, LSL_String pass);
+      LSL_Integer llLinksetDataDelete(LSL_String name);
+      LSL_List llLinksetDataDeleteFound(LSL_String pattern, LSL_String pass);
+      LSL_Integer llLinksetDataDeleteProtected(LSL_String name, LSL_String pass);
+
+      LSL_Integer llIsFriend(LSL_Key agent_id);
+   }
 }

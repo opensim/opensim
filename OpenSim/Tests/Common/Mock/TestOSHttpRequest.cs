@@ -79,13 +79,6 @@ namespace OpenSim.Tests.Common
             }
         }
 
-        public HttpCookieCollection Cookies
-        {
-            get
-            {
-                throw new NotImplementedException ();
-            }
-        }
 
         public bool HasEntityBody
         {

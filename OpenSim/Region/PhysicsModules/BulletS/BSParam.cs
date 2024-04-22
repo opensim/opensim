@@ -237,6 +237,11 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public static float PID_D { get; private set; }    // derivative
         public static float PID_P { get; private set; }    // proportional
 
+        // The reported version from the underylying DLL/SO could be the legacy value
+        // If the legacy value, this other value is returned
+        public static string VersionLegacyValue { get; private set; }
+        public static string VersionLegacyReplacement { get; private set; }
+
         public static float DebugNumber { get; private set; }   // A console setable number used for debugging
 
         // Various constants that come from that other virtual world that shall not be named.
@@ -346,6 +351,19 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             {
                 // Get the generic type of the setter
                 Type genericType = setter.GetType().GetGenericArguments()[0];
+                if (genericType == typeof(string))
+                {
+                    try
+                    {
+                        setter(s, defaultValue);
+                    }
+                    catch
+                    {
+                        s.Logger.Error($"{LogHeader} Failed setting string parameter value '{valAsString}'");
+                    }
+                    return;
+                }
+
                 // Find the 'Parse' method on that type
                 System.Reflection.MethodInfo parser = null;
                 try
@@ -354,8 +372,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 }
                 catch (Exception e)
                 {
-                    s.Logger.ErrorFormat("{0} Exception getting parser for type '{1}': {2}", LogHeader, genericType, e);
-                    parser = null;
+                    s.Logger.Error($"{LogHeader} Exception getting parser for type '{genericType}': {e.Message}");
+                    return;
                 }
                 if (parser != null)
                 {
@@ -369,13 +387,11 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                     }
                     catch
                     {
-                        s.Logger.ErrorFormat("{0} Failed parsing parameter value '{1}' as type '{2}'", LogHeader, valAsString, genericType);
+                        s.Logger.Error($"{LogHeader} Failed parsing parameter value '{valAsString}' as type '{genericType}'");
                     }
                 }
                 else
-                {
-                    s.Logger.ErrorFormat("{0} Could not find parameter parser for type '{1}'", LogHeader, genericType);
-                }
+                    s.Logger.Error($"{LogHeader} Could not find parameter parser for type '{genericType}'");
             }
             public override bool HasSetOnObject
             {
@@ -849,6 +865,11 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 0f,
                 (s) => { return 0f; },
                 (s,v) => { BSParam.ResetConstraintSolverTainted(s, v); } ),
+
+            new ParameterDefn<string>("VersionLegacyValue", "Version string returned by legacy BulletSim binaries",
+                "v0003" ),
+            new ParameterDefn<string>("VersionLegacyReplacement", "Value used to replace legacy version number",
+                "1.0,2.84" ),
         };
 
         // Convert a boolean to our numeric true and false values

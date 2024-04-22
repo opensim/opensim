@@ -42,6 +42,7 @@ using Nwc.XmlRpc;
 using log4net;
 
 using OpenSim.Services.Connectors.Simulation;
+using System.Net.Http;
 
 namespace OpenSim.Services.Connectors.Hypergrid
 {
@@ -94,7 +95,8 @@ namespace OpenSim.Services.Connectors.Hypergrid
             XmlRpcResponse response = null;
             try
             {
-                response = request.Send(info.ServerURI, 10000);
+                using HttpClient hclient = WebUtil.GetNewGlobalHttpClient(10000);
+                response = request.Send(info.ServerURI, hclient);
             }
             catch (Exception e)
             {
@@ -230,7 +232,8 @@ namespace OpenSim.Services.Connectors.Hypergrid
             XmlRpcResponse response = null;
             try
             {
-                response = request.Send(gatekeeper.ServerURI, 10000);
+                using HttpClient hclient = WebUtil.GetNewGlobalHttpClient(10000);
+                response = request.Send(gatekeeper.ServerURI, hclient);
             }
             catch (Exception e)
             {

@@ -167,11 +167,6 @@ namespace OpenSim.Region.PhysicsModule.POS
             set { return; }
         }
 
-        public override bool FloatOnWater
-        {
-            set { return; }
-        }
-
         public override Vector3 Velocity
         {
             get { return _velocity; }

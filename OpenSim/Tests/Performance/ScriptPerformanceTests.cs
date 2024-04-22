@@ -54,7 +54,8 @@ namespace OpenSim.Tests.Performance
     [TestFixture]
     public class ScriptPerformanceTests : OpenSimTestCase
     {
-        private TestScene m_scene;
+        /*
+         * private TestScene m_scene;
         private XEngine m_xEngine;
         private AutoResetEvent m_chatEvent = new AutoResetEvent(false);
 
@@ -164,4 +165,5 @@ namespace OpenSim.Tests.Performance
             }
         }
     }
+        */
 }

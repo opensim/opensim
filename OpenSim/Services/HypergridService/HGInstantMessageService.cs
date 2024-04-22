@@ -144,8 +144,8 @@ namespace OpenSim.Services.HypergridService
 
         public bool IncomingInstantMessage(GridInstantMessage im)
         {
-//            m_log.DebugFormat("[HG IM SERVICE]: Received message from {0} to {1}", im.fromAgentID, im.toAgentID);
-//            UUID toAgentID = new UUID(im.toAgentID);
+            //m_log.DebugFormat("[HG IM SERVICE]: Received message from {0} to {1}", im.fromAgentID, im.toAgentID);
+            //UUID toAgentID = new UUID(im.toAgentID);
 
             bool success = false;
             if (m_IMSimConnector != null)
@@ -166,7 +166,7 @@ namespace OpenSim.Services.HypergridService
 
         public bool OutgoingInstantMessage(GridInstantMessage im, string url, bool foreigner)
         {
-//            m_log.DebugFormat("[HG IM SERVICE]: Sending message from {0} to {1}@{2}", im.fromAgentID, im.toAgentID, url);
+            //m_log.DebugFormat("[HG IM SERVICE]: Sending message from {0} to {1}@{2}", im.fromAgentID, im.toAgentID, url);
             return TrySendInstantMessage(im, url, true, foreigner);
         }
 

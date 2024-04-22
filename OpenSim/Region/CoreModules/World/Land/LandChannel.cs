@@ -74,7 +74,6 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         #endregion
 
-        private readonly Scene m_scene;
         private readonly LandManagementModule m_landManagementModule;
 
         private float m_BanLineSafeHeight = 100.0f;
@@ -95,9 +94,8 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public LandChannel(Scene scene, LandManagementModule landManagementMod)
         {
-            m_scene = scene;
             m_landManagementModule = landManagementMod;
-            if(landManagementMod != null)
+            if(landManagementMod is not null)
                 m_BanLineSafeHeight = landManagementMod.BanLineSafeHeight;
         }
 
@@ -105,19 +103,19 @@ namespace OpenSim.Region.CoreModules.World.Land
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ILandObject GetLandObject(float x_float, float y_float)
         {
-            return m_landManagementModule != null ? m_landManagementModule.GetLandObject(x_float, y_float) : null;
+            return m_landManagementModule?.GetLandObject(x_float, y_float);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ILandObject GetLandObject(int localID)
         {
-            return m_landManagementModule != null ? m_landManagementModule.GetLandObject(localID) : null;
+            return m_landManagementModule?.GetLandObject(localID);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ILandObject GetLandObject(UUID GlobalID)
         {
-                return m_landManagementModule != null ? m_landManagementModule.GetLandObject(GlobalID) : null;
+            return m_landManagementModule?.GetLandObject(GlobalID);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -129,19 +127,19 @@ namespace OpenSim.Region.CoreModules.World.Land
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ILandObject GetLandObject(int x, int y)
         {
-            return m_landManagementModule != null ? m_landManagementModule.GetLandObject(x, y) : null;
+            return m_landManagementModule?.GetLandObject(x, y);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ILandObject GetLandObjectClippedXY(float x, float y)
         {
-            return m_landManagementModule != null ? m_landManagementModule.GetLandObjectClippedXY(x, y) : null;
+            return m_landManagementModule?.GetLandObjectClippedXY(x, y);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public List<ILandObject> AllParcels()
         {
-            return m_landManagementModule != null ? m_landManagementModule.AllParcels() : new List<ILandObject>();
+            return m_landManagementModule is not null ? m_landManagementModule.AllParcels() : new List<ILandObject>();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -153,13 +151,13 @@ namespace OpenSim.Region.CoreModules.World.Land
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public List<ILandObject> ParcelsNearPoint(Vector3 position)
         {
-            return m_landManagementModule != null ? m_landManagementModule.ParcelsNearPoint(position) : new List<ILandObject>();
+            return m_landManagementModule is not null ? m_landManagementModule.ParcelsNearPoint(position) : new List<ILandObject>();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsForcefulBansAllowed()
         {
-            return m_landManagementModule != null ? m_landManagementModule.AllowedForcefulBans : false;
+            return m_landManagementModule is not null && m_landManagementModule.AllowedForcefulBans;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

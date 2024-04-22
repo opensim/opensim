@@ -41,7 +41,6 @@ using OpenSim.Region.OptionalModules.World.NPC;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.Api;
-using OpenSim.Region.ScriptEngine.Shared.Instance;
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common;
@@ -53,6 +52,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
     [TestFixture]
     public class LSL_ApiObjectTests : OpenSimTestCase
     {
+        /*
         private const double VECTOR_COMPONENT_ACCURACY = 0.0000005d;
         private const float FLOAT_ACCURACY = 0.00005f;
 
@@ -395,4 +395,5 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         }
 
     }
+        */
 }

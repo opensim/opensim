@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <AssemblyTitle>Amib.Threading</AssemblyTitle>
     <Product>Amib.Threading</Product>
     <Description>Smart Thread Pool</Description>

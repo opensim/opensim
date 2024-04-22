@@ -73,7 +73,6 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             {
                 m_physicsScene.DetailLog("{0},BSActorSetForce,refresh,notSetForce,removing={1}", m_controllingPrim.LocalID, ActorName);
                 Enabled = false;
-                return;
             }
 
             // If the object is physically active, add the hoverer prestep action

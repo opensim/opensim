@@ -15,7 +15,7 @@ namespace OSHttpServer
     /// </summary>
     public class HttpContextFactory : IHttpContextFactory
     {
-        private readonly ConcurrentDictionary<int, HttpClientContext> m_activeContexts = new ConcurrentDictionary<int, HttpClientContext>();
+        private readonly ConcurrentDictionary<int, HttpClientContext> m_activeContexts = new();
         private readonly ILogWriter m_logWriter;
 
         /// <summary>

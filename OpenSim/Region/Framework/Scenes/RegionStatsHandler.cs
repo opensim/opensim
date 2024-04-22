@@ -52,8 +52,8 @@ namespace OpenSim.Region.Framework.Scenes
         private string osXStatsURI = String.Empty;
         //private string osSecret = String.Empty;
         private OpenSim.Framework.RegionInfo regionInfo;
-        public string localZone = TimeZone.CurrentTimeZone.StandardName;
-        public TimeSpan utcOffset = TimeZone.CurrentTimeZone.GetUtcOffset(DateTime.Now);
+        public string localZone = TimeZoneInfo.Local.StandardName;
+        public TimeSpan utcOffset = TimeZoneInfo.Local.GetUtcOffset(DateTime.Now);
 
         public RegionStatsSimpleHandler(RegionInfo region_info) : base("/" + Util.SHA1Hash(region_info.regionSecret))
         {
@@ -103,8 +103,8 @@ namespace OpenSim.Region.Framework.Scenes
         private string osXStatsURI = String.Empty;
         //private string osSecret = String.Empty;
         private OpenSim.Framework.RegionInfo regionInfo;
-        public string localZone = TimeZone.CurrentTimeZone.StandardName;
-        public TimeSpan utcOffset = TimeZone.CurrentTimeZone.GetUtcOffset(DateTime.Now);
+        public string localZone = TimeZoneInfo.Local.StandardName;
+        public TimeSpan utcOffset = TimeZoneInfo.Local.GetUtcOffset(DateTime.Now);
 
         public RegionStatsHandler(RegionInfo region_info)
             : base("GET", "/" + Util.SHA1Hash(region_info.regionSecret), "RegionStats", "Region Statistics")

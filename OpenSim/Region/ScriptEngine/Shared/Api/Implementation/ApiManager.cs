@@ -48,17 +48,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 Type[] types = a.GetExportedTypes();
 
-                foreach (Type t in types)
+                foreach (Type t in types.AsSpan())
                 {
-                    string name = t.ToString();
+                    var name = t.ToString().AsSpan();
                     int idx = name.LastIndexOf('.');
                     if (idx != -1)
-                        name = name.Substring(idx+1);
+                        name = name[(idx+1)..];
 
                     if (name.EndsWith("_Api"))
                     {
-                        name = name.Substring(0, name.Length - 4);
-                        m_Apis[name] = t;
+                        string sname = new string(name[..^4]);
+                        m_Apis[sname] = t;
                     }
                 }
             }

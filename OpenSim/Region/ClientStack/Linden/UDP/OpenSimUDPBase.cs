@@ -58,7 +58,7 @@ namespace OpenMetaverse
         /// <summary>UDP socket, used in either client or server mode</summary>
         private Socket m_udpSocket;
 
-        public static Object m_udpBuffersPoolLock = new Object();
+        public static Object m_udpBuffersPoolLock = new();
         public static UDPPacketBuffer[] m_udpBuffersPool = new UDPPacketBuffer[1000];
         public static int m_udpBuffersPoolPtr = -1;
 
@@ -104,62 +104,6 @@ namespace OpenMetaverse
             get { return m_udpPort; }
         }
 
-        #region PacketDropDebugging
-        /// <summary>
-        /// For debugging purposes only... random number generator for dropping
-        /// outbound packets.
-        /// </summary>
-        private Random m_dropRandomGenerator = new Random();
-
-        /// <summary>
-        /// For debugging purposes only... parameters for a simplified
-        /// model of packet loss with bursts, overall drop rate should
-        /// be roughly 1 - m_dropLengthProbability / (m_dropProbabiliy + m_dropLengthProbability)
-        /// which is about 1% for parameters 0.0015 and 0.15
-        /// </summary>
-        private double m_dropProbability = 0.0030;
-        private double m_dropLengthProbability = 0.15;
-        private bool m_dropState = false;
-
-        /// <summary>
-        /// For debugging purposes only... parameters to control the time
-        /// duration over which packet loss bursts can occur, if no packets
-        /// have been sent for m_dropResetTicks milliseconds, then reset the
-        /// state of the packet dropper to its default.
-        /// </summary>
-        private int m_dropLastTick = 0;
-        private int m_dropResetTicks = 500;
-
-        /// <summary>
-        /// Debugging code used to simulate dropped packets with bursts
-        /// </summary>
-        private bool DropOutgoingPacket()
-        {
-            double rnum = m_dropRandomGenerator.NextDouble();
-
-            // if the connection has been idle for awhile (more than m_dropResetTicks) then
-            // reset the state to the default state, don't continue a burst
-            int curtick = Util.EnvironmentTickCount();
-            if (Util.EnvironmentTickCountSubtract(curtick, m_dropLastTick) > m_dropResetTicks)
-                m_dropState = false;
-
-            m_dropLastTick = curtick;
-
-            // if we are dropping packets, then the probability of dropping
-            // this packet is the probability that we stay in the burst
-            if (m_dropState)
-            {
-                m_dropState = (rnum < (1.0 - m_dropLengthProbability)) ? true : false;
-            }
-            else
-            {
-                m_dropState = (rnum < m_dropProbability) ? true : false;
-            }
-
-            return m_dropState;
-        }
-        #endregion PacketDropDebugging
-
         /// <summary>
         /// Default constructor
         /// </summary>
@@ -178,7 +122,7 @@ namespace OpenMetaverse
 
         ~OpenSimUDPBase()
         {
-            if(m_udpSocket !=null)
+            if(m_udpSocket is not null)
                 try { m_udpSocket.Close(); } catch { }
         }
 
@@ -241,12 +185,8 @@ namespace OpenMetaverse
 
                 const int SIO_UDP_CONNRESET = -1744830452;
 
-                IPEndPoint ipep = new IPEndPoint(m_localBindAddress, m_udpPort);
 
-                m_udpSocket = new Socket(
-                    AddressFamily.InterNetwork,
-                    SocketType.Dgram,
-                    ProtocolType.Udp);
+                m_udpSocket = new Socket( AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 
                 try
                 {
@@ -284,6 +224,7 @@ namespace OpenMetaverse
                 if (recvBufferSize != 0)
                     m_udpSocket.ReceiveBufferSize = recvBufferSize;
 
+                IPEndPoint ipep = new(m_localBindAddress, m_udpPort);
                 m_udpSocket.Bind(ipep);
 
                 if (m_udpPort == 0)
@@ -328,7 +269,7 @@ namespace OpenMetaverse
 
         private void AsyncBeginReceive()
         {
-            while(IsRunningInbound)
+            while (IsRunningInbound)
             {
                 UDPPacketBuffer buf = GetNewUDPBuffer(new IPEndPoint(IPAddress.Any, 0)); // we need a fresh one here, for now at least
                 try
@@ -397,6 +338,7 @@ namespace OpenMetaverse
                     // buffer
                     buffer.DataLength = m_udpSocket.EndReceiveFrom(iar, ref buffer.RemoteEndPoint);
 
+
                     UdpReceives++;
 
                     // call the abstract method PacketReceived(), passing the buffer that
@@ -428,6 +370,7 @@ namespace OpenMetaverse
                             UdpReceives, se.ErrorCode),
                         se);
                 }
+                catch(ObjectDisposedException) { }
                 catch (Exception e)
                 {
                     m_log.Error(
@@ -443,7 +386,7 @@ namespace OpenMetaverse
 
         public void SyncSend(UDPPacketBuffer buf)
         {
-            if(buf.RemoteEndPoint == null)
+            if(buf.RemoteEndPoint is null)
                 return; // already expired
             try
             {

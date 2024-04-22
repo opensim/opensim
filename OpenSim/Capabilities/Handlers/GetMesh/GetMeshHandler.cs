@@ -58,7 +58,7 @@ namespace OpenSim.Capabilities.Handlers
         }
         public Hashtable Handle(Hashtable request)
         {
-            return ProcessGetMesh(request, UUID.Zero, null); ;
+            return ProcessGetMesh(request, UUID.Zero, null);
         }
 
         public Hashtable ProcessGetMesh(Hashtable request, UUID AgentId, Caps cap)

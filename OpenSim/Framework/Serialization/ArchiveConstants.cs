@@ -96,7 +96,7 @@ namespace OpenSim.Framework.Serialization
         /// <summary>
         /// Template used for creating filenames in OpenSim Archives.
         /// </summary>
-        public const string OAR_OBJECT_FILENAME_TEMPLATE = "{0}_{1:000}-{2:000}-{3:000}__{4}.xml";
+        public const string OAR_OBJECT_FILENAME_TEMPLATE = "{0}_{1:#000}-{2:#000}-{3:#000}__{4}.xml";
 
         /// <value>
         /// Extensions used for asset types in the archive
@@ -155,7 +155,7 @@ namespace OpenSim.Framework.Serialization
 
         public static string CreateOarLandDataPath(LandData ld)
         {
-            return string.Format("{0}{1}.xml", ArchiveConstants.LANDDATA_PATH, ld.GlobalID);
+            return $"{ArchiveConstants.LANDDATA_PATH}{ld.GlobalID}.xml";
         }
 
         /// <summary>
@@ -169,7 +169,7 @@ namespace OpenSim.Framework.Serialization
         {
             return string.Format(
                 OAR_OBJECT_FILENAME_TEMPLATE, objectName,
-                Math.Round(pos.X), Math.Round(pos.Y), Math.Round(pos.Z),
+                MathF.Round(pos.X), MathF.Round(pos.Y), MathF.Round(pos.Z),
                 uuid);
         }
 
@@ -192,7 +192,7 @@ namespace OpenSim.Framework.Serialization
         /// <returns></returns>
         public static string ExtractPlainPathFromIarPath(string iarPath)
         {
-            List<string> plainDirs = new List<string>();
+            List<string> plainDirs = new();
 
             string[] iarDirs = iarPath.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
 

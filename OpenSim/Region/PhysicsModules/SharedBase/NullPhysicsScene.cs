@@ -74,10 +74,6 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
             return PhysicsActor.Null;
         }
 
-        public override void AddPhysicsActorTaint(PhysicsActor prim)
-        {
-        }
-
         public override float Simulate(float timeStep)
         {
             m_workIndicator = (m_workIndicator + 1) % 10;

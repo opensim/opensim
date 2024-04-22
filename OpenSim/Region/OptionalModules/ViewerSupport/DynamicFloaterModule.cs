@@ -55,6 +55,8 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
 
         private Scene m_scene;
 
+        private bool m_Enabled = false;
+
         private Dictionary<UUID, Dictionary<int, FloaterData>> m_floaters = new Dictionary<UUID, Dictionary<int, FloaterData>>();
 
         public string Name
@@ -69,6 +71,11 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
 
         public void Initialise(IConfigSource config)
         {
+            IConfig moduleConfig = config.Configs["DynamicFloaterModule"];
+            if (moduleConfig != null)
+            {
+                m_Enabled = moduleConfig.GetBoolean("enabled", false);
+            }
         }
 
         public void Close()
@@ -77,10 +84,13 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
 
         public void AddRegion(Scene scene)
         {
-            m_scene = scene;
-            scene.EventManager.OnNewClient += OnNewClient;
-            scene.EventManager.OnClientClosed += OnClientClosed;
-            m_scene.RegisterModuleInterface<IDynamicFloaterModule>(this);
+            if(m_Enabled)
+            {
+                m_scene = scene;
+                scene.EventManager.OnNewClient += OnNewClient;
+                scene.EventManager.OnClientClosed += OnClientClosed;
+                m_scene.RegisterModuleInterface<IDynamicFloaterModule>(this);
+            }
         }
 
         public void RegionLoaded(Scene scene)

@@ -35,11 +35,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
     {
         public class TimerInfo
         {
-            public uint localID;
             public UUID itemID;
-            //public double interval;
+            public uint localID;
             public long interval;
-            //public DateTime next;
             public long next;
 
             public TimerInfo Clone()
@@ -67,41 +65,44 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
         //
         // TIMER
         //
-        static private string MakeTimerKey(uint localID, UUID itemID)
+        private static string MakeTimerKey(uint localID, UUID itemID)
         {
             return localID.ToString() + itemID.ToString();
         }
 
-        private Dictionary<string,TimerInfo> Timers = new Dictionary<string,TimerInfo>();
+        private readonly Dictionary<string,TimerInfo> Timers = new();
+        private readonly object TimerListLock = new();
         private List<TimerInfo> TimersCache = null;
-        private object TimerListLock = new object();
 
         public void SetTimerEvent(uint _localID, UUID _itemID, double sec)
         {
-            if (sec == 0) // Disabling timer
+            if (sec == 0.0) // Disabling timer
             {
                 UnSetTimerEvents(_localID, _itemID);
                 return;
             }
 
             string key = MakeTimerKey(_localID, _itemID);
+            long intervalTicks = (long)(sec * TimeSpan.TicksPerSecond);
+
             lock (TimerListLock)
             {
-                Timers.TryGetValue(key, out TimerInfo ts);
-                if(ts == null)
+                if (Timers.TryGetValue(key, out TimerInfo ts))
                 {
-                    ts = new TimerInfo();
-                    ts.localID = _localID;
-                    ts.itemID = _itemID;
-                    ts.interval = (long)(sec * 10000000);
-                    ts.next = DateTime.Now.Ticks + ts.interval;
-                    Timers[key] = ts;
-                    TimersCache = null;
+                    ts.interval = intervalTicks;
+                    ts.next = DateTime.UtcNow.Ticks + ts.interval;
                 }
                 else
                 {
-                    ts.interval = (long)(sec * 10000000);
-                    ts.next = DateTime.Now.Ticks + ts.interval;
+                    ts = new TimerInfo()
+                    {
+                        localID = _localID,
+                        itemID = _itemID,
+                        interval = intervalTicks,
+                        next = DateTime.UtcNow.Ticks + intervalTicks
+                    };
+                    Timers[key] = ts;
+                    TimersCache = null;
                 }
             }
         }
@@ -112,10 +113,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             string key = MakeTimerKey(m_localID, m_itemID);
             lock (TimerListLock)
             {
-                if (Timers.TryGetValue(key, out TimerInfo ts))
+                if (Timers.Remove(key, out TimerInfo ts))
                 {
                     m_CmdManager.m_ScriptEngine.CancelScriptEvent(ts.itemID, "timer");
-                    Timers.Remove(key);
                     TimersCache = null;
                 }
             }
@@ -128,18 +128,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             {
                 if (Timers.Count == 0)
                     return;
-                if (TimersCache == null)
-                    TimersCache = new List<TimerInfo>(Timers.Values);
-                tvals = TimersCache;
+                tvals = TimersCache ?? new List<TimerInfo>(Timers.Values);
             }
 
-            long now = DateTime.Now.Ticks;
+            long now = DateTime.UtcNow.Ticks;
             foreach (TimerInfo ts in tvals)
             {
                 // Time has passed?
                 if (ts.next <= now)
                 {
-                    //m_log.Debug("Time has passed: Now: " + DateTime.Now.Ticks + ", Passed: " + ts.next);
                     // Add it to queue
                     m_CmdManager.m_ScriptEngine.PostScriptEvent(ts.itemID,
                             new EventParams("timer", new Object[0],
@@ -152,24 +149,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
         public Object[] GetSerializationData(UUID itemID)
         {
-            List<Object> data = new List<Object>();
+            List<Object> data = new();
 
             List<TimerInfo> tvals;
             lock (TimerListLock)
             {
                 if (Timers.Count == 0)
                     return new object[0];
-                if (TimersCache == null)
-                    TimersCache = new List<TimerInfo>(Timers.Values);
-                tvals = TimersCache;
+                tvals = TimersCache ?? new List<TimerInfo>(Timers.Values);
             }
 
+            long now = DateTime.UtcNow.Ticks;
             foreach (TimerInfo ts in tvals)
             {
                 if (ts.itemID.Equals(itemID))
                 {
                     data.Add(ts.interval);
-                    data.Add(ts.next-DateTime.Now.Ticks);
+                    data.Add(ts.next - now);
                 }
             }
 
@@ -179,18 +175,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
         public void CreateFromData(uint localID, UUID itemID, UUID objectID, Object[] data)
         {
             int idx = 0;
+            long now = DateTime.UtcNow.Ticks;
 
             while (idx < data.Length)
             {
-                TimerInfo ts = new TimerInfo();
+                TimerInfo ts = new()
+                { 
+                    localID = localID,
+                    itemID = itemID,
+                    interval = (long)data[idx],
+                    next = now + (long)data[idx+1]
+                };
 
-                ts.localID = localID;
-                ts.itemID = itemID;
-                ts.interval = (long)data[idx];
-                ts.next = DateTime.Now.Ticks + (long)data[idx+1];
                 idx += 2;
                 string tskey = MakeTimerKey(localID, itemID);
-
                 lock (TimerListLock)
                 {
                     Timers.Add(tskey, ts);
@@ -201,15 +199,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
         public List<TimerInfo> GetTimersInfo()
         {
-            List<TimerInfo> retList = new List<TimerInfo>();
+            List<TimerInfo> retList = new();
             List<TimerInfo> tvals;
             lock (TimerListLock)
             {
                 if (Timers.Count == 0)
                     return retList;
-                if (TimersCache == null)
-                    TimersCache = new List<TimerInfo>(Timers.Values);
-                tvals = TimersCache;
+                tvals = TimersCache ?? new List<TimerInfo>(Timers.Values);
             }
 
             foreach (TimerInfo i in tvals)

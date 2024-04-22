@@ -26,6 +26,7 @@
  */
 
 using OpenMetaverse;
+using System.Runtime.CompilerServices;
 
 namespace OpenSim.Framework
 {
@@ -39,24 +40,20 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="capsKey"></param>
         /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string GetCapsSeedPath(string capsObjectPath)
         {
-            return "CAPS/" + capsObjectPath + "0000/";
+            return $"CAPS/{capsObjectPath}0000/";
         }
 
         /// <summary>
         /// Get a random CAPS object path component that will be used as the identifying part of all future CAPS requests
         /// </summary>
         /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string GetRandomCapsObjectPath()
         {
-            UUID caps = UUID.Random();
-            string capsPath = caps.ToString();
-            // I'm commenting this, rather than delete, to keep as historical record.
-            // The caps seed is now a full UUID string that gets added four more digits
-            // for producing certain CAPs URLs in OpenSim
-            //capsPath = capsPath.Remove(capsPath.Length - 4, 4);
-            return capsPath;
+            return UUID.Random().ToString();
         }
     }
 }

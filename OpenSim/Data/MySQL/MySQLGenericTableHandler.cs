@@ -39,8 +39,7 @@ namespace OpenSim.Data.MySQL
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected Dictionary<string, FieldInfo> m_Fields =
-                new Dictionary<string, FieldInfo>();
+        protected Dictionary<string, FieldInfo> m_Fields = new Dictionary<string, FieldInfo>();
 
         protected List<string> m_ColumnNames = null;
         protected string m_Realm;
@@ -69,7 +68,7 @@ namespace OpenSim.Data.MySQL
 
         protected void CommonConstruct(string storeName)
         {
-            if (storeName != String.Empty)
+            if (!string.IsNullOrEmpty(storeName))
             {
                 // We always use a new connection for any Migrations
                 using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
@@ -119,7 +118,7 @@ namespace OpenSim.Data.MySQL
             using (MySqlCommand cmd = new MySqlCommand())
             {
                 cmd.Parameters.AddWithValue(field, key);
-                cmd.CommandText = string.Format("select * from {0} where `{1}` = ?{1}", m_Realm, field);
+                cmd.CommandText = $"select * from {m_Realm} where `{field}` = ?{field}";
                 return DoQuery(cmd);
             }
         }
@@ -283,10 +282,7 @@ namespace OpenSim.Data.MySQL
         {
             using (MySqlCommand cmd = new MySqlCommand())
             {
-                string query = String.Format("select * from {0} where {1}",
-                                             m_Realm, where);
-
-                cmd.CommandText = query;
+                cmd.CommandText = $"select * from {m_Realm} where {where}"; ;
 
                 return DoQuery(cmd);
             }
@@ -312,9 +308,7 @@ namespace OpenSim.Data.MySQL
                     // InventoryTransferModule or we may be required to substitute a DBNull here.
                     if (fi.GetValue(row) == null)
                         throw new NullReferenceException(
-                            string.Format(
-                                "[MYSQL GENERIC TABLE HANDLER]: Trying to store field {0} for {1} which is unexpectedly null",
-                                fi.Name, row));
+                            $"[MYSQL GENERIC TABLE HANDLER]: Trying to store field {fi.Name} for {row} which is unexpectedly null");
 
                     cmd.Parameters.AddWithValue(fi.Name, fi.GetValue(row).ToString());
                 }
@@ -332,7 +326,7 @@ namespace OpenSim.Data.MySQL
                     }
                 }
 
-                query = String.Format("replace into {0} (`", m_Realm) + String.Join("`,`", names.ToArray()) + "`) values (" + String.Join(",", values.ToArray()) + ")";
+                query = $"replace into {m_Realm} (`" + String.Join("`,`", names.ToArray()) + "`) values (" + String.Join(",", values.ToArray()) + ")";
 
                 cmd.CommandText = query;
 

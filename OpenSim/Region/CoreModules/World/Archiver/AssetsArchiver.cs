@@ -125,30 +125,21 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             // It appears that gtar, at least, doesn't need the intermediate directory entries in the tar
             //archive.AddDir("assets");
 
-            string extension = string.Empty;
-
-            if (ArchiveConstants.ASSET_TYPE_TO_EXTENSION.ContainsKey(asset.Type))
+            if (ArchiveConstants.ASSET_TYPE_TO_EXTENSION.TryGetValue(asset.Type, out string extension))
             {
-                extension = ArchiveConstants.ASSET_TYPE_TO_EXTENSION[asset.Type];
+                m_archiveWriter.WriteFile($"{ArchiveConstants.ASSETS_PATH}{asset.FullID}{extension}", asset.Data);
             }
             else
             {
-                m_log.ErrorFormat(
-                    "[ARCHIVER]: Unrecognized asset type {0} with uuid {1}.  This asset will be saved but not reloaded",
-                    asset.Type, asset.ID);
+                m_log.Error(
+                    $"[ARCHIVER]: Unrecognized asset type {asset.Type} with uuid {asset.ID}. This asset will be saved but may not load");
+                m_archiveWriter.WriteFile($"{ArchiveConstants.ASSETS_PATH}{asset.FullID}", asset.Data);
             }
-
-            m_archiveWriter.WriteFile(
-                ArchiveConstants.ASSETS_PATH + asset.FullID.ToString() + extension,
-                asset.Data);
 
             m_assetsWritten++;
 
-            //m_log.DebugFormat("[ARCHIVER]: Added asset {0}", m_assetsWritten);
-
             if (m_assetsWritten % LOG_ASSET_LOAD_NOTIFICATION_INTERVAL == 0)
-                m_log.InfoFormat("[ARCHIVER]: Added {0} assets to archive", m_assetsWritten);
+                m_log.Info($"[ARCHIVER]: Added {m_assetsWritten} assets to archive");
         }
-
     }
 }

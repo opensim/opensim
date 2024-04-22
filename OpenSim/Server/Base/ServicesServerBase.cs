@@ -154,14 +154,14 @@ namespace OpenSim.Server.Base
             MainConsole.Instance.ReadConfig(Config);
             m_console = MainConsole.Instance;
 
-            if (logConfig != null)
+            if (!string.IsNullOrEmpty(logConfig))
             {
                 FileInfo cfg = new FileInfo(logConfig);
                 XmlConfigurator.Configure(cfg);
             }
             else
             {
-                XmlConfigurator.Configure();
+                XmlConfigurator.Configure(new FileInfo("Robust.exe.config"));
             }
 
             RegisterCommonAppenders(startupConfig);

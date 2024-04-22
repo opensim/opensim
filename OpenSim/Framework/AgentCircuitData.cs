@@ -97,7 +97,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// Agent's full name.
         /// </summary>
-        public string Name { get { return string.Format("{0} {1}", firstname, lastname); } }
+        public string Name { get { return $"{firstname} {lastname}"; } }
 
         /// <summary>
         /// Random Unique GUID for this session.  Client gets this at login and it's
@@ -139,13 +139,13 @@ namespace OpenSim.Framework
             get
             {
                 // Old style version string contains viewer name followed by a space followed by a version number
-                if (m_viewerInternal == null || m_viewerInternal.Contains(" "))
+                if (m_viewerInternal is null || m_viewerInternal.Contains(' '))
                 {
                     return m_viewerInternal;
                 }
                 else // New style version contains no spaces, just version number
                 {
-                    return Channel + " " + m_viewerInternal;
+                    return $"{Channel}  {m_viewerInternal}";
                 }
             }
         }
@@ -183,14 +183,16 @@ namespace OpenSim.Framework
         /// <returns>map of the agent circuit data</returns>
         public OSDMap PackAgentCircuitData(EntityTransferContext ctx)
         {
-            OSDMap args = new OSDMap();
-            args["agent_id"] = OSD.FromUUID(AgentID);
-            args["base_folder"] = OSD.FromUUID(BaseFolder);
-            args["caps_path"] = OSD.FromString(CapsPath);
-
-            if (ChildrenCapSeeds != null)
+            OSDMap args = new()
             {
-                OSDArray childrenSeeds = new OSDArray(ChildrenCapSeeds.Count);
+                ["agent_id"] = OSD.FromUUID(AgentID),
+                ["base_folder"] = OSD.FromUUID(BaseFolder),
+                ["caps_path"] = OSD.FromString(CapsPath)
+            };
+
+            if (ChildrenCapSeeds is not null)
+            {
+                OSDArray childrenSeeds = new(ChildrenCapSeeds.Count);
                 foreach (KeyValuePair<ulong, string> kvp in ChildrenCapSeeds)
                 {
                     OSDMap pair = new OSDMap();

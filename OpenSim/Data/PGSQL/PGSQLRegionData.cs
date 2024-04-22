@@ -293,24 +293,15 @@ namespace OpenSim.Data.PGSQL
 
         public bool Store(RegionData data)
         {
-            if (data.Data.ContainsKey("uuid"))
-                data.Data.Remove("uuid");
-            if (data.Data.ContainsKey("ScopeID"))
-                data.Data.Remove("ScopeID");
-            if (data.Data.ContainsKey("regionName"))
-                data.Data.Remove("regionName");
-            if (data.Data.ContainsKey("posX"))
-                data.Data.Remove("posX");
-            if (data.Data.ContainsKey("posY"))
-                data.Data.Remove("posY");
-            if (data.Data.ContainsKey("sizeX"))
-                data.Data.Remove("sizeX");
-            if (data.Data.ContainsKey("sizeY"))
-                data.Data.Remove("sizeY");
-            if (data.Data.ContainsKey("locX"))
-                data.Data.Remove("locX");
-            if (data.Data.ContainsKey("locY"))
-                data.Data.Remove("locY");
+            data.Data.Remove("uuid");
+            data.Data.Remove("ScopeID");
+            data.Data.Remove("regionName");
+            data.Data.Remove("posX");
+            data.Data.Remove("posY");
+            data.Data.Remove("sizeX");
+            data.Data.Remove("sizeY");
+            data.Data.Remove("locX");
+            data.Data.Remove("locY");
 
             string[] fields = new List<string>(data.Data.Keys).ToArray();
 

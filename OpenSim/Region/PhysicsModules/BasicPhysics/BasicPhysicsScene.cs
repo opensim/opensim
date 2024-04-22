@@ -155,10 +155,6 @@ namespace OpenSim.Region.PhysicsModule.BasicPhysics
                 _actors.Remove(act);
         }
 
-        public override void AddPhysicsActorTaint(PhysicsActor prim)
-        {
-        }
-
         public override float Simulate(float timeStep)
         {
 //            Console.WriteLine("Simulating");

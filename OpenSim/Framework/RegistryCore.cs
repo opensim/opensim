@@ -53,9 +53,9 @@ namespace OpenSim.Framework
 
         public bool TryGet<T>(out T iface)
         {
-            if (m_moduleInterfaces.ContainsKey(typeof(T)))
+            if (m_moduleInterfaces.TryGetValue(typeof(T), out object o))
             {
-                iface = (T)m_moduleInterfaces[typeof(T)];
+                iface = (T)o;
                 return true;
             }
             iface = default(T);

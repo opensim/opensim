@@ -147,8 +147,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             ForcePosition = RawPosition;
     
             // Set the velocity
-            if (m_moveActor != null)
-                m_moveActor.SetVelocityAndTarget(RawVelocity, RawVelocity, false);
+            m_moveActor?.SetVelocityAndTarget(RawVelocity, RawVelocity, false);
     
             ForceVelocity = RawVelocity;
             TargetVelocity = RawVelocity;

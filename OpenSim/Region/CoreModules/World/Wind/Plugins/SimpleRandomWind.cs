@@ -40,7 +40,6 @@ namespace OpenSim.Region.CoreModules.World.Wind.Plugins
     {
         private Vector2[] m_windSpeeds = new Vector2[16 * 16];
         private float m_strength = 1.0f;
-        private Random m_rndnums = new Random(Environment.TickCount);
 
         #region IPlugin Members
 
@@ -92,8 +91,8 @@ namespace OpenSim.Region.CoreModules.World.Wind.Plugins
             {
                 for (int x = 0; x < 16; x++)
                 {
-                    m_windSpeeds[y * 16 + x].X = (float)(m_rndnums.NextDouble() * 2d - 1d); // -1 to 1
-                    m_windSpeeds[y * 16 + x].Y = (float)(m_rndnums.NextDouble() * 2d - 1d); // -1 to 1
+                    m_windSpeeds[y * 16 + x].X = (float)(Random.Shared.NextDouble() * 2d - 1d); // -1 to 1
+                    m_windSpeeds[y * 16 + x].Y = (float)(Random.Shared.NextDouble() * 2d - 1d); // -1 to 1
                     m_windSpeeds[y * 16 + x].X *= m_strength;
                     m_windSpeeds[y * 16 + x].Y *= m_strength;
                 }

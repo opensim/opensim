@@ -86,7 +86,7 @@ namespace OpenSim.Framework
 
         public int SizeX { get; protected set; }
         public int SizeY { get; protected set; }
-        public int SizeZ { get; protected set; }
+        public const int SizeZ = 0;
 
         // A height used when the user doesn't specify anything
         public const float DefaultTerrainHeight = 21f;
@@ -119,6 +119,97 @@ namespace OpenSim.Framework
         {
             get { return this[x, y]; }
             set { this[x, y] = value; }
+        }
+
+        public float GetHeight(float x, float y)
+        {
+            // integer indexs
+            int ix, mix;
+            int iy, miy;
+            // interpolators offset
+            float dx;
+            float dy;
+
+            if (x <= 0)
+            {
+                if(y <= 0)
+                    return m_heightmap[0, 0];
+
+                iy = (int)y;
+                miy = SizeY - 1;
+                if (iy >= miy)
+                    return m_heightmap[0, miy];
+
+                dy = y - iy;
+
+                float h = m_heightmap[0, iy];
+                ++iy;
+                return h + (m_heightmap[0, iy] - h) * dy;
+            }
+
+            ix = (int)x;
+            mix = SizeX - 1;
+
+            if (ix >= mix)
+            {
+                if(y <= 0)
+                    return m_heightmap[mix, 0];
+
+                iy = (int)y;
+                miy = SizeY - 1;
+
+                if (y >= miy)
+                    return m_heightmap[mix, miy];
+
+                dy = y - iy;
+
+                float h = m_heightmap[mix, iy];
+                ++iy;
+                return h + (m_heightmap[mix, iy] - h) * dy;
+            }
+
+            dx = x - ix;
+
+            if (y <= 0)
+            {
+                float h = m_heightmap[ix, 0];
+                ++ix;
+                return h + (m_heightmap[ix, 0] - h) * dx;
+            }
+
+            iy = (int)y;
+            miy = SizeY - 1;
+
+            if (iy >= miy)
+            {
+                float h = m_heightmap[ix, miy];
+                ++ix;
+                return h + (m_heightmap[ix, miy] - h) * dx;
+            }
+
+            dy = y - iy;
+
+            float h0 = m_heightmap[ix, iy]; // 0,0 vertice
+            float h1;
+            float h2;
+
+            if (dy > dx)
+            {
+                ++iy;
+                h2 = m_heightmap[ix, iy]; // 0,1 vertice
+                h1 = (h2 - h0) * dy; // 0,1 vertice minus 0,0
+                ++ix;
+                h2 = (m_heightmap[ix, iy] - h2) * dx; // 1,1 vertice minus 0,1
+            }
+            else
+            {
+                ++ix;
+                h2 = m_heightmap[ix, iy]; // vertice 1,0
+                h1 = (h2 - h0) * dx; // 1,0 vertice minus 0,0
+                ++iy;
+                h2 = (m_heightmap[ix, iy] - h2) * dy; // 1,1 vertice minus 1,0
+            }
+            return h0 + h1 + h2;
         }
 
         public TerrainTaintsArray GetTaints()
@@ -367,7 +458,6 @@ namespace OpenSim.Framework
             m_mapStride = SizeY;
             m_mapPatchsStride = m_mapStride * Constants.TerrainPatchSize;
 
-            SizeZ = (int)Constants.RegionHeight;
             CompressionFactor = 100.0f;
 
 
@@ -390,7 +480,6 @@ namespace OpenSim.Framework
         {
             SizeX = pX;
             SizeY = pY;
-            SizeZ = pZ;
             m_taintSizeX = SizeX / Constants.TerrainPatchSize;
             m_taintSizeY = SizeY / Constants.TerrainPatchSize;
             m_mapStride = SizeY;
@@ -519,7 +608,7 @@ namespace OpenSim.Framework
                             for (int xx = 0; xx < SizeX; xx++)
                             {
                                 // reduce to 1mm resolution
-                                float val = (float)Math.Round(m_heightmap[xx, yy],3,MidpointRounding.AwayFromZero);
+                                float val = MathF.Round(m_heightmap[xx, yy],3,MidpointRounding.AwayFromZero);
                                 bw.Write(val);
                             }
                     }
@@ -549,7 +638,7 @@ namespace OpenSim.Framework
                             for (int xx = 0; xx < SizeX; xx++)
                             {
                                 //bw.Write((float)m_heightmap[xx, yy]);
-                                bw.Write((float)Math.Round(m_heightmap[xx, yy], 3, MidpointRounding.AwayFromZero));
+                                bw.Write(MathF.Round(m_heightmap[xx, yy], 3, MidpointRounding.AwayFromZero));
                             }
 
                         bw.Flush();

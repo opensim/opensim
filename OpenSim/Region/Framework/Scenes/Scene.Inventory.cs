@@ -72,10 +72,10 @@ namespace OpenSim.Region.Framework.Scenes
             EntityBase[] entities = Entities.GetEntities();
             foreach (EntityBase group in entities)
             {
-                if (group is SceneObjectGroup)
+                if (group is SceneObjectGroup sog)
                 {
-                    scriptsValidForStarting += ((SceneObjectGroup) group).CreateScriptInstances(0, false, DefaultScriptEngine, 0);
-                    ((SceneObjectGroup) group).ResumeScripts();
+                    scriptsValidForStarting += sog.CreateScriptInstances(0, false, DefaultScriptEngine, 0);
+                    sog.ResumeScripts();
                 }
             }
 
@@ -91,7 +91,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void StartScripts()
         {
-//            m_log.InfoFormat("[SCENE]: Starting scripts in {0}, please wait.", RegionInfo.RegionName);
+            //m_log.InfoFormat("[SCENE]: Starting scripts in {0}, please wait.", RegionInfo.RegionName);
 
             IScriptModule[] engines = RequestModuleInterfaces<IScriptModule>();
 
@@ -102,10 +102,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void AddUploadedInventoryItem(UUID agentID, InventoryItemBase item, uint cost)
         {
             IMoneyModule money = RequestModuleInterface<IMoneyModule>();
-            if (money != null)
-            {
-                money.ApplyUploadCharge(agentID, (int)cost, "Asset upload");
-            }
+            money?.ApplyUploadCharge(agentID, (int)cost, "Asset upload");
 
             AddInventoryItem(item);
         }
@@ -134,13 +131,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="item"></param>
         public bool AddInventoryItem(InventoryItemBase item, bool trigger)
         {
-            if (!item.Folder.IsZero() && InventoryService.AddItem(item))
+            if (item.Folder.IsNotZero() && InventoryService.AddItem(item))
             {
-                int userlevel = 0;
-                if (Permissions.IsGod(item.Owner))
-                {
-                    userlevel = 1;
-                }
+                int userlevel = Permissions.IsGod(item.Owner) ? 1 : 0;
                 if (trigger)
                     EventManager.TriggerOnNewInventoryItemUploadComplete(item, userlevel);
 
@@ -152,7 +145,7 @@ namespace OpenSim.Region.Framework.Scenes
             InventoryFolderBase f = null;
             if (Enum.IsDefined(typeof(FolderType), (sbyte)item.AssetType))
                 f = InventoryService.GetFolderForType(item.Owner, (FolderType)item.AssetType);
-            if (f != null)
+            if (f is not null)
             {
                 m_log.DebugFormat(
                     "[AGENT INVENTORY]: Found folder {0} type {1} for item {2}",
@@ -163,7 +156,7 @@ namespace OpenSim.Region.Framework.Scenes
             else
             {
                 f = InventoryService.GetRootFolder(item.Owner);
-                if (f != null)
+                if (f is not null)
                 {
                     item.Folder = f.ID;
                 }
@@ -178,15 +171,11 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (InventoryService.AddItem(item))
             {
-                int userlevel = 0;
-                if (Permissions.IsGod(item.Owner))
-                {
-                    userlevel = 1;
-                }
+                int userlevel = Permissions.IsGod(item.Owner) ? 1 : 0;
                 if (trigger)
                     EventManager.TriggerOnNewInventoryItemUploadComplete(item, userlevel);
 
-                if (!originalFolder.IsZero())
+                if (originalFolder.IsNotZero())
                 {
                     // Tell the viewer that the item didn't go there
                     ChangePlacement(item, f);
@@ -207,14 +196,14 @@ namespace OpenSim.Region.Framework.Scenes
         private void ChangePlacement(InventoryItemBase item, InventoryFolderBase f)
         {
             ScenePresence sp = GetScenePresence(item.Owner);
-            if (sp != null && sp.ControllingClient != null && sp.ControllingClient.IsActive)
+            if (sp is not null && sp.ControllingClient is not null && sp.ControllingClient.IsActive)
             {
                 IClientAPI cli = sp.ControllingClient;
                 InventoryFolderBase parent = InventoryService.GetFolder(f.Owner, f.ParentID);
                 cli.SendRemoveInventoryItems(new UUID[] { item.ID });
-                cli.SendBulkUpdateInventory(new InventoryFolderBase[0], new InventoryItemBase[] { item });
+                cli.SendBulkUpdateInventory(Array.Empty<InventoryFolderBase>(), new InventoryItemBase[] { item });
                 string message = "The item was placed in folder " + f.Name;
-                if (parent != null)
+                if (parent is not null)
                     message += " under " + parent.Name;
                 cli.SendAgentAlertMessage(message, false);
             }
@@ -261,27 +250,24 @@ namespace OpenSim.Region.Framework.Scenes
             if (objectID.IsZero())
             {
                 IInventoryAccessModule invAccess = RequestModuleInterface<IInventoryAccessModule>();
-                if (invAccess != null)
-                    return invAccess.CapsUpdateInventoryItemAsset(avatar.ControllingClient, itemID, data);
-                else
-                    return UUID.Zero;
+                return invAccess is not null ? invAccess.CapsUpdateInventoryItemAsset(avatar.ControllingClient, itemID, data) : UUID.Zero;
             }
 
             SceneObjectPart sop = GetSceneObjectPart(objectID);
-            if(sop == null || sop.ParentGroup.IsDeleted)
+            if(sop is null || sop.ParentGroup.IsDeleted)
             {
                 m_log.ErrorFormat("[CapsUpdateItemAsset]: Object {0} cannot be found to update item asset", objectID);
                 return UUID.Zero;
             }
 
             TaskInventoryItem item = sop.Inventory.GetInventoryItem(itemID);
-            if (item == null)
+            if (item is null)
             {
                 m_log.ErrorFormat("[CapsUpdateItemAsset]: Could not find item {0} for asset update", itemID);
                 return UUID.Zero;
             }
 
-            if (item.OwnerID != avatarId)
+            if (item.OwnerID.NotEqual(avatarId))
                 return UUID.Zero;
 
             InventoryType itemType = (InventoryType)item.InvType;
@@ -300,7 +286,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 case (InventoryType)CustomInventoryType.AnimationSet:
                 {
-                    AnimationSet animSet = new AnimationSet(data);
+                    AnimationSet animSet = new(data);
                     uint res = animSet.Validate(x => {
                         const int required = (int)(PermissionMask.Transfer | PermissionMask.Copy);
                         int perms = InventoryService.GetAssetPermissions(avatarId, x);
@@ -345,8 +331,6 @@ namespace OpenSim.Region.Framework.Scenes
                         avatar.ControllingClient.SendAgentAlertMessage("Insufficient permissions to edit setting", false);
                         return UUID.Zero;
                     }
-
-                    avatar.ControllingClient.SendAlertMessage("Material updated");
                     break;
                 }
             }
@@ -380,15 +364,14 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Retrieve group
             SceneObjectPart part = GetSceneObjectPart(primId);
-            if (part == null)
+            if (part is null)
                 return new ArrayList();
 
             SceneObjectGroup group = part.ParentGroup;
 
             // Retrieve item
             TaskInventoryItem item = group.GetInventoryItem(part.LocalId, itemId);
-
-            if (null == item)
+            if (item is null)
             {
                 m_log.ErrorFormat(
                     "[PRIM INVENTORY]: Tried to retrieve item ID {0} from prim {1}, {2} for caps script update "
@@ -402,9 +385,9 @@ namespace OpenSim.Region.Framework.Scenes
             AssetBase asset = CreateAsset(item.Name, item.Description, (sbyte)AssetType.LSLText, data, remoteClient.AgentId);
             AssetService.Store(asset);
 
-//            m_log.DebugFormat(
-//                "[PRIM INVENTORY]: Stored asset {0} when updating item {1} in prim {2} for {3}",
-//                asset.ID, item.Name, part.Name, remoteClient.Name);
+            //m_log.DebugFormat(
+            //    "[PRIM INVENTORY]: Stored asset {0} when updating item {1} in prim {2} for {3}",
+            //    asset.ID, item.Name, part.Name, remoteClient.Name);
 
             part.Inventory.RemoveScriptInstance(item.ItemID, false);
 
@@ -432,19 +415,14 @@ namespace OpenSim.Region.Framework.Scenes
         public ArrayList CapsUpdateTaskInventoryScriptAsset(UUID avatarId, UUID itemId,
                                                         UUID primId, bool isScriptRunning, byte[] data)
         {
-            ScenePresence avatar;
-
-            if (TryGetScenePresence(avatarId, out avatar))
+            if (TryGetScenePresence(avatarId, out ScenePresence avatar))
             {
                 return CapsUpdateTaskInventoryScriptAsset(
                     avatar.ControllingClient, itemId, primId, isScriptRunning, data);
             }
             else
             {
-                m_log.ErrorFormat(
-                    "[PRIM INVENTORY]: " +
-                    "Avatar {0} cannot be found to update its prim item asset",
-                    avatarId);
+                m_log.ErrorFormat("[PRIM INVENTORY]: Avatar {0} cannot be found to update its prim item asset", avatarId);
                 return new ArrayList();
             }
         }
@@ -466,19 +444,18 @@ namespace OpenSim.Region.Framework.Scenes
         public void UpdateInventoryItem(IClientAPI remoteClient, UUID transactionID,
                                              UUID itemID, InventoryItemBase itemUpd)
         {
-//            m_log.DebugFormat(
-//                "[USER INVENTORY]: Updating asset for item {0} {1}, transaction ID {2} for {3}",
-//                itemID, itemUpd.Name, transactionID, remoteClient.Name);
+            //m_log.DebugFormat(
+            //    "[USER INVENTORY]: Updating asset for item {0} {1}, transaction ID {2} for {3}",
+            //    itemID, itemUpd.Name, transactionID, remoteClient.Name);
 
             // This one will let people set next perms on items in agent
             // inventory. Rut-Roh. Whatever. Make this secure. Yeah.
             //
             // Passing something to another avatar or a an object will already
             InventoryItemBase item = InventoryService.GetItem(remoteClient.AgentId, itemID);
-
-            if (item != null)
+            if (item is not null)
             {
-                if (item.Owner != remoteClient.AgentId)
+                if (item.Owner.NotEqual(remoteClient.AgentId))
                     return;
 
                 bool sendUpdate = false;
@@ -497,7 +474,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         if(itemUpd.Description.LastIndexOf('@') < 0)
                         {
-                            itemUpd.Description += " " + item.Description.Substring(origIndx);
+                            itemUpd.Description += string.Concat(" ", item.Description.AsSpan(origIndx));
                             sendUpdate = true;
                         }
                     }
@@ -505,10 +482,10 @@ namespace OpenSim.Region.Framework.Scenes
                 item.Name = itemUpd.Name;
                 item.Description = itemUpd.Description;
 
-//                    m_log.DebugFormat(
-//                        "[USER INVENTORY]: itemUpd {0} {1} {2} {3}, item {4} {5} {6} {7}",
-//                        itemUpd.NextPermissions, itemUpd.GroupPermissions, itemUpd.EveryOnePermissions, item.Flags,
-//                        item.NextPermissions, item.GroupPermissions, item.EveryOnePermissions, item.CurrentPermissions);
+                //m_log.DebugFormat(
+                //    "[USER INVENTORY]: itemUpd {0} {1} {2} {3}, item {4} {5} {6} {7}",
+                //    itemUpd.NextPermissions, itemUpd.GroupPermissions, itemUpd.EveryOnePermissions, item.Flags,
+                //    item.NextPermissions, item.GroupPermissions, item.EveryOnePermissions, item.CurrentPermissions);
 
                 if (itemUpd.NextPermissions != 0) // Use this to determine validity. Can never be 0 if valid
                 {
@@ -516,13 +493,13 @@ namespace OpenSim.Region.Framework.Scenes
                     // is not allowed to change the export flag.
                     bool denyExportChange = false;
 
-//                    m_log.DebugFormat("[XXX]: B: {0} O: {1} E: {2}", itemUpd.BasePermissions, itemUpd.CurrentPermissions, itemUpd.EveryOnePermissions);
+                    //m_log.DebugFormat("[XXX]: B: {0} O: {1} E: {2}", itemUpd.BasePermissions, itemUpd.CurrentPermissions, itemUpd.EveryOnePermissions);
 
                     // If the user is not the creator or doesn't have "E" in both "B" and "O", deny setting export
                     if ((item.BasePermissions & (uint)(PermissionMask.All | PermissionMask.Export)) != (uint)(PermissionMask.All | PermissionMask.Export) || (item.CurrentPermissions & (uint)PermissionMask.Export) == 0 || item.CreatorIdAsUuid != item.Owner)
                         denyExportChange = true;
 
-//                    m_log.DebugFormat("[XXX]: Deny Export Update {0}", denyExportChange);
+                    //m_log.DebugFormat("[XXX]: Deny Export Update {0}", denyExportChange);
 
                     // If it is already set, force it set and also force full perm
                     // else prevent setting it. It can and should never be set unless
@@ -546,7 +523,7 @@ namespace OpenSim.Region.Framework.Scenes
                         // If the new state is exportable, force full perm
                         if ((itemUpd.EveryOnePermissions & (uint)PermissionMask.Export) != 0)
                         {
-//                            m_log.DebugFormat("[XXX]: Force full perm");
+                            //m_log.DebugFormat("[XXX]: Force full perm");
                             itemUpd.NextPermissions = (uint)(PermissionMask.All);
                         }
                     }
@@ -585,19 +562,16 @@ namespace OpenSim.Region.Framework.Scenes
 
                     if (item.InvType == (int)InventoryType.Wearable && (item.Flags & 0xf) == 0 && (itemUpd.Flags & 0xf) != 0)
                     {
-                        item.Flags = (uint)(item.Flags & 0xfffffff0) | (itemUpd.Flags & 0xf);
+                        item.Flags = (item.Flags & 0xfffffff0) | (itemUpd.Flags & 0xf);
                         sendUpdate = true;
                     }
 
                     InventoryService.UpdateItem(item);
                 }
 
-                if (UUID.Zero != transactionID)
+                if (transactionID.IsNotZero())
                 {
-                    if (AgentTransactionsModule != null)
-                    {
-                        AgentTransactionsModule.HandleItemUpdateFromTransaction(remoteClient, transactionID, item);
-                    }
+                    AgentTransactionsModule?.HandleItemUpdateFromTransaction(remoteClient, transactionID, item);
                 }
                 else
                 {
@@ -628,8 +602,7 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual void GiveInventoryItem(IClientAPI recipientClient, UUID senderId, UUID itemId, out string message)
         {
             InventoryItemBase itemCopy = GiveInventoryItem(recipientClient.AgentId, senderId, itemId, out message);
-
-            if (itemCopy != null)
+            if (itemCopy is not null)
                 recipientClient.SendBulkUpdateInventory(itemCopy);
         }
 
@@ -670,8 +643,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             InventoryItemBase item = InventoryService.GetItem(senderId, itemId);
-
-            if (item == null)
+            if (item is null)
             {
                 m_log.WarnFormat(
                     "[AGENT INVENTORY]: Failed to find item {0} sent by {1} to {2}", itemId, senderId, recipient);
@@ -685,7 +657,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return null;
             }
 
-            if (item.Owner != senderId)
+            if (item.Owner.NotEqual(senderId))
             {
                 m_log.WarnFormat(
                     "[AGENT INVENTORY]: Attempt to send item {0} {1} to {2} failed because sender {3} did not match item owner {4}",
@@ -695,8 +667,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             IUserManagement uman = RequestModuleInterface<IUserManagement>();
-            if (uman != null)
-                uman.AddCreatorUser(item.CreatorIdAsUuid, item.CreatorData);
+            uman?.AddCreatorUser(item.CreatorIdAsUuid, item.CreatorData);
 
             if (!Permissions.BypassPermissions())
             {
@@ -708,18 +679,20 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             // Insert a copy of the item into the recipient
-            InventoryItemBase itemCopy = new InventoryItemBase();
-            itemCopy.Owner = recipient;
-            itemCopy.CreatorId = item.CreatorId;
-            itemCopy.CreatorData = item.CreatorData;
-            itemCopy.ID = UUID.Random();
-            itemCopy.AssetID = item.AssetID;
-            itemCopy.Description = item.Description;
-            itemCopy.Name = item.Name;
-            itemCopy.AssetType = item.AssetType;
-            itemCopy.InvType = item.InvType;
-            itemCopy.Folder = recipientFolderId;
-            itemCopy.Flags = item.Flags;
+            InventoryItemBase itemCopy = new()
+            {
+                Owner = recipient,
+                CreatorId = item.CreatorId,
+                CreatorData = item.CreatorData,
+                ID = UUID.Random(),
+                AssetID = item.AssetID,
+                Description = item.Description,
+                Name = item.Name,
+                AssetType = item.AssetType,
+                InvType = item.InvType,
+                Folder = recipientFolderId,
+                Flags = item.Flags
+            };
 
             if (Permissions.PropagatePermissions() && recipient != senderId)
             {
@@ -773,19 +746,19 @@ namespace OpenSim.Region.Framework.Scenes
                 // These will be applied to the root prim at next rez.
                 // The legacy slam bit (bit 3) and folded permission (bits 0-2)
                 // are preserved due to the above mangling
-//                ownerPerms &= nextPerms;
+                //ownerPerms &= nextPerms;
 
                 // Mask the base permissions. This is a conservative
                 // approach altering only the three main perms
-//                basePerms &= nextPerms;
+                //basePerms &= nextPerms;
 
                 // Mask out the folded portion of the base mask.
                 // While the owner mask carries the actual folded
                 // permissions, the base mask carries the original
                 // base mask, before masking with the folded perms.
                 // We need this later for rezzing.
-//                basePerms &= ~(uint)PermissionMask.FoldedMask;
-//                basePerms |= ((basePerms >> 13) & 7) | (((basePerms & (uint)PermissionMask.Export) != 0) ? (uint)PermissionMask.FoldedExport : 0);
+                //basePerms &= ~(uint)PermissionMask.FoldedMask;
+                //basePerms |= ((basePerms >> 13) & 7) | (((basePerms & (uint)PermissionMask.Export) != 0) ? (uint)PermissionMask.FoldedExport : 0);
 
                 // If this is an object, root prim perms may be more
                 // permissive than folded perms. Use folded perms as
@@ -795,9 +768,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     foldedPerms |= permsMask;
 
-                    bool isRootMod = (item.CurrentPermissions &
-                                      (uint)PermissionMask.Modify) != 0 ?
-                                      true : false;
+                    bool isRootMod = (item.CurrentPermissions & (uint)PermissionMask.Modify) != 0;
 
                     // Mask the owner perms to the folded perms
                     // Note that this is only to satisfy the viewer.
@@ -857,7 +828,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (Enum.IsDefined(typeof(FolderType), (sbyte)item.AssetType))
                     folder = InventoryService.GetFolderForType(recipient, (FolderType)itemCopy.AssetType);
 
-                if (folder != null)
+                if (folder is not null)
                 {
                     itemCopy.Folder = folder.ID;
                 }
@@ -865,7 +836,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     InventoryFolderBase root = InventoryService.GetRootFolder(recipient);
 
-                    if (root != null)
+                    if (root is not null)
                     {
                         itemCopy.Folder = root.ID;
                     }
@@ -883,16 +854,14 @@ namespace OpenSim.Region.Framework.Scenes
             itemCopy.SaleType = 0; //item.SaleType;
 
             IInventoryAccessModule invAccess = RequestModuleInterface<IInventoryAccessModule>();
-            if (invAccess != null)
-                invAccess.TransferInventoryAssets(itemCopy, senderId, recipient);
+            invAccess?.TransferInventoryAssets(itemCopy, senderId, recipient);
             AddInventoryItem(itemCopy, false);
 
             if (!Permissions.BypassPermissions())
             {
                 if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
                 {
-                    List<UUID> items = new List<UUID>();
-                    items.Add(itemId);
+                    List<UUID> items = new() { itemId };
                     InventoryService.DeleteItems(senderId, items);
                 }
             }
@@ -901,7 +870,7 @@ namespace OpenSim.Region.Framework.Scenes
             return itemCopy;
         }
 
-        private readonly HashSet<short> denyGiveFolderTypes = new HashSet<short>()
+        private readonly HashSet<short> denyGiveFolderTypes = new()
             {
                 (short)FolderType.Trash,
                 (short)FolderType.LostAndFound,
@@ -930,7 +899,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             //// Retrieve the folder from the sender
             InventoryFolderBase folder = InventoryService.GetFolder(senderId, folderId);
-            if (folder == null)
+            if (folder is null)
             {
                 m_log.ErrorFormat("[AGENT INVENTORY]: Could not find inventory folder {0} to give", folderId);
                 return null;
@@ -955,7 +924,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             UUID newFolderId = UUID.Random();
-            InventoryFolderBase newFolder = new InventoryFolderBase(
+            InventoryFolderBase newFolder = new(
                     newFolderId, folder.Name, recipientId, folder.Type, recipientParentFolderId, folder.Version);
             InventoryService.AddFolder(newFolder);
 
@@ -965,11 +934,9 @@ namespace OpenSim.Region.Framework.Scenes
             // Give all the items (first, this is recursive call)
             foreach (InventoryItemBase item in contents.Items)
             {
-                string message;
-                if (GiveInventoryItem(recipientId, senderId, item.ID, newFolder.ID, out message) == null)
+                if (GiveInventoryItem(recipientId, senderId, item.ID, newFolder.ID, out string message) is null)
                 {
-                    if (client != null)
-                        client.SendAgentAlertMessage(message, false);
+                    client?.SendAgentAlertMessage(message, false);
                 }
             }
             contents.Items = null;
@@ -987,7 +954,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             //// Retrieve the folder from the sender
             InventoryFolderBase folder = InventoryService.GetFolder(senderId, folderId);
-            if (folder == null)
+            if (folder is null)
             {
                 m_log.ErrorFormat("[AGENT INVENTORY]: Could not find inventory folder {0} to give", folderId);
                 return null;
@@ -1005,7 +972,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (recipientParentFolderId.IsZero())
             {
                 InventoryFolderBase recipientRootFolder = InventoryService.GetRootFolder(recipientId);
-                if (recipientRootFolder != null)
+                if (recipientRootFolder is not null)
                     recipientParentFolderId = recipientRootFolder.ID;
                 else
                 {
@@ -1015,17 +982,17 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             UUID newFolderId = UUID.Random();
-            InventoryFolderBase newFolder = new InventoryFolderBase(
+            InventoryFolderBase newFolder = new(
                     newFolderId, folder.Name, recipientId, folder.Type, recipientParentFolderId, folder.Version);
             InventoryService.AddFolder(newFolder);
 
             InventoryCollection contents = InventoryService.GetFolderContent(senderId, folderId);
-            if(client == null)
+            if(client is null)
             {
                 foreach (InventoryItemBase item in contents.Items)
                 {
                     if (ids.Remove(item.ID))
-                        GiveInventoryItem(recipientId, senderId, item.ID, newFolder.ID, out string message);
+                        GiveInventoryItem(recipientId, senderId, item.ID, newFolder.ID, out string _);
                 }
             }
             else
@@ -1057,14 +1024,14 @@ namespace OpenSim.Region.Framework.Scenes
                 remoteClient.AgentId, oldAgentID, oldItemID, newFolderID, newName);
 
             InventoryItemBase item = null;
-            if (LibraryService != null && LibraryService.LibraryRootFolder != null)
+            if (LibraryService is not null && LibraryService.LibraryRootFolder is not null)
                 item = LibraryService.LibraryRootFolder.FindItem(oldItemID);
 
-            if (item == null)
+            if (item is null)
             {
                 item = InventoryService.GetItem(remoteClient.AgentId, oldItemID);
 
-                if (item == null)
+                if (item is null)
                 {
                     m_log.Error("[AGENT INVENTORY]: Failed to find item " + oldItemID.ToString());
                     return;
@@ -1074,33 +1041,19 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
             }
 
-            if (newName.Length == 0)
+            if (string.IsNullOrEmpty(newName))
                 newName = item.Name;
 
-            AssetBase asset = AssetService.Get(item.AssetID.ToString());
-
-            if (asset != null)
-            {
-                if (newName != String.Empty)
-                {
-                    asset.Name = newName;
-                }
-                else
-                {
-                    newName = item.Name;
-                }
-
-
-            if (remoteClient.AgentId == oldAgentID
-                || (LibraryService != null
-                    && LibraryService.LibraryRootFolder != null
-                    && oldAgentID == LibraryService.LibraryRootFolder.Owner))
+            if (remoteClient.AgentId.Equals(oldAgentID)
+                || (LibraryService is not null
+                    && LibraryService.LibraryRootFolder is not null
+                    && oldAgentID.Equals(LibraryService.LibraryRootFolder.Owner)))
             {
                 CreateNewInventoryItem(
                     remoteClient, item.CreatorId, item.CreatorData, newFolderID,
                     newName, item.Description, item.Flags, callbackID, item.AssetID, (sbyte)item.AssetType, (sbyte)item.InvType,
                     item.BasePermissions, item.CurrentPermissions, item.EveryOnePermissions,
-                    item.NextPermissions, item.GroupPermissions, Util.UnixTimeSinceEpoch(), false);
+                    item.NextPermissions, item.GroupPermissions, Util.UnixTimeSinceEpoch());
             }
             else
             {
@@ -1111,17 +1064,10 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     CreateNewInventoryItem(
                         remoteClient, item.CreatorId, item.CreatorData, newFolderID, newName, item.Description, item.Flags, callbackID,
-                        item.AssetID, (sbyte)item.AssetType, (sbyte) item.InvType,
+                        item.AssetID, (sbyte)item.AssetType, (sbyte)item.InvType,
                         item.NextPermissions, item.NextPermissions, item.EveryOnePermissions & item.NextPermissions,
-                        item.NextPermissions, item.GroupPermissions, Util.UnixTimeSinceEpoch(), false);
+                        item.NextPermissions, item.GroupPermissions, Util.UnixTimeSinceEpoch());
                 }
-            }
-        }
-                      else
-            {
-                m_log.ErrorFormat(
-                    "[AGENT INVENTORY]: Could not copy item {0} since asset {1} could not be found",
-                    item.Name, item.AssetID);
             }
         }
 
@@ -1130,11 +1076,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public AssetBase CreateAsset(string name, string description, sbyte assetType, byte[] data, UUID creatorID)
         {
-            AssetBase asset = new AssetBase(UUID.Random(), name, assetType, creatorID.ToString());
-            asset.Description = description;
-            asset.Data = (data == null) ? new byte[1] : data;
-
-            return asset;
+            return new AssetBase(UUID.Random(), name, assetType, creatorID.ToString())
+            {
+                Description = description,
+                Data = data ?? (new byte[1])
+            };
         }
 
         /// <summary>
@@ -1142,7 +1088,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void MoveInventoryItemsLeaveCopy(IClientAPI remoteClient, List<InventoryItemBase> items, UUID destfolder)
         {
-            List<InventoryItemBase> moveitems = new List<InventoryItemBase>();
+            List<InventoryItemBase> moveitems = new();
             foreach (InventoryItemBase b in items)
             {
                 CopyInventoryItem(remoteClient, 0, remoteClient.AgentId, b.ID, b.Folder, null);
@@ -1175,7 +1121,7 @@ namespace OpenSim.Region.Framework.Scenes
             foreach (InventoryItemBase it in items)
             {
                 InventoryItemBase n = InventoryService.GetItem(agentId, it.ID);
-                if(n != null)
+                if(n is not null)
                     remoteClient.SendBulkUpdateInventory(n);
             }
         }
@@ -1205,7 +1151,18 @@ namespace OpenSim.Region.Framework.Scenes
             uint baseMask, uint currentMask, uint everyoneMask, uint nextOwnerMask, uint groupMask, int creationDate,
             bool assetUpload)
         {
-            InventoryItemBase item = new InventoryItemBase
+            CreateNewInventoryItem(
+                remoteClient, creatorID, creatorData, folderID,
+                name, description, flags, callbackID, assetID, assetType, invType,
+                baseMask, currentMask, everyoneMask, nextOwnerMask, groupMask, creationDate);
+        }
+
+        public void CreateNewInventoryItem(
+            IClientAPI remoteClient, string creatorID, string creatorData, UUID folderID,
+            string name, string description, uint flags, uint callbackID, UUID assetID, sbyte assetType, sbyte invType,
+            uint baseMask, uint currentMask, uint everyoneMask, uint nextOwnerMask, uint groupMask, int creationDate)
+        {
+            InventoryItemBase item = new()
             {
                 Owner = remoteClient.AgentId,
                 CreatorId = creatorID,
@@ -1262,35 +1219,34 @@ namespace OpenSim.Region.Framework.Scenes
                                              uint callbackID, string description, string name,
                                              sbyte invType, sbyte type, UUID olditemID)
         {
-//            m_log.DebugFormat(
-//                "[AGENT INVENTORY]: Received request from {0} to create inventory item link {1} in folder {2} pointing to {3}, assetType {4}, inventoryType {5}",
-//                remoteClient.Name, name, folderID, olditemID, (AssetType)type, (InventoryType)invType);
+            //m_log.DebugFormat(
+            //    "[AGENT INVENTORY]: Received request from {0} to create inventory item link {1} in folder {2} pointing to {3}, assetType {4}, inventoryType {5}",
+            //    remoteClient.Name, name, folderID, olditemID, (AssetType)type, (InventoryType)invType);
 
             if (!Permissions.CanCreateUserInventory(invType, remoteClient.AgentId))
                 return;
 
-            ScenePresence presence;
-            if (TryGetScenePresence(remoteClient.AgentId, out presence))
+            if (TryGetScenePresence(remoteClient.AgentId, out ScenePresence _))
             {
                 // Disabled the check for duplicate links.
                 //
                 // When outfits are being adjusted, the viewer rapidly sends delete link messages followed by
                 // create links.  However, since these are handled asynchronously, the deletes do not complete before
                 // the creates are handled.  Therefore, we cannot enforce a duplicate link check.
-//                InventoryItemBase existingLink = null;
-//                List<InventoryItemBase> existingItems = InventoryService.GetFolderItems(remoteClient.AgentId, folderID);
-//                foreach (InventoryItemBase item in existingItems)
-//                    if (item.AssetID == olditemID)
-//                        existingLink = item;
-//
-//                if (existingLink != null)
-//                {
-//                    m_log.WarnFormat(
-//                        "[AGENT INVENTORY]: Ignoring request from {0} to create item link {1} in folder {2} pointing to {3} since a link named {4} with id {5} already exists",
-//                        remoteClient.Name, name, folderID, olditemID, existingLink.Name, existingLink.ID);
-//
-//                    return;
-//                }
+                //                InventoryItemBase existingLink = null;
+                //                List<InventoryItemBase> existingItems = InventoryService.GetFolderItems(remoteClient.AgentId, folderID);
+                //                foreach (InventoryItemBase item in existingItems)
+                //                    if (item.AssetID == olditemID)
+                //                        existingLink = item;
+                //
+                //                if (existingLink != null)
+                //                {
+                //                    m_log.WarnFormat(
+                //                        "[AGENT INVENTORY]: Ignoring request from {0} to create item link {1} in folder {2} pointing to {3} since a link named {4} with id {5} already exists",
+                //                        remoteClient.Name, name, folderID, olditemID, existingLink.Name, existingLink.ID);
+                //
+                //                    return;
+                //                }
 
                 CreateNewInventoryItem(
                     remoteClient, remoteClient.AgentId.ToString(), string.Empty, folderID,
@@ -1314,10 +1270,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="itemID"></param>
         private void RemoveInventoryItem(IClientAPI remoteClient, List<UUID> itemIDs)
         {
-//            m_log.DebugFormat(
-//                "[AGENT INVENTORY]: Removing inventory items {0} for {1}",
-//                string.Join(",", itemIDs.ConvertAll<string>(uuid => uuid.ToString()).ToArray()),
-//                remoteClient.Name);
+            //m_log.DebugFormat(
+            //    "[AGENT INVENTORY]: Removing inventory items {0} for {1}",
+            //    string.Join(",", itemIDs.ConvertAll<string>(uuid => uuid.ToString()).ToArray()),
+            //    remoteClient.Name);
 
             InventoryService.DeleteItems(remoteClient.AgentId, itemIDs);
         }
@@ -1342,10 +1298,10 @@ namespace OpenSim.Region.Framework.Scenes
         public void RequestTaskInventory(IClientAPI remoteClient, uint primLocalID)
         {
             SceneObjectPart part = GetSceneObjectPart(primLocalID);
-            if (part == null)
+            if (part is null)
                 return;
 
-            if (XferManager != null)
+            if (XferManager is not null)
                 part.Inventory.RequestInventoryFile(remoteClient, XferManager);
         }
 
@@ -1359,50 +1315,48 @@ namespace OpenSim.Region.Framework.Scenes
         public void RemoveTaskInventory(IClientAPI remoteClient, UUID itemID, uint localID)
         {
             SceneObjectPart part = GetSceneObjectPart(localID);
-            SceneObjectGroup group = null;
-            if (part != null)
+            if (part is null)
+                return;
+
+            SceneObjectGroup group =  part.ParentGroup;
+            if(group is null)
+                return;
+
+            if (!Permissions.CanEditObjectInventory(part.UUID, remoteClient.AgentId))
+                return;
+
+            TaskInventoryItem item = group.GetInventoryItem(localID, itemID);
+            if (item is null)
+                return;
+
+            InventoryFolderBase destFolder = InventoryService.GetFolderForType(remoteClient.AgentId, FolderType.Trash);
+
+            // Move the item to trash. If this is a copyable item, only
+            // a copy will be moved and we will still need to delete
+            // the item from the prim. If it was no copy, it will be
+            // deleted by this method.
+            InventoryItemBase item2 = MoveTaskInventoryItem(remoteClient, destFolder.ID, part, itemID, out string message);
+
+            if (item2 is null)
             {
-                group = part.ParentGroup;
+                m_log.WarnFormat("[SCENE INVENTORY]: RemoveTaskInventory of item {0} failed: {1}", itemID, message);
+                remoteClient.SendAgentAlertMessage(message, false);
+                return;
             }
-            if (part != null && group != null)
+
+            if (group.GetInventoryItem(localID, itemID) is not null)
             {
-                if (!Permissions.CanEditObjectInventory(part.UUID, remoteClient.AgentId))
-                    return;
-
-                TaskInventoryItem item = group.GetInventoryItem(localID, itemID);
-                if (item == null)
-                    return;
-
-                InventoryFolderBase destFolder = InventoryService.GetFolderForType(remoteClient.AgentId, FolderType.Trash);
-
-                // Move the item to trash. If this is a copyable item, only
-                // a copy will be moved and we will still need to delete
-                // the item from the prim. If it was no copy, it will be
-                // deleted by this method.
-                string message;
-                InventoryItemBase item2 = MoveTaskInventoryItem(remoteClient, destFolder.ID, part, itemID, out message);
-
-                if (item2 == null)
+                if (item.Type == (int)InventoryType.LSL)
                 {
-                    m_log.WarnFormat("[SCENE INVENTORY]: RemoveTaskInventory of item {0} failed: {1}", itemID, message);
-                    remoteClient.SendAgentAlertMessage(message, false);
-                    return;
+                    part.RemoveScriptEvents(itemID);
+                    part.ParentGroup.AddActiveScriptCount(-1);
                 }
 
-                if (group.GetInventoryItem(localID, itemID) != null)
-                {
-                    if (item.Type == (int)InventoryType.LSL)
-                    {
-                        part.RemoveScriptEvents(itemID);
-                        part.ParentGroup.AddActiveScriptCount(-1);
-                    }
-
-                    group.RemoveInventoryItem(localID, itemID);
-                    group.InvalidateEffectivePerms();
-                }
-
-                part.SendPropertiesToClient(remoteClient);
+                group.RemoveInventoryItem(localID, itemID);
+                group.InvalidateEffectivePerms();
             }
+
+            part.SendPropertiesToClient(remoteClient);
         }
 
 
@@ -1412,8 +1366,7 @@ namespace OpenSim.Region.Framework.Scenes
         private InventoryItemBase CreateAgentInventoryItemFromTask(UUID destAgent, SceneObjectPart part, UUID itemId, out string message)
         {
             TaskInventoryItem taskItem = part.Inventory.GetInventoryItem(itemId);
-
-            if (null == taskItem)
+            if (taskItem is null)
             {
                 m_log.ErrorFormat(
                     "[PRIM INVENTORY]: Tried to retrieve item ID {0} from prim {1}, {2} for creating an avatar"
@@ -1430,24 +1383,25 @@ namespace OpenSim.Region.Framework.Scenes
                 return null;
             }
 
-            InventoryItemBase agentItem = new InventoryItemBase();
-
-            agentItem.ID = UUID.Random();
-            agentItem.CreatorId = taskItem.CreatorID.ToString();
-            agentItem.CreatorData = taskItem.CreatorData;
-            agentItem.Owner = destAgent;
-            agentItem.AssetID = taskItem.AssetID;
-            agentItem.Description = taskItem.Description;
-            agentItem.Name = taskItem.Name;
-            agentItem.AssetType = taskItem.Type;
-            agentItem.InvType = taskItem.InvType;
-            agentItem.Flags = taskItem.Flags;
+            InventoryItemBase agentItem = new()
+            {
+                ID = UUID.Random(),
+                CreatorId = taskItem.CreatorID.ToString(),
+                CreatorData = taskItem.CreatorData,
+                Owner = destAgent,
+                AssetID = taskItem.AssetID,
+                Description = taskItem.Description,
+                Name = taskItem.Name,
+                AssetType = taskItem.Type,
+                InvType = taskItem.InvType,
+                Flags = taskItem.Flags
+            };
 
             // The code below isn't OK. It doesn't account for flags being changed
             // in the object inventory, so it will break when you do it. That
             // is the previous behaviour, so no matter at this moment. However, there is a lot
             // TODO: Fix this after the inventory fixer exists and has beenr run
-            if ((part.OwnerID != destAgent) && Permissions.PropagatePermissions())
+            if (part.OwnerID.NotEqual(destAgent) && Permissions.PropagatePermissions())
             {
                 uint perms = taskItem.BasePermissions & taskItem.NextPermissions;
                 if (taskItem.InvType == (int)InventoryType.Object)
@@ -1489,7 +1443,7 @@ namespace OpenSim.Region.Framework.Scenes
         private void RemoveNonCopyTaskItemFromPrim(SceneObjectPart part, UUID itemId)
         {
             TaskInventoryItem taskItem = part.Inventory.GetInventoryItem(itemId);
-            if (taskItem == null)
+            if (taskItem is null)
                 return;
 
             if (!Permissions.BypassPermissions())
@@ -1521,7 +1475,7 @@ namespace OpenSim.Region.Framework.Scenes
                 itemId, part.Name, folderId, remoteClient.Name);
 
             InventoryItemBase agentItem = CreateAgentInventoryItemFromTask(remoteClient.AgentId, part, itemId, out message);
-            if (agentItem == null)
+            if (agentItem is null)
                 return null;
 
             agentItem.Folder = folderId;
@@ -1542,13 +1496,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="itemID"></param>
         public void ClientMoveTaskInventoryItem(IClientAPI remoteClient, UUID folderId, uint primLocalId, UUID itemId)
         {
-            SceneObjectPart part = GetSceneObjectPart(primLocalId);
-
             // Can't move a null item
             if (itemId.IsZero())
                 return;
-
-            if (null == part)
+            SceneObjectPart part = GetSceneObjectPart(primLocalId);
+            if (part is null)
             {
                 m_log.WarnFormat(
                     "[PRIM INVENTORY]: " +
@@ -1559,8 +1511,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             TaskInventoryItem taskItem = part.Inventory.GetInventoryItem(itemId);
-
-            if (null == taskItem)
+            if (taskItem is null)
             {
                 m_log.WarnFormat("[PRIM INVENTORY]: Move of inventory item {0} from prim with local id {1} failed"
                     + " because the inventory item could not be found",
@@ -1572,10 +1523,8 @@ namespace OpenSim.Region.Framework.Scenes
             if (!Permissions.CanCopyObjectInventory(itemId, part.UUID, remoteClient.AgentId))
                 return;
 
-            string message;
-            InventoryItemBase item = MoveTaskInventoryItem(remoteClient, folderId, part, itemId, out message);
-
-            if (item == null)
+            InventoryItemBase item = MoveTaskInventoryItem(remoteClient, folderId, part, itemId, out string message);
+            if (item is null)
                 remoteClient.SendAgentAlertMessage(message, false);
         }
 
@@ -1592,17 +1541,14 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="itemID"></param>
         public InventoryItemBase MoveTaskInventoryItem(UUID avatarId, UUID folderId, SceneObjectPart part, UUID itemId, out string message)
         {
-            ScenePresence avatar;
-
-            if (TryGetScenePresence(avatarId, out avatar))
+            if (TryGetScenePresence(avatarId, out ScenePresence avatar))
             {
                 return MoveTaskInventoryItem(avatar.ControllingClient, folderId, part, itemId, out message);
             }
             else
             {
                 InventoryItemBase agentItem = CreateAgentInventoryItemFromTask(avatarId, part, itemId, out message);
-
-                if (agentItem == null)
+                if (agentItem is null)
                     return null;
 
                 agentItem.Folder = folderId;
@@ -1624,8 +1570,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void MoveTaskInventoryItem(UUID destId, SceneObjectPart part, UUID itemId)
         {
             TaskInventoryItem srcTaskItem = part.Inventory.GetInventoryItem(itemId);
-
-            if (srcTaskItem == null)
+            if (srcTaskItem is null)
             {
                 m_log.ErrorFormat(
                     "[PRIM INVENTORY]: Tried to retrieve item ID {0} from prim {1}, {2} for moving"
@@ -1636,8 +1581,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             SceneObjectPart destPart = GetSceneObjectPart(destId);
-
-            if (destPart == null)
+            if (destPart is null)
             {
                 m_log.ErrorFormat(
                         "[PRIM INVENTORY]: " +
@@ -1649,25 +1593,26 @@ namespace OpenSim.Region.Framework.Scenes
             if(!Permissions.CanDoObjectInvToObjectInv(srcTaskItem, part, destPart))
                 return;
 
-            TaskInventoryItem destTaskItem = new TaskInventoryItem();
+            TaskInventoryItem destTaskItem = new()
+            {
+                ItemID = UUID.Random(),
+                CreatorID = srcTaskItem.CreatorID,
+                CreatorData = srcTaskItem.CreatorData,
+                AssetID = srcTaskItem.AssetID,
+                GroupID = destPart.GroupID,
+                OwnerID = destPart.OwnerID,
+                ParentID = destPart.UUID,
+                ParentPartID = destPart.UUID,
 
-            destTaskItem.ItemID = UUID.Random();
-            destTaskItem.CreatorID = srcTaskItem.CreatorID;
-            destTaskItem.CreatorData = srcTaskItem.CreatorData;
-            destTaskItem.AssetID = srcTaskItem.AssetID;
-            destTaskItem.GroupID = destPart.GroupID;
-            destTaskItem.OwnerID = destPart.OwnerID;
-            destTaskItem.ParentID = destPart.UUID;
-            destTaskItem.ParentPartID = destPart.UUID;
+                BasePermissions = srcTaskItem.BasePermissions,
+                EveryonePermissions = srcTaskItem.EveryonePermissions,
+                GroupPermissions = srcTaskItem.GroupPermissions,
+                CurrentPermissions = srcTaskItem.CurrentPermissions,
+                NextPermissions = srcTaskItem.NextPermissions,
+                Flags = srcTaskItem.Flags
+            };
 
-            destTaskItem.BasePermissions = srcTaskItem.BasePermissions;
-            destTaskItem.EveryonePermissions = srcTaskItem.EveryonePermissions;
-            destTaskItem.GroupPermissions = srcTaskItem.GroupPermissions;
-            destTaskItem.CurrentPermissions = srcTaskItem.CurrentPermissions;
-            destTaskItem.NextPermissions = srcTaskItem.NextPermissions;
-            destTaskItem.Flags = srcTaskItem.Flags;
-
-            if (destPart.OwnerID != part.OwnerID)
+            if (destPart.OwnerID.NotEqual(part.OwnerID))
             {
                 if (Permissions.PropagatePermissions())
                 {
@@ -1694,9 +1639,7 @@ namespace OpenSim.Region.Framework.Scenes
                 part.Inventory.RemoveInventoryItem(itemId);
             }
 
-            ScenePresence avatar;
-
-            if (TryGetScenePresence(srcTaskItem.OwnerID, out avatar))
+            if (TryGetScenePresence(srcTaskItem.OwnerID, out ScenePresence avatar))
             {
                 destPart.SendPropertiesToClient(avatar.ControllingClient);
             }
@@ -1705,13 +1648,12 @@ namespace OpenSim.Region.Framework.Scenes
         public UUID MoveTaskInventoryItems(UUID destID, string category, SceneObjectPart host, List<UUID> items, bool sendUpdates = true)
         {
 
-            ScenePresence avatar;
             IClientAPI remoteClient = null;
-            if (TryGetScenePresence(destID, out avatar))
+            if (TryGetScenePresence(destID, out ScenePresence avatar))
                 remoteClient = avatar.ControllingClient;
 
             SceneObjectPart destPart = GetSceneObjectPart(destID);
-            if (destPart != null) // Move into a prim
+            if (destPart is not null) // Move into a prim
             {
                 foreach(UUID itemID in items)
                     MoveTaskInventoryItem(destID, host, itemID);
@@ -1719,22 +1661,21 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             // move to a avatar inventory
-            if(remoteClient == null)
+            if(remoteClient is null)
                 return UUID.Zero;
 
             InventoryFolderBase rootFolder = InventoryService.GetRootFolder(destID);
-            if(rootFolder == null)
+            if(rootFolder is null)
                 return UUID.Zero;
 
             UUID newFolderID = UUID.Random();
-            InventoryFolderBase newFolder = new InventoryFolderBase(newFolderID, category, destID, -1, rootFolder.ID, rootFolder.Version);
+            InventoryFolderBase newFolder = new(newFolderID, category, destID, -1, rootFolder.ID, rootFolder.Version);
             InventoryService.AddFolder(newFolder);
 
             foreach (UUID itemID in items)
             {
-                string message;
-                InventoryItemBase agentItem = CreateAgentInventoryItemFromTask(destID, host, itemID, out message);
-                if (agentItem != null)
+                InventoryItemBase agentItem = CreateAgentInventoryItemFromTask(destID, host, itemID, out string message);
+                if (agentItem is not null)
                 {
                     agentItem.Folder = newFolderID;
                     AddInventoryItem(agentItem);
@@ -1757,16 +1698,16 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SendInventoryUpdate(IClientAPI client, InventoryFolderBase folder, bool fetchFolders, bool fetchItems)
         {
-            if (folder == null)
+            if (folder is null)
                 return;
 
             // TODO: This code for looking in the folder for the library should be folded somewhere else
             // so that this class doesn't have to know the details (and so that multiple libraries, etc.
             // can be handled transparently).
-            InventoryFolderImpl fold = null;
-            if (LibraryService != null && LibraryService.LibraryRootFolder != null)
+            InventoryFolderImpl fold;
+            if (LibraryService is not null && LibraryService.LibraryRootFolder is not null)
             {
-                if ((fold = LibraryService.LibraryRootFolder.FindFolder(folder.ID)) != null)
+                if ((fold = LibraryService.LibraryRootFolder.FindFolder(folder.ID)) is not null)
                 {
                     List<InventoryItemBase> its = fold.RequestListOfItems();
                     List<InventoryFolderBase> fds = fold.RequestListOfFolders();
@@ -1783,10 +1724,10 @@ namespace OpenSim.Region.Framework.Scenes
             // Fetch the folder itself to get its current version
             InventoryFolderBase containingFolder = InventoryService.GetFolder(client.AgentId, folder.ID);
 
-//            m_log.DebugFormat("[AGENT INVENTORY]: Sending inventory folder contents ({0} nodes) for \"{1}\" to {2} {3}",
-//                contents.Folders.Count + contents.Items.Count, containingFolder.Name, client.FirstName, client.LastName);
+            //m_log.DebugFormat("[AGENT INVENTORY]: Sending inventory folder contents ({0} nodes) for \"{1}\" to {2} {3}",
+            //    contents.Folders.Count + contents.Items.Count, containingFolder.Name, client.FirstName, client.LastName);
 
-            if (containingFolder != null )
+            if (containingFolder is not null )
             {
                 int descendents = contents.Folders.Count + contents.Items.Count;
 
@@ -1799,12 +1740,12 @@ namespace OpenSim.Region.Framework.Scenes
                         InventoryItemBase item = contents.Items[i];
                         if (item.AssetType == (int)AssetType.Link)
                         {
-                            UUID linkid = item.AssetID;
-                            if(linksIDs.Contains(linkid))
+                            if(linksIDs.Contains(item.AssetID))
                                 continue;
 
-                            InventoryItemBase linkedItem = InventoryService.GetItem(item.Owner, linkid);
-                            if (linkedItem != null && linkedItem.AssetType != (int)AssetType.Link && linkedItem.AssetType != (int)AssetType.LinkFolder)
+                            InventoryItemBase linkedItem = InventoryService.GetItem(item.Owner, item.AssetID);
+                            if (linkedItem is not null && linkedItem.AssetType != (int)AssetType.Link &&
+                                    linkedItem.AssetType != (int)AssetType.LinkFolder)
                             {
                                 links.Add(linkedItem);
                                 linksIDs.Add(linkedItem.ID);
@@ -1846,7 +1787,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Find the prim we're dealing with
             SceneObjectPart part = GetSceneObjectPart(primLocalID);
-            if(part == null)
+            if(part is null)
             {
                 m_log.WarnFormat(
                     "[PRIM INVENTORY]: " +
@@ -1862,10 +1803,10 @@ namespace OpenSim.Region.Framework.Scenes
                 InventoryItemBase item = InventoryService.GetItem(remoteClient.AgentId, itemID);
 
                 // if not found Try library
-                if (item == null && LibraryService != null && LibraryService.LibraryRootFolder != null)
+                if (item is null && LibraryService is not null && LibraryService.LibraryRootFolder is not null)
                     item = LibraryService.LibraryRootFolder.FindItem(itemID);
 
-                if(item == null)
+                if(item is null)
                 {
                     m_log.ErrorFormat(
                             "[PRIM INVENTORY]: Could not find inventory item {0} to update for {1}!",
@@ -1887,8 +1828,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
                     {
-                        List<UUID> uuids = new List<UUID>();
-                        uuids.Add(itemID);
+                        List<UUID> uuids = new() { itemID };
                         RemoveInventoryItem(remoteClient, uuids);
                     }
                 }
@@ -1905,7 +1845,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // Only look for an uploaded updated asset if we are passed a transaction ID.  This is only the
                 // case for updates uploded through UDP.  Updates uploaded via a capability (e.g. a script update)
                 // will not pass in a transaction ID in the update message.
-                if (!transactionID.IsZero() && AgentTransactionsModule != null)
+                if (transactionID.IsNotZero() && AgentTransactionsModule is not null)
                 {
                     AgentTransactionsModule.HandleTaskItemUpdateFromTransaction(
                         remoteClient, part, transactionID, currentItem);
@@ -1927,10 +1867,10 @@ namespace OpenSim.Region.Framework.Scenes
                 if (!Permissions.IsGod(remoteClient.AgentId)) // Not a god
                 {
                     bool noChange;
-                    if (remoteClient.AgentId != part.OwnerID) // Not owner
+                    if (remoteClient.AgentId.NotEqual(part.OwnerID)) // Not owner
                     {
                         noChange = true;
-                        if(itemInfo.OwnerID.IsZero() && !itemInfo.GroupID.IsZero())
+                        if(itemInfo.OwnerID.IsZero() && itemInfo.GroupID.IsNotZero())
                         {
                             if(remoteClient.IsGroupMember(itemInfo.GroupID))
                             {
@@ -2011,8 +1951,7 @@ namespace OpenSim.Region.Framework.Scenes
             else
                 partWhereRezzed = RezScriptFromAgentInventory(remoteClient.AgentId, itemBase.ID, localID);
 
-            if (partWhereRezzed != null)
-                partWhereRezzed.SendPropertiesToClient(remoteClient);
+            partWhereRezzed?.SendPropertiesToClient(remoteClient);
         }
 
         /// <summary>
@@ -2029,15 +1968,15 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Try library
             // XXX clumsy, possibly should be one call
-            if (null == item && LibraryService != null && LibraryService.LibraryRootFolder != null)
+            if (item is null && LibraryService is not null && LibraryService.LibraryRootFolder is not null)
             {
                 item = LibraryService.LibraryRootFolder.FindItem(fromItemID);
             }
 
-            if (item != null)
+            if (item is not null)
             {
                 SceneObjectPart part = GetSceneObjectPart(localID);
-                if (part != null)
+                if (part is not null)
                 {
                     if (!Permissions.CanEditObjectInventory(part.UUID, agentID))
                         return null;
@@ -2099,7 +2038,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             // The part ID is the folder ID!
             SceneObjectPart part = GetSceneObjectPart(itemBase.Folder);
-            if (part == null)
+            if (part is null)
             {
                 //m_log.DebugFormat(
                 //    "[SCENE INVENTORY]: Could not find part with id {0} for {1} to rez new script",
@@ -2118,7 +2057,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             UUID assetID;
 
-            if (scriptText == null)
+            if (scriptText is null)
                 assetID = Constants.DefaultScriptID;
             else
             {
@@ -2132,7 +2071,7 @@ namespace OpenSim.Region.Framework.Scenes
                 assetID = asset.FullID;
             }
 
-            TaskInventoryItem taskItem = new TaskInventoryItem
+            TaskInventoryItem taskItem = new()
             {
                 ItemID = UUID.Random(),
                 OldItemID = UUID.Zero,
@@ -2183,8 +2122,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void RezScriptFromPrim(UUID srcId, SceneObjectPart srcPart, UUID destId, int pin, int running, int start_param)
         {
             TaskInventoryItem srcTaskItem = srcPart.Inventory.GetInventoryItem(srcId);
-
-            if (srcTaskItem == null)
+            if (srcTaskItem is null)
             {
                 m_log.ErrorFormat(
                     "[PRIM INVENTORY]: Tried to retrieve item ID {0} from prim {1}, {2} for rezzing a script but the "
@@ -2195,8 +2133,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             SceneObjectPart destPart = GetSceneObjectPart(destId);
-
-            if (destPart == null)
+            if (destPart is null)
             {
                 m_log.ErrorFormat(
                     "[PRIM INVENTORY]: Could not find part {0} to insert script item {1} from {2} {3} in {4}",
@@ -2205,7 +2142,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             // Must own the object, and have modify rights
-            if (srcPart.OwnerID != destPart.OwnerID)
+            if (srcPart.OwnerID.NotEqual(destPart.OwnerID))
             {
                 // Group permissions
                 if ((destPart.GroupID.IsZero()) || (destPart.GroupID.NotEqual(srcPart.GroupID)) ||
@@ -2232,25 +2169,26 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
 
-            TaskInventoryItem destTaskItem = new TaskInventoryItem();
+            TaskInventoryItem destTaskItem = new()
+            {
+                ItemID = UUID.Random(),
+                CreatorID = srcTaskItem.CreatorID,
+                CreatorData = srcTaskItem.CreatorData,
+                AssetID = srcTaskItem.AssetID,
+                GroupID = destPart.GroupID,
+                OwnerID = destPart.OwnerID,
+                ParentID = destPart.UUID,
+                ParentPartID = destPart.UUID,
 
-            destTaskItem.ItemID = UUID.Random();
-            destTaskItem.CreatorID = srcTaskItem.CreatorID;
-            destTaskItem.CreatorData = srcTaskItem.CreatorData;
-            destTaskItem.AssetID = srcTaskItem.AssetID;
-            destTaskItem.GroupID = destPart.GroupID;
-            destTaskItem.OwnerID = destPart.OwnerID;
-            destTaskItem.ParentID = destPart.UUID;
-            destTaskItem.ParentPartID = destPart.UUID;
+                BasePermissions = srcTaskItem.BasePermissions,
+                EveryonePermissions = srcTaskItem.EveryonePermissions,
+                GroupPermissions = srcTaskItem.GroupPermissions,
+                CurrentPermissions = srcTaskItem.CurrentPermissions,
+                NextPermissions = srcTaskItem.NextPermissions,
+                Flags = srcTaskItem.Flags
+            };
 
-            destTaskItem.BasePermissions = srcTaskItem.BasePermissions;
-            destTaskItem.EveryonePermissions = srcTaskItem.EveryonePermissions;
-            destTaskItem.GroupPermissions = srcTaskItem.GroupPermissions;
-            destTaskItem.CurrentPermissions = srcTaskItem.CurrentPermissions;
-            destTaskItem.NextPermissions = srcTaskItem.NextPermissions;
-            destTaskItem.Flags = srcTaskItem.Flags;
-
-            if (destPart.OwnerID != srcPart.OwnerID)
+            if (destPart.OwnerID.NotEqual(srcPart.OwnerID))
             {
                 if (Permissions.PropagatePermissions())
                 {
@@ -2278,9 +2216,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             destPart.ParentGroup.ResumeScripts();
 
-            ScenePresence avatar;
-
-            if (TryGetScenePresence(srcTaskItem.OwnerID, out avatar))
+            if (TryGetScenePresence(srcTaskItem.OwnerID, out ScenePresence avatar))
             {
                 destPart.SendPropertiesToClient(avatar.ControllingClient);
             }
@@ -2302,15 +2238,14 @@ namespace OpenSim.Region.Framework.Scenes
         {
             // First, see of we can perform the requested action and
             // build a list of eligible objects
-            List<uint> deleteIDs = new List<uint>();
-            List<SceneObjectGroup> deleteGroups = new List<SceneObjectGroup>();
-            List<SceneObjectGroup> takeCopyGroups = new List<SceneObjectGroup>();
-            List<SceneObjectGroup> takeDeleteGroups = new List<SceneObjectGroup>();
-
-            List<SceneObjectGroup> noPermtakeCopyGroups = new List<SceneObjectGroup>();
+            List<uint> deleteIDs = new();
+            List<SceneObjectGroup> deleteGroups = new();
+            List<SceneObjectGroup> takeCopyGroups = new();
+            List<SceneObjectGroup> takeDeleteGroups = new();
+            List<SceneObjectGroup> noPermtakeCopyGroups = new();
 
             ScenePresence sp = null;
-            if(remoteClient != null)
+            if(remoteClient is not null)
                 sp = remoteClient.SceneAgent as ScenePresence;
             else if(action != DeRezAction.Return)
                 return; // only Return can be called without a client
@@ -2324,7 +2259,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 // Invalid id
                 SceneObjectPart part = GetSceneObjectPart(localID);
-                if (part == null)
+                if (part is null)
                 {
                     //Client still thinks the object exists, kill it
                     deleteIDs.Add(localID);
@@ -2332,7 +2267,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 SceneObjectGroup grp = part.ParentGroup;
-                if (grp == null || grp.IsDeleted)
+                if (grp is null || grp.IsDeleted)
                 {
                     //Client still thinks the object exists, kill it
                     deleteIDs.Add(localID);
@@ -2381,7 +2316,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     case DeRezAction.GodTakeCopy:
                     {
-                        if((remoteClient != null) && Permissions.IsGod(remoteClient.AgentId))
+                        if((remoteClient is not null) && Permissions.IsGod(remoteClient.AgentId))
                             takeCopyGroups.Add(grp);
                         break;
                     }
@@ -2390,7 +2325,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         if (Permissions.CanDeleteObject(grp, remoteClient))
                         {
-                            if(m_useTrashOnDelete || (sp.IsGod && grp.OwnerID != sp.UUID))
+                            if(m_useTrashOnDelete || (sp.IsGod && grp.OwnerID.NotEqual(sp.UUID)))
                                 takeDeleteGroups.Add(grp);
                             else
                                 deleteGroups.Add(grp);
@@ -2400,13 +2335,13 @@ namespace OpenSim.Region.Framework.Scenes
 
                     case DeRezAction.Return:
                     {
-                        if (remoteClient != null)
+                        if (remoteClient is not null)
                         {
                             if (Permissions.CanReturnObjects( null, remoteClient, new List<SceneObjectGroup>() {grp}))
                             {
                                 takeDeleteGroups.Add(grp);
                                 if (AddToReturns)
-                                    AddReturn(grp.OwnerID == grp.GroupID ? grp.LastOwnerID : grp.OwnerID, grp.Name, grp.AbsolutePosition,
+                                    AddReturn(grp.OwnerID.Equals(grp.GroupID) ? grp.LastOwnerID : grp.OwnerID, grp.Name, grp.AbsolutePosition,
                                             "parcel owner return");
                             }
                         }
@@ -2425,18 +2360,18 @@ namespace OpenSim.Region.Framework.Scenes
             if(deleteIDs.Count > 0)
                 SendKillObject(deleteIDs);
 
-            if (noPermtakeCopyGroups.Count > 0 && remoteClient != null)
+            if (noPermtakeCopyGroups.Count > 0 && remoteClient is not null)
             {
                 if(noPermtakeCopyGroups.Count == 1)
                     remoteClient.SendAlertMessage("No permission to take copy object " + noPermtakeCopyGroups[0].Name);
                 else
                 {
-                    StringBuilder sb = new StringBuilder(1024);
+                    StringBuilder sb = new(1024);
                     sb.Append("No permission to take copy object ");
                     int i = 0;
-                    for (; i < noPermtakeCopyGroups.Count - 1; ++i)
+                    while(i < noPermtakeCopyGroups.Count - 1)
                     {
-                        sb.Append(noPermtakeCopyGroups[i].Name);
+                        sb.Append(noPermtakeCopyGroups[i++].Name);
                         sb.Append(", ");
                     }
                     sb.Append(noPermtakeCopyGroups[i].Name);
@@ -2466,9 +2401,9 @@ namespace OpenSim.Region.Framework.Scenes
         public UUID attachObjectAssetStore(IClientAPI remoteClient, SceneObjectGroup grp, UUID AgentId, out UUID itemID)
         {
             itemID = UUID.Zero;
-            if (grp != null)
+            if (grp is not null)
             {
-                Vector3 inventoryStoredPosition = new Vector3(
+                Vector3 inventoryStoredPosition = new(
                         Math.Min(grp.AbsolutePosition.X, RegionInfo.RegionSizeX - 6),
                         Math.Min(grp.AbsolutePosition.Y, RegionInfo.RegionSizeY - 6),
                         grp.AbsolutePosition.Z);
@@ -2490,19 +2425,21 @@ namespace OpenSim.Region.Framework.Scenes
                     remoteClient.AgentId);
                 AssetService.Store(asset);
 
-                InventoryItemBase item = new InventoryItemBase();
-                item.CreatorId = grpRootPart.CreatorID.ToString();
-                item.CreatorData = grpRootPart.CreatorData;
-                item.Owner = remoteClient.AgentId;
-                item.ID = UUID.Random();
-                item.AssetID = asset.FullID;
-                item.Description = grpRootPart.Description;
-                item.Name = grpRootPart.Name;
-                item.AssetType = asset.Type;
-                item.InvType = (int)InventoryType.Object;
+                InventoryItemBase item = new()
+                {
+                    CreatorId = grpRootPart.CreatorID.ToString(),
+                    CreatorData = grpRootPart.CreatorData,
+                    Owner = remoteClient.AgentId,
+                    ID = UUID.Random(),
+                    AssetID = asset.FullID,
+                    Description = grpRootPart.Description,
+                    Name = grpRootPart.Name,
+                    AssetType = asset.Type,
+                    InvType = (int)InventoryType.Object
+                };
 
                 InventoryFolderBase folder = InventoryService.GetFolderForType(remoteClient.AgentId, FolderType.Object);
-                if (folder != null)
+                if (folder is not null)
                     item.Folder = folder.ID;
                 else // oopsies
                     item.Folder = UUID.Zero;
@@ -2515,7 +2452,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // Make sure we don't lock it
                 grpRootPart.NextOwnerMask |= (uint)PermissionMask.Move;
 
-                if ((remoteClient.AgentId != grpRootPart.OwnerID) && Permissions.PropagatePermissions())
+                if (remoteClient.AgentId.NotEqual(grpRootPart.OwnerID) && Permissions.PropagatePermissions())
                 {
                     item.BasePermissions = permsBase & grpRootPart.NextOwnerMask;
                     item.CurrentPermissions = permsBase & grpRootPart.NextOwnerMask;
@@ -2577,9 +2514,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             try
             {
-                using (XmlTextReader wrappedReader = new XmlTextReader(xmlData, XmlNodeType.Element, null))
+                using (XmlTextReader wrappedReader = new(xmlData, XmlNodeType.Element, null))
                 {
-                    using (XmlReader reader = XmlReader.Create(wrappedReader, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment, DtdProcessing = DtdProcessing.Ignore}))
+                    using (XmlReader reader = XmlReader.Create(wrappedReader, Util.SharedXmlReaderSettings))
                     {
                         reader.Read();
                         bool isSingleObject = reader.Name != "CoalescedObject";
@@ -2598,7 +2535,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 g = null;
                             }
 
-                            if (g != null)
+                            if (g is not null)
                             {
                                 objlist.Add(g);
                                 veclist.Add(Vector3.Zero);
@@ -2609,7 +2546,7 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                         else
                         {
-                            XmlDocument doc = new XmlDocument();
+                            XmlDocument doc = new();
                             doc.LoadXml(xmlData);
                             XmlElement e = (XmlElement)doc.SelectSingleNode("/CoalescedObject");
                             XmlElement coll = (XmlElement)e;
@@ -2623,7 +2560,7 @@ namespace OpenSim.Region.Framework.Scenes
                             foreach (XmlNode n in groups)
                             {
                                 SceneObjectGroup g = SceneObjectSerializer.FromOriginalXmlFormat(n.OuterXml);
-                                if (g != null)
+                                if (g is not null)
                                 {
                                     objlist.Add(g);
 
@@ -2675,16 +2612,15 @@ namespace OpenSim.Region.Framework.Scenes
                                     UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
                                     bool RezSelected, bool RemoveItem, UUID fromTaskID)
         {
-//            m_log.DebugFormat(
-//                "[PRIM INVENTORY]: RezObject from {0} for item {1} from task id {2}",
-//                remoteClient.Name, itemID, fromTaskID);
+            //m_log.DebugFormat(
+            //    "[PRIM INVENTORY]: RezObject from {0} for item {1} from task id {2}",
+            //    remoteClient.Name, itemID, fromTaskID);
 
             if (fromTaskID.IsZero())
             {
                 // rez from user inventory
                 IInventoryAccessModule invAccess = RequestModuleInterface<IInventoryAccessModule>();
-                if (invAccess != null)
-                    invAccess.RezObject(
+                invAccess?.RezObject(
                         remoteClient, itemID, rezGroupID, RayEnd, RayStart, RayTargetID, BypassRayCast, RayEndIsIntersection,
                         RezSelected, RemoveItem, fromTaskID, false);
                 return;
@@ -2692,7 +2628,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // rez from a prim inventory 
             SceneObjectPart part = GetSceneObjectPart(fromTaskID);
-            if (part == null)
+            if (part is null)
             {
                 m_log.ErrorFormat(
                     "[TASK INVENTORY]: {0} tried to rez item id {1} from object id {2} but there is no such scene object",
@@ -2702,7 +2638,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             TaskInventoryItem item = part.Inventory.GetInventoryItem(itemID);
-            if (item == null)
+            if (item is null)
             {
                 m_log.ErrorFormat(
                     "[TASK INVENTORY]: {0} tried to rez item id {1} from object id {2} but there is no such item",
@@ -2719,7 +2655,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             byte bRayEndIsIntersection = (byte)(RayEndIsIntersection ? 1 : 0);
-            Vector3 scale = new Vector3(0.5f, 0.5f, 0.5f);
+            Vector3 scale = new(0.5f, 0.5f, 0.5f);
             Vector3 pos = GetNewRezLocation(
                     RayStart, RayEnd, RayTargetID, Quaternion.Identity,
                     BypassRayCast, bRayEndIsIntersection, true, scale, false);
@@ -2749,15 +2685,12 @@ namespace OpenSim.Region.Framework.Scenes
                 UUID newowner, UUID newgroup,
                 Vector3 pos, Quaternion? rot, Vector3 vel, int param, bool atRoot, bool rezSelected, bool humanRez)
         {
-            if (null == item)
+            if (item is null)
                 return null;
 
-            List<SceneObjectGroup> objlist;
-            List<Vector3> veclist;
-            Vector3 bbox;
-            float offsetHeight;
-
-            bool success = sourcePart.Inventory.GetRezReadySceneObjects(item, newowner, newgroup, out objlist, out veclist,out bbox, out offsetHeight);
+            bool success = sourcePart.Inventory.GetRezReadySceneObjects(item, newowner, newgroup,
+                out List<SceneObjectGroup> objlist, out List<Vector3> veclist,
+                out Vector3 bbox, out float _);
 
             if (!success)
                 return null;
@@ -2789,14 +2722,10 @@ namespace OpenSim.Region.Framework.Scenes
                     if(!atRoot)
                     {
                         sog = objlist[0];
-                        Quaternion orot;
-                        if (rot == null)
-                            orot = sog.RootPart.GetWorldRotation();
-                        else
-                            orot = rot.Value;
+                        Quaternion orot = rot ?? sog.RootPart.GetWorldRotation();
                         // possible should be bbox, but geometric center looks better
                         Vector3 off = sog.GetGeometricCenter();
-//                        Vector3 off = bbox * 0.5f;
+                        //Vector3 off = bbox * 0.5f;
                         off *= orot;
                         pos -= off;
                     }
@@ -2805,7 +2734,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     //veclist[] are relative to bbox corner with min X,Y and Z
                     // rez at root, and rot will be referenced to first object in list
-                    if (rot == null)
+                    if (rot is null)
                     {
                         // use original rotations
                         if (atRoot)
@@ -2818,7 +2747,7 @@ namespace OpenSim.Region.Framework.Scenes
                         fixrot = true;
                         sog = objlist[0];
                         netRot = Quaternion.Conjugate(sog.RootPart.GetWorldRotation());
-                        netRot = netRot * rot.Value;
+                        netRot *= rot.Value;
                         Vector3 off;
                         if (atRoot)
                             off = veclist[0];
@@ -2878,7 +2807,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if(humanRez)
                     group.ResumeScripts();
 
-                group.ScheduleGroupForFullAnimUpdate();
+                group.ScheduleGroupForUpdate(PrimUpdateFlags.FullUpdatewithAnimMatOvr);
             }
 
             return objlist;
@@ -2887,7 +2816,7 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual bool returnObjects(SceneObjectGroup[] returnobjects,
                 IClientAPI client)
         {
-            List<uint> localIDs = new List<uint>();
+            List<uint> localIDs = new();
 
             foreach (SceneObjectGroup grp in returnobjects)
             {
@@ -2907,7 +2836,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             SceneObjectPart part = GetSceneObjectPart(objectID);
-            if (part == null)
+            if (part is null)
                 return;
 
             if (running)
@@ -2926,16 +2855,16 @@ namespace OpenSim.Region.Framework.Scenes
             
             if (!Permissions.IsGod(remoteClient.AgentId))
             {
-                if (!ownerID.IsZero())
+                if (ownerID.IsNotZero())
                     return;
             }
 
-            List<SceneObjectGroup> groups = new List<SceneObjectGroup>();
+            List<SceneObjectGroup> groups = new();
 
             foreach (uint localID in localIDs)
             {
                 SceneObjectPart part = GetSceneObjectPart(localID);
-                if (part == null)
+                if (part is null)
                     continue;
 
                 if (!groups.Contains(part.ParentGroup))
@@ -2944,7 +2873,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             foreach (SceneObjectGroup sog in groups)
             {
-                if (!ownerID.IsZero())
+                if (ownerID.IsNotZero())
                 {
                     sog.SetOwnerId(ownerID);
                     sog.SetGroup(groupID, remoteClient);
@@ -2967,7 +2896,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     // this is wrong, GroupMask is used for group sharing, still possible to set
                     // this whould give owner rights to users that are member of group but don't have role powers to edit
-//                    sog.RootPart.GroupMask = sog.RootPart.OwnerMask;
+                    //sog.RootPart.GroupMask = sog.RootPart.OwnerMask;
 
                     // we should keep all permissions on deed to group
                     // and with this comented code, if user does not set next permissions on the object
@@ -2989,7 +2918,7 @@ namespace OpenSim.Region.Framework.Scenes
             foreach (uint localID in localIDs)
             {
                 SceneObjectPart part = GetSceneObjectPart(localID);
-                if (part == null)
+                if (part is null)
                     continue;
                 part.SendPropertiesToClient(remoteClient);
             }
@@ -2997,13 +2926,13 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void DelinkObjects(List<uint> primIds, IClientAPI client)
         {
-            List<SceneObjectPart> parts = new List<SceneObjectPart>();
+            List<SceneObjectPart> parts = new();
 
             foreach (uint localID in primIds)
             {
                 SceneObjectPart part = GetSceneObjectPart(localID);
 
-                if (part == null)
+                if (part is null)
                     continue;
 
                 if (Permissions.CanDelinkObject(client.AgentId, part.ParentGroup.RootPart.UUID))
@@ -3032,12 +2961,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="childPrimIds">A list of child prims for the objects that should be linked in.</param>
         public void LinkObjects(UUID agentId, uint parentPrimId, List<uint> childPrimIds)
         {
-            List<UUID> owners = new List<UUID>();
-
-            List<SceneObjectPart> children = new List<SceneObjectPart>();
+            List<UUID> owners = new();
+            List<SceneObjectPart> children = new();
             SceneObjectPart root = GetSceneObjectPart(parentPrimId);
 
-            if (root == null)
+            if (root is null)
             {
                 m_log.DebugFormat("[LINK]: Can't find linkset root prim {0}", parentPrimId);
                 return;
@@ -3053,7 +2981,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 SceneObjectPart part = GetSceneObjectPart(localID);
 
-                if (part == null)
+                if (part is null)
                     continue;
 
                 if (!owners.Contains(part.OwnerID))
@@ -3080,8 +3008,7 @@ namespace OpenSim.Region.Framework.Scenes
             bool oldUsePhysics = (root.Flags & PrimFlags.Physics) != 0;
             m_sceneGraph.LinkObjects(root, children);
 
-            ScenePresence sp;
-            if (TryGetScenePresence(agentId, out sp))
+            if (TryGetScenePresence(agentId, out ScenePresence sp))
             {
                 root.SendPropertiesToClient(sp.ControllingClient);
                 if (oldUsePhysics && (root.Flags & PrimFlags.Physics) == 0)

@@ -14,12 +14,9 @@ namespace OSHttpServer
         private readonly X509Certificate m_certificate;
         private readonly IHttpContextFactory m_contextFactory;
         private readonly int m_port;
-        private readonly ManualResetEvent m_shutdownEvent = new ManualResetEvent(false);
-#if NET48
-        private readonly SslProtocols m_sslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13 | SslProtocols.Ssl3 | SslProtocols.Ssl2;
-#else
-        private readonly SslProtocols m_sslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Ssl3 | SslProtocols.Ssl2;
-#endif
+        private readonly ManualResetEvent m_shutdownEvent = new(false);
+        private readonly SslProtocols m_sslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13;
+
         private TcpListener m_listener;
         private ILogWriter m_logWriter = NullLogWriter.Instance;
         private int m_pendingAccepts;
@@ -67,8 +64,7 @@ namespace OSHttpServer
         /// <param name="factory">Factory used to create <see cref="IHttpClientContext"/>es.</param>
         /// <param name="certificate">Certificate to use</param>
         /// <param name="protocols">which HTTPS protocol to use, default is TLS.</param>
-        protected OSHttpListener(IPAddress address, int port, X509Certificate certificate,
-                                   SslProtocols protocols)
+        protected OSHttpListener(IPAddress address, int port, X509Certificate certificate, SslProtocols protocols)
             : this(address, port)
         {
             m_certificate = certificate;
@@ -112,11 +108,10 @@ namespace OSHttpServer
             set
             {
                 m_logWriter = value ?? NullLogWriter.Instance;
-                if (m_certificate != null)
-                    m_logWriter.Write(this, LogPrio.Info,
-                                     "HTTPS(" + m_sslProtocols + ") listening on " + m_address + ":" + m_port);
+                if (m_certificate is not null)
+                    m_logWriter.Write(this, LogPrio.Info, $"HTTPS({m_sslProtocols}) listening on {m_address}:{m_port}");
                 else
-                    m_logWriter.Write(this, LogPrio.Info, "HTTP listening on " + m_address + ":" + m_port);
+                    m_logWriter.Write(this, LogPrio.Info, $"HTTP listening on {m_address}:{m_port}");
             }
         }
 
@@ -160,9 +155,9 @@ namespace OSHttpServer
 
                 if(socket.Connected)
                 {
-                     m_logWriter.Write(this, LogPrio.Debug, "Accepted connection from: " + socket.RemoteEndPoint);
+                     m_logWriter.Write(this, LogPrio.Debug, $"Accepted connection from: {socket.RemoteEndPoint}");
 
-                    if (m_certificate != null)
+                    if (m_certificate is not null)
                         m_contextFactory.CreateSecureContext(socket, m_certificate, m_sslProtocols, m_clientCertValCallback);
                     else
                         m_contextFactory.CreateContext(socket);
@@ -207,7 +202,7 @@ namespace OSHttpServer
         {
             if(Accepted!=null)
             {
-                ClientAcceptedEventArgs args = new ClientAcceptedEventArgs(socket);
+                ClientAcceptedEventArgs args = new(socket);
                 Accepted?.Invoke(this, args);
                 return !args.Revoked;
             }
