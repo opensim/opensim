@@ -94,7 +94,7 @@ namespace OpenSim.Server.Base
                 prompt = startupConfig.GetString("prompt", prompt);
 
                 // Check for a Log4Net config file on the command line
-                logConfig =startupConfig.GetString("logconfig", logConfig);
+                logConfig = startupConfig.GetString("logconfig", logConfig);
             }
 
             Config = ReadConfigSource(iniFile);

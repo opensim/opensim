@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <AssemblyTitle>OpenSim.Region.OptionalModules.Currency</AssemblyTitle>
     <Company>OpenSim</Company>
     <Product>DTL/NSL Group</Product>
