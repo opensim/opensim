@@ -803,7 +803,7 @@ namespace OpenSim.Data.MySQL
                             {
                                 while (reader.Read())
                                 {
-                                    data.Add(new OSDString((string)reader["snapshotuuid"].ToString ()));
+                                    data.Add(new OSDString(reader["snapshotuuid"].ToString ()));
                                 }
                             }
                         }
