@@ -1285,7 +1285,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             FreeUDPBuffer(buffer);
 
             // Determine which agent this packet came from
-            if (client == null || client is not LLClientView)
+            if (client == null || client is not LLClientView lclient)
             {
                 //m_log.Debug("[LLUDPSERVER]: Received a " + packet.Type + " packet from an unrecognized source: " + address + " in " + m_scene.RegionInfo.RegionName);
 
@@ -1298,7 +1298,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return;
             }
 
-            LLUDPClient udpClient = ((LLClientView)client).UDPClient;
+            LLUDPClient udpClient = lclient.UDPClient;
 
             if (!udpClient.IsConnected)
             {
@@ -1313,6 +1313,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             int now = Environment.TickCount & Int32.MaxValue;
             udpClient.TickLastPacketReceived = now;
+
+            if(packet.NeedValidateIDs)
+            {
+                if(!packet.ValidIDs(lclient.m_sessionId, lclient.m_agentId))
+                    return;
+            }
 
             #region ACK Receiving
 
