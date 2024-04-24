@@ -31,7 +31,6 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
-using System.Net.Sockets;
 using System.Reflection;
 using System.Threading;
 using log4net;
@@ -43,7 +42,6 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
 using OpenMetaverse;
 using Mono.Addins;
-using TokenBucket = OpenSim.Region.ClientStack.LindenUDP.TokenBucket;
 
 
 namespace OpenSim.Region.ClientStack.LindenUDP
@@ -325,8 +323,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected int m_ackTimeout = 0;
         protected int m_pausedAckTimeout = 0;
         protected bool m_disableFacelights = false;
-
-        public Socket Server { get { return null; } }
 
         /// <summary>
         /// Record how many packets have been resent
@@ -1194,9 +1190,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             headerLen += buffer.Data[5];
             if (bufferLen < headerLen)
             {
-//                m_log.WarnFormat(
-//                    "[LLUDPSERVER]: Dropping packet with malformed header received from {0} in {1}",
-//                    buffer.RemoteEndPoint, m_scene.RegionInfo.RegionName);
+                //m_log.WarnFormat(
+                //    "[LLUDPSERVER]: Dropping packet with malformed header received from {0} in {1}",
+                //    buffer.RemoteEndPoint, m_scene.RegionInfo.RegionName);
                 RecordMalformedInboundPacket(endPoint);
                 FreeUDPBuffer(buffer);
                 return; // Malformed header
@@ -1221,7 +1217,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             catch (Exception e)
             {
                 if (IncomingMalformedPacketCount < 100)
-                    m_log.DebugFormat("[LLUDPSERVER]: Dropped malformed packet: " + e.ToString());
+                    m_log.Debug("[LLUDPSERVER]: Dropped malformed packet: " + e.ToString());
             }
 
             // Fail-safe check
@@ -1432,10 +1428,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             #endregion Ping Check Handling
 
-            IncomingPacket incomingPacket;
-
-            incomingPacket = new IncomingPacket((LLClientView)client, packet);            
-            packetInbox.Add(incomingPacket);
+            packetInbox.Add(new IncomingPacket((LLClientView)client, packet));
         }
 
         #region BinaryStats
@@ -1778,26 +1771,28 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 Scene.ThreadAlive(1);
                 try
                 {
-                    packetInbox.TryTake(out IncomingPacket incomingPacket, 4500);
-
-                    if (incomingPacket != null && IsRunningInbound)
+                    if (packetInbox.TryTake(out IncomingPacket incomingPacket, 4500) && IsRunningInbound)
                     {
-                        ProcessInPacket(incomingPacket);
-                        incomingPacket = null;
+                        if (incomingPacket.Client.IsActive)
+                        {
+                            incomingPacket.Client.ProcessInPacket(incomingPacket.Packet);
+                            IncomingPacketsProcessed++;
+                        }
                     }
                 }
-                /*
                 catch (ThreadAbortException)
                 {
-                    Thread.ResetAbort();
+                    // If something is trying to abort the packet processing thread, take that as a hint that it's time to shut down
+                    m_log.Info("[LLUDPSERVER]: Caught a thread abort, shutting down the LLUDP server");
+                    Stop();
                 }
-                */
-                catch (Exception ex)
+                catch (Exception e)
                 {
-                    m_log.Error("[LLUDPSERVER]: Error in the incoming packet handler loop: " + ex.Message, ex);
+                    // Don't let a failure in an individual client thread crash the whole sim.
+                    m_log.Error($"[LLUDPSERVER]: IncomingPacketHandler threw ", e);
                 }
 
-                Watchdog.UpdateThread();
+            Watchdog.UpdateThread();
             }
 
             if (packetInbox.Count > 0)
@@ -1946,38 +1941,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public long IncomingPacketsProcessed { get; protected set; }
 
         #endregion
-
-        protected void ProcessInPacket(IncomingPacket incomingPacket)
-        {
-            Packet packet = incomingPacket.Packet;
-            LLClientView client = incomingPacket.Client;
-
-            if(!client.IsActive)
-                return;
-
-            try
-            {
-                // Process this packet
-                client.ProcessInPacket(packet);
-            }
-            catch(ThreadAbortException)
-            {
-                // If something is trying to abort the packet processing thread, take that as a hint that it's time to shut down
-                m_log.Info("[LLUDPSERVER]: Caught a thread abort, shutting down the LLUDP server");
-                Stop();
-            }
-            catch(Exception e)
-            {
-                // Don't let a failure in an individual client thread crash the whole sim.
-                m_log.Error(
-                    string.Format(
-                        "[LLUDPSERVER]: Client packet handler for {0} for packet {1} threw ",
-                        client.Name,packet.Type),
-                    e);
-            }
-
-            IncomingPacketsProcessed++;
-        }
 
         protected void LogoutHandler(IClientAPI client)
         {

@@ -715,7 +715,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public bool AddLocalPacketHandler(PacketType packetType, PacketMethod handler, bool doAsync)
         {
             lock (m_packetHandlers)
-                return m_packetHandlers.TryAdd(packetType, new PacketProcessor() { method = handler, Async = doAsync});
+                return m_packetHandlers.TryAdd(packetType, new PacketProcessor(handler, doAsync));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -884,7 +884,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             bool isEstateManager = m_scene.Permissions.IsEstateManager(m_agentId); // go by oficial path
             uint regionFlags = GetRegionFlags();
 
-            UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+            UDPPacketBuffer buf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
             Buffer.BlockCopy(RegionHandshakeHeader, 0, buf.Data, 0, 11);
 
             // inline zeroencode
@@ -987,7 +987,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_thisAgentUpdateArgs.lastUpdateTS = 0;
             m_thisAgentUpdateArgs.ControlFlags = 0;
 
-            UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+            UDPPacketBuffer buf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
             byte[] bdata = buf.Data;
 
             //setup header
@@ -1038,7 +1038,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void SendChatMessage(string message, byte chattype, Vector3 fromPos, string fromName,
             UUID sourceID, UUID ownerID, byte sourcetype, byte audible)
         {
-            UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+            UDPPacketBuffer buf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
             byte[] data = buf.Data;
 
             //setup header
@@ -1095,7 +1095,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (!m_scene.Permissions.CanInstantMessage(fromAgentID, toAgentID))
                 return;
 
-            UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+            UDPPacketBuffer buf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
             byte[] data = buf.Data;
 
             //setup header
@@ -1187,7 +1187,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendGenericMessage(string method, UUID invoice, List<string> message)
         {
-            UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+            UDPPacketBuffer buf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
             byte[] data = buf.Data;
 
             //setup header
@@ -1236,7 +1236,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     //m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task, null, false, true);
                     m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task);
 
-                    UDPPacketBuffer newbuf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                    UDPPacketBuffer newbuf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
                     Buffer.BlockCopy(data, 0, newbuf.Data, 0, countpos);
                     buf = newbuf;
                     data = buf.Data;
@@ -1257,7 +1257,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendGenericMessage(string method, UUID invoice, List<byte[]> message)
         {
-            UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+            UDPPacketBuffer buf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
             byte[] data = buf.Data;
 
             //setup header
@@ -1307,7 +1307,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     //m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task, null, false, true);
                     m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task);
 
-                    UDPPacketBuffer newbuf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                    UDPPacketBuffer newbuf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
                     Buffer.BlockCopy(data, 0, newbuf.Data, 0, countpos);
                     buf = newbuf;
                     data = buf.Data;
@@ -1639,7 +1639,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 int numberPatchs = map.Length / 2;
 
-                UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                UDPPacketBuffer buf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
                 byte[] data = buf.Data;
 
                 Buffer.BlockCopy(TerrainPacketHeader, 0, data, 0, 7);
@@ -1675,7 +1675,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Land);
 
                         // start another
-                        buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                        buf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
                         data = buf.Data;
 
                         Buffer.BlockCopy(TerrainPacketHeader, 0, data, 0, 7);
@@ -1866,7 +1866,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendMapItemReply(mapItemReply[] replies, uint mapitemtype, uint flags)
         {
-            UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+            UDPPacketBuffer buf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
             byte[] data = buf.Data;
 
             //setup header and agentinfo block
@@ -1907,7 +1907,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 else
                 {
                     // prepare next packet
-                    UDPPacketBuffer newbuf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                    UDPPacketBuffer newbuf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
                     Buffer.BlockCopy(data, 0, newbuf.Data, 0, 34);
 
                     // copy the block we already did
@@ -1970,7 +1970,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     needSizes = true;
             }
 
-            UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+            UDPPacketBuffer buf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
             byte[] data = buf.Data;
 
             //setup header and agentinfo block
@@ -2013,7 +2013,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 else
                 {
                     // prepare next packet
-                    UDPPacketBuffer newbuf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                    UDPPacketBuffer newbuf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
                     Buffer.BlockCopy(data, 0, newbuf.Data, 0, 30);
 
                     // copy the block we already did
@@ -2797,7 +2797,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendTaskInventory(UUID taskID, short serial, byte[] fileName)
         {
-            UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+            UDPPacketBuffer buf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
             byte[] data = buf.Data;
 
             //setup header
@@ -2825,7 +2825,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void SendXferPacket(ulong xferID, uint packet,
                 byte[] XferData, int XferDataOffset, int XferDatapktLen, bool isTaskInventory)
         {
-            UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+            UDPPacketBuffer buf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
             byte[] data = buf.Data;
 
             //setup header
@@ -2873,7 +2873,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendAbortXferPacket(ulong xferID)
         {
-            UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+            UDPPacketBuffer buf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
             byte[] data = buf.Data;
 
             //setup header
@@ -2922,7 +2922,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendAvatarPickerReply(UUID QueryID, List<UserData> users)
         {
-            UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+            UDPPacketBuffer buf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
             byte[] data = buf.Data;
 
             //setup header
@@ -2968,7 +2968,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task);
                     if (u < users.Count - 1)
                     {
-                        UDPPacketBuffer newbuf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                        UDPPacketBuffer newbuf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
                         byte[] newdata = newbuf.Data;
                         Buffer.BlockCopy(data, 0, newdata, 0, 42);
                         buf = newbuf;
@@ -4383,7 +4383,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void SendAppearance(UUID targetID, byte[] visualParams, byte[] textureEntry, float hover)
         {
             // doing post zero encode, because odds of beeing bad are not that low
-            UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+            UDPPacketBuffer buf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
             Buffer.BlockCopy(AvatarAppearanceHeader, 0, buf.Data, 0, 10);
             byte[] data = buf.Data;
             int pos = 10;
@@ -4435,7 +4435,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             //            m_log.DebugFormat("[LLCLIENTVIEW]: Sending animations for {0} to {1}", sourceAgentId, Name);
 
-            UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+            UDPPacketBuffer buf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
             byte[] data = buf.Data;
             //setup header
             Buffer.BlockCopy(AvatarAnimationHeader, 0, data, 0, 7);
@@ -4536,7 +4536,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (ent is not ScenePresence && ent is not SceneObjectPart)
                 return;
 
-            UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+            UDPPacketBuffer buf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
             Buffer.BlockCopy(objectUpdateHeader, 0, buf.Data, 0, 7);
 
             LLUDPZeroEncoder zc = new(buf.Data);
@@ -4561,7 +4561,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (ent is null)
                 return;
 
-            UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+            UDPPacketBuffer buf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
 
             //setup header and regioninfo block
             Buffer.BlockCopy(terseUpdateHeader, 0, buf.Data, 0, 7);
@@ -4621,7 +4621,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             //bool doprey = m_courseLocationPrey != UUID.Zero;
 
-            UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+            UDPPacketBuffer buf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
             Buffer.BlockCopy(CoarseLocationUpdateHeader, 0, buf.Data, 0, 8);
             byte[] data = buf.Data;
 
@@ -5111,7 +5111,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 //List<EntityUpdate> tau = new List<EntityUpdate>(30);
 
-                UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                UDPPacketBuffer buf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
                 Buffer.BlockCopy(objectUpdateHeader, 0, buf.Data, 0, 7);
 
                 LLUDPZeroEncoder zc = new(buf.Data);
@@ -5152,7 +5152,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     else
                     {
                         // we need more packets
-                        UDPPacketBuffer newbuf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                        UDPPacketBuffer newbuf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
                         Buffer.BlockCopy(buf.Data, 0, newbuf.Data, 0, countposition); // start is the same
 
                         buf.Data[countposition] = (byte)count;
@@ -5203,7 +5203,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 //List<EntityUpdate> tau = new List<EntityUpdate>(30);
 
-                UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                UDPPacketBuffer buf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
                 byte[] data = buf.Data;
 
                 Buffer.BlockCopy(CompressedObjectHeader, 0, data, 0, 7);
@@ -5247,7 +5247,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     else
                     {
                         // we need more packets
-                        UDPPacketBuffer newbuf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                        UDPPacketBuffer newbuf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
                         Buffer.BlockCopy(buf.Data, 0, newbuf.Data, 0, countposition); // start is the same
 
                         buf.Data[countposition] = (byte)count;
@@ -5295,7 +5295,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (objectUpdateProbes is not null)
             {
-                UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                UDPPacketBuffer buf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
                 byte[] data = buf.Data;
                 Buffer.BlockCopy(ObjectUpdateCachedHeader, 0, data, 0, 7);
 
@@ -5344,7 +5344,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 if (pos > (LLUDPServer.MAXPAYLOAD - 13))
                                 {
                                     // we need more packets
-                                    UDPPacketBuffer newbuf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                                    UDPPacketBuffer newbuf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
                                     Buffer.BlockCopy(data, 0, newbuf.Data, 0, countposition); // start is the same
 
                                     data[countposition] = (byte)count;
@@ -5375,7 +5375,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 int blocks = terseUpdates.Count;
                 //List<EntityUpdate> tau = new List<EntityUpdate>(30);
 
-                UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                UDPPacketBuffer buf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
 
                 //setup header and regioninfo block
                 Buffer.BlockCopy(terseUpdateHeader, 0, buf.Data, 0, 7);
@@ -5413,7 +5413,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 else if (blocks > 0)
                                 {
                                     // we need more packets
-                                    UDPPacketBuffer newbuf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                                    UDPPacketBuffer newbuf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
                                     Buffer.BlockCopy(buf.Data, 0, newbuf.Data, 0, COUNTINDEX); // start is the same
                                     // copy what we done in excess
                                     int extralen = pos - lastpos;
@@ -5469,7 +5469,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     int count = sop.GetAnimations(out UUID[] ids, out int[] seqs);
 
-                    UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                    UDPPacketBuffer buf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
                     byte[] data = buf.Data;
 
                     //setup header
@@ -5537,7 +5537,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         continue;
                     }
 
-                    UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                    UDPPacketBuffer buf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
                     byte[] dataptr = buf.Data;
 
                     //setup header
@@ -5893,7 +5893,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendSimStats(SimStats stats)
         {
-            UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+            UDPPacketBuffer buf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
             byte[] data = buf.Data;
 
             //setup header
@@ -6047,7 +6047,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 int blocks = objectPropertiesUpdates.Count;
                 //List<EntityUpdate> tau = new List<EntityUpdate>(30);
 
-                UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                UDPPacketBuffer buf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
                 Buffer.BlockCopy(ObjectPropertyUpdateHeader, 0, buf.Data, 0, 8);
 
                 LLUDPZeroEncoder zc = new(buf.Data);
@@ -6075,7 +6075,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     else if (blocks > 0)
                     {
                         // we need more packets
-                        UDPPacketBuffer newbuf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                        UDPPacketBuffer newbuf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
                         Buffer.BlockCopy(buf.Data, 0, newbuf.Data, 0, countposition); // start is the same
 
                         buf.Data[countposition] = (byte)count;
@@ -6118,7 +6118,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 foreach (EntityUpdate eu in objectPropertiesFamilyUpdates)
                 {
-                    UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                    UDPPacketBuffer buf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
                     Buffer.BlockCopy(ObjectFamilyUpdateHeader, 0, buf.Data, 0, 8);
 
                     LLUDPZeroEncoder zc = new(buf.Data);
@@ -13242,15 +13242,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     logPacket = false;
 
                 if (logPacket)
-                    m_log.DebugFormat(
-                        "[CLIENT]: PACKET IN  from {0} ({1}) in {2} - {3}",
-                        Name, SceneAgent.IsChildAgent ? "child" : "root ", Scene.Name, packet.Type);
+                    m_log.Debug(
+                        $"[CLIENT]: PACKET IN  from {Name} ({(SceneAgent.IsChildAgent ? "child" : "root")}) in {Scene.Name} - {packet.Type}");
             }
 
             if (!ProcessPacketMethod(packet))
-                m_log.WarnFormat(
-                    "[CLIENT]: Unhandled packet {0} from {1} ({2}) in {3}.  Ignoring.",
-                    packet.Type, Name, SceneAgent.IsChildAgent ? "child" : "root ", Scene.Name);
+                m_log.Warn($"[CLIENT]: ignoring unhandled packet {packet.Type} from {Name} ({(SceneAgent.IsChildAgent ? "child" : "root")}) in {m_scene.Name}");
         }
 
         private static PrimitiveBaseShape GetShapeFromAddPacket(ObjectAddPacket addPacket)
@@ -13396,10 +13393,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             lock (m_clientInterfaces)
             {
-                if (!m_clientInterfaces.ContainsKey(typeof(T)))
-                {
-                    m_clientInterfaces.Add(typeof(T), iface);
-                }
+                m_clientInterfaces.TryAdd(typeof(T), iface);
             }
         }
 
@@ -13645,28 +13639,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(pack, ThrottleOutPacketType.Task);
         }
 
-        public struct PacketProcessor
+        public readonly struct PacketProcessor(PacketMethod m, bool doasync )
         {
-            /// <summary>
-            /// Packet handling method.
-            /// </summary>
-            public PacketMethod method;
-
-            /// <summary>
-            /// Should this packet be handled asynchronously?
-            /// </summary>
-            public bool Async;
+            public readonly PacketMethod method = m;
+            public readonly bool Async = doasync;
         }
 
-        private struct StaticPacketProcessor
+        private readonly struct StaticPacketProcessor(StaticPacketMethod m, bool doasync)
         {
-            public StaticPacketMethod method;
-            public bool Async;
-            public StaticPacketProcessor(StaticPacketMethod m, bool a)
-            {
-                method = m;
-                Async = a;
-            }
+            public readonly StaticPacketMethod method = m;
+            public readonly bool Async = doasync;
         }
 
         public void SendAvatarInterestsReply(UUID avatarID, uint wantMask, string wantText, uint skillsMask, string skillsText, string languages)
@@ -13737,7 +13719,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             if (p is ScenePresence sp)
             {
-                UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                UDPPacketBuffer buf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
 
                 //setup header and regioninfo block
                 Buffer.BlockCopy(terseUpdateHeader, 0, buf.Data, 0, 7);
