@@ -35,9 +35,6 @@
       <HintPath>..\..\..\..\bin\OpenMetaverseTypes.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="System.Drawing.Common">
-      <Private>False</Private>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Framework\OpenSim.Framework.csproj" />

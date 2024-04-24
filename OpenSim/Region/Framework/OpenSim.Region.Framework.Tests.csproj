@@ -15,9 +15,6 @@
       <HintPath>..\..\..\bin\OpenMetaverseTypes.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="System.Drawing.Common">
-      <Private>False</Private>
-    </Reference>
     <Reference Include="System.Runtime.Remoting">
       <Private>False</Private>
     </Reference>
