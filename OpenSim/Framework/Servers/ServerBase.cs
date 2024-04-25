@@ -82,9 +82,7 @@ namespace OpenSim.Framework.Servers
         protected void CreatePIDFile(string path)
         {
             if (File.Exists(path))
-                m_log.ErrorFormat(
-                    "[SERVER BASE]: Previous pid file {0} still exists on startup.  Possibly previously unclean shutdown.",
-                    path);
+                m_log.Error($"[SERVER BASE]: Previous pid file {path} still exists on startup.  Possibly previously unclean shutdown.");
 
             try
             {
@@ -108,7 +106,7 @@ namespace OpenSim.Framework.Servers
 
         protected void RemovePIDFile()
         {
-            if (m_pidFile != String.Empty)
+            if (!string.IsNullOrEmpty(m_pidFile))
             {
                 try
                 {
@@ -116,7 +114,7 @@ namespace OpenSim.Framework.Servers
                 }
                 catch (Exception e)
                 {
-                    m_log.Error(string.Format("[SERVER BASE]: Error whilst removing {0} ", m_pidFile), e);
+                    m_log.Error($"[SERVER BASE]: Error whilst removing {m_pidFile}", e);
                 }
 
                 m_pidFile = String.Empty;
@@ -131,16 +129,15 @@ namespace OpenSim.Framework.Servers
         {
             // FIXME: This should be done down in ServerBase but we need to sort out and refactor the log4net
             // XmlConfigurator calls first accross servers.
-            m_log.InfoFormat("[SERVER BASE]: Starting in {0}", m_startupDirectory);
+            m_log.Info($"[SERVER BASE]: Starting in {m_startupDirectory}");
 
-            m_log.InfoFormat("[SERVER BASE]: OpenSimulator version: {0}", m_version);
+            m_log.Info($"[SERVER BASE]: OpenSimulator version: {m_version}");
 
             // clr version potentially is more confusing than helpful, since it doesn't tell us if we're running under Mono/MS .NET and
             // the clr version number doesn't match the project version number under Mono.
             //m_log.Info("[STARTUP]: Virtual machine runtime version: " + Environment.Version + Environment.NewLine);
-            m_log.InfoFormat(
-                "[SERVER BASE]: Operating system version: {0}, .NET platform {1}, {2}-bit",
-                Environment.OSVersion, Environment.OSVersion.Platform, Environment.Is64BitProcess ? "64" : "32");
+            m_log.Info(
+                $"[SERVER BASE]: Operating system version: {Environment.OSVersion}, .NET platform {Util.RuntimePlatformStr}, {(Environment.Is64BitProcess ? "64" : "32")}-bit");
         }
 
         public void RegisterCommonAppenders(IConfig startupConfig)
@@ -174,10 +171,10 @@ namespace OpenSim.Framework.Servers
                 m_consoleAppender.Console = (ConsoleBase)m_console;
 
                 // If there is no threshold set then the threshold is effectively everything.
-                if (null == m_consoleAppender.Threshold)
+                if (m_consoleAppender.Threshold is null)
                     m_consoleAppender.Threshold = Level.All;
 
-                Notice(String.Format("Console log level is {0}", m_consoleAppender.Threshold));
+                //Notice($"Console log level is {m_consoleAppender.Threshold}");
             }
 
             if (m_logFileAppender != null && startupConfig != null)
@@ -298,11 +295,11 @@ namespace OpenSim.Framework.Servers
                     + "  3 = full stack trace, including common threads\n",
                 HandleDebugThreadpoolLevel);
 
-//            m_console.Commands.AddCommand(
-//                "Debug", false, "show threadpool calls active",
-//                "show threadpool calls active",
-//                "Show details about threadpool calls that are still active (currently waiting or in progress)",
-//                HandleShowThreadpoolCallsActive);
+            //m_console.Commands.AddCommand(
+            //    "Debug", false, "show threadpool calls active",
+            //    "show threadpool calls active",
+            //    "Show details about threadpool calls that are still active (currently waiting or in progress)",
+            //       HandleShowThreadpoolCallsActive);
 
             m_console.Commands.AddCommand(
                 "Debug", false, "show threadpool calls complete",
@@ -334,7 +331,7 @@ namespace OpenSim.Framework.Servers
 
         public void RegisterCommonComponents(IConfigSource configSource)
         {
-//            IConfig networkConfig = configSource.Configs["Network"];
+            //IConfig networkConfig = configSource.Configs["Network"];
 
             m_serverStatsCollector = new ServerStatsCollector();
             m_serverStatsCollector.Initialise(configSource);
@@ -417,9 +414,7 @@ namespace OpenSim.Framework.Servers
                 return;
             }
 
-            int newThreads;
-
-            if (!ConsoleUtil.TryParseConsoleInt(m_console, args[5], out newThreads))
+            if (!ConsoleUtil.TryParseConsoleInt(m_console, args[5], out int newThreads))
                 return;
 
             string poolType = args[3];
@@ -469,10 +464,8 @@ namespace OpenSim.Framework.Servers
             }
             else
             {
-                int minWorkerThreads, maxWorkerThreads, minIocpThreads, maxIocpThreads;
-
-                ThreadPool.GetMinThreads(out minWorkerThreads, out minIocpThreads);
-                ThreadPool.GetMaxThreads(out maxWorkerThreads, out maxIocpThreads);
+                ThreadPool.GetMinThreads(out int minWorkerThreads, out int minIocpThreads);
+                ThreadPool.GetMaxThreads(out int maxWorkerThreads, out int maxIocpThreads);
 
                 Notice("Min worker threads now {0}", minWorkerThreads);
                 Notice("Min IOCP threads now {0}", minIocpThreads);
@@ -756,48 +749,50 @@ namespace OpenSim.Framework.Servers
         /// </summary>
         protected void EnhanceVersionInformation()
         {
+            const string manualVersionFileName = ".version";
             string buildVersion = string.Empty;
-
-            string manualVersionFileName = ".version";
-
-            string gitDir = "../.git/";
-            string gitRefPointerPath = gitDir + "HEAD";
 
             if (File.Exists(manualVersionFileName))
             {
                 using (StreamReader CommitFile = File.OpenText(manualVersionFileName))
                     buildVersion = CommitFile.ReadLine();
 
-                m_version += buildVersion ?? "";
+                if (!string.IsNullOrEmpty(buildVersion))
+                {
+                    m_version += buildVersion;
+                    return;
+                }
             }
-            else if (File.Exists(gitRefPointerPath))
+
+            string gitDir = Path.Combine("..", ".git");
+            string gitRefPointerPath = Path.Combine(gitDir, "HEAD");
+            if (File.Exists(gitRefPointerPath))
             {
-//                m_log.DebugFormat("[SERVER BASE]: Found {0}", gitRefPointerPath);
+                //m_log.DebugFormat("[SERVER BASE]: Found {0}", gitRefPointerPath);
 
                 string rawPointer = "";
 
                 using (StreamReader pointerFile = File.OpenText(gitRefPointerPath))
                     rawPointer = pointerFile.ReadLine();
 
-//                m_log.DebugFormat("[SERVER BASE]: rawPointer [{0}]", rawPointer);
+                //m_log.DebugFormat("[SERVER BASE]: rawPointer [{0}]", rawPointer);
 
                 Match m = Regex.Match(rawPointer, "^ref: (.+)$");
 
                 if (m.Success)
                 {
-//                    m_log.DebugFormat("[SERVER BASE]: Matched [{0}]", m.Groups[1].Value);
+                    //m_log.DebugFormat("[SERVER BASE]: Matched [{0}]", m.Groups[1].Value);
 
                     string gitRef = m.Groups[1].Value;
-                    string gitRefPath = gitDir + gitRef;
+                    string gitRefPath = Path.Combine(gitDir, gitRef);
                     if (File.Exists(gitRefPath))
                     {
-//                        m_log.DebugFormat("[SERVER BASE]: Found gitRefPath [{0}]", gitRefPath);
-
+                        //m_log.DebugFormat("[SERVER BASE]: Found gitRefPath [{0}]", gitRefPath);
                         using (StreamReader refFile = File.OpenText(gitRefPath))
-                        {
-                            string gitHash = refFile.ReadLine();
-                            m_version += gitHash.Substring(0, 7);
-                        }
+                            buildVersion = refFile.ReadLine();
+
+                        if (!string.IsNullOrEmpty(buildVersion))
+                            m_version += buildVersion[..7];
                     }
                 }
             }
@@ -805,8 +800,7 @@ namespace OpenSim.Framework.Servers
 
         public string GetVersionText()
         {
-            return String.Format("Version: {0} (SIMULATION/{1} - SIMULATION/{2})",
-                m_version, VersionInfo.SimulationServiceVersionSupportedMin, VersionInfo.SimulationServiceVersionSupportedMax);
+            return $"Version: {m_version} (SIM-{VersionInfo.SimulationServiceVersionSupportedMin}/{VersionInfo.SimulationServiceVersionSupportedMax})";
         }
 
         /// <summary>

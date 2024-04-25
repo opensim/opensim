@@ -64,43 +64,5 @@ namespace Amib.Threading
         {
         }
     }
-
-
-    /// <summary>
-    /// Represents an exception in case IWorkItemResult.GetResult has been canceled
-    /// </summary>
-    [Serializable]
-    public sealed partial class WorkItemCancelException
-    {
-        public WorkItemCancelException(SerializationInfo si, StreamingContext sc)
-            : base(si, sc)
-        {
-        }
-    }
-
-    /// <summary>
-    /// Represents an exception in case IWorkItemResult.GetResult has been timed out
-    /// </summary>
-    [Serializable]
-    public sealed partial class WorkItemTimeoutException
-    {
-        public WorkItemTimeoutException(SerializationInfo si, StreamingContext sc)
-            : base(si, sc)
-        {
-        }
-    }
-
-    /// <summary>
-    /// Represents an exception in case IWorkItemResult.GetResult has been timed out
-    /// </summary>
-    [Serializable]
-    public sealed partial class WorkItemResultException
-    {
-        public WorkItemResultException(SerializationInfo si, StreamingContext sc)
-            : base(si, sc)
-        {
-        }
-    }
-
     #endregion
 }

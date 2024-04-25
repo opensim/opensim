@@ -163,8 +163,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
             finally
             {
-                if(objectTokens != null)
-                    objectTokens.Close();
+                objectTokens?.Close();
             }
 
             // We enter all script event handler methods in the ScriptEventHandler table.

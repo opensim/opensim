@@ -233,16 +233,15 @@ namespace OpenSim.Services.HypergridService
             // First, let's double check that the reported friends are, indeed, friends of that user
             // And let's check that the secret matches
             List<string> usersToBeNotified = new List<string>();
+            string foreignUserIDToString = foreignUserID.ToString();
             foreach (string uui in friends)
             {
-                UUID localUserID;
-                string secret = string.Empty, tmp = string.Empty;
-                if (Util.ParseUniversalUserIdentifier(uui, out localUserID, out tmp, out tmp, out tmp, out secret))
+                if (Util.ParseUniversalUserIdentifier(uui, out UUID localUserID, out _, out _, out _, out string secret))
                 {
                     FriendInfo[] friendInfos = m_FriendsService.GetFriends(localUserID);
                     foreach (FriendInfo finfo in friendInfos)
                     {
-                        if (finfo.Friend.StartsWith(foreignUserID.ToString()) && finfo.Friend.EndsWith(secret))
+                        if (finfo.Friend.StartsWith(foreignUserIDToString) && finfo.Friend.EndsWith(secret))
                         {
                             // great!
                             usersToBeNotified.Add(localUserID.ToString());

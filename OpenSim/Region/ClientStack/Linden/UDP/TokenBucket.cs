@@ -111,7 +111,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             get
             {
-                return RequestedBurst * BurstModifier(); ;
+                return RequestedBurst * BurstModifier();
             }
         }
 

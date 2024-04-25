@@ -129,11 +129,10 @@ namespace OpenSim.Framework
 
         private static string Boundary()
         {
-            Random rnd = new Random();
             string formDataBoundary = String.Empty;
 
             while (formDataBoundary.Length < 15)
-                formDataBoundary = formDataBoundary + rnd.Next();
+                formDataBoundary = formDataBoundary + Random.Shared.Next();
 
             formDataBoundary = formDataBoundary.Substring(0, 15);
             formDataBoundary = "-----------------------------" + formDataBoundary;

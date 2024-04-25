@@ -42,6 +42,7 @@ using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using Mono.Addins;
+using System.Net.Http;
 
 /*****************************************************
  *
@@ -686,9 +687,11 @@ namespace OpenSim.Region.CoreModules.Scripting.XMLRPC
             ArrayList parameters = new ArrayList();
             parameters.Add(param);
             XmlRpcRequest req = new XmlRpcRequest(mName, parameters);
+            HttpClient hclient = null;
             try
             {
-                XmlRpcResponse resp = req.Send(DestURL, 30000);
+                hclient = WebUtil.GetNewGlobalHttpClient(-1);
+                XmlRpcResponse resp = req.Send(DestURL, hclient);
                 if (resp != null)
                 {
                     Hashtable respParms;
@@ -733,6 +736,7 @@ namespace OpenSim.Region.CoreModules.Scripting.XMLRPC
                 _finished = true;
                 httpThread = null;
                 Watchdog.RemoveThread();
+                hclient?.Dispose();
             }
         }
 

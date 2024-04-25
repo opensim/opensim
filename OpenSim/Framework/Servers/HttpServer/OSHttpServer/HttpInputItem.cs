@@ -18,9 +18,9 @@ namespace OSHttpServer
     public class HttpInputItem : IHttpInput
     {
         /// <summary> Representation of a non-initialized <see cref="HttpInputItem"/>.</summary>
-        public static readonly HttpInputItem Empty = new HttpInputItem(string.Empty, true);
+        public static readonly HttpInputItem Empty = new(string.Empty, true);
         private readonly IDictionary<string, HttpInputItem> _items = new Dictionary<string, HttpInputItem>();
-        private readonly List<string> _values = new List<string>();
+        private readonly List<string> _values = new();
         private string _name;
         private readonly bool _ignoreChanges;
         
@@ -71,8 +71,9 @@ namespace OSHttpServer
         /// <returns><see cref="HttpInputItem.Empty"/> if no item was found.</returns>
         public HttpInputItem this[string name]
         {
-            get {
-                return _items.ContainsKey(name) ? _items[name] : Empty;
+            get
+            {
+                return _items.TryGetValue(name, out HttpInputItem hii) ? hii : Empty;
             }
         }
 
@@ -109,7 +110,7 @@ namespace OSHttpServer
         {
             get
             {
-                return _values.Count == 0 ? null : _values[_values.Count - 1];
+                return _values.Count == 0 ? null : _values[^1];
             }
         }
 
@@ -129,7 +130,7 @@ namespace OSHttpServer
         /// <exception cref="InvalidOperationException">Cannot add stuff to <see cref="HttpInput.Empty"/>.</exception>
         public void Add(string value)
         {
-            if (value == null)
+            if (value is null)
                 return;
             if (_ignoreChanges)
                 throw new InvalidOperationException("Cannot add stuff to HttpInput.Empty.");
@@ -144,7 +145,7 @@ namespace OSHttpServer
         /// <returns>true if the sub-item exists and has a value; otherwise false.</returns>
         public bool Contains(string name)
         {
-            return _items.ContainsKey(name) && _items[name].Value != null;
+            return _items.TryGetValue(name, out HttpInputItem hii) && hii.Value != null;
         }
 
         /// <summary> Returns a formatted representation of the instance with the values of all contained parameters </summary>
@@ -185,7 +186,7 @@ namespace OSHttpServer
                 foreach (KeyValuePair<string, HttpInputItem> item in _items)
                     temp += item.Value.ToString(name, true) + '&';
 
-                return _items.Count > 0 ? temp.Substring(0, temp.Length - 1) : temp;
+                return _items.Count > 0 ? temp[..^1] : temp;
             }
             else
             {
@@ -216,7 +217,7 @@ namespace OSHttpServer
         {
             get 
             {
-                return _items.ContainsKey(name) ? _items[name] : Empty;
+                return _items.TryGetValue(name, out HttpInputItem hii) ? hii : Empty;
             }
         }
 
@@ -239,11 +240,15 @@ namespace OSHttpServer
             int pos = name.IndexOf('[');
             if (pos != -1)
             {
-                string name1 = name.Substring(0, pos);
+                string name1 = name[..pos];
                 string name2 = HttpInput.ExtractOne(name);
-                if (!_items.ContainsKey(name1))
-                    _items.Add(name1, new HttpInputItem(name1, null));
-                _items[name1].Add(name2, value);
+                if (!_items.TryGetValue(name1, out HttpInputItem it))
+                {
+                    it = new HttpInputItem(name1, null);
+                    _items.Add(name1, it);
+                }                  
+                it.Add(name2, value);
+
                 /*
                 HttpInputItem item = HttpInput.ParseItem(name, value);
 
@@ -256,8 +261,8 @@ namespace OSHttpServer
             }
             else
             {
-                if (_items.ContainsKey(name))
-                    _items[name].Add(value);
+                if (_items.TryGetValue(name, out HttpInputItem it2))
+                    it2.Add(value);
                 else
                     _items.Add(name, new HttpInputItem(name, value));
             }

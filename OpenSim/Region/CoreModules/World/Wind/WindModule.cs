@@ -48,7 +48,7 @@ namespace OpenSim.Region.CoreModules
         private uint m_frame = 0;
         private int m_dataVersion = 0;
         private int m_frameUpdateRate = 150;
-        //private Random m_rndnums = new Random(Environment.TickCount);
+
         private Scene m_scene = null;
         private bool m_ready = false;
         private bool m_inUpdate = false;
@@ -160,7 +160,7 @@ namespace OpenSim.Region.CoreModules
             // Generate initial wind values
             GenWind();
             // hopefully this will not be the same for all regions on same instance
-            m_dataVersion = m_scene.AllocateIntId();
+            m_dataVersion = 1;
             // Mark Module Ready for duty
             m_ready = true;
         }

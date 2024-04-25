@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Nini">
@@ -17,9 +17,6 @@
     </Reference>
     <Reference Include="OpenMetaverseTypes">
       <HintPath>..\..\..\bin\OpenMetaverseTypes.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Drawing.Common">
       <Private>False</Private>
     </Reference>
     <Reference Include="XMLRPC">

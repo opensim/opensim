@@ -83,11 +83,7 @@ namespace OpenSim.Data.Null
         public string LoadRegionEnvironmentSettings(UUID regionUUID)
         {
             lock (EnvironmentSettings)
-            {
-                if (EnvironmentSettings.ContainsKey(regionUUID))
-                    return EnvironmentSettings[regionUUID];
-            }
-            return string.Empty;
+                return EnvironmentSettings.TryGetValue(regionUUID, out string es) ? es : string.Empty;
         }
 
         public void StoreRegionEnvironmentSettings(UUID regionUUID, string settings)
@@ -102,8 +98,7 @@ namespace OpenSim.Data.Null
         {
             lock (EnvironmentSettings)
             {
-                if (EnvironmentSettings.ContainsKey(regionUUID))
-                    EnvironmentSettings.Remove(regionUUID);
+                EnvironmentSettings.Remove(regionUUID);
             }
         }
         #endregion
@@ -136,16 +131,12 @@ namespace OpenSim.Data.Null
         Dictionary<UUID, TerrainData> m_bakedterrains = new Dictionary<UUID, TerrainData>();
         public void StoreTerrain(TerrainData ter, UUID regionID)
         {
-            if (m_terrains.ContainsKey(regionID))
-                m_terrains.Remove(regionID);
-            m_terrains.Add(regionID, ter);
+            m_terrains[regionID] = ter;
         }
 
         public void StoreBakedTerrain(TerrainData ter, UUID regionID)
         {
-            if (m_bakedterrains.ContainsKey(regionID))
-                m_bakedterrains.Remove(regionID);
-            m_bakedterrains.Add(regionID, ter);
+            m_bakedterrains[regionID] = ter;
         }
 
         // Legacy. Just don't do this.
@@ -159,29 +150,17 @@ namespace OpenSim.Data.Null
         // Returns 'null' if region not found
         public double[,] LoadTerrain(UUID regionID)
         {
-            if (m_terrains.ContainsKey(regionID))
-            {
-                return m_terrains[regionID].GetDoubles();
-            }
-            return null;
+            return m_terrains.TryGetValue(regionID, out TerrainData terrData) ? terrData.GetDoubles() : null;
         }
 
         public TerrainData LoadTerrain(UUID regionID, int pSizeX, int pSizeY, int pSizeZ)
         {
-            if (m_terrains.ContainsKey(regionID))
-            {
-                return m_terrains[regionID];
-            }
-            return null;
+            return m_terrains.TryGetValue(regionID, out TerrainData terrData) ? terrData : null;
         }
 
         public TerrainData LoadBakedTerrain(UUID regionID, int pSizeX, int pSizeY, int pSizeZ)
         {
-            if (m_bakedterrains.ContainsKey(regionID))
-            {
-                return m_bakedterrains[regionID];
-            }
-            return null;
+            return m_bakedterrains.TryGetValue(regionID, out TerrainData terrData) ? terrData : null;
         }
 
         public void RemoveLandObject(UUID globalID)

@@ -46,14 +46,13 @@ namespace OpenSim.Data.Null
         {
             if (field == "PrincipalID")
             {
-                UUID id = UUID.Zero;
-                if (UUID.TryParse(val, out id))
-                    if (m_DataByUUID.ContainsKey(id))
-                        return new AvatarBaseData[] { m_DataByUUID[id] };
+                if (UUID.TryParse(val, out UUID id))
+                    if (m_DataByUUID.TryGetValue(id, out AvatarBaseData abd))
+                        return new AvatarBaseData[] { abd };
             }
 
             // Fail
-            return new AvatarBaseData[0];
+            return Array.Empty<AvatarBaseData>();
         }
 
         public bool Store(AvatarBaseData data)
@@ -64,12 +63,10 @@ namespace OpenSim.Data.Null
 
         public bool Delete(UUID principalID, string name)
         {
-            if (m_DataByUUID.ContainsKey(principalID) && m_DataByUUID[principalID].Data.ContainsKey(name))
+            if (m_DataByUUID.TryGetValue(principalID, out AvatarBaseData abd))
             {
-                    m_DataByUUID[principalID].Data.Remove(name);
-                    return true;
+                return abd.Data.Remove(name);
             }
-
             return false;
         }
 
@@ -77,15 +74,9 @@ namespace OpenSim.Data.Null
         {
             if (field == "PrincipalID")
             {
-                UUID id = UUID.Zero;
-                if (UUID.TryParse(val, out id))
-                    if (m_DataByUUID.ContainsKey(id))
-                    {
-                        m_DataByUUID.Remove(id);
-                        return true;
-                    }
+                if (UUID.TryParse(val, out UUID id))
+                    return m_DataByUUID.Remove(id);
             }
-
             return false;
         }
 

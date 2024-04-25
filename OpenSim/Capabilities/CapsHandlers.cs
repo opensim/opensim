@@ -30,6 +30,8 @@ using System.Collections.Generic;
 using System.Collections.Concurrent;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
+using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Framework.Capabilities
 {
@@ -40,12 +42,13 @@ namespace OpenSim.Framework.Capabilities
     /// </summary>
     public class CapsHandlers
     {
-        private Dictionary<string, IRequestHandler> m_capsHandlers = new Dictionary<string, IRequestHandler>();
-        private ConcurrentDictionary<string, ISimpleStreamHandler> m_capsSimpleHandlers = new ConcurrentDictionary<string, ISimpleStreamHandler>();
+        private readonly Dictionary<string, IRequestHandler> m_capsHandlers = new Dictionary<string, IRequestHandler>();
+        private readonly ConcurrentDictionary<string, ISimpleStreamHandler> m_capsSimpleHandlers = new ConcurrentDictionary<string, ISimpleStreamHandler>();
         private IHttpServer m_httpListener;
         private string m_httpListenerHostName;
         private uint m_httpListenerPort;
-        private bool m_useSSL = false;
+
+        public readonly string BaseURL;
 
         /// <summary></summary>
         /// CapsHandlers is a cap handler container but also takes
@@ -56,14 +59,14 @@ namespace OpenSim.Framework.Capabilities
         /// <param name="httpListenerHostname">host name of the HTTP server</param>
         /// <param name="httpListenerPort">HTTP port</param>
         public CapsHandlers(IHttpServer httpListener, string httpListenerHostname, uint httpListenerPort)
-           {
+        {
             m_httpListener = httpListener;
             m_httpListenerHostName = httpListenerHostname;
             m_httpListenerPort = httpListenerPort;
             if (httpListener != null && httpListener.UseSSL)
-                m_useSSL = true;
+                BaseURL = $"https://{m_httpListenerHostName}:{m_httpListenerPort}";
             else
-                m_useSSL = false;
+                BaseURL = $"http://{m_httpListenerHostName}:{m_httpListenerPort}";
         }
 
         /// <summary>
@@ -171,24 +174,21 @@ namespace OpenSim.Framework.Capabilities
         {
             Hashtable caps = new Hashtable();
 
-            string protocol = m_useSSL ? "https://" : "http://";
-            string baseUrl = protocol + m_httpListenerHostName + ":" + m_httpListenerPort.ToString();
-
             if (requestedCaps == null)
             {
                 lock (m_capsHandlers)
                 {
                     foreach (KeyValuePair<string, ISimpleStreamHandler> kvp in m_capsSimpleHandlers)
-                        caps[kvp.Key] = baseUrl + kvp.Value.Path;
+                        caps[kvp.Key] = BaseURL + kvp.Value.Path;
                     foreach (KeyValuePair<string, IRequestHandler> kvp in m_capsHandlers)
-                        caps[kvp.Key] = baseUrl + kvp.Value.Path;
+                        caps[kvp.Key] = BaseURL + kvp.Value.Path;
                 }
                 return caps;
             }
 
             lock (m_capsHandlers)
             {
-                for(int i = 0; i < requestedCaps.Count; ++i)
+                for (int i = 0; i < requestedCaps.Count; ++i)
                 {
                     string capsName = requestedCaps[i];
                     if (excludeSeed && "SEED" == capsName)
@@ -196,17 +196,47 @@ namespace OpenSim.Framework.Capabilities
 
                     if (m_capsSimpleHandlers.TryGetValue(capsName, out ISimpleStreamHandler shdr))
                     {
-                        caps[capsName] = baseUrl + shdr.Path;
+                        caps[capsName] = BaseURL + shdr.Path;
                         continue;
                     }
                     if (m_capsHandlers.TryGetValue(capsName, out IRequestHandler chdr))
                     {
-                        caps[capsName] = baseUrl + chdr.Path;
+                        caps[capsName] = BaseURL + chdr.Path;
                     }
                 }
             }
 
             return caps;
+        }
+
+        public Dictionary<string, string> GetCapsLocalPaths()
+        {
+            Dictionary<string, string> caps = new();
+            lock (m_capsHandlers)
+            {
+                foreach (KeyValuePair<string, ISimpleStreamHandler> kvp in m_capsSimpleHandlers)
+                    caps[kvp.Key] = kvp.Value.Path;
+                foreach (KeyValuePair<string, IRequestHandler> kvp in m_capsHandlers)
+                    caps[kvp.Key] = kvp.Value.Path;
+            }
+            return caps;
+        }
+
+        public void GetCapsDetailsLLSDxml(HashSet<string> requestedCaps, osUTF8 sb)
+        {
+            lock (m_capsHandlers)
+            {
+                if (requestedCaps is null)
+                    return;
+
+                foreach (string capsName in requestedCaps)
+                {
+                    if (m_capsSimpleHandlers.TryGetValue(capsName, out ISimpleStreamHandler shdr))
+                        LLSDxmlEncode2.AddElem(capsName, BaseURL + shdr.Path, sb);
+                    else if (m_capsHandlers.TryGetValue(capsName, out IRequestHandler chdr))
+                        LLSDxmlEncode2.AddElem(capsName, BaseURL + chdr.Path, sb);
+                }
+            }
         }
 
         /// <summary>

@@ -33,11 +33,11 @@ using System.Linq;
 using System.Reflection;
 using System.Security;
 using System.Timers;
-using System.Threading;
 using log4net;
 using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Framework.Monitoring;
 using OpenSim.Region.Framework.Interfaces;
@@ -45,7 +45,6 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 using RegionFlags = OpenMetaverse.RegionFlags;
 using Timer = System.Timers.Timer;
-
 
 namespace OpenSim.Region.CoreModules.World.Estate
 {
@@ -446,28 +445,16 @@ namespace OpenSim.Region.CoreModules.World.Estate
         private void EstateSetRegionInfoHandler(bool blockTerraform, bool noFly, bool allowDamage, bool blockLandResell, int maxAgents, float objectBonusFactor,
                                                 int matureLevel, bool restrictPushObject, bool allowParcelChanges)
         {
-            if (blockTerraform)
-                Scene.RegionInfo.RegionSettings.BlockTerraform = true;
-            else
-                Scene.RegionInfo.RegionSettings.BlockTerraform = false;
+            Scene.RegionInfo.RegionSettings.BlockTerraform = blockTerraform;
+            Scene.RegionInfo.RegionSettings.BlockFly = noFly;
+            Scene.RegionInfo.RegionSettings.AllowDamage = allowDamage;
+            Scene.RegionInfo.RegionSettings.AllowLandResell = !blockLandResell;
 
-            if (noFly)
-                Scene.RegionInfo.RegionSettings.BlockFly = true;
-            else
-                Scene.RegionInfo.RegionSettings.BlockFly = false;
+            Scene.RegionInfo.RegionSettings.RestrictPushing = restrictPushObject;
+            Scene.RegionInfo.RegionSettings.AllowLandJoinDivide = allowParcelChanges;
 
-            if (allowDamage)
-                Scene.RegionInfo.RegionSettings.AllowDamage = true;
-            else
-                Scene.RegionInfo.RegionSettings.AllowDamage = false;
-
-            if (blockLandResell)
-                Scene.RegionInfo.RegionSettings.AllowLandResell = false;
-            else
-                Scene.RegionInfo.RegionSettings.AllowLandResell = true;
-
-            if((byte)maxAgents <= Scene.RegionInfo.AgentCapacity)
-                Scene.RegionInfo.RegionSettings.AgentLimit = (byte) maxAgents;
+            if (maxAgents > 1 && maxAgents <= Scene.RegionInfo.AgentCapacity)
+                Scene.RegionInfo.RegionSettings.AgentLimit = maxAgents;
             else
                 Scene.RegionInfo.RegionSettings.AgentLimit = Scene.RegionInfo.AgentCapacity;
 
@@ -480,20 +467,74 @@ namespace OpenSim.Region.CoreModules.World.Estate
             else
                 Scene.RegionInfo.RegionSettings.Maturity = 2;
 
-            if (restrictPushObject)
-                Scene.RegionInfo.RegionSettings.RestrictPushing = true;
-            else
-                Scene.RegionInfo.RegionSettings.RestrictPushing = false;
+            Scene.RegionInfo.RegionSettings.Save();
+            TriggerRegionInfoChange();
 
-            if (allowParcelChanges)
-                Scene.RegionInfo.RegionSettings.AllowLandJoinDivide = true;
-            else
-                Scene.RegionInfo.RegionSettings.AllowLandJoinDivide = false;
+            SendRegionInfoPacketToAll();
+        }
+
+        public bool SetRegionInfobyCap(OSDMap map)
+        {
+            if(Scene.RegionInfo == null || Scene.RegionInfo.RegionSettings == null)
+                return false;
+
+            RegionSettings es = Scene.RegionInfo.RegionSettings;
+            OSD tmp;
+            //if (map.TryGetValue("", out tmp) && tmp)
+
+            if (map.TryGetValue("block_terraform", out tmp) && tmp is not null )
+                es.BlockTerraform = tmp.AsBoolean();
+
+            if (map.TryGetValue("block_fly", out tmp) && tmp is not null)
+                es.BlockFly = tmp.AsBoolean();
+
+            //if (map.TryGetValue("block_fly_over", out tmp) && tmp)
+            //    es.??? = tmp.AsBoolean());
+
+            if (map.TryGetValue("allow_damage", out tmp) && tmp is not null)
+                es.AllowDamage = tmp.AsBoolean();
+
+            if (map.TryGetValue("allow_land_resell", out tmp) && tmp is not null)
+                es.AllowLandResell = tmp.AsBoolean();
+
+            if (map.TryGetValue("agent_limit", out tmp) && tmp is not null)
+            {
+                int maxagents = tmp.AsInteger();
+                if (maxagents > 1 && maxagents <= Scene.RegionInfo.AgentCapacity)
+                    Scene.RegionInfo.RegionSettings.AgentLimit = maxagents;
+                else
+                    Scene.RegionInfo.RegionSettings.AgentLimit = Scene.RegionInfo.AgentCapacity;
+            }
+
+            if (map.TryGetValue("prim_bonus", out tmp) && tmp is not null)
+                es.ObjectBonus = tmp.AsInteger();
+
+            if (map.TryGetValue("sim_access", out tmp) && tmp is not null)
+            {
+                int matureLevel = tmp.AsInteger();
+                if (matureLevel <= 13)
+                    es.Maturity = 0;
+                else if (matureLevel <= 21)
+                    es.Maturity = 1;
+                else
+                    es.Maturity = 2;
+            }
+
+            if (map.TryGetValue("restrict_pushobject", out tmp) && tmp is not null)
+                es.RestrictPushing = tmp.AsBoolean();
+
+            if (map.TryGetValue("allow_parcel_changes", out tmp) && tmp is not null)
+                es.AllowLandJoinDivide = tmp.AsBoolean();
+
+            
+            if (map.TryGetValue("block_parcel_search", out tmp) && tmp is not null)
+                es.BlockShowInSearch = tmp.AsBoolean();
 
             Scene.RegionInfo.RegionSettings.Save();
             TriggerRegionInfoChange();
 
             SendRegionInfoPacketToAll();
+            return true;
         }
 
         public void SetEstateTerrainBaseTexture(IClientAPI remoteClient, int level, UUID texture)
@@ -826,7 +867,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
                         thisSettings.AddEstateUser(user);
                         thisSettings.RemoveBan(user);
-                        changed[thisEstateID] = thisSettings;;
+                        changed[thisEstateID] = thisSettings;
 
                         if(needReply)
                             sendAllowedOrBanList[remote_client] = invoice;
@@ -847,7 +888,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     }
 
                     thisSettings.RemoveEstateUser(user);
-                    changed[thisEstateID] = thisSettings;;
+                    changed[thisEstateID] = thisSettings;
 
                     if(needReply)
                         sendAllowedOrBanList[remote_client] = invoice;
@@ -1419,11 +1460,11 @@ namespace OpenSim.Region.CoreModules.World.Estate
             }
 
             if (reportType != 0)
-                remoteClient.SendLandStatReply(reportType, requestFlags, 0, new LandStatReportItem[0]); ;
+                remoteClient.SendLandStatReply(reportType, requestFlags, 0, new LandStatReportItem[0]);
 
             IScriptModule scriptModule = Scene.RequestModuleInterface<IScriptModule>();
             if (scriptModule == null)
-                remoteClient.SendLandStatReply(reportType, requestFlags, 0, new LandStatReportItem[0]); ;
+                remoteClient.SendLandStatReply(reportType, requestFlags, 0, new LandStatReportItem[0]);
 
             ICollection<ScriptTopStatsData>  sceneData = scriptModule.GetTopObjectStats(
                     0.001f, 1024, out float totaltime, out float totalmemory);
@@ -1781,7 +1822,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
         {
             client.OnDetailedEstateDataRequest += ClientSendDetailedEstateData;
             client.OnSetEstateFlagsRequest += EstateSetRegionInfoHandler;
-//            client.OnSetEstateTerrainBaseTexture += setEstateTerrainBaseTexture;
             client.OnSetEstateTerrainDetailTexture += SetEstateTerrainBaseTexture;
             client.OnSetEstateTerrainTextureHeights += SetEstateTerrainTextureHeights;
             client.OnCommitEstateTerrainTextureRequest += HandleCommitEstateTerrainTextureRequest;

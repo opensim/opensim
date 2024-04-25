@@ -3,7 +3,6 @@
  */
 
 using System;
-using System.Collections.Concurrent;
 using OpenSim.Framework;
 using OpenSim.Region.PhysicsModules.SharedBase;
 using log4net;
@@ -77,7 +76,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private ObjectJobEngine workQueue;
         private bool m_running;
 
-        private readonly object m_threadLock = new object();
+        private readonly object m_threadLock = new();
 
         public ODEMeshWorker(ODEScene pScene, ILog pLog, IMesher pMesher, IConfig pConfig)
         {
@@ -85,7 +84,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             m_log = pLog;
             m_mesher = pMesher;
 
-            if (pConfig != null)
+            if (pConfig is not null)
             {
                 meshSculptedPrim = pConfig.GetBoolean("mesh_sculpted_prim", meshSculptedPrim);
                 meshSculptLOD = pConfig.GetFloat("mesh_lod", meshSculptLOD);
@@ -96,8 +95,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             Util.FireAndForget(DoCacheExpire, null, "OdeCacheExpire", false);
             lock(m_threadLock)
             {
-                if(workQueue == null)
-                    workQueue = new ObjectJobEngine(DoWork, "OdeMeshWorker");
+                workQueue ??= new ObjectJobEngine(DoWork, "OdeMeshWorker");
             }
         }
 
@@ -113,8 +111,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         private void DoWork(object rep)
         {
-            ODEPhysRepData nextRep = rep as ODEPhysRepData;
-            if (m_running && nextRep != null && m_scene.haveActor(nextRep.actor))
+            if (m_running && rep is ODEPhysRepData nextRep && m_scene.haveActor(nextRep.actor))
             {
                 switch (nextRep.comand)
                 {
@@ -148,11 +145,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         public void ChangeActorPhysRep(PhysicsActor actor, PrimitiveBaseShape pbs,
                                         Vector3 size, byte shapetype)
         {
-            ODEPhysRepData repData = new ODEPhysRepData();
-            repData.actor = actor;
-            repData.pbs = pbs;
-            repData.size = size;
-            repData.shapetype = shapetype;
+            ODEPhysRepData repData = new()
+            {
+                actor = actor,
+                pbs = pbs,
+                size = size,
+                shapetype = shapetype
+            };
 
             CheckMesh(repData);
             CalcVolumeData(repData);
@@ -163,11 +162,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         public ODEPhysRepData NewActorPhysRep(PhysicsActor actor, PrimitiveBaseShape pbs,
                                         Vector3 size, byte shapetype)
         {
-            ODEPhysRepData repData = new ODEPhysRepData();
-            repData.actor = actor;
-            repData.pbs = pbs;
-            repData.size = size;
-            repData.shapetype = shapetype;
+            ODEPhysRepData repData = new()
+            {
+                actor = actor,
+                pbs = pbs,
+                size = size,
+                shapetype = shapetype
+            };
 
             CheckMesh(repData);
             CalcVolumeData(repData);
@@ -204,14 +205,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             IMesh mesh = repData.mesh;
 
-            if (mesh != null)
+            if (mesh is not null)
             {
-                IntPtr vertices, indices;
-                int vertexCount, indexCount;
-                int vertexStride, triStride;
-
-                mesh.getVertexListAsPtrToFloatArray(out vertices, out vertexStride, out vertexCount);
-                mesh.getIndexListAsPtrToIntArray(out indices, out triStride, out indexCount);
+                mesh.getVertexListAsPtrToFloatArray(out _, out _, out int vertexCount);
+                mesh.getIndexListAsPtrToIntArray(out _, out _, out int indexCount);
 
                 if (vertexCount == 0 || indexCount == 0)
                 {
@@ -245,7 +242,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 }
             }
             else
-                repData.pbs.SculptData = Utils.EmptyBytes;
+                repData.pbs.SculptData = Array.Empty<byte>();
         }
 
         public void DoRepDataGetMesh(ODEPhysRepData repData)
@@ -256,7 +253,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (repData.meshState != MeshState.loadingAsset)
                 return;
 
-            if (repData.assetID == null || repData.assetID.Value.IsZero())
+            if (repData.assetID is null || repData.assetID.Value.IsZero())
                 return;
 
             if (repData.assetID != repData.pbs.SculptTexture)
@@ -272,9 +269,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
 
             RequestAssetDelegate assetProvider = m_scene.RequestAssetMethod;
-            if (assetProvider == null)
+            if (assetProvider is null)
                 return;
-            ODEAssetRequest asr = new ODEAssetRequest(this, assetProvider, repData, m_log);
+            ODEAssetRequest asr = new(this, assetProvider, repData, m_log);
         }
 
 
@@ -426,17 +423,14 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 return;
             }
 
-            IMesh mesh = null;
-
             Vector3 size = repData.size;
-
             int clod = (int)LevelOfDetail.High;
             byte shapetype = repData.shapetype;
             bool convex = shapetype == 2;
 
-            mesh = m_mesher.GetMesh(actor.Name, pbs, size, clod, true, convex);
+            IMesh mesh = m_mesher.GetMesh(actor.Name, pbs, size, clod, true, convex);
 
-            if (mesh == null)
+            if (mesh is null)
             {
                 if (pbs.SculptEntry)
                 {
@@ -454,7 +448,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 {
                     repData.meshState = MeshState.needMesh;
                     mesh = m_mesher.CreateMesh(actor.Name, pbs, size, clod, true, convex, true);
-                    if (mesh == null)
+                    if (mesh is null)
                     {
                         repData.meshState = MeshState.MeshFailed;
                         return;
@@ -473,7 +467,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 repData.assetID = pbs.SculptTexture;
             }
 
-            pbs.SculptData = Utils.EmptyBytes;
+            pbs.SculptData = Array.Empty<byte>();
             return ;
         }
 
@@ -506,7 +500,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             repData.meshState = MeshState.noNeed;
 
-            IMesh mesh = null;
             Vector3 size = repData.size;
             byte shapetype = repData.shapetype;
 
@@ -521,9 +514,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     clod = (int)LevelOfDetail.Low;
             }
 
-            mesh = m_mesher.CreateMesh(actor.Name, pbs, size, clod, true, convex, true);
+            IMesh mesh = m_mesher.CreateMesh(actor.Name, pbs, size, clod, true, convex, true);
 
-            if (mesh == null)
+            if (mesh is null)
             {
                 if (pbs.SculptEntry)
                 {
@@ -532,7 +525,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                     repData.assetID = pbs.SculptTexture;
 
-                    if (pbs.SculptData == null || pbs.SculptData.Length == 0)
+                    if (pbs.SculptData is null || pbs.SculptData.Length == 0)
                     {
                         repData.meshState = MeshState.needAsset;
                         return;
@@ -543,7 +536,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             repData.mesh = mesh;
             repData.pbs.SculptData = Utils.EmptyBytes;
 
-            if (mesh == null)
+            if (mesh is null)
             {
                 if (pbs.SculptEntry)
                     repData.meshState = MeshState.AssetFailed;
@@ -558,7 +551,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             return;
         }
 
-        private void CalculateBasicPrimVolume(ODEPhysRepData repData)
+        private static void CalculateBasicPrimVolume(ODEPhysRepData repData)
         {
             Vector3 _size = repData.size;
 
@@ -572,7 +565,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             PrimitiveBaseShape _pbs = repData.pbs;
             float tmp;
 
-            float hollowAmount = (float)_pbs.ProfileHollow * 2.0e-5f;
+            float hollowAmount = ((float)_pbs.ProfileHollow) * 2.0e-5f;
             float hollowVolume = hollowAmount * hollowAmount;
 
             switch (_pbs.ProfileShape)
@@ -728,9 +721,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                                     hollowVolume *= 0.909f;
                                     break;
 
-                                //                                case HollowShape.Triangle:
-                                //                                    hollowVolume *= .827f;
-                                //                                    break;
+                                //case HollowShape.Triangle:
+                                //    hollowVolume *= .827f;
+                                //    break;
                                 default:
                                     hollowVolume = 0;
                                     break;
@@ -865,20 +858,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             repData.volume = volume;
         }
 
-        private void CalcVolumeData(ODEPhysRepData repData)
+        private static void CalcVolumeData(ODEPhysRepData repData)
         {
-            if (repData.hasOBB)
+            if (!repData.hasOBB)
             {
-                Vector3 OBB = repData.OBB;
-            }
-            else
-            {
-                Vector3 OBB = repData.size;
-                OBB.X *= 0.5f;
-                OBB.Y *= 0.5f;
-                OBB.Z *= 0.5f;
-
-                repData.OBB = OBB;
+                repData.OBB = repData.size * 0.5f;
                 repData.OBBOffset = Vector3.Zero;
             }
 
@@ -888,9 +872,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
     public class ODEAssetRequest
     {
-        ODEMeshWorker m_worker;
-        private ILog m_log;
-        ODEPhysRepData repData;
+        private readonly ODEMeshWorker m_worker;
+        private readonly ILog m_log;
+        private readonly ODEPhysRepData repData;
 
         public ODEAssetRequest(ODEMeshWorker pWorker, RequestAssetDelegate provider,
             ODEPhysRepData pRepData, ILog plog)
@@ -899,27 +883,16 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             m_log = plog;
             repData = pRepData;
 
-            repData.meshState = MeshState.AssetFailed;
-            if (provider == null)
-                return;
-
-            if (repData.assetID == null)
-                return;
-
-            UUID assetID = (UUID) repData.assetID;
-            if (assetID.IsZero())
-                return;
-
             repData.meshState = MeshState.loadingAsset;
-            provider(assetID, ODEassetReceived);
+            provider((UUID)repData.assetID, ODEassetReceived);
         }
 
         void ODEassetReceived(AssetBase asset)
         {
             repData.meshState = MeshState.AssetFailed;
-            if (asset != null)
+            if (asset is not null)
             {
-                if (asset.Data != null && asset.Data.Length > 0)
+                if (asset.Data is not null && asset.Data.Length > 0)
                 {
                     repData.meshState = MeshState.noNeed;
 
@@ -928,8 +901,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     if (repData.pbs.SculptTexture != repData.assetID)
                         return;
 
-//                    repData.pbs.SculptData = new byte[asset.Data.Length];
-//                    asset.Data.CopyTo(repData.pbs.SculptData,0);
+                    //repData.pbs.SculptData = new byte[asset.Data.Length];
+                    //asset.Data.CopyTo(repData.pbs.SculptData,0);
                     repData.pbs.SculptData = asset.Data;
                     repData.meshState = MeshState.AssetOK;
                     m_worker.AssetLoaded(repData);

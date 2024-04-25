@@ -281,9 +281,9 @@ namespace OpenSim.Data.MySQL
                         {
                             if(reader.Read ())
                             {
-                                ad.CreatorId = new UUID(reader.GetGuid("creatoruuid"));
-                                ad.ParcelId = new UUID(reader.GetGuid("parceluuid"));
-                                ad.SnapshotId = new UUID(reader.GetGuid("snapshotuuid"));
+                                ad.CreatorId = DBGuid.FromDB(reader["creatoruuid"]);
+                                ad.ParcelId = DBGuid.FromDB(reader["parceluuid"]);
+                                ad.SnapshotId = DBGuid.FromDB(reader["snapshotuuid"]);
                                 ad.CreationDate = Convert.ToInt32(reader["creationdate"]);
                                 ad.ExpirationDate = Convert.ToInt32(reader["expirationdate"]);
                                 ad.ParentEstate = Convert.ToInt32(reader["parentestate"]);
@@ -803,7 +803,7 @@ namespace OpenSim.Data.MySQL
                             {
                                 while (reader.Read())
                                 {
-                                    data.Add(new OSDString((string)reader["snapshotuuid"].ToString ()));
+                                    data.Add(new OSDString(reader["snapshotuuid"].ToString ()));
                                 }
                             }
                         }
@@ -822,7 +822,7 @@ namespace OpenSim.Data.MySQL
                             {
                                 while (reader.Read())
                                 {
-                                    data.Add(new OSDString((string)reader["snapshotuuid"].ToString ()));
+                                    data.Add(new OSDString(reader["snapshotuuid"].ToString ()));
                                 }
                             }
                         }
@@ -843,8 +843,8 @@ namespace OpenSim.Data.MySQL
                             {
                                 while (reader.Read())
                                 {
-                                    data.Add(new OSDString((string)reader["profileImage"].ToString ()));
-                                    data.Add(new OSDString((string)reader["profileFirstImage"].ToString ()));
+                                    data.Add(new OSDString(reader["profileImage"].ToString ()));
+                                    data.Add(new OSDString(reader["profileFirstImage"].ToString ()));
                                 }
                             }
                         }

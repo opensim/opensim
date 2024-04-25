@@ -229,7 +229,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private class PollServiceInventoryEventArgs : PollServiceEventArgs
         {
-            private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+            //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
             private Dictionary<UUID, Hashtable> responses = new Dictionary<UUID, Hashtable>();
             private HashSet<UUID> dropedResponses = new HashSet<UUID>();
@@ -241,13 +241,13 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 m_module = module;
 
-                HasEvents = (requestID, y) =>
+                HasEvents = delegate (UUID requestID, UUID _)
                 {
                     lock (responses)
                         return responses.ContainsKey(requestID);
                 };
 
-                Drop = (requestID, y) =>
+                Drop = delegate (UUID requestID, UUID _)
                 {
                     lock (responses)
                     {
@@ -257,7 +257,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     }
                 };
 
-                GetEvents = (requestID, y) =>
+                GetEvents = delegate (UUID requestID, UUID _)
                 {
                     lock (responses)
                     {
@@ -272,7 +272,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     }
                 };
 
-                Request = (requestID, request) =>
+                Request = delegate (UUID requestID, OSHttpRequest request)
                 {
                     APollRequest reqinfo = new APollRequest();
                     reqinfo.thepoll = this;
@@ -282,7 +282,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     return null;
                 };
 
-                NoEvents = (x, y) =>
+                NoEvents = delegate (UUID _, UUID _)
                 {
                     Hashtable response = new Hashtable();
                     response["int_response_code"] = 500;

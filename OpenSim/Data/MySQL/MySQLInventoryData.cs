@@ -697,7 +697,7 @@ namespace OpenSim.Data.MySQL
             try
             {
                 List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
-                Dictionary<UUID, List<InventoryFolderBase>> hashtable = new Dictionary<UUID, List<InventoryFolderBase>>(); ;
+                Dictionary<UUID, List<InventoryFolderBase>> hashtable = new Dictionary<UUID, List<InventoryFolderBase>>();
                 List<InventoryFolderBase> parentFolder = new List<InventoryFolderBase>();
                 bool buildResultsFromHashTable = false;
 

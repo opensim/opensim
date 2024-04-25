@@ -53,8 +53,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             get { return m_type; }
         }
 
-        private OdePrim rootPrim;
-        private ODEScene _pParentScene;
+        private readonly OdePrim rootPrim;
+        private readonly ODEScene _pParentScene;
 
         // Vehicle properties
         // WARNING this are working copies for internel use
@@ -77,27 +77,27 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         // Linear properties
         private Vector3 m_linearMotorDirection = Vector3.Zero;          // velocity requested by LSL, decayed by time
-        private Vector3 m_linearFrictionTimescale = new Vector3(1000, 1000, 1000);
-        private float m_linearMotorDecayTimescale = 120;
-        private float m_linearMotorTimescale = 1000;
+        private Vector3 m_linearFrictionTimescale = new(1000f, 1000f, 1000f);
+        private float m_linearMotorDecayTimescale = 120f;
+        private float m_linearMotorTimescale = 1000f;
         private Vector3 m_linearMotorOffset = Vector3.Zero;
 
         //Angular properties
         private Vector3 m_angularMotorDirection = Vector3.Zero;         // angular velocity requested by LSL motor
-        private float m_angularMotorTimescale = 1000;                      // motor angular velocity ramp up rate
-        private float m_angularMotorDecayTimescale = 120;                 // motor angular velocity decay rate
-        private Vector3 m_angularFrictionTimescale = new Vector3(1000, 1000, 1000);      // body angular velocity  decay rate
+        private float m_angularMotorTimescale = 1000f;                      // motor angular velocity ramp up rate
+        private float m_angularMotorDecayTimescale = 120f;                 // motor angular velocity decay rate
+        private Vector3 m_angularFrictionTimescale = new(1000f, 1000f, 1000f);      // body angular velocity  decay rate
 
         //Deflection properties
-        private float m_angularDeflectionEfficiency = 0;
-        private float m_angularDeflectionTimescale = 1000;
-        private float m_linearDeflectionEfficiency = 0;
-        private float m_linearDeflectionTimescale = 1000;
+        private float m_angularDeflectionEfficiency = 0f;
+        private float m_angularDeflectionTimescale = 1000f;
+        private float m_linearDeflectionEfficiency = 0f;
+        private float m_linearDeflectionTimescale = 1000f;
 
         //Banking properties
-        private float m_bankingEfficiency = 0;
-        private float m_bankingMix = 0;
-        private float m_bankingTimescale = 1000;
+        private float m_bankingEfficiency = 0f;
+        private float m_bankingMix = 0f;
+        private float m_bankingTimescale = 1000f;
 
         //Hover and Buoyancy properties
         private float m_VhoverHeight = 0f;
@@ -122,8 +122,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         private float m_ffactor = 1.0f;
 
-        private float m_timestep = 0.02f;
-        private float m_invtimestep = 50;
+        private readonly float m_timestep = 0.02f;
+        private readonly float m_invtimestep = 50;
 
 
         float m_ampwr;
@@ -668,29 +668,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public static Vector3 Xrot(Quaternion rot)
         {
-            Vector3 vec;
             rot.Normalize(); // just in case
-            vec.X = 2 * (rot.X * rot.X + rot.W * rot.W) - 1;
-            vec.Y = 2 * (rot.X * rot.Y + rot.Z * rot.W);
-            vec.Z = 2 * (rot.X * rot.Z - rot.Y * rot.W);
-            return vec;
+            return Vector3.UnitXRotated(rot);
         }
 
-        public static Vector3 Zrot(Quaternion rot)
-        {
-            Vector3 vec;
-            rot.Normalize(); // just in case
-            vec.X = 2 * (rot.X * rot.Z + rot.Y * rot.W);
-            vec.Y = 2 * (rot.Y * rot.Z - rot.X * rot.W);
-            vec.Z = 2 * (rot.Z * rot.Z + rot.W * rot.W) - 1;
-
-            return vec;
-        }
-
-        private const float pi = (float)Math.PI;
-        private const float halfpi = 0.5f * (float)Math.PI;
-        private const float twopi = 2.0f * pi;
-
+        private const float pi = MathF.PI;
+        private const float halfpi = 0.5f * MathF.PI;
+ 
         public static Vector3 ubRot2Euler(Quaternion rot)
         {
             // returns roll in X
@@ -707,28 +691,28 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                 vec.X = 0;
                 vec.Y = -halfpi;
-                vec.Z = (float)(-2d * Math.Atan(rot.X / rot.W));
+                vec.Z = -2f * MathF.Atan(rot.X / rot.W);
             }
             else if (zX > 0.49999f)
             {
                 vec.X = 0;
                 vec.Y = halfpi;
-                vec.Z = (float)(2d * Math.Atan(rot.X / rot.W));
+                vec.Z = 2f * MathF.Atan(rot.X / rot.W);
             }
             else
             {
-                vec.Y = (float)Math.Asin(2 * zX);
+                vec.Y = MathF.Asin(2 * zX);
 
                 float sqw = rot.W * rot.W;
 
                 float minuszY = rot.X * rot.W - rot.Y * rot.Z;
                 float zZ = rot.Z * rot.Z + sqw - 0.5f;
 
-                vec.X = (float)Math.Atan2(minuszY, zZ);
+                vec.X = MathF.Atan2(minuszY, zZ);
 
                 float yX = rot.Z * rot.W - rot.X * rot.Y; //( have negative ?)
                 float yY = rot.X * rot.X + sqw - 0.5f;
-                vec.Z = (float)Math.Atan2(yX, yY);
+                vec.Z = MathF.Atan2(yX, yY);
             }
             return vec;
         }
@@ -752,47 +736,35 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
             else
             {
-                pitch = (float)Math.Asin(2 * zX);
+                pitch = MathF.Asin(2 * zX);
 
                 float minuszY = rot.X * rot.W - rot.Y * rot.Z;
                 float zZ = rot.Z * rot.Z + rot.W * rot.W - 0.5f;
 
-                roll = (float)Math.Atan2(minuszY, zZ);
+                roll = MathF.Atan2(minuszY, zZ);
             }
-            return ;
         }
 
         internal void Step()
         {
             IntPtr Body = rootPrim.Body;
 
-            UBOdeNative.Mass dmass;
-            UBOdeNative.BodyGetMass(Body, out dmass);
+            UBOdeNative.BodyGetMass(Body, out UBOdeNative.Mass dmass);
 
-            UBOdeNative.Quaternion rot = UBOdeNative.BodyGetQuaternion(Body);
-            Quaternion objrotq = new Quaternion(rot.X, rot.Y, rot.Z, rot.W);    // rotq = rotation of object
+            Quaternion objrotq = UBOdeNative.BodyGetQuaternionOMV(Body);
             Quaternion rotq = objrotq;    // rotq = rotation of object
             rotq *= m_referenceFrame; // rotq is now rotation in vehicle reference frame
             Quaternion irotq = Quaternion.Inverse(rotq);
 
-            UBOdeNative.Vector3 dvtmp;
             Vector3 tmpV;
-            Vector3 curVel; // velocity in world
-            Vector3 curAngVel; // angular velocity in world
             Vector3 force = Vector3.Zero; // actually linear aceleration until mult by mass in world frame
             Vector3 torque = Vector3.Zero;// actually angular aceleration until mult by Inertia in vehicle frame
-            UBOdeNative.Vector3 dtorque = new UBOdeNative.Vector3();
+            UBOdeNative.Vector3 dtorque = new();
 
-            dvtmp = UBOdeNative.BodyGetLinearVel(Body);
-            curVel.X = dvtmp.X;
-            curVel.Y = dvtmp.Y;
-            curVel.Z = dvtmp.Z;
+            Vector3 curVel = UBOdeNative.BodyGetLinearVelOMV(Body);  // velocity in world
             Vector3 curLocalVel = curVel * irotq; // current velocity in  local
 
-            dvtmp = UBOdeNative.BodyGetAngularVel(Body);
-            curAngVel.X = dvtmp.X;
-            curAngVel.Y = dvtmp.Y;
-            curAngVel.Z = dvtmp.Z;
+            Vector3 curAngVel = UBOdeNative.BodyGetAngularVelOMV(Body); // angular velocity in world
             Vector3 curLocalAngVel = curAngVel * irotq; // current angular velocity in  local
 
             float ldampZ = 0;
@@ -855,7 +827,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             // hover
             if (m_VhoverTimescale < 300 && rootPrim.m_prim_geom != IntPtr.Zero)
             {
-                //                d.Vector3 pos = d.BodyGetPosition(Body);
                 UBOdeNative.Vector3 pos = UBOdeNative.GeomGetPosition(rootPrim.m_prim_geom);
                 pos.Z -= 0.21f; // minor offset that seems to be always there in sl
 
@@ -884,7 +855,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     }
                 }
                 else if (t > m_VhoverHeight)
-                        perr = t - pos.Z; ;
+                        perr = t - pos.Z;
 
                 if ((m_flags & VehicleFlag.HOVER_UP_ONLY) == 0 || perr > -0.1)
                 {
@@ -892,7 +863,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                     perr *= (1.0f + ldampZ) / m_VhoverTimescale;
 
-                    //                    force.Z += perr - curVel.Z * tmp;
+                    //force.Z += perr - curVel.Z * tmp;
                     force.Z += perr;
                     ldampZ *= -curVel.Z;
 
@@ -911,10 +882,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (m_linearDeflectionEfficiency > 0)
             {
                 float len = curVel.Length();
-                if (len > 0.01) // if moving
+                if (len > 0.01f) // if moving
                 {
-                    Vector3 atAxis;
-                    atAxis = Xrot(rotq); // where are we pointing to
+                    Vector3 atAxis = Xrot(rotq); // where are we pointing to
                     atAxis *= len; // make it same size as world velocity vector
 
                     tmpV = -atAxis; // oposite direction
@@ -924,7 +894,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     tmpV -= curVel; // error to oposite
                     float lens = tmpV.LengthSquared();
 
-                    if (len > 0.01 || lens > 0.01) // do nothing if close enougth
+                    if (len > 0.01f || lens > 0.01f) // do nothing if close enougth
                     {
                         if (len < lens)
                             tmpV = atAxis;
@@ -946,7 +916,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 tmpV.Z = -curLocalVel.Z / m_linearFrictionTimescale.Z;
                 tmpV *= rotq; // to world
 
-                if(ldampZ != 0 && Math.Abs(ldampZ) > Math.Abs(tmpV.Z))
+                if(ldampZ != 0 && MathF.Abs(ldampZ) > MathF.Abs(tmpV.Z))
                     tmpV.Z = ldampZ;
                 force.X += tmpV.X;
                 force.Y += tmpV.Y;
@@ -956,18 +926,14 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             // vertical atractor
             if (verticalAttractionTimescale < 300)
             {
-                float roll;
-                float pitch;
-
                 float ftmp = m_invtimestep / verticalAttractionTimescale / verticalAttractionTimescale;
+                float ftmp2 = 0.5f * m_verticalAttractionEfficiency * m_invtimestep;
 
-                float ftmp2;
-                ftmp2 = 0.5f * m_verticalAttractionEfficiency * m_invtimestep;
                 m_amdampX = ftmp2;
 
                 m_ampwr = 1.0f - 0.8f * m_verticalAttractionEfficiency;
 
-                GetRollPitch(irotq, out roll, out pitch);
+                GetRollPitch(irotq, out float roll, out float pitch);
 
                 if (roll > halfpi)
                     roll = pi - roll;
@@ -991,7 +957,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     torque.Y += effpitch * ftmp;
                 }
 
-                if (bankingEfficiency != 0 && Math.Abs(effroll) > 0.01)
+                if (bankingEfficiency != 0 && MathF.Abs(effroll) > 0.01f)
                 {
 
                     float broll = effroll;
@@ -1004,42 +970,42 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     broll *= m_bankingEfficiency;
                     if (m_bankingMix != 0)
                     {
-                        float vfact = Math.Abs(curLocalVel.X) / 10.0f;
+                        float vfact = MathF.Abs(curLocalVel.X) / 10.0f;
                         if (vfact > 1.0f) vfact = 1.0f;
 
                         if (curLocalVel.X >= 0)
-                            broll *= (1 + (vfact - 1) * m_bankingMix);
+                            broll *= (1f + (vfact - 1f) * m_bankingMix);
                         else
-                            broll *= -(1 + (vfact - 1) * m_bankingMix);
+                            broll *= -(1f + (vfact - 1f) * m_bankingMix);
                     }
                     // make z rot be in world Z not local as seems to be in sl
 
-                    broll = broll / m_bankingTimescale;
+                    broll /= m_bankingTimescale;
 
 
-                    tmpV = Zrot(irotq);
+                    tmpV = Vector3.UnitZRotated(irotq);
                     tmpV *= broll;
 
                     torque.X += tmpV.X;
                     torque.Y += tmpV.Y;
                     torque.Z += tmpV.Z;
 
-                    m_amdampZ = Math.Abs(m_bankingEfficiency) / m_bankingTimescale;
+                    m_amdampZ = MathF.Abs(m_bankingEfficiency) / m_bankingTimescale;
                     m_amdampY = m_amdampZ;
 
                 }
                 else
                 {
-                    m_amdampZ = 1 / m_angularFrictionTimescale.Z;
+                    m_amdampZ = 1f / m_angularFrictionTimescale.Z;
                     m_amdampY = m_amdampX;
                 }
             }
             else
             {
                 m_ampwr = 1.0f;
-                m_amdampX = 1 / m_angularFrictionTimescale.X;
-                m_amdampY = 1 / m_angularFrictionTimescale.Y;
-                m_amdampZ = 1 / m_angularFrictionTimescale.Z;
+                m_amdampX = 1f / m_angularFrictionTimescale.X;
+                m_amdampY = 1f / m_angularFrictionTimescale.Y;
+                m_amdampZ = 1f / m_angularFrictionTimescale.Z;
             }
 
             if(mousemode)
@@ -1053,12 +1019,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     float tmp;
 
                     // get out of x == 0 plane
-                    if(Math.Abs(dirv.X) < 0.001f)
+                    if(MathF.Abs(dirv.X) < 0.001f)
                         dirv.X = 0.001f;
 
-                    if (Math.Abs(dirv.Z) > 0.01)
+                    if (MathF.Abs(dirv.Z) > 0.01f)
                     {
-                        tmp = -(float)Math.Atan2(dirv.Z, dirv.X) * m_angularMotorDirection.Y;
+                        tmp = -MathF.Atan2(dirv.Z, dirv.X) * m_angularMotorDirection.Y;
                         if(tmp < -4f)
                             tmp = -4f;
                         else if(tmp > 4f)
@@ -1069,11 +1035,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     else
                         torque.Y -= curLocalAngVel.Y * m_invtimestep;
 
-                    if (Math.Abs(dirv.Y) > 0.01)
+                    if (MathF.Abs(dirv.Y) > 0.01f)
                     {
                         if(mousemodebank)
                         {
-                            tmp = -(float)Math.Atan2(dirv.Y, dirv.X) * m_angularMotorDirection.X;
+                            tmp = -MathF.Atan2(dirv.Y, dirv.X) * m_angularMotorDirection.X;
                             if(tmp < -4f)
                                 tmp = -4f;
                             else if(tmp > 4f)
@@ -1082,7 +1048,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         }
                         else
                         {
-                            tmp = (float)Math.Atan2(dirv.Y, dirv.X) * m_angularMotorDirection.Z;
+                            tmp = MathF.Atan2(dirv.Y, dirv.X) * m_angularMotorDirection.Z;
                             tmp *= invamts;
                             if(tmp < -4f)
                                 tmp = -4f;
@@ -1114,7 +1080,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             else
             {
                 // angular motor
-                if (m_amEfect > 0.01 && m_angularMotorTimescale < 1000)
+                if (m_amEfect > 0.01 && m_angularMotorTimescale < 1000f)
                 {
                     tmpV = m_angularMotorDirection - curLocalAngVel; // velocity error
                     tmpV *= m_amEfect / m_angularMotorTimescale; // error to correct in this timestep
@@ -1147,14 +1113,14 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                     float ftmp = m_angularDeflectionEfficiency / m_angularDeflectionTimescale;
 
-                    if (Math.Abs(dirv.Z) > 0.01)
+                    if (MathF.Abs(dirv.Z) > 0.01f)
                     {
-                        torque.Y += - (float)Math.Atan2(dirv.Z, dirv.X) * ftmp;
+                        torque.Y -= MathF.Atan2(dirv.Z, dirv.X) * ftmp;
                     }
 
-                    if (Math.Abs(dirv.Y) > 0.01)
+                    if (MathF.Abs(dirv.Y) > 0.01f)
                     {
-                        torque.Z += (float)Math.Atan2(dirv.Y, dirv.X) * ftmp;
+                        torque.Z += MathF.Atan2(dirv.Y, dirv.X) * ftmp;
                     }
                 }
 
@@ -1172,26 +1138,26 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             force += rootPrim.m_forceacc;
             rootPrim.m_forceacc = Vector3.Zero;
 
-            if (force.X != 0 || force.Y != 0 || force.Z != 0)
+            if (force.X != 0f || force.Y != 0f || force.Z != 0f)
             {
                 UBOdeNative.BodyAddForce(Body, force.X, force.Y, force.Z);
             }
 
-            if (torque.X != 0 || torque.Y != 0 || torque.Z != 0)
+            if (torque.X != 0f || torque.Y != 0f || torque.Z != 0f)
             {
                 torque *= m_referenceFrame; // to object frame
-                dtorque.X = torque.X ;
+                dtorque.X = torque.X;
                 dtorque.Y = torque.Y;
                 dtorque.Z = torque.Z;
 
-                UBOdeNative.MultiplyM3V3(out dvtmp, ref dmass.I, ref dtorque);
+                UBOdeNative.MultiplyM3V3(out UBOdeNative.Vector3 dvtmp, ref dmass.I, ref dtorque);
                 UBOdeNative.BodyAddRelTorque(Body, dvtmp.X, dvtmp.Y, dvtmp.Z); // add torque in object frame
             }
 
             torque = rootPrim.m_torque;
             torque += rootPrim.m_angularForceacc;
             rootPrim.m_angularForceacc = Vector3.Zero;
-            if (torque.X != 0 || torque.Y != 0 || torque.Z != 0)
+            if (torque.X != 0f || torque.Y != 0f || torque.Z != 0f)
                 UBOdeNative.BodyAddTorque(Body,torque.X, torque.Y, torque.Z);
         }
     }

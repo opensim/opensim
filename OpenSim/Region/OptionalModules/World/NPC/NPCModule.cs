@@ -190,7 +190,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             }
 
             agentID = npcAvatar.AgentId;
-            uint circuit = (uint)Util.RandomClass.Next(0, int.MaxValue);
+            uint circuit = (uint)Random.Shared.Next(0, int.MaxValue);
             npcAvatar.CircuitCode = circuit;
 
             //m_log.DebugFormat(

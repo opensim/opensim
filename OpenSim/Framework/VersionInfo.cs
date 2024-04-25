@@ -37,8 +37,8 @@ namespace OpenSim
 {
     public class VersionInfo
     {
-        public const string VersionNumber = "0.9.2.2";
-        public const string AssemblyVersionNumber = "0.9.2.2";
+        public const string VersionNumber = "0.9.3.0";
+        public const string AssemblyVersionNumber = "0.9.3.0";
         public const string Release = "8738";
 
         public static string Version
@@ -48,7 +48,7 @@ namespace OpenSim
 
         public static string GetVersionString(string versionNumber, string release)
         {
-            string versionString = "OpenSim-NGC Tranquillity " + versionNumber + "." + release;
+            string versionString = $"OpenSim-NGC Tranquillity {versionNumber}.{release}";
             return versionString.PadRight(VERSIONINFO_VERSION_LENGTH);
         }
 

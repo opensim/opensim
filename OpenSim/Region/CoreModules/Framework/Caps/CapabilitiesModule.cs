@@ -26,7 +26,6 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
@@ -48,19 +47,16 @@ namespace OpenSim.Region.CoreModules.Framework
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private string m_showCapsCommandFormat = "   {0,-38} {1,-60}\n";
+        private static readonly string m_showCapsCommandFormat = "   {0,-38} {1,-60}\n";
 
         protected Scene m_scene;
 
         /// <summary>
         /// Each agent has its own capabilities handler.
         /// </summary>
-        protected Dictionary<uint, Caps> m_capsObjects = new Dictionary<uint, Caps>();
-
-        protected Dictionary<UUID, string> m_capsPaths = new Dictionary<UUID, string>();
-
-        protected Dictionary<UUID, Dictionary<ulong, string>> m_childrenSeeds
-            = new Dictionary<UUID, Dictionary<ulong, string>>();
+        protected readonly Dictionary<uint, Caps> m_capsObjects = new();
+        protected readonly Dictionary<UUID, string> m_capsPaths = new();
+        protected readonly Dictionary<UUID, Dictionary<ulong, string>> m_childrenSeeds = new();
 
         public void Initialise(IConfigSource source)
         {
@@ -149,17 +145,14 @@ namespace OpenSim.Region.CoreModules.Framework
                 //    agentId, m_scene.RegionInfo.RegionName, capsObjectPath);
 
                 caps = new Caps(MainServer.Instance, m_scene.RegionInfo.ExternalHostName,
-                        (MainServer.Instance == null) ? 0: MainServer.Instance.Port,
+                        (MainServer.Instance is null) ? 0: MainServer.Instance.Port,
                         capsObjectPath, agentId, m_scene.RegionInfo.RegionName);
 
-                m_log.DebugFormat("[CreateCaps]: new caps agent {0}, circuit {1}, path {2}",agentId,
-                    circuitCode,caps.CapsObjectPath);
+                m_log.Debug($"[CreateCaps]: new caps agent {agentId}, circuit {circuitCode}, path {caps.CapsObjectPath}");
 
                 m_capsObjects[circuitCode] = caps;
             }
             m_scene.EventManager.TriggerOnRegisterCaps(agentId, caps);
-            //m_log.ErrorFormat("[CreateCaps]: end {0} ", Util.EnvironmentTickCountSubtract(ts));
-
         }
 
         public void RemoveCaps(UUID agentId, uint circuitCode)
@@ -182,7 +175,7 @@ namespace OpenSim.Region.CoreModules.Framework
                 {
                     foreach (KeyValuePair<uint, Caps> kvp in m_capsObjects)
                     {
-                        if (kvp.Value.AgentID == agentId)
+                        if (agentId.Equals(kvp.Value.AgentID))
                         {
                             m_scene.EventManager.TriggerOnDeregisterCaps(agentId, kvp.Value);
                             m_capsObjects.Remove(kvp.Key);
@@ -223,8 +216,7 @@ namespace OpenSim.Region.CoreModules.Framework
                 m_capsPaths[agent.AgentID] = agent.CapsPath;
 
             lock (m_childrenSeeds)
-                m_childrenSeeds[agent.AgentID]
-                    = ((agent.ChildrenCapSeeds == null) ? new Dictionary<ulong, string>() : agent.ChildrenCapSeeds);
+                m_childrenSeeds[agent.AgentID] = (agent.ChildrenCapSeeds ?? new Dictionary<ulong, string>());
         }
 
         public string GetCapsPath(UUID agentId)
@@ -287,8 +279,7 @@ namespace OpenSim.Region.CoreModules.Framework
             {
                 foreach (KeyValuePair<ulong, string> kvp in m_childrenSeeds[agentID])
                 {
-                    uint x, y;
-                    Util.RegionHandleToRegionLoc(kvp.Key, out x, out y);
+                    Util.RegionHandleToRegionLoc(kvp.Key, out uint x, out uint y);
                     m_log.Info(" >> "+x+", "+y+": "+kvp.Value);
                 }
             }
@@ -299,7 +290,7 @@ namespace OpenSim.Region.CoreModules.Framework
             if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_scene)
                 return;
 
-            StringBuilder capsReport = new StringBuilder();
+            StringBuilder capsReport = new();
             capsReport.AppendFormat("Region {0}:\n", m_scene.RegionInfo.RegionName);
 
             lock (m_capsObjects)
@@ -311,13 +302,12 @@ namespace OpenSim.Region.CoreModules.Framework
                     if(m_scene.TryGetScenePresence(caps.AgentID, out ScenePresence sp) && sp!=null)
                         name = sp.Name;
                     capsReport.AppendFormat("** Circuit {0}; {1} {2}:\n", kvp.Key, caps.AgentID,name);
+                    capsReport.AppendFormat("**    Base URL {0}\n", caps.CapsHandlers.BaseURL);
 
-                    for (IDictionaryEnumerator kvp2 = caps.CapsHandlers.GetCapsDetails(false, null).GetEnumerator(); kvp2.MoveNext(); )
-                    {
-                        Uri uri = new Uri(kvp2.Value.ToString());
-                        capsReport.AppendFormat(m_showCapsCommandFormat, kvp2.Key, uri.PathAndQuery);
-                    }
-
+                    Dictionary<string, string> capsPaths = caps.CapsHandlers.GetCapsLocalPaths();
+                    foreach(KeyValuePair<string, string> kvp2 in capsPaths)
+                         capsReport.AppendFormat(m_showCapsCommandFormat, kvp2.Key, kvp2.Value);
+ 
                     foreach (KeyValuePair<string, PollServiceEventArgs> kvp2 in caps.GetPollHandlers())
                         capsReport.AppendFormat(m_showCapsCommandFormat, kvp2.Key, kvp2.Value.Url);
 

@@ -44,8 +44,7 @@ namespace OpenSim.Data.MySQL
         private string m_connectionString;
 
         private FieldInfo[] m_Fields;
-        private Dictionary<string, FieldInfo> m_FieldMap =
-                new Dictionary<string, FieldInfo>();
+        private Dictionary<string, FieldInfo> m_FieldMap = new();
 
         protected virtual Assembly Assembly
         {
@@ -299,7 +298,7 @@ namespace OpenSim.Data.MySQL
                         while (r.Read())
                         {
                             EstateBan eb = new EstateBan();
-                            eb.BannedUserID = DBGuid.FromDB(r["bannedUUID"]); ;
+                            eb.BannedUserID = DBGuid.FromDB(r["bannedUUID"]);
                             eb.BannedHostAddress = "0.0.0.0";
                             eb.BannedHostIPMask = "0.0.0.0";
                             eb.BanningUserID = DBGuid.FromDB(r["banningUUID"]);

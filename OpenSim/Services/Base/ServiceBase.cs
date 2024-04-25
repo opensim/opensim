@@ -31,7 +31,6 @@ using System.Collections.Generic;
 using System.Reflection;
 using log4net;
 using Nini.Config;
-using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Services.Base
 {
@@ -73,27 +72,22 @@ namespace OpenSim.Services.Base
             {
                 Assembly pluginAssembly = Assembly.LoadFrom(dllName);
 
-//                m_log.DebugFormat("[SERVICE BASE]: Found assembly {0}", dllName);
+                //m_log.DebugFormat("[SERVICE BASE]: Found assembly {0}", dllName);
 
                 foreach (Type pluginType in pluginAssembly.GetTypes())
                 {
-//                    m_log.DebugFormat("[SERVICE BASE]: Found type {0}", pluginType);
+                    //m_log.DebugFormat("[SERVICE BASE]: Found type {0}", pluginType);
 
                     if (pluginType.IsPublic)
                     {
-                        if (className != String.Empty &&
-                                pluginType.ToString() !=
-                                pluginType.Namespace + "." + className)
+                        if (!string.IsNullOrEmpty(className) &&
+                                pluginType.ToString() != pluginType.Namespace + "." + className)
                             continue;
 
-                        Type typeInterface =
-                                pluginType.GetInterface(interfaceName);
-                        if (typeInterface != null)
+                        Type typeInterface = pluginType.GetInterface(interfaceName);
+                        if (typeInterface is not null)
                         {
-                            T plug = (T)Activator.CreateInstance(pluginType,
-                                    args);
-
-                            return plug;
+                            return (T)Activator.CreateInstance(pluginType, args);
                         }
                     }
                 }
@@ -106,10 +100,9 @@ namespace OpenSim.Services.Base
                 foreach (Object arg in args)
                     strArgs.Add(arg.ToString());
 
-                m_log.Error(
-                    string.Format(
+                m_log.ErrorFormat(
                         "[SERVICE BASE]: Failed to load plugin {0} from {1} with args {2}",
-                        interfaceName, dllName, string.Join(", ", strArgs.ToArray())), e);
+                        interfaceName, dllName, string.Join(", ", strArgs.ToArray()), e);
 
                 return null;
             }

@@ -26,7 +26,6 @@
  */
 
 using System;
-using System.Runtime.Remoting.Lifetime;
 using System.Threading;
 using System.Reflection;
 using System.Collections;
@@ -46,16 +45,14 @@ using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
 
 namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 {
-    public partial class ScriptBaseClass : MarshalByRefObject
+    public partial class ScriptBaseClass
     {
         public ILS_Api m_LS_Functions;
 
         public void ApiTypeLS(IScriptApi api)
         {
-            if (!(api is ILS_Api))
-                return;
-
-            m_LS_Functions = (ILS_Api)api;
+            if (api is ILS_Api p)
+                m_LS_Functions = p;
         }
 
         public LSL_List lsGetWindlightScene(LSL_List rules)

@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 
 namespace Amib.Threading.Internal
@@ -108,7 +106,7 @@ namespace Amib.Threading.Internal
             {
                 get
                 {
-                    return _workItem._state;
+                    return _workItem.m_state;
                 }
             }
 
@@ -127,7 +125,7 @@ namespace Amib.Threading.Internal
             /// </summary>
             public object Exception
             {
-                get { return _workItem._exception; }
+                get { return _workItem.m_exception; }
             }
 
             #endregion

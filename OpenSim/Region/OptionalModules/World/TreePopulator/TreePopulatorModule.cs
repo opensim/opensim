@@ -698,7 +698,7 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
                         SceneObjectPart s_tree = sog.RootPart;
                         if (s_tree.Scale.Z < maxscale)
                         {
-                            ratescale = (float)Util.RandomClass.NextDouble();
+                            ratescale = (float)Random.Shared.NextDouble();
                             if(ratescale < 0.2f)
                                 ratescale = 0.2f;
                             s_tree.Scale += copse.m_rate * ratescale;
@@ -727,7 +727,7 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
 
                 bool low = copse.m_trees.Count < (int)(copse.m_tree_quantity * 0.8f);
 
-                if (!low && Util.RandomClass.NextDouble() < 0.75)
+                if (!low && Random.Shared.NextDouble() < 0.75)
                     return;
 
                 int maxbirths =  (int)(copse.m_tree_quantity) - copse.m_trees.Count;
@@ -739,14 +739,14 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
 
                 float minscale = 0;
                 if(!low && m_allowGrow)
-                    minscale = copse.m_maximum_scale.Z * 0.75f;;
+                    minscale = copse.m_maximum_scale.Z * 0.75f;
 
                 int i = 0;
                 UUID[] current = copse.m_trees.ToArray();
                 while(--maxbirths > 0)
                 {
                     if(current.Length > 1)
-                        i = Util.RandomClass.Next(current.Length -1);
+                        i = Random.Shared.Next(current.Length -1);
 
                     UUID tree = current[i];
                     SceneObjectGroup sog = m_scene.GetSceneObjectGroup(tree);
@@ -772,7 +772,7 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
                 if (copse.m_frozen)
                     continue;
 
-                if (Util.RandomClass.NextDouble() < 0.25)
+                if (Random.Shared.NextDouble() < 0.25)
                     return;
 
                 int maxbdeaths = copse.m_trees.Count - (int)(copse.m_tree_quantity * .98f) ;
@@ -787,7 +787,7 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
                 {
                     int next = 0;
                     if (copse.m_trees.Count > 1)
-                        next = Util.RandomClass.Next(copse.m_trees.Count - 1);
+                        next = Random.Shared.Next(copse.m_trees.Count - 1);
                     UUID tree = copse.m_trees[next];
                     SceneObjectGroup sog = m_scene.GetSceneObjectGroup(tree);
                     if (sog != null && !sog.IsDeleted)
@@ -796,11 +796,11 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
                         {
                             odds = sog.RootPart.Scale.Z * scale;
                             odds = odds * odds * odds;
-                            odds *= (float)Util.RandomClass.NextDouble();
+                            odds *= (float)Random.Shared.NextDouble();
                         }
                         else
                         {
-                            odds = (float)Util.RandomClass.NextDouble();
+                            odds = (float)Random.Shared.NextDouble();
                             odds = odds * odds * odds;
                         }
 
@@ -824,15 +824,15 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
         private void SpawnChild(Copse copse, SceneObjectPart s_tree, bool low)
         {
             Vector3 position = new Vector3();
-           
+
             float randX = copse.m_maximum_scale.X * 1.25f;
             float randY = copse.m_maximum_scale.Y * 1.25f;
-            
-            float r = (float)Util.RandomClass.NextDouble();
+
+            float r = (float)Random.Shared.NextDouble();
             randX *=  2.0f * r - 1.0f;
             position.X = s_tree.AbsolutePosition.X + (float)randX;
-            
-            r = (float)Util.RandomClass.NextDouble();
+
+            r = (float)Random.Shared.NextDouble();
             randY *=  2.0f * r - 1.0f;
             position.Y = s_tree.AbsolutePosition.Y + (float)randY;
 
@@ -865,9 +865,9 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
                 try
                 {
                     float t;
-                    float r = (float)Util.RandomClass.NextDouble();
-                    r *= (float)Util.RandomClass.NextDouble();
-                    r *= (float)Util.RandomClass.NextDouble();
+                    float r = (float)Random.Shared.NextDouble();
+                    r *= (float)Random.Shared.NextDouble();
+                    r *= (float)Random.Shared.NextDouble();
 
                     t = copse.m_maximum_scale.X / copse.m_initial_scale.X;
                     if(t < 1.0)

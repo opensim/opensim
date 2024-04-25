@@ -433,7 +433,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PRIM_FULLBRIGHT = 20;
         public const int PRIM_FLEXIBLE = 21;
         public const int PRIM_TEXGEN = 22;
-        public const int PRIM_POINT_LIGHT = 23; // Huh?
+        public const int PRIM_POINT_LIGHT = 23;
         //ApiDesc not supported
         public const int PRIM_CAST_SHADOWS = 24; // Not implemented, here for completeness sake
         public const int PRIM_GLOW = 25;
@@ -457,6 +457,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PRIM_SIT_TARGET = 41;
         public const int PRIM_PROJECTOR = 42;
 
+        public const int PRIM_REFLECTION_PROBE = 44;
+
+        public const int PRIM_GLTF_NORMAL = 45;
+        public const int PRIM_GLTF_EMISSIVE = 46;
+        public const int PRIM_GLTF_METALLIC_ROUGHNESS = 47;
+        public const int PRIM_GLTF_BASE_COLOR = 48;
+        public const int PRIM_RENDER_MATERIAL = 49;
 
         // parameters
 
@@ -518,6 +525,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PRIM_SCULPT_TYPE_TORUS = 2;
         public const int PRIM_SCULPT_TYPE_PLANE = 3;
         public const int PRIM_SCULPT_TYPE_CYLINDER = 4;
+        public const int PRIM_SCULPT_TYPE_MESH = 5;
+        public const int PRIM_SCULPT_FLAG_ANIMESH = 0x20;
         public const int PRIM_SCULPT_FLAG_INVERT = 0x40;
         public const int PRIM_SCULPT_FLAG_MIRROR = 0x80;
         //ApiDesc Auxiliar to clear flags keeping scultp type
@@ -526,6 +535,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PRIM_PHYSICS_SHAPE_PRIM = 0;
         public const int PRIM_PHYSICS_SHAPE_NONE = 1;
         public const int PRIM_PHYSICS_SHAPE_CONVEX = 2;
+
+        // PRIM_REFLECTION_PROBE flags
+        public const int PRIM_REFLECTION_PROBE_BOX = 1; // 1
+        public const int PRIM_REFLECTION_PROBE_DYNAMIC = 2; // 2
 
         public const int PROFILE_NONE = 0;
         public const int PROFILE_SCRIPT_MEMORY = 1;
@@ -742,12 +755,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PARCEL_DETAILS_AREA = 4;
         public const int PARCEL_DETAILS_ID = 5;
         public const int PARCEL_DETAILS_SEE_AVATARS = 6;
-        public const int PARCEL_DETAILS_ANY_AVATAR_SOUNDS = 7;
-        public const int PARCEL_DETAILS_GROUP_SOUNDS = 8;
+        public const int PARCEL_DETAILS_PRIM_CAPACITY = 7;
+        public const int PARCEL_DETAILS_PRIM_USED = 8;
+        public const int PARCEL_DETAILS_LANDING_POINT = 9;
+        public const int PARCEL_DETAILS_LANDING_LOOKAT = 10;
+        public const int PARCEL_DETAILS_TP_ROUTING = 11;
+        public const int PARCEL_DETAILS_FLAGS = 12;
+        public const int PARCEL_DETAILS_SCRIPT_DANGER = 13;
+
         // constants for llGetParcelDetails os specific
         public const int PARCEL_DETAILS_DWELL = 64;
+        public const int PARCEL_DETAILS_GETCLAIMDATE = 65;
+        public const int PARCEL_DETAILS_GEOMETRICCENTER = 66;
 
         //osSetParcelDetails
+        public const int PARCEL_DETAILS_ANY_AVATAR_SOUNDS = 7;
+        public const int PARCEL_DETAILS_GROUP_SOUNDS = 8;
         public const int PARCEL_DETAILS_CLAIMDATE = 10;
 
         // constants for llSetClickAction
@@ -760,6 +783,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int CLICK_ACTION_PLAY = 5;
         public const int CLICK_ACTION_OPEN_MEDIA = 6;
         public const int CLICK_ACTION_ZOOM = 7;
+        public const int CLICK_ACTION_DISABLED = 8;
 
         // constants for the llDetectedTouch* functions
         public const int TOUCH_INVALID_FACE = -1;
@@ -1013,5 +1037,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int LINKSETDATA_EPROTECTED = 3;
         public const int LINKSETDATA_NOTFOUND = 4;
         public const int LINKSETDATA_NOUPDATE = 5;
+
+        //llLinkPlaySound flags
+        public const int SOUND_PLAY = 0;
+        public const int SOUND_LOOP = 1;
+        public const int SOUND_TRIGGER = 2;
+        public const int SOUND_SYNC = 4;
     }
 }

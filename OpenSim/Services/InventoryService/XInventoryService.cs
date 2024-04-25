@@ -40,9 +40,7 @@ namespace OpenSim.Services.InventoryService
 {
     public class XInventoryService : ServiceBase, IInventoryService
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected IXInventoryData m_Database;
         protected bool m_AllowDelete = true;
@@ -161,14 +159,15 @@ namespace OpenSim.Services.InventoryService
 
         protected XInventoryFolder CreateFolder(UUID principalID, UUID parentID, int type, string name)
         {
-            XInventoryFolder newFolder = new XInventoryFolder();
-
-            newFolder.folderName = name;
-            newFolder.type = type;
-            newFolder.version = 1;
-            newFolder.folderID = UUID.Random();
-            newFolder.agentID = principalID;
-            newFolder.parentFolderID = parentID;
+            var newFolder = new XInventoryFolder
+            {
+                folderName = name,
+                type = type,
+                version = 1,
+                folderID = UUID.Random(),
+                agentID = principalID,
+                parentFolderID = parentID
+            };
 
             m_Database.StoreFolder(newFolder);
 
@@ -207,7 +206,7 @@ namespace OpenSim.Services.InventoryService
             if (allFolders.Length == 0)
                 return null;
 
-            List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
+            List<InventoryFolderBase> folders = new();
 
             foreach (XInventoryFolder x in allFolders)
             {
@@ -237,8 +236,7 @@ namespace OpenSim.Services.InventoryService
                 }
             }
 
-            if (root == null) // oops
-                root = folders[0];
+            root ??= folders[0]; //oops
 
             return ConvertToOpenSim(root);
         }
@@ -292,14 +290,12 @@ namespace OpenSim.Services.InventoryService
             // by ID.
             //
             //m_log.DebugFormat("[XINVENTORY SERVICE]: Fetch contents for folder {0}", folderID.ToString());
-            InventoryCollection inventory = new InventoryCollection();
-            inventory.OwnerID = principalID;
-            inventory.Folders = new List<InventoryFolderBase>();
-            inventory.Items = new List<InventoryItemBase>();
-
-            InventoryFolderBase f = GetFolder(principalID, folderID);
-            if (f == null)
-                return inventory;
+            InventoryCollection inventory = new()
+            {
+                OwnerID = principalID,
+                Folders = new List<InventoryFolderBase>(),
+                Items = new List<InventoryItemBase>()
+            };
 
             XInventoryFolder[] folders = m_Database.GetFolders(
                     new string[] { "parentFolderID"},
@@ -321,8 +317,12 @@ namespace OpenSim.Services.InventoryService
                 inventory.Items.Add(ConvertToOpenSim(i));
             }
 
-            inventory.Version = f.Version;
-            inventory.OwnerID = f.Owner;
+            InventoryFolderBase f = GetFolder(principalID, folderID);
+            if (f != null)
+            {
+                inventory.Version = f.Version;
+                inventory.OwnerID = f.Owner;
+            }
             inventory.FolderID = folderID;
 
             return inventory;
@@ -344,7 +344,7 @@ namespace OpenSim.Services.InventoryService
 
             // Since we probably don't get a valid principal here, either ...
             //
-            List<InventoryItemBase> invItems = new List<InventoryItemBase>();
+            List<InventoryItemBase> invItems = new();
 
             XInventoryItem[] items = m_Database.GetItems(
                     new string[] { "parentFolderID" },
@@ -460,8 +460,7 @@ namespace OpenSim.Services.InventoryService
                 if (onlyIfTrash && !ParentIsTrashOrLost(id))
                     continue;
                 //m_log.InfoFormat("[XINVENTORY SERVICE]: Delete folder {0}", id);
-                InventoryFolderBase f = new InventoryFolderBase();
-                f.ID = id;
+                InventoryFolderBase f = new() { ID = id };
                 PurgeFolder(f, onlyIfTrash);
                 m_Database.DeleteFolders("folderID", id.ToString());
             }
@@ -562,20 +561,12 @@ namespace OpenSim.Services.InventoryService
         {
             // Principal is b0rked. *sigh*
             //
-            int len = items.Count;
-            if(len == 0)
-                return false;
-            string[] ids = new string[len];
-            string[] folders = new string[len];
-            int i=0;
-            foreach (InventoryItemBase it in items)
+            foreach (InventoryItemBase i in items)
             {
-                ids[i] = it.ID.ToString();
-                folders[i++] = it.Folder.ToString();
-
+                m_Database.MoveItem(i.ID.ToString(), i.Folder.ToString());
             }
 
-            return m_Database.MoveItems(ids, folders);
+            return true;
         }
 
         public virtual bool DeleteItems(UUID principalID, List<UUID> itemIDs)
@@ -602,39 +593,18 @@ namespace OpenSim.Services.InventoryService
             {
                 // Just use the ID... *facepalms*
                 //
-                if(principalID.IsZero())
-                {
-                    foreach (UUID id in itemIDs)
-                        m_Database.DeleteItems("inventoryID", id.ToString());
-                }
-                else
-                {
-                    string u = principalID.ToString();
-                    string[] fields = new string[] { "avatarID", "inventoryID" };
-                    foreach (UUID id in itemIDs)
-                        m_Database.DeleteItems(
-                            fields,
-                            new string[] { u, id.ToString()});
-                }
+                foreach (UUID id in itemIDs)
+                    m_Database.DeleteItems("inventoryID", id.ToString());
             }
+
             return true;
         }
 
         public virtual InventoryItemBase GetItem(UUID principalID, UUID itemID)
         {
-            XInventoryItem[] items;
-            if (principalID.IsZero())
-            {
-                items = m_Database.GetItems(
+            XInventoryItem[] items = m_Database.GetItems(
                     new string[] { "inventoryID" },
                     new string[] { itemID.ToString() });
-            }
-            else
-            {
-                items = m_Database.GetItems(
-                    new string[] { "avatarID", "inventoryID" },
-                    new string[] { principalID.ToString(), itemID.ToString() });
-            }
 
             if (items.Length == 0)
                 return null;
@@ -644,63 +614,19 @@ namespace OpenSim.Services.InventoryService
 
         public virtual InventoryItemBase[] GetMultipleItems(UUID userID, UUID[] ids)
         {
-            int len = ids.Length;
-            if(len == 0)
-                return new InventoryItemBase[0];
+            InventoryItemBase[] items = new InventoryItemBase[ids.Length];
+            int i = 0;
+            foreach (UUID id in ids)
+                items[i++] = GetItem(userID, id);
 
-            string[] sids = new string[len];
-
-            int i;
-            for(i = 0; i< len; ++i)
-                sids[i] = ids[i].ToString();
-
-            XInventoryItem[] xits = m_Database.GetItems("inventoryID", sids);
-            sids = null;
-
-            len = xits.Length;
-            InventoryItemBase[] items = new InventoryItemBase[len];
-            i = 0;
-
-            if(userID.IsZero())
-            {
-                for (i = 0; i < len; ++i)
-                {
-                    if (xits[i] == null)
-                        items[i] = null;
-                    else
-                        items[i] = ConvertToOpenSim(xits[i]);
-                }
-            }
-            else
-            {
-                for (i = 0; i < len; ++i)
-                {
-                    if (xits[i] == null)
-                        items[i] = null;
-                    else if (xits[i].avatarID.Equals(userID))
-                        items[i] = ConvertToOpenSim(xits[i]);
-                    else
-                        items[i] = null;
-                }
-            }
             return items;
         }
 
         public virtual InventoryFolderBase GetFolder(UUID principalID, UUID folderID)
         {
-            XInventoryFolder[] folders;
-            if(principalID.IsZero())
-            {
-                folders = m_Database.GetFolders(
-                    new string[] { "folderID" },
+            XInventoryFolder[] folders = m_Database.GetFolders(
+                    new string[] { "folderID"},
                     new string[] { folderID.ToString() });
-            }
-            else
-            {
-                folders = m_Database.GetFolders(
-                    new string[] { "agentID", "folderID" },
-                    new string[] { principalID.ToString(), folderID.ToString() });
-            }
 
             if (folders.Length == 0)
                 return null;
@@ -715,7 +641,7 @@ namespace OpenSim.Services.InventoryService
             if (items.Length == 0)
                 return new List<InventoryItemBase>();
 
-            List<InventoryItemBase> ret = new List<InventoryItemBase>();
+            List<InventoryItemBase> ret = new();
 
             foreach (XInventoryItem x in items)
                 ret.Add(ConvertToOpenSim(x));
@@ -737,97 +663,84 @@ namespace OpenSim.Services.InventoryService
 
         // CM Helpers
         //
-        protected InventoryFolderBase ConvertToOpenSim(XInventoryFolder folder)
+        protected static InventoryFolderBase ConvertToOpenSim(XInventoryFolder folder)
         {
-            InventoryFolderBase newFolder = new InventoryFolderBase();
-
-            newFolder.ParentID = folder.parentFolderID;
-            newFolder.Type = (short)folder.type;
-            //// Viewer can't understand anything that's not in it's LLFolderType enum
-            //if (newFolder.Type == InventoryItemBase.SUITCASE_FOLDER_TYPE)
-            //    newFolder.Type = InventoryItemBase.SUITCASE_FOLDER_FAKE_TYPE;
-            newFolder.Version = (ushort)folder.version;
-            newFolder.Name = folder.folderName;
-            newFolder.Owner = folder.agentID;
-            newFolder.ID = folder.folderID;
-
-            return newFolder;
+            return new InventoryFolderBase
+            {
+                ParentID = folder.parentFolderID,
+                Type = (short)folder.type,
+                Version = (ushort)folder.version,
+                Name = folder.folderName,
+                Owner = folder.agentID,
+                ID = folder.folderID
+            };
         }
 
-        protected XInventoryFolder ConvertFromOpenSim(InventoryFolderBase folder)
+        protected static XInventoryFolder ConvertFromOpenSim(InventoryFolderBase folder)
         {
-            XInventoryFolder newFolder = new XInventoryFolder();
-
-            newFolder.parentFolderID = folder.ParentID;
-            newFolder.type = (int)folder.Type;
-            newFolder.version = (int)folder.Version;
-            newFolder.folderName = folder.Name;
-            newFolder.agentID = folder.Owner;
-            newFolder.folderID = folder.ID;
-
-            return newFolder;
+            return new XInventoryFolder
+            {
+                parentFolderID = folder.ParentID,
+                type = (int)folder.Type,
+                version = (int)folder.Version,
+                folderName = folder.Name,
+                agentID = folder.Owner,
+                folderID = folder.ID
+            };
         }
 
-        protected InventoryItemBase ConvertToOpenSim(XInventoryItem item)
+        protected static InventoryItemBase ConvertToOpenSim(XInventoryItem item)
         {
-            InventoryItemBase newItem = new InventoryItemBase();
-
-            newItem.AssetID = item.assetID;
-            newItem.AssetType = item.assetType;
-            newItem.Name = item.inventoryName;
-            newItem.Owner = item.avatarID;
-            newItem.ID = item.inventoryID;
-            newItem.InvType = item.invType;
-            newItem.Folder = item.parentFolderID;
-            newItem.CreatorIdentification = item.creatorID;
-            newItem.Description = item.inventoryDescription;
-            newItem.NextPermissions = (uint)item.inventoryNextPermissions;
-            newItem.CurrentPermissions = (uint)item.inventoryCurrentPermissions;
-            newItem.BasePermissions = (uint)item.inventoryBasePermissions;
-            newItem.EveryOnePermissions = (uint)item.inventoryEveryOnePermissions;
-            newItem.GroupPermissions = (uint)item.inventoryGroupPermissions;
-            newItem.GroupID = item.groupID;
-            if (item.groupOwned == 0)
-                newItem.GroupOwned = false;
-            else
-                newItem.GroupOwned = true;
-            newItem.SalePrice = item.salePrice;
-            newItem.SaleType = (byte)item.saleType;
-            newItem.Flags = (uint)item.flags;
-            newItem.CreationDate = item.creationDate;
-
-            return newItem;
+            return new InventoryItemBase
+            {
+                AssetID = item.assetID,
+                AssetType = item.assetType,
+                Name = item.inventoryName,
+                Owner = item.avatarID,
+                ID = item.inventoryID,
+                InvType = item.invType,
+                Folder = item.parentFolderID,
+                CreatorIdentification = item.creatorID,
+                Description = item.inventoryDescription,
+                NextPermissions = (uint)item.inventoryNextPermissions,
+                CurrentPermissions = (uint)item.inventoryCurrentPermissions,
+                BasePermissions = (uint)item.inventoryBasePermissions,
+                EveryOnePermissions = (uint)item.inventoryEveryOnePermissions,
+                GroupPermissions = (uint)item.inventoryGroupPermissions,
+                GroupID = item.groupID,
+                GroupOwned = item.groupOwned != 0,
+                SalePrice = item.salePrice,
+                SaleType = (byte)item.saleType,
+                Flags = (uint)item.flags,
+                CreationDate = item.creationDate
+            };
         }
 
-        protected XInventoryItem ConvertFromOpenSim(InventoryItemBase item)
+        protected static XInventoryItem ConvertFromOpenSim(InventoryItemBase item)
         {
-            XInventoryItem newItem = new XInventoryItem();
-
-            newItem.assetID = item.AssetID;
-            newItem.assetType = item.AssetType;
-            newItem.inventoryName = item.Name;
-            newItem.avatarID = item.Owner;
-            newItem.inventoryID = item.ID;
-            newItem.invType = item.InvType;
-            newItem.parentFolderID = item.Folder;
-            newItem.creatorID = item.CreatorIdentification;
-            newItem.inventoryDescription = item.Description;
-            newItem.inventoryNextPermissions = (int)item.NextPermissions;
-            newItem.inventoryCurrentPermissions = (int)item.CurrentPermissions;
-            newItem.inventoryBasePermissions = (int)item.BasePermissions;
-            newItem.inventoryEveryOnePermissions = (int)item.EveryOnePermissions;
-            newItem.inventoryGroupPermissions = (int)item.GroupPermissions;
-            newItem.groupID = item.GroupID;
-            if (item.GroupOwned)
-                newItem.groupOwned = 1;
-            else
-                newItem.groupOwned = 0;
-            newItem.salePrice = item.SalePrice;
-            newItem.saleType = (int)item.SaleType;
-            newItem.flags = (int)item.Flags;
-            newItem.creationDate = item.CreationDate;
-
-            return newItem;
+            return new XInventoryItem
+            {
+                assetID = item.AssetID,
+                assetType = item.AssetType,
+                inventoryName = item.Name,
+                avatarID = item.Owner,
+                inventoryID = item.ID,
+                invType = item.InvType,
+                parentFolderID = item.Folder,
+                creatorID = item.CreatorIdentification,
+                inventoryDescription = item.Description,
+                inventoryNextPermissions = (int)item.NextPermissions,
+                inventoryCurrentPermissions = (int)item.CurrentPermissions,
+                inventoryBasePermissions = (int)item.BasePermissions,
+                inventoryEveryOnePermissions = (int)item.EveryOnePermissions,
+                inventoryGroupPermissions = (int)item.GroupPermissions,
+                groupID = item.GroupID,
+                groupOwned = item.GroupOwned ? 1 : 0,
+                salePrice = item.SalePrice,
+                saleType = (int)item.SaleType,
+                flags = (int)item.Flags,
+                creationDate = item.CreationDate
+            };
         }
 
         private bool ParentIsTrash(UUID folderID)
@@ -868,7 +781,7 @@ namespace OpenSim.Services.InventoryService
 
             UUID parentFolder = folder[0].parentFolderID;
 
-            while (!parentFolder.IsZero())
+            while (parentFolder.IsNotZero())
             {
                 XInventoryFolder[] parent = m_Database.GetFolders(new string[] { "folderID" }, new string[] { parentFolder.ToString() });
                 if (parent.Length < 1)

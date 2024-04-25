@@ -84,15 +84,12 @@ namespace OpenSim.Capabilities.Handlers
                     itemIDs[i++] = id;
             }
 
-            InventoryItemBase[] items = null;
-
-            //items = m_inventoryService.GetMultipleItems(libOwner, itemIDs);
-            items = m_LibraryService.GetMultipleItems(itemIDs);
+            InventoryItemBase[] items = m_LibraryService.GetMultipleItems(itemIDs);
 
             osUTF8 lsl = LLSDxmlEncode2.Start(4096);
             LLSDxmlEncode2.AddMap(lsl);
             LLSDxmlEncode2.AddElem("agent_id", m_agentID, lsl);
-            if(items == null || items.Length == 0)
+            if(items is null || items.Length == 0)
             {
                 LLSDxmlEncode2.AddEmptyArray("items", lsl);
             }

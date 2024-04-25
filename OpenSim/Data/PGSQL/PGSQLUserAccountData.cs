@@ -279,7 +279,7 @@ namespace OpenSim.Data.PGSQL
 
         public UserAccountData[] GetUsers(UUID scopeID, string query)
         {
-            string[] words = query.Split(new char[] { ' ' });
+            string[] words = query.Split();
 
             for (int i = 0; i < words.Length; i++)
             {

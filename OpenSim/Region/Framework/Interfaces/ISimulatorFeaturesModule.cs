@@ -44,6 +44,7 @@ namespace OpenSim.Region.Framework.Interfaces
         bool RemoveFeature(string name);
         bool TryGetFeature(string name, out OSD value);
         bool TryGetOpenSimExtraFeature(string name, out OSD value);
+        bool OpenSimExtraFeatureContains(string name);
         OSDMap GetFeatures();
     }
 }

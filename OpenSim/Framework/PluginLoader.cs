@@ -159,17 +159,13 @@ namespace OpenSim.Framework
             {
                 log.Info("[PLUGINS]: Loading extension point " + ext);
 
-                if (constraints.ContainsKey(ext))
+                if (constraints.TryGetValue(ext , out IPluginConstraint cons))
                 {
-                    IPluginConstraint cons = constraints[ext];
                     if (cons.Apply(ext))
                         log.Error("[PLUGINS]: " + ext + " failed constraint: " + cons.Message);
                 }
 
-                IPluginFilter filter = null;
-
-                if (filters.ContainsKey(ext))
-                    filter = filters[ext];
+                filters.TryGetValue(ext, out IPluginFilter filter);
 
                 List<T> loadedPlugins = new List<T>();
                 foreach (PluginExtensionNode node in AddinManager.GetExtensionNodes(ext))
