@@ -33,7 +33,6 @@ using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.Imaging;
 using OpenSim.Framework;
-using OpenSim.Region.CoreModules.Scripting.DynamicTexture;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using log4net;
@@ -52,8 +51,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
         private IDynamicTextureManager m_textureManager;
 
         private OutboundUrlFilter m_outboundUrlFilter;
-        private string m_proxyurl = "";
-        private string m_proxyexcepts = "";
+        WebProxy m_proxy = null;
 
         #region IDynamicTextureRender Members
 
@@ -112,8 +110,20 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
         public void Initialise(IConfigSource config)
         {
             m_outboundUrlFilter = new OutboundUrlFilter("Script dynamic texture image module", config);
-            m_proxyurl = config.Configs["Startup"].GetString("HttpProxy");
-            m_proxyexcepts = config.Configs["Startup"].GetString("HttpProxyExceptions");
+            string proxyurl = config.Configs["Startup"].GetString("HttpProxy");
+            if(!string.IsNullOrEmpty(proxyurl))
+            {
+                string proxyexcepts = config.Configs["Startup"].GetString("HttpProxyExceptions");
+                if (!string.IsNullOrEmpty(proxyexcepts))
+                {
+                    string[] elist = proxyexcepts.Split(';');
+                    m_proxy = new WebProxy(proxyurl, true, elist);
+                }
+                else
+                {
+                    m_proxy = new WebProxy(proxyurl, true);
+                }
+            }
         }
 
         public void PostInitialise()
@@ -122,9 +132,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
 
         public void AddRegion(Scene scene)
         {
-            if (m_scene == null)
-                m_scene = scene;
-
+            m_scene ??= scene;
         }
 
         public void RemoveRegion(Scene scene)
@@ -133,13 +141,10 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
 
         public void RegionLoaded(Scene scene)
         {
-            if (m_textureManager == null && m_scene == scene)
+            if (m_textureManager is null && m_scene == scene)
             {
                 m_textureManager = m_scene.RequestModuleInterface<IDynamicTextureManager>();
-                if (m_textureManager != null)
-                {
-                    m_textureManager.RegisterRender(GetContentType(), this);
-                }
+                m_textureManager?.RegisterRender(GetContentType(), this);
             }
         }
 
@@ -161,42 +166,31 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
 
         private bool MakeHttpRequest(string url, UUID requestID)
         {
+            if (m_textureManager is null)
+            {
+                m_log.WarnFormat("[LOADIMAGEURLMODULE]: No texture manager. Can't function.");
+                return false;
+            }
+
             if (!m_outboundUrlFilter.CheckAllowed(new Uri(url)))
                 return false;
 
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.AllowAutoRedirect = false;
 
-            if (!string.IsNullOrEmpty(m_proxyurl))
-            {
-                if (!string.IsNullOrEmpty(m_proxyexcepts))
-                {
-                    string[] elist = m_proxyexcepts.Split(';');
-                    request.Proxy = new WebProxy(m_proxyurl, true, elist);
-                }
-                else
-                {
-                    request.Proxy = new WebProxy(m_proxyurl, true);
-                }
-            }
+            if(m_proxy is not null)
+                request.Proxy = m_proxy;
 
             RequestState state = new RequestState(request, requestID);
             // IAsyncResult result = request.BeginGetResponse(new AsyncCallback(HttpRequestReturn), state);
-            request.BeginGetResponse(new AsyncCallback(HttpRequestReturn), state);
-
-            TimeSpan t = (DateTime.UtcNow - new DateTime(1970, 1, 1));
-            state.TimeOfRequest = (int) t.TotalSeconds;
-
+            request.BeginGetResponse(HttpRequestReturn, state);
             return true;
         }
 
         private void HttpRequestReturn(IAsyncResult result)
         {
             if (m_textureManager == null)
-            {
-                m_log.WarnFormat("[LOADIMAGEURLMODULE]: No texture manager. Can't function.");
                 return;
-            }
 
             RequestState state = (RequestState) result.AsyncState;
             WebRequest request = (WebRequest) state.Request;
@@ -319,6 +313,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
             {
                 Request = request;
                 RequestID = requestID;
+                TimeOfRequest = Util.UnixTimeSinceEpoch();
             }
         }
 

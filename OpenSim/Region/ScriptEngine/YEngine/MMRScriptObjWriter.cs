@@ -60,15 +60,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
     public class ScriptObjWriter: ScriptMyILGen
     {
-        private static Dictionary<short, OpCode> opCodes = PopulateOpCodes();
-        private static Dictionary<string, Type> string2Type = PopulateS2T();
-        private static Dictionary<Type, string> type2String = PopulateT2S();
+        private static readonly Dictionary<short, OpCode> opCodes = PopulateOpCodes();
+        private static readonly Dictionary<string, Type> string2Type = PopulateS2T();
+        private static readonly Dictionary<Type, string> type2String = PopulateT2S();
 
-        private static MethodInfo monoGetCurrentOffset = typeof(ILGenerator).GetMethod("Mono_GetCurrentOffset",
-                        BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic, null,
-                        new Type[] { typeof(ILGenerator) }, null);
-
-        private static readonly OpCode[] opCodesLdcI4M1P8 = new OpCode[] {
+        private static readonly OpCode[] opCodesLdcI4M1P8 = new OpCode[]
+        {
             OpCodes.Ldc_I4_M1, OpCodes.Ldc_I4_0, OpCodes.Ldc_I4_1, OpCodes.Ldc_I4_2, OpCodes.Ldc_I4_3,
             OpCodes.Ldc_I4_4,  OpCodes.Ldc_I4_5, OpCodes.Ldc_I4_6, OpCodes.Ldc_I4_7, OpCodes.Ldc_I4_8
         };
@@ -78,18 +75,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private int lastErrorAtLine = 0;
         private int lastErrorAtPosn = 0;
 
-        private Dictionary<Type, string> sdTypesRev = new Dictionary<Type, string>();
+        private readonly Dictionary<Type, string> sdTypesRev = new ();
         public int labelNumber = 0;
         public int localNumber = 0;
 
-        private string _methName;
-        public string methName
-        {
-            get
-            {
-                return _methName;
-            }
-        }
+        public string methName { get; private set;}
 
         public Type retType;
         public Type[] argTypes;
@@ -116,7 +106,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public ScriptObjWriter(TokenScript tokenScript, string methName, Type retType, Type[] argTypes, string[] argNames, BinaryWriter objFileWriter)
         {
-            this._methName = methName;
+            this.methName = methName;
             this.retType = retType;
             this.argTypes = argTypes;
             this.objFileWriter = objFileWriter;
@@ -174,11 +164,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public ScriptMyLocal DeclareLocal(Type type, string name)
         {
-            ScriptMyLocal myLocal = new ScriptMyLocal();
-            myLocal.type = type;
-            myLocal.name = name;
-            myLocal.number = localNumber++;
-            myLocal.isReferenced = true;  // so ScriptCollector won't optimize references away
+            ScriptMyLocal myLocal = new ()
+            {
+                type = type,
+                name = name,
+                number = localNumber++,
+                isReferenced = true  // so ScriptCollector won't optimize references away
+            };
             return DeclareLocal(myLocal);
         }
         public ScriptMyLocal DeclareLocal(ScriptMyLocal myLocal)
@@ -195,9 +187,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public ScriptMyLabel DefineLabel(string name)
         {
-            ScriptMyLabel myLabel = new ScriptMyLabel();
-            myLabel.name = name;
-            myLabel.number = labelNumber++;
+            ScriptMyLabel myLabel = new()
+            {
+                name = name,
+                number = labelNumber++
+            };
             return DefineLabel(myLabel);
         }
         public ScriptMyLabel DefineLabel(ScriptMyLabel myLabel)
@@ -282,7 +276,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public void Emit(Token errorAt, OpCode opcode, ScriptObjWriter method)
         {
             if(method == null)
-                throw new ArgumentNullException("method");
+                throw new ArgumentNullException(nameof(method));
             objFileWriter.Write((byte)ScriptObjWriterCode.EmitMethodInt);
             WriteOpCode(errorAt, opcode);
             objFileWriter.Write(method.methName);
@@ -380,15 +374,15 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public static void CreateObjCode(Dictionary<string, TokenDeclSDType> sdTypes, BinaryReader objReader,
                 ScriptObjCode scriptObjCode, ObjectTokens objectTokens)
         {
-            Dictionary<string, DynamicMethod> methods = new Dictionary<string, DynamicMethod>();
+            Dictionary<string, DynamicMethod> methods = new ();
             DynamicMethod method = null;
             ILGenerator ilGen = null;
-            Dictionary<int, Label> labels = new Dictionary<int, Label>();
-            Dictionary<int, LocalBuilder> locals = new Dictionary<int, LocalBuilder>();
-            Dictionary<int, string> labelNames = new Dictionary<int, string>();
-            Dictionary<int, string> localNames = new Dictionary<int, string>();
+            Dictionary<int, Label> labels = new ();
+            Dictionary<int, LocalBuilder> locals = new ();
+            Dictionary<int, string> labelNames = new ();
+            Dictionary<int, string> localNames = new ();
             object[] ilGenArg = new object[1];
-            int offset = 0;
+            int offset;
             Dictionary<int, ScriptSrcLoc> srcLocs = null;
             string srcFile = "";
             int srcLine = 0;
@@ -397,11 +391,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             while(true)
             {
                 // Get IL instruction offset at beginning of instruction.
-                offset = 0;
-                if((ilGen != null) && (monoGetCurrentOffset != null))
-                {
-                    offset = (int)monoGetCurrentOffset.Invoke(null, ilGenArg);
-                }
+                offset = ilGen is null ? 0 : ilGen.ILOffset;
 
                 // Read and decode next internal format code from input file (.xmrobj file).
                 ScriptObjWriterCode code = (ScriptObjWriterCode)objReader.ReadByte();
@@ -428,8 +418,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         localNames.Clear();
 
                         srcLocs = new Dictionary<int, ScriptSrcLoc>();
-                        if(objectTokens != null)
-                            objectTokens.BegMethod(method);
+                        objectTokens?.BegMethod(method);
                         break;
                     }
 
@@ -442,8 +431,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         ilGenArg[0] = null;
                         scriptObjCode.EndMethod(method, srcLocs);
                         srcLocs = null;
-                        if(objectTokens != null)
-                            objectTokens.EndMethod();
+                        objectTokens?.EndMethod();
                         break;
                     }
 
@@ -455,8 +443,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
                         labels.Add(number, ilGen.DefineLabel());
                         labelNames.Add(number, name + "_" + number.ToString());
-                        if(objectTokens != null)
-                            objectTokens.DefineLabel(number, name);
+                        objectTokens?.DefineLabel(number, name);
                         break;
                     }
 
@@ -470,8 +457,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
                         locals.Add(number, ilGen.DeclareLocal(syType));
                         localNames.Add(number, name + "_" + number.ToString());
-                        if(objectTokens != null)
-                            objectTokens.DefineLocal(number, name, type, syType);
+                        objectTokens?.DefineLocal(number, name, type, syType);
                         break;
                     }
 
@@ -492,8 +478,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                             argNames[i] = objReader.ReadString();
                         }
                         methods.Add(methName, new DynamicMethod(methName, retType, argTypes));
-                        if(objectTokens != null)
-                            objectTokens.DefineMethod(methName, retType, argTypes, argNames);
+                        objectTokens?.DefineMethod(methName, retType, argTypes, argNames);
                         break;
                     }
 
@@ -504,8 +489,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
                         ilGen.MarkLabel(labels[number]);
 
-                        if(objectTokens != null)
-                            objectTokens.MarkLabel(offset, number);
+                        objectTokens?.MarkLabel(offset, number);
                         break;
                     }
 
@@ -513,8 +497,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     case ScriptObjWriterCode.BegExcBlk:
                     {
                         ilGen.BeginExceptionBlock();
-                        if(objectTokens != null)
-                            objectTokens.BegExcBlk(offset);
+                        objectTokens?.BegExcBlk(offset);
                         break;
                     }
 
@@ -522,24 +505,21 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     {
                         Type excType = GetTypeFromStr(sdTypes, objReader.ReadString());
                         ilGen.BeginCatchBlock(excType);
-                        if(objectTokens != null)
-                            objectTokens.BegCatBlk(offset, excType);
+                        objectTokens?.BegCatBlk(offset, excType);
                         break;
                     }
 
                     case ScriptObjWriterCode.BegFinBlk:
                     {
                         ilGen.BeginFinallyBlock();
-                        if(objectTokens != null)
-                            objectTokens.BegFinBlk(offset);
+                        objectTokens?.BegFinBlk(offset);
                         break;
                     }
 
                     case ScriptObjWriterCode.EndExcBlk:
                     {
                         ilGen.EndExceptionBlock();
-                        if(objectTokens != null)
-                            objectTokens.EndExcBlk(offset);
+                        objectTokens?.EndExcBlk(offset);
                         break;
                     }
 
@@ -551,8 +531,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         SaveSrcLoc(srcLocs, offset, srcFile, srcLine, srcPosn);
                         ilGen.Emit(opCode);
 
-                        if(objectTokens != null)
-                            objectTokens.EmitNull(offset, opCode);
+                        objectTokens?.EmitNull(offset, opCode);
                         break;
                     }
 
@@ -567,8 +546,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         SaveSrcLoc(srcLocs, offset, srcFile, srcLine, srcPosn);
                         ilGen.Emit(opCode, field);
 
-                        if(objectTokens != null)
-                            objectTokens.EmitField(offset, opCode, field);
+                        objectTokens?.EmitField(offset, opCode, field);
                         break;
                     }
 
@@ -580,8 +558,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         SaveSrcLoc(srcLocs, offset, srcFile, srcLine, srcPosn);
                         ilGen.Emit(opCode, locals[number]);
 
-                        if(objectTokens != null)
-                            objectTokens.EmitLocal(offset, opCode, number);
+                        objectTokens?.EmitLocal(offset, opCode, number);
                         break;
                     }
 
@@ -595,8 +572,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         SaveSrcLoc(srcLocs, offset, srcFile, srcLine, srcPosn);
                         ilGen.Emit(opCode, type);
 
-                        if(objectTokens != null)
-                            objectTokens.EmitType(offset, opCode, type);
+                        objectTokens?.EmitType(offset, opCode, type);
                         break;
                     }
 
@@ -609,8 +585,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         SaveSrcLoc(srcLocs, offset, srcFile, srcLine, srcPosn);
                         ilGen.Emit(opCode, labels[number]);
 
-                        if(objectTokens != null)
-                            objectTokens.EmitLabel(offset, opCode, number);
+                        objectTokens?.EmitLabel(offset, opCode, number);
                         break;
                     }
 
@@ -630,8 +605,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         SaveSrcLoc(srcLocs, offset, srcFile, srcLine, srcPosn);
                         ilGen.Emit(opCode, lbls);
 
-                        if(objectTokens != null)
-                            objectTokens.EmitLabels(offset, opCode, nums);
+                        objectTokens?.EmitLabels(offset, opCode, nums);
                         break;
                     }
 
@@ -652,8 +626,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         SaveSrcLoc(srcLocs, offset, srcFile, srcLine, srcPosn);
                         ilGen.Emit(opCode, methInfo);
 
-                        if(objectTokens != null)
-                            objectTokens.EmitMethod(offset, opCode, methInfo);
+                        objectTokens?.EmitMethod(offset, opCode, methInfo);
                         break;
                     }
 
@@ -668,8 +641,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         SaveSrcLoc(srcLocs, offset, srcFile, srcLine, srcPosn);
                         ilGen.Emit(opCode, methInfo);
 
-                        if(objectTokens != null)
-                            objectTokens.EmitMethod(offset, opCode, methInfo);
+                        objectTokens?.EmitMethod(offset, opCode, methInfo);
                         break;
                     }
 
@@ -689,8 +661,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         SaveSrcLoc(srcLocs, offset, srcFile, srcLine, srcPosn);
                         ilGen.Emit(opCode, ctorInfo);
 
-                        if(objectTokens != null)
-                            objectTokens.EmitCtor(offset, opCode, ctorInfo);
+                        objectTokens?.EmitCtor(offset, opCode, ctorInfo);
                         break;
                     }
 
@@ -707,8 +678,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         SaveSrcLoc(srcLocs, offset, srcFile, srcLine, srcPosn);
                         ilGen.Emit(opCode, value);
 
-                        if(objectTokens != null)
-                            objectTokens.EmitDouble(offset, opCode, value);
+                        objectTokens?.EmitDouble(offset, opCode, value);
                         break;
                     }
 
@@ -724,8 +694,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         SaveSrcLoc(srcLocs, offset, srcFile, srcLine, srcPosn);
                         ilGen.Emit(opCode, value);
 
-                        if(objectTokens != null)
-                            objectTokens.EmitFloat(offset, opCode, value);
+                        objectTokens?.EmitFloat(offset, opCode, value);
                         break;
                     }
 
@@ -742,8 +711,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                             {
                                 opCode = opCodesLdcI4M1P8[value + 1];
                                 ilGen.Emit(opCode);
-                                if(objectTokens != null)
-                                    objectTokens.EmitNull(offset, opCode);
+                                objectTokens?.EmitNull(offset, opCode);
                                 break;
                             }
                             if((value >= 0) && (value <= 127))
@@ -755,9 +723,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         }
 
                         ilGen.Emit(opCode, value);
-                        pemitint:
-                        if(objectTokens != null)
-                            objectTokens.EmitInteger(offset, opCode, value);
+
+                     pemitint:
+                        objectTokens?.EmitInteger(offset, opCode, value);
                         break;
                     }
 
@@ -769,8 +737,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         SaveSrcLoc(srcLocs, offset, srcFile, srcLine, srcPosn);
                         ilGen.Emit(opCode, value);
 
-                        if(objectTokens != null)
-                            objectTokens.EmitString(offset, opCode, value);
+                        objectTokens?.EmitString(offset, opCode, value);
                         break;
                     }
 
@@ -786,7 +753,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private static Dictionary<short, OpCode> PopulateOpCodes()
         {
-            Dictionary<short, OpCode> opCodeDict = new Dictionary<short, OpCode>();
+            Dictionary<short, OpCode> opCodeDict = new ();
             FieldInfo[] fields = typeof(OpCodes).GetFields();
             for(int i = 0; i < fields.Length; i++)
             {
@@ -850,11 +817,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private static void SaveSrcLoc(Dictionary<int, ScriptSrcLoc> srcLocs, int offset, string srcFile, int srcLine, int srcPosn)
         {
-            ScriptSrcLoc srcLoc = new ScriptSrcLoc();
-            srcLoc.file = srcFile;
-            srcLoc.line = srcLine;
-            srcLoc.posn = srcPosn;
-            srcLocs[offset] = srcLoc;
+            srcLocs[offset] = new ScriptSrcLoc()
+            {
+                file = srcFile,
+                line = srcLine,
+                posn = srcPosn
+            };
         }
 
         /**
@@ -864,52 +832,51 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private static Dictionary<string, Type> PopulateS2T()
         {
-            Dictionary<string, Type> s2t = new Dictionary<string, Type>();
-
-            s2t.Add("badcallx", typeof(ScriptBadCallNoException));
-            s2t.Add("binopstr", typeof(BinOpStr));
-            s2t.Add("bool", typeof(bool));
-            s2t.Add("char", typeof(char));
-            s2t.Add("delegate", typeof(Delegate));
-            s2t.Add("delarr[]", typeof(Delegate[]));
-            s2t.Add("double", typeof(double));
-            s2t.Add("exceptn", typeof(Exception));
-            s2t.Add("float", typeof(float));
-            s2t.Add("htlist", typeof(HeapTrackerList));
-            s2t.Add("htobject", typeof(HeapTrackerObject));
-            s2t.Add("htstring", typeof(HeapTrackerString));
-            s2t.Add("inlfunc", typeof(CompValuInline));
-            s2t.Add("int", typeof(int));
-            s2t.Add("int*", typeof(int).MakeByRefType());
-            s2t.Add("intrlokd", typeof(System.Threading.Interlocked));
-            s2t.Add("lslfloat", typeof(LSL_Float));
-            s2t.Add("lslint", typeof(LSL_Integer));
-            s2t.Add("lsllist", typeof(LSL_List));
-            s2t.Add("lslrot", typeof(LSL_Rotation));
-            s2t.Add("lslstr", typeof(LSL_String));
-            s2t.Add("lslvec", typeof(LSL_Vector));
-            s2t.Add("math", typeof(Math));
-            s2t.Add("midround", typeof(MidpointRounding));
-            s2t.Add("object", typeof(object));
-            s2t.Add("object*", typeof(object).MakeByRefType());
-            s2t.Add("object[]", typeof(object[]));
-            s2t.Add("scrbase", typeof(ScriptBaseClass));
-            s2t.Add("scrcode", typeof(ScriptCodeGen));
-            s2t.Add("sdtclobj", typeof(XMRSDTypeClObj));
-            s2t.Add("string", typeof(string));
-            s2t.Add("typecast", typeof(TypeCast));
-            s2t.Add("undstatx", typeof(ScriptUndefinedStateException));
-            s2t.Add("void", typeof(void));
-            s2t.Add("xmrarray", typeof(XMR_Array));
-            s2t.Add("xmrinst", typeof(XMRInstAbstract));
-
-            return s2t;
+            return new Dictionary<string, Type>
+            {
+                { "badcallx", typeof(ScriptBadCallNoException) },
+                { "binopstr", typeof(BinOpStr) },
+                { "bool", typeof(bool) },
+                { "char", typeof(char) },
+                { "delegate", typeof(Delegate) },
+                { "delarr[]", typeof(Delegate[]) },
+                { "double", typeof(double) },
+                { "exceptn", typeof(Exception) },
+                { "float", typeof(float) },
+                { "htlist", typeof(HeapTrackerList) },
+                { "htobject", typeof(HeapTrackerObject) },
+                { "htstring", typeof(HeapTrackerString) },
+                { "inlfunc", typeof(CompValuInline) },
+                { "int", typeof(int) },
+                { "int*", typeof(int).MakeByRefType() },
+                { "intrlokd", typeof(System.Threading.Interlocked) },
+                { "lslfloat", typeof(LSL_Float) },
+                { "lslint", typeof(LSL_Integer) },
+                { "lsllist", typeof(LSL_List) },
+                { "lslrot", typeof(LSL_Rotation) },
+                { "lslstr", typeof(LSL_String) },
+                { "lslvec", typeof(LSL_Vector) },
+                { "math", typeof(Math) },
+                { "midround", typeof(MidpointRounding) },
+                { "object", typeof(object) },
+                { "object*", typeof(object).MakeByRefType() },
+                { "object[]", typeof(object[]) },
+                { "scrbase", typeof(ScriptBaseClass) },
+                { "scrcode", typeof(ScriptCodeGen) },
+                { "sdtclobj", typeof(XMRSDTypeClObj) },
+                { "string", typeof(string) },
+                { "typecast", typeof(TypeCast) },
+                { "undstatx", typeof(ScriptUndefinedStateException) },
+                { "void", typeof(void) },
+                { "xmrarray", typeof(XMR_Array) },
+                { "xmrinst", typeof(XMRInstAbstract) }
+            };
         }
 
         private static Dictionary<Type, string> PopulateT2S()
         {
             Dictionary<string, Type> s2t = PopulateS2T();
-            Dictionary<Type, string> t2s = new Dictionary<Type, string>();
+            Dictionary<Type, string> t2s = new ();
             foreach(KeyValuePair<string, Type> kvp in s2t)
             {
                 t2s.Add(kvp.Value, kvp.Key);
@@ -936,14 +903,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         }
         private string GetStrFromTypeWork(Type t)
         {
-            string s;
-
             // internal fixed types like int and xmrarray etc
-            if(type2String.TryGetValue(t, out s))
+            if (type2String.TryGetValue(t, out string s))
                 return s;
 
             // script-defined types
-            if(sdTypesRev.TryGetValue(t, out s))
+            if (sdTypesRev.TryGetValue(t, out s))
                 return "sdt$" + s;
 
             // inline function types
@@ -957,15 +922,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         private static Type GetTypeFromStr(Dictionary<string, TokenDeclSDType> sdTypes, string s)
         {
-            Type t;
-
             // internal fixed types like int and xmrarray etc
-            if(string2Type.TryGetValue(s, out t))
+            if (string2Type.TryGetValue(s, out Type t))
                 return t;
 
             // script-defined types
-            if(s.StartsWith("sdt$"))
-                return sdTypes[s.Substring(4)].GetSysType();
+            if (s.StartsWith("sdt$"))
+                return sdTypes[s[4..]].GetSysType();
 
             // inline function types
             t = TokenDeclSDTypeDelegate.TryGetInlineSysType(s);

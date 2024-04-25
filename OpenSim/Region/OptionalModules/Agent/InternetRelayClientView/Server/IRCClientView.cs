@@ -525,7 +525,9 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         }
 
         public float StartFar { get; set; }
-
+        public float FOV { get; set; } = 1.25f;
+        public int viewHeight { get; set; } = 480;
+        public int viewWidth { get; set; } = 640;
         public bool TryGet<T>(out T iface)
         {
             iface = default(T);
@@ -661,7 +663,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         public uint CircuitCode
         {
-            get { return (uint)Util.RandomClass.Next(0,int.MaxValue); }
+            get { return (uint)Random.Shared.Next(0,int.MaxValue); }
         }
 
         public IPEndPoint RemoteEndPoint

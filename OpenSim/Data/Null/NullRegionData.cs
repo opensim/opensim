@@ -176,11 +176,8 @@ namespace OpenSim.Data.Null
 
             lock (m_regionData)
             {
-                if (m_regionData.ContainsKey(regionID))
-                    return m_regionData[regionID];
+                return m_regionData.TryGetValue(regionID, out RegionData rd) ? rd : null;
             }
-
-            return null;
         }
 
         public List<RegionData> Get(int startX, int startY, int endX, int endY, UUID scopeID)
@@ -226,13 +223,13 @@ namespace OpenSim.Data.Null
 
             lock (m_regionData)
             {
-                if (!m_regionData.ContainsKey(regionID))
-                    return false;
-
-                m_regionData[regionID].Data[item] = value;
+                if(m_regionData.TryGetValue(regionID, out RegionData rd))
+                {
+                    rd.Data[item] = value;
+                    return true;
+                }
+                return false;
             }
-
-            return true;
         }
 
         public bool Delete(UUID regionID)
@@ -240,17 +237,12 @@ namespace OpenSim.Data.Null
             if (m_useStaticInstance && Instance != this)
                 return Instance.Delete(regionID);
 
-//            m_log.DebugFormat("[NULL REGION DATA]: Deleting region {0}", regionID);
+            //m_log.DebugFormat("[NULL REGION DATA]: Deleting region {0}", regionID);
 
             lock (m_regionData)
             {
-                if (!m_regionData.ContainsKey(regionID))
-                    return false;
-
-                m_regionData.Remove(regionID);
+                return m_regionData.Remove(regionID);
             }
-
-            return true;
         }
 
         public List<RegionData> GetDefaultRegions(UUID scopeID)

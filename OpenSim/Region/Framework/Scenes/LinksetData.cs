@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -32,12 +33,13 @@ namespace OpenSim.Region.Framework.Scenes
             lock (linksetDataLock)
             {
                 var copy = new LinksetData();
+
                 foreach (var entry in Data)
                 {
-                    var key = String.Copy(entry.Key);
-                    var val = entry.Value.Copy();
-                    copy.Data.Add(key, val);
-                    copy.LinksetDataAccountingDelta(val.GetCost(key));
+                    LinksetDataEntry val = entry.Value.Copy();
+                    copy.Data[entry.Key] = val;
+
+                    copy.LinksetDataAccountingDelta(val.GetCost(entry.Key));
                 }
 
                 return copy;
@@ -61,8 +63,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (LinksetDataOverLimit())
                     return 1;
 
-                LinksetDataEntry entry = null;
-                if (Data.TryGetValue(key, out entry))
+                if (Data.TryGetValue(key, out LinksetDataEntry entry))
                 {
                     if (!entry.CheckPassword(pass))
                         return -1;
@@ -277,11 +278,10 @@ namespace OpenSim.Region.Framework.Scenes
                     if (LinksetDataOverLimit())
                         break;
 
-                    var key = string.Copy(kvp.Key);
-                    var value = kvp.Value.Copy();
+                    LinksetDataEntry val = kvp.Value.Copy();
+                    Data[kvp.Key] = val;
 
-                    Data.Add(key, value);
-                    LinksetDataAccountingDelta(value.GetCost(key));
+                    LinksetDataAccountingDelta(val.GetCost(kvp.Key));
                 }
 
                 // Clear the LinksetData entries from the "other" SOG
@@ -305,8 +305,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (Data.Count <= 0)
                     return string.Empty;
 
-                LinksetDataEntry entry;
-                if (Data.TryGetValue(key, out entry))
+                if (Data.TryGetValue(key, out LinksetDataEntry entry))
                 {
                     return entry.CheckPasswordAndGetValue(pass);
                 }
@@ -356,6 +355,10 @@ namespace OpenSim.Region.Framework.Scenes
 
     public class LinksetDataEntry
     {
+        public LinksetDataEntry()
+        {
+        }
+
         public LinksetDataEntry(string value, string password)
         {
             Value = value;
@@ -364,7 +367,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public string Password { get; private set; } = string.Empty;
 
-        public string Value { get; private set; }
+        public string Value { get; private set; } = string.Empty;
 
         public bool CheckPassword(string pass)
         {
@@ -378,13 +381,13 @@ namespace OpenSim.Region.Framework.Scenes
             return CheckPassword(pass) ? Value : string.Empty;
         }
 
-        // Deep Copy of Current Entry
         public LinksetDataEntry Copy()
         {
-            string value = String.IsNullOrEmpty(Value) ? null : string.Copy(Value);
-            string password = String.IsNullOrEmpty(Password) ? null : string.Copy(Password);
-
-            return new LinksetDataEntry(value, password);
+            return new LinksetDataEntry
+            {
+                Password = Password,
+                Value = Value
+            };
         }
 
         /// <summary>

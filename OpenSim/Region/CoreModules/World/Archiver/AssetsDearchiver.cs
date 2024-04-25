@@ -29,7 +29,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using System.Text;
 using System.Xml;
 using log4net;
 using OpenMetaverse;
@@ -49,7 +48,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <summary>
         /// Store for asset data we received before we get the metadata
         /// </summary>
-        protected Dictionary<string, byte[]> m_assetDataAwaitingMetadata = new Dictionary<string, byte[]>();
+        protected Dictionary<string, byte[]> m_assetDataAwaitingMetadata = new();
 
         /// <summary>
         /// Asset metadata.  Is null if asset metadata isn't yet available.
@@ -91,9 +90,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         {
             m_metadata = new Dictionary<string, AssetMetadata>();
 
-            StringReader sr = new StringReader(xml);
-            XmlTextReader reader = new XmlTextReader(sr);
-            reader.DtdProcessing = DtdProcessing.Ignore;
+            StringReader sr = new(xml);
+            XmlTextReader reader = new(sr)
+            {
+                DtdProcessing = DtdProcessing.Ignore
+            };
 
             reader.ReadStartElement("assets");
             reader.Read();
@@ -102,10 +103,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             {
                 reader.Read();
 
-                AssetMetadata metadata = new AssetMetadata();
+                AssetMetadata metadata = new();
 
                 string filename = reader.ReadElementString("filename");
-                m_log.DebugFormat("[DEARCHIVER]: Reading node {0}", filename);
+                m_log.Debug($"[DEARCHIVER]: Reading node {filename}");
 
                 metadata.Name = reader.ReadElementString("name");
                 metadata.Description = reader.ReadElementString("description");
@@ -119,7 +120,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 reader.Read();
             }
 
-            m_log.DebugFormat("[DEARCHIVER]: Resolved {0} items of asset metadata", m_metadata.Count);
+            m_log.Debug($"[DEARCHIVER]: Resolved {m_metadata.Count} items of asset metadata");
 
             ResolvePendingAssetData();
         }
@@ -143,31 +144,30 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         protected void ResolveAssetData(string assetPath, byte[] data)
         {
             // Right now we're nastily obtaining the UUID from the filename
-            string filename = assetPath.Remove(0, ArchiveConstants.ASSETS_PATH.Length);
+            string filename = assetPath[ArchiveConstants.ASSETS_PATH.Length..];
 
             if (m_metadata.ContainsKey(filename))
             {
                 AssetMetadata metadata = m_metadata[filename];
-
-                if (ArchiveConstants.ASSET_TYPE_TO_EXTENSION.ContainsKey(metadata.AssetType))
+                if (ArchiveConstants.ASSET_TYPE_TO_EXTENSION.TryGetValue(metadata.AssetType, out string extension))
                 {
-                    string extension = ArchiveConstants.ASSET_TYPE_TO_EXTENSION[metadata.AssetType];
                     filename = filename.Remove(filename.Length - extension.Length);
                 }
 
-                m_log.DebugFormat("[ARCHIVER]: Importing asset {0}", filename);
+                m_log.Debug($"[ARCHIVER]: Importing asset {filename}");
 
-                AssetBase asset = new AssetBase(new UUID(filename), metadata.Name, metadata.AssetType, UUID.Zero.ToString());
-                asset.Description = metadata.Description;
-                asset.Data = data;
+                AssetBase asset = new(new UUID(filename), metadata.Name, metadata.AssetType, UUID.ZeroString)
+                {
+                    Description = metadata.Description,
+                    Data = data
+                };
 
                 m_cache.Store(asset);
             }
             else
             {
-                m_log.ErrorFormat(
-                    "[DEARCHIVER]: Tried to dearchive data with filename {0} without any corresponding metadata",
-                    assetPath);
+                m_log.Error(
+                    $"[DEARCHIVER]: Tried to dearchive data with filename {assetPath} without any corresponding metadata");
             }
         }
 

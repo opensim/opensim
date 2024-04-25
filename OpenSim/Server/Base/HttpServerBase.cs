@@ -123,13 +123,13 @@ namespace OpenSim.Server.Base
                     if ( cert_path.Length == 0 )
                     {
                         System.Console.WriteLine("Path to X509 certificate is missing, server can't start.");
-                        Thread.CurrentThread.Abort();
+                        //Thread.CurrentThread.Abort();
                     }
                     string cert_pass = networkConfig.GetString("cert_pass", string.Empty);
                     if ( cert_pass.Length == 0 )
                     {
                         System.Console.WriteLine("Password for X509 certificate is missing, server can't start.");
-                        Thread.CurrentThread.Abort();
+                        //Thread.CurrentThread.Abort();
                     }
 
                     MainServer.AddHttpServer(new BaseHttpServer(https_port, ssl_listener, cert_path, cert_pass));

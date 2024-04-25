@@ -63,6 +63,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             /*
              * For those listed in noCheckRun, we just generate the call (simple computations).
              * For all others, we generate the call then a call to CheckRun().
+             * note to self: a change here implies change on magic numbers to invalidate older code and 
+             * script state
              */
             noCheckRuns = new HashSet<string>() {
                 "llBase64ToString",
@@ -81,8 +83,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 "llList2Float",
                 "llList2Integer",
                 "llList2Key",
-                "llList2List",
-                "llList2ListStrided",
                 "llList2Rot",
                 "llList2String",
                 "llList2Vector",
@@ -151,25 +151,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             VarDict ifd = new VarDict(false);
             Type[] oneDoub = new Type[] { typeof(double) };
             Type[] twoDoubs = new Type[] { typeof(double), typeof(double) };
-
-            /*
-             * Mono generates an FPU instruction for many math calls.
-             */
-            /* just use lsl api alos this have cast issues
-                new TokenDeclInline_LLAbs(ifd); 
-                new TokenDeclInline_Math(ifd, "llAcos(float)", "Acos", oneDoub);
-                new TokenDeclInline_Math(ifd, "llAsin(float)", "Asin", oneDoub);
-                new TokenDeclInline_Math(ifd, "llAtan2(float,float)", "Atan2", twoDoubs);
-                new TokenDeclInline_Math(ifd, "llCos(float)", "Cos", oneDoub);
-                new TokenDeclInline_Math(ifd, "llFabs(float)", "Abs", oneDoub);
-                new TokenDeclInline_Math(ifd, "llLog(float)", "Log", oneDoub);
-                new TokenDeclInline_Math(ifd, "llLog10(float)", "Log10", oneDoub);
-                new TokenDeclInline_Math(ifd, "llPow(float,float)", "Pow", twoDoubs);
-                new TokenDeclInline_LLRound(ifd);
-                new TokenDeclInline_Math(ifd, "llSin(float)", "Sin", oneDoub);
-                new TokenDeclInline_Math(ifd, "llSqrt(float)", "Sqrt", oneDoub);
-                new TokenDeclInline_Math(ifd, "llTan(float)", "Tan", oneDoub);
-            */
+ 
             /*
              * Something weird about the code generation for these calls, so they all have their own handwritten code generators.
              */
@@ -212,14 +194,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         // this one accepts all methods given to it
         public static void AddInterfaceMethods(VarDict ifd, IEnumerator<MethodInfo> ifaceMethods, FieldInfo acf)
         {
-            if(ifd == null)
-                ifd = inlineFunctions;
+            ifd ??= inlineFunctions;
 
             for(ifaceMethods.Reset(); ifaceMethods.MoveNext();)
             {
                 MethodInfo ifaceMethod = ifaceMethods.Current;
-                string key = ifaceMethod.Name;
-
                 try
                 {
                     /*
@@ -228,9 +207,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                      * If function begins with xmr, assume we will not call CheckRun()
                      * Otherwise, assume we will call CheckRun()
                      */
-                    bool dcr = !key.StartsWith("xmr");
-                    if(dcr && noCheckRuns.Contains(key))
-                        dcr = false;
+                    bool dcr = !(ifaceMethod.Name.StartsWith("xmr") || noCheckRuns.Contains(ifaceMethod.Name));
 
                     /*
                      * Add function to dictionary.
@@ -305,8 +282,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             triviality = (doCheckRun || isTaggedCallsCheckRun) ? Triviality.complex : Triviality.trivial;
             location = new CompValuInline(this);
 
-            if(ifd == null)
-                ifd = inlineFunctions;
+            ifd ??= inlineFunctions;
             ifd.AddEntry(this);
         }
 

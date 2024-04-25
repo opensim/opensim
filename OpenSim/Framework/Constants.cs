@@ -34,6 +34,9 @@ namespace OpenSim.Framework
         public const int MaxAgentAttachments = 38;
         public const int MaxAgentGroups = 60;
 
+        public const int MaxEstateAccessIds = 500;
+        public const int MaxEstateManagers = 20;
+
         // 'RegionSize' is the legacy region size.
         // DO NOT USE THIS FOR ANY NEW CODE. Use Scene.RegionInfo.RegionSize[XYZ] as a region might not
         //      be the legacy region size.
@@ -56,6 +59,8 @@ namespace OpenSim.Framework
         public const float MinWaterHeight = 0;
         public const float MaxWaterHeight = 8000f;
 
+        public const int MaxTextureResolution = 1024;
+
         public static readonly string DefaultTexture = "89556747-24cb-43ed-920b-47caed15465f"; //plywood
         public static readonly UUID DefaultTextureID = new UUID(DefaultTexture);
 
@@ -67,6 +72,9 @@ namespace OpenSim.Framework
         public static readonly string EmptyNotecard = "4b6a777d-7bcd-4fc4-b06f-929b21e32925";
         public static readonly UUID EmptyNotecardID = new UUID(EmptyNotecard);
         public static readonly byte[] EmptyNotecardData = osUTF8.GetASCIIBytes("Linden text version 2\n{\nLLEmbeddedItems version 1\n{\ncount 0\n}\nText length 0\n}\n\0");
+
+        public static readonly string DefaultMaterial = "968cbad0-4dad-d64e-71b5-72bf13ad051a";
+        public static readonly UUID DefaultMaterialID = new UUID(DefaultMaterial);
 
         public static readonly string m_MrOpenSimIDString = "11111111-1111-0000-0000-000100bba000";
         public static readonly UUID m_MrOpenSimID = new UUID(m_MrOpenSimIDString);
@@ -85,10 +93,10 @@ namespace OpenSim.Framework
 
         public enum EstateAccessLimits : int
         {
-            AllowedAccess = 500,
+            AllowedAccess = MaxEstateAccessIds,
             AllowedGroups = 63,
             EstateBans = 500,
-            EstateManagers = 10
+            EstateManagers = MaxEstateManagers
         }
 
         [Flags]public enum TeleportFlags : uint

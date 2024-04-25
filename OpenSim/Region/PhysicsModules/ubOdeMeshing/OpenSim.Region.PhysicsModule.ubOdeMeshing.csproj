@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <AssemblyTitle>OpenSim.Region.PhysicsModule.ubODEMeshing</AssemblyTitle>
     <Company>http://opensimulator.org</Company>
     <Product>OpenSim</Product>
@@ -12,6 +12,7 @@
     <PackageReference Include="log4net" Version="2.0.15" />
     <PackageReference Include="Mono.Addins" Version="1.4.1" />
     <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
+    <PackageReference Include="Mono.Addins.CecilReflector" Version="1.4.1" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="CSJ2K">
@@ -32,9 +33,6 @@
     </Reference>
     <Reference Include="OpenMetaverseTypes">
       <HintPath>..\..\..\..\bin\OpenMetaverseTypes.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Drawing.Common">
       <Private>False</Private>
     </Reference>
   </ItemGroup>

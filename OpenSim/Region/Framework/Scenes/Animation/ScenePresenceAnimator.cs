@@ -790,14 +790,13 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 anim.Joints[j].Priority = 7;
                 anim.Joints[j].positionkeys = new binBVHJointKey[rnditerations];
                 anim.Joints[j].rotationkeys = new binBVHJointKey[rnditerations];
-                Random rnd = new Random();
                 for (int i = 0; i < rnditerations; i++)
                 {
                     anim.Joints[j].rotationkeys[i] = new binBVHJointKey();
                     anim.Joints[j].rotationkeys[i].time = (i * .10f);
-                    anim.Joints[j].rotationkeys[i].key_element.X = ((float)rnd.NextDouble() * 2 - 1);
-                    anim.Joints[j].rotationkeys[i].key_element.Y = ((float)rnd.NextDouble() * 2 - 1);
-                    anim.Joints[j].rotationkeys[i].key_element.Z = ((float)rnd.NextDouble() * 2 - 1);
+                    anim.Joints[j].rotationkeys[i].key_element.X = ((float)Random.Shared.NextDouble() * 2 - 1);
+                    anim.Joints[j].rotationkeys[i].key_element.Y = ((float)Random.Shared.NextDouble() * 2 - 1);
+                    anim.Joints[j].rotationkeys[i].key_element.Z = ((float)Random.Shared.NextDouble() * 2 - 1);
                     anim.Joints[j].positionkeys[i] = new binBVHJointKey();
                     anim.Joints[j].positionkeys[i].time = (i * .10f);
                     anim.Joints[j].positionkeys[i].key_element.X = 0;

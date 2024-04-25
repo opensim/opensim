@@ -106,7 +106,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         private bool isFrozen = false;
         private bool locals;
-        private Dictionary<string, Dictionary<ArgTypes, TDVEntry>> master = new Dictionary<string, Dictionary<ArgTypes, TDVEntry>>();
+        private Dictionary<string, Dictionary<ArgTypes, TDVEntry>> master = new();
         private int count = 0;
         private VarDict frozenLocals = null;
 
@@ -131,16 +131,15 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
 
              // Make sure we have a sub-dictionary based on the bare name (ie, no signature)
-            Dictionary<ArgTypes, TDVEntry> typedic;
-            if(!master.TryGetValue(var.name.val, out typedic))
+            if(!master.TryGetValue(var.name.val, out Dictionary<ArgTypes, TDVEntry> typedic))
             {
                 typedic = new Dictionary<ArgTypes, TDVEntry>();
                 master.Add(var.name.val, typedic);
             }
 
-             // See if there is an entry in the sub-dictionary that matches the argument signature.
-             // Note that fields have null argument lists.
-             // Methods always have a non-null argument list, even if only 0 entries long.
+            // See if there is an entry in the sub-dictionary that matches the argument signature.
+            // Note that fields have null argument lists.
+            // Methods always have a non-null argument list, even if only 0 entries long.
             ArgTypes types;
             types.argTypes = (var.argDecl == null) ? null : KeyTypesToStringTypes(var.argDecl.types);
             if(typedic.ContainsKey(types))

@@ -527,7 +527,7 @@ namespace OpenSim.Framework
                 config.Set("Location", location);
             }
 
-            string[] locationElements = location.Split(new char[] { ',' });
+            string[] locationElements = location.Split(Util.SplitCommaArray);
 
             RegionLocX = Convert.ToUInt32(locationElements[0]);
             RegionLocY = Convert.ToUInt32(locationElements[1]);
@@ -743,7 +743,7 @@ namespace OpenSim.Framework
             if (DefaultLandingPoint.Z < 0f)
                 DefaultLandingPoint.Z = 0f;
 
-            if (ValuesCapped == true)
+            if (ValuesCapped)
                 m_log.WarnFormat("[RegionInfo]: The default landing location for {0} has been capped to {1}", RegionName, DefaultLandingPoint);
         }
 
@@ -955,12 +955,13 @@ namespace OpenSim.Framework
                 UInt32.TryParse(args["region_yloc"].AsString(), out locy);
                 RegionLocY = locy;
             }
-            if (args.ContainsKey("region_size_x"))
-                RegionSizeX = (uint)args["region_size_x"].AsInteger();
-            if (args.ContainsKey("region_size_y"))
-                RegionSizeY = (uint)args["region_size_y"].AsInteger();
-            if (args.ContainsKey("region_size_z"))
-                RegionSizeZ = (uint)args["region_size_z"].AsInteger();
+            OSD osdtmp;
+            if (args.TryGetValue("region_size_x", out osdtmp))
+                RegionSizeX = (uint)osdtmp.AsInteger();
+            if (args.TryGetValue("region_size_y", out osdtmp))
+                RegionSizeY = (uint)osdtmp.AsInteger();
+            if (args.TryGetValue("region_size_z", out osdtmp))
+                RegionSizeZ = (uint)osdtmp.AsInteger();
 
             IPAddress ip_addr = null;
             if (args["internal_ep_address"] != null)

@@ -41,6 +41,8 @@ using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
+using System.Net.Http;
+using System.Threading;
 
 namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
 {
@@ -155,7 +157,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
 
             if (m_firstEmptyCompileQueue || m_oarFileLoading)
             {
-                OSChatMessage c = new OSChatMessage
+                OSChatMessage c = new()
                 {
                     From = "RegionReady",
                     Message = (m_firstEmptyCompileQueue ? "server_startup," : ("oar_file_load," + (m_lastOarLoadedOk ? "1," : "0,"))) +
@@ -260,39 +262,43 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
 
         public void RRAlert(string status)
         {
-            string request_method = "POST";
-            string content_type = "application/json";
-            OSDMap RRAlert = new OSDMap();
+            OSDMap RRAlert = new()
+            {
+                ["alert"] = "region_ready",
+                ["login"] = status,
+                ["region_name"] = m_scene.RegionInfo.RegionName,
+                ["region_id"] = m_scene.RegionInfo.RegionID
+            };
 
-            RRAlert["alert"] = "region_ready";
-            RRAlert["login"] = status;
-            RRAlert["region_name"] = m_scene.RegionInfo.RegionName;
-            RRAlert["region_id"] = m_scene.RegionInfo.RegionID;
-
-            string strBuffer = "";
-            byte[] buffer = new byte[1];
+            byte[] buffer;
             try
             {
-                strBuffer = OSDParser.SerializeJsonString(RRAlert);
-                Encoding str = Util.UTF8;
-                buffer = str.GetBytes(strBuffer);
-
+                buffer = OSDParser.SerializeJsonToBytes(RRAlert); ;
             }
             catch (Exception e)
             {
                 m_log.WarnFormat("[RegionReady]: Exception thrown on alert: {0}", e.Message);
+                return;
             }
 
-            WebRequest request = WebRequest.Create(m_uri);
-            request.Method = request_method;
-            request.ContentType = content_type;
-
-            Stream os = null;
+            HttpResponseMessage responseMessage = null;
+            HttpRequestMessage request = null;
+            HttpClient client = null;
             try
             {
-                request.ContentLength = buffer.Length;
-                os = request.GetRequestStream();
-                os.Write(buffer, 0, strBuffer.Length);
+                client = WebUtil.GetNewGlobalHttpClient(-1);
+
+                request = new(HttpMethod.Post, m_uri);
+                request.Headers.ExpectContinue = false;
+                request.Headers.TransferEncodingChunked = false;
+                request.Headers.TryAddWithoutValidation("Connection", "close");
+
+                request.Content = new ByteArrayContent(buffer);
+                request.Content.Headers.TryAddWithoutValidation("Content-Type", "application/json");
+                request.Content.Headers.TryAddWithoutValidation("Content-Length", buffer.Length.ToString());
+
+                responseMessage = client.Send(request, HttpCompletionOption.ResponseContentRead);
+                responseMessage.EnsureSuccessStatusCode();
             }
             catch(Exception e)
             {
@@ -300,8 +306,9 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
             }
             finally
             {
-                if (os != null)
-                    os.Dispose();
+                request?.Dispose();
+                responseMessage?.Dispose();
+                client?.Dispose();
             }
         }
     }

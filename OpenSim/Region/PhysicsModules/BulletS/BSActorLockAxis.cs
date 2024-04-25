@@ -162,9 +162,6 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 // http://www.bulletphysics.org/Bullet/phpBB3/viewtopic.php?p=20817
                 // http://www.bulletphysics.org/Bullet/phpBB3/viewtopic.php?p=26380
     
-                // Remove any existing axis constraint (just to be sure)
-                RemoveAxisLockConstraint();
-    
                 BSConstraint6Dof axisConstrainer = new BSConstraint6Dof(m_physicsScene.World, m_controllingPrim.PhysBody,
                                     OMV.Vector3.Zero, OMV.Quaternion.Identity,
                                     false /* useLinearReferenceFrameB */, true /* disableCollisionsBetweenLinkedBodies */);

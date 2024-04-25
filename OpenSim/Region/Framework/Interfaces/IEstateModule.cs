@@ -26,6 +26,7 @@
  */
 
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Services.Interfaces;
 
@@ -72,5 +73,6 @@ namespace OpenSim.Region.Framework.Interfaces
             bool externallyVisible, bool allowDirectTeleport, bool denyAnonymous, bool denyAgeUnverified,
             bool alloVoiceChat, bool overridePublicAccess, bool allowEnvironmentOverride);
         void HandleRegionInfoRequest(IClientAPI remote_client);
+        bool SetRegionInfobyCap(OSDMap map);
     }
 }

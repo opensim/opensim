@@ -298,16 +298,29 @@ namespace pCampBot
             Array.ForEach<string>(
                 startupConfig.GetString("behaviours", "p").Split(new char[] { ',' }), b => m_defaultBehaviourSwitches.Add(b));
 
-            for (int i = 0; i < botcount; i++)
+            if(botcount == 1)
             {
                 lock (m_bots)
                 {
-                    string lastName = string.Format("{0}{1}", m_lastNameStem, i + m_fromBotNumber);
-
                     CreateBot(
                         this,
                         CreateBehavioursFromAbbreviatedNames(m_defaultBehaviourSwitches),
-                        m_firstName, lastName, m_password, m_loginUri, m_startUri, m_wearSetting);
+                        m_firstName, m_lastNameStem, m_password, m_loginUri, m_startUri, m_wearSetting);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < botcount; i++)
+                {
+                    lock (m_bots)
+                    {
+                        string lastName = string.Format("{0}{1}", m_lastNameStem, i + m_fromBotNumber);
+
+                        CreateBot(
+                            this,
+                            CreateBehavioursFromAbbreviatedNames(m_defaultBehaviourSwitches),
+                            m_firstName, lastName, m_password, m_loginUri, m_startUri, m_wearSetting);
+                    }
                 }
             }
         }

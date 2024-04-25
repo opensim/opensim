@@ -68,7 +68,7 @@ namespace OpenSim.Capabilities.Handlers
             }
             httpResponse.StatusCode = (int)HttpStatusCode.OK;
 
-            List<LLSDFetchInventoryDescendents> folders = null;
+            List<LLSDFetchInventoryDescendents> folders;
             List<UUID> bad_folders = new List<UUID>();
             try
             {
@@ -77,10 +77,10 @@ namespace OpenSim.Capabilities.Handlers
                 httpRequest.InputStream.Dispose();
 
                 OSDMap map = (OSDMap)tmp;
-                if(map.TryGetValue("folders", out tmp) && tmp is OSDArray)
-                    foldersrequested = tmp as OSDArray;
+                if(map.TryGetValue("folders", out tmp) && tmp is OSDArray frtmp)
+                    foldersrequested = frtmp;
 
-                if (foldersrequested == null || foldersrequested.Count == 0)
+                if (foldersrequested is null || foldersrequested.Count == 0)
                 {
                     httpResponse.RawBuffer = EmptyResponse;
                     return;
@@ -125,7 +125,7 @@ namespace OpenSim.Capabilities.Handlers
                 return;
             }
 
-            if (folders == null || folders.Count == 0)
+            if (folders is null || folders.Count == 0)
             {
                 if(bad_folders.Count == 0)
                 {
@@ -234,7 +234,6 @@ namespace OpenSim.Capabilities.Handlers
                     invcollSet[i] = null;
                 }
                 LLSDxmlEncode2.AddEndArrayAndMap(lastresponse);
-                thiscoll = null;
             }
             else
             {
@@ -260,7 +259,7 @@ namespace OpenSim.Capabilities.Handlers
                 int limit = 9;
                 foreach (UUID bad in bad_folders)
                 {
-                    sb.Append(" ");
+                    sb.Append(' ');
                     sb.Append(bad.ToString());
                     if(--limit < 0)
                         break;

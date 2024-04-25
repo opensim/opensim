@@ -219,8 +219,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         // Update stats
                         Interlocked.Add(ref removedPacket.Client.UnackedBytes, -removedPacket.Buffer.DataLength);
-
-                        removedPacket.Client.FreeUDPBuffer(removedPacket.Buffer);
+                        OpenSimUDPBase.FreeUDPBuffer(removedPacket.Buffer);
                         removedPacket.Buffer = null;
                     }
                 }
@@ -247,7 +246,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         {
                             Interlocked.Add(ref ackedPacket.Client.UnackedBytes, -ackedPacket.Buffer.DataLength);
 
-                            ackedPacket.Client.FreeUDPBuffer(ackedPacket.Buffer);
+                            OpenSimUDPBase.FreeUDPBuffer(ackedPacket.Buffer);
                             ackedPacket.Buffer = null;
                         }
                         // As with other network applications, assume that an acknowledged packet is an

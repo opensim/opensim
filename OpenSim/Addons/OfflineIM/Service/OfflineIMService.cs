@@ -28,10 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
-using System.Runtime.Serialization;
 using System.Text;
-using System.Timers;
 using System.Xml;
 using System.Xml.Serialization;
 using log4net;
@@ -40,21 +37,59 @@ using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Data;
 using OpenSim.Framework;
+using OpenSim.Services.Base;
 using OpenSim.Services.Interfaces;
 
 namespace OpenSim.OfflineIM
 {
-    public class OfflineIMService : OfflineIMServiceBase, IOfflineIMService
+    public class OfflineIMService : ServiceBase, IOfflineIMService
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private const int MAX_IM = 25;
-
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private IOfflineIMData m_Database = null;
+        private int m_MaxOfflineIMs = 25;
         private XmlSerializer m_serializer;
         private static bool m_Initialized = false;
 
-        public OfflineIMService(IConfigSource config)
-            : base(config)
+        public OfflineIMService(IConfigSource config) : base(config)
         {
+            string dllName = string.Empty;
+            string connString = string.Empty;
+            string realm = "im_offline";
+
+            //
+            // Try reading the [DatabaseService] section, if it exists
+            //
+            IConfig dbConfig = config.Configs["DatabaseService"];
+            if (dbConfig is not null)
+            {
+                if (dllName.Length == 0)
+                    dllName = dbConfig.GetString("StorageProvider", string.Empty);
+                if (connString.Length == 0)
+                    connString = dbConfig.GetString("ConnectionString", string.Empty);
+            }
+
+            //
+            // [Messaging] section overrides [DatabaseService], if it exists
+            //
+            IConfig imConfig = config.Configs["Messaging"];
+            if (imConfig is not null)
+            {
+                dllName = imConfig.GetString("StorageProvider", dllName);
+                connString = imConfig.GetString("ConnectionString", connString);
+                realm = imConfig.GetString("Realm", realm);
+                m_MaxOfflineIMs = imConfig.GetInt("MaxOfflineIMs", m_MaxOfflineIMs);
+            }
+
+            //
+            // We tried, but this doesn't exist. We can't proceed.
+            //
+            if (string.IsNullOrEmpty(dllName))
+                throw new Exception("No StorageProvider configured");
+
+            m_Database = LoadPlugin<IOfflineIMData>(dllName, new Object[] { connString, realm });
+            if (m_Database is null)
+                throw new Exception("Could not find a storage interface in the given module " + dllName);
+
             m_serializer = new XmlSerializer(typeof(GridInstantMessage));
             if (!m_Initialized)
             {
@@ -68,8 +103,7 @@ namespace OpenSim.OfflineIM
             List<GridInstantMessage> ims = new List<GridInstantMessage>();
 
             OfflineIMData[] messages = m_Database.Get("PrincipalID", principalID.ToString());
-
-            if (messages == null || (messages != null && messages.Length == 0))
+            if (messages is  null || messages.Length == 0)
                 return ims;
 
             foreach (OfflineIMData m in messages)
@@ -94,7 +128,7 @@ namespace OpenSim.OfflineIM
             // Check limits
             UUID principalID = new UUID(im.toAgentID);
             long count = m_Database.GetCount("PrincipalID", principalID.ToString());
-            if (count >= MAX_IM)
+            if (count >= m_MaxOfflineIMs)
             {
                 reason = "Number of offline IMs has maxed out";
                 return false;

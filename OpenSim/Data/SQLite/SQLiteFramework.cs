@@ -44,8 +44,7 @@ namespace OpenSim.Data.SQLite
 
         protected SQLiteFramework(string connectionString)
         {
-            if (Util.IsWindows())
-                Util.LoadArchSpecificWindowsDll("sqlite3.dll");
+            DllmapConfigHelper.RegisterAssembly(typeof(SQLiteConnection).Assembly);
         }
 
         //////////////////////////////////////////////////////////////

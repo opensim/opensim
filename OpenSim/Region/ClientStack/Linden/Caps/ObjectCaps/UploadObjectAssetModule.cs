@@ -26,27 +26,20 @@
  */
 
 using System;
-using System.Collections;
 using System.Net;
 using System.Reflection;
-using System.IO;
-using System.Web;
 using Mono.Addins;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
-using OpenMetaverse.StructuredData;
 using OpenMetaverse.Messages.Linden;
 using OpenSim.Framework;
-using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Services.Interfaces;
 using Caps = OpenSim.Framework.Capabilities.Caps;
 using OSD = OpenMetaverse.StructuredData.OSD;
 using OSDMap = OpenMetaverse.StructuredData.OSDMap;
-using OpenSim.Framework.Capabilities;
 using ExtraParamType = OpenMetaverse.ExtraParamType;
 
 namespace OpenSim.Region.ClientStack.Linden
@@ -145,7 +138,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             try
             {
-                Vector3 pos = avatar.AbsolutePosition + (Vector3.UnitX * avatar.Rotation);
+                Vector3 pos = avatar.AbsolutePosition + Vector3.UnitXRotated(avatar.Rotation);
                 Quaternion rot = Quaternion.Identity;
                 Vector3 rootpos = Vector3.Zero;
 
@@ -300,7 +293,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     rootGroup.LinkToGroup(allparts[j]);
                 }
 
-                rootGroup.ScheduleGroupForFullAnimUpdate();
+                rootGroup.ScheduleGroupForUpdate(PrimUpdateFlags.FullUpdatewithAnimMatOvr);
 
                 httpResponse.StatusCode = (int)HttpStatusCode.OK;
                 httpResponse.RawBuffer = Util.UTF8NBGetbytes(String.Format("<llsd><map><key>local_id</key>{0}</map></llsd>", ConvertUintToBytes(allparts[0].LocalId)));

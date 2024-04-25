@@ -199,7 +199,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_scene = scene;
                 m_hgassets = HGAssetSVC;
 
-                HasEvents = (requestID, agentID) =>
+                HasEvents = delegate(UUID requestID, UUID _)
                 {
                     lock (responses)
                     {
@@ -207,7 +207,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     }
                 };
 
-                Drop = (requestID, y) =>
+                Drop = delegate(UUID requestID, UUID _)
                 {
                     lock (responses)
                     {
@@ -217,47 +217,48 @@ namespace OpenSim.Region.ClientStack.Linden
                     }
                 };
 
-                GetEvents = (requestID, y) =>
+                GetEvents = delegate(UUID requestID, UUID _)
                 {
                     lock (responses)
                     {
-                        try
+                        if(responses.Remove(requestID, out APollResponse apr))
                         {
-                            OSHttpResponse response = responses[requestID].osresponse;
+                            OSHttpResponse response = apr.osresponse;
                             if (response.Priority < 0)
                                 response.Priority = 0;
 
-                            Hashtable lixo = new Hashtable(1);
-                            lixo["h"] = response;
+                            Hashtable lixo = new()
+                            {
+                                ["h"] = response
+                            };
                             return lixo;
                         }
-                        finally
-                        {
-                            responses.Remove(requestID);
-                        }
                     }
+                    return new Hashtable();
                 };
-                // x is request id, y is request data hashtable
-                Request = (requestID, request) =>
+                
+                Request = delegate (UUID requestID, OSHttpRequest request)
                 {
-                    APollRequest reqinfo = new APollRequest();
-                    reqinfo.thepoll = this;
-                    reqinfo.reqID = requestID;
-                    reqinfo.request = request;
+                    APollRequest reqinfo = new()
+                    {
+                        thepoll = this,
+                        reqID = requestID,
+                        request = request
+                    };
 
                     m_workerpool.Enqueue(reqinfo);
                     return null;
                 };
 
                 // this should never happen except possible on shutdown
-                NoEvents = (x, y) =>
+                NoEvents = delegate (UUID _, UUID _)
                 {
                     /*
-                                        lock (requests)
-                                        {
-                                            Hashtable request = requests.Find(id => id["RequestID"].ToString() == x.ToString());
-                                            requests.Remove(request);
-                                        }
+                    lock (requests)
+                    {
+                        Hashtable request = requests.Find(id => id["RequestID"].ToString() == x.ToString());
+                        requests.Remove(request);
+                    }
                     */
                     Hashtable response = new Hashtable();
 

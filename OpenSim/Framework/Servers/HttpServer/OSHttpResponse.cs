@@ -29,6 +29,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using OSHttpServer;
+using System.Runtime.CompilerServices;
 
 namespace OpenSim.Framework.Servers.HttpServer
 {
@@ -47,15 +48,11 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// </remarks>
         public virtual string ContentType
         {
-            get
-            {
-                return _httpResponse.ContentType;
-            }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return _httpResponse.ContentType; }
 
-            set
-            {
-                _httpResponse.ContentType = value;
-            }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set { _httpResponse.ContentType = value; }
         }
 
         /// <summary>
@@ -77,15 +74,11 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// </summary>
         public long ContentLength
         {
-            get
-            {
-                return _httpResponse.ContentLength;
-            }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return _httpResponse.ContentLength; }
 
-            set
-            {
-                _httpResponse.ContentLength = value;
-            }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set { _httpResponse.ContentLength = value; }
         }
 
         /// <summary>
@@ -93,7 +86,10 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// </summary>
         public long ContentLength64
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return ContentLength; }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set { ContentLength = value; }
         }
 
@@ -102,31 +98,20 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// </summary>
         public Encoding ContentEncoding
         {
-            get
-            {
-                return _httpResponse.Encoding;
-            }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return _httpResponse.Encoding; }
 
-            set
-            {
-                _httpResponse.Encoding = value;
-            }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set { _httpResponse.Encoding = value; }
         }
 
         public bool KeepAlive
         {
-            get
-            {
-                return _httpResponse.Connection == ConnectionType.KeepAlive;
-            }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return _httpResponse.Connection == ConnectionType.KeepAlive; }
 
-            set
-            {
-                if (value)
-                    _httpResponse.Connection = ConnectionType.KeepAlive;
-                else
-                    _httpResponse.Connection = ConnectionType.Close;
-            }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set { _httpResponse.Connection = value ? ConnectionType.KeepAlive : ConnectionType.Close; }
         }
 
         /// <summary>
@@ -136,11 +121,10 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// </summary>
         public int KeepAliveTimeout
         {
-            get
-            {
-                return _httpResponse.KeepAlive;
-            }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return _httpResponse.KeepAlive; }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
                 if (value == 0)
@@ -148,7 +132,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                     _httpResponse.Connection = ConnectionType.Close;
                     _httpResponse.KeepAlive = 0;
                 }
-
                 else
                 {
                     _httpResponse.Connection = ConnectionType.KeepAlive;
@@ -165,23 +148,17 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// </remarks>
         public Stream OutputStream
         {
-            get
-            {
-                return _httpResponse.Body;
-            }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return _httpResponse.Body; }
         }
 
         public string ProtocolVersion
         {
-            get
-            {
-                return _httpResponse.ProtocolVersion;
-            }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return _httpResponse.ProtocolVersion; }
 
-            set
-            {
-                _httpResponse.ProtocolVersion = value;
-            }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set { _httpResponse.ProtocolVersion = value; }
         }
 
         /// <summary>
@@ -189,58 +166,44 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// </summary>
         public Stream Body
         {
-            get
-            {
-                return _httpResponse.Body;
-            }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return _httpResponse.Body; }
         }
 
         public byte[] RawBuffer
         {
-            get
-            {
-                return _httpResponse.RawBuffer;
-            }
-            set
-            {
-                _httpResponse.RawBuffer = value;
-            }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return _httpResponse.RawBuffer; }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set { _httpResponse.RawBuffer = value; }
         }
 
         public int RawBufferStart
         {
-            get
-            {
-                return _httpResponse.RawBufferStart;
-            }
-            set
-            {
-                _httpResponse.RawBufferStart = value;
-            }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return _httpResponse.RawBufferStart; }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set { _httpResponse.RawBufferStart = value; }
         }
 
         public int RawBufferLen
         {
-            get
-            {
-                return _httpResponse.RawBufferLen;
-            }
-            set
-            {
-                _httpResponse.RawBufferLen = value;
-            }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return _httpResponse.RawBufferLen; }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set { _httpResponse.RawBufferLen = value; }
         }
 
         public int Priority
         {
-            get
-            {
-                return _httpResponse.Priority;
-            }
-            set
-            {
-                _httpResponse.Priority = value;
-            }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return _httpResponse.Priority; }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set { _httpResponse.Priority = value; }
         }
 
         /// <summary>
@@ -248,15 +211,11 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// </summary>
         public bool SendChunked
         {
-            get
-            {
-               return _httpResponse.Chunked;
-            }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return _httpResponse.Chunked; }
 
-            set
-            {
-               _httpResponse.Chunked = value;
-            }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set { _httpResponse.Chunked = value; }
         }
 
         /// <summary>
@@ -264,20 +223,17 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// </summary>
         public virtual int StatusCode
         {
-            get
-            {
-                return (int)_httpResponse.Status;
-            }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return (int)_httpResponse.Status; }
 
-            set
-            {
-                _httpResponse.Status = (HttpStatusCode)value;
-            }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set { _httpResponse.Status = (HttpStatusCode)value; }
         }
 
         public double RequestTS
         {
-            get {return _httpResponse.RequestTS; }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return _httpResponse.RequestTS; }
         }
 
         /// <summary>
@@ -285,18 +241,14 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// </summary>
         public string StatusDescription
         {
-            get
-            {
-                return _httpResponse.Reason;
-            }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return _httpResponse.Reason; }
 
-            set
-            {
-                _httpResponse.Reason = value;
-            }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set { _httpResponse.Reason = value; }
         }
 
-        protected IHttpResponse _httpResponse;
+        protected readonly IHttpResponse _httpResponse;
 
         public OSHttpResponse() {}
 
@@ -326,6 +278,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// </summary>
         /// <param name="url">redirection target url</param>
         /// <param name="redirStatusCode">the response Status, must be Found, Redirect, Moved,MovedPermanently,RedirectKeepVerb, RedirectMethod, TemporaryRedirect. Defaults to Redirect</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Redirect(string url, HttpStatusCode redirStatusCode = HttpStatusCode.Redirect)
         {
             _httpResponse.Redirect(url, redirStatusCode);
@@ -338,6 +291,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// name</param>
         /// <param name="value">string containing the header field
         /// value</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddHeader(string key, string value)
         {
             _httpResponse.AddHeader(key, value);
@@ -346,6 +300,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// <summary>
         /// Send the response back to the remote client
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Send()
         {
             _httpResponse.Chunked = false;

@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Net;
+using System.Net.Http.Headers;
 
 namespace OpenSim.Framework.ServiceAuth
 {
@@ -57,6 +58,12 @@ namespace OpenSim.Framework.ServiceAuth
         }
 
         public void AddAuthorization(NameValueCollection headers)
+        {
+            foreach (IServiceAuth auth in m_authentications)
+                auth.AddAuthorization(headers);
+        }
+
+        public void AddAuthorization(HttpRequestHeaders headers)
         {
             foreach (IServiceAuth auth in m_authentications)
                 auth.AddAuthorization(headers);

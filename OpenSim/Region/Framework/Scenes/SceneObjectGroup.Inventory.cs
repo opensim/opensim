@@ -91,7 +91,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
-                parts[i].Inventory.RemoveScriptInstances(sceneObjectBeingDeleted);
+                parts[i]?.Inventory?.RemoveScriptInstances(sceneObjectBeingDeleted);
         }
 
         /// <summary>
@@ -101,7 +101,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             SceneObjectPart[] parts = m_parts.GetArray();
             for(int i = 0; i < parts.Length; ++i)
-                parts[i].Inventory.StopScriptInstances();
+                parts[i]?.Inventory?.StopScriptInstances();
         }
 
         public void SendReleaseScriptsControl()
@@ -142,7 +142,7 @@ namespace OpenSim.Region.Framework.Scenes
             UUID newItemId = copyItemID.IsZero() ? item.ID : copyItemID;
 
             SceneObjectPart part = GetPart(localID);
-            if (part == null)
+            if (part is null)
             {
                 m_log.ErrorFormat(
                     "[PRIM INVENTORY]: " +
@@ -151,28 +151,25 @@ namespace OpenSim.Region.Framework.Scenes
                 return false;
             }
 
-            TaskInventoryItem taskItem = new TaskInventoryItem();
-
-            taskItem.ItemID = newItemId;
-            taskItem.AssetID = item.AssetID;
-            taskItem.Name = item.Name;
-            taskItem.Description = item.Description;
-            taskItem.OwnerID = part.OwnerID; // Transfer ownership
-            taskItem.CreatorID = item.CreatorIdAsUuid;
-            taskItem.Type = item.AssetType;
-            taskItem.InvType = item.InvType;
-            taskItem.Flags = item.Flags;
-
-            if (agentID != part.OwnerID && m_scene.Permissions.PropagatePermissions())
+            TaskInventoryItem taskItem = new()
             {
-                taskItem.BasePermissions = item.BasePermissions &
-                        item.NextPermissions;
-                taskItem.CurrentPermissions = item.CurrentPermissions &
-                        item.NextPermissions;
-                taskItem.EveryonePermissions = item.EveryOnePermissions &
-                        item.NextPermissions;
-                taskItem.GroupPermissions = item.GroupPermissions &
-                        item.NextPermissions;
+                ItemID = newItemId,
+                AssetID = item.AssetID,
+                Name = item.Name,
+                Description = item.Description,
+                OwnerID = part.OwnerID, // Transfer ownership
+                CreatorID = item.CreatorIdAsUuid,
+                Type = item.AssetType,
+                InvType = item.InvType,
+                Flags = item.Flags
+            };
+
+            if (agentID.NotEqual(part.OwnerID) && m_scene.Permissions.PropagatePermissions())
+            {
+                taskItem.BasePermissions = item.BasePermissions & item.NextPermissions;
+                taskItem.CurrentPermissions = item.CurrentPermissions & item.NextPermissions;
+                taskItem.EveryonePermissions = item.EveryOnePermissions & item.NextPermissions;
+                taskItem.GroupPermissions = item.GroupPermissions & item.NextPermissions;
                 taskItem.NextPermissions = item.NextPermissions;
                 // We're adding this to a prim we don't own. Force
                 // owner change
@@ -219,7 +216,7 @@ namespace OpenSim.Region.Framework.Scenes
         public TaskInventoryItem GetInventoryItem(uint primID, UUID itemID)
         {
             SceneObjectPart part = GetPart(primID);
-            if (part != null)
+            if (part is not null)
             {
                 return part.Inventory.GetInventoryItem(itemID);
             }
@@ -243,7 +240,7 @@ namespace OpenSim.Region.Framework.Scenes
         public bool UpdateInventoryItem(TaskInventoryItem item)
         {
             SceneObjectPart part = GetPart(item.ParentPartID);
-            if (part != null)
+            if (part is not null)
             {
                 part.Inventory.UpdateInventoryItem(item);
 
@@ -263,7 +260,7 @@ namespace OpenSim.Region.Framework.Scenes
         public int RemoveInventoryItem(uint localID, UUID itemID)
         {
             SceneObjectPart part = GetPart(localID);
-            if (part != null)
+            if (part is not null)
             {
                 int type = part.Inventory.RemoveInventoryItem(itemID);
 
@@ -274,7 +271,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         // new test code, to place in better place later
-        private object m_PermissionsLock = new object();
+        private readonly object m_PermissionsLock = new();
         private bool m_EffectivePermsInvalid = true;
         private bool m_DeepEffectivePermsInvalid = true;
 
@@ -494,7 +491,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public string GetStateSnapshot()
         {
-            Dictionary<UUID, string> states = new Dictionary<UUID, string>();
+            Dictionary<UUID, string> states = new();
 
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
@@ -505,28 +502,25 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             if (states.Count < 1)
-                return String.Empty;
+                return string.Empty;
 
-            XmlDocument xmldoc = new XmlDocument();
+            XmlDocument xmldoc = new();
 
-            XmlNode xmlnode = xmldoc.CreateNode(XmlNodeType.XmlDeclaration,
-                    String.Empty, String.Empty);
+            XmlNode xmlnode = xmldoc.CreateNode(XmlNodeType.XmlDeclaration, string.Empty, string.Empty);
 
             xmldoc.AppendChild(xmlnode);
-            XmlElement rootElement = xmldoc.CreateElement("", "ScriptData",
-                    String.Empty);
+            XmlElement rootElement = xmldoc.CreateElement("", "ScriptData", string.Empty);
 
             xmldoc.AppendChild(rootElement);
 
 
-            XmlElement wrapper = xmldoc.CreateElement("", "ScriptStates",
-                    String.Empty);
+            XmlElement wrapper = xmldoc.CreateElement("", "ScriptStates", string.Empty);
 
             rootElement.AppendChild(wrapper);
 
             foreach (KeyValuePair<UUID, string> state in states)
             {
-                XmlDocument sdoc = new XmlDocument();
+                XmlDocument sdoc = new();
                 sdoc.LoadXml(state.Value);
                 XmlNodeList rootL = sdoc.GetElementsByTagName("State");
                 XmlNode rootNode = rootL[0];
@@ -540,10 +534,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SetState(string objXMLData, IScene ins)
         {
-            if (!(ins is Scene))
+            if (ins is not Scene s)
                 return;
-
-            Scene s = (Scene)ins;
 
             if (objXMLData.Length == 0)
                 return;
@@ -554,14 +546,14 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (sm.ScriptEngineName == s.DefaultScriptEngine)
                     scriptModule = sm;
-                else if (scriptModule == null)
-                    scriptModule = sm;
+                else
+                    scriptModule ??= sm;
             }
 
-            if (scriptModule == null)
+            if (scriptModule is null)
                 return;
 
-            XmlDocument doc = new XmlDocument();
+            XmlDocument doc = new();
             try
             {
                 doc.LoadXml(objXMLData);
@@ -592,7 +584,7 @@ namespace OpenSim.Region.Framework.Scenes
             foreach (XmlNode n in dataE.ChildNodes)
             {
                 XmlElement stateE = (XmlElement)n;
-                UUID itemID = new UUID(stateE.GetAttribute("UUID"));
+                UUID itemID = new(stateE.GetAttribute("UUID"));
 
                 scriptModule.SetXMLState(itemID, n.OuterXml);
             }

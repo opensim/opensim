@@ -324,10 +324,8 @@ namespace OpenSim.Framework.Console
                     m_cursorYPosition = SetCursorZeroLeft(m_cursorYPosition);
 
                     int count = m_commandLine.Length + prompt.Length;
-                    char[] spaces = new char[count];
-                    for(int i = 0; i < spaces.Length; i++)
-                        spaces[i] = ' ';
-                    System.Console.Write(spaces);
+                    if(count > 0)
+                        System.Console.Write(new string(' ', count));
 
                     m_cursorYPosition = SetCursorZeroLeft(m_cursorYPosition);
                 }
@@ -444,11 +442,12 @@ namespace OpenSim.Framework.Console
                 m_cursorYPosition = SetCursorZeroLeft(m_cursorYPosition);
 
                 int count = m_commandLine.Length + prompt.Length - text.Length;
-
                 WriteLocalText(text, level);
-                for (int i = 0; i < count; ++i)
-                    System.Console.Write(" ");
-                System.Console.WriteLine();
+                if(count > 0)
+                    System.Console.WriteLine(new string(' ', count));
+                else
+                    System.Console.WriteLine();
+
                 m_cursorYPosition = System.Console.CursorTop;
                 Show();
             }
@@ -496,8 +495,8 @@ namespace OpenSim.Framework.Console
             {
                 Show();
                 //Reduce collisions with internal read terminal information like cursor position on linux
-                //while(System.Console.KeyAvailable == false)
-                //    Thread.Sleep(100);
+                while(System.Console.KeyAvailable == false)
+                    Thread.Sleep(100);
 
                 ConsoleKeyInfo key = System.Console.ReadKey(true);
 

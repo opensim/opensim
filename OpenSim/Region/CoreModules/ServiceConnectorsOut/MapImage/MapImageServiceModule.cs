@@ -224,7 +224,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
             }
             else
             {
-            m_log.DebugFormat("{0} Upload {1} maptiles for {2}", LogHeader,
+                m_log.DebugFormat("{0} Upload {1} maptiles for {2}", LogHeader,
                     (mapTile.Width * mapTile.Height) / (Constants.RegionSize * Constants.RegionSize),
                     scene.Name);
 

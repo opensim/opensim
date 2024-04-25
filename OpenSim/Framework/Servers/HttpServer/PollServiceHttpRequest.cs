@@ -73,14 +73,14 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             OSHttpResponse response = new OSHttpResponse(new HttpResponse(Request));
 
-            if (responsedata == null)
+            if (responsedata is null)
             {
                 SendNoContentError(response);
                 return;
             }
 
             int responsecode = 200;
-            string responseString = String.Empty;
+            string responseString = null;
             string contentType;
             byte[] buffer = null;
             int rangeStart = 0;
@@ -105,10 +105,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 }
                 else
                     responseString = (string)responsedata["str_response_string"];
-
                 contentType = (string)responsedata["content_type"];
-                if (responseString == null)
-                    responseString = String.Empty;
             }
             catch
             {
@@ -158,7 +155,9 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             if(buffer == null)
             {
-                if (contentType != null && (!(contentType.Contains("image")
+                if(string.IsNullOrEmpty(responseString))
+                    buffer = Array.Empty<byte>();
+                else if (contentType != null && (!(contentType.Contains("image")
                     || contentType.Contains("x-shockwave-flash")
                     || contentType.Contains("application/x-oar")
                     || contentType.Contains("application/vnd.ll.mesh"))))

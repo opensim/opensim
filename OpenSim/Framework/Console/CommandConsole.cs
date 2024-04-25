@@ -670,7 +670,7 @@ namespace OpenSim.Framework.Console
             {
                 if (index % 2 == 0)
                 {
-                    string[] words = unquoted[index].Split(new char[] {' '});
+                    string[] words = unquoted[index].Split();
 
                     bool option = false;
                     foreach (string w in words)
