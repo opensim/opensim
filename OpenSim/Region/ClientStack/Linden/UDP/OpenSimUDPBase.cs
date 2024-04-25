@@ -26,16 +26,24 @@
  */
 
 using System;
-using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
 using log4net;
 using OpenSim.Framework;
-using OpenSim.Framework.Monitoring;
+using OpenMetaverse;
+using OpenMetaverse.Packets;
 
-namespace OpenMetaverse
+namespace OpenSim.Region.ClientStack.LindenUDP
 {
+    public readonly struct IncomingPacket(LLClientView client, Packet packet)
+    {
+        /// <summary>Client this packet came from</summary>
+        public readonly LLClientView Client = client;
+
+        /// <summary>Packet data that has been received</summary>
+        public readonly Packet Packet = packet;
+    }
+
     /// <summary>
     /// Base UDP server
     /// </summary>
@@ -126,7 +134,7 @@ namespace OpenMetaverse
                 try { m_udpSocket.Close(); } catch { }
         }
 
-        public UDPPacketBuffer GetNewUDPBuffer(IPEndPoint remoteEndpoint)
+        public static UDPPacketBuffer GetNewUDPBuffer(IPEndPoint remoteEndpoint)
         {
             lock (m_udpBuffersPoolLock)
             {
@@ -143,7 +151,7 @@ namespace OpenMetaverse
             return new UDPPacketBuffer(remoteEndpoint);
         }
 
-        public void FreeUDPBuffer(UDPPacketBuffer buf)
+        public static void FreeUDPBuffer(UDPPacketBuffer buf)
         {
             lock (m_udpBuffersPoolLock)
             {
@@ -257,6 +265,7 @@ namespace OpenMetaverse
 
                 IsRunningInbound = false;
                 m_udpSocket.Close();
+                m_udpSocket = null;
             }
         }
 

@@ -16,7 +16,7 @@ Please see BUILDING.md
 
 # Running OpenSim on Windows
 
-You will need dotnet 6.0 runtime (https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
+You will need dotnet 8.0 runtime (https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
 
 
 To run OpenSim from a command prompt
@@ -30,7 +30,7 @@ To run OpenSim from a command prompt
 
 You will need
 
- * [dotnet 6.0 Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
+ * [dotnet 8.0 Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
  * libgdiplus 
  
  if you have mono 6.x complete, you already have libgdiplus, otherwise you need to install it

@@ -263,7 +263,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             NameValueCollection q = m_request.QueryString;
             _queryAsDictionay = new Dictionary<string, string>();
             m_queryFlags = new HashSet<string>();
-            for(int i = 0; i <q.Count; ++i)
+            for(int i = 0; i < q.Count; ++i)
             {
                 try
                 {

@@ -257,7 +257,6 @@ namespace OpenSim.Framework.Monitoring
                     m_log.DebugFormat("[{0}]: Processed job {1}",LoggingName,currentJob.Name);
 
                 currentJob.Action = null;
-                currentJob = null;
             }
             lock (JobLock)
                 --m_numberThreads;

@@ -15,7 +15,7 @@ get or update source from git
   dotnet 8.0 is the LTS version and is recommended.
   To building under Windows, the following is required:
 
-  * [dotnet 6.0 SDK, Runtime and Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
+  * [dotnet 8.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
 
 optionally also
 
@@ -47,9 +47,7 @@ The resulting build will be generated to ./build/{Debug|Release}/
 
 ## Requirements
 
- * [Microsoft DotNet 6.0 or later](https://dotnet.microsoft.com/en-us/download). 
-    dotnet 8.0 is the LTS version and is recommended.
- * [dotnet 6.0 SDK and Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
+ * [dotnet 8.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
  * libgdiplus 
  
  if you have mono 6.x complete, you already have libgdiplus, otherwise you need to install it

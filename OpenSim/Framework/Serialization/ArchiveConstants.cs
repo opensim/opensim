@@ -29,7 +29,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using OpenMetaverse;
-using OpenSimAssetType = OpenSim.Framework.SLUtil.OpenSimAssetType;
 
 namespace OpenSim.Framework.Serialization
 {
@@ -125,7 +124,7 @@ namespace OpenSim.Framework.Serialization
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.SoundWAV]            = ASSET_EXTENSION_SEPARATOR + "sound.wav";
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Texture]             = ASSET_EXTENSION_SEPARATOR + "texture.jp2";
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.TextureTGA]          = ASSET_EXTENSION_SEPARATOR + "texture.tga";
-            ASSET_TYPE_TO_EXTENSION[(sbyte)OpenSimAssetType.Material]     = ASSET_EXTENSION_SEPARATOR + "material.xml";
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.OSMaterial]          = ASSET_EXTENSION_SEPARATOR + "material.xml";
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Settings]            = ASSET_EXTENSION_SEPARATOR + "settings.bin";
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Material]            = ASSET_EXTENSION_SEPARATOR + "prmat.dat";
 
@@ -148,7 +147,7 @@ namespace OpenSim.Framework.Serialization
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "sound.wav"]                = (sbyte)AssetType.SoundWAV;
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "texture.jp2"]              = (sbyte)AssetType.Texture;
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "texture.tga"]              = (sbyte)AssetType.TextureTGA;
-            EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "material.xml"]             = (sbyte)OpenSimAssetType.Material;
+            EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "material.xml"]             = (sbyte)AssetType.OSMaterial;
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "settings.bin"]             = (sbyte)AssetType.Settings;
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "prmat.dat"]                = (sbyte)AssetType.Material;
         }

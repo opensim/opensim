@@ -906,11 +906,11 @@ namespace OpenSim.Data.MySQL
                          "?Elevation2SE, ?Elevation1SW, ?Elevation2SW, " +
                          "?WaterHeight, ?TerrainRaiseLimit, " +
                          "?TerrainLowerLimit, ?UseEstateSun, ?FixedSun, " +
-                         "?SunPosition, ?Covenant, ?CovenantChangedDateTime, ?Sandbox, " +
+                         "?SunPosition, ?Covenant, ?covenant_datetime, ?Sandbox, " +
                          "?SunVectorX, ?SunVectorY, ?SunVectorZ, " +
-                         "?LoadedCreationDateTime, ?LoadedCreationID, " +
-                         "?TerrainImageID, ?block_search, ?casino, " +
-                         "?TelehubObject, ?ParcelImageID, ?cacheID)";
+                         "?loaded_creation_datetime, ?loaded_creation_id, " +
+                         "?map_tile_ID, ?block_search, ?casino, " +
+                         "?TelehubObject, ?parcel_tile_ID, ?cacheID)";
 
                     FillRegionSettingsCommand(cmd, rs);
                     ExecuteNonQuery(cmd);
@@ -1691,14 +1691,14 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("FixedSun", settings.FixedSun);
             cmd.Parameters.AddWithValue("SunPosition", settings.SunPosition);
             cmd.Parameters.AddWithValue("Covenant", settings.Covenant.ToString());
-            cmd.Parameters.AddWithValue("CovenantChangedDateTime", settings.CovenantChangedDateTime);
-            cmd.Parameters.AddWithValue("LoadedCreationDateTime", settings.LoadedCreationDateTime);
-            cmd.Parameters.AddWithValue("LoadedCreationID", settings.LoadedCreationID);
-            cmd.Parameters.AddWithValue("TerrainImageID", settings.TerrainImageID.ToString());
+            cmd.Parameters.AddWithValue("covenant_datetime", settings.CovenantChangedDateTime);
+            cmd.Parameters.AddWithValue("loaded_creation_datetime", settings.LoadedCreationDateTime);
+            cmd.Parameters.AddWithValue("loaded_creation_id", settings.LoadedCreationID);
+            cmd.Parameters.AddWithValue("map_tile_ID", settings.TerrainImageID.ToString());
             cmd.Parameters.AddWithValue("block_search", settings.GodBlockSearch);
             cmd.Parameters.AddWithValue("casino", settings.Casino);
 
-            cmd.Parameters.AddWithValue("ParcelImageID", settings.ParcelImageID.ToString());
+            cmd.Parameters.AddWithValue("parcel_tile_ID", settings.ParcelImageID.ToString());
             cmd.Parameters.AddWithValue("TelehubObject", settings.TelehubObject.ToString());
             cmd.Parameters.AddWithValue("cacheID", settings.CacheID.ToString());
         }

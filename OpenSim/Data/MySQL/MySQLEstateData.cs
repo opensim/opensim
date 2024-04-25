@@ -44,8 +44,7 @@ namespace OpenSim.Data.MySQL
         private string m_connectionString;
 
         private FieldInfo[] m_Fields;
-        private Dictionary<string, FieldInfo> m_FieldMap =
-                new Dictionary<string, FieldInfo>();
+        private Dictionary<string, FieldInfo> m_FieldMap = new();
 
         protected virtual Assembly Assembly
         {
