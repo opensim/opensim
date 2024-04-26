@@ -339,7 +339,7 @@ namespace OpenSim.Server.Base
             Uri configUri;
 
             return Uri.TryCreate(file, UriKind.Absolute,
-                    out configUri) && configUri.Scheme == Uri.UriSchemeHttp;
+                    out configUri) && (configUri.Scheme == Uri.UriSchemeHttp || configUri.Scheme == Uri.UriSchemeHttps);
         }
 
         IConfigSource ReadConfigSource(string iniFile)
@@ -352,7 +352,7 @@ namespace OpenSim.Server.Base
             try
             {
                 if (Uri.TryCreate(iniFile, UriKind.Absolute, out configUri) &&
-                    configUri.Scheme == Uri.UriSchemeHttp)
+                    (configUri.Scheme == Uri.UriSchemeHttp || configUri.Scheme == Uri.UriSchemeHttps))
                 {
                     XmlReader r = XmlReader.Create(iniFile);
                     s = new XmlConfigSource(r);

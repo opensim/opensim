@@ -52,7 +52,7 @@
     ;# {BaseHostname} {} {BaseHostname} {"example.com" "127.0.0.1"} "127.0.0.1"
     BaseHostname = "127.0.0.1"
 
-    ;# {BaseURL} {} {BaseURL} {"http://${Const|BaseHostname}} "http://${Const|BaseHostname}"
+    ;# {BaseURL} {} {BaseURL} {"http://${Const|BaseHostname"}} "http://${Const|BaseHostname}"
     BaseURL = http://${Const|BaseHostname}
 
     ; If you run a grid, several services should not be availble to world, access to them should be blocked on firewall
@@ -328,9 +328,9 @@
 	;# {CertPassword} {} {set the certificate password} {} ""
 	CertPassword = "mycertpass"
 	
-	;; The certificate host name (domain or IP of this machine CN).
-	;# {CertHostName} {} {set the certificate host name} {} ${Const|BaseHostname}
-	CertHostName = ${Const|BaseHostname}
+	;; The certificate host name (domain or IP of this machine CN). Must be the same as "ExternalHostName" in Regions.ini
+	;# {CertHostName} {} {set the certificate host name} {} "myRegionsExternalHostName"
+	CertHostName = "myRegionsExternalHostName"
 	
 	;; The certificate host IP (IP of this machine).
 	;# {CertHostIp} {} {set the certificate host IP} {}
@@ -344,7 +344,7 @@
 
     ;; you can also bypass the hostname or domain verification
     ;# {NoVerifyCertHostname} {} {do not verify SSL Cert name versus peer name} {true false} true
-    ; NoVerifyCertHostname = false
+    ; NoVerifyCertHostname = true
     ;; having both options true does provide encryption but with low security
     ;; set both true if you don't care to use SSL, they are needed to contact regions or grids that do use it.
     
@@ -445,7 +445,7 @@
     ;;
     ;; If set to false, then, in theory, the server never carries out
     ;; permission checks (allowing anybody to copy
-    ;; any item, etc.  This may not yet be implemented uniformally.
+    ;; any item, etc).  This may not yet be implemented uniformally.
     ;; If set to true, then all permissions checks are carried out
     ; serverside_object_permissions = true
 
@@ -618,7 +618,7 @@
     ; currently if using ssl, regions ExternalHostName must the the same and equal to http_listener_cn
     ; this may be removed in future
     ;# {http_listener_cn}{} {main server ssl externalHostName} {} ""
-    ;http_listener_cn = ${Const|BaseHostname}
+    ;http_listener_cn = "myRegionsExternalHostName"
 
     ; the path for the certificate path
     ;# {http_listener_cert_path}{} {main server ssl certificate file path} {} ""
