@@ -33,6 +33,7 @@ using System.Reflection;
 using System.Threading;
 using log4net;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 
@@ -68,6 +69,7 @@ namespace OpenSim.Framework.Capabilities
         private readonly UUID m_agentID;
         private readonly string m_regionName;
         private ManualResetEvent m_capsActive = new(false);
+        private readonly string m_baseCapsURL;
 
         public UUID AgentID
         {
@@ -123,7 +125,8 @@ namespace OpenSim.Framework.Capabilities
             ObjectAnim =    0x100,
             WLEnv =         0x200,
             AdvEnv =        0x400,
-            PBR =           0x800
+            PBR =           0x800,
+            ViewerBenefits = 0x1000
         }
 
         public CapsFlags Flags { get; set;}
@@ -149,6 +152,15 @@ namespace OpenSim.Framework.Capabilities
             m_regionName = regionName;
             Flags = CapsFlags.None;
             m_capsActive.Reset();
+            if (MainServer.Instance.UseSSL)
+                m_baseCapsURL = $"https://{MainServer.Instance.SSLCommonName}:{MainServer.Instance.SSLPort}";
+            else
+            {
+                if (MainServer.Instance is null)
+                    m_baseCapsURL = $"http://{m_httpListenerHostName}:0";
+                else
+                    m_baseCapsURL = $"http://{m_httpListenerHostName}:{MainServer.Instance.Port}";
+            }
         }
 
         ~Caps()
@@ -301,26 +313,17 @@ namespace OpenSim.Framework.Capabilities
             return caps;
         }
 
-        public Hashtable GetCapsDetails2(bool excludeSeed, HashSet<string> requestedCaps)
+        public void GetCapsDetailsLLSDxml(HashSet<string> requestedCaps, osUTF8 sb)
         {
-            Hashtable caps = CapsHandlers.GetCapsDetails2(excludeSeed, requestedCaps);
+
+            CapsHandlers.GetCapsDetailsLLSDxml(requestedCaps, sb);
 
             lock (m_pollServiceHandlers)
             {
                 foreach (KeyValuePair<string, PollServiceEventArgs> kvp in m_pollServiceHandlers)
                 {
-                    if (!requestedCaps.Contains(kvp.Key))
-                        continue;
-
-                    if (MainServer.Instance.UseSSL)
-                        caps[kvp.Key] = $"https://{MainServer.Instance.SSLCommonName}:{MainServer.Instance.SSLPort}{kvp.Value.Url}";
-                    else
-                    {
-                        if(MainServer.Instance is null)
-                            caps[kvp.Key] = $"http://{m_httpListenerHostName}:0{kvp.Value.Url}";
-                        else
-                            caps[kvp.Key] = $"http://{m_httpListenerHostName}:{MainServer.Instance.Port}{kvp.Value.Url}";
-                    }
+                    if (requestedCaps.Contains(kvp.Key))
+                        LLSDxmlEncode2.AddElem(kvp.Key, m_baseCapsURL + kvp.Value.Url, sb);
                 }
             }
 
@@ -328,10 +331,8 @@ namespace OpenSim.Framework.Capabilities
             foreach (KeyValuePair<string, string> kvp in ExternalCapsHandlers)
             {
                 if (requestedCaps.Contains(kvp.Key))
-                    caps[kvp.Key] = kvp.Value;
+                    LLSDxmlEncode2.AddElem(kvp.Key, kvp.Value, sb);
             }
-
-            return caps;
         }
 
         public void Activate()

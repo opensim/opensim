@@ -779,11 +779,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return 0;
         }
 
-        public void FreeUDPBuffer(UDPPacketBuffer buf)
-        {
-            m_udpServer.FreeUDPBuffer(buf);
-        }
-
         /// <summary>
         /// Converts a <seealso cref="ThrottleOutPacketType"/> integer to a
         /// flag value

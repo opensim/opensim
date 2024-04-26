@@ -40,9 +40,7 @@ namespace OpenSim.Data.MySQL
     /// </summary>
     public class MySqlFramework
     {
-        private static readonly log4net.ILog m_log =
-                log4net.LogManager.GetLogger(
-                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         protected string m_connectionString = String.Empty;
         protected MySqlTransaction m_trans = null;

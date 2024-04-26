@@ -120,7 +120,8 @@ namespace Prebuild.Core.Nodes
         net5_0,
         net6_0,
         net7_0,
-        net8_0
+        net8_0,
+        net9_0
     }
 
     /// <summary>

@@ -775,7 +775,7 @@ namespace OpenSim.Data.MySQL
                     using (MySqlCommand cmd = dbcon.CreateCommand())
                     {
                         cmd.CommandText = "select * from regionsettings where regionUUID = ?RegionUUID";
-                        cmd.Parameters.AddWithValue("regionUUID", regionUUID);
+                        cmd.Parameters.AddWithValue("regionUUID", regionUUID.ToString());
 
                         using (IDataReader reader = ExecuteReader(cmd))
                         {
@@ -849,7 +849,7 @@ namespace OpenSim.Data.MySQL
                 {
                     cmd.CommandText = "REPLACE INTO `regionenvironment` (`region_id`, `llsd_settings`) VALUES (?region_id, ?llsd_settings)";
 
-                    cmd.Parameters.AddWithValue("region_id", regionUUID);
+                    cmd.Parameters.AddWithValue("region_id", regionUUID.ToString());
                     cmd.Parameters.AddWithValue("llsd_settings", settings);
 
                     ExecuteNonQuery(cmd);
@@ -914,11 +914,11 @@ namespace OpenSim.Data.MySQL
                          "?Elevation2SE, ?Elevation1SW, ?Elevation2SW, " +
                          "?WaterHeight, ?TerrainRaiseLimit, " +
                          "?TerrainLowerLimit, ?UseEstateSun, ?FixedSun, " +
-                         "?SunPosition, ?Covenant, ?CovenantChangedDateTime, ?Sandbox, " +
+                         "?SunPosition, ?Covenant, ?covenant_datetime, ?Sandbox, " +
                          "?SunVectorX, ?SunVectorY, ?SunVectorZ, " +
-                         "?LoadedCreationDateTime, ?LoadedCreationID, " +
-                         "?TerrainImageID, ?block_search, ?casino, " +
-                         "?TelehubObject, ?ParcelImageID, ?cacheID)";
+                         "?loaded_creation_datetime, ?loaded_creation_id, " +
+                         "?map_tile_ID, ?block_search, ?casino, " +
+                         "?TelehubObject, ?parcel_tile_ID, ?cacheID)";
 
                     FillRegionSettingsCommand(cmd, rs);
                     ExecuteNonQuery(cmd);
@@ -1517,7 +1517,7 @@ namespace OpenSim.Data.MySQL
             }
             else
             {
-                cmd.Parameters.AddWithValue("LoopedSound", UUID.Zero);
+                cmd.Parameters.AddWithValue("LoopedSound", UUID.ZeroString);
                 cmd.Parameters.AddWithValue("LoopedSoundGain", 0.0f);
             }
 
@@ -1625,10 +1625,10 @@ namespace OpenSim.Data.MySQL
         /// <param name="taskItem"></param>
         private static void FillItemCommand(MySqlCommand cmd, TaskInventoryItem taskItem)
         {
-            cmd.Parameters.AddWithValue("itemID", taskItem.ItemID);
-            cmd.Parameters.AddWithValue("primID", taskItem.ParentPartID);
-            cmd.Parameters.AddWithValue("assetID", taskItem.AssetID);
-            cmd.Parameters.AddWithValue("parentFolderID", taskItem.ParentID);
+            cmd.Parameters.AddWithValue("itemID", taskItem.ItemID.ToString());
+            cmd.Parameters.AddWithValue("primID", taskItem.ParentPartID.ToString());
+            cmd.Parameters.AddWithValue("assetID", taskItem.AssetID.ToString());
+            cmd.Parameters.AddWithValue("parentFolderID", taskItem.ParentID.ToString());
 
             cmd.Parameters.AddWithValue("invType", taskItem.InvType);
             cmd.Parameters.AddWithValue("assetType", taskItem.Type);
@@ -1637,9 +1637,9 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("description", taskItem.Description);
             cmd.Parameters.AddWithValue("creationDate", taskItem.CreationDate);
             cmd.Parameters.AddWithValue("creatorID", taskItem.CreatorIdentification);
-            cmd.Parameters.AddWithValue("ownerID", taskItem.OwnerID);
-            cmd.Parameters.AddWithValue("lastOwnerID", taskItem.LastOwnerID);
-            cmd.Parameters.AddWithValue("groupID", taskItem.GroupID);
+            cmd.Parameters.AddWithValue("ownerID", taskItem.OwnerID.ToString());
+            cmd.Parameters.AddWithValue("lastOwnerID", taskItem.LastOwnerID.ToString());
+            cmd.Parameters.AddWithValue("groupID", taskItem.GroupID.ToString());
             cmd.Parameters.AddWithValue("nextPermissions", taskItem.NextPermissions);
             cmd.Parameters.AddWithValue("currentPermissions", taskItem.CurrentPermissions);
             cmd.Parameters.AddWithValue("basePermissions", taskItem.BasePermissions);
@@ -1690,16 +1690,16 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("FixedSun", settings.FixedSun);
             cmd.Parameters.AddWithValue("SunPosition", settings.SunPosition);
             cmd.Parameters.AddWithValue("Covenant", settings.Covenant.ToString());
-            cmd.Parameters.AddWithValue("CovenantChangedDateTime", settings.CovenantChangedDateTime);
-            cmd.Parameters.AddWithValue("LoadedCreationDateTime", settings.LoadedCreationDateTime);
-            cmd.Parameters.AddWithValue("LoadedCreationID", settings.LoadedCreationID);
-            cmd.Parameters.AddWithValue("TerrainImageID", settings.TerrainImageID);
+            cmd.Parameters.AddWithValue("covenant_datetime", settings.CovenantChangedDateTime);
+            cmd.Parameters.AddWithValue("loaded_creation_datetime", settings.LoadedCreationDateTime);
+            cmd.Parameters.AddWithValue("loaded_creation_id", settings.LoadedCreationID);
+            cmd.Parameters.AddWithValue("map_tile_ID", settings.TerrainImageID.ToString());
             cmd.Parameters.AddWithValue("block_search", settings.GodBlockSearch);
             cmd.Parameters.AddWithValue("casino", settings.Casino);
 
-            cmd.Parameters.AddWithValue("ParcelImageID", settings.ParcelImageID);
-            cmd.Parameters.AddWithValue("TelehubObject", settings.TelehubObject);
-            cmd.Parameters.AddWithValue("cacheID", settings.CacheID);
+            cmd.Parameters.AddWithValue("parcel_tile_ID", settings.ParcelImageID.ToString());
+            cmd.Parameters.AddWithValue("TelehubObject", settings.TelehubObject.ToString());
+            cmd.Parameters.AddWithValue("cacheID", settings.CacheID.ToString());
         }
 
         /// <summary>
@@ -1744,7 +1744,7 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("UserLookAtX", land.UserLookAt.X);
             cmd.Parameters.AddWithValue("UserLookAtY", land.UserLookAt.Y);
             cmd.Parameters.AddWithValue("UserLookAtZ", land.UserLookAt.Z);
-            cmd.Parameters.AddWithValue("AuthBuyerID", land.AuthBuyerID);
+            cmd.Parameters.AddWithValue("AuthBuyerID", land.AuthBuyerID.ToString());
             cmd.Parameters.AddWithValue("OtherCleanTime", land.OtherCleanTime);
             cmd.Parameters.AddWithValue("Dwell", land.Dwell);
             cmd.Parameters.AddWithValue("MediaDescription", land.MediaDescription);

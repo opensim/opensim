@@ -346,7 +346,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             if (UUID.TryParse(friendID, out UUID _))
                 return base.FriendshipMessage(friendID);
 
-            return "Please confirm this friendship you made while you where on another HG grid";
+            return "Please confirm this friendship you made while you were on another HG grid";
         }
 
         protected override FriendInfo GetFriend(FriendInfo[] friends, UUID friendID)

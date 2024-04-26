@@ -88,6 +88,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private UUID m_scopeID;
         private Caps m_HostCapsObj;
         private ModelCost m_ModelCost;
+        private BunchOfCapsConfigOptions ConfigOptions;
 
         // private static readonly string m_remoteParcelRequestPath = "0009/";// This is in the LandManagementModule.
 
@@ -98,29 +99,10 @@ namespace OpenSim.Region.ClientStack.Linden
         public ItemUpdatedCallback ItemUpdatedCall = null;
         public TaskScriptUpdatedCallback TaskScriptUpdatedCall = null;
         public GetClientDelegate GetClient = null;
-
-        private bool m_persistBakedTextures = false;
+        
         private IAssetService m_assetService;
         private bool m_dumpAssetsToFile = false;
         private string m_regionName;
-
-        private int m_levelUpload = 0;
-
-        private bool m_enableFreeTestUpload = false; // allows "TEST-" prefix hack
-        private bool m_ForceFreeTestUpload = false; // forces all uploads to be test
-
-        private bool m_enableModelUploadTextureToInventory = true; // place uploaded textures also in inventory
-                                                                    // may not be visible till relog
-
-        private bool m_RestrictFreeTestUploadPerms = false; // reduces also the permitions. Needs a creator defined!!
-        private UUID m_testAssetsCreatorID = UUID.Zero;
-
-        private float m_PrimScaleMin = 0.001f;
-
-        private bool m_AllowCapHomeLocation = true;
-        private bool m_AllowCapGroupMemberData = true;
-        private bool m_AllowCapLandResources = true;
-        private bool m_AllowCapAttachmentResources = true;
 
         private IUserManagement m_UserManager;
         private IUserAccountService m_userAccountService;
@@ -135,74 +117,15 @@ namespace OpenSim.Region.ClientStack.Linden
         }
         private FileAgentInventoryState m_FileAgentInventoryState = FileAgentInventoryState.idle;
 
-        public BunchOfCaps(Scene scene, UUID agentID, Caps caps)
+        public BunchOfCaps(Scene scene, UUID agentID, Caps caps, BunchOfCapsConfigOptions configOptions)
         {
             m_Scene = scene;
             m_AgentID = agentID;
             m_HostCapsObj = caps;
+            ConfigOptions = configOptions;
 
-            // create a model upload cost provider
-            m_ModelCost = new ModelCost(scene);
-
-            m_PrimScaleMin = m_ModelCost.PrimScaleMin;
-
-            IConfigSource config = m_Scene.Config;
-            if (config is not null)
-            {
-                IConfig sconfig = config.Configs["Startup"];
-                if (sconfig is not null)
-                {
-                    m_levelUpload = sconfig.GetInt("LevelUpload", 0);
-                }
-                if (m_levelUpload == 0)
-                {
-                    IConfig pconfig = config.Configs["Permissions"];
-                    if (pconfig is not null)
-                    {
-                        m_levelUpload = pconfig.GetInt("LevelUpload", 0);
-                    }
-                }
-
-                IConfig appearanceConfig = config.Configs["Appearance"];
-                if (appearanceConfig is not null)
-                {
-                    m_persistBakedTextures = appearanceConfig.GetBoolean("PersistBakedTextures", m_persistBakedTextures);
-                }
-                // economy for model upload
-                IConfig EconomyConfig = config.Configs["Economy"];
-                if (EconomyConfig is not null)
-                {
-                    m_ModelCost.Econfig(EconomyConfig);
-
-                    m_enableModelUploadTextureToInventory = EconomyConfig.GetBoolean("MeshModelAllowTextureToInventory", m_enableModelUploadTextureToInventory);
-
-                    m_RestrictFreeTestUploadPerms = EconomyConfig.GetBoolean("m_RestrictFreeTestUploadPerms", m_RestrictFreeTestUploadPerms);
-                    m_enableFreeTestUpload = EconomyConfig.GetBoolean("AllowFreeTestUpload", m_enableFreeTestUpload);
-                    m_ForceFreeTestUpload = EconomyConfig.GetBoolean("ForceFreeTestUpload", m_ForceFreeTestUpload);
-                    string testcreator = EconomyConfig.GetString("TestAssetsCreatorID", "");
-                    if (!string.IsNullOrEmpty(testcreator))
-                    {
-                        if (UUID.TryParse(testcreator, out UUID id))
-                            m_testAssetsCreatorID = id;
-                    }
-                }
-
-                IConfig CapsConfig = config.Configs["ClientStack.LindenCaps"];
-                if (CapsConfig is not null)
-                {
-                    string homeLocationUrl = CapsConfig.GetString("Cap_HomeLocation", "localhost");
-                    m_AllowCapHomeLocation = !string.IsNullOrEmpty(homeLocationUrl);
-
-                    string GroupMemberDataUrl = CapsConfig.GetString("Cap_GroupMemberData", "localhost");
-                    m_AllowCapGroupMemberData = !string.IsNullOrEmpty(GroupMemberDataUrl);
-
-                    string LandResourcesUrl = CapsConfig.GetString("Cap_LandResources", "localhost");
-                     m_AllowCapLandResources = !string.IsNullOrEmpty(LandResourcesUrl);
-
-                    string AttachmentResourcesUrl = CapsConfig.GetString("Cap_AttachmentResources", "localhost");
-                    m_AllowCapAttachmentResources = !string.IsNullOrEmpty(AttachmentResourcesUrl);
-                }
-            }
+            //cache model upload cost provider
+            m_ModelCost = configOptions.ModelCost;
 
             m_assetService = m_Scene.AssetService;
             m_regionName = m_Scene.RegionInfo.RegionName;
@@ -212,7 +135,7 @@ namespace OpenSim.Region.ClientStack.Linden
             if (m_UserManager is null)
                 m_log.Error("[CAPS]: GetDisplayNames disabled because user management component not found");
 
-            UserAccount account = m_userAccountService.GetUserAccount(m_Scene.RegionInfo.ScopeID, m_AgentID);
+            UserAccount account = m_userAccountService?.GetUserAccount(m_Scene.RegionInfo.ScopeID, m_AgentID);
             if (account is null) // Hypergrid?
                 m_scopeID = m_Scene.RegionInfo.ScopeID;
             else
@@ -263,25 +186,25 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_HostCapsObj.RegisterSimpleHandler("ResourceCostSelected",
                     new SimpleOSDMapHandler("POST", GetNewCapPath(), ResourceCostSelected));
  
-                if(m_AllowCapHomeLocation)
+                if(ConfigOptions.AllowCapHomeLocation)
                 {
                     m_HostCapsObj.RegisterSimpleHandler("HomeLocation",
                         new SimpleStreamHandler(GetNewCapPath(), HomeLocation));
                 }
 
-                if (m_AllowCapGroupMemberData)
+                if (ConfigOptions.AllowCapGroupMemberData)
                 {
                     m_HostCapsObj.RegisterSimpleHandler("GroupMemberData",
                         new SimpleStreamHandler(GetNewCapPath(), GroupMemberData));
                 }
 
-                if (m_AllowCapLandResources)
+                if (ConfigOptions.AllowCapLandResources)
                 {
                     m_HostCapsObj.RegisterSimpleHandler("LandResources",
                         new SimpleOSDMapHandler("POST", GetNewCapPath(), LandResources));
                 }
 
-                if (m_AllowCapAttachmentResources)
+                if (ConfigOptions.AllowCapAttachmentResources)
                 {
                     m_HostCapsObj.RegisterSimpleHandler("AttachmentResources",
                         new SimpleStreamHandler(GetNewCapPath(), AttachmentResources));
@@ -381,9 +304,8 @@ namespace OpenSim.Region.ClientStack.Linden
         /// <returns></returns>
         public void SeedCapRequest(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-            UUID agentID = m_HostCapsObj.AgentID;
             m_log.Debug(
-                $"[CAPS]: Received SEED caps request in {m_regionName} for agent {agentID}");
+                $"[CAPS]: Received SEED caps request in {m_regionName} for agent {m_HostCapsObj.AgentID}");
 
             if(httpRequest.HttpMethod != "POST" || httpRequest.ContentType != "application/llsd+xml")
             {
@@ -398,11 +320,10 @@ namespace OpenSim.Region.ClientStack.Linden
                 return;
             }
 
-            if (!m_Scene.CheckClient(agentID, httpRequest.RemoteIPEndPoint))
+            if (!m_Scene.CheckClient(m_HostCapsObj.AgentID, httpRequest.RemoteIPEndPoint))
             {
                 m_log.WarnFormat(
-                    "[CAPS]: Unauthorized CAPS client {0} from {1}",
-                    agentID, httpRequest.RemoteIPEndPoint);
+                    $"[CAPS]: Unauthorized CAPS client {m_HostCapsObj.AgentID} from {httpRequest.RemoteIPEndPoint}");
                 httpResponse.StatusCode = (int)HttpStatusCode.Forbidden;
                 return;
             }
@@ -423,19 +344,39 @@ namespace OpenSim.Region.ClientStack.Linden
             foreach (OSD c in capsRequested)
             {
                 string cstr = c.AsString();
-                if (cstr.Equals("ObjectAnimation"))
-                    m_HostCapsObj.Flags |= Caps.CapsFlags.ObjectAnim;
-                else if (cstr.Equals("EnvironmentSettings"))
-                    m_HostCapsObj.Flags |= Caps.CapsFlags.WLEnv;
-                else if (cstr.Equals("ExtEnvironment"))
-                    m_HostCapsObj.Flags |= Caps.CapsFlags.AdvEnv;
-                else if(cstr.Equals("ModifyMaterialParams")) // will not work if a viewer has no edit features
-                    m_HostCapsObj.Flags |= Caps.CapsFlags.PBR;
+                if (string.IsNullOrEmpty(cstr))
+                    continue;
+                switch (cstr)
+                {
+                    case "SEED":
+                        continue;
+                    case "ViewerBenefits": // this may need a proper cap but not currently
+                        m_HostCapsObj.Flags |= Caps.CapsFlags.ViewerBenefits;
+                        continue;
+                    case "ObjectAnimation":
+                         m_HostCapsObj.Flags |= Caps.CapsFlags.ObjectAnim;
+                        break;
+                    case "EnvironmentSettings":
+                        m_HostCapsObj.Flags |= Caps.CapsFlags.WLEnv;
+                        break;
+                    case "ExtEnvironment":
+                        m_HostCapsObj.Flags |= Caps.CapsFlags.AdvEnv;
+                        break;
+                    case "ModifyMaterialParams": // will not work if a viewer has no edit features
+                        m_HostCapsObj.Flags |= Caps.CapsFlags.PBR;
+                        break;
+                    default:
+                        break;
+                }
                 validCaps.Add(cstr);
             }
+            
+            osUTF8 sb = LLSDxmlEncode2.Start();
+            LLSDxmlEncode2.AddMap(sb);
+            m_HostCapsObj.GetCapsDetailsLLSDxml(validCaps, sb);
+            LLSDxmlEncode2.AddEndMap(sb);
 
-            string result = LLSDHelpers.SerialiseLLSDReply(m_HostCapsObj.GetCapsDetails2(true, validCaps));
-            httpResponse.RawBuffer = Util.UTF8NBGetbytes(result);
+            httpResponse.RawBuffer = LLSDxmlEncode2.EndToBytes(sb);
             httpResponse.StatusCode = (int)HttpStatusCode.OK;
 
             m_HostCapsObj.Flags |= Caps.CapsFlags.SentSeeds;
@@ -505,7 +446,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 // check user level
                 if (avatar is not null)
                 {
-                    if (avatar.GodController.UserLevel < m_levelUpload)
+                    if (avatar.GodController.UserLevel < ConfigOptions.levelUpload)
                     {
                         LLSDAssetUploadError resperror = new LLSDAssetUploadError();
                         resperror.message = "Insufficient permissions to upload";
@@ -564,7 +505,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     {
                         // check for test upload
 
-                        if (m_ForceFreeTestUpload) // all are test
+                        if (ConfigOptions.ForceFreeTestUpload) // all are test
                         {
                             if (!(assetName.Length > 5 && assetName.StartsWith("TEST-"))) // has normal name lets change it
                                 assetName = "TEST-" + assetName;
@@ -572,7 +513,7 @@ namespace OpenSim.Region.ClientStack.Linden
                             IsAtestUpload = true;
                         }
 
-                        else if (m_enableFreeTestUpload) // only if prefixed with "TEST-"
+                        else if (ConfigOptions.enableFreeTestUpload) // only if prefixed with "TEST-"
                         {
 
                             IsAtestUpload = (assetName.Length > 5 && assetName.StartsWith("TEST-"));
@@ -600,7 +541,7 @@ namespace OpenSim.Region.ClientStack.Linden
                             }
                         }
                     }
-                    else if (m_enableFreeTestUpload) // only if prefixed with "TEST-"
+                    else if (ConfigOptions.enableFreeTestUpload) // only if prefixed with "TEST-"
                     {
                         IsAtestUpload = (assetName.Length > 5 && assetName.StartsWith("TEST-"));
                         if(IsAtestUpload)
@@ -619,7 +560,7 @@ namespace OpenSim.Region.ClientStack.Linden
             string uploaderPath = GetNewCapPath();
             UUID texturesFolder = UUID.Zero;
 
-            if(!IsAtestUpload && m_enableModelUploadTextureToInventory)
+            if(!IsAtestUpload && ConfigOptions.enableModelUploadTextureToInventory)
                 texturesFolder = llsdRequest.texture_folder_id;
 
             AssetUploader uploader =
@@ -688,12 +629,12 @@ namespace OpenSim.Region.ClientStack.Linden
             UUID owner_id = m_HostCapsObj.AgentID;
             UUID creatorID;
 
-            bool istest = IsAtestUpload && m_enableFreeTestUpload;
+            bool istest = IsAtestUpload && ConfigOptions.enableFreeTestUpload;
 
-            bool restrictPerms = m_RestrictFreeTestUploadPerms && istest;
+            bool restrictPerms = ConfigOptions.RestrictFreeTestUploadPerms && istest;
 
-            if (istest && m_testAssetsCreatorID != UUID.Zero)
-                creatorID = m_testAssetsCreatorID;
+            if (istest && ConfigOptions.testAssetsCreatorID.IsNotZero())
+                creatorID = ConfigOptions.testAssetsCreatorID;
             else
                 creatorID = owner_id;
 
@@ -779,7 +720,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     SceneObjectGroup grp = null;
 
                     // create and store texture assets
-                    bool doTextInv = (!istest && m_enableModelUploadTextureToInventory &&
+                    bool doTextInv = (!istest && ConfigOptions.enableModelUploadTextureToInventory &&
                                     texturesFolder != UUID.Zero);
 
 
@@ -904,6 +845,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     }
 
                     int skipedMeshs = 0;
+                    float primScaleMin = m_ModelCost.PrimScaleMin;
                     // build prims from instances
                     for (int i = 0; i < instance_list.Count; i++)
                     {
@@ -912,7 +854,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         // skip prims that are 2 small
                         Vector3 scale = inner_instance_list["scale"].AsVector3();
 
-                        if (scale.X < m_PrimScaleMin || scale.Y < m_PrimScaleMin || scale.Z < m_PrimScaleMin)
+                        if (scale.X < primScaleMin || scale.Y < primScaleMin || scale.Z < primScaleMin)
                         {
                             skipedMeshs++;
                             continue;
@@ -1553,12 +1495,8 @@ namespace OpenSim.Region.ClientStack.Linden
                     if (grp != null)
                     {
                         haveone = true;
-                        float linksetCost;
-                        float linksetPhysCost;
-                        float partCost;
-                        float partPhysCost;
 
-                        grp.GetResourcesCosts(part,out linksetCost,out linksetPhysCost,out partCost,out partPhysCost);
+                        grp.GetResourcesCosts(part, out float linksetCost, out float linksetPhysCost, out float partCost, out float partPhysCost);
 
                         LLSDxmlEncode2.AddMap(uuid.ToString(), lsl);
 

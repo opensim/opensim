@@ -35,7 +35,6 @@ using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Services.Interfaces;
-using OpenSimAssetType = OpenSim.Framework.SLUtil.OpenSimAssetType;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -616,7 +615,7 @@ namespace OpenSim.Region.Framework.Scenes
                     case AssetType.LSLText:
                         RecordEmbeddedAssetDataUuids(assetBase);
                         break;
-                    case (AssetType)OpenSimAssetType.Material:
+                    case (AssetType)AssetType.OSMaterial:
                         RecordMaterialAssetUuids(assetBase);
                         break;
                     case AssetType.Object:
@@ -668,7 +667,7 @@ namespace OpenSim.Region.Framework.Scenes
                     case (sbyte)AssetType.Gesture:
                     case (sbyte)AssetType.Notecard:
                     case (sbyte)AssetType.LSLText:
-                    case (sbyte)OpenSimAssetType.Material:
+                    case (sbyte)AssetType.OSMaterial:
                     case (sbyte)AssetType.Object:
                     case (sbyte)AssetType.Settings:
                     case (sbyte)AssetType.Material:

@@ -28,7 +28,6 @@
 using System;
 using System.Data;
 using System.Reflection;
-using OpenSim.Data;
 using OpenSim.Framework;
 using MySql.Data.MySqlClient;
 using OpenMetaverse;
@@ -94,7 +93,7 @@ namespace OpenSim.Data.MySQL
                 dbcon.Open();
                 using (MySqlCommand cmd = new MySqlCommand(query, dbcon))
                 {
-                    cmd.Parameters.AddWithValue("?Id", creatorId);
+                    cmd.Parameters.AddWithValue("?Id", creatorId.ToString());
                     using( MySqlDataReader reader = cmd.ExecuteReader(CommandBehavior.Default))
                     {
                         if(reader.HasRows)
@@ -143,8 +142,8 @@ namespace OpenSim.Data.MySQL
                 +  "`simname`,"
                 +  "`posglobal`,"
                 +  "`parcelname`,"
-                + "`classifiedflags`,"
-                + "`priceforlisting`) "
+                +  "`classifiedflags`,"
+                +  "`priceforlisting`) "
                 + "VALUES ("
                 + "?ClassifiedId,"
                 + "?CreatorId,"
@@ -282,14 +281,14 @@ namespace OpenSim.Data.MySQL
                         {
                             if(reader.Read ())
                             {
-                                ad.CreatorId = new UUID(reader.GetGuid("creatoruuid"));
-                                ad.ParcelId = new UUID(reader.GetGuid("parceluuid"));
-                                ad.SnapshotId = new UUID(reader.GetGuid("snapshotuuid"));
+                                ad.CreatorId = DBGuid.FromDB(reader["creatoruuid"]);
+                                ad.ParcelId = DBGuid.FromDB(reader["parceluuid"]);
+                                ad.SnapshotId = DBGuid.FromDB(reader["snapshotuuid"]);
                                 ad.CreationDate = Convert.ToInt32(reader["creationdate"]);
                                 ad.ExpirationDate = Convert.ToInt32(reader["expirationdate"]);
                                 ad.ParentEstate = Convert.ToInt32(reader["parentestate"]);
                                 ad.Flags = (byte)reader.GetUInt32("classifiedflags");
-                                ad.Category = reader.GetInt32("category");
+                                ad.Category = Convert.ToInt32(reader["category"]);
                                 ad.Price = reader.GetInt16("priceforlisting");
                                 ad.Name = reader.GetString("name");
                                 ad.Description = reader.GetString("description");
@@ -804,7 +803,7 @@ namespace OpenSim.Data.MySQL
                             {
                                 while (reader.Read())
                                 {
-                                    data.Add(new OSDString((string)reader["snapshotuuid"].ToString ()));
+                                    data.Add(new OSDString(reader["snapshotuuid"].ToString ()));
                                 }
                             }
                         }
@@ -823,7 +822,7 @@ namespace OpenSim.Data.MySQL
                             {
                                 while (reader.Read())
                                 {
-                                    data.Add(new OSDString((string)reader["snapshotuuid"].ToString ()));
+                                    data.Add(new OSDString(reader["snapshotuuid"].ToString ()));
                                 }
                             }
                         }
@@ -844,8 +843,8 @@ namespace OpenSim.Data.MySQL
                             {
                                 while (reader.Read())
                                 {
-                                    data.Add(new OSDString((string)reader["profileImage"].ToString ()));
-                                    data.Add(new OSDString((string)reader["profileFirstImage"].ToString ()));
+                                    data.Add(new OSDString(reader["profileImage"].ToString ()));
+                                    data.Add(new OSDString(reader["profileFirstImage"].ToString ()));
                                 }
                             }
                         }

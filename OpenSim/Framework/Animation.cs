@@ -140,9 +140,7 @@ namespace OpenSim.Framework
 
         public override string ToString()
         {
-            return "AnimID=" + AnimID.ToString()
-                + "/seq=" + SequenceNum.ToString()
-                + "/objID=" + ObjectID.ToString();
+            return $"AnimID= {AnimID}/seq={SequenceNum}/objID={ObjectID}";
         }
 
     }

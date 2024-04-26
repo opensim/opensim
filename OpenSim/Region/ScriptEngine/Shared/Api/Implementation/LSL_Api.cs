@@ -1454,15 +1454,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Float llCloud(LSL_Vector offset)
         {
-            ICloudModule module = World.RequestModuleInterface<ICloudModule>();
-            if (module is not null)
-            {
-                Vector3 pos = m_host.GetWorldPosition();
-                int x = (int)(pos.X + offset.x);
-                int y = (int)(pos.Y + offset.y);
-
-                return module.CloudCover(x, y, 0);
-            }
             return 0;
         }
 

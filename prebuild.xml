@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Prebuild version="1.10" xmlns="http://dnpb.sourceforge.net/schemas/prebuild-1.10.xsd">
   <!-- <Solution activeConfig="Debug" name="OpenSim" path="./" version="0.5.0-$Rev$" forceFrameworkVersion="v4_6"> -->
-  <Solution activeConfig="Release" name="OpenSim" path="./" version="0.5.0-$Rev$" frameworkVersion="net6_0">
+  <Solution activeConfig="Release" name="OpenSim" path="./" version="0.5.0-$Rev$" frameworkVersion="net8_0">
   <Configuration name="Debug" >
       <Options>
         <CompilerDefines>TRACE</CompilerDefines>
@@ -298,6 +298,7 @@
       <Reference name="OpenSim.Framework.Servers.HttpServer"/>
       <Reference name="OpenSim.Services.Interfaces"/>
       <Reference name="OpenMetaverse"/>
+      <Reference name="OpenMetaverse.StructuredData"/>
       <Reference name="OpenMetaverseTypes"/>
       <Reference name="Nini"/>
       <Reference name="log4net"/>
