@@ -245,7 +245,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 IsRunningInbound = true;
 
                 // kick start the receiver tasks dance.
-                Task.Run(AsyncBeginReceive);
+                Task.Run(AsyncBeginReceive).ConfigureAwait(false);
             }
         }
 
@@ -287,7 +287,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 UDPPacketBuffer buf = GetNewUDPBuffer(null); // we need a fresh one here, for now at least
                 try
                 {
-                    int nbytes = await m_udpSocket.ReceiveFromAsync(buf.Data.AsMemory(), SocketFlags.None, workSktAddress, InboundCancellationSource.Token);
+                    int nbytes = 
+                        await m_udpSocket.ReceiveFromAsync(buf.Data.AsMemory(), SocketFlags.None, workSktAddress, InboundCancellationSource.Token).ConfigureAwait(false);
                     if (!IsRunningInbound)
                     {
                         FreeUDPBuffer(buf);

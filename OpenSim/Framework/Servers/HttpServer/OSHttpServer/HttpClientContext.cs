@@ -208,14 +208,7 @@ namespace OSHttpServer
         /// </remarks>
         public virtual void Start()
         {
-            try
-            {
-                m_stream.BeginRead(m_ReceiveBuffer, 0, m_ReceiveBuffer.Length, OnReceive, null);
-            }
-            catch (Exception err)
-            {
-                LogWriter.Write(this, LogPrio.Debug, err.ToString());
-            }
+            Task.Run(ReceiveLoop).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -348,63 +341,58 @@ namespace OSHttpServer
             }
         }
 
-        private void OnReceive(IAsyncResult ar)
+        private async void ReceiveLoop()
         {
             try
             {
-                int bytesRead = 0;
-                if (m_stream is null)
-                    return;
-                try
+                while (true)
                 {
-                    bytesRead = m_stream.EndRead(ar);
-                }
-                catch (NullReferenceException)
-                {
-                    Disconnect(SocketError.ConnectionReset);
-                    return;
-                }
+                    if (m_stream == null || !m_stream.CanRead)
+                        return;
 
-                if (bytesRead == 0)
-                {
-                    Disconnect(SocketError.Success);
-                    return;
-                }
+                    int bytesRead = 
+                        await m_stream.ReadAsync(m_ReceiveBuffer, m_ReceiveBytesLeft, m_ReceiveBuffer.Length - m_ReceiveBytesLeft).ConfigureAwait(false);
 
-                if (m_isClosing)
-                    return;
-
-                m_ReceiveBytesLeft += bytesRead;
-
-                int offset = m_parser.Parse(m_ReceiveBuffer, 0, m_ReceiveBytesLeft);
-                if (m_stream is null)
-                    return; // "Connection: Close" in effect.
-
-                if(offset > 0)
-                {
-                    int nextBytesleft, nextOffset;
-                    while ((nextBytesleft = m_ReceiveBytesLeft - offset) > 0)
+                    if (bytesRead == 0)
                     {
-                        nextOffset = m_parser.Parse(m_ReceiveBuffer, offset, nextBytesleft);
-
-                        if (m_stream is null)
-                            return; // "Connection: Close" in effect.
-
-                        if (nextOffset == 0)
-                            break;
-
-                        offset = nextOffset;
+                        Disconnect(SocketError.Success);
+                        return;
                     }
+
+                    if (m_isClosing)
+                        return;
+
+                    m_ReceiveBytesLeft += bytesRead;
+
+                    int offset = m_parser.Parse(m_ReceiveBuffer, 0, m_ReceiveBytesLeft);
+                    if (m_stream is null)
+                        return; // "Connection: Close" in effect.
+
+                    if(offset > 0)
+                    {
+                        int nextBytesleft, nextOffset;
+                        while ((nextBytesleft = m_ReceiveBytesLeft - offset) > 0)
+                        {
+                            nextOffset = m_parser.Parse(m_ReceiveBuffer, offset, nextBytesleft);
+
+                            if (m_stream is null)
+                                return; // "Connection: Close" in effect.
+
+                            if (nextOffset == 0)
+                                break;
+
+                            offset = nextOffset;
+                        }
+                    }
+
+                    // copy unused bytes to the beginning of the array
+                    if (offset > 0 && m_ReceiveBytesLeft > offset)
+                        Buffer.BlockCopy(m_ReceiveBuffer, offset, m_ReceiveBuffer, 0, m_ReceiveBytesLeft - offset);
+
+                    m_ReceiveBytesLeft -= offset;
+                    if (StreamPassedOff)
+                        return; //?
                 }
-
-                // copy unused bytes to the beginning of the array
-                if (offset > 0 && m_ReceiveBytesLeft > offset)
-                    Buffer.BlockCopy(m_ReceiveBuffer, offset, m_ReceiveBuffer, 0, m_ReceiveBytesLeft - offset);
-
-                m_ReceiveBytesLeft -= offset;
-                if (StreamPassedOff)
-                    return; //?
-                m_stream.BeginRead(m_ReceiveBuffer, m_ReceiveBytesLeft, m_ReceiveBuffer.Length - m_ReceiveBytesLeft, OnReceive, null);
             }
             catch (BadRequestException err)
             {
