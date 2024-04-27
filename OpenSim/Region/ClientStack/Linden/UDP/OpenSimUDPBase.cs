@@ -279,9 +279,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             IsRunningOutbound = false;
         }
 
-        private static IPEndPoint dummyIP = new IPEndPoint(IPAddress.Any, 0);
-        private static readonly ExpiringCacheOS<SocketAddress,EndPoint> IPEndpointsCache = new(300000);
-
         private async void AsyncBeginReceive()
         {
             SocketAddress workSktAddress = new(m_udpSocket.AddressFamily);
@@ -300,14 +297,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (nbytes > 0)
                     {
                         int startTick = Util.EnvironmentTickCount();
-                        if(!IPEndpointsCache.TryGetValue(workSktAddress, 300000, out EndPoint ep))
-                        {
-                            ep = dummyIP.Create(workSktAddress);
-                            IPEndpointsCache.AddOrUpdate(workSktAddress, ep, 300000);
-                        }
 
-                        buf.RemoteEndPoint = ep;
-
+                        buf.RemoteEndPoint = Util.GetEndPoint(workSktAddress);;
                         buf.DataLength = nbytes;
                         UdpReceives++;
 
