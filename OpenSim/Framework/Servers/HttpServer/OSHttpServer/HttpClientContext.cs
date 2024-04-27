@@ -9,6 +9,7 @@ using OSHttpServer.Parser;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using OpenMetaverse;
+using System.Threading.Tasks;
 
 namespace OSHttpServer
 {
