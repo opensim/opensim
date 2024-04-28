@@ -73,13 +73,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public static int m_udpBuffersPoolPtr = -1;
 
         /// <summary>Returns true if the server is currently listening for inbound packets, otherwise false</summary>
-        public bool IsRunningInbound { get; private set; }
+        internal bool m_IsRunningInbound;
+        public bool IsRunningInbound
+        {
+            get { return m_IsRunningInbound; }
+            private set { m_IsRunningInbound = value; }
+        }
+
         public CancellationTokenSource InboundCancellationSource = new();
 
 
         /// <summary>Returns true if the server is currently sending outbound packets, otherwise false</summary>
         /// <remarks>If IsRunningOut = false, then any request to send a packet is simply dropped.</remarks>
-        public bool IsRunningOutbound { get; private set; }
+        internal bool m_IsRunningOutbound;
+        public bool IsRunningOutbound
+        {
+            get { return m_IsRunningOutbound; }
+            private set { m_IsRunningOutbound = value; }
+        }
 
         /// <summary>
         /// Number of UDP receives.
@@ -179,19 +190,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// the UDP socket. This value is passed up to the operating system
         /// and used in the system networking stack. Use zero to leave this
         /// value as the default</param>
-        /// <param name="asyncPacketHandling">Set this to true to start
-        /// receiving more packets while current packet handler callbacks are
-        /// still running. Setting this to false will complete each packet
-        /// callback before the next packet is processed</param>
-        /// <remarks>This method will attempt to set the SIO_UDP_CONNRESET flag
-        /// on the socket to get newer versions of Windows to behave in a sane
-        /// manner (not throwing an exception when the remote side resets the
-        /// connection). This call is ignored on Mono where the flag is not
-        /// necessary</remarks>
+
 
         public virtual void StartInbound(int recvBufferSize)
         {
-            if (!IsRunningInbound)
+            if (!m_IsRunningInbound)
             {
                 m_log.DebugFormat("[UDPBASE]: Starting inbound UDP loop");
 
@@ -242,7 +245,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (m_udpPort == 0)
                     m_udpPort = ((IPEndPoint)m_udpSocket.LocalEndPoint).Port;
 
-                IsRunningInbound = true;
+                m_IsRunningInbound = true;
 
                 // kick start the receiver tasks dance.
                 Task.Run(AsyncBeginReceive).ConfigureAwait(false);
@@ -256,16 +259,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             m_log.DebugFormat("[UDPBASE]: Starting outbound UDP loop");
 
-            IsRunningOutbound = true;
+            m_IsRunningOutbound = true;
         }
 
         public virtual void StopInbound()
         {
-            if (IsRunningInbound)
+            if (m_IsRunningInbound)
             {
                 m_log.DebugFormat("[UDPBASE]: Stopping inbound UDP loop");
 
-                IsRunningInbound = false;
+                m_IsRunningInbound = false;
                 InboundCancellationSource.Cancel();
                 m_udpSocket.Close();
                 m_udpSocket = null;
@@ -276,20 +279,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             m_log.DebugFormat("[UDPBASE]: Stopping outbound UDP loop");
 
-            IsRunningOutbound = false;
+            m_IsRunningOutbound = false;
         }
 
         private async void AsyncBeginReceive()
         {
             SocketAddress workSktAddress = new(m_udpSocket.AddressFamily);
-            while (IsRunningInbound)
+            while (m_IsRunningInbound)
             {
                 UDPPacketBuffer buf = GetNewUDPBuffer(null); // we need a fresh one here, for now at least
                 try
                 {
                     int nbytes = 
                         await m_udpSocket.ReceiveFromAsync(buf.Data.AsMemory(), SocketFlags.None, workSktAddress, InboundCancellationSource.Token).ConfigureAwait(false);
-                    if (!IsRunningInbound)
+                    if (!m_IsRunningInbound)
                     {
                         FreeUDPBuffer(buf);
                         return;
