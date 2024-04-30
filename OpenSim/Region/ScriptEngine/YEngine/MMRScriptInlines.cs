@@ -532,6 +532,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
      * @param args = type/location of arguments (types match function definition)
      */
 
+    /*
     public class TokenDeclInline_LLAbs: TokenDeclInline
     {
         public TokenDeclInline_LLAbs(VarDict ifd)
@@ -589,7 +590,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             result.Pop(scg, errorAt, new TokenTypeFloat(null));
         }
     }
-
+    */
     public class TokenDeclInline_GetFreeMemory: TokenDeclInline
     {
         private static readonly MethodInfo getFreeMemMethInfo = typeof(XMRInstAbstract).GetMethod("xmrHeapLeft", new Type[] { });
@@ -623,6 +624,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             result.Pop(scg, errorAt, new TokenTypeInt(null));
         }
     }
+ 
 
     /**
      * @brief Generate code for the usual ll...() functions.
