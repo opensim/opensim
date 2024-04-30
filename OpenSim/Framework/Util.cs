@@ -1617,7 +1617,21 @@ namespace OpenSim.Framework
             return output.ToString();
         }
 
-        private static readonly ExpiringCacheOS<string, IPAddress> dnscache = new(10000);
+        private static IPEndPoint dummyIPEndPoint = new IPEndPoint(IPAddress.Any, 0);
+        private static readonly ExpiringCacheOS<string, IPAddress> dnscache = new(30000);
+        private static readonly ExpiringCacheOS<SocketAddress, EndPoint> EndpointsCache = new(300000);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static EndPoint GetEndPoint(SocketAddress sckaddr)
+        {
+            if (!EndpointsCache.TryGetValue(sckaddr, 300000, out EndPoint ep))
+            {
+                ep = dummyIPEndPoint.Create(sckaddr);
+                EndpointsCache.AddOrUpdate(sckaddr, ep, 300);
+            }
+            return ep;
+        }
+
 
         /// <summary>
         /// Converts a URL to a IPAddress
@@ -1686,16 +1700,14 @@ namespace OpenSim.Framework
             if (ia == null)
                 return null;
 
-            IPEndPoint newEP;
             try
             {
-                newEP = new IPEndPoint(ia, port);
+                return  new IPEndPoint(ia, port);
             }
             catch
             {
-                newEP = null;
+                return null;
             }
-            return newEP;
         }
 
         public static IPEndPoint getEndPoint(string hostname, int port)
