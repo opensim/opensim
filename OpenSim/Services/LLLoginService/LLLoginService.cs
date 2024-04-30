@@ -90,6 +90,7 @@ namespace OpenSim.Services.LLLoginService
         protected string m_DeniedID0s;
         protected string m_MessageUrl;
         protected string m_DSTZone;
+
         protected bool m_allowDuplicatePresences = false;
         protected string m_messageKey;
         protected bool m_allowLoginFallbackToAnyRegion = true;  // if login requested region if not found and there are no Default or fallback regions,
@@ -166,11 +167,32 @@ namespace OpenSim.Services.LLLoginService
             m_DeniedID0s = Util.GetConfigVarFromSections<string>(config, "DeniedID0s", accessControlConfigSections, string.Empty);
 
             m_MessageUrl = m_LoginServerConfig.GetString("MessageUrl", string.Empty);
+            m_WelcomeMessage = null;
+            if (!string.IsNullOrEmpty(m_MessageUrl))
+            {
+                try
+                { 
+                    using (WebClient client = new())
+                        m_WelcomeMessage = client.DownloadString(m_MessageUrl);
+                }
+                catch               
+                {
+                    m_WelcomeMessage = null;
+                }
+            }
+
+            if (string.IsNullOrEmpty(m_WelcomeMessage))
+                m_WelcomeMessage = m_LoginServerConfig.GetString("WelcomeMessage", "Welcome to OpenSim!");
+
+            m_WelcomeMessage = m_WelcomeMessage.Replace("\\n", "\n");
+
             m_DSTZone = m_LoginServerConfig.GetString("DSTZone", "America/Los_Angeles;Pacific Standard Time");
 
+
+            m_MaxAgentGroups = Constants.MaxAgentGroups;
             IConfig groupConfig = config.Configs["Groups"];
             if (groupConfig is not null)
-                m_MaxAgentGroups = groupConfig.GetInt("MaxAgentGroups", 42);
+                m_MaxAgentGroups = groupConfig.GetInt("MaxAgentGroups", m_MaxAgentGroups);
 
             IConfig presenceConfig = config.Configs["PresenceService"];
             if (presenceConfig is not null)
@@ -193,10 +215,7 @@ namespace OpenSim.Services.LLLoginService
             if (accountService.Length == 0 || authService.Length == 0)
                 throw new Exception("LoginService is missing service specifications");
 
-            // replace newlines in welcome message
-            m_WelcomeMessage = m_WelcomeMessage.Replace("\\n", "\n");
-
-            object[] args = new object[] { config };
+            object[] args = [config];
             m_UserAccountService = ServerUtils.LoadPlugin<IUserAccountService>(accountService, args);
             m_GridUserService = ServerUtils.LoadPlugin<IGridUserService>(gridUserService, args);
             object[] authArgs = new object[] { config, m_UserAccountService };
@@ -478,17 +497,13 @@ namespace OpenSim.Services.LLLoginService
                 m_HGInventoryService?.GetRootFolder(account.PrincipalID);
 
                 List<InventoryFolderBase> inventorySkel = m_InventoryService.GetInventorySkeleton(account.PrincipalID);
-                if (m_RequireInventory && ((inventorySkel is null) || (inventorySkel is not null && inventorySkel.Count == 0)))
+                if (m_RequireInventory && inventorySkel is null || inventorySkel.Count == 0)
                 {
                     m_log.InfoFormat(
                         "[LLOGIN SERVICE]: Login failed, for {0} {1}, reason: unable to retrieve user inventory",
                         firstName, lastName);
                     return LLFailedLoginResponse.InventoryProblem;
                 }
-
-                // Get active gestures
-                List<InventoryItemBase> gestures = m_InventoryService.GetActiveGestures(account.PrincipalID);
-//                m_log.DebugFormat("[LLOGIN SERVICE]: {0} active gestures", gestures.Count);
 
                 //
                 // Login the presence
@@ -599,22 +614,17 @@ namespace OpenSim.Services.LLLoginService
                 if (m_FriendsService is not null)
                 {
                     friendsList = m_FriendsService.GetFriends(account.PrincipalID);
-//                    m_log.DebugFormat("[LLOGIN SERVICE]: Retrieved {0} friends", friendsList.Length);
+                    //m_log.DebugFormat("[LLOGIN SERVICE]: Retrieved {0} friends", friendsList.Length);
                 }
 
                 //
                 // Finally, fill out the response and return it
-                //
-                if (m_MessageUrl != string.Empty)
-                {
-                    using(WebClient client = new())
-                        processedMessage = client.DownloadString(m_MessageUrl);
-                }
-                else
-                {
-                    processedMessage = m_WelcomeMessage;
-                }
-                processedMessage = processedMessage.Replace("\\n", "\n").Replace("<USERNAME>", firstName + " " + lastName);
+    
+                processedMessage = m_WelcomeMessage.Replace("<USERNAME>", firstName + " " + lastName);
+
+                // Get active gestures
+                List<InventoryItemBase> gestures = m_InventoryService.GetActiveGestures(account.PrincipalID);
+                //m_log.DebugFormat("[LLOGIN SERVICE]: {0} active gestures", gestures.Count);
 
                 LLLoginResponse response = new(
                         account, aCircuit, guinfo, destination, inventorySkel, friendsList, m_LibraryService,
@@ -1157,6 +1167,7 @@ namespace OpenSim.Services.LLLoginService
                     {
                         m_WelcomeMessage = cmd[2];
                         MainConsole.Instance.Output("Login welcome message set to '{0}'", m_WelcomeMessage);
+                        m_WelcomeMessage = m_WelcomeMessage.Replace("\\n", "\n");
                     }
                     break;
             }

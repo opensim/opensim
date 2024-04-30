@@ -322,7 +322,7 @@ namespace OSHttpServer
                 default:
                     return;
             }
-            m_processWaitEven.Set();
+            m_processWaitEven?.Set();
         }
 
         public static void PulseWaitSend()

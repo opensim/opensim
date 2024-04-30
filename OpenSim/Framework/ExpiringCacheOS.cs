@@ -30,6 +30,7 @@ using System;
 using System.Threading;
 using System.Collections.Generic;
 using Timer = System.Threading.Timer;
+using System.Runtime.InteropServices;
 
 namespace OpenSim.Framework
 {
@@ -458,6 +459,59 @@ namespace OpenSim.Framework
             }
 
             return success;
+        }
+
+        public ref TValue1 TryGetOrDefaultValue(TKey1 key, out bool existed)
+        {
+            bool gotLock = false;
+            try
+            {
+                try { }
+                finally
+                {
+                    m_rwLock.ExitUpgradeableReadLock();
+                    gotLock = true;
+                }
+
+                return ref CollectionsMarshal.GetValueRefOrAddDefault(m_values, key, out existed);
+            }
+            finally
+            {
+                if (gotLock)
+                    m_rwLock.ExitUpgradeableReadLock();
+            }
+        }
+
+        public ref TValue1 TryGetOrDefaultValue(TKey1 key, int expireMS, out bool existed)
+        {
+            bool gotLock = false;
+            try
+            {
+                try { }
+                finally
+                {
+                    m_rwLock.EnterWriteLock();
+                    gotLock = true;
+                }
+
+                ref TValue1 ret = ref CollectionsMarshal.GetValueRefOrAddDefault(m_values, key, out existed);
+                int now;
+                if (expireMS > 0)
+                {
+                    expireMS = (expireMS > m_expire) ? expireMS : m_expire;
+                    now = (int)(Util.GetTimeStampMS() - m_startTS) + expireMS;
+                }
+                else
+                    now = int.MinValue;
+
+                m_expireControl[key] = now;
+                return ref ret;
+            }
+            finally
+            {
+                if (gotLock)
+                    m_rwLock.EnterWriteLock();
+            }
         }
 
         public TValue1[] Values
