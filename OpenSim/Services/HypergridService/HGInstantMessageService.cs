@@ -89,7 +89,7 @@ namespace OpenSim.Services.HypergridService
                 if (string.IsNullOrEmpty(userAgentService))
                     m_log.WarnFormat("[HG IM SERVICE]: UserAgentService not set in [HGInstantMessageService]");
 
-                object[] args = new object[] { config };
+                object[] args = [ config ];
                 try
                 {
                     m_GridService = ServerUtils.LoadPlugin<IGridService>(gridService, args);

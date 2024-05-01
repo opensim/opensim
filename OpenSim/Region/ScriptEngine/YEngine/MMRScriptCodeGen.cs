@@ -65,7 +65,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
     {
         public static readonly string OBJECT_CODE_MAGIC = "YObjectCode";
         // reserve positive version values for original xmr
-        public static int COMPILED_VERSION_VALUE = -9;  // decremented when compiler or object file changes
+        public static int COMPILED_VERSION_VALUE = -10;  // decremented when compiler or object file changes
 
         public static readonly int CALL_FRAME_MEMUSE = 64;
         public static readonly int STRING_LEN_TO_MEMUSE = 2;
@@ -85,21 +85,21 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private static readonly TokenTypeRot tokenTypeRot = new(null);
         private static readonly TokenTypeStr tokenTypeStr = new(null);
         private static readonly TokenTypeVec tokenTypeVec = new(null);
-        private static readonly Type[] instanceTypeArg = new Type[] { typeof(XMRInstAbstract) };
-        private static readonly string[] instanceNameArg = new string[] { "$xmrthis" };
+        private static readonly Type[] instanceTypeArg = [typeof(XMRInstAbstract)];
+        private static readonly string[] instanceNameArg = ["$xmrthis"];
 
-        private static readonly ConstructorInfo lslFloatConstructorInfo = typeof(LSL_Float).GetConstructor(new Type[] { typeof(double) });
-        private static readonly ConstructorInfo lslIntegerConstructorInfo = typeof(LSL_Integer).GetConstructor(new Type[] { typeof(int) });
-        private static readonly ConstructorInfo lslListConstructorInfo = typeof(LSL_List).GetConstructor(new Type[] { typeof(object[]) });
-        public static  readonly ConstructorInfo lslRotationConstructorInfo = typeof(LSL_Rotation).GetConstructor(new Type[] { typeof(double), typeof(double), typeof(double), typeof(double) });
-        private static readonly ConstructorInfo lslStringConstructorInfo = typeof(LSL_String).GetConstructor(new Type[] { typeof(string) });
-        public static readonly ConstructorInfo lslVectorConstructorInfo = typeof(LSL_Vector).GetConstructor(new Type[] { typeof(double), typeof(double), typeof(double) });
-        private static readonly ConstructorInfo scriptBadCallNoExceptionConstructorInfo = typeof(ScriptBadCallNoException).GetConstructor(new Type[] { typeof(int) });
-        private static readonly ConstructorInfo scriptChangeStateExceptionConstructorInfo = typeof(ScriptChangeStateException).GetConstructor(new Type[] { typeof(int) });
-        private static readonly ConstructorInfo scriptRestoreCatchExceptionConstructorInfo = typeof(ScriptRestoreCatchException).GetConstructor(new Type[] { typeof(Exception) });
-        private static readonly ConstructorInfo scriptUndefinedStateExceptionConstructorInfo = typeof(ScriptUndefinedStateException).GetConstructor(new Type[] { typeof(string) });
-        private static readonly ConstructorInfo sdtClassConstructorInfo = typeof(XMRSDTypeClObj).GetConstructor(new Type[] { typeof(XMRInstAbstract), typeof(int) });
-        private static readonly ConstructorInfo xmrArrayConstructorInfo = typeof(XMR_Array).GetConstructor(new Type[] { typeof(XMRInstAbstract) });
+        private static readonly ConstructorInfo lslFloatConstructorInfo = typeof(LSL_Float).GetConstructor([typeof(double)]);
+        private static readonly ConstructorInfo lslIntegerConstructorInfo = typeof(LSL_Integer).GetConstructor([typeof(int)]);
+        private static readonly ConstructorInfo lslListConstructorInfo = typeof(LSL_List).GetConstructor([typeof(object[])]);
+        public static  readonly ConstructorInfo lslRotationConstructorInfo = typeof(LSL_Rotation).GetConstructor([typeof(double), typeof(double), typeof(double), typeof(double)]);
+        private static readonly ConstructorInfo lslStringConstructorInfo = typeof(LSL_String).GetConstructor([typeof(string)]);
+        public static readonly ConstructorInfo lslVectorConstructorInfo = typeof(LSL_Vector).GetConstructor([typeof(double), typeof(double), typeof(double)]);
+        private static readonly ConstructorInfo scriptBadCallNoExceptionConstructorInfo = typeof(ScriptBadCallNoException).GetConstructor([typeof(int)]);
+        private static readonly ConstructorInfo scriptChangeStateExceptionConstructorInfo = typeof(ScriptChangeStateException).GetConstructor([typeof(int)]);
+        private static readonly ConstructorInfo scriptRestoreCatchExceptionConstructorInfo = typeof(ScriptRestoreCatchException).GetConstructor([typeof(Exception)]);
+        private static readonly ConstructorInfo scriptUndefinedStateExceptionConstructorInfo = typeof(ScriptUndefinedStateException).GetConstructor([typeof(string)]);
+        private static readonly ConstructorInfo sdtClassConstructorInfo = typeof(XMRSDTypeClObj).GetConstructor([typeof(XMRInstAbstract), typeof(int)]);
+        private static readonly ConstructorInfo xmrArrayConstructorInfo = typeof(XMR_Array).GetConstructor([typeof(XMRInstAbstract)]);
         private static readonly FieldInfo callModeFieldInfo = typeof(XMRInstAbstract).GetField("callMode");
         private static readonly FieldInfo doGblInitFieldInfo = typeof(XMRInstAbstract).GetField("doGblInit");
         private static readonly FieldInfo ehArgsFieldInfo = typeof(XMRInstAbstract).GetField("ehArgs");
@@ -116,29 +116,29 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         private static readonly MethodInfo arrayClearMethodInfo = typeof(XMR_Array).GetMethod("__pub_clear", Array.Empty<Type>());
         private static readonly MethodInfo arrayCountMethodInfo = typeof(XMR_Array).GetMethod("__pub_count", Array.Empty<Type>());
-        private static readonly MethodInfo arrayIndexMethodInfo = typeof(XMR_Array).GetMethod("__pub_index", new Type[] { typeof(int) });
-        private static readonly MethodInfo arrayValueMethodInfo = typeof(XMR_Array).GetMethod("__pub_value", new Type[] { typeof(int) });
+        private static readonly MethodInfo arrayIndexMethodInfo = typeof(XMR_Array).GetMethod("__pub_index", [typeof(int)]);
+        private static readonly MethodInfo arrayValueMethodInfo = typeof(XMR_Array).GetMethod("__pub_value", [typeof(int)]);
         private static readonly MethodInfo checkRunStackMethInfo = typeof(XMRInstAbstract).GetMethod("CheckRunStack", Array.Empty<Type>());
         private static readonly MethodInfo checkRunQuickMethInfo = typeof(XMRInstAbstract).GetMethod("CheckRunQuick", Array.Empty<Type>());
-        private static readonly MethodInfo ehArgUnwrapFloat = GetStaticMethod(typeof(TypeCast), "EHArgUnwrapFloat", new Type[] { typeof(object) });
-        private static readonly MethodInfo ehArgUnwrapInteger = GetStaticMethod(typeof(TypeCast), "EHArgUnwrapInteger", new Type[] { typeof(object) });
-        private static readonly MethodInfo ehArgUnwrapRotation = GetStaticMethod(typeof(TypeCast), "EHArgUnwrapRotation", new Type[] { typeof(object) });
-        private static readonly MethodInfo ehArgUnwrapString = GetStaticMethod(typeof(TypeCast), "EHArgUnwrapString", new Type[] { typeof(object) });
-        private static readonly MethodInfo ehArgUnwrapVector = GetStaticMethod(typeof(TypeCast), "EHArgUnwrapVector", new Type[] { typeof(object) });
-        private static readonly MethodInfo xmrArrPubIndexMethod = typeof(XMR_Array).GetMethod("__pub_index", new Type[] { typeof(int) });
-        private static readonly MethodInfo xmrArrPubValueMethod = typeof(XMR_Array).GetMethod("__pub_value", new Type[] { typeof(int) });
-        private static readonly MethodInfo captureStackFrameMethodInfo = typeof(XMRInstAbstract).GetMethod("CaptureStackFrame", new Type[] { typeof(string), typeof(int), typeof(int) });
-        private static readonly MethodInfo restoreStackFrameMethodInfo = typeof(XMRInstAbstract).GetMethod("RestoreStackFrame", new Type[] { typeof(string), typeof(int).MakeByRefType() });
-        private static readonly MethodInfo stringCompareMethodInfo = GetStaticMethod(typeof(String), "Compare", new Type[] { typeof(string), typeof(string), typeof(StringComparison) });
-        private static readonly MethodInfo stringConcat2MethodInfo = GetStaticMethod(typeof(String), "Concat", new Type[] { typeof(string), typeof(string) });
-        private static readonly MethodInfo stringConcat3MethodInfo = GetStaticMethod(typeof(String), "Concat", new Type[] { typeof(string), typeof(string), typeof(string) });
-        private static readonly MethodInfo stringConcat4MethodInfo = GetStaticMethod(typeof(String), "Concat", new Type[] { typeof(string), typeof(string), typeof(string), typeof(string) });
-        private static readonly MethodInfo lslRotationNegateMethodInfo = GetStaticMethod(typeof(ScriptCodeGen), "LSLRotationNegate", new Type[] { typeof(LSL_Rotation) });
-        private static readonly MethodInfo lslVectorNegateMethodInfo = GetStaticMethod(typeof(ScriptCodeGen), "LSLVectorNegate", new Type[] { typeof(LSL_Vector) });
-        private static readonly MethodInfo scriptRestoreCatchExceptionUnwrap = GetStaticMethod(typeof(ScriptRestoreCatchException), "Unwrap", new Type[] { typeof(Exception) });
-        private static readonly MethodInfo thrownExceptionWrapMethodInfo = GetStaticMethod(typeof(ScriptThrownException), "Wrap", new Type[] { typeof(object) });
-        private static readonly MethodInfo catchExcToStrMethodInfo = GetStaticMethod(typeof(ScriptCodeGen), "CatchExcToStr", new Type[] { typeof(Exception) });
-        private static readonly MethodInfo consoleWriteMethodInfo = GetStaticMethod(typeof(ScriptCodeGen), "ConsoleWrite", new Type[] { typeof(object) });
+        private static readonly MethodInfo ehArgUnwrapFloat = GetStaticMethod(typeof(TypeCast), "EHArgUnwrapFloat", [typeof(object)]);
+        private static readonly MethodInfo ehArgUnwrapInteger = GetStaticMethod(typeof(TypeCast), "EHArgUnwrapInteger", [typeof(object)]);
+        private static readonly MethodInfo ehArgUnwrapRotation = GetStaticMethod(typeof(TypeCast), "EHArgUnwrapRotation", [typeof(object)]);
+        private static readonly MethodInfo ehArgUnwrapString = GetStaticMethod(typeof(TypeCast), "EHArgUnwrapString", [typeof(object)]);
+        private static readonly MethodInfo ehArgUnwrapVector = GetStaticMethod(typeof(TypeCast), "EHArgUnwrapVector", [typeof(object)]);
+        private static readonly MethodInfo xmrArrPubIndexMethod = typeof(XMR_Array).GetMethod("__pub_index", [typeof(int)]);
+        private static readonly MethodInfo xmrArrPubValueMethod = typeof(XMR_Array).GetMethod("__pub_value", [typeof(int)]);
+        private static readonly MethodInfo captureStackFrameMethodInfo = typeof(XMRInstAbstract).GetMethod("CaptureStackFrame", [typeof(string), typeof(int), typeof(int)]);
+        private static readonly MethodInfo restoreStackFrameMethodInfo = typeof(XMRInstAbstract).GetMethod("RestoreStackFrame", [typeof(string), typeof(int).MakeByRefType()]);
+        private static readonly MethodInfo stringCompareMethodInfo = GetStaticMethod(typeof(BinOpStr), "StringCompareOrdinal", [typeof(string), typeof(string)]);
+        private static readonly MethodInfo stringConcat2MethodInfo = GetStaticMethod(typeof(BinOpStr), "StringConcat", [typeof(string), typeof(string)]);
+        private static readonly MethodInfo stringConcat3MethodInfo = GetStaticMethod(typeof(BinOpStr), "StringConcat", [typeof(string), typeof(string), typeof(string)]);
+        private static readonly MethodInfo stringConcat4MethodInfo = GetStaticMethod(typeof(BinOpStr), "StringConcat", [typeof(string), typeof(string), typeof(string), typeof(string)]);
+        private static readonly MethodInfo lslRotationNegateMethodInfo = GetStaticMethod(typeof(ScriptCodeGen), "LSLRotationNegate", [typeof(LSL_Rotation)]);
+        private static readonly MethodInfo lslVectorNegateMethodInfo = GetStaticMethod(typeof(ScriptCodeGen), "LSLVectorNegate", [typeof(LSL_Vector)]);
+        private static readonly MethodInfo scriptRestoreCatchExceptionUnwrap = GetStaticMethod(typeof(ScriptRestoreCatchException), "Unwrap", [typeof(Exception)]);
+        private static readonly MethodInfo thrownExceptionWrapMethodInfo = GetStaticMethod(typeof(ScriptThrownException), "Wrap", [typeof(object)]);
+        private static readonly MethodInfo catchExcToStrMethodInfo = GetStaticMethod(typeof(ScriptCodeGen), "CatchExcToStr", [typeof(Exception)]);
+        private static readonly MethodInfo consoleWriteMethodInfo = GetStaticMethod(typeof(ScriptCodeGen), "ConsoleWrite", [typeof(object)]);
         public static void ConsoleWrite(object o)
         {
             o ??= "<<null>>";
@@ -3005,7 +3005,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                 testRVal.PushVal(this, thisCase, tokenTypeStr);
                 ilGen.Emit(thisCase, OpCodes.Ldstr, thisCase.str1);
-                ilGen.Emit(thisCase, OpCodes.Ldc_I4, (int)StringComparison.Ordinal);
                 ilGen.Emit(thisCase, OpCodes.Call, stringCompareMethodInfo);
                 ilGen.Emit(thisCase, OpCodes.Brfalse, thisCase.label);
                 ilGen.Emit(thisCase, OpCodes.Br, defaultLabel);
@@ -3030,7 +3029,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // Maybe save comparison result in a temp.
             testRVal.PushVal(this, thisCase, tokenTypeStr);
             ilGen.Emit(thisCase, OpCodes.Ldstr, thisCase.str1);
-            ilGen.Emit(thisCase, OpCodes.Ldc_I4, (int)StringComparison.Ordinal);
             ilGen.Emit(thisCase, OpCodes.Call, stringCompareMethodInfo);
             if(cmpv1 != null)
             {
@@ -3046,7 +3044,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                 testRVal.PushVal(this, thisCase, tokenTypeStr);
                 ilGen.Emit(thisCase, OpCodes.Ldstr, thisCase.str2);
-                ilGen.Emit(thisCase, OpCodes.Ldc_I4, (int)StringComparison.Ordinal);
                 ilGen.Emit(thisCase, OpCodes.Call, stringCompareMethodInfo);
             }
             else
@@ -4296,7 +4293,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             if((leftType is TokenTypeSDTypeClass sdtType) && right.type is not TokenTypeUndef)
             {
                 TokenDeclSDTypeClass sdtDecl = sdtType.decl;
-                TokenType[] argsig = new TokenType[] { right.type };
+                TokenType[] argsig = [right.type];
                 TokenName funcName = new (token.opcode, "$op" + opcodeIndex);
                 TokenDeclVar declFunc = FindThisMember(sdtDecl, funcName, argsig);
                 if(declFunc != null)
@@ -4304,7 +4301,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     CheckAccess(declFunc, funcName);
                     left = GenerateFromRVal(token.rValLeft);
                     CompValu method = AccessInstanceMember(declFunc, left, token, false);
-                    CompValu[] argRVals = new CompValu[] { right };
+                    CompValu[] argRVals = [right];
                     return GenerateACall(method, argRVals, token);
                 }
             }
