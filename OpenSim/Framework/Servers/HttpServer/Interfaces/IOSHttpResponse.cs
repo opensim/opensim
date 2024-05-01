@@ -25,13 +25,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Collections;
-using System.Collections.Specialized;
 using System.IO;
 using System.Net;
 using System.Text;
-using System.Web;
 
 namespace OpenSim.Framework.Servers.HttpServer
 {

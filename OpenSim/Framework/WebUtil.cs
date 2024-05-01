@@ -47,7 +47,6 @@ using OpenSim.Framework.ServiceAuth;
 using System.Net.Http;
 using System.Security.Authentication;
 using System.Runtime.CompilerServices;
-using System.Threading;
 
 namespace OpenSim.Framework
 {
