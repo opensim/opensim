@@ -35,9 +35,6 @@
       <HintPath>..\..\..\bin\OpenMetaverseTypes.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="System.Web">
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Warp3D">
       <HintPath>..\..\..\bin\Warp3D.dll</HintPath>
       <Private>False</Private>
