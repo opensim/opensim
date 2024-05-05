@@ -499,6 +499,10 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             m_log.DebugFormat("[XFER]: Created item {0} with asset {1}",
                     item.ID, item.AssetID);
 
+            // special AnimationSet case
+            if (item.InvType == (int)CustomInventoryType.AnimationSet)
+                AnimationSet.enforceItemPermitions(item, true);
+
             if (m_Scene.AddInventoryItem(item))
                 ourClient.SendInventoryItemCreateUpdate(item, m_transactionID, callbackID);
             else
@@ -552,7 +556,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 
                         else if (textures > 0)
                         {
-                            string[] parts = line.Split(new char[] {' '});
+                            string[] parts = line.Split();
 
                             UUID tx = new UUID(parts[1]);
                             int id = Convert.ToInt32(parts[0]);
@@ -630,7 +634,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                     }
                     else if (textures > 0)
                     {
-                        string[] parts = line.Split(new char[] {' '});
+                        string[] parts = line.Split();
 
                         UUID tx = new UUID(parts[1]);
                         int id = Convert.ToInt32(parts[0]);

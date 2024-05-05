@@ -67,6 +67,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public const string PhysFunctChangeLinkParams = "BulletSim.ChangeLinkParams";
         public const string PhysFunctAxisLockLimits = "BulletSim.AxisLockLimits";
 
+        public const string PhysFunctDisableDeactivation = "BulletSim.DisableDeactivation";
+
         // =============================================================
 
         private IConfig Configuration { get; set; }
@@ -89,7 +91,9 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             {
                 if ((Configuration = config.Configs["ExtendedPhysics"]) != null)
                 {
-                    Enabled = Configuration.GetBoolean("Enabled", Enabled);
+                    //IConfig cStartup = config.Configs["Startup"];
+                    //if (cStartup?.GetString("physics", string.Empty) == "BulletSim")
+                        Enabled = Configuration.GetBoolean("Enabled", Enabled);
                 }
             }
             catch (Exception e)
@@ -138,6 +142,9 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             }
 
             // Register as LSL functions all the [ScriptInvocation] marked methods.
+            // NOTE: YEngine keeps functions as region specific but constants are global static
+            //    so if this is used in multiple regions on a simulator, the constants will
+            //    show up as being redefined.
             Comms.RegisterScriptInvocations(this);
             Comms.RegisterConstants(this);
 
@@ -174,6 +181,26 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             }
 
             return ret;
+        }
+
+        [ScriptInvocation]
+        public float physDisableDeactivation(UUID hostId, UUID scriptId, int disable)
+        {
+            int ret = -1;
+            if (!Enabled) return ret;
+
+            if (BaseScene.PhysicsScene != null)
+            {
+                if (GetRootPhysActor(hostId, out PhysicsActor rootPhysActor))
+                {
+                    m_log.DebugFormat("{0} physDisableDeactivation: hostId={1}, scriptId={2}, val={3}", LogHeader, hostId, scriptId, disable);
+                    object[] parms2 = { rootPhysActor, null, disable };
+                    ret = MakeIntError(rootPhysActor.Extension(PhysFunctDisableDeactivation, parms2));
+                }
+            }
+
+            return ret;
+
         }
 
         // Code for specifying params.

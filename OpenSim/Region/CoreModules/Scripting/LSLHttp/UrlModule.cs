@@ -85,9 +85,9 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected readonly Dictionary<UUID, UrlData> m_RequestMap = new Dictionary<UUID, UrlData>();
-        protected readonly Dictionary<string, UrlData> m_UrlMap = new Dictionary<string, UrlData>();
-        protected readonly Dictionary<UUID, int> m_countsPerSOG = new Dictionary<UUID, int>();
+        protected readonly Dictionary<UUID, UrlData> m_RequestMap = new();
+        protected readonly Dictionary<string, UrlData> m_UrlMap = new();
+        protected readonly Dictionary<UUID, int> m_countsPerSOG = new();
 
         protected bool m_enabled = false;
         protected string m_ErrorStr;
@@ -151,8 +151,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 return;
             }
 
-            IPAddress ia = null;
-            ia = Util.GetHostFromDNS(ExternalHostNameForLSL);
+            IPAddress ia = Util.GetHostFromDNS(ExternalHostNameForLSL);
             if (ia == null)
             {
                 m_ErrorStr = "Could not resolve ExternalHostNameForLSL, HTTP listener for LSL disabled";
@@ -245,7 +244,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 string url = "http://" + ExternalHostNameForLSL + ":" + m_HttpServer.Port.ToString() + "/lslhttp/" + urlcode.ToString();
 
                 UUID groupID = host.ParentGroup.UUID;
-                UrlData urlData = new UrlData()
+                UrlData urlData = new()
                 {
                     hostID = host.UUID,
                     groupID = groupID,
@@ -273,7 +272,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 string uri = "/lslhttp/" + urlcode.ToString();
 
                 PollServiceEventArgs args
-                    = new PollServiceEventArgs(HttpRequestHandler, uri, HasEvents, GetEvents, NoEvents, Drop, urlcode, 25000);
+                    = new(HttpRequestHandler, uri, HasEvents, GetEvents, NoEvents, Drop, urlcode, 25000);
 
                 m_HttpServer.AddPollServiceHTTPHandlerVarPath(args);
 
@@ -314,7 +313,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 string url = "https://" + ExternalHostNameForLSL + ":" + m_HttpsServer.Port.ToString() + "/lslhttps/" + urlcode.ToString();
 
                 UUID groupID = host.ParentGroup.UUID;
-                UrlData urlData = new UrlData()
+                UrlData urlData = new()
                 {
                     hostID = host.UUID,
                     groupID = groupID,
@@ -341,8 +340,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
                 string uri = "/lslhttps/" + urlcode.ToString();
 
-                PollServiceEventArgs args
-                    = new PollServiceEventArgs(HttpRequestHandler, uri, HasEvents, GetEvents, NoEvents, Drop, urlcode, 25000);
+                PollServiceEventArgs args = new(HttpRequestHandler, uri, HasEvents, GetEvents, NoEvents, Drop, urlcode, 25000);
                 m_HttpsServer.AddPollServiceHTTPHandlerVarPath(args);
 
                 //m_log.DebugFormat(
@@ -359,9 +357,8 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         {
             lock (m_UrlMap)
             {
-                UrlData data;
-                url = url.TrimEnd(new char[]{'/'});
-                if (!m_UrlMap.TryGetValue(url, out data))
+                url = url.TrimEnd(new char[] { '/' });
+                if (!m_UrlMap.TryGetValue(url, out UrlData data))
                 {
                     return;
                 }
@@ -385,8 +382,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         {
             lock (m_UrlMap)
             {
-                UrlData urlData;
-                if (m_RequestMap.TryGetValue(request, out urlData) && urlData != null)
+                if (m_RequestMap.TryGetValue(request, out UrlData urlData) && urlData != null)
                 {
                     urlData.requests[request].responseType = type;
                 }
@@ -401,13 +397,11 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         {
             lock (m_RequestMap)
             {
-                UrlData urlData;
-                RequestData rd;
-                if (m_RequestMap.TryGetValue(request, out urlData) && urlData != null)
+                if (m_RequestMap.TryGetValue(request, out UrlData urlData) && urlData != null)
                 {
-                    lock(urlData.requests)
+                    lock (urlData.requests)
                     {
-                        if (urlData.requests.TryGetValue(request, out rd) && rd != null)
+                        if (urlData.requests.TryGetValue(request, out RequestData rd) && rd != null)
                         {
                             if (!rd.responseSent)
                             {
@@ -415,10 +409,9 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
                                 if (rd.responseType.Equals("text/plain"))
                                 {
-                                    string value;
-                                    if (rd.headers.TryGetValue("user-agent", out value))
+                                    if (rd.headers.TryGetValue("user-agent", out string value))
                                     {
-                                        if (value != null && value.IndexOf("MSIE") >= 0)
+                                        if (value != null && value.Contains("MSIE", StringComparison.InvariantCultureIgnoreCase))
                                         {
                                             // wrap the html escaped response if the target client is IE
                                             // It ignores "text/plain" if the body is html
@@ -447,11 +440,9 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         {
             lock (m_RequestMap)
             {
-                UrlData urlData;
-                if (m_RequestMap.TryGetValue(requestId, out urlData) && urlData != null)
+                if (m_RequestMap.TryGetValue(requestId, out UrlData urlData) && urlData != null)
                 {
-                    string value;
-                    if (urlData.requests[requestId].headers.TryGetValue(header, out value))
+                    if (urlData.requests[requestId].headers.TryGetValue(header.ToLowerInvariant(), out string value))
                         return value;
                 }
                 else
@@ -474,7 +465,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
             lock (m_UrlMap)
             {
-                List<string> removeURLs = new List<string>();
+                List<string> removeURLs = new();
 
                 foreach (KeyValuePair<string, UrlData> url in m_UrlMap)
                 {
@@ -499,7 +490,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         {
             lock (m_UrlMap)
             {
-                List<string> removeURLs = new List<string>();
+                List<string> removeURLs = new();
 
                 foreach (KeyValuePair<string, UrlData> url in m_UrlMap)
                 {
@@ -539,18 +530,17 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
         protected Hashtable NoEvents(UUID requestID, UUID sessionID)
         {
-            Hashtable response = new Hashtable();
             UrlData url;
             int startTime = 0;
             lock (m_RequestMap)
             {
                 if (!m_RequestMap.TryGetValue(requestID, out url))
-                    return response;
+                    return new Hashtable();
                 startTime = url.requests[requestID].startTime;
             }
 
             if (System.Environment.TickCount - startTime < 25000)
-                return response;
+                return new Hashtable();
 
             //remove from map
             lock (url.requests)
@@ -562,17 +552,18 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 m_RequestMap.Remove(requestID);
             }
 
-            response["int_response_code"] = 500;
-            response["str_response_string"] = "Script timeout";
-            response["content_type"] = "text/plain";
-            response["keepalive"] = false;
-            return response;
+            return new Hashtable()
+            {
+                ["int_response_code"] = 500,
+                ["str_response_string"] = "Script timeout",
+                ["content_type"] = "text/plain",
+                ["keepalive"] = false
+            };
         }
 
         protected bool HasEvents(UUID requestID, UUID sessionID)
         {
-            UrlData url=null;
-
+            UrlData url;
             lock (m_RequestMap)
             {
                 if (!m_RequestMap.TryGetValue(requestID, out url))
@@ -580,8 +571,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             }
             lock (url.requests)
             {
-                RequestData rd;
-                if (!url.requests.TryGetValue(requestID, out rd) || rd == null)
+                if (!url.requests.TryGetValue(requestID, out RequestData rd) || rd == null)
                     return false;
 
                 if (System.Environment.TickCount - rd.startTime > 25000)
@@ -591,7 +581,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             }
         }
 
-        protected void Drop(UUID requestID, UUID sessionID)
+        protected void Drop(UUID requestID, UUID _)
         {
             UrlData url = null;
             lock (m_RequestMap)
@@ -615,15 +605,21 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             lock (m_RequestMap)
             {
                 if (!m_RequestMap.TryGetValue(requestID, out url))
-                    return NoEvents(requestID,sessionID);
+                    return new Hashtable();
             }
 
             RequestData requestData = null;
+            bool timeout = false;
+
             lock (url.requests)
             {
                 requestData = url.requests[requestID];
-                if (requestData == null || !requestData.requestDone)
-                    return NoEvents(requestID, sessionID);
+                if (requestData == null)
+                    return new Hashtable();
+
+                timeout = System.Environment.TickCount - requestData.startTime > 25000;
+                if (!requestData.requestDone && !timeout)
+                    return new Hashtable();
 
                 url.requests.Remove(requestID);
                 lock (m_RequestMap)
@@ -632,27 +628,19 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 }
             }
 
-            Hashtable response = new Hashtable();
-
-            if (System.Environment.TickCount - requestData.startTime > 25000)
+            if (timeout)
             {
-                response["int_response_code"] = 500;
-                response["str_response_string"] = "Script timeout";
-                response["content_type"] = "text/plain";
-                response["keepalive"] = false;
-                return response;
+                return new Hashtable()
+                {
+                    ["int_response_code"] = 500,
+                    ["str_response_string"] = "Script timeout",
+                    ["content_type"] = "text/plain",
+                    ["keepalive"] = false
+                };
             }
-            //put response
-            response["int_response_code"] = requestData.responseCode;
-            response["str_response_string"] = requestData.responseBody;
-            response["content_type"] = requestData.responseType;
-            response["keepalive"] = false;
 
-            if (url.allowXss)
-                response["access_control_allow_origin"] = "*";
-
-            Hashtable headers = new Hashtable();
-            if(url.scene != null)
+            Hashtable headers = new();
+            if(url.scene is not null)
             {
                 SceneObjectPart sop = url.scene.GetSceneObjectPart(url.hostID);
                 if(sop != null)
@@ -662,8 +650,6 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                     Vector3 velocity = sop.Velocity;
                     Quaternion rotation = sop.GetWorldRotation();
 
-                    if (!string.IsNullOrWhiteSpace(m_lsl_shard))
-                        headers["X-SecondLife-Shard"] = m_lsl_shard;
                     headers["X-SecondLife-Object-Name"] = sop.Name;
                     headers["X-SecondLife-Object-Key"] = sop.UUID.ToString();
                     headers["X-SecondLife-Region"] = string.Format("{0} ({1}, {2})", ri.RegionName, ri.WorldLocX, ri.WorldLocY);
@@ -672,20 +658,36 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                     headers["X-SecondLife-Local-Rotation"] = string.Format("({0:0.000000}, {1:0.000000}, {2:0.000000}, {3:0.000000})", rotation.X, rotation.Y, rotation.Z, rotation.W);
                     //headers["X-SecondLife-Owner-Name"] = ownerName;
                     headers["X-SecondLife-Owner-Key"] = sop.OwnerID.ToString();
-                    if (!string.IsNullOrWhiteSpace(m_lsl_user_agent))
-                        headers["User-Agent"] = m_lsl_user_agent;
                 }
             }
-            if(url.isSsl)
+            if (!string.IsNullOrWhiteSpace(m_lsl_shard))
+                headers["X-SecondLife-Shard"] = m_lsl_shard;
+            if (!string.IsNullOrWhiteSpace(m_lsl_user_agent))
+                headers["User-Agent"] = m_lsl_user_agent;
+            if (url.isSsl)
                 headers.Add("Accept-CH","UA");
-            response["headers"] = headers;
+
+            Hashtable response = new()
+            {
+                ["int_response_code"] = requestData.responseCode,
+                ["str_response_string"] = requestData.responseBody,
+                ["content_type"] = requestData.responseType,
+                ["headers"] = headers,
+                ["keepalive"] = false
+            };
+
+            if (url.allowXss)
+                response["access_control_allow_origin"] = "*";
+
             return response;
         }
 
         private OSHttpResponse errorResponse(OSHttpRequest request, int error)
         {
-            OSHttpResponse resp = new OSHttpResponse(request);
-            resp.StatusCode = error;
+            OSHttpResponse resp = new(request)
+            {
+                StatusCode = error
+            };
             return resp;
         }
 
@@ -707,11 +709,11 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                     string uri_tmp;
                     string pathInfo;
 
-                    int pos = uri.IndexOf("/", 45); // /lslhttp/uuid/ <-
+                    int pos = uri.IndexOf('/', 45); // /lslhttp/uuid/ <-
                     if (pos >= 45)
                     {
-                        uri_tmp = uri.Substring(0, pos);
-                        pathInfo = uri.Substring(pos);
+                        uri_tmp = uri[..pos];
+                        pathInfo = uri[pos..];
                     }
                     else
                     {
@@ -736,18 +738,16 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                     //for llGetHttpHeader support we need to store original URI here
                     //to make x-path-info / x-query-string / x-script-url / x-remote-ip headers
                     //as per http://wiki.secondlife.com/wiki/LlGetHTTPHeader
-                    RequestData requestData = new RequestData()
+                    RequestData requestData = new()
                     {
                         requestID = requestID,
                         requestDone = false,
                         startTime = System.Environment.TickCount,
                         uri = uri,
                         hostID = url.hostID,
-                        scene = url.scene
+                        scene = url.scene,
+                        headers = new Dictionary<string, string>()
                     };
-
-                    if (requestData.headers == null)
-                        requestData.headers = new Dictionary<string, string>();
 
                     NameValueCollection headers = request.Headers;
                     if (headers.Count > 0)
@@ -763,7 +763,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                     NameValueCollection query = request.QueryString;
                     if (query.Count > 0)
                     {
-                        StringBuilder sb = new StringBuilder();
+                        StringBuilder sb = new();
                         for (int i = 0; i < query.Count; ++i)
                         {
                             string key = query.GetKey(i);
@@ -799,7 +799,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                     string requestBody;
                     if (request.InputStream.Length > 0)
                     {
-                        using (StreamReader reader = new StreamReader(request.InputStream, Encoding.UTF8))
+                        using (StreamReader reader = new(request.InputStream, Encoding.UTF8))
                             requestBody = reader.ReadToEnd();
                     }
                     else

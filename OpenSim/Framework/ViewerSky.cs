@@ -52,12 +52,14 @@ namespace OpenSim.Framework
 
             public OSDMap ToOSD()
             {
-                OSDMap map = new OSDMap();
-                map["constant_term"] = constant_term;
-                map["exp_scale"] = exp_scale;
-                map["exp_term"] = exp_term;
-                map["linear_term"] = linear_term;
-                map["width"] = width;
+                OSDMap map = new()
+                {
+                    ["constant_term"] = constant_term,
+                    ["exp_scale"] = exp_scale,
+                    ["exp_term"] = exp_term,
+                    ["linear_term"] = linear_term,
+                    ["width"] = width
+                };
                 return map;
             }
 
@@ -92,13 +94,15 @@ namespace OpenSim.Framework
 
             public OSDMap ToOSD()
             {
-                OSDMap map = new OSDMap();
-                map["anisotropy"] = anisotropy;
-                map["constant_term"] = constant_term;
-                map["exp_scale"] = exp_scale;
-                map["exp_term"] = exp_term;
-                map["linear_term"] = linear_term;
-                map["width"] = width;
+                OSDMap map = new()
+                {
+                    ["anisotropy"] = anisotropy,
+                    ["constant_term"] = constant_term,
+                    ["exp_scale"] = exp_scale,
+                    ["exp_term"] = exp_term,
+                    ["linear_term"] = linear_term,
+                    ["width"] = width
+                };
                 return map;
             }
 
@@ -113,40 +117,40 @@ namespace OpenSim.Framework
             }
         }
         //AbsCoefData(float w, float expt, float exps, float lin, float cons)
-        public AbsCoefData abscoefA = new AbsCoefData(25000f, 0, 0, 0, 0);
-        public AbsCoefData abscoefB = new AbsCoefData(0, 0, 0, -6.6666667e-5f, 1f);
-        public AbsCoefData rayleigh_config = new AbsCoefData(0,  1, -1.25e-4f, 0, 0);
+        public AbsCoefData abscoefA = new(25000f, 0, 0, 0, 0);
+        public AbsCoefData abscoefB = new(0, 0, 0, -6.6666667e-5f, 1f);
+        public AbsCoefData rayleigh_config = new(0,  1, -1.25e-4f, 0, 0);
 
         //mCoefData(float w, float expt, float exps, float lin, float cons, float ani)
-        public mCoefData mieconf = new mCoefData(0, 1f, -8.333333e-4f, 0, 0, 0.8f);
+        public mCoefData mieconf = new(0, 1f, -8.333333e-4f, 0, 0, 0.8f);
 
-        UUID bloom_id = new UUID("3c59f7fe-9dc8-47f9-8aaf-a9dd1fbc3bef");
-        UUID cloud_id = new UUID("1dc1368f-e8fe-f02d-a08d-9d9f11c1af6b");
-        UUID halo_id = new UUID("12149143-f599-91a7-77ac-b52a3c0f59cd");
-        UUID moon_id = new UUID("ec4b9f0b-d008-45c6-96a4-01dd947ac621");
-        UUID rainbow_id = new UUID("11b4c57c-56b3-04ed-1f82-2004363882e4");
+        UUID bloom_id = new("3c59f7fe-9dc8-47f9-8aaf-a9dd1fbc3bef");
+        UUID cloud_id = new("1dc1368f-e8fe-f02d-a08d-9d9f11c1af6b");
+        UUID halo_id = new("12149143-f599-91a7-77ac-b52a3c0f59cd");
+        UUID moon_id = new("ec4b9f0b-d008-45c6-96a4-01dd947ac621");
+        UUID rainbow_id = new("11b4c57c-56b3-04ed-1f82-2004363882e4");
         UUID sun_id = UUID.Zero;
 
-        public Vector3 ambient = new Vector3(1.047f, 1.047f, 1.047f); //?
-        public Vector3 blue_density = new Vector3(0.2447f, 0.4487f, 0.76f);
-        public Vector3 blue_horizon = new Vector3(0.4954f, 0.4954f, 0.64f);
-        public Vector3 cloud_color = new Vector3(0.41f, 0.41f, 0.41f);
-        public Vector3 cloud_pos_density1 = new Vector3(1, 0.5260f, 1);
-        public Vector3 cloud_pos_density2 = new Vector3(1, 0.5260f, 0.12f);
+        public Vector3 ambient = new(1.047f, 1.047f, 1.047f); //?
+        public Vector3 blue_density = new(0.2447f, 0.4487f, 0.76f);
+        public Vector3 blue_horizon = new(0.4954f, 0.4954f, 0.64f);
+        public Vector3 cloud_color = new(0.41f, 0.41f, 0.41f);
+        public Vector3 cloud_pos_density1 = new(1, 0.5260f, 1);
+        public Vector3 cloud_pos_density2 = new(1, 0.5260f, 0.12f);
         public float cloud_scale = 0.42f;
-        public Vector2 cloud_scroll_rate = new Vector2(0.2f, 0.011f);
+        public Vector2 cloud_scroll_rate = new(0.2f, 0.011f);
         public float cloud_shadow = 0.27f;
         public float density_multiplier = 0.00018f;
         public float distance_multiplier = 0.8f;
         public float gamma = 1;
-        public Vector3 glow = new Vector3(5, 0.0010f, -0.48f);
+        public Vector3 glow = new(5, 0.0010f, -0.48f);
         public float haze_density = 0.7f;
         public float haze_horizon = 0.19f;
         public float max_y = 1605;
         public float star_brightness = 0f;
 
         //this is a vector3 now, but all viewers expect a vector4, so keeping like this for now
-        public Vector4 sunlight_color = new Vector4(0.7342f, 0.7815f, 0.9f, 0.3f);
+        public Vector4 sunlight_color = new(0.7342f, 0.7815f, 0.9f, 0.3f);
         public string Name = "DefaultSky";
 
         public float cloud_variance = 0;
@@ -154,6 +158,8 @@ namespace OpenSim.Framework
         public float dome_radius = 15000f;
         public float droplet_radius = 800.0f;
         public float ice_level = 0f;
+
+        public bool HasRefProbe = false;
         public float reflectionProbeAmbiance = 0f;
 
         public float moisture_level = 0;
@@ -161,11 +167,11 @@ namespace OpenSim.Framework
         public float sky_top_radius = 6420;
 
         public float sun_arc_radians = 0.00045f;
-        public Quaternion sun_rotation = new Quaternion(0, -0.3824995f, 0, 0.9239557f);
+        public Quaternion sun_rotation = new(0, -0.3824995f, 0, 0.9239557f);
         public float sun_scale = 1;
 
         public float moon_brightness = 0.5f;
-        public Quaternion moon_rotation = new Quaternion(0, 0.9239557f, 0, 0.3824995f);
+        public Quaternion moon_rotation = new(0, 0.9239557f, 0, 0.3824995f);
         public float moon_scale = 1;
         public float planet_radius = 6360f;
 
@@ -218,24 +224,19 @@ namespace OpenSim.Framework
 
             sunlight_color = map["sunlight_color"];
 
-            reflectionProbeAmbiance = 0f;
-
             ViewerEnvironment.convertFromAngles(this, map["sun_angle"], map["east_angle"]);
             Name = name;
         }
 
         public OSD ToWLOSD()
         {
-            OSDMap map = new OSDMap();
+            OSDMap map = new();
 
-            float sun_angle;
-            float east_angle;
-            Vector4 lightnorm;
-            ViewerEnvironment.convertToAngles(this, out sun_angle, out east_angle, out lightnorm);
+            ViewerEnvironment.convertToAngles(this, out float sun_angle, out float east_angle, out Vector4 lightnorm);
             map["ambient"] = new Vector4(ambient.X, ambient.Y, ambient.Z, 1);
             map["blue_density"] = new Vector4(blue_density.X, blue_density.Y, blue_density.Z, 1);
             map["blue_horizon"] = new Vector4(blue_horizon.X, blue_horizon.Y, blue_horizon.Z, 1);
-            map["cloud_color"] = new Vector4(cloud_color.X, cloud_color.Y, cloud_color.Z, 1);;
+            map["cloud_color"] = new Vector4(cloud_color.X, cloud_color.Y, cloud_color.Z, 1);
             map["cloud_pos_density1"] = new Vector4(cloud_pos_density1.X, cloud_pos_density1.Y, cloud_pos_density1.Z, 1);
             map["cloud_pos_density2"] = new Vector4(cloud_pos_density2.X, cloud_pos_density2.Y, cloud_pos_density2.Z, 1);
             map["cloud_scale"] = new Vector4(cloud_scale, 0, 0, 1);
@@ -261,87 +262,78 @@ namespace OpenSim.Framework
 
         public OSD ToOSD()
         {
-            OSDMap map = new OSDMap(64);
+            OSDMap map = new(64)
+            {
+                ["absorption_config"] = new OSDArray() { abscoefA.ToOSD(), abscoefB.ToOSD() },
+                ["bloom_id"] = bloom_id,
+                ["cloud_color"] = cloud_color,
+                ["cloud_id"] = cloud_id,
+                ["cloud_pos_density1"] = cloud_pos_density1,
+                ["cloud_pos_density2"] = cloud_pos_density2,
+                ["cloud_scale"] = cloud_scale,
+                ["cloud_scroll_rate"] = cloud_scroll_rate,
+                ["cloud_shadow"] = cloud_shadow,
+                ["cloud_variance"] = cloud_variance,
+                ["dome_offset"] = dome_offset,
+                ["dome_radius"] = dome_radius,
+                ["droplet_radius"] = droplet_radius,
+                ["gamma"] = gamma,
+                ["glow"] = glow,
+                ["halo_id"] = halo_id,
+                ["ice_level"] = ice_level,
 
-            OSDArray abscfg = new OSDArray(2);
-            abscfg.Add(abscoefA.ToOSD());
-            abscfg.Add(abscoefB.ToOSD());
-            map["absorption_config"] = abscfg;
+                ["legacy_haze"] = new OSDMap()
+                {
+                    ["ambient"] = ambient,
+                    ["blue_density"] = blue_density,
+                    ["blue_horizon"] = blue_horizon,
+                    ["density_multiplier"] = density_multiplier,
+                    ["distance_multiplier"] = distance_multiplier,
+                    ["haze_density"] = haze_density,
+                    ["haze_horizon"] = haze_horizon
+                },
 
-            map["bloom_id"] = bloom_id;
-            map["cloud_color"] = cloud_color;
-            map["cloud_id"] = cloud_id;
-            map["cloud_pos_density1"] = cloud_pos_density1;
-            map["cloud_pos_density2"] = cloud_pos_density2;
-            map["cloud_scale"] = cloud_scale;
-            map["cloud_scroll_rate"] = cloud_scroll_rate;
-            map["cloud_shadow"] = cloud_shadow;
-            map["cloud_variance"] = cloud_variance;
-            map["dome_offset"] = dome_offset;
-            map["dome_radius"] = dome_radius;
-            map["droplet_radius"] = droplet_radius;
-            map["gamma"] = gamma;
-            map["glow"] = glow;
-            map["halo_id"] = halo_id;
-            map["ice_level"] = ice_level;
+                ["max_y"] = max_y,
+                ["moisture_level"] = moisture_level,
+                ["moon_brightness"] = moon_brightness,
+                ["moon_id"] = moon_id,
+                ["moon_rotation"] = moon_rotation,
+                ["moon_scale"] = moon_scale,
+                ["planet_radius"] = planet_radius,
+                ["rainbow_id"] = rainbow_id,
 
-            if (reflectionProbeAmbiance != 0f)
+                ["sky_bottom_radius"] = sky_bottom_radius,
+                ["sky_top_radius"] = sky_top_radius,
+                ["star_brightness"] = star_brightness,
+
+                ["sun_arc_radians"] = sun_arc_radians,
+                ["sun_id"] = sun_id,
+                ["sun_rotation"] = sun_rotation,
+                ["sun_scale"] = sun_scale,
+                ["sunlight_color"] = sunlight_color,
+
+                ["mie_config"] = new OSDArray() { mieconf.ToOSD() },
+                ["rayleigh_config"] = new OSDArray() { rayleigh_config.ToOSD() },
+
+                ["type"] = "sky"
+            };
+
+            if(HasRefProbe)
                 map["reflection_probe_ambiance"] = reflectionProbeAmbiance;
 
-            OSDMap lhaze = new OSDMap();
-            lhaze["ambient"] = ambient;
-            lhaze["blue_density"] = blue_density;
-            lhaze["blue_horizon"] = blue_horizon;
-            lhaze["density_multiplier"] = density_multiplier;
-            lhaze["distance_multiplier"] = distance_multiplier;
-            lhaze["haze_density"] = haze_density;
-            lhaze["haze_horizon"] = haze_horizon;
-            map["legacy_haze"] = lhaze;
-
-            map["max_y"] = max_y;
-
-            OSDArray miecfg = new OSDArray();
-            miecfg.Add(mieconf.ToOSD());
-            map["mie_config"] = miecfg;
-
-            map["moisture_level"] = moisture_level;
-            map["moon_brightness"] = moon_brightness;
-            map["moon_id"] = moon_id;
-            map["moon_rotation"] = moon_rotation;
-            map["moon_scale"] = moon_scale;
-            map["planet_radius"] = planet_radius;
-            map["rainbow_id"] = rainbow_id;
-
-            OSDArray rayl = new OSDArray();
-            rayl.Add(rayleigh_config.ToOSD());
-            map["rayleigh_config"] = rayl;
-
-            map["sky_bottom_radius"] = sky_bottom_radius;
-            map["sky_top_radius"] = sky_top_radius;
-            map["star_brightness"] = star_brightness;
-
-            map["sun_arc_radians"] = sun_arc_radians;
-            map["sun_id"] = sun_id;
-            map["sun_rotation"] = sun_rotation;
-            map["sun_scale"] = sun_scale;
-            map["sunlight_color"] = sunlight_color;
-
-            map["type"] = "sky";
             return map;
         }
 
         public void FromOSD(string name, OSDMap map)
         {
-            OSDArray tmpArray;
             OSD otmp;
-            if (map.TryGetValue("absorption_config",out otmp) && otmp is OSDArray)
+            if (map.TryGetValue("absorption_config", out otmp) && otmp is OSDArray absorptionArray)
             {
-                tmpArray = otmp as OSDArray;
-                if (tmpArray.Count > 0)
+                if (absorptionArray.Count > 0)
                 {
-                    abscoefA.FromOSD(tmpArray[0] as OSDMap);
-                    if (tmpArray.Count > 1)
-                        abscoefA.FromOSD(tmpArray[1] as OSDMap);
+                    abscoefA.FromOSD(absorptionArray[0] as OSDMap);
+                    if (absorptionArray.Count > 1)
+                        abscoefA.FromOSD(absorptionArray[1] as OSDMap);
                 }
             }
             if (map.TryGetValue("bloom_id", out otmp))
@@ -378,11 +370,13 @@ namespace OpenSim.Framework
                 ice_level = otmp;
 
             if (map.TryGetValue("reflection_probe_ambiance", out otmp))
+            { 
                 reflectionProbeAmbiance = otmp;
+                HasRefProbe = true;
+            }
 
-            if (map.TryGetValue("legacy_haze", out OSD tmp) && tmp is OSDMap)
+            if (map.TryGetValue("legacy_haze", out OSD tmp) && tmp is OSDMap lHaze)
             {
-                OSDMap lHaze = tmp as OSDMap;
                 if (lHaze.TryGetValue("ambient", out otmp))
                     ambient = otmp;
                 if (lHaze.TryGetValue("blue_density", out otmp))
@@ -402,11 +396,10 @@ namespace OpenSim.Framework
             if (map.TryGetValue("max_y", out otmp))
                 max_y = otmp;
 
-            if (map.TryGetValue("mie_config", out otmp) && otmp is OSDArray)
+            if (map.TryGetValue("mie_config", out otmp) && otmp is OSDArray mieArray)
             {
-                tmpArray = otmp as OSDArray;
-                if (tmpArray.Count > 0)
-                    mieconf.FromOSD(tmpArray[0] as OSDMap);
+                if (mieArray.Count > 0)
+                    mieconf.FromOSD(mieArray[0] as OSDMap);
             }
 
             if (map.TryGetValue("moisture_level", out otmp))
@@ -424,11 +417,10 @@ namespace OpenSim.Framework
             if (map.TryGetValue("rainbow_id", out otmp))
                 rainbow_id = otmp;
 
-            if (map.TryGetValue("rayleigh_config", out otmp) && otmp is OSDArray)
+            if (map.TryGetValue("rayleigh_config", out otmp) && otmp is OSDArray rayleighArray)
             {
-                tmpArray = otmp as OSDArray;
-                if (tmpArray.Count > 0)
-                    rayleigh_config.FromOSD(tmpArray[0] as OSDMap);
+                if (rayleighArray.Count > 0)
+                    rayleigh_config.FromOSD(rayleighArray[0] as OSDMap);
             }
 
             if (map.TryGetValue("sky_bottom_radius", out otmp))
@@ -447,10 +439,9 @@ namespace OpenSim.Framework
             if (map.TryGetValue("sun_scale", out otmp))
                 sun_scale = otmp;
 
-            if (map.TryGetValue("sunlight_color", out otmp) && otmp is OSDArray)
+            if (map.TryGetValue("sunlight_color", out otmp) && otmp is OSDArray sunlightArray)
             {
-                tmpArray = otmp as OSDArray;
-                if(tmpArray.Count == 4)
+                if(sunlightArray.Count == 4)
                     sunlight_color = otmp;
                 else
                 {

@@ -27,17 +27,10 @@
 
 using System;
 using System.Collections;
-using System.Collections.Specialized;
 using System.Reflection;
-using System.IO;
-using System.Web;
 using log4net;
-using Nini.Config;
 using OpenMetaverse;
-using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
-using OpenSim.Framework.Servers;
-using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Services.Interfaces;
 using Caps = OpenSim.Framework.Capabilities.Caps;
 
@@ -58,7 +51,7 @@ namespace OpenSim.Capabilities.Handlers
         }
         public Hashtable Handle(Hashtable request)
         {
-            return ProcessGetMesh(request, UUID.Zero, null); ;
+            return ProcessGetMesh(request, UUID.Zero, null);
         }
 
         public Hashtable ProcessGetMesh(Hashtable request, UUID AgentId, Caps cap)

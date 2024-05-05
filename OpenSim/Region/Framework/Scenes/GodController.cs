@@ -26,22 +26,12 @@
  */
 
 using System;
-using System.Xml;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Threading;
-using System.Timers;
-using Timer = System.Timers.Timer;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
-using log4net;
+//using log4net;
 using Nini.Config;
 using OpenSim.Framework;
-using OpenSim.Framework.Client;
-using OpenSim.Framework.Monitoring;
-using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.Framework.Scenes.Types;
-using OpenSim.Services.Interfaces;
+
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -250,9 +240,8 @@ namespace OpenSim.Region.Framework.Scenes
             if(state != null)
             {
                 OSDMap s = (OSDMap)state;
-
-                if (s.ContainsKey("ViewerUiIsGod"))
-                    newstate = s["ViewerUiIsGod"].AsBoolean();
+                if (s.TryGetValue("ViewerUiIsGod", out OSD tmp))
+                    newstate = tmp.AsBoolean();
                 m_lastLevelToViewer = m_viewergodlevel; // we are not changing viewer level by default
             }       
             UpdateGodLevels(newstate);

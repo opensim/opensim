@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Specialized;
 using System.Net;
+using System.Net.Http.Headers;
 
 namespace OpenSim.Framework.ServiceAuth
 {
@@ -35,7 +36,8 @@ namespace OpenSim.Framework.ServiceAuth
     {
         public string Name { get { return "DisallowllHTTPRequest"; } }
 
-        public void AddAuthorization(NameValueCollection headers) {}
+        public void AddAuthorization(NameValueCollection headers) { }
+        public void AddAuthorization(HttpRequestHeaders headers) { }
 
         public bool Authenticate(string data)
         {

@@ -68,7 +68,7 @@ namespace OpenSim.Capabilities.Handlers
                 itemIDs[i++] = osdItemId["item_id"].AsUUID();
             }
 
-            InventoryItemBase[] items = null;
+            InventoryItemBase[] items;
 
             if (m_agentID.IsZero())
             {
@@ -89,7 +89,7 @@ namespace OpenSim.Capabilities.Handlers
             else
                 LLSDxmlEncode2.AddElem("agent_id", m_agentID, lsl);
 
-            if(items == null || items.Length == 0)
+            if(items is null || items.Length == 0)
             {
                 LLSDxmlEncode2.AddEmptyArray("items", lsl);
             }
@@ -98,7 +98,7 @@ namespace OpenSim.Capabilities.Handlers
                 LLSDxmlEncode2.AddArray("items", lsl);
                 foreach (InventoryItemBase item in items)
                 {
-                    if (item != null)
+                    if (item is not null)
                         item.ToLLSDxml(lsl, 0xff);
                 }
                 LLSDxmlEncode2.AddEndArray(lsl);

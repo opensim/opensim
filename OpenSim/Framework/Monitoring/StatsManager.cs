@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -188,6 +189,43 @@ namespace OpenSim.Framework.Monitoring
         {
             foreach (string report in GetAllStatsReports())
                 con.Output(report);
+            con.Output(MemoryReport());
+        }
+
+        private static string MemoryReport()
+        {
+            StringBuilder sb = new StringBuilder(Environment.NewLine);
+            sb.AppendFormat(
+                "Heap allocated:  {0}MB \t allocation rate (last/avg): {1}/{2}MB/s\n",
+                Math.Round(GC.GetTotalMemory(false) / 1024.0 / 1024.0),
+                Math.Round((MemoryWatchdog.LastHeapAllocationRate * 1000) / 1048576.0, 3),
+                Math.Round((MemoryWatchdog.AverageHeapAllocationRate * 1000) / 1048576.0, 3));
+
+            GCMemoryInfo gcmem = GC.GetGCMemoryInfo();
+            sb.AppendFormat(
+                "GCTotalCommited: {0}MB \t GCTotalAvaiable {1}MB \t GCHMthreshold {2}MB\n",
+                Math.Round(gcmem.TotalCommittedBytes / 1024.0 / 1024.0),
+                Math.Round(gcmem.TotalAvailableMemoryBytes / 1024.0 / 1024.0),
+            Math.Round(gcmem.HighMemoryLoadThresholdBytes / 1024.0 / 1024.0));
+
+            try
+            {
+                using (Process myprocess = Process.GetCurrentProcess())
+                {
+                    sb.AppendFormat(
+                            "Process memory:      Physical {0}MB \t Paged {1}MB\n",
+                            Math.Round(myprocess.WorkingSet64 / 1024.0 / 1024.0),
+                            Math.Round(myprocess.PagedMemorySize64 / 1024.0 / 1024.0));
+                    sb.AppendFormat(
+                            "Peak process memory: Physical {0}MB \t Paged {1}MB \t\n",
+                            Math.Round(myprocess.PeakWorkingSet64 / 1024.0 / 1024.0),
+                            Math.Round(myprocess.PeakPagedMemorySize64 / 1024.0 / 1024.0));
+                    sb.AppendFormat("\nTotal process Threads {0}\n", myprocess.Threads.Count);
+                }
+            }
+            catch
+            { }
+            return sb.ToString();
         }
 
         private static List<string> GetCategoryStatsReports(

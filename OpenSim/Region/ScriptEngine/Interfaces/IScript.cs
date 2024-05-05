@@ -35,7 +35,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
     {
         string[] GetApis();
         void InitApi(string name, IScriptApi data);
-
+/*
         ulong GetStateEventFlags(string state);
         void ExecuteEvent(string state, string FunctionName, object[] args);
         Dictionary<string,Object> GetVars();
@@ -43,5 +43,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         void ResetVars();
 
         void Close();
+*/
     }
 }

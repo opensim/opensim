@@ -507,8 +507,8 @@ namespace OpenSim.Server.Handlers.Inventory
         {
             List<string> idlist = (List<string>)request["IDLIST"];
             List<string> destlist = (List<string>)request["DESTLIST"];
-            UUID principal = UUID.Zero;
-            UUID.TryParse(request["PRINCIPAL"].ToString(), out principal);
+
+            UUID.TryParse(request["PRINCIPAL"].ToString(), out UUID principal);
 
             List<InventoryItemBase> items = new List<InventoryItemBase>();
             int n = 0;
@@ -583,14 +583,19 @@ namespace OpenSim.Server.Handlers.Inventory
         byte[] HandleGetMultipleItems(Dictionary<string, object> request)
         {
             Dictionary<string, object> resultSet = new Dictionary<string, object>();
-            UUID principal = UUID.Zero;
-            UUID.TryParse(request["PRINCIPAL"].ToString(), out principal);
-            string itemIDstr = request["ITEMS"].ToString();
-            int count = 0;
-            Int32.TryParse(request["COUNT"].ToString(), out count);
 
-            UUID[] fids = new UUID[count];
+            if(!UUID.TryParse(request["PRINCIPAL"].ToString(), out UUID principal))
+                return Util.UTF8NoBomEncoding.GetBytes(ServerUtils.BuildXmlResponse(resultSet));
+
+            string itemIDstr = request["ITEMS"].ToString();
+            if(string.IsNullOrEmpty(itemIDstr))
+                return Util.UTF8NoBomEncoding.GetBytes(ServerUtils.BuildXmlResponse(resultSet));
+
             string[] uuids = itemIDstr.Split(',');
+            if(uuids.Length == 0)
+                return Util.UTF8NoBomEncoding.GetBytes(ServerUtils.BuildXmlResponse(resultSet));
+
+            UUID[] fids = new UUID[uuids.Length];
             int i = 0;
             foreach (string id in uuids)
             {
@@ -603,9 +608,9 @@ namespace OpenSim.Server.Handlers.Inventory
             InventoryItemBase[] itemsList = m_InventoryService.GetMultipleItems(principal, fids);
             if (itemsList != null && itemsList.Length > 0)
             {
-                count = 0;
+                int count = 0;
                 foreach (InventoryItemBase item in itemsList)
-                    resultSet["item_" + count++] = (item == null) ? (object)"NULL" : EncodeItem(item);
+                    resultSet["item_" + count++] = (item == null) ? "NULL" : EncodeItem(item);
             }
 
             string xmlString = ServerUtils.BuildXmlResponse(resultSet);

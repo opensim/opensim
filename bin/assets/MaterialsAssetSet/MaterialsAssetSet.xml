@@ -1,0 +1,10 @@
+<Nini>
+  <Section Name="Default Render Material">
+    <Key Name="assetID" Value="968cbad0-4dad-d64e-71b5-72bf13ad051a" />
+    <Key Name="name" Value="Default Render Material" />
+    <Key Name="assetType" Value="57" />
+    <Key Name="fileName" Value="968cbad0-4dad-d64e-71b5-72bf13ad051a.dat" />
+  </Section>
+
+</Nini>
+

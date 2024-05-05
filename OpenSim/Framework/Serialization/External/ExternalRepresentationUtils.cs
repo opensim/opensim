@@ -222,7 +222,7 @@ namespace OpenSim.Framework.Serialization.External
             using (StringWriter sw = new StringWriter())
             using (XmlTextWriter writer = new XmlTextWriter(sw))
             using (XmlTextReader wrappedReader = new XmlTextReader(xmlData, XmlNodeType.Element, null))
-            using (XmlReader reader = XmlReader.Create(wrappedReader, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment, DtdProcessing = DtdProcessing.Ignore}))
+            using (XmlReader reader = XmlReader.Create(wrappedReader, Util.SharedXmlReaderSettings))
             {
                 TransformXml(reader, writer, sceneName, homeURL, userService, scopeID);
 

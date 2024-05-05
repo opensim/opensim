@@ -610,13 +610,6 @@
      <Key Name="fileName" Value="79504bf5-c3ec-0763-6563-d843de66d0a1.j2c" />
   </Section>
   
-  <Section Name="Grass 2">
-     <Key Name="assetID" Value="6c4727b8-ac79-ba44-3b81-f9aa887b47eb"/>
-     <Key Name="name" Value="Grass 2"/>
-     <Key Name="assetType" Value="0" />
-     <Key Name="fileName" Value="6c4727b8-ac79-ba44-3b81-f9aa887b47eb.j2c" />
-  </Section>
-  
   <Section Name="Grass 3">
      <Key Name="assetID" Value="99bd60a2-3250-efc9-2e39-2fbcadefbecc"/>
      <Key Name="name" Value="Grass 3"/>
@@ -904,6 +897,30 @@
     <Key Name = "description" Value = "DefaultSun" />
     <Key Name = "assetType" Value = "0" />
     <Key Name = "fileName" Value = "32bfbcea-24b1-fb9d-1ef9-48a28a63730f.dat" />
+  </Section>
+
+  <Section Name = "DefaultObjectSpecular">
+    <Key Name = "assetID" Value = "87e0e8f7-8729-1ea8-cfc9-8915773009db" />
+    <Key Name = "name" Value = "DefaultObjectSpecular" />
+    <Key Name = "description" Value = "DefaultObjectSpecular" />
+    <Key Name = "assetType" Value = "0" />
+    <Key Name = "fileName" Value = "87e0e8f7-8729-1ea8-cfc9-8915773009db.jp2" />
+  </Section>
+
+  <Section Name = "DefaultObjectNormal">
+    <Key Name = "assetID" Value = "85f28839-7a1c-b4e3-d71d-967792970a7b" />
+    <Key Name = "name" Value = "DefaultObjectNormal" />
+    <Key Name = "description" Value = "DefaultObjectNormal" />
+    <Key Name = "assetType" Value = "0" />
+    <Key Name = "fileName" Value = "85f28839-7a1c-b4e3-d71d-967792970a7b.jp2" />
+  </Section>
+
+  <Section Name = "BlankObjectNormal">
+    <Key Name = "assetID" Value = "5b53359e-59dd-d8a2-04c3-9e65134da47a" />
+    <Key Name = "name" Value = "BlankObjectNormal" />
+    <Key Name = "description" Value = "BlankObjectNormal" />
+    <Key Name = "assetType" Value = "0" />
+    <Key Name = "fileName" Value = "5b53359e-59dd-d8a2-04c3-9e65134da47a.jp2" />
   </Section>
 
 </Nini>

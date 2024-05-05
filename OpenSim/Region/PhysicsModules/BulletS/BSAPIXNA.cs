@@ -150,6 +150,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public BSAPIXNA(string paramName, BSScene physScene)
         {
             PhysicsScene = physScene;
+            BulletEngineVersion = "XNA";
         }
 
         /// <summary>
@@ -1303,7 +1304,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             capsuleShapeZ.SetMargin(world.WorldSettings.Params.collisionMargin);
             capsuleShapeZ.SetLocalScaling(ref scale);
 	
-            return new BulletShapeXNA(capsuleShapeZ, BSPhysicsShapeType.SHAPE_CAPSULE); ;
+            return new BulletShapeXNA(capsuleShapeZ, BSPhysicsShapeType.SHAPE_CAPSULE);
         }
 	
         public override BulletWorld Initialize(Vector3 maxPosition, ConfigurationParameters parms,

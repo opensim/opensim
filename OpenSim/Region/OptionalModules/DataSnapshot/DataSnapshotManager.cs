@@ -43,6 +43,7 @@ using OpenSim.Framework;
 using OpenSim.Region.DataSnapshot.Interfaces;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using System.Net.Http;
 
 namespace OpenSim.Region.DataSnapshot
 {
@@ -358,7 +359,7 @@ namespace OpenSim.Region.DataSnapshot
             }
             catch (XmlException e)
             {
-                m_log.Warn("[DATASNAPSHOT]: XmlException while trying to load snapshot: " + e.ToString());
+                m_log.Warn("[DATASNAPSHOT]: XmlException while trying to load snapshot: " + e.Message);
                 requestedSnap = GetErrorMessage(regionName, e);
             }
             catch (Exception e)
@@ -421,13 +422,13 @@ namespace OpenSim.Region.DataSnapshot
                             reply.Read(response, 0, 1024);
                         }
                     }
-                    catch (WebException)
+                    catch (HttpRequestException)
                     {
                         m_log.Warn("[DATASNAPSHOT]: Unable to notify " + url);
                     }
                     catch (Exception e)
                     {
-                        m_log.Warn("[DATASNAPSHOT]: Ignoring unknown exception " + e.ToString());
+                        m_log.Warn("[DATASNAPSHOT]: Ignoring unknown exception " + e.Message);
                     }
 
                     // This is not quite working, so...

@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+using System.Xml.XPath;
 
 namespace PrimMesher
 {
@@ -60,27 +61,25 @@ namespace PrimMesher
 
         public Quat(MainAxis BaseAxis, float angle)
         {
-            angle *= 0.5f;
-            double c = Math.Cos(angle);
-            float s = (float)Math.Sqrt(1.0 - c * c);
-
-            W = (float)c;
             switch (BaseAxis)
             {
                 case MainAxis.X:
-                    X = s;
+                    W = MathF.Cos(0.5f * angle);
+                    X = MathF.Sqrt(1.0f - W * W);
                     Y = 0;
                     Z = 0;
                     break;
                 case MainAxis.Y:
+                    W = MathF.Cos(0.5f * angle);
+                    Y = MathF.Sqrt(1.0f - W * W);
                     X = 0;
-                    Y = s;
                     Z = 0;
                     break;
                 case MainAxis.Z:
+                    W = MathF.Cos(0.5f * angle);
+                    Z = MathF.Sqrt(1.0f - W * W);
                     X = 0;
                     Y = 0;
-                    Z = s;
                     break;
                 default: //error
                     X = 0;
@@ -93,18 +92,18 @@ namespace PrimMesher
 
         public float Length()
         {
-            return (float)Math.Sqrt(X * X + Y * Y + Z * Z + W * W);
+            return MathF.Sqrt(X * X + Y * Y + Z * Z + W * W);
         }
 
         public Quat Normalize()
         {
             const float MAG_THRESHOLD = 0.0000001f;
-            float mag = Length();
+            float mag = (X * X + Y * Y + Z * Z + W * W);
 
             // Catch very small rounding errors when normalizing
             if (mag > MAG_THRESHOLD)
             {
-                float oomag = 1f / mag;
+                float oomag = 1f / MathF.Sqrt(mag);
                 X *= oomag;
                 Y *= oomag;
                 Z *= oomag;
@@ -151,7 +150,7 @@ namespace PrimMesher
 
         public float Length()
         {
-            return (float)Math.Sqrt(X * X + Y * Y + Z * Z);
+            return MathF.Sqrt(X * X + Y * Y + Z * Z);
         }
 
         public Coord Invert()
@@ -280,7 +279,7 @@ namespace PrimMesher
     {
         private float iX, iY; // intersection point
 
-        private static Angle[] angles3 =
+        private static readonly Angle[] angles3 =
         {
             new Angle(0.0f, 1.0f, 0.0f),
             new Angle(0.33333333333333333f, -0.5f, 0.86602540378443871f),
@@ -288,7 +287,7 @@ namespace PrimMesher
             new Angle(1.0f, 1.0f, 0.0f)
         };
 
-        private static Angle[] angles4 =
+        private static readonly Angle[] angles4 =
         {
             new Angle(0.0f, 1.0f, 0.0f),
             new Angle(0.25f, 0.0f, 1.0f),
@@ -297,7 +296,7 @@ namespace PrimMesher
             new Angle(1.0f, 1.0f, 0.0f)
         };
 
-        private static Angle[] angles6 =
+        private static readonly Angle[] angles6 =
         {
             new Angle(0.0f, 1.0f, 0.0f),
             new Angle(0.16666666666666667f, 0.5f, 0.8660254037844386f),
@@ -308,7 +307,7 @@ namespace PrimMesher
             new Angle(1.0f, 1.0f, 0.0f)
         };
 
-        private static Angle[] angles12 =
+        private static readonly Angle[] angles12 =
         {
             new Angle(0.0f, 1.0f, 0.0f),
             new Angle(0.083333333333333329f, 0.86602540378443871f, 0.5f),
@@ -325,7 +324,7 @@ namespace PrimMesher
             new Angle(1.0f, 1.0f, 0.0f)
         };
 
-        private static Angle[] angles24 =
+        private static readonly Angle[] angles24 =
         {
             new Angle(0.0f, 1.0f, 0.0f),
             new Angle(0.041666666666666664f, 0.96592582628906831f, 0.25881904510252074f),
@@ -354,7 +353,7 @@ namespace PrimMesher
             new Angle(1.0f, 1.0f, 0.0f)
         };
 
-        private Angle interpolatePoints(float newPoint, Angle p1, Angle p2)
+        private static Angle interpolatePoints(float newPoint, Angle p1, Angle p2)
         {
             float m = (newPoint - p1.angle) / (p2.angle - p1.angle);
             return new Angle(newPoint, p1.X + m * (p2.X - p1.X), p1.Y + m * (p2.Y - p1.Y));
@@ -379,8 +378,8 @@ namespace PrimMesher
         {
             angles = new List<Angle>();
 
-            const float twoPi = 2.0f * (float)Math.PI;
-            const float twoPiInv = 0.5f / (float)Math.PI;
+            const float twoPi = 2.0f * MathF.PI;
+            const float twoPiInv = 0.5f / MathF.PI;
 
             if (sides < 1)
                 throw new Exception("number of sides not greater than zero");
@@ -391,27 +390,14 @@ namespace PrimMesher
             {
                 startAngle *= twoPiInv;
                 stopAngle *= twoPiInv;
-
-                Angle[] sourceAngles;
-                switch (sides)
+                Angle[] sourceAngles = sides switch
                 {
-                    case 3:
-                        sourceAngles = angles3;
-                        break;
-                    case 4:
-                        sourceAngles = angles4;
-                        break;
-                    case 6:
-                        sourceAngles = angles6;
-                        break;
-                    case 12:
-                        sourceAngles = angles12;
-                        break;
-                    default:
-                        sourceAngles = angles24;
-                        break;
-                }
-
+                    3 => angles3,
+                    4 => angles4,
+                    6 => angles6,
+                    12 => angles12,
+                    _ => angles24,
+                };
                 int startAngleIndex = (int)(startAngle * sides);
                 int endAngleIndex = sourceAngles.Length - 1;
 
@@ -447,7 +433,7 @@ namespace PrimMesher
                 double stepSize = twoPi / sides;
 
                 int startStep = (int)(startAngle / stepSize);
-                double angle = stepSize * startStep;
+                float angle = (float)stepSize * startStep;
                 int step = startStep;
                 double stopAngleTest = stopAngle;
                 if (stopAngle < twoPi)
@@ -462,18 +448,18 @@ namespace PrimMesher
                 while (angle <= stopAngleTest)
                 {
                     Angle newAngle;
-                    newAngle.angle = (float)angle;
-                    newAngle.X = (float)System.Math.Cos(angle);
-                    newAngle.Y = (float)System.Math.Sin(angle);
+                    newAngle.angle = angle;
+                    newAngle.X = MathF.Cos(angle);
+                    newAngle.Y = MathF.Sin(angle);
                     angles.Add(newAngle);
                     step += 1;
-                    angle = stepSize * step;
+                    angle = (float)(stepSize * step);
                 }
 
                 if (startAngle > angles[0].angle)
                 {
                     Angle newAngle;
-                    intersection(angles[0].X, angles[0].Y, angles[1].X, angles[1].Y, 0.0f, 0.0f, (float)Math.Cos(startAngle), (float)Math.Sin(startAngle));
+                    intersection(angles[0].X, angles[0].Y, angles[1].X, angles[1].Y, 0.0f, 0.0f, MathF.Cos(startAngle), MathF.Sin(startAngle));
                     newAngle.angle = startAngle;
                     newAngle.X = iX;
                     newAngle.Y = iY;
@@ -484,7 +470,7 @@ namespace PrimMesher
                 if (stopAngle < angles[index].angle)
                 {
                     Angle newAngle;
-                    intersection(angles[index - 1].X, angles[index - 1].Y, angles[index].X, angles[index].Y, 0.0f, 0.0f, (float)Math.Cos(stopAngle), (float)Math.Sin(stopAngle));
+                    intersection(angles[index - 1].X, angles[index - 1].Y, angles[index].X, angles[index].Y, 0.0f, 0.0f, MathF.Cos(stopAngle), MathF.Sin(stopAngle));
                     newAngle.angle = stopAngle;
                     newAngle.X = iX;
                     newAngle.Y = iY;
@@ -499,7 +485,7 @@ namespace PrimMesher
     /// </summary>
     public class Profile
     {
-        private const float twoPi = 2.0f * (float)Math.PI;
+        private const float twoPi = 2.0f * MathF.PI;
 
         public string errorMessage = null;
 
@@ -532,12 +518,12 @@ namespace PrimMesher
             coords = new List<Coord>();
             faces = new List<Face>();
 
-            List<Coord> hollowCoords = new List<Coord>();
+            List<Coord> hollowCoords = new();
 
             bool hasHollow = (hollow > 0.0f);
 
-            AngleList angles = new AngleList();
-            AngleList hollowAngles = new AngleList();
+            AngleList angles = new();
+            AngleList hollowAngles = new();
 
             float xScale = 0.5f;
             float yScale = 0.5f;
@@ -562,7 +548,7 @@ namespace PrimMesher
             numOuterVerts = angles.angles.Count;
 
             Angle angle;
-            Coord newVert = new Coord();
+            Coord newVert = new();
 
             // flag to create as few triangles as possible for 3 or 4 side profile
             bool simpleFace = (sides < 5 && !hasHollow && !hasProfileCut);
@@ -597,7 +583,7 @@ namespace PrimMesher
             }
             else if (!simpleFace)
             {
-                Coord center = new Coord(0.0f, 0.0f, 0.0f);
+                Coord center = new(0.0f, 0.0f, 0.0f);
                 this.coords.Add(center);
             }
 
@@ -630,7 +616,7 @@ namespace PrimMesher
 
                     if (numOuterVerts == numHollowVerts)
                     {
-                        Face newFace = new Face();
+                        Face newFace = new();
 
                         for (int coordIndex = 0; coordIndex < numOuterVerts - 1; coordIndex++)
                         {
@@ -659,7 +645,7 @@ namespace PrimMesher
                     }
                     else if (numOuterVerts < numHollowVerts)
                     {
-                        Face newFace = new Face();
+                        Face newFace = new();
                         int j = 0; // j is the index for outer vertices
                         int i;
                         int maxJ = numOuterVerts - 1;
@@ -730,7 +716,7 @@ namespace PrimMesher
                     }
                     else // numHollowVerts < numOuterVerts
                     {
-                        Face newFace = new Face();
+                        Face newFace = new();
                         int j = 0; // j is the index for inner vertices
                         int maxJ = numHollowVerts - 1;
                         for (int i = 0; i < numOuterVerts; i++)
@@ -793,24 +779,26 @@ namespace PrimMesher
                 {
                     for (int i = 1; i < numAngles ; i++)
                     {
-                        Face newFace = new Face();
-                        newFace.v1 = 0;
-                        newFace.v2 = i;
-                        newFace.v3 = i + 1;
+                        Face newFace = new()
+                        {
+                            v1 = 0,
+                            v2 = i,
+                            v3 = i + 1
+                        };
                         faces.Add(newFace);
                     }
                     if (!hasProfileCut)
                     {
-                        Face newFace = new Face();
-                        newFace.v1 = 0;
-                        newFace.v2 = numAngles;
-                        newFace.v3 = 1;
+                        Face newFace = new()
+                        {
+                            v1 = 0,
+                            v2 = numAngles,
+                            v3 = 1
+                        };
                         faces.Add(newFace);
                     }
                 }
             }
-
-            hollowCoords = null;
         }
 
 
@@ -821,7 +809,7 @@ namespace PrimMesher
 
         public Profile Copy(bool needFaces)
         {
-            Profile copy = new Profile();
+            Profile copy = new();
 
             copy.coords.AddRange(coords);
 
@@ -874,9 +862,9 @@ namespace PrimMesher
             {
                 vert = coords[i];
                 vert.X *= x;
-                vert.X = (float)Math.Round(vert.X,5);
+                vert.X = MathF.Round(vert.X,5);
                 vert.Y *= y;
-                vert.Y = (float)Math.Round(vert.Y,5);
+                vert.Y = MathF.Round(vert.Y,5);
                 coords[i] = vert;
             }
 
@@ -930,17 +918,12 @@ namespace PrimMesher
         {
             if (path == null)
                 return;
-            String fileName = name + "_" + title + ".raw";
-            String completePath = System.IO.Path.Combine(path, fileName);
-            StreamWriter sw = new StreamWriter(completePath);
 
+            string completePath = System.IO.Path.Combine(path, $"{name}_{title}.raw");
+            using StreamWriter sw = new(completePath);
             for (int i = 0; i < faces.Count; i++)
             {
-                string s = coords[faces[i].v1].ToString();
-                s += " " + coords[faces[i].v2].ToString();
-                s += " " + coords[faces[i].v3].ToString();
-
-                sw.WriteLine(s);
+                sw.WriteLine($"{coords[faces[i].v1]} {coords[faces[i].v3]} {coords[faces[i].v3]}");
             }
 
             sw.Close();
@@ -960,7 +943,7 @@ namespace PrimMesher
 
     public class Path
     {
-        public List<PathNode> pathNodes = new List<PathNode>();
+        public List<PathNode> pathNodes = new();
 
         public float twistBegin = 0.0f;
         public float twistEnd = 0.0f;
@@ -979,7 +962,7 @@ namespace PrimMesher
         public float revolutions = 1.0f;
         public int stepsPerRevolution = 24;
 
-        private const float twoPi = 2.0f * (float)Math.PI;
+        private const float twoPi = 2.0f * MathF.PI;
 
         public void Create(PathType pathType, int steps)
         {
@@ -998,7 +981,7 @@ namespace PrimMesher
 
                 float length = pathCutEnd - pathCutBegin;
                 float twistTotal = twistEnd - twistBegin;
-                float twistTotalAbs = Math.Abs(twistTotal);
+                float twistTotalAbs = MathF.Abs(twistTotal);
                 if (twistTotalAbs > 0.01f)
                     steps += (int)(twistTotalAbs * 3.66); //  dahlia's magic number
 
@@ -1020,7 +1003,7 @@ namespace PrimMesher
 
                 while (!done)
                 {
-                    PathNode newNode = new PathNode();
+                    PathNode newNode = new();
 
                     newNode.xScale = 1.0f;
                     if (taperX > 0.0f)
@@ -1063,12 +1046,12 @@ namespace PrimMesher
                 // if the profile has a lot of twist, add more layers otherwise the layers may overlap
                 // and the resulting mesh may be quite inaccurate. This method is arbitrary and doesn't
                 // accurately match the viewer
-                float twistTotalAbs = Math.Abs(twistTotal);
+                float twistTotalAbs = MathF.Abs(twistTotal);
                 if (twistTotalAbs > 0.01f)
                 {
-                    if (twistTotalAbs > Math.PI * 1.5f)
+                    if (twistTotalAbs > MathF.PI * 1.5f)
                         steps *= 2;
-                    if (twistTotalAbs > Math.PI * 3.0f)
+                    if (twistTotalAbs > MathF.PI * 3.0f)
                         steps *= 2;
                 }
 
@@ -1077,7 +1060,7 @@ namespace PrimMesher
                 float totalSkew = skew * 2.0f * pathLength;
                 float skewStart = pathCutBegin * 2.0f * skew - skew;
                 float xOffsetTopShearXFactor = topShearX * (0.25f + 0.5f * (0.5f - holeSizeY));
-                float yShearCompensation = 1.0f + Math.Abs(topShearY) * 0.25f;
+                float yShearCompensation = 1.0f + MathF.Abs(topShearY) * 0.25f;
 
                 // It's not quite clear what pushY (Y top shear) does, but subtracting it from the start and end
                 // angles appears to approximate it's effects on path cut. Likewise, adding it to the angle used
@@ -1097,9 +1080,9 @@ namespace PrimMesher
                 bool done = false;
                 while (!done) // loop through the length of the path and add the layers
                 {
-                    PathNode newNode = new PathNode();
+                    PathNode newNode = new();
 
-                    float xProfileScale = (1.0f - Math.Abs(skew)) * holeSizeX;
+                    float xProfileScale = (1.0f - MathF.Abs(skew)) * holeSizeX;
                     float yProfileScale = holeSizeY;
 
                     float percentOfPath = angle / (twoPi * revolutions);
@@ -1127,11 +1110,11 @@ namespace PrimMesher
                     float twist = twistBegin + twistTotal * percentOfPath;
 
                     float xOffset = 0.5f * (skewStart + totalSkew * percentOfAngles);
-                    xOffset += (float)Math.Sin(angle) * xOffsetTopShearXFactor;
+                    xOffset += MathF.Sin(angle) * xOffsetTopShearXFactor;
 
-                    float yOffset = yShearCompensation * (float)Math.Cos(angle) * (0.5f - yPathScale) * radiusScale;
+                    float yOffset = yShearCompensation * MathF.Cos(angle) * (0.5f - yPathScale) * radiusScale;
 
-                    float zOffset = (float)Math.Sin(angle + topShearY) * (0.5f - yPathScale) * radiusScale;
+                    float zOffset = MathF.Sin(angle + topShearY) * (0.5f - yPathScale) * radiusScale;
 
                     newNode.position = new Coord(xOffset, yOffset, zOffset);
 
@@ -1168,8 +1151,6 @@ namespace PrimMesher
     public class PrimMesh
     {
         public string errorMessage = "";
-        private const float twoPi = 2.0f * (float)Math.PI;
-
         public List<Coord> coords;
 //        public List<Coord> normals;
         public List<Face> faces;
@@ -1289,19 +1270,19 @@ namespace PrimMesher
         /// </summary>
         public void Extrude(PathType pathType)
         {
-            bool needEndFaces = false;
+            bool needEndFaces;
 
             coords = new List<Coord>();
             faces = new List<Face>();
 
             int steps = 1;
 
-            float length = pathCutEnd - pathCutBegin;
+            //float length = pathCutEnd - pathCutBegin;
 
             hasProfileCut = profileEnd - profileStart < 0.9999f;
 
             float twistTotal = twistEnd - twistBegin;
-            float twistTotalAbs = Math.Abs(twistTotal);
+            float twistTotalAbs = MathF.Abs(twistTotal);
             if (twistTotalAbs > 0.01f)
                 steps += (int)(twistTotalAbs * 3.66); //  dahlia's magic number
 
@@ -1330,7 +1311,7 @@ namespace PrimMesher
             {
                 if (sides == 3)
                 {
-                    initialProfileRot = (float)Math.PI;
+                    initialProfileRot = MathF.PI;
                     if (hollowSides == 4)
                     {
                         if (hollow > 0.7f)
@@ -1341,13 +1322,13 @@ namespace PrimMesher
                 }
                 else if (sides == 4)
                 {
-                    initialProfileRot = 0.25f * (float)Math.PI;
+                    initialProfileRot = 0.25f * MathF.PI;
                     if (hollowSides != 4)
                         hollow *= 0.707f;
                 }
                 else if (sides > 4)
                 {
-                    initialProfileRot = (float)Math.PI;
+                    initialProfileRot = MathF.PI;
                     if (hollowSides == 4)
                     {
                         if (hollow > 0.7f)
@@ -1370,7 +1351,7 @@ namespace PrimMesher
                 }
                 else if (sides == 4)
                 {
-                    initialProfileRot = 1.25f * (float)Math.PI;
+                    initialProfileRot = 1.25f * MathF.PI;
                     if (hollowSides != 4)
                         hollow *= 0.707f;
                 }
@@ -1378,8 +1359,7 @@ namespace PrimMesher
                     hollow *= 1.414f;
             }
 
-            Profile profile = new Profile(sides, profileStart, profileEnd, hollow, hollowSides,
-                                HasProfileCut,true);
+            Profile profile = new(sides, profileStart, profileEnd, hollow, hollowSides, HasProfileCut, true);
             errorMessage = profile.errorMessage;
 
             numPrimFaces = profile.numPrimFaces;
@@ -1389,23 +1369,25 @@ namespace PrimMesher
                 profile.AddRot(new Quat(Quat.MainAxis.Z, initialProfileRot));
             }
 
-            Path path = new Path();
-            path.twistBegin = twistBegin;
-            path.twistEnd = twistEnd;
-            path.topShearX = topShearX;
-            path.topShearY = topShearY;
-            path.pathCutBegin = pathCutBegin;
-            path.pathCutEnd = pathCutEnd;
-            path.dimpleBegin = dimpleBegin;
-            path.dimpleEnd = dimpleEnd;
-            path.skew = skew;
-            path.holeSizeX = holeSizeX;
-            path.holeSizeY = holeSizeY;
-            path.taperX = taperX;
-            path.taperY = taperY;
-            path.radius = radius;
-            path.revolutions = revolutions;
-            path.stepsPerRevolution = stepsPerRevolution;
+            Path path = new()
+            {
+                twistBegin = twistBegin,
+                twistEnd = twistEnd,
+                topShearX = topShearX,
+                topShearY = topShearY,
+                pathCutBegin = pathCutBegin,
+                pathCutEnd = pathCutEnd,
+                dimpleBegin = dimpleBegin,
+                dimpleEnd = dimpleEnd,
+                skew = skew,
+                holeSizeX = holeSizeX,
+                holeSizeY = holeSizeY,
+                taperX = taperX,
+                taperY = taperY,
+                radius = radius,
+                revolutions = revolutions,
+                stepsPerRevolution = stepsPerRevolution
+            };
 
             path.Create(pathType, steps);
 
@@ -1433,10 +1415,10 @@ namespace PrimMesher
 
                 // fill faces between layers
 
-                List<Face> linkfaces = new List<Face>();
+                List<Face> linkfaces = new();
                 int numVerts = newLayer.coords.Count;
-                Face newFace1 = new Face();
-                Face newFace2 = new Face();
+                Face newFace1 = new();
+                Face newFace2 = new();
 
                 if (nodeIndex > 0)
                 {
@@ -1533,10 +1515,10 @@ namespace PrimMesher
         // more cleanup will be done at Meshmerizer.cs
         }
 
-        private Coord SurfaceNormal(Coord c1, Coord c2, Coord c3)
+        private static Coord SurfaceNormal(Coord c1, Coord c2, Coord c3)
         {
-            Coord edge1 = new Coord(c2.X - c1.X, c2.Y - c1.Y, c2.Z - c1.Z);
-            Coord edge2 = new Coord(c3.X - c1.X, c3.Y - c1.Y, c3.Z - c1.Z);
+            Coord edge1 = new(c2.X - c1.X, c2.Y - c1.Y, c2.Z - c1.Z);
+            Coord edge2 = new(c3.X - c1.X, c3.Y - c1.Y, c3.Z - c1.Z);
 
             Coord normal = Coord.Cross(edge1, edge2);
 
@@ -1570,29 +1552,31 @@ namespace PrimMesher
         /// <returns></returns>
         public PrimMesh Copy()
         {
-            PrimMesh copy = new PrimMesh(sides, profileStart, profileEnd, hollow, hollowSides);
-            copy.twistBegin = twistBegin;
-            copy.twistEnd = twistEnd;
-            copy.topShearX = topShearX;
-            copy.topShearY = topShearY;
-            copy.pathCutBegin = pathCutBegin;
-            copy.pathCutEnd = pathCutEnd;
-            copy.dimpleBegin = dimpleBegin;
-            copy.dimpleEnd = dimpleEnd;
-            copy.skew = skew;
-            copy.holeSizeX = holeSizeX;
-            copy.holeSizeY = holeSizeY;
-            copy.taperX = taperX;
-            copy.taperY = taperY;
-            copy.radius = radius;
-            copy.revolutions = revolutions;
-            copy.stepsPerRevolution = stepsPerRevolution;
+            PrimMesh copy = new(sides, profileStart, profileEnd, hollow, hollowSides)
+            {
+                twistBegin = twistBegin,
+                twistEnd = twistEnd,
+                topShearX = topShearX,
+                topShearY = topShearY,
+                pathCutBegin = pathCutBegin,
+                pathCutEnd = pathCutEnd,
+                dimpleBegin = dimpleBegin,
+                dimpleEnd = dimpleEnd,
+                skew = skew,
+                holeSizeX = holeSizeX,
+                holeSizeY = holeSizeY,
+                taperX = taperX,
+                taperY = taperY,
+                radius = radius,
+                revolutions = revolutions,
+                stepsPerRevolution = stepsPerRevolution,
 
-            copy.numPrimFaces = numPrimFaces;
-            copy.errorMessage = errorMessage;
+                numPrimFaces = numPrimFaces,
+                errorMessage = errorMessage,
 
-            copy.coords = new List<Coord>(coords);
-            copy.faces = new List<Face>(faces);
+                coords = new List<Coord>(coords),
+                faces = new List<Face>(faces)
+            };
 
             return copy;
         }
@@ -1644,7 +1628,7 @@ namespace PrimMesher
             int numVerts = this.coords.Count;
             //Coord vert;
 
-            Coord m = new Coord(x, y, z);
+            Coord m = new(x, y, z);
             for (i = 0; i < numVerts; i++)
                 coords[i] *= m;
         }
@@ -1659,16 +1643,13 @@ namespace PrimMesher
         {
             if (path == null)
                 return;
-            String fileName = name + "_" + title + ".raw";
-            String completePath = System.IO.Path.Combine(path, fileName);
-            using (StreamWriter sw = new StreamWriter(completePath))
+            string completePath = System.IO.Path.Combine(path, $"{name}_{title}.raw");
+            using StreamWriter sw = new(completePath);
+            for (int i = 0; i < this.faces.Count; i++)
             {
-                for (int i = 0; i < this.faces.Count; i++)
-                {
-                    sw.Write(coords[faces[i].v1].ToString());
-                    sw.Write(coords[faces[i].v2].ToString());
-                    sw.WriteLine(coords[faces[i].v3].ToString());
-                }
+                sw.Write(coords[faces[i].v1].ToString());
+                sw.Write(coords[faces[i].v2].ToString());
+                sw.WriteLine(coords[faces[i].v3].ToString());
             }
         }
     }

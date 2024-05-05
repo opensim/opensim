@@ -41,6 +41,8 @@ using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
+using System.Net.Http;
+using System.Threading;
 
 namespace OpenSim.Services.Connectors
 {
@@ -87,12 +89,12 @@ namespace OpenSim.Services.Connectors
             string uri = region.ServerURI + "region/" + thisRegion.RegionID + "/";
             //m_log.Debug("   >>> DoHelloNeighbourCall <<< " + uri);
 
-            byte[] buffer = null;
+            byte[] buffer;
             try
             {
                 OSDMap args = thisRegion.PackRegionInfoData();
                 args["destination_handle"] = OSD.FromString(region.RegionHandle.ToString());
-                buffer = Util.UTF8NoBomEncoding.GetBytes(OSDParser.SerializeJsonString(args));
+                buffer = OSDParser.SerializeJsonToBytes(args);
             }
             catch (Exception e)
             {
@@ -101,65 +103,52 @@ namespace OpenSim.Services.Connectors
                 return false;
             }
 
-            if(buffer == null || buffer.Length == 0)
+            if(buffer is null || buffer.Length == 0)
                 return false;
 
-            HttpWebRequest helloNeighbourRequest;
+            HttpResponseMessage responseMessage = null;
+            HttpRequestMessage request = null;
+            HttpClient client = null;
             try
             {
-                helloNeighbourRequest = (HttpWebRequest)WebRequest.Create(uri);
-            }
-            catch (Exception e)
-            {
-                m_log.WarnFormat(
-                    "[NEIGHBOUR SERVICES CONNECTOR]: Unable to parse uri {0} to send HelloNeighbour from {1} to {2}.  Exception: {3} ",
-                    uri, thisRegion.RegionName, region.RegionName, e.Message);
-
-                return false;
-            }
-
-            helloNeighbourRequest.Method = "POST";
-            helloNeighbourRequest.ContentType = "application/json";
-            helloNeighbourRequest.Timeout = 10000;
-
-            try
-            {
-                helloNeighbourRequest.ContentLength = buffer.Length;
-                using (var os = helloNeighbourRequest.GetRequestStream())
-                    os.Write(buffer, 0, buffer.Length);
-                buffer = null;
-                //m_log.InfoFormat("[REST COMMS]: Posted HelloNeighbour request to remote sim {0}", uri);
-            }
-            // catch (Exception e)
-            catch
-            {
-                //m_log.WarnFormat(
-                //    "[NEIGHBOUR SERVICE CONNCTOR]: Unable to send HelloNeighbour from {0} to {1}.  Exception {2}{3}",
-                //    thisRegion.RegionName, region.RegionName, e.Message, e.StackTrace);
-
-                return false;
-            }
-            // Let's wait for the response
-            //m_log.Info("[REST COMMS]: Waiting for a reply after DoHelloNeighbourCall");
-
-            try
-            {
-                using (WebResponse webResponse = helloNeighbourRequest.GetResponse())
+                client = WebUtil.GetNewGlobalHttpClient(10000);
+                request = new(HttpMethod.Post, uri);
+                request.Headers.ExpectContinue = false;
+                request.Headers.TransferEncodingChunked = false;
+                //if (keepalive)
                 {
-                    using (StreamReader sr = new StreamReader(webResponse.GetResponseStream()))
-                    {
-                        sr.ReadToEnd(); // just try to read
-                        //string reply = sr.ReadToEnd();
-                        //m_log.InfoFormat("[REST COMMS]: DoHelloNeighbourCall reply was {0} ", reply);
-                    }
+                    request.Headers.TryAddWithoutValidation("Keep-Alive", "timeout=30, max=10");
+                    request.Headers.TryAddWithoutValidation("Connection", "Keep-Alive");
                 }
+                //else
+                //    request.Headers.TryAddWithoutValidation("Connection", "close");
+
+                request.Content = new ByteArrayContent(buffer);
+                request.Content.Headers.TryAddWithoutValidation("Content-Type", "application/json");
+                request.Content.Headers.TryAddWithoutValidation("Content-Length", buffer.Length.ToString());
+
+                //m_log.InfoFormat("[REST COMMS]: Posted HelloNeighbour request to remote sim {0}", uri);
+
+                responseMessage = client.Send(request, HttpCompletionOption.ResponseContentRead);
+                responseMessage.EnsureSuccessStatusCode();
+
+                //using StreamReader sr = new(responseMessage.Content.ReadAsStream());
+                //sr.ReadToEnd(); // just try to read
+                //string reply = sr.ReadToEnd();
+                //m_log.InfoFormat("[REST COMMS]: DoHelloNeighbourCall reply was {0} ", reply);
                 return true;
             }
             catch (Exception e)
             {
                 m_log.WarnFormat(
-                    "[NEIGHBOUR SERVICES CONNECTOR]: Exception on reply of DoHelloNeighbourCall from {0} back to {1}.  Exception: {2} ",
+                    "[NEIGHBOUR SERVICES CONNECTOR]: Exception on DoHelloNeighbourCall from {0} back to {1}.  Exception: {2} ",
                     region.RegionName, thisRegion.RegionName, e.Message);
+            }
+            finally
+            {
+                request?.Dispose();
+                responseMessage?.Dispose();
+                client?.Dispose();
             }
             return false;
         }

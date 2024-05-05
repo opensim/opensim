@@ -55,7 +55,7 @@ namespace OpenSim.Region.Framework.Scenes
         public int Width { get { return m_terrainData.SizeX; } }  // X dimension
         // Unfortunately, for historical reasons, in this module 'Width' is X and 'Height' is Y
         public int Height { get { return m_terrainData.SizeY; } } // Y dimension
-        public int Altitude { get { return m_terrainData.SizeZ; } } // Y dimension
+        public int Altitude { get { return 0; } } // Y dimension
 
 
         // Default, not-often-used builder
@@ -159,12 +159,14 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        // ITerrainChannel.GetHieghtAtXYZ(x, y, z)
+        public float GetHeight(float x, float y)
+        {
+            return m_terrainData.GetHeight(x, y);
+        }
+
         public float GetHeightAtXYZ(float x, float y, float z)
         {
-            if (x < 0 || x >= Width || y < 0 || y >= Height)
-                return 0;
-            return m_terrainData[(int)x, (int)y];
+            return m_terrainData.GetHeight(x, y);
         }
 
         // ITerrainChannel.Tainted()

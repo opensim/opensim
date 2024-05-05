@@ -78,10 +78,9 @@ namespace OpenSim.Data
 
     public interface IXInventoryData
     {
+        XInventoryFolder[] GetFolder(string field, string val);
         XInventoryFolder[] GetFolders(string[] fields, string[] vals);
         XInventoryItem[] GetItems(string[] fields, string[] vals);
-        XInventoryItem[] GetItems(string idfield, string[] ids);
-        XInventoryItem[] GetItems(string idfield, string id);
 
         bool StoreFolder(XInventoryFolder folder);
         bool StoreItem(XInventoryItem item);
@@ -125,7 +124,7 @@ namespace OpenSim.Data
         /// <param name='id'>UUID of the item</param>
         /// <param name='newParent'>UUID of the new parent folder.</param>
         bool MoveItem(string id, string newParentFolderID);
-        bool MoveItems(string[] ids, string[] newParents);
+
         /// <summary>
         /// Move a folder to another folder.
         /// </summary>

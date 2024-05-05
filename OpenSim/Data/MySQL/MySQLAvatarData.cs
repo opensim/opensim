@@ -26,14 +26,8 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Reflection;
-using System.Threading;
-using log4net;
 using MySqlConnector;
 using OpenMetaverse;
-using OpenSim.Framework;
 
 namespace OpenSim.Data.MySQL
 {

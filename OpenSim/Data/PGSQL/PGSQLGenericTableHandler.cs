@@ -183,12 +183,12 @@ namespace OpenSim.Data.PGSQL
             using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
             using (NpgsqlCommand cmd = new NpgsqlCommand())
             {
-                if ( m_FieldTypes.ContainsKey(field) )
-                    cmd.Parameters.Add(m_database.CreateParameter(field, key, m_FieldTypes[field]));
+                if ( m_FieldTypes.TryGetValue(field, out string ftype) )
+                    cmd.Parameters.Add(m_database.CreateParameter(field, key, ftype));
                 else
                     cmd.Parameters.Add(m_database.CreateParameter(field, key));
 
-                string query = String.Format("SELECT * FROM {0} WHERE \"{1}\" = :{1}", m_Realm, field, field);
+                string query = $"SELECT * FROM {m_Realm} WHERE \"{field}\" = :{field}";
 
                 cmd.Connection = conn;
                 cmd.CommandText = query;
@@ -243,8 +243,8 @@ namespace OpenSim.Data.PGSQL
 
                 for (int i = 0; i < fields.Length; i++)
                 {
-                    if ( m_FieldTypes.ContainsKey(fields[i]) )
-                        cmd.Parameters.Add(m_database.CreateParameter(fields[i], keys[i], m_FieldTypes[fields[i]]));
+                    if ( m_FieldTypes.TryGetValue(fields[i], out string ftype) )
+                        cmd.Parameters.Add(m_database.CreateParameter(fields[i], keys[i], ftype));
                     else
                         cmd.Parameters.Add(m_database.CreateParameter(fields[i], keys[i]));
 
@@ -398,8 +398,9 @@ namespace OpenSim.Data.PGSQL
                     {
                         constraints.Add(new KeyValuePair<string, string>(fi.Name, fi.GetValue(row).ToString() ));
                     }
-                    if (m_FieldTypes.ContainsKey(fi.Name))
-                        cmd.Parameters.Add(m_database.CreateParameter(fi.Name, fi.GetValue(row), m_FieldTypes[fi.Name]));
+
+                    if (m_FieldTypes.TryGetValue(fi.Name, out string ftype))
+                        cmd.Parameters.Add(m_database.CreateParameter(fi.Name, fi.GetValue(row), ftype));
                     else
                         cmd.Parameters.Add(m_database.CreateParameter(fi.Name, fi.GetValue(row)));
                 }
@@ -418,8 +419,8 @@ namespace OpenSim.Data.PGSQL
                         names.Add(kvp.Key);
                         values.Add(":" + kvp.Key);
 
-                        if (m_FieldTypes.ContainsKey(kvp.Key))
-                            cmd.Parameters.Add(m_database.CreateParameter("" + kvp.Key, kvp.Value, m_FieldTypes[kvp.Key]));
+                        if (m_FieldTypes.TryGetValue(kvp.Key, out string ftype))
+                            cmd.Parameters.Add(m_database.CreateParameter("" + kvp.Key, kvp.Value, ftype));
                         else
                             cmd.Parameters.Add(m_database.CreateParameter("" + kvp.Key, kvp.Value));
                     }
@@ -493,8 +494,8 @@ namespace OpenSim.Data.PGSQL
             {
                 for (int i = 0; i < fields.Length; i++)
                 {
-                    if (m_FieldTypes.ContainsKey(fields[i]))
-                        cmd.Parameters.Add(m_database.CreateParameter(fields[i], keys[i], m_FieldTypes[fields[i]]));
+                    if (m_FieldTypes.TryGetValue(fields[i], out string ftype))
+                        cmd.Parameters.Add(m_database.CreateParameter(fields[i], keys[i], ftype));
                     else
                         cmd.Parameters.Add(m_database.CreateParameter(fields[i], keys[i]));
 

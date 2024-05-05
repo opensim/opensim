@@ -68,28 +68,30 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// </param>
         public bool JsonRpcRequest(ref object parameters, string method, string uri, string jsonId)
         {
-            if (jsonId == null)
+            if (jsonId is null)
                 throw new ArgumentNullException("jsonId");
-            if (uri == null)
+            if (uri is null)
                 throw new ArgumentNullException("uri");
-            if (method == null)
+            if (method is null)
                 throw new ArgumentNullException("method");
-            if (parameters == null)
+            if (parameters is null)
                 throw new ArgumentNullException("parameters");
 
             if(string.IsNullOrWhiteSpace(uri))
                 return false;
 
-            OSDMap request = new OSDMap();
-            request.Add("jsonrpc", OSD.FromString("2.0"));
-            request.Add("id", OSD.FromString(jsonId));
-            request.Add("method", OSD.FromString(method));
-            request.Add("params", OSD.SerializeMembers(parameters));
+            OSDMap request = new()
+            {
+                { "jsonrpc", OSD.FromString("2.0") },
+                { "id", OSD.FromString(jsonId) },
+                { "method", OSD.FromString(method) },
+                { "params", OSD.SerializeMembers(parameters) }
+            };
 
-            OSDMap response;
+            OSDMap outerResponse;
             try
             {
-                response = WebUtil.PostToService(uri, request, 10000, true);
+                outerResponse = WebUtil.PostToService(uri, request, 10000, true);
             }
             catch (Exception e)
             {
@@ -98,14 +100,13 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
 
             OSD osdtmp;
-            if (!response.TryGetValue("_Result", out osdtmp) || !(osdtmp is OSDMap))
+            if (!outerResponse.TryGetValue("_Result", out osdtmp) || (osdtmp is not OSDMap response))
             {
                 m_log.DebugFormat("JsonRpc request '{0}' to {1} returned an invalid response: {2}",
-                    method, uri, OSDParser.SerializeJsonString(response));
+                    method, uri, OSDParser.SerializeJsonString(outerResponse));
                 return false;
             }
 
-            response = osdtmp as OSDMap;
             if (response.TryGetValue("error", out osdtmp))
             {
                 m_log.DebugFormat("JsonRpc request '{0}' to {1} returned an error: {2}",
@@ -113,14 +114,14 @@ namespace OpenSim.Framework.Servers.HttpServer
                 return false;
             }
 
-            if (!response.TryGetValue("result", out osdtmp) || !(osdtmp is OSDMap))
+            if (!response.TryGetValue("result", out osdtmp) || (osdtmp is not OSDMap resultmap))
             {
                 m_log.DebugFormat("JsonRpc request '{0}' to {1} returned an invalid response: {2}",
                     method, uri, OSDParser.SerializeJsonString(response));
                 return false;
             }
 
-            OSD.DeserializeMembers(ref parameters, (OSDMap)osdtmp);
+            OSD.DeserializeMembers(ref parameters, resultmap);
             return true;
         }
 
@@ -147,16 +148,18 @@ namespace OpenSim.Framework.Servers.HttpServer
             if (string.IsNullOrEmpty(jsonId))
                 jsonId = UUID.Random().ToString();
 
-            OSDMap request = new OSDMap();
-            request.Add("jsonrpc", OSD.FromString("2.0"));
-            request.Add("id", OSD.FromString(jsonId));
-            request.Add("method", OSD.FromString(method));
-            request.Add("params", data);
+            OSDMap request = new()
+            {
+                { "jsonrpc", OSD.FromString("2.0") },
+                { "id", OSD.FromString(jsonId) },
+                { "method", OSD.FromString(method) },
+                { "params", data }
+            };
 
-            OSDMap response;
+            OSDMap outerresponse;
             try
             {
-                response = WebUtil.PostToService(uri, request, 10000, true);
+                outerresponse = WebUtil.PostToService(uri, request, 10000, true);
             }
             catch (Exception e)
             {
@@ -165,13 +168,12 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
 
             OSD osdtmp;
-            if (!response.TryGetValue("_Result", out osdtmp) || !(osdtmp is OSDMap))
+            if (!outerresponse.TryGetValue("_Result", out osdtmp) || (osdtmp is not OSDMap response))
             {
                 m_log.DebugFormat("JsonRpc request '{0}' to {1} returned an invalid response: {2}",
-                    method, uri, OSDParser.SerializeJsonString(response));
+                    method, uri, OSDParser.SerializeJsonString(outerresponse));
                 return false;
             }
-            response = osdtmp as OSDMap;
 
             if (response.TryGetValue("error", out osdtmp))
             {

@@ -81,6 +81,10 @@ namespace OpenSim.Services.SimulationService
 
         public void StoreObject(SceneObjectGroup obj, UUID regionUUID)
         {
+            uint flags = obj.RootPart.GetEffectiveObjectFlags();
+            if ((flags & (uint)(PrimFlags.Temporary | PrimFlags.TemporaryOnRez)) != 0)
+                return;
+
             m_database.StoreObject(obj, regionUUID);
         }
 

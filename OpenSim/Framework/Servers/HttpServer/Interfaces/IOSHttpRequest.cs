@@ -32,7 +32,6 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Net;
 using System.Text;
-using System.Web;
 
 namespace OpenSim.Framework.Servers.HttpServer
 {
@@ -43,7 +42,6 @@ namespace OpenSim.Framework.Servers.HttpServer
         long ContentLength { get; }
         long ContentLength64 { get; }
         string ContentType { get; }
-        HttpCookieCollection Cookies { get; }
         bool HasEntityBody { get; }
         NameValueCollection Headers { get; }
         string HttpMethod { get; }

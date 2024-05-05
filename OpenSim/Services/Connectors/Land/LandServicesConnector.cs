@@ -38,6 +38,7 @@ using OpenSim.Services.Interfaces;
 using OpenMetaverse;
 using Nwc.XmlRpc;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
+using System.Net.Http;
 
 namespace OpenSim.Services.Connectors
 {
@@ -92,7 +93,8 @@ namespace OpenSim.Services.Connectors
                     paramList.Add(hash);
 
                     XmlRpcRequest request = new XmlRpcRequest("land_data", paramList);
-                    XmlRpcResponse response = request.Send(info.ServerURI, 10000);
+                    using HttpClient hclient = WebUtil.GetNewGlobalHttpClient(10000);
+                    XmlRpcResponse response = request.Send(info.ServerURI, hclient);
                     if (response.IsFault)
                     {
                         m_log.ErrorFormat("[LAND CONNECTOR]: remote call returned an error: {0}", response.FaultString);

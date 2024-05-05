@@ -32,17 +32,18 @@ namespace OpenSim.Framework
 {
     public class RegionURI
     {
-        private static byte[] schemaSep = osUTF8.GetASCIIBytes("://");
-        private static byte[] altschemaSep = osUTF8.GetASCIIBytes("|!!");
-        private static byte[] nameSep = osUTF8.GetASCIIBytes(":/ ");
-        private static byte[] altnameSep = osUTF8.GetASCIIBytes(":/ +|");
-        private static byte[] escapePref = osUTF8.GetASCIIBytes("+%");
-        private static byte[] altPortSepPref = osUTF8.GetASCIIBytes(":|");
+        private static readonly byte[] schemaSep = osUTF8.GetASCIIBytes("://");
+        private static readonly byte[] altschemaSep = osUTF8.GetASCIIBytes("|!!");
+        private static readonly byte[] nameSep = osUTF8.GetASCIIBytes(":/ ");
+        private static readonly byte[] altnameSep = osUTF8.GetASCIIBytes(":/ +|");
+        private static readonly byte[] escapePref = osUTF8.GetASCIIBytes("+%");
+        private static readonly byte[] altPortSepPref = osUTF8.GetASCIIBytes(":|");
+        private static readonly byte[] forbidonname = osUTF8.GetASCIIBytes(".,:;\\/");
 
         public enum URIFlags : int
         {
             None = 0,
-            Valid = 1 << 0,
+            //Valid = 1 << 0,
             HasHost = 1 << 1,
             HasResolvedHost = 1 << 2,
             HasUserName = 1 << 3,
@@ -70,7 +71,7 @@ namespace OpenSim.Framework
         {
             originalURI = _originalURI;
             Parse(_originalURI);
-            if (!HasHost)
+            if (!HasHost && HasRegionName)
                 Flags |= URIFlags.IsLocalGrid;
         }
 
@@ -81,7 +82,10 @@ namespace OpenSim.Framework
 
             if(!HasHost)
             {
-                Flags |= URIFlags.IsLocalGrid;
+                if(!HasRegionName)
+                    Flags = URIFlags.None;
+                else
+                    Flags |= URIFlags.IsLocalGrid;
                 return;
             }
             if(gi == null)
@@ -289,6 +293,12 @@ namespace OpenSim.Framework
             tmpSlice.SelfTrimEnd((byte)' ');
             if (tmpSlice.Length <= 0)
                 return;
+
+            if(tmpSlice.IndexOfAny(forbidonname) > 0)
+            {
+                Flags = URIFlags.None;
+                return;
+            }
 
             RegionName = tmpSlice.ToString();
             Flags |= URIFlags.HasRegionName;

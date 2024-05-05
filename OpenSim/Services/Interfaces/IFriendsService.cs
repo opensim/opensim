@@ -54,26 +54,29 @@ namespace OpenSim.Services.Interfaces
         public FriendInfo(Dictionary<string, object> kvp)
         {
             PrincipalID = UUID.Zero;
-            if (kvp.ContainsKey("PrincipalID") && kvp["PrincipalID"] != null)
-                UUID.TryParse(kvp["PrincipalID"].ToString(), out PrincipalID);
+            object tmpo;
+            if (kvp.TryGetValue("PrincipalID", out tmpo) && tmpo is not null)
+                UUID.TryParse(tmpo.ToString(), out PrincipalID);
             Friend = string.Empty;
-            if (kvp.ContainsKey("Friend") && kvp["Friend"] != null)
-                Friend = kvp["Friend"].ToString();
+            if (kvp.TryGetValue("Friend", out tmpo) && tmpo is not null)
+                Friend = tmpo.ToString();
             MyFlags = (int)FriendRights.None;
-            if (kvp.ContainsKey("MyFlags") && kvp["MyFlags"] != null)
-                Int32.TryParse(kvp["MyFlags"].ToString(), out MyFlags);
+            if (kvp.TryGetValue("MyFlags", out tmpo) && tmpo is not null)
+                Int32.TryParse(tmpo.ToString(), out MyFlags);
             TheirFlags = 0;
-            if (kvp.ContainsKey("TheirFlags") && kvp["TheirFlags"] != null)
-                Int32.TryParse(kvp["TheirFlags"].ToString(), out TheirFlags);
+            if (kvp.TryGetValue("TheirFlags", out tmpo) && tmpo is not null)
+                Int32.TryParse(tmpo.ToString(), out TheirFlags);
         }
 
         public Dictionary<string, object> ToKeyValuePairs()
         {
-            Dictionary<string, object> result = new Dictionary<string, object>();
-            result["PrincipalID"] = PrincipalID.ToString();
-            result["Friend"] = Friend;
-            result["MyFlags"] = MyFlags.ToString();
-            result["TheirFlags"] = TheirFlags.ToString();
+            Dictionary<string, object> result = new()
+            {
+                ["PrincipalID"] = PrincipalID.ToString(),
+                ["Friend"] = Friend,
+                ["MyFlags"] = MyFlags.ToString(),
+                ["TheirFlags"] = TheirFlags.ToString()
+            };
 
             return result;
         }

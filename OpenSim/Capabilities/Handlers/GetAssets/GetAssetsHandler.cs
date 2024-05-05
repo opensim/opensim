@@ -48,7 +48,7 @@ namespace OpenSim.Capabilities.Handlers
         private static readonly ILog m_log =
                    LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private static readonly Dictionary<string, AssetType> queryTypes = new Dictionary<string, AssetType>()
+        private static readonly Dictionary<string, AssetType> queryTypes = new()
         {
             {"texture_id", AssetType.Texture},
             {"sound_id", AssetType.Sound},

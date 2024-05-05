@@ -240,7 +240,7 @@ namespace OpenSim.Groups
 
         public GroupInviteInfo GetAgentToGroupInvite(string RequestingAgentID, UUID inviteID)
         {
-            return m_GroupsService.GetAgentToGroupInvite(RequestingAgentID, inviteID); ;
+            return m_GroupsService.GetAgentToGroupInvite(RequestingAgentID, inviteID);
         }
 
         public void RemoveAgentToGroupInvite(string RequestingAgentID, UUID inviteID)
@@ -285,7 +285,7 @@ namespace OpenSim.Groups
 
         public ExtendedGroupMembershipData GetAgentGroupMembership(string RequestingAgentID, string AgentID, UUID GroupID)
         {
-            return m_GroupsService.GetAgentGroupMembership(RequestingAgentID, AgentID, GroupID); ;
+            return m_GroupsService.GetAgentGroupMembership(RequestingAgentID, AgentID, GroupID);
         }
 
         public List<GroupMembershipData> GetAgentGroupMemberships(string RequestingAgentID, string AgentID)

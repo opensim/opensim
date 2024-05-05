@@ -50,7 +50,7 @@ namespace OpenSim.Framework
 
         public GridInstantMessage()
         {
-            binaryBucket = Array.Empty<byte>(); ;
+            binaryBucket = Array.Empty<byte>();
         }
 
         public GridInstantMessage(GridInstantMessage im, bool addTimestamp)

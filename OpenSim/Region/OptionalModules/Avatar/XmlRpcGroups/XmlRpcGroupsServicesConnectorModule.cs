@@ -521,7 +521,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 foreach (Hashtable groupFind in results.Values)
                 {
                     DirGroupsReplyData data = new DirGroupsReplyData();
-                    data.groupID = new UUID((string)groupFind["GroupID"]); ;
+                    data.groupID = new UUID((string)groupFind["GroupID"]);
                     data.groupName = (string)groupFind["Name"];
                     data.members = int.Parse((string)groupFind["Members"]);
                     // data.searchOrder = order;

@@ -44,19 +44,19 @@ namespace OpenSim.Framework
     {
         public bool Enabled { get; private set; }
 
-        private string m_logDirectory = ".";
-        private int m_logMaxFileTimeMin = 5;    // 5 minutes
+        private readonly string m_logDirectory = ".";
+        private readonly int m_logMaxFileTimeMin = 5;    // 5 minutes
         public String LogFileHeader { get; set; }
 
         private StreamWriter m_logFile = null;
-        private TimeSpan m_logFileLife;
+        private readonly TimeSpan m_logFileLife;
         private DateTime m_logFileEndTime;
-        private Object m_logFileWriteLock = new Object();
-        private bool m_flushWrite;
+        private readonly Object m_logFileWriteLock = new Object();
+        private readonly bool m_flushWrite;
 
         // set externally when debugging. If let 'null', this does not write any error messages.
         public ILog ErrorLogger = null;
-        private string LogHeader = "[LOG WRITER]";
+        private readonly string LogHeader = "[LOG WRITER]";
 
         /// <summary>
         /// Create a log writer that will not write anything. Good for when not enabled
@@ -78,9 +78,8 @@ namespace OpenSim.Framework
         /// if one is looking for a crash, this is a good thing to turn on.</param>
         public LogWriter(string dir, string headr, int maxFileTime, bool flushWrite)
         {
-            m_logDirectory = dir == null ? "." : dir;
-
-            LogFileHeader = headr == null ? "log-" : headr;
+            m_logDirectory = dir ?? ".";
+            LogFileHeader = headr ?? "log-";
 
             m_logMaxFileTimeMin = maxFileTime;
             if (m_logMaxFileTimeMin < 1)
@@ -100,13 +99,14 @@ namespace OpenSim.Framework
 
         public void Dispose()
         {
-            this.Close();
+            Close();
+            GC.SuppressFinalize(this);
         }
 
         public void Close()
         {
             Enabled = false;
-            if (m_logFile != null)
+            if (m_logFile is not null)
             {
                 m_logFile.Close();
                 m_logFile.Dispose();
@@ -116,17 +116,16 @@ namespace OpenSim.Framework
 
         public void Write(string line, params object[] args)
         {
-            if (!Enabled) return;
+            if (!Enabled)
+                return;
             Write(String.Format(line, args));
         }
 
         public void Flush()
         {
-            if (!Enabled) return;
-            if (m_logFile != null)
-            {
-                m_logFile.Flush();
-            }
+            if (!Enabled)
+                return;
+            m_logFile?.Flush();
         }
 
         public void Write(string line)
@@ -137,9 +136,9 @@ namespace OpenSim.Framework
                 lock (m_logFileWriteLock)
                 {
                     DateTime now = DateTime.UtcNow;
-                    if (m_logFile == null || now > m_logFileEndTime)
+                    if (m_logFile is null || now > m_logFileEndTime)
                     {
-                        if (m_logFile != null)
+                        if (m_logFile is not null)
                         {
                             m_logFile.Close();
                             m_logFile.Dispose();
@@ -153,12 +152,12 @@ namespace OpenSim.Framework
                                 + String.Format("{0}{1}.log", LogFileHeader, now.ToString("yyyyMMddHHmmss"));
                         m_logFile = new StreamWriter(File.Open(path, FileMode.Append, FileAccess.Write, FileShare.ReadWrite));
                     }
-                    if (m_logFile != null)
+                    if (m_logFile is not null)
                     {
                         StringBuilder buff = new StringBuilder(line.Length + 25);
                         buff.Append(now.ToString("yyyyMMddHHmmssfff"));
                         // buff.Append(now.ToString("yyyyMMddHHmmss"));
-                        buff.Append(",");
+                        buff.Append('"');
                         buff.Append(line);
                         buff.Append("\r\n");
                         m_logFile.Write(buff.ToString());
@@ -169,10 +168,7 @@ namespace OpenSim.Framework
             }
             catch (Exception e)
             {
-                if (ErrorLogger != null)
-                {
-                    ErrorLogger.ErrorFormat("{0}: FAILURE WRITING TO LOGFILE: {1}", LogHeader, e);
-                }
+                ErrorLogger?.ErrorFormat("{0}: FAILURE WRITING TO LOGFILE: {1}", LogHeader, e);
                 Enabled = false;
             }
             return;

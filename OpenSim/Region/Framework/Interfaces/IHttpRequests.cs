@@ -72,13 +72,9 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="parameters">LSL parameters for the request.</param>
         /// <param name="headers">Extra headers for the request.</param>
         /// <param name="body">Body of the request.</param>
-        /// <param name="status">
-        /// Initial status of the request.  If OK then the request is actually made to the URL.  Subsequent status is
-        /// then returned via IServiceRequest when the response is asynchronously fetched.
         /// </param>
-        UUID StartHttpRequest(
-            uint localID, UUID itemID, string url, List<string> parameters, Dictionary<string, string> headers, string body,
-            out HttpInitialRequestStatus status);
+
+        UUID StartHttpRequest(uint localID, UUID itemID, string url, List<string> parameters, Dictionary<string, string> headers, string body);
 
         /// <summary>
         /// Stop and remove all http requests for the given script.
@@ -88,5 +84,6 @@ namespace OpenSim.Region.Framework.Interfaces
         IServiceRequest GetNextCompletedRequest();
         void RemoveCompletedRequest(UUID id);
         bool CheckThrottle(uint localID, UUID onerID);
+        bool CheckAllowed(Uri url);
     }
 }

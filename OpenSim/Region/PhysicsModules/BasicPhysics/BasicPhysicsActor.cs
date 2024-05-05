@@ -76,11 +76,6 @@ namespace OpenSim.Region.PhysicsModule.BasicPhysics
             set { return; }
         }
 
-        public override bool FloatOnWater
-        {
-            set { return; }
-        }
-
         public override bool IsPhysical
         {
             get { return false; }

@@ -334,8 +334,6 @@ namespace OpenSim.Region.ClientStack.Linden
 
             obj.InvalidateDeepEffectivePerms();
 
-            m_scene.PhysicsScene.AddPhysicsActorTaint(rootpart.PhysActor);
-
             httpResponse.StatusCode = (int)HttpStatusCode.OK;
             httpResponse.RawBuffer = Util.UTF8NBGetbytes(String.Format("<llsd><map><key>local_id</key>{0}</map></llsd>", ConvertUintToBytes(obj.LocalId)));
          }
@@ -348,7 +346,7 @@ namespace OpenSim.Region.ClientStack.Linden
             return Utils.BytesToUInt(tmp);
 
         }
-        private string ConvertUintToBytes(uint val)
+        private static string ConvertUintToBytes(uint val)
         {
             byte[] resultbytes = Utils.UIntToBytes(val);
             if (BitConverter.IsLittleEndian)

@@ -213,10 +213,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             output.PackBitsFromByte((byte)header.QuantWBits);
             output.PackFloat(header.DCOffset);
             output.PackBits(header.Range, 16);
-            if (largeRegion)
-                output.PackBits(header.PatchIDs, 32);
-            else
-                output.PackBits(header.PatchIDs, 10);
+            output.PackBits(header.PatchIDs, largeRegion ? 32 : 10);
         }
 
         private unsafe static void EncodePatch(BitPack output, int* patch, int postquant, int wbits)
@@ -266,24 +263,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     i = j;
                     continue;
                 }
-
-                if (temp < 0)
+                else if (temp < 0)
                 {
                     temp *= -1;
-                    if (temp > maxwbitssize)
-                        temp = maxwbitssize;
-
                     output.PackBits(NEGATIVE_VALUE, 3);
-                    output.PackBits(temp, wbits);
                 }
                 else
                 {
-                    if (temp > maxwbitssize)
-                        temp = maxwbitssize;
-
                     output.PackBits(POSITIVE_VALUE, 3);
-                    output.PackBits(temp, wbits);
                 }
+
+                output.PackBits(temp > maxwbitssize ? maxwbitssize : temp, wbits);
                 ++i;
             }
         }

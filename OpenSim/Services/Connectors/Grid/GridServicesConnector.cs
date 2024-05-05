@@ -369,7 +369,16 @@ namespace OpenSim.Services.Connectors
             return rinfo;
         }
 
+        public GridRegion GetLocalRegionByName(UUID scopeID, string regionName)
+        {
+            return null;
+        }
         public GridRegion GetRegionByURI(UUID scopeID, RegionURI uri)
+        {
+            return null;
+        }
+
+        public GridRegion GetLocalRegionByURI(UUID scopeID, RegionURI uri)
         {
             return null;
         }

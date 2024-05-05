@@ -210,7 +210,7 @@ namespace OpenSim.Data.PGSQL
                 {
                     while (reader.Read())
                     {
-                        UUID id = DBGuid.FromDB(reader["id"]);;
+                        UUID id = DBGuid.FromDB(reader["id"]);
                         exists.Add(id);
                     }
                 }

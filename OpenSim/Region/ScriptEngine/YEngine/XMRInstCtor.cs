@@ -30,7 +30,6 @@ using System.Threading;
 using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.Remoting.Lifetime;
 using System.Security.Policy;
 using System.IO;
 using System.Xml;
@@ -667,68 +666,65 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                             XmlNodeList varL = part.ChildNodes;
                             foreach (XmlNode var in varL)
                             {
-                                string varName;
-                                object o = ReadXTypedValue(var, out varName);
-                                Type otype = o.GetType();
-                                if (otype == typeof(LSL_Integer))
+                                object o = ReadXTypedValue(var, out string varName);
+                                if (o is LSL_Integer lio)
                                 {
                                     if (intNames.TryGetValue(varName, out indx))
-                                        ints[indx] = ((LSL_Integer)o);
+                                        ints[indx] = lio;
                                     continue;
                                 }
-                                if (otype == typeof(LSL_Float))
+                                if (o is LSL_Float lfo)
                                 {
                                     if (doubleNames.TryGetValue(varName, out indx))
-                                        doubles[indx] = ((LSL_Float)o);
+                                        doubles[indx] = lfo;
                                     continue;
                                 }
-                                if (otype == typeof(LSL_String))
+                                if (o is LSL_String lso)
                                 {
                                     if (stringNames.TryGetValue(varName, out indx))
                                     {
-                                        strings[indx] = ((LSL_String)o);
-                                        heapsz += ((LSL_String)o).Length;
+                                        strings[indx] = lso;
+                                        heapsz += lso.Length;
                                     }
                                     continue;
                                 }
-                                if (otype == typeof(LSL_Rotation))
+                                if (o is LSL_Rotation lro)
                                 {
                                     if (rotationNames.TryGetValue(varName, out indx))
-                                        rotations[indx] = ((LSL_Rotation)o);
+                                        rotations[indx] = lro;
                                     continue;
                                 }
-                                if (otype == typeof(LSL_Vector))
+                                if (o is LSL_Vector lvo)
                                 {
                                     if (vectorNames.TryGetValue(varName, out indx))
-                                        vectors[indx] = ((LSL_Vector)o);
+                                        vectors[indx] = lvo;
                                     continue;
                                 }
-                                if (otype == typeof(LSL_Key))
+                                if (o is LSL_Key lko)
                                 {
                                     if (stringNames.TryGetValue(varName, out indx))
                                     {
-                                        strings[indx] = ((LSL_Key)o);
-                                        heapsz += ((LSL_String)o).Length;
+                                        strings[indx] = lko;
+                                        heapsz += lko.Length;
                                     }
                                     continue;
                                 }
-                                if (otype == typeof(UUID))
+                                if (o is UUID uo)
                                 {
                                     if (stringNames.TryGetValue(varName, out indx))
                                     {
-                                        LSL_String id = ((UUID)o).ToString();
-                                        strings[indx] = (id);
+                                        LSL_String id = uo.ToString();
+                                        strings[indx] = id;
                                         heapsz += id.Length;
                                     }
                                     continue;
                                 }
-                                if (otype == typeof(LSL_List))
+                                if (o is LSL_List llo)
                                 {
                                     if (listNames.TryGetValue(varName, out indx))
                                     {
-                                        LSL_List lo = (LSL_List)o;
-                                        lists[indx] = (lo);
-                                        heapsz += lo.Size;
+                                        lists[indx] = (llo);
+                                        heapsz += llo.Size;
                                     }
                                     continue;
                                 }
@@ -899,8 +895,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 glblVars.iarObjects = XMRInstArrays.noObjects;
                 glblVars.iarSDTClObjs = XMRInstArrays.noSDTClObjs;
                 glblVars.iarSDTIntfObjs = XMRInstArrays.noSDTIntfObjs;
-
-                CheckRunLockInvariants(true);
             }
 
             lock (m_QueueLock)
@@ -961,9 +955,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             if (itemType == "OpenMetaverse.UUID")
             {
-                UUID val = new UUID();
-                UUID.TryParse(tag.InnerText, out val);
-
+                UUID.TryParse(tag.InnerText, out UUID val);
                 return val;
             }
 
@@ -1152,7 +1144,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 this.MigrateIn(br);
 
                 //m_RunOnePhase = "MigrateInEventHandler finished";
-                CheckRunLockInvariants(true);
+                //CheckRunLockInvariants(true);
             }
         }
     }

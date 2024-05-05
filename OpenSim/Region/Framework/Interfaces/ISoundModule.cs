@@ -27,6 +27,7 @@
 
 using System;
 using OpenMetaverse;
+using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
@@ -75,6 +76,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </summary>
         /// <param name="objectID">Sound source ID</param>
         void StopSound(UUID objectID);
+        void StopSound(SceneObjectPart sop);
 
         /// <summary>
         /// Preload sound to viewers within range.
@@ -83,6 +85,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="soundID">Sound asset ID</param>
         /// </param>
         void PreloadSound(UUID objectID, UUID soundID);
+        void PreloadSound(SceneObjectPart sop, UUID soundID);
 
         /// <summary>
         /// Loop specified sound at specified volume with specified radius,
@@ -95,6 +98,9 @@ namespace OpenSim.Region.Framework.Interfaces
         void LoopSound(UUID objectID, UUID soundID, double gain,
                 bool isMaster, bool isSlave);
 
+        void LoopSound(SceneObjectPart sop, UUID soundID, double gain,
+            bool isMaster, bool isSlave);
+
         /// <summary>
         /// Trigger or play an attached sound in this part's inventory.
         /// </summary>
@@ -105,6 +111,10 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="useMaster">Play using sound master</param>
         /// <param name="isMaster">Play as sound master</param>
         void SendSound(UUID objectID, UUID sound, double volume,
+                bool triggered, byte flags, bool useMaster,
+                bool isMaster);
+
+        void SendSound(SceneObjectPart sop, UUID sound, double volume,
                 bool triggered, byte flags, bool useMaster,
                 bool isMaster);
 

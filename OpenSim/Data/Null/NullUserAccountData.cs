@@ -47,9 +47,6 @@ namespace OpenSim.Data.Null
 
         public NullUserAccountData(string connectionString, string realm)
         {
-//            m_log.DebugFormat(
-//                "[NULL USER ACCOUNT DATA]: Initializing new NullUserAccountData with connectionString [{0}], realm [{1}]",
-//                connectionString, realm);
         }
 
         /// <summary>
@@ -62,51 +59,38 @@ namespace OpenSim.Data.Null
         /// <returns></returns>
         public UserAccountData[] Get(string[] fields, string[] values)
         {
-//            if (m_log.IsDebugEnabled)
-//            {
-//                m_log.DebugFormat(
-//                    "[NULL USER ACCOUNT DATA]: Called Get with fields [{0}], values [{1}]",
-//                    string.Join(", ", fields), string.Join(", ", values));
-//            }
+            //if (m_log.IsDebugEnabled)
+            //{
+            //    m_log.DebugFormat(
+            //      "[NULL USER ACCOUNT DATA]: Called Get with fields [{0}], values [{1}]",
+            //      string.Join(", ", fields), string.Join(", ", values));
+            //}
 
-            UserAccountData[] userAccounts = new UserAccountData[0];
-
-            List<string> fieldsLst = new List<string>(fields);
-            if (fieldsLst.Contains("PrincipalID"))
+            try
             {
-                int i = fieldsLst.IndexOf("PrincipalID");
-                UUID id = UUID.Zero;
-                if (UUID.TryParse(values[i], out id))
-                    if (m_DataByUUID.ContainsKey(id))
-                        userAccounts = new UserAccountData[] { m_DataByUUID[id] };
-            }
-            else if (fieldsLst.Contains("FirstName") && fieldsLst.Contains("LastName"))
-            {
-                int findex = fieldsLst.IndexOf("FirstName");
-                int lindex = fieldsLst.IndexOf("LastName");
-                if (m_DataByName.ContainsKey(values[findex] + " " + values[lindex]))
+                UserAccountData uad;
+                int i = Array.FindIndex(fields, (fn) => fn == "PrincipalID");
+                if (i >= 0)
                 {
-                    userAccounts = new UserAccountData[] { m_DataByName[values[findex] + " " + values[lindex]] };
+                    if (UUID.TryParse(values[i], out UUID id) && m_DataByUUID.TryGetValue(id, out uad))
+                        return new UserAccountData[] { uad };
                 }
-            }
-            else if (fieldsLst.Contains("Email"))
-            {
-                int i = fieldsLst.IndexOf("Email");
-                if (m_DataByEmail.ContainsKey(values[i]))
-                    userAccounts = new UserAccountData[] { m_DataByEmail[values[i]] };
-            }
 
-//            if (m_log.IsDebugEnabled)
-//            {
-//                StringBuilder sb = new StringBuilder();
-//                foreach (UserAccountData uad in userAccounts)
-//                    sb.AppendFormat("({0} {1} {2}) ", uad.FirstName, uad.LastName, uad.PrincipalID);
-//
-//                m_log.DebugFormat(
-//                    "[NULL USER ACCOUNT DATA]: Returning {0} user accounts out of {1}: [{2}]", userAccounts.Length, m_DataByName.Count, sb);
-//            }
+                i = Array.FindIndex(fields, (fn) => fn == "FirstName");
+                if (i >= 0)
+                {
+                    int lindex = Array.FindIndex(fields, i + 1, (fn) => fn == "LastName");
+                    if(lindex >= 0 && m_DataByName.TryGetValue(values[i] + " " + values[lindex], out uad))
+                        return new UserAccountData[] { uad };
+                }
 
-            return userAccounts;
+                i = Array.FindIndex(fields, (fn) => fn == "Email");
+                if (i >= 0 && m_DataByEmail.TryGetValue(values[i], out uad))
+                    return new UserAccountData[] { uad };
+            }
+            catch { }
+
+            return Array.Empty<UserAccountData>();
         }
 
         public bool Store(UserAccountData data)
@@ -120,20 +104,20 @@ namespace OpenSim.Data.Null
 
             m_DataByUUID[data.PrincipalID] = data;
             m_DataByName[data.FirstName + " " + data.LastName] = data;
-            if (data.Data.ContainsKey("Email") && data.Data["Email"] != null && data.Data["Email"] != string.Empty)
-                m_DataByEmail[data.Data["Email"]] = data;
+            if (data.Data.TryGetValue("Email", out string semail) && !string.IsNullOrEmpty(semail))
+                m_DataByEmail[semail] = data;
 
-//            m_log.DebugFormat("m_DataByUUID count is {0}, m_DataByName count is {1}", m_DataByUUID.Count, m_DataByName.Count);
+            // m_log.DebugFormat("m_DataByUUID count is {0}, m_DataByName count is {1}", m_DataByUUID.Count, m_DataByName.Count);
 
             return true;
         }
 
         public UserAccountData[] GetUsers(UUID scopeID, string query)
         {
-//            m_log.DebugFormat(
-//                "[NULL USER ACCOUNT DATA]: Called GetUsers with scope [{0}], query [{1}]", scopeID, query);
+            //m_log.DebugFormat(
+            //   "[NULL USER ACCOUNT DATA]: Called GetUsers with scope [{0}], query [{1}]", scopeID, query);
 
-            string[] words = query.Split(new char[] { ' ' });
+            string[] words = query.Split();
 
             for (int i = 0; i < words.Length; i++)
             {
@@ -177,15 +161,12 @@ namespace OpenSim.Data.Null
             // Only delete by PrincipalID
             if (field.Equals("PrincipalID"))
             {
-                UUID uuid = UUID.Zero;
-                if (UUID.TryParse(val, out uuid) && m_DataByUUID.ContainsKey(uuid))
+                if (UUID.TryParse(val, out UUID uuid) && m_DataByUUID.TryGetValue(uuid, out UserAccountData account))
                 {
-                    UserAccountData account = m_DataByUUID[uuid];
                     m_DataByUUID.Remove(uuid);
-                    if (m_DataByName.ContainsKey(account.FirstName + " " + account.LastName))
-                        m_DataByName.Remove(account.FirstName + " " + account.LastName);
-                    if (account.Data.ContainsKey("Email") && account.Data["Email"] != string.Empty && m_DataByEmail.ContainsKey(account.Data["Email"]))
-                        m_DataByEmail.Remove(account.Data["Email"]);
+                    m_DataByName.Remove(account.FirstName + " " + account.LastName);
+                    if (account.Data.TryGetValue("Email", out string semail) && !string.IsNullOrEmpty(semail))
+                        m_DataByEmail.Remove(semail);
 
                     return true;
                 }

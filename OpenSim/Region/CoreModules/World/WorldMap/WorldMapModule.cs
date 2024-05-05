@@ -1513,7 +1513,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     if(m_scene.RegionInfo.RegionSettings.Maturity == 2)
                         responsemap["10"] = responsearr;
                     else
-                    responsemap["7"] = responsearr;
+                        responsemap["7"] = responsearr;
                 }
             }
 

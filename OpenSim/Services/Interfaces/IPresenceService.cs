@@ -43,19 +43,19 @@ namespace OpenSim.Services.Interfaces
 
         public PresenceInfo(Dictionary<string, object> kvp)
         {
-            if (kvp.ContainsKey("UserID"))
-                UserID = kvp["UserID"].ToString();
-            if (kvp.ContainsKey("RegionID"))
-                UUID.TryParse(kvp["RegionID"].ToString(), out RegionID);
+            if (kvp.TryGetValue("UserID", out object ouid))
+                UserID = ouid.ToString();
+            if (kvp.TryGetValue("RegionID", out object orid))
+                _ = UUID.TryParse(orid.ToString(), out RegionID);
         }
 
         public Dictionary<string, object> ToKeyValuePairs()
         {
-            Dictionary<string, object> result = new Dictionary<string, object>();
-            result["UserID"] = UserID;
-            result["RegionID"] = RegionID.ToString();
-
-            return result;
+            return new Dictionary<string, object>
+            {
+                ["UserID"] = UserID,
+                ["RegionID"] = RegionID.ToString()
+            };
         }
     }
 

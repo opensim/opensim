@@ -94,7 +94,7 @@ namespace OpenSim.Server.Base
                 prompt = startupConfig.GetString("prompt", prompt);
 
                 // Check for a Log4Net config file on the command line
-                logConfig =startupConfig.GetString("logconfig", logConfig);
+                logConfig = startupConfig.GetString("logconfig", logConfig);
             }
 
             Config = ReadConfigSource(iniFile);
@@ -154,14 +154,14 @@ namespace OpenSim.Server.Base
             MainConsole.Instance.ReadConfig(Config);
             m_console = MainConsole.Instance;
 
-            if (logConfig != null)
+            if (!string.IsNullOrEmpty(logConfig))
             {
                 FileInfo cfg = new FileInfo(logConfig);
                 XmlConfigurator.Configure(cfg);
             }
             else
             {
-                XmlConfigurator.Configure();
+                XmlConfigurator.Configure(new FileInfo("Robust.exe.config"));
             }
 
             RegisterCommonAppenders(startupConfig);

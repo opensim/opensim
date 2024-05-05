@@ -413,12 +413,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     for(int i = 0; i < plen;)
                     {
                         object ob = evt.Params[i];
-                        if(ob is int)
-                            ob = (LSL_Integer)(int)ob;
-                        else if(ob is double)
-                            ob = (LSL_Float)(double)ob;
-                        else if(ob is string)
-                            ob = (LSL_String)(string)ob;
+                        if(ob is int iob)
+                            ob = (LSL_Integer)iob;
+                        else if(ob is double dob)
+                            ob = (LSL_Float)dob;
+                        else if(ob is string sob)
+                            ob = (LSL_String)sob;
                         plist[++i] = ob;
                     }
                     m_DetectParams = evt.DetectParams;

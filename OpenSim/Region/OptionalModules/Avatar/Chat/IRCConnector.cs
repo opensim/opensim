@@ -232,7 +232,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
             // Generate an initial nickname
 
             if (m_randomizeNick)
-                m_nick = m_baseNick + Util.RandomClass.Next(1, 99);
+                m_nick = m_baseNick + Random.Shared.Next(1, 99);
             else
                 m_nick = m_baseNick;
 
@@ -673,7 +673,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
                     break;
                 case "433": // Nickname in use
                     // Gen a new name
-                    m_nick = m_baseNick + Util.RandomClass.Next(1, 99);
+                    m_nick = m_baseNick + Random.Shared.Next(1, 99);
                     m_log.ErrorFormat("[IRC-Connector-{0}]: [{1}] IRC SERVER reports NicknameInUse, trying {2}", idn, cmd, m_nick);
                     // Retry
                     m_writer.WriteLine(String.Format("NICK {0}", m_nick));

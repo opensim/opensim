@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Security.Cryptography;
@@ -136,10 +137,10 @@ namespace OpenSim.Framework.Capabilities
                 return;
             }
 
-            if (obj is string)
+            if (obj is string s)
             {
                 writer.WriteStartElement(String.Empty, "string", String.Empty);
-                writer.WriteString((string) obj);
+                writer.WriteString(s);
                 writer.WriteEndElement();
             }
             else if (obj is int)
@@ -154,9 +155,8 @@ namespace OpenSim.Framework.Capabilities
                 writer.WriteString(obj.ToString());
                 writer.WriteEndElement();
             }
-            else if (obj is bool)
+            else if (obj is bool b)
             {
-                bool b = (bool) obj;
                 writer.WriteStartElement(String.Empty, "boolean", String.Empty);
                 writer.WriteString(b ? "1" : "0");
                 writer.WriteEndElement();
@@ -165,29 +165,38 @@ namespace OpenSim.Framework.Capabilities
             {
                 throw new Exception("ulong in LLSD is currently not implemented, fix me!");
             }
-            else if (obj is UUID)
+            else if (obj is UUID u)
             {
-                UUID u = (UUID) obj;
                 writer.WriteStartElement(String.Empty, "uuid", String.Empty);
                 writer.WriteString(u.ToString());
                 writer.WriteEndElement();
             }
-            else if (obj is Hashtable)
+            else if (obj is Hashtable h)
             {
-                Hashtable h = obj as Hashtable;
-                writer.WriteStartElement(String.Empty, "map", String.Empty);
-                foreach (string key in h.Keys)
+                writer.WriteStartElement(string.Empty, "map", string.Empty);
+                foreach (DictionaryEntry de in h)
                 {
-                    writer.WriteStartElement(String.Empty, "key", String.Empty);
-                    writer.WriteString(key);
+                    writer.WriteStartElement(string.Empty, "key", string.Empty);
+                    writer.WriteString((string)de.Key);
                     writer.WriteEndElement();
-                    LLSDWriteOne(writer, h[key]);
+                    LLSDWriteOne(writer, de.Value);
                 }
                 writer.WriteEndElement();
             }
-            else if (obj is ArrayList)
+            else if (obj is Dictionary<string,object> dict)
             {
-                ArrayList a = obj as ArrayList;
+                writer.WriteStartElement(String.Empty, "map", String.Empty);
+                foreach (KeyValuePair<string,object> kvp in dict)
+                {
+                    writer.WriteStartElement(String.Empty, "key", String.Empty);
+                    writer.WriteString(kvp.Key);
+                    writer.WriteEndElement();
+                    LLSDWriteOne(writer, kvp.Value);
+                }
+                writer.WriteEndElement();
+            }
+            else if (obj is ArrayList a)
+            {
                 writer.WriteStartElement(String.Empty, "array", String.Empty);
                 foreach (object item in a)
                 {
@@ -195,26 +204,24 @@ namespace OpenSim.Framework.Capabilities
                 }
                 writer.WriteEndElement();
             }
-            else if (obj is byte[])
+            else if (obj is List<object> lsto)
             {
-                byte[] b = obj as byte[];
-                writer.WriteStartElement(String.Empty, "binary", String.Empty);
+                writer.WriteStartElement(string.Empty, "array", string.Empty);
+                foreach (object item in lsto)
+                {
+                    LLSDWriteOne(writer, item);
+                }
+                writer.WriteEndElement();
+            }
+            else if (obj is byte[] bytes)
+            {
+                 writer.WriteStartElement(string.Empty, "binary", string.Empty);
 
                 writer.WriteStartAttribute(String.Empty, "encoding", String.Empty);
                 writer.WriteString("base64");
                 writer.WriteEndAttribute();
 
-                //// Calculate the length of the base64 output
-                //long length = (long)(4.0d * b.Length / 3.0d);
-                //if (length % 4 != 0) length += 4 - (length % 4);
-
-                //// Create the char[] for base64 output and fill it
-                //char[] tmp = new char[length];
-                //int i = Convert.ToBase64CharArray(b, 0, b.Length, tmp, 0);
-
-                //writer.WriteString(new String(tmp));
-
-                writer.WriteString(Convert.ToBase64String(b));
+                writer.WriteString(Convert.ToBase64String(bytes));
                 writer.WriteEndElement();
             }
             else
@@ -455,7 +462,7 @@ namespace OpenSim.Framework.Capabilities
         private static string GetSpaces(int count)
         {
             StringBuilder b = new StringBuilder();
-            for (int i = 0; i < count; i++) b.Append(" ");
+            for (int i = 0; i < count; i++) b.Append(' ');
             return b.ToString();
         }
 
@@ -465,6 +472,7 @@ namespace OpenSim.Framework.Capabilities
         /// <param name="obj"></param>
         /// <param name="indent"></param>
         /// <returns></returns>
+        /* 
         public static String LLSDDump(object obj, int indent)
         {
             if (obj == null)
@@ -659,7 +667,7 @@ namespace OpenSim.Framework.Capabilities
                     throw new Exception("Unknown value type");
             }
         }
-
+*/
         private static int FindEnd(string llsd, int start)
         {
             int end = llsd.IndexOfAny(new char[] {',', ']', '}'});
