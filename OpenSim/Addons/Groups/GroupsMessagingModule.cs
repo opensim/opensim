@@ -325,7 +325,7 @@ namespace OpenSim.Groups
                 im.RegionID = thisClient.Scene.RegionInfo.RegionID.Guid;
             }
 
-            if ((im.binaryBucket == null) || (im.binaryBucket.Length == 0) || ((im.binaryBucket.Length == 1 && im.binaryBucket[0] == 0)))
+            if (im.binaryBucket is null || im.binaryBucket.Length == 0 || (im.binaryBucket.Length == 1 && im.binaryBucket[0] == 0))
             {
                 ExtendedGroupRecord groupInfo = m_groupData.GetGroupRecord(UUID.Zero.ToString(), groupID, null);
                 if (groupInfo != null)

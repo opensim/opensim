@@ -161,7 +161,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         {
             PhysicsActor ret = AddAvatar(avName, position, velocity, size, isFlying);
 
-            if (ret != null)
+            if (ret is not null)
                 ret.LocalID = localID;
 
             return ret;
@@ -220,7 +220,8 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
             get { return 1.0f; }
         }
 
-        public abstract void AddPhysicsActorTaint(PhysicsActor prim);
+        //legacy for any modules that may still call it
+        public virtual void AddPhysicsActorTaint(PhysicsActor prim) { }
 
         public virtual void ProcessPreSimulation() { }
 

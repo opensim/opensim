@@ -72,6 +72,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public Exception ResumeEx()
         {
             // Resume script from captured stack.
+            if (stackFrames is null)
+            {
+                m_log.Error($"ResumeEx: eventcode: None, stackFrame is null");
+                throw new Exception("ResumeEx: stackFrame is null");
+            }
+
             callMode = XMRInstance.CallMode_RESTORE;
             suspendOnCheckRunTemp = true;
             try

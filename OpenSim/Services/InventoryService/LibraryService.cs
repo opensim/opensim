@@ -213,7 +213,7 @@ namespace OpenSim.Services.InventoryService
             item.NextPermissions = (uint)config.GetLong("nextPermissions", m_NextPermissions);
             item.EveryOnePermissions = (uint)config.GetLong("everyonePermissions", m_EveryOnePermissions);
             item.BasePermissions = (uint)config.GetLong("basePermissions", m_BasePermissions);
-            item.GroupPermissions = (uint)config.GetLong("basePermissions", m_GroupPermissions);;
+            item.GroupPermissions = (uint)config.GetLong("basePermissions", m_GroupPermissions);
             item.Flags = (uint)config.GetInt("flags", 0);
 
             if (libraryFolders.TryGetValue(item.Folder, out InventoryFolderImpl parentFolder))
@@ -306,8 +306,8 @@ namespace OpenSim.Services.InventoryService
 
         public InventoryItemBase[] GetMultipleItems(UUID[] ids)
         {
-            List<InventoryItemBase> items = new List<InventoryItemBase>();
-            foreach (UUID id in ids)
+            List<InventoryItemBase> items = new(ids.Length);
+            foreach (UUID id in ids.AsSpan())
             {
                 if (m_items.TryGetValue(id, out InventoryItemBase it))
                     items.Add(it);

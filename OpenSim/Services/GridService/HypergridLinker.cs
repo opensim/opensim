@@ -142,7 +142,7 @@ namespace OpenSim.Services.GridService
         public GridRegion LinkRegion(UUID scopeID, string regionDescriptor)
         {
             string reason = string.Empty;
-            uint xloc = Util.RegionToWorldLoc((uint)random.Next(0, Int16.MaxValue));
+            uint xloc = Util.RegionToWorldLoc((uint)Random.Shared.Next(0, Int16.MaxValue));
             return TryLinkRegionToCoords(scopeID, regionDescriptor, (int)xloc, 0, out reason);
         }
 
@@ -157,13 +157,13 @@ namespace OpenSim.Services.GridService
                 return null;
             }
 
-            int xloc = random.Next(0, short.MaxValue) << 8;
+            int xloc = Random.Shared.Next(0, short.MaxValue) << 8;
             if(TryCreateLinkImpl(scopeID, xloc, 0, rurl, UUID.Zero, out GridRegion regInfo))
                 return regInfo;
             return null;
         }
 
-        private static IPEndPoint dummyIP = new IPEndPoint(0,0);
+        private static readonly IPEndPoint dummyIP = new IPEndPoint(0,0);
         private bool TryCreateLinkImpl(UUID scopeID, int xloc, int yloc, RegionURI rurl, UUID ownerID, out GridRegion regInfo)
         {
             m_log.InfoFormat("[HYPERGRID LINKER]: Link to {0} {1}, in <{2},{3}>",
@@ -243,8 +243,6 @@ namespace OpenSim.Services.GridService
             return true;
         }
 
-        private static Random random = new Random();
-
         // From the command line link-region (obsolete) and the map
         private GridRegion TryLinkRegionToCoords(UUID scopeID, string mapName, int xloc, int yloc, out string reason)
         {
@@ -295,7 +293,7 @@ namespace OpenSim.Services.GridService
         private bool TryCreateLinkImpl(UUID scopeID, int xloc, int yloc, string remoteRegionName, uint externalPort, string externalHostName, string serverURI, UUID ownerID, out GridRegion regInfo, out string reason)
         {
             m_log.InfoFormat("[HYPERGRID LINKER]: Link to {0} {1}, in <{2},{3}>",
-                ((serverURI == null) ? (externalHostName + ":" + externalPort) : serverURI),
+                (serverURI ?? externalHostName + ":" + externalPort),
                 remoteRegionName, Util.WorldToRegionLoc((uint)xloc), Util.WorldToRegionLoc((uint)yloc));
 
             reason = string.Empty;

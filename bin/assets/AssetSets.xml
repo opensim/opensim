@@ -27,6 +27,10 @@
     <Key Name="file" Value="LandmarksAssetSet/LandmarksAssetSet.xml"/>
   </Section>
 
+  <Section Name="Materials AssetSet">
+    <Key Name="file" Value="MaterialsAssetSet/MaterialsAssetSet.xml"/>
+  </Section>
+
   <Section Name="Notecards AssetSet">
     <Key Name="file" Value="NotecardsAssetSet/NotecardsAssetSet.xml"/>
   </Section>

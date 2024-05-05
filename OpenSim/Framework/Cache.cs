@@ -344,26 +344,20 @@ namespace OpenSim.Framework
         //
         protected virtual CacheItemBase GetItem(string index)
         {
-            CacheItemBase item = null;
 
             lock (m_Index)
             {
-                if (m_Lookup.ContainsKey(index))
-                    item = m_Lookup[index];
-
-                if (item == null)
+                if(m_Lookup.TryGetValue(index, out  CacheItemBase item))
                 {
+                    item.hits++;
+                    item.lastUsed = DateTime.UtcNow;
                     Expire(true);
-                    return null;
+                    return item;
                 }
 
-                item.hits++;
-                item.lastUsed = DateTime.UtcNow;
-
                 Expire(true);
+                return null;
             }
-
-            return item;
         }
 
         // Get an item from cache. Do not try to fetch from source if not
@@ -566,12 +560,9 @@ namespace OpenSim.Framework
         {
             lock (m_Index)
             {
-                if (!m_Lookup.ContainsKey(uuid))
-                    return;
-
-                CacheItemBase item = m_Lookup[uuid];
+                if (m_Lookup.TryGetValue(uuid, out CacheItemBase item))
+                    m_Index.Remove(item);
                 m_Lookup.Remove(uuid);
-                m_Index.Remove(item);
             }
         }
 

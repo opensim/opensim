@@ -69,7 +69,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         protected override void ProcessRequest(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-            if (m_FriendsModule == null || m_FriendsModule.Scene == null)
+            if (m_FriendsModule is null || m_FriendsModule.Scene is null)
             {
                 httpResponse.StatusCode = (int)HttpStatusCode.NotImplemented;
                 return;
@@ -138,20 +138,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         byte[] FriendshipOffered(Dictionary<string, object> request)
         {
-            UUID fromID = UUID.Zero;
-            UUID toID = UUID.Zero;
+            object tmpo;
+
+            if (!request.TryGetValue("FromID", out tmpo) || !UUID.TryParse(tmpo.ToString(), out UUID fromID))
+                return FailureResult();
+
+            if (!request.TryGetValue("ToID", out tmpo) || !UUID.TryParse(tmpo.ToString(), out UUID toID))
+                return FailureResult();
+
             string message = string.Empty;
-
-            if (!request.ContainsKey("FromID") || !request.ContainsKey("ToID"))
-                return FailureResult();
-
-            message = request["Message"].ToString();
-
-            if (!UUID.TryParse(request["FromID"].ToString(), out fromID))
-                return FailureResult();
-
-            if (!UUID.TryParse(request["ToID"].ToString(), out toID))
-                return FailureResult();
+            if (request.TryGetValue("Message", out tmpo))
+                message = tmpo.ToString();
 
             UserAccount account = m_FriendsModule.UserAccountService.GetUserAccount(UUID.Zero, fromID);
             string name = (account == null) ? "Unknown" : account.FirstName + " " + account.LastName;
@@ -170,21 +167,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         byte[] FriendshipApproved(Dictionary<string, object> request)
         {
-            UUID fromID = UUID.Zero;
-            UUID toID = UUID.Zero;
+            object tmpo;
+
+            if (!request.TryGetValue("FromID", out tmpo) || !UUID.TryParse(tmpo.ToString(), out UUID fromID))
+                return FailureResult();
+
+            if (!request.TryGetValue("ToID", out tmpo) || !UUID.TryParse(tmpo.ToString(), out UUID toID))
+                return FailureResult();
+
             string fromName = string.Empty;
-
-            if (!request.ContainsKey("FromID") || !request.ContainsKey("ToID"))
-                return FailureResult();
-
-            if (!UUID.TryParse(request["FromID"].ToString(), out fromID))
-                return FailureResult();
-
-            if (!UUID.TryParse(request["ToID"].ToString(), out toID))
-                return FailureResult();
-
-            if (request.ContainsKey("FromName"))
-                fromName = request["FromName"].ToString();
+            if (request.TryGetValue("FromName", out tmpo))
+                fromName = tmpo.ToString();
 
             if (m_FriendsModule.LocalFriendshipApproved(fromID, fromName, toID))
                 return SuccessResult();
@@ -194,21 +187,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         byte[] FriendshipDenied(Dictionary<string, object> request)
         {
-            UUID fromID = UUID.Zero;
-            UUID toID = UUID.Zero;
+            object tmpo;
             string fromName = string.Empty;
 
-            if (!request.ContainsKey("FromID") || !request.ContainsKey("ToID"))
+            if (!request.TryGetValue("FromID", out tmpo) || !UUID.TryParse(tmpo.ToString(), out UUID fromID))
                 return FailureResult();
 
-            if (!UUID.TryParse(request["FromID"].ToString(), out fromID))
+            if (!request.TryGetValue("ToID", out tmpo) || !UUID.TryParse(tmpo.ToString(), out UUID toID))
                 return FailureResult();
 
-            if (!UUID.TryParse(request["ToID"].ToString(), out toID))
-                return FailureResult();
-
-            if (request.ContainsKey("FromName"))
-                fromName = request["FromName"].ToString();
+            if (request.TryGetValue("FromName", out tmpo))
+                fromName = tmpo.ToString();
 
             if (m_FriendsModule.LocalFriendshipDenied(fromID, fromName, toID))
                 return SuccessResult();
@@ -218,16 +207,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         byte[] FriendshipTerminated(Dictionary<string, object> request)
         {
-            UUID fromID = UUID.Zero;
-            UUID toID = UUID.Zero;
-
-            if (!request.ContainsKey("FromID") || !request.ContainsKey("ToID"))
+            object tmpo;
+            if (!request.TryGetValue("FromID", out tmpo) || !UUID.TryParse(tmpo.ToString(), out UUID fromID))
                 return FailureResult();
 
-            if (!UUID.TryParse(request["FromID"].ToString(), out fromID))
-                return FailureResult();
-
-            if (!UUID.TryParse(request["ToID"].ToString(), out toID))
+            if (!request.TryGetValue("ToID", out tmpo) || !UUID.TryParse(tmpo.ToString(), out UUID toID))
                 return FailureResult();
 
             if (m_FriendsModule.LocalFriendshipTerminated(fromID, toID))
@@ -238,23 +222,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         byte[] GrantRights(Dictionary<string, object> request)
         {
-            UUID fromID = UUID.Zero;
-            UUID toID = UUID.Zero;
-            int oldRights = 0, newRights = 0;
-
-            if (!request.ContainsKey("FromID") || !request.ContainsKey("ToID"))
+            object tmpo;
+            if (!request.TryGetValue("FromID", out tmpo) || !UUID.TryParse(tmpo.ToString(), out UUID fromID))
                 return FailureResult();
 
-            if (!UUID.TryParse(request["FromID"].ToString(), out fromID))
+            if (!request.TryGetValue("ToID", out tmpo) || !UUID.TryParse(tmpo.ToString(), out UUID toID))
                 return FailureResult();
 
-            if (!UUID.TryParse(request["ToID"].ToString(), out toID))
+            if (!request.TryGetValue("UserFlags", out tmpo) || !Int32.TryParse(tmpo.ToString(), out int oldRights))
                 return FailureResult();
 
-            if (!Int32.TryParse(request["UserFlags"].ToString(), out oldRights))
-                return FailureResult();
-
-            if (!Int32.TryParse(request["Rights"].ToString(), out newRights))
+            if (!request.TryGetValue("Rights", out tmpo) || !Int32.TryParse(tmpo.ToString(), out int newRights))
                 return FailureResult();
 
             if (m_FriendsModule.LocalGrantRights(fromID, toID, oldRights, newRights))
@@ -265,20 +243,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         byte[] StatusNotification(Dictionary<string, object> request)
         {
-            UUID fromID = UUID.Zero;
-            UUID toID = UUID.Zero;
-            bool online = false;
-
-            if (!request.ContainsKey("FromID") || !request.ContainsKey("ToID") || !request.ContainsKey("Online"))
+            object tmpo;
+            if (!request.TryGetValue("FromID", out tmpo) || !UUID.TryParse(tmpo.ToString(), out UUID fromID))
                 return FailureResult();
 
-            if (!UUID.TryParse(request["FromID"].ToString(), out fromID))
+            if (!request.TryGetValue("ToID", out tmpo) || !UUID.TryParse(tmpo.ToString(), out UUID toID))
                 return FailureResult();
 
-            if (!UUID.TryParse(request["ToID"].ToString(), out toID))
-                return FailureResult();
-
-            if (!Boolean.TryParse(request["Online"].ToString(), out online))
+            if (!request.TryGetValue("Online", out tmpo) || !Boolean.TryParse(tmpo.ToString(), out bool online))
                 return FailureResult();
 
             if (m_FriendsModule.LocalStatusNotification(fromID, toID, online))

@@ -33,99 +33,97 @@ using System.IO;
 using System.Net;
 using System.Reflection;
 using System.Text;
-using System.Web;
 using OSHttpServer;
 using log4net;
+
+using System.Runtime.CompilerServices;
 
 namespace OpenSim.Framework.Servers.HttpServer
 {
     public class OSHttpRequest : IOSHttpRequest
     {
-        private static readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected IHttpRequest m_request = null;
-        protected IHttpClientContext m_context = null;
+        protected readonly IHttpRequest m_request = null;
 
         public string[] AcceptTypes
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return m_request.AcceptTypes; }
         }
 
         public Encoding ContentEncoding
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return m_contentEncoding; }
         }
         private Encoding m_contentEncoding;
 
         public long ContentLength
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return m_request.ContentLength; }
         }
 
         public long ContentLength64
         {
-            get { return ContentLength; }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return m_request.ContentLength; }
         }
 
         public string ContentType
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return m_contentType; }
         }
         private string m_contentType;
 
-        public HttpCookieCollection Cookies
-        {
-            get
-            {
-                RequestCookies cookies = m_request.Cookies;
-                HttpCookieCollection httpCookies = new HttpCookieCollection();
-                if(cookies != null)
-                {
-                    foreach (RequestCookie cookie in cookies)
-                        httpCookies.Add(new HttpCookie(cookie.Name, cookie.Value));
-                }
-                return httpCookies;
-            }
-        }
-
         public bool HasEntityBody
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return m_request.ContentLength != 0; }
         }
 
         public NameValueCollection Headers
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return m_request.Headers; }
         }
 
         public string HttpMethod
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return m_request.Method; }
         }
 
         public Stream InputStream
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return m_request.Body; }
         }
 
         public bool IsSecured
         {
-            get { return m_context.IsSecured; }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return m_request.Context.IsSecured; }
         }
 
         public bool KeepAlive
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return ConnectionType.KeepAlive == m_request.Connection; }
         }
 
         public NameValueCollection QueryString
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return m_request.QueryString;}
         }
 
         private Hashtable m_queryAsHashtable = null;
         public Hashtable Query
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 if (m_queryAsHashtable == null)
@@ -138,6 +136,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         private Dictionary<string, string> _queryAsDictionay = null;
         public Dictionary<string,string> QueryAsDictionary
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 if (_queryAsDictionay == null)
@@ -149,6 +148,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         private HashSet<string> m_queryFlags = null;
         public HashSet<string> QueryFlags
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 if (m_queryFlags == null)
@@ -163,48 +163,57 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public string RawUrl
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return m_request.Uri.AbsolutePath; }
         }
 
         public IPEndPoint RemoteIPEndPoint
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return m_request.RemoteIPEndPoint; }
         }
 
         public IPEndPoint LocalIPEndPoint
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return m_request.LocalIPEndPoint; }
         }
 
         public Uri Url
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return m_request.Uri; }
         }
 
         public string UriPath
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return m_request.UriPath; }
         }
 
         public string UserAgent
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return m_userAgent; }
         }
         private string m_userAgent;
 
         public double ArrivalTS
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return m_request.ArrivalTS;}
         }
 
         internal IHttpRequest IHttpRequest
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return m_request; }
         }
 
         internal IHttpClientContext IHttpClientContext
         {
-            get { return m_context; }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return m_request.Context; }
         }
 
         /// <summary>
@@ -213,6 +222,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// </summary>
         internal Dictionary<string, object> Whiteboard
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return _whiteboard; }
         }
         private Dictionary<string, object> _whiteboard = new Dictionary<string, object>();
@@ -222,7 +232,6 @@ namespace OpenSim.Framework.Servers.HttpServer
         public OSHttpRequest(IHttpRequest req)
         {
             m_request = req;
-            m_context = req.Context;
 
             if (null != req.Headers["content-encoding"])
             {
@@ -241,12 +250,12 @@ namespace OpenSim.Framework.Servers.HttpServer
             if (null != req.Headers["user-agent"])
                 m_userAgent = req.Headers["user-agent"];
 
-//            Form = new Hashtable();
-//            foreach (HttpInputItem item in req.Form)
-//            {
-//                _log.DebugFormat("[OSHttpRequest]: Got form item {0}={1}", item.Name, item.Value);
-//                Form.Add(item.Name, item.Value);
-//            }
+            //Form = new Hashtable();
+            //foreach (HttpInputItem item in req.Form)
+            //{
+            //    _log.DebugFormat("[OSHttpRequest]: Got form item {0}={1}", item.Name, item.Value);
+            //   Form.Add(item.Name, item.Value);
+            //}
         }
 
         private void BuildQueryDictionary()
@@ -254,7 +263,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             NameValueCollection q = m_request.QueryString;
             _queryAsDictionay = new Dictionary<string, string>();
             m_queryFlags = new HashSet<string>();
-            for(int i = 0; i <q.Count; ++i)
+            for(int i = 0; i < q.Count; ++i)
             {
                 try
                 {
@@ -290,14 +299,14 @@ namespace OpenSim.Framework.Servers.HttpServer
         public override string ToString()
         {
             StringBuilder me = new StringBuilder();
-            me.Append(String.Format("OSHttpRequest: {0} {1}\n", HttpMethod, RawUrl));
+            me.Append($"OSHttpRequest: {HttpMethod} {RawUrl}\n");
             foreach (string k in Headers.AllKeys)
             {
-                me.Append(String.Format("    {0}: {1}\n", k, Headers[k]));
+                me.Append($"    {k}: {Headers[k]}\n");
             }
             if (null != RemoteIPEndPoint)
             {
-                me.Append(String.Format("    IP: {0}\n", RemoteIPEndPoint));
+                me.Append($"    IP: {RemoteIPEndPoint}\n");
             }
 
             return me.ToString();

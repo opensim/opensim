@@ -85,7 +85,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             lock(m_RunLock)
             {
                 //m_RunOnePhase = "GetExecutionState enter";
-                CheckRunLockInvariants(true);
+                //CheckRunLockInvariants(true);
 
                 // Get copy of script globals and stack in relocateable form.
                 Byte[] snapshotBytes;
@@ -100,23 +100,20 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 snapshotN.AppendChild(doc.CreateTextNode(snapshotString));
                 scriptStateN.AppendChild(snapshotN);
                 //m_RunOnePhase = "GetExecutionState B";
-                CheckRunLockInvariants(true);
 
                 // "Running" says whether or not we are accepting new events.
                 XmlElement runningN = doc.CreateElement("", "Running", "");
                 runningN.AppendChild(doc.CreateTextNode(m_Running.ToString()));
                 scriptStateN.AppendChild(runningN);
                 //m_RunOnePhase = "GetExecutionState C";
-                CheckRunLockInvariants(true);
 
                 // "DoGblInit" says whether or not default:state_entry() will init global vars.
                 XmlElement doGblInitN = doc.CreateElement("", "DoGblInit", "");
                 doGblInitN.AppendChild(doc.CreateTextNode(doGblInit.ToString()));
                 scriptStateN.AppendChild(doGblInitN);
                 //m_RunOnePhase = "GetExecutionState D";
-                CheckRunLockInvariants(true);
 
-                if(m_XMRLSLApi != null)
+                if(m_XMRLSLApi is not null)
                 {
                     double scriptTime = Util.GetTimeStampMS() - m_XMRLSLApi.getLSLTimer();
                     XmlElement scriptTimeN = doc.CreateElement("", "scrpTime", "");
@@ -130,7 +127,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     minEventDelayN.AppendChild(doc.CreateTextNode(m_minEventDelay.ToString()));
                     scriptStateN.AppendChild(minEventDelayN);
                     //m_RunOnePhase = "GetExecutionState D";
-                    CheckRunLockInvariants(true);
                 }
 
                 // More misc data.
@@ -145,19 +141,17 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 maskA.Value = m_Item.PermsMask.ToString();
                 permissionsN.Attributes.Append(maskA);
                 //m_RunOnePhase = "GetExecutionState E";
-                CheckRunLockInvariants(true);
 
                 // "DetectParams" are returned by llDetected...() script functions
                 // for the currently active event, if any.
                 var detectParams = m_DetectParams;
-                if (detectParams != null)
+                if (detectParams is not null)
                 {
                     XmlElement detParArrayN = doc.CreateElement("", "DetectArray", "");
                     AppendXMLDetectArray(doc, detParArrayN, detectParams);
                     scriptStateN.AppendChild(detParArrayN);
                 }
                 //m_RunOnePhase = "GetExecutionState F";
-                CheckRunLockInvariants(true);
 
                 // Save any events we have in the queue.
                 // <EventQueue>
@@ -181,23 +175,19 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
                 scriptStateN.AppendChild(queuedEventsN);
                 //m_RunOnePhase = "GetExecutionState G";
-                CheckRunLockInvariants(true);
 
                 // "Plugins" indicate enabled timers and listens, etc.
-                Object[] pluginData =
-                        AsyncCommandManager.GetSerializationData(m_Engine, m_ItemID);
+                Object[] pluginData = AsyncCommandManager.GetSerializationData(m_Engine, m_ItemID);
 
                 XmlNode plugins = doc.CreateElement("", "Plugins", "");
                 AppendXMLObjectArray(doc, plugins, pluginData, "plugin");
                 scriptStateN.AppendChild(plugins);
                 //m_RunOnePhase = "GetExecutionState H";
-                CheckRunLockInvariants(true);
 
                 // Let script run again.
                 suspendOnCheckRunHold = false;
 
                 //m_RunOnePhase = "GetExecutionState leave";
-                CheckRunLockInvariants(true);
             }
 
             // scriptStateN represents the contents of the .state file so
@@ -222,7 +212,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             // Does not change script state.
             stream.WriteByte(migrationVersion);
             stream.WriteByte((byte)16);
-            this.MigrateOut(new BinaryWriter(stream));
+            MigrateOut(new BinaryWriter(stream));
         }
 
         /**

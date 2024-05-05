@@ -5,6 +5,8 @@ using System.Net.Security;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
+using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 
 namespace OSHttpServer
 {
@@ -14,16 +16,13 @@ namespace OSHttpServer
         private readonly X509Certificate m_certificate;
         private readonly IHttpContextFactory m_contextFactory;
         private readonly int m_port;
-        private readonly ManualResetEvent m_shutdownEvent = new ManualResetEvent(false);
-#if NET48
-        private readonly SslProtocols m_sslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13 | SslProtocols.Ssl3 | SslProtocols.Ssl2;
-#else
-        private readonly SslProtocols m_sslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Ssl3 | SslProtocols.Ssl2;
-#endif
+        private readonly ManualResetEvent m_shutdownEvent = new(false);
+        private readonly SslProtocols m_sslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13;
+
         private TcpListener m_listener;
         private ILogWriter m_logWriter = NullLogWriter.Instance;
-        private int m_pendingAccepts;
         private bool m_shutdown;
+        public readonly CancellationTokenSource m_CancellationSource = new();
         protected RemoteCertificateValidationCallback m_clientCertValCallback = null;
 
         public event EventHandler<ClientAcceptedEventArgs> Accepted;
@@ -67,8 +66,7 @@ namespace OSHttpServer
         /// <param name="factory">Factory used to create <see cref="IHttpClientContext"/>es.</param>
         /// <param name="certificate">Certificate to use</param>
         /// <param name="protocols">which HTTPS protocol to use, default is TLS.</param>
-        protected OSHttpListener(IPAddress address, int port, X509Certificate certificate,
-                                   SslProtocols protocols)
+        protected OSHttpListener(IPAddress address, int port, X509Certificate certificate, SslProtocols protocols)
             : this(address, port)
         {
             m_certificate = certificate;
@@ -90,6 +88,7 @@ namespace OSHttpServer
             return new OSHttpListener(address, port, certificate, protocols);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void OnRequestReceived(object sender, RequestEventArgs e)
         {
             RequestReceived?.Invoke(sender, e);
@@ -112,11 +111,10 @@ namespace OSHttpServer
             set
             {
                 m_logWriter = value ?? NullLogWriter.Instance;
-                if (m_certificate != null)
-                    m_logWriter.Write(this, LogPrio.Info,
-                                     "HTTPS(" + m_sslProtocols + ") listening on " + m_address + ":" + m_port);
+                if (m_certificate is not null)
+                    m_logWriter.Write(this, LogPrio.Info, $"HTTPS({m_sslProtocols}) listening on {m_address}:{m_port}");
                 else
-                    m_logWriter.Write(this, LogPrio.Info, "HTTP listening on " + m_address + ":" + m_port);
+                    m_logWriter.Write(this, LogPrio.Info, $"HTTP listening on {m_address}:{m_port}");
             }
         }
 
@@ -125,76 +123,53 @@ namespace OSHttpServer
         /// </summary>
         public bool UseTraceLogs { get; set; }
 
-
-        /// <exception cref="Exception"><c>Exception</c>.</exception>
-        private void OnAccept(IAsyncResult ar)
+        private async void AcceptLoop()
         {
-            bool beginAcceptCalled = false;
             try
             {
-                int count = Interlocked.Decrement(ref m_pendingAccepts);
-                if (m_shutdown)
+                while (true)
                 {
-                    if (count == 0)
+                    if (m_shutdown)
+                    {
                         m_shutdownEvent.Set();
-                    return;
-                }
+                        break;
+                    }
 
-                Interlocked.Increment(ref m_pendingAccepts);
-                m_listener.BeginAcceptSocket(OnAccept, null);
-                beginAcceptCalled = true;
-                Socket socket = m_listener.EndAcceptSocket(ar);
-                if (!socket.Connected)
-                {
-                    socket.Dispose();
-                    return;
-                }
+                    Socket socket = await m_listener.AcceptSocketAsync(m_CancellationSource.Token).ConfigureAwait(false); ;
+                    if (!socket.Connected)
+                    {
+                        socket.Dispose();
+                        continue;
+                    }
 
-                socket.NoDelay = true;
+                    socket.NoDelay = true;
 
-                if (!OnAcceptingSocket(socket))
-                {
-                    socket.Disconnect(true);
-                    return;
-                }
+                    if (!OnAcceptingSocket(socket))
+                    {
+                        socket.Disconnect(true);
+                        continue;
+                    }
+                    if (socket.Connected)
+                    {
+                        m_logWriter.Write(this, LogPrio.Debug, $"Accepted connection from: {socket.RemoteEndPoint}");
 
-                if(socket.Connected)
-                {
-                     m_logWriter.Write(this, LogPrio.Debug, "Accepted connection from: " + socket.RemoteEndPoint);
-
-                    if (m_certificate != null)
-                        m_contextFactory.CreateSecureContext(socket, m_certificate, m_sslProtocols, m_clientCertValCallback);
+                        if (m_certificate is not null)
+                            m_contextFactory.CreateSecureContext(socket, m_certificate, m_sslProtocols, m_clientCertValCallback);
+                        else
+                            m_contextFactory.CreateContext(socket);
+                    }
                     else
-                        m_contextFactory.CreateContext(socket);
+                        socket.Dispose();
                 }
-                else
-                    socket.Dispose();
+            }
+            catch (OperationCanceledException)
+            {
+                m_shutdownEvent.Set();
             }
             catch (Exception err)
             {
                 m_logWriter.Write(this, LogPrio.Debug, err.Message);
                 ExceptionThrown?.Invoke(this, err);
-
-                if (!beginAcceptCalled)
-                    RetryBeginAccept();
-            }
-        }
-
-        /// <summary>
-        /// Will try to accept connections one more time.
-        /// </summary>
-        /// <exception cref="Exception">If any exceptions is thrown.</exception>
-        private void RetryBeginAccept()
-        {
-            try
-            {
-                m_logWriter.Write(this, LogPrio.Error, "Trying to accept connections again.");
-                m_listener.BeginAcceptSocket(OnAccept, null);
-            }
-            catch (Exception err)
-            {
-                m_logWriter.Write(this, LogPrio.Fatal, err.Message);
-                 ExceptionThrown?.Invoke(this, err);
             }
         }
 
@@ -207,7 +182,7 @@ namespace OSHttpServer
         {
             if(Accepted!=null)
             {
-                ClientAcceptedEventArgs args = new ClientAcceptedEventArgs(socket);
+                ClientAcceptedEventArgs args = new(socket);
                 Accepted?.Invoke(this, args);
                 return !args.Revoked;
             }
@@ -226,8 +201,7 @@ namespace OSHttpServer
 
             m_listener = new TcpListener(m_address, m_port);
             m_listener.Start(backlog);
-            Interlocked.Increment(ref m_pendingAccepts);
-            m_listener.BeginAcceptSocket(OnAccept, null);
+            Task.Run(AcceptLoop).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -237,10 +211,11 @@ namespace OSHttpServer
         public void Stop()
         {
             m_shutdown = true;
+            m_CancellationSource.Cancel();
             m_contextFactory.Shutdown();
-            m_listener.Stop();
             if (!m_shutdownEvent.WaitOne())
                 m_logWriter.Write(this, LogPrio.Error, "Failed to shutdown listener properly.");
+            m_listener.Stop();
             m_listener = null;
             Dispose();
         }
@@ -256,6 +231,7 @@ namespace OSHttpServer
             if (m_shutdownEvent != null)
             {
                 m_shutdownEvent.Dispose();
+                m_CancellationSource.Dispose();
             }
         }
     }

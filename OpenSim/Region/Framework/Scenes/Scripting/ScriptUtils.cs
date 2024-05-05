@@ -25,8 +25,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
 
@@ -48,10 +46,10 @@ namespace OpenSim.Region.Framework.Scenes.Scripting
         {
             TaskInventoryItem item = part.Inventory.GetInventoryItem(name, type);
 
-            if (item != null)
+            if (item is not null)
                 return item.AssetID;
-            else
-                return UUID.Zero;
+
+            return UUID.Zero;
         }
 
         /// <summary>
@@ -64,7 +62,7 @@ namespace OpenSim.Region.Framework.Scenes.Scripting
         /// <returns></returns>
         public static UUID GetAssetIdFromKeyOrItemName(SceneObjectPart part, string identifier)
         {
-            if(string.IsNullOrEmpty(identifier))
+            if(string.IsNullOrEmpty(identifier) || part.Inventory is null)
                 return UUID.Zero;
 
             // if we can parse the string as a key, use it.
@@ -73,14 +71,8 @@ namespace OpenSim.Region.Framework.Scenes.Scripting
             if (UUID.TryParse(identifier, out UUID key))
                 return key;
 
-            if (part.Inventory != null)
-            {
-                TaskInventoryItem item = part.Inventory.GetInventoryItem(identifier);
-                if (item != null)
-                    return item.AssetID;
-            }
-
-            return UUID.Zero;
+            TaskInventoryItem item = part.Inventory.GetInventoryItem(identifier);
+            return item is not null ? item.AssetID : UUID.Zero;
         }
 
         /// <summary>
@@ -93,17 +85,11 @@ namespace OpenSim.Region.Framework.Scenes.Scripting
         /// <returns></returns>
         public static UUID GetAssetIdFromKeyOrItemName(SceneObjectPart part, string identifier, AssetType type)
         {
-            if (UUID.TryParse(identifier, out UUID key))
+            if (UUID.TryParse(identifier, out UUID key) || part.Inventory is null)
                 return key;
 
-            if (part.Inventory != null)
-            {
-                TaskInventoryItem item = part.Inventory.GetInventoryItem(identifier, (int)type);
-                if (item != null)
-                    return item.AssetID;
-            }
-
-            return UUID.Zero;
+            TaskInventoryItem item = part.Inventory.GetInventoryItem(identifier, (int)type);
+            return item is not null ? item.AssetID : UUID.Zero;
         }
 
         public static UUID GetAssetIdFromKeyOrItemName(SceneObjectPart part, SceneObjectPart host, string identifier, AssetType type)
@@ -112,17 +98,17 @@ namespace OpenSim.Region.Framework.Scenes.Scripting
                 return key;
 
             TaskInventoryItem item;
-            if (part.Inventory != null)
+            if (part.Inventory is not null)
             {
                 item = part.Inventory.GetInventoryItem(identifier, (int)type);
-                if (item != null)
+                if (item is not null)
                     return item.AssetID;
             }
 
-            if (part.LocalId != host.LocalId && host.Inventory != null)
+            if (part.LocalId != host.LocalId && host.Inventory is not null)
             {
                 item = host.Inventory.GetInventoryItem(identifier, (int)type);
-                if (item != null)
+                if (item is not null)
                     return item.AssetID;
             }
             return UUID.Zero;

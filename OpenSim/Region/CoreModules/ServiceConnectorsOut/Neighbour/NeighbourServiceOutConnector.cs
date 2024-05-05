@@ -120,10 +120,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Neighbour
             {
                 if (s.RegionInfo.RegionHandle == regionHandle)
                 {
-//                    uint x, y;
-//                    Util.RegionHandleToRegionLoc(regionHandle, out x, out y);
-//                    m_log.DebugFormat("[NEIGHBOUR SERVICE OUT CONNECTOR]: HelloNeighbour from region {0} to neighbour {1} at {2}-{3}",
-//                                                thisRegion.RegionName, s.Name, x, y );
+                    //uint x, y;
+                    //Util.RegionHandleToRegionLoc(regionHandle, out x, out y);
+                    //m_log.DebugFormat("[NEIGHBOUR SERVICE OUT CONNECTOR]: HelloNeighbour from region {0} to neighbour {1} at {2}-{3}",
+                    //                            thisRegion.RegionName, s.Name, x, y );
                     return s.IncomingHelloNeighbour(thisRegion);
                 }
             }

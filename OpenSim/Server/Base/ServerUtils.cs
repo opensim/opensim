@@ -355,14 +355,13 @@ namespace OpenSim.Server.Base
                         continue;
                     if (result.ContainsKey(name))
                     {
-                        if (!(result[name] is List<string>))
+                        if (result[name] is not List<string> l)
                             continue;
 
-                        List<string> l = (List<string>)result[name];
-                        if (elems.Length > 1 && !String.IsNullOrWhiteSpace(elems[1]))
+                        if (elems.Length > 1 && !string.IsNullOrWhiteSpace(elems[1]))
                             l.Add(System.Web.HttpUtility.UrlDecode(elems[1]));
                         else
-                            l.Add(String.Empty);
+                            l.Add(string.Empty);
                     }
                     else
                     {
@@ -399,15 +398,13 @@ namespace OpenSim.Server.Base
 
             foreach (KeyValuePair<string, object> kvp in data)
             {
-                if (kvp.Value is List<string>)
+                if (kvp.Value is List<string> l)
                 {
-                    List<string> l = (List<String>)kvp.Value;
-                    int llen = l.Count;
                     string nkey = System.Web.HttpUtility.UrlEncode(kvp.Key);
-                    for(int i = 0; i < llen; ++i)
+                    for (int i = 0; i < l.Count; ++i)
                     {
                         if (sb.Length != 0)
-                            sb.Append("&");
+                            sb.Append('&');
                         sb.Append(nkey);
                         sb.Append("[]=");
                         sb.Append(System.Web.HttpUtility.UrlEncode(l[i]));
@@ -416,15 +413,9 @@ namespace OpenSim.Server.Base
                 else if(kvp.Value is Dictionary<string, object>)
                 {
                     // encode complex structures as JSON
-                    // needed for estate bans with the encoding used on xml
-                    // encode can be here because object does contain the structure information
-                    // but decode needs to be on estateSettings (or other user)
                     string js;
                     try
                     {
-                        // bypass libovm, we dont need even more useless high level maps
-                        // this should only be called once.. but no problem, i hope
-                        // (other uses may need more..)
                         LitJson.JsonMapper.RegisterExporter<UUID>((uuid, writer) => writer.Write(uuid.ToString()) );
                         js = LitJson.JsonMapper.ToJson(kvp.Value);
                     }
@@ -434,21 +425,21 @@ namespace OpenSim.Server.Base
                         continue;
                     }
                     if (sb.Length != 0)
-                        sb.Append("&");
+                        sb.Append('&');
                     sb.Append(System.Web.HttpUtility.UrlEncode(kvp.Key));
-                    sb.Append("=");
+                    sb.Append('=');
                     sb.Append(System.Web.HttpUtility.UrlEncode(js));
                 }
                 else
                 {
                     if (sb.Length != 0)
-                        sb.Append("&");
+                        sb.Append('&');
                     sb.Append(System.Web.HttpUtility.UrlEncode(kvp.Key));
  
                     pvalue = kvp.Value.ToString();
-                    if (!String.IsNullOrEmpty(pvalue))
+                    if (!string.IsNullOrEmpty(pvalue))
                     {
-                        sb.Append("=");
+                        sb.Append('=');
                         sb.Append(System.Web.HttpUtility.UrlEncode(pvalue));
                     }
                 }
@@ -462,8 +453,7 @@ namespace OpenSim.Server.Base
         {
             XmlDocument doc = new XmlDocument();
 
-            XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
-                    "", "");
+            XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration, "", "");
 
             doc.AppendChild(xmlnode);
 
@@ -480,26 +470,22 @@ namespace OpenSim.Server.Base
         {
             foreach (KeyValuePair<string, object> kvp in data)
             {
-                if (kvp.Value == null)
+                if (kvp.Value is null)
                     continue;
 
-                XmlElement elem = parent.OwnerDocument.CreateElement("",
-                        XmlConvert.EncodeLocalName(kvp.Key), "");
+                XmlElement elem = parent.OwnerDocument.CreateElement("", XmlConvert.EncodeLocalName(kvp.Key), "");
 
-                if (kvp.Value is Dictionary<string, object>)
+                if (kvp.Value is Dictionary<string, object> dic)
                 {
-                    XmlAttribute type = parent.OwnerDocument.CreateAttribute("",
-                        "type", "");
+                    XmlAttribute type = parent.OwnerDocument.CreateAttribute("", "type", "");
                     type.Value = "List";
-
                     elem.Attributes.Append(type);
 
-                    BuildXmlData(elem, (Dictionary<string, object>)kvp.Value);
+                    BuildXmlData(elem, dic);
                 }
                 else
                 {
-                    elem.AppendChild(parent.OwnerDocument.CreateTextNode(
-                            kvp.Value.ToString()));
+                    elem.AppendChild(parent.OwnerDocument.CreateTextNode(kvp.Value.ToString()));
                 }
 
                 parent.AppendChild(elem);
@@ -541,22 +527,30 @@ namespace OpenSim.Server.Base
             return ret;
         }
 
+        private static readonly XmlReaderSettings ParseXmlStringResponseXmlReaderSettings = new()
+        {
+            IgnoreWhitespace = true,
+            IgnoreComments = true,
+            ConformanceLevel = ConformanceLevel.Fragment,
+            CloseInput = true,
+            MaxCharactersInDocument = 50_000_000
+        };
+
+        private static readonly XmlParserContext ParseXmlResponseXmlParserContext = new(null, null, null, XmlSpace.None)
+        {
+            Encoding = Util.UTF8NoBomEncoding
+        };
+
         public static Dictionary<string, object> ParseXmlResponse(string data)
         {
-            //m_log.DebugFormat("[XXX]: received xml string: {0}", data);
-
             try
             {
-                XmlReaderSettings xset = new XmlReaderSettings() { IgnoreWhitespace = true, IgnoreComments = true, ConformanceLevel = ConformanceLevel.Fragment, CloseInput = true };
-                XmlParserContext xpc = new XmlParserContext(null, null, null, XmlSpace.None);
-                xpc.Encoding = Util.UTF8NoBomEncoding;
-                using (XmlReader xr = XmlReader.Create(new StringReader(data), xset, xpc))
-                {
+                using XmlReader xr = XmlReader.Create(new StringReader(data), 
+                    ParseXmlStringResponseXmlReaderSettings, ParseXmlResponseXmlParserContext);
                      if(!xr.ReadToFollowing("ServerResponse"))
                             return new Dictionary<string, object>();
                     return ScanXmlResponse(xr);
                 }
-            }
             catch (Exception e)
             {
                 m_log.DebugFormat("[serverUtils.ParseXmlResponse]: failed error: {0}\n --string:\n{1}\n", e.Message, data);
@@ -564,26 +558,21 @@ namespace OpenSim.Server.Base
             return new Dictionary<string, object>();
         }
 
+        private static readonly XmlReaderSettings ParseXmlStreamResponseXmlReaderSettings = new()
+        {
+            IgnoreWhitespace = true,
+            IgnoreComments = true,
+            ConformanceLevel = ConformanceLevel.Fragment,
+            CloseInput = true,
+            MaxCharactersInDocument = 50_000_000
+        };
+
         public static Dictionary<string, object> ParseXmlResponse(Stream src)
         {
-            //m_log.DebugFormat("[XXX]: received xml string: {0}", data);
-
-            try
-            {
-                XmlReaderSettings xset = new XmlReaderSettings() { IgnoreWhitespace = true, IgnoreComments = true, ConformanceLevel = ConformanceLevel.Fragment, CloseInput = true };
-                XmlParserContext xpc = new XmlParserContext(null, null, null, XmlSpace.None);
-                xpc.Encoding = Util.UTF8NoBomEncoding;
-                using (XmlReader xr = XmlReader.Create(src, xset, xpc))
-                {
-                    if (!xr.ReadToFollowing("ServerResponse"))
-                        return new Dictionary<string, object>();
+            using XmlReader xr = XmlReader.Create(src, 
+                ParseXmlStreamResponseXmlReaderSettings, ParseXmlResponseXmlParserContext);
+            if (xr.ReadToFollowing("ServerResponse"))
                     return ScanXmlResponse(xr);
-                }
-            }
-            catch (Exception e)
-            {
-                m_log.DebugFormat("[serverUtils.ParseXmlResponse]: failed error: {0}", e.Message);
-            }
             return new Dictionary<string, object>();
         }
 

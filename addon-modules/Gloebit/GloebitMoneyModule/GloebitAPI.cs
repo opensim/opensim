@@ -23,10 +23,8 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Text;
@@ -41,7 +39,8 @@ using OpenMetaverse.StructuredData;
 //       to an API wrapper which uses this API.  The separation might make both easier to maintain as this is ported to
 //       new platforms.
 
-namespace Gloebit.GloebitMoneyModule {
+namespace Gloebit.GloebitMoneyModule
+{
 
     public class GloebitAPI {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

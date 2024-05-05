@@ -184,10 +184,6 @@ namespace OpenSim.Region.PhysicsModule.POS
             return false;
         }
 
-        public override void AddPhysicsActorTaint(PhysicsActor prim)
-        {
-        }
-
         public override float Simulate(float timeStep)
         {
             float fps = 0;

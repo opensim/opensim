@@ -243,6 +243,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         string osSetFontSize(string drawList, int fontSize);
         string osSetPenSize(string drawList, int penSize);
         string osSetPenColor(string drawList, string color);
+        string osSetPenColor(string drawList, LSL_Types.Vector3 color);
+        string osSetPenColor(string drawList, LSL_Types.Vector3 color, LSL_Float alpha);
         string osSetPenColour(string drawList, string colour); // Deprecated
         string osSetPenCap(string drawList, string direction, string type);
         string osDrawImage(string drawList, int width, int height, string imageUrl);
@@ -542,42 +544,55 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
         LSL_String osStringSubString(LSL_String src, LSL_Integer start);
         LSL_String osStringSubString(LSL_String src, LSL_Integer start, LSL_Integer length);
-        LSL_Integer osStringStartsWith(LSL_String src, LSL_String value, LSL_Integer ignorecase);
-        LSL_Integer osStringEndsWith(LSL_String src, LSL_String value, LSL_Integer ignorecase);
-        LSL_Integer osStringIndexOf(LSL_String src, LSL_String value, LSL_Integer ignorecase);
-        LSL_Integer osStringIndexOf(LSL_String src, LSL_String value, LSL_Integer start, LSL_Integer count, LSL_Integer ignorecase);
-        LSL_Integer osStringLastIndexOf(LSL_String src, LSL_String value, LSL_Integer ignorecase);
-        LSL_Integer osStringLastIndexOf(LSL_String src, LSL_String value, LSL_Integer start, LSL_Integer count, LSL_Integer ignorecase);
+       LSL_Integer osStringStartsWith(LSL_String src, LSL_String value, LSL_Integer ignorecase);
+       LSL_Integer osStringEndsWith(LSL_String src, LSL_String value, LSL_Integer ignorecase);
+       LSL_Integer osStringIndexOf(LSL_String src, LSL_String value, LSL_Integer ignorecase);
+       LSL_Integer osStringIndexOf(LSL_String src, LSL_String value, LSL_Integer start, LSL_Integer count, LSL_Integer ignorecase);
+       LSL_Integer osStringLastIndexOf(LSL_String src, LSL_String value, LSL_Integer ignorecase);
+       LSL_Integer osStringLastIndexOf(LSL_String src, LSL_String value, LSL_Integer start, LSL_Integer count, LSL_Integer ignorecase);
         LSL_String osStringRemove(LSL_String src, LSL_Integer start, LSL_Integer count);
         LSL_String osStringReplace(LSL_String src, LSL_String oldvalue, LSL_String newvalue);
 
-        LSL_Integer osApproxEquals(LSL_Float a, LSL_Float b);
-        LSL_Integer osApproxEquals(LSL_Float a, LSL_Float b, LSL_Float margin);
-        LSL_Integer osApproxEquals(vector va, vector vb);
-        LSL_Integer osApproxEquals(vector va, vector vb, LSL_Float margin);
-        LSL_Integer osApproxEquals(rotation ra, rotation rb);
-        LSL_Integer osApproxEquals(rotation ra, rotation rb, LSL_Float margin);
+       LSL_Integer osApproxEquals(LSL_Float a, LSL_Float b);
+       LSL_Integer osApproxEquals(LSL_Float a, LSL_Float b, LSL_Float margin);
+       LSL_Integer osApproxEquals(vector va, vector vb);
+       LSL_Integer osApproxEquals(vector va, vector vb, LSL_Float margin);
+       LSL_Integer osApproxEquals(rotation ra, rotation rb);
+       LSL_Integer osApproxEquals(rotation ra, rotation rb, LSL_Float margin);
         LSL_Key osGetInventoryLastOwner(LSL_String itemNameOrId);
         LSL_Key osGetInventoryItemKey(LSL_String name);
-        LSL_String osGetInventoryName(LSL_Key itemId);
-        LSL_String osGetInventoryDesc(LSL_String itemNameOrId);
+        LSL_Key osGetLinkInventoryKey(LSL_Integer linkNumber, LSL_String name, LSL_Integer type);
+        LSL_Key osGetLinkInventoryItemKey(LSL_Integer linkNumber, LSL_String name);
+     LSL_String osGetInventoryName(LSL_Key itemId);
+     LSL_String osGetLinkInventoryName(LSL_Integer linkNumber, LSL_Key itemId);
+     LSL_String osGetInventoryDesc(LSL_String itemNameOrId);
+     LSL_String osGetLinkInventoryDesc(LSL_Integer linkNumber, LSL_String itemNameorid);
+       LSL_List osGetInventoryItemKeys(LSL_Integer type);
+       LSL_List osGetLinkInventoryItemKeys(LSL_Integer linkNumber, LSL_Integer type);
+       LSL_List osGetInventoryNames(LSL_Integer type);
+       LSL_List osGetLinkInventoryNames(LSL_Integer linkNumber, LSL_Integer type);
+           void osRemoveLinkInventory(LSL_Integer linkNumber, LSL_String name);
+           void osGiveLinkInventory(LSL_Integer linkNumber, LSL_Key destination, LSL_String inventory);
+           void osGiveLinkInventoryList(LSL_Integer linkNumber, LSL_Key destination, LSL_String category, LSL_List inventory);
         LSL_Key osGetLastChangedEventKey();
-        LSL_Float osGetPSTWallclock();
-        LSL_Rotation osSlerp(LSL_Rotation a, LSL_Rotation b, LSL_Float amount);
-        vector osSlerp(vector a, vector b, LSL_Float amount);
+      LSL_Float osGetPSTWallclock();
+   LSL_Rotation osSlerp(LSL_Rotation a, LSL_Rotation b, LSL_Float amount);
+         vector osSlerp(vector a, vector b, LSL_Float amount);
 
-        void osResetAllScripts(LSL_Integer AllLinkset);
-        LSL_Integer osIsNotValidNumber(LSL_Float v);
+           void osResetAllScripts(LSL_Integer AllLinkset);
+    LSL_Integer osIsNotValidNumber(LSL_Float v);
 
-        void osSetSitActiveRange(LSL_Float v);
-        void osSetLinkSitActiveRange(LSL_Integer linkNumber, LSL_Float v);
-        LSL_Float osGetSitActiveRange();
-        LSL_Float osGetLinkSitActiveRange(LSL_Integer linkNumber);
-        void osSetStandTarget(vector v);
-        void osSetLinkStandTarget(LSL_Integer linkNumber, vector v);
-        vector osGetStandTarget();
-        vector osGetLinkStandTarget(LSL_Integer linkNumber);
-        LSL_Integer osClearObjectAnimations();
+           void osSetSitActiveRange(LSL_Float v);
+           void osSetLinkSitActiveRange(LSL_Integer linkNumber, LSL_Float v);
+      LSL_Float osGetSitActiveRange();
+      LSL_Float osGetLinkSitActiveRange(LSL_Integer linkNumber);
+         vector osGetSitTargetPos();
+       rotation osGetSitTargetRot();
+           void osSetStandTarget(vector v);
+           void osSetLinkStandTarget(LSL_Integer linkNumber, vector v);
+         vector osGetStandTarget();
+         vector osGetLinkStandTarget(LSL_Integer linkNumber);
+    LSL_Integer osClearObjectAnimations();
 
         LSL_Float  osGetApparentTime();
         LSL_String osGetApparentTimeString(LSL_Integer format24);
@@ -598,5 +613,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_Integer osAvatarType(LSL_Key avkey);
         LSL_Integer osAvatarType(LSL_String sFirstName, LSL_String sLastName);
         void osListSortInPlace(LSL_List src, LSL_Integer stride, LSL_Integer ascending);
+        void osListSortInPlaceStrided(LSL_List src, LSL_Integer stride, LSL_Integer stride_index, LSL_Integer ascending);
+        LSL_List osGetParcelDetails(LSL_Key id, LSL_List param);
+        LSL_List osGetParcelIDs();
+        LSL_Key osGetParcelID();
+        LSL_List osOldList2ListStrided(LSL_List src, int start, int end, int stride);
+        LSL_Integer osGetPrimCount();
+        LSL_Integer osGetPrimCount(LSL_Key object_id);
+        LSL_Integer osGetSittingAvatarsCount();
+        LSL_Integer osGetSittingAvatarsCount(LSL_Key object_id);
+        LSL_String osAESEncrypt(string secret, string plainText);
+        LSL_String osAESEncryptTo(string secret, string plainText, string ivString);
+        LSL_String osAESDecrypt(string secret, string encryptedText);
+        LSL_String osAESDecryptFrom(string secret, string encryptedText, string ivString);
     }
 }

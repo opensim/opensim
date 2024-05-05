@@ -12,16 +12,13 @@ namespace Amib.Threading
         private int _minWorkerThreads = SmartThreadPool.DefaultMinWorkerThreads;
         private int _maxWorkerThreads = SmartThreadPool.DefaultMaxWorkerThreads;
         private ThreadPriority _threadPriority = SmartThreadPool.DefaultThreadPriority;
-        private string _performanceCounterInstanceName = SmartThreadPool.DefaultPerformanceCounterInstanceName;
         private bool _areThreadsBackground = SmartThreadPool.DefaultAreThreadsBackground;
-        private bool _enableLocalPerformanceCounters;
         private string _threadPoolName = SmartThreadPool.DefaultThreadPoolName;
         private int? _maxStackSize = SmartThreadPool.DefaultMaxStackSize;
         private bool _supressflow = false;
 
         public STPStartInfo()
         {
-            _performanceCounterInstanceName = SmartThreadPool.DefaultPerformanceCounterInstanceName;
             _threadPriority = SmartThreadPool.DefaultThreadPriority;
             _maxWorkerThreads = SmartThreadPool.DefaultMaxWorkerThreads;
             _idleTimeout = SmartThreadPool.DefaultIdleTimeout;
@@ -35,8 +32,6 @@ namespace Amib.Threading
             _minWorkerThreads = stpStartInfo.MinWorkerThreads;
             _maxWorkerThreads = stpStartInfo.MaxWorkerThreads;
             _threadPriority = stpStartInfo.ThreadPriority;
-            _performanceCounterInstanceName = stpStartInfo.PerformanceCounterInstanceName;
-            _enableLocalPerformanceCounters = stpStartInfo._enableLocalPerformanceCounters;
             _threadPoolName = stpStartInfo._threadPoolName;
             _areThreadsBackground = stpStartInfo.AreThreadsBackground;
             _apartmentState = stpStartInfo._apartmentState;
@@ -107,36 +102,6 @@ namespace Amib.Threading
             {
                 ThrowIfReadOnly();
                 _threadPoolName = value;
-            }
-        }
-
-        /// <summary>
-        /// Get/Set the performance counter instance name of this SmartThreadPool
-        /// The default is null which indicate not to use performance counters at all.
-        /// </summary>
-        public virtual string PerformanceCounterInstanceName
-        {
-            get { return _performanceCounterInstanceName; }
-            set
-            {
-                ThrowIfReadOnly();
-                _performanceCounterInstanceName = value;
-            }
-        }
-
-        /// <summary>
-        /// Enable/Disable the local performance counter.
-        /// This enables the user to get some performance information about the SmartThreadPool 
-        /// without using Windows performance counters. (Useful on WindowsCE, Silverlight, etc.)
-        /// The default is false.
-        /// </summary>
-        public virtual bool EnableLocalPerformanceCounters
-        {
-            get { return _enableLocalPerformanceCounters; }
-            set
-            {
-                ThrowIfReadOnly();
-                _enableLocalPerformanceCounters = value;
             }
         }
 

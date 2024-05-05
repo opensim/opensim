@@ -72,7 +72,7 @@ namespace OpenSim.Capabilities.Handlers
                     httpMethod => gmeshHandler.ProcessGetMesh(httpMethod, UUID.Zero, null),
                     "GetMesh",
                     null);
-            server.AddStreamHandler(reqHandler); ;
+            server.AddStreamHandler(reqHandler);
         }
     }
 }

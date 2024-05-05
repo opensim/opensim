@@ -27,10 +27,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using System.Text;
-using log4net;
 using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Framework.Monitoring
@@ -315,9 +312,9 @@ namespace OpenSim.Framework.Monitoring
 
                 lock (m_samples)
                 {
-                    //                    m_log.DebugFormat(
-                    //                        "[STAT]: Samples for {0} are {1}",
-                    //                        Name, string.Join(",", m_samples.Select(s => s.ToString()).ToArray()));
+                    //m_log.DebugFormat(
+                    //  "[STAT]: Samples for {0} are {1}",
+                    //  Name, string.Join(",", m_samples.Select(s => s.ToString()).ToArray()));
 
                     foreach (double s in m_samples)
                     {
@@ -331,8 +328,7 @@ namespace OpenSim.Framework.Monitoring
 
                 if (lastSample != null && penultimateSample != null)
                 {
-                    lastChangeOverTime
-                        = ((double)lastSample - (double)penultimateSample) / (Watchdog.WATCHDOG_INTERVAL_MS / 1000);
+                    lastChangeOverTime = ((double)lastSample - (double)penultimateSample) / (Watchdog.WATCHDOG_INTERVAL_MS / 1000);
                 }
 
                 int divisor = m_samples.Count <= 1 ? 1 : m_samples.Count - 1;

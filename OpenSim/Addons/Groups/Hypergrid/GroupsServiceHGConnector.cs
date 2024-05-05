@@ -285,8 +285,7 @@ namespace OpenSim.Groups
             if (string.IsNullOrEmpty(reply))
                 return null;
 
-            Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(
-                    reply);
+            Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
 
             return replyData;
         }

@@ -35,7 +35,6 @@ using System.Threading;
 using log4net;
 using Nini.Config;
 using OpenMetaverse.StructuredData;
-using OpenSim.Framework;
 
 namespace OpenSim.Framework.Monitoring
 {
@@ -57,9 +56,9 @@ namespace OpenSim.Framework.Monitoring
 
         public string NetworkInterfaceTypes = "Ethernet";
 
-        readonly int performanceCounterSampleInterval = 500;
-//        int lastperformanceCounterSampleTime = 0;
-
+        //readonly int performanceCounterSampleInterval = 500;
+        //int lastperformanceCounterSampleTime = 0;
+        /*
         private class PerfCounterControl
         {
             public PerformanceCounter perfCounter;
@@ -78,6 +77,7 @@ namespace OpenSim.Framework.Monitoring
         }
 
         PerfCounterControl processorPercentPerfCounter = null;
+        */
 
         // IRegionModuleBase.Initialize
         public void Initialise(IConfigSource source)
@@ -138,22 +138,22 @@ namespace OpenSim.Framework.Monitoring
 
         public void RegisterServerStats()
         {
-//            lastperformanceCounterSampleTime = Util.EnvironmentTickCount();
-            PerformanceCounter tempPC;
-            Stat tempStat;
-            string tempName;
+            //lastperformanceCounterSampleTime = Util.EnvironmentTickCount();
+            //PerformanceCounter tempPC;
+            //Stat tempStat;
+            //string tempName;
 
             try
             {
-                tempName = "CPUPercent";
-                tempPC = new PerformanceCounter("Processor", "% Processor Time", "_Total");
-                processorPercentPerfCounter = new PerfCounterControl(tempPC);
+                //tempName = "CPUPercent";
+                //tempPC = new PerformanceCounter("Processor", "% Processor Time", "_Total");
+                //processorPercentPerfCounter = new PerfCounterControl(tempPC);
                 // A long time bug in mono is that CPU percent is reported as CPU percent idle. Windows reports CPU percent busy.
-                tempStat = new Stat(tempName, tempName, "", "percent", CategoryServer, ContainerProcessor,
-                                StatType.Pull, (s) => { GetNextValue(s, processorPercentPerfCounter); },
-                                StatVerbosity.Info);
-                StatsManager.RegisterStat(tempStat);
-                RegisteredStats.Add(tempName, tempStat);
+                //tempStat = new Stat(tempName, tempName, "", "percent", CategoryServer, ContainerProcessor,
+                //                StatType.Pull, (s) => { GetNextValue(s, processorPercentPerfCounter); },
+                //                StatVerbosity.Info);
+                //StatsManager.RegisterStat(tempStat);
+                //RegisteredStats.Add(tempName, tempStat);
 
                 MakeStat("TotalProcessorTime", null, "sec", ContainerProcessor,
                                     (s) => { s.Value = Math.Round(Process.GetCurrentProcess().TotalProcessorTime.TotalSeconds, 3); });
@@ -300,6 +300,7 @@ namespace OpenSim.Framework.Monitoring
                                 });
         }
 
+        /*
         // Notes on performance counters:
         //  "How To Read Performance Counters": http://blogs.msdn.com/b/bclteam/archive/2006/06/02/618156.aspx
         //  "How to get the CPU Usage in C#": http://stackoverflow.com/questions/278071/how-to-get-the-cpu-usage-in-c
@@ -325,6 +326,7 @@ namespace OpenSim.Framework.Monitoring
                 }
             }
         }
+        */
 
         // Lookup the nic that goes with this stat and set the value by using a fetch action.
         // Not sure about closure with delegates inside delegates.

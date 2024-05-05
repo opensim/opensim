@@ -45,10 +45,7 @@ namespace OpenSim.Data.Null
 
         public AuthenticationData Get(UUID principalID)
         {
-            if (m_DataByUUID.ContainsKey(principalID))
-                return m_DataByUUID[principalID];
-
-            return null;
+             return m_DataByUUID.TryGetValue(principalID, out AuthenticationData ad) ? ad :null;
         }
 
         public bool Store(AuthenticationData data)
@@ -71,10 +68,7 @@ namespace OpenSim.Data.Null
 
         public bool CheckToken(UUID principalID, string token, int lifetime)
         {
-            if (m_Tokens.ContainsKey(principalID))
-                return m_Tokens[principalID] == token;
-
-            return false;
+            return m_Tokens.TryGetValue(principalID, out string tk) ? tk == token : false;
         }
     }
 }

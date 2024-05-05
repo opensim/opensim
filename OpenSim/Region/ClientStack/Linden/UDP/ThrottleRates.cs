@@ -97,26 +97,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public int GetRate(ThrottleOutPacketType type)
         {
-            switch (type)
+            return type switch
             {
-                case ThrottleOutPacketType.Resend:
-                    return Resend;
-                case ThrottleOutPacketType.Land:
-                    return Land;
-                case ThrottleOutPacketType.Wind:
-                    return Wind;
-                case ThrottleOutPacketType.Cloud:
-                    return Cloud;
-                case ThrottleOutPacketType.Task:
-                    return Task;
-                case ThrottleOutPacketType.Texture:
-                    return Texture;
-                case ThrottleOutPacketType.Asset:
-                    return Asset;
-                case ThrottleOutPacketType.Unknown:
-                default:
-                    return 0;
-            }
+                ThrottleOutPacketType.Resend => Resend,
+                ThrottleOutPacketType.Land => Land,
+                ThrottleOutPacketType.Wind => Wind,
+                ThrottleOutPacketType.Cloud => Cloud,
+                ThrottleOutPacketType.Task => Task,
+                ThrottleOutPacketType.Texture => Texture,
+                ThrottleOutPacketType.Asset => Asset,
+                _ => 0,
+            };
         }
     }
 }

@@ -25,14 +25,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
-using OpenSim.Region.ScriptEngine.Yengine;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Text;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using OpenSim.Region.ScriptEngine.Shared;
 
@@ -83,48 +80,48 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private static TokenTypeStr tokenTypeStr = new TokenTypeStr(null);
         private static TokenTypeVec tokenTypeVec = new TokenTypeVec(null);
 
-        private static MethodInfo stringAddStringMethInfo = ScriptCodeGen.GetStaticMethod(typeof(string), "Concat", new Type[] { typeof(string), typeof(string) });
-        private static MethodInfo stringCmpStringMethInfo = ScriptCodeGen.GetStaticMethod(typeof(string), "Compare", new Type[] { typeof(string), typeof(string), typeof(StringComparison) });
+        private static MethodInfo stringAddStringMethInfo = GetBinOpsMethod("StringConcat", [typeof(string), typeof(string)]);
+        private static MethodInfo stringCmpStringMethInfo = GetBinOpsMethod("StringCompareOrdinal", [typeof(string), typeof(string)]);
 
-        private static MethodInfo infoMethListAddFloat = GetBinOpsMethod("MethListAddFloat", new Type[] { typeof(LSL_List), typeof(double) });
-        private static MethodInfo infoMethListAddInt = GetBinOpsMethod("MethListAddInt", new Type[] { typeof(LSL_List), typeof(int) });
-        private static MethodInfo infoMethListAddKey = GetBinOpsMethod("MethListAddKey", new Type[] { typeof(LSL_List), typeof(string) });
-        private static MethodInfo infoMethListAddRot = GetBinOpsMethod("MethListAddRot", new Type[] { typeof(LSL_List), typeof(LSL_Rotation) });
-        private static MethodInfo infoMethListAddStr = GetBinOpsMethod("MethListAddStr", new Type[] { typeof(LSL_List), typeof(string) });
-        private static MethodInfo infoMethListAddVec = GetBinOpsMethod("MethListAddVec", new Type[] { typeof(LSL_List), typeof(LSL_Vector) });
-        private static MethodInfo infoMethListAddList = GetBinOpsMethod("MethListAddList", new Type[] { typeof(LSL_List), typeof(LSL_List) });
-        private static MethodInfo infoMethFloatAddList = GetBinOpsMethod("MethFloatAddList", new Type[] { typeof(double), typeof(LSL_List) });
-        private static MethodInfo infoMethIntAddList = GetBinOpsMethod("MethIntAddList", new Type[] { typeof(int), typeof(LSL_List) });
-        private static MethodInfo infoMethKeyAddList = GetBinOpsMethod("MethKeyAddList", new Type[] { typeof(string), typeof(LSL_List) });
-        private static MethodInfo infoMethRotAddList = GetBinOpsMethod("MethRotAddList", new Type[] { typeof(LSL_Rotation), typeof(LSL_List) });
-        private static MethodInfo infoMethStrAddList = GetBinOpsMethod("MethStrAddList", new Type[] { typeof(string), typeof(LSL_List) });
-        private static MethodInfo infoMethVecAddList = GetBinOpsMethod("MethVecAddList", new Type[] { typeof(LSL_Vector), typeof(LSL_List) });
-        private static MethodInfo infoMethListEqList = GetBinOpsMethod("MethListEqList", new Type[] { typeof(LSL_List), typeof(LSL_List) });
-        private static MethodInfo infoMethListNeList = GetBinOpsMethod("MethListNeList", new Type[] { typeof(LSL_List), typeof(LSL_List) });
-        private static MethodInfo infoMethRotEqRot = GetBinOpsMethod("MethRotEqRot", new Type[] { typeof(LSL_Rotation), typeof(LSL_Rotation) });
-        private static MethodInfo infoMethRotNeRot = GetBinOpsMethod("MethRotNeRot", new Type[] { typeof(LSL_Rotation), typeof(LSL_Rotation) });
-        private static MethodInfo infoMethRotAddRot = GetBinOpsMethod("MethRotAddRot", new Type[] { typeof(LSL_Rotation), typeof(LSL_Rotation) });
-        private static MethodInfo infoMethRotSubRot = GetBinOpsMethod("MethRotSubRot", new Type[] { typeof(LSL_Rotation), typeof(LSL_Rotation) });
-        private static MethodInfo infoMethRotMulRot = GetBinOpsMethod("MethRotMulRot", new Type[] { typeof(LSL_Rotation), typeof(LSL_Rotation) });
-        private static MethodInfo infoMethRotDivRot = GetBinOpsMethod("MethRotDivRot", new Type[] { typeof(LSL_Rotation), typeof(LSL_Rotation) });
-        private static MethodInfo infoMethVecEqVec = GetBinOpsMethod("MethVecEqVec", new Type[] { typeof(LSL_Vector), typeof(LSL_Vector) });
-        private static MethodInfo infoMethVecNeVec = GetBinOpsMethod("MethVecNeVec", new Type[] { typeof(LSL_Vector), typeof(LSL_Vector) });
-        private static MethodInfo infoMethVecAddVec = GetBinOpsMethod("MethVecAddVec", new Type[] { typeof(LSL_Vector), typeof(LSL_Vector) });
-        private static MethodInfo infoMethVecSubVec = GetBinOpsMethod("MethVecSubVec", new Type[] { typeof(LSL_Vector), typeof(LSL_Vector) });
-        private static MethodInfo infoMethVecMulVec = GetBinOpsMethod("MethVecMulVec", new Type[] { typeof(LSL_Vector), typeof(LSL_Vector) });
-        private static MethodInfo infoMethVecModVec = GetBinOpsMethod("MethVecModVec", new Type[] { typeof(LSL_Vector), typeof(LSL_Vector) });
-        private static MethodInfo infoMethVecMulFloat = GetBinOpsMethod("MethVecMulFloat", new Type[] { typeof(LSL_Vector), typeof(double) });
-        private static MethodInfo infoMethFloatMulVec = GetBinOpsMethod("MethFloatMulVec", new Type[] { typeof(double), typeof(LSL_Vector) });
-        private static MethodInfo infoMethVecDivFloat = GetBinOpsMethod("MethVecDivFloat", new Type[] { typeof(LSL_Vector), typeof(double) });
-        private static MethodInfo infoMethVecMulInt = GetBinOpsMethod("MethVecMulInt", new Type[] { typeof(LSL_Vector), typeof(int) });
-        private static MethodInfo infoMethIntMulVec = GetBinOpsMethod("MethIntMulVec", new Type[] { typeof(int), typeof(LSL_Vector) });
-        private static MethodInfo infoMethVecDivInt = GetBinOpsMethod("MethVecDivInt", new Type[] { typeof(LSL_Vector), typeof(int) });
-        private static MethodInfo infoMethVecMulRot = GetBinOpsMethod("MethVecMulRot", new Type[] { typeof(LSL_Vector), typeof(LSL_Rotation) });
-        private static MethodInfo infoMethVecDivRot = GetBinOpsMethod("MethVecDivRot", new Type[] { typeof(LSL_Vector), typeof(LSL_Rotation) });
-        private static MethodInfo infoMethDoubleDivDouble = GetBinOpsMethod("MethDoubleDivDouble", new Type[] { typeof(Double), typeof(Double) });
-        private static MethodInfo infoMethLongDivLong = GetBinOpsMethod("MethLongDivLong", new Type[] { typeof(long), typeof(long) });
-        private static MethodInfo infoMethDoubleModDouble = GetBinOpsMethod("MethDoubleModDouble", new Type[] { typeof(Double), typeof(Double) });
-        private static MethodInfo infoMethLongModLong = GetBinOpsMethod("MethLongModLong", new Type[] { typeof(long), typeof(long) });
+        private static MethodInfo infoMethListAddFloat = GetBinOpsMethod("MethListAddFloat", [typeof(LSL_List), typeof(double)]);
+        private static MethodInfo infoMethListAddInt = GetBinOpsMethod("MethListAddInt", [typeof(LSL_List), typeof(int)]);
+        private static MethodInfo infoMethListAddKey = GetBinOpsMethod("MethListAddKey", [typeof(LSL_List), typeof(string)]);
+        private static MethodInfo infoMethListAddRot = GetBinOpsMethod("MethListAddRot", [typeof(LSL_List), typeof(LSL_Rotation)]);
+        private static MethodInfo infoMethListAddStr = GetBinOpsMethod("MethListAddStr", [typeof(LSL_List), typeof(string)]);
+        private static MethodInfo infoMethListAddVec = GetBinOpsMethod("MethListAddVec", [typeof(LSL_List), typeof(LSL_Vector)]);
+        private static MethodInfo infoMethListAddList = GetBinOpsMethod("MethListAddList", [typeof(LSL_List), typeof(LSL_List)]);
+        private static MethodInfo infoMethFloatAddList = GetBinOpsMethod("MethFloatAddList", [typeof(double), typeof(LSL_List)]);
+        private static MethodInfo infoMethIntAddList = GetBinOpsMethod("MethIntAddList", [typeof(int), typeof(LSL_List)]);
+        private static MethodInfo infoMethKeyAddList = GetBinOpsMethod("MethKeyAddList", [typeof(string), typeof(LSL_List)]);
+        private static MethodInfo infoMethRotAddList = GetBinOpsMethod("MethRotAddList", [typeof(LSL_Rotation), typeof(LSL_List)]);
+        private static MethodInfo infoMethStrAddList = GetBinOpsMethod("MethStrAddList", [typeof(string), typeof(LSL_List)]);
+        private static MethodInfo infoMethVecAddList = GetBinOpsMethod("MethVecAddList", [typeof(LSL_Vector), typeof(LSL_List)]);
+        private static MethodInfo infoMethListEqList = GetBinOpsMethod("MethListEqList", [typeof(LSL_List), typeof(LSL_List)]);
+        private static MethodInfo infoMethListNeList = GetBinOpsMethod("MethListNeList", [typeof(LSL_List), typeof(LSL_List)]);
+        private static MethodInfo infoMethRotEqRot = GetBinOpsMethod("MethRotEqRot", [typeof(LSL_Rotation), typeof(LSL_Rotation)]);
+        private static MethodInfo infoMethRotNeRot = GetBinOpsMethod("MethRotNeRot", [typeof(LSL_Rotation), typeof(LSL_Rotation)]);
+        private static MethodInfo infoMethRotAddRot = GetBinOpsMethod("MethRotAddRot", [typeof(LSL_Rotation), typeof(LSL_Rotation)]);
+        private static MethodInfo infoMethRotSubRot = GetBinOpsMethod("MethRotSubRot", [typeof(LSL_Rotation), typeof(LSL_Rotation)]);
+        private static MethodInfo infoMethRotMulRot = GetBinOpsMethod("MethRotMulRot", [typeof(LSL_Rotation), typeof(LSL_Rotation)]);
+        private static MethodInfo infoMethRotDivRot = GetBinOpsMethod("MethRotDivRot", [typeof(LSL_Rotation), typeof(LSL_Rotation)]);
+        private static MethodInfo infoMethVecEqVec = GetBinOpsMethod("MethVecEqVec", [typeof(LSL_Vector), typeof(LSL_Vector)]);
+        private static MethodInfo infoMethVecNeVec = GetBinOpsMethod("MethVecNeVec", [typeof(LSL_Vector), typeof(LSL_Vector)]);
+        private static MethodInfo infoMethVecAddVec = GetBinOpsMethod("MethVecAddVec", [typeof(LSL_Vector), typeof(LSL_Vector)]);
+        private static MethodInfo infoMethVecSubVec = GetBinOpsMethod("MethVecSubVec", [typeof(LSL_Vector), typeof(LSL_Vector)]);
+        private static MethodInfo infoMethVecMulVec = GetBinOpsMethod("MethVecMulVec", [typeof(LSL_Vector), typeof(LSL_Vector)]);
+        private static MethodInfo infoMethVecModVec = GetBinOpsMethod("MethVecModVec", [typeof(LSL_Vector), typeof(LSL_Vector)]);
+        private static MethodInfo infoMethVecMulFloat = GetBinOpsMethod("MethVecMulFloat", [typeof(LSL_Vector), typeof(double)]);
+        private static MethodInfo infoMethFloatMulVec = GetBinOpsMethod("MethFloatMulVec", [typeof(double), typeof(LSL_Vector)]);
+        private static MethodInfo infoMethVecDivFloat = GetBinOpsMethod("MethVecDivFloat", [typeof(LSL_Vector), typeof(double)]);
+        private static MethodInfo infoMethVecMulInt = GetBinOpsMethod("MethVecMulInt", [typeof(LSL_Vector), typeof(int)]);
+        private static MethodInfo infoMethIntMulVec = GetBinOpsMethod("MethIntMulVec", [typeof(int), typeof(LSL_Vector)]);
+        private static MethodInfo infoMethVecDivInt = GetBinOpsMethod("MethVecDivInt", [typeof(LSL_Vector), typeof(int)]);
+        private static MethodInfo infoMethVecMulRot = GetBinOpsMethod("MethVecMulRot", [typeof(LSL_Vector), typeof(LSL_Rotation)]);
+        private static MethodInfo infoMethVecDivRot = GetBinOpsMethod("MethVecDivRot", [typeof(LSL_Vector), typeof(LSL_Rotation)]);
+        private static MethodInfo infoMethDoubleDivDouble = GetBinOpsMethod("MethDoubleDivDouble", [typeof(double), typeof(double)]);
+        private static MethodInfo infoMethLongDivLong = GetBinOpsMethod("MethLongDivLong", [typeof(long), typeof(long)]);
+        private static MethodInfo infoMethDoubleModDouble = GetBinOpsMethod("MethDoubleModDouble", [typeof(double), typeof(double)]);
+        private static MethodInfo infoMethLongModLong = GetBinOpsMethod("MethLongModLong", [typeof(long), typeof(long)]);
 
         private static MethodInfo GetBinOpsMethod(string name, Type[] types)
         {
@@ -144,7 +141,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             Dictionary<string, BinOpStr> bos = new Dictionary<string, BinOpStr>();
 
-            string[] booltypes = new string[] { "bool", "char", "float", "integer", "key", "list", "string" };
+            string[] booltypes = ["bool", "char", "float", "integer", "key", "list", "string"];
 
             /*
              * Get the && and || all out of the way...
@@ -154,10 +151,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                 for(int j = 0; j < booltypes.Length; j++)
                 {
-                    bos.Add(booltypes[i] + "&&" + booltypes[j],
-                             new BinOpStr(typeof(bool), BinOpStrAndAnd));
-                    bos.Add(booltypes[i] + "||" + booltypes[j],
-                             new BinOpStr(typeof(bool), BinOpStrOrOr));
+                    bos.Add(booltypes[i] + "&&" + booltypes[j], new BinOpStr(typeof(bool), BinOpStrAndAnd));
+                    bos.Add(booltypes[i] + "||" + booltypes[j], new BinOpStr(typeof(bool), BinOpStrOrOr));
                 }
             }
 
@@ -970,7 +965,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             result.PopPre(scg, errorAt);
             left.PushVal(scg, errorAt, tokenTypeStr);
             right.PushVal(scg, errorAt, tokenTypeStr);
-            scg.ilGen.Emit(errorAt, OpCodes.Ldc_I4, (int)StringComparison.Ordinal);
             scg.ilGen.Emit(errorAt, OpCodes.Call, stringCmpStringMethInfo);
             scg.ilGen.Emit(errorAt, OpCodes.Ldc_I4_0);
             scg.ilGen.Emit(errorAt, OpCodes.Ceq);
@@ -982,7 +976,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             result.PopPre(scg, errorAt);
             left.PushVal(scg, errorAt, tokenTypeStr);
             right.PushVal(scg, errorAt, tokenTypeStr);
-            scg.ilGen.Emit(errorAt, OpCodes.Ldc_I4, (int)StringComparison.Ordinal);
             scg.ilGen.Emit(errorAt, OpCodes.Call, stringCmpStringMethInfo);
             scg.ilGen.Emit(errorAt, OpCodes.Ldc_I4_0);
             scg.ilGen.Emit(errorAt, OpCodes.Ceq);
@@ -1185,7 +1178,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             result.PopPre(scg, errorAt);
             left.PushVal(scg, errorAt, tokenTypeStr);
             right.PushVal(scg, errorAt, tokenTypeStr);
-            scg.ilGen.Emit(errorAt, OpCodes.Ldc_I4, (int)StringComparison.Ordinal);
             scg.ilGen.Emit(errorAt, OpCodes.Call, stringCmpStringMethInfo);
             scg.ilGen.Emit(errorAt, OpCodes.Ldc_I4_0);
             scg.ilGen.Emit(errorAt, OpCodes.Ceq);
@@ -1197,7 +1189,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             result.PopPre(scg, errorAt);
             left.PushVal(scg, errorAt, tokenTypeStr);
             right.PushVal(scg, errorAt, tokenTypeStr);
-            scg.ilGen.Emit(errorAt, OpCodes.Ldc_I4, (int)StringComparison.Ordinal);
             scg.ilGen.Emit(errorAt, OpCodes.Call, stringCmpStringMethInfo);
             scg.ilGen.Emit(errorAt, OpCodes.Ldc_I4_0);
             scg.ilGen.Emit(errorAt, OpCodes.Ceq);
@@ -1211,7 +1202,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             result.PopPre(scg, errorAt);
             left.PushVal(scg, errorAt, tokenTypeStr);
             right.PushVal(scg, errorAt, tokenTypeStr);
-            scg.ilGen.Emit(errorAt, OpCodes.Ldc_I4, (int)StringComparison.Ordinal);
             scg.ilGen.Emit(errorAt, OpCodes.Call, stringCmpStringMethInfo);
             scg.ilGen.Emit(errorAt, OpCodes.Ldc_I4_0);
             scg.ilGen.Emit(errorAt, OpCodes.Clt);
@@ -1223,7 +1213,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             result.PopPre(scg, errorAt);
             left.PushVal(scg, errorAt, tokenTypeStr);
             right.PushVal(scg, errorAt, tokenTypeStr);
-            scg.ilGen.Emit(errorAt, OpCodes.Ldc_I4, (int)StringComparison.Ordinal);
             scg.ilGen.Emit(errorAt, OpCodes.Call, stringCmpStringMethInfo);
             scg.ilGen.Emit(errorAt, OpCodes.Ldc_I4_1);
             scg.ilGen.Emit(errorAt, OpCodes.Clt);
@@ -1235,7 +1224,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             result.PopPre(scg, errorAt);
             left.PushVal(scg, errorAt, tokenTypeStr);
             right.PushVal(scg, errorAt, tokenTypeStr);
-            scg.ilGen.Emit(errorAt, OpCodes.Ldc_I4, (int)StringComparison.Ordinal);
             scg.ilGen.Emit(errorAt, OpCodes.Call, stringCmpStringMethInfo);
             scg.ilGen.Emit(errorAt, OpCodes.Ldc_I4_0);
             scg.ilGen.Emit(errorAt, OpCodes.Cgt);
@@ -1247,7 +1235,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             result.PopPre(scg, errorAt);
             left.PushVal(scg, errorAt, tokenTypeStr);
             right.PushVal(scg, errorAt, tokenTypeStr);
-            scg.ilGen.Emit(errorAt, OpCodes.Ldc_I4, (int)StringComparison.Ordinal);
             scg.ilGen.Emit(errorAt, OpCodes.Call, stringCmpStringMethInfo);
             scg.ilGen.Emit(errorAt, OpCodes.Ldc_I4_M1);
             scg.ilGen.Emit(errorAt, OpCodes.Cgt);
@@ -1395,26 +1382,58 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          *        Needed to pick up functionality defined by overloaded operators of LSL_ types.
          *        They need to be marked public or runtime says they are inaccessible.
          */
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static string StringConcat(string str1, string str2)
+        {
+            return string.Concat(str1, str2);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static string StringConcat(string str1, string str2, string str3)
+        {
+            return string.Concat(str1, str2, str3);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static string StringConcat(string str1, string str2, string str3, string str4)
+        {
+            return string.Concat(str1, str2, str3, str4);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int StringCompareOrdinal(string str1, string str2)
+        {
+            return string.Compare(str1, str2, StringComparison.Ordinal);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LSL_List MethListAddFloat(LSL_List left, double right)
         {
             return MethListAddObj(left, new LSL_Float(right));
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LSL_List MethListAddInt(LSL_List left, int right)
         {
             return MethListAddObj(left, new LSL_Integer(right));
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LSL_List MethListAddKey(LSL_List left, string right)
         {
             return MethListAddObj(left, new LSL_Key(right));
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LSL_List MethListAddRot(LSL_List left, LSL_Rotation right)
         {
             return MethListAddObj(left, right);
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LSL_List MethListAddStr(LSL_List left, string right)
         {
             return MethListAddObj(left, new LSL_String(right));
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LSL_List MethListAddVec(LSL_List left, LSL_Vector right)
         {
             return MethListAddObj(left, right);
@@ -1438,26 +1457,32 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             return new LSL_List(newarr);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LSL_List MethFloatAddList(double left, LSL_List right)
         {
             return MethObjAddList(new LSL_Float(left), right);
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LSL_List MethIntAddList(int left, LSL_List right)
         {
             return MethObjAddList(new LSL_Integer(left), right);
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LSL_List MethKeyAddList(string left, LSL_List right)
         {
             return MethObjAddList(new LSL_Key(left), right);
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LSL_List MethRotAddList(LSL_Rotation left, LSL_List right)
         {
             return MethObjAddList(left, right);
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LSL_List MethStrAddList(string left, LSL_List right)
         {
             return MethObjAddList(new LSL_String(left), right);
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LSL_List MethVecAddList(LSL_Vector left, LSL_List right)
         {
             return MethObjAddList(left, right);
@@ -1471,6 +1496,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             return new LSL_List(newarr);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool MethListEqList(LSL_List left, LSL_List right)
         {
             return left == right;
@@ -1478,6 +1504,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         // According to http://wiki.secondlife.com/wiki/LlGetListLength
         // jackassed LSL allows 'somelist != []' to get the length of a list
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int MethListNeList(LSL_List left, LSL_List right)
         {
             int leftlen = left.Length;
@@ -1485,106 +1512,127 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             return leftlen - ritelen;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool MethRotEqRot(LSL_Rotation left, LSL_Rotation right)
         {
             return left == right;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool MethRotNeRot(LSL_Rotation left, LSL_Rotation right)
         {
             return left != right;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LSL_Rotation MethRotAddRot(LSL_Rotation left, LSL_Rotation right)
         {
             return left + right;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LSL_Rotation MethRotSubRot(LSL_Rotation left, LSL_Rotation right)
         {
             return left - right;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LSL_Rotation MethRotMulRot(LSL_Rotation left, LSL_Rotation right)
         {
             return left * right;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LSL_Rotation MethRotDivRot(LSL_Rotation left, LSL_Rotation right)
         {
             return left / right;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool MethVecEqVec(LSL_Vector left, LSL_Vector right)
         {
             return left == right;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool MethVecNeVec(LSL_Vector left, LSL_Vector right)
         {
             return left != right;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LSL_Vector MethVecAddVec(LSL_Vector left, LSL_Vector right)
         {
             return left + right;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LSL_Vector MethVecSubVec(LSL_Vector left, LSL_Vector right)
         {
             return left - right;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double MethVecMulVec(LSL_Vector left, LSL_Vector right)
         {
             return (double)(left * right).value;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LSL_Vector MethVecModVec(LSL_Vector left, LSL_Vector right)
         {
             return left % right;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LSL_Vector MethVecMulFloat(LSL_Vector left, double right)
         {
             return left * right;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LSL_Vector MethFloatMulVec(double left, LSL_Vector right)
         {
             return left * right;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LSL_Vector MethVecDivFloat(LSL_Vector left, double right)
         {
             return left / right;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LSL_Vector MethVecMulInt(LSL_Vector left, int right)
         {
             return left * right;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LSL_Vector MethIntMulVec(int left, LSL_Vector right)
         {
             return left * right;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LSL_Vector MethVecDivInt(LSL_Vector left, int right)
         {
             return left / right;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LSL_Vector MethVecMulRot(LSL_Vector left, LSL_Rotation right)
         {
             return left * right;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LSL_Vector MethVecDivRot(LSL_Vector left, LSL_Rotation right)
         {
             return left / right;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double MethDoubleDivDouble(double a, double b)
         {
             double r = a / b;

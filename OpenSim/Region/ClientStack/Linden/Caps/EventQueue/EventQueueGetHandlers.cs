@@ -26,21 +26,12 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Net;
-using System.Reflection;
-using System.Text;
-using log4net;
-using Nini.Config;
-using Mono.Addins;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
-using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.Framework.Scenes;
-using Caps=OpenSim.Framework.Capabilities.Caps;
 
 namespace OpenSim.Region.ClientStack.Linden
 {
@@ -84,8 +75,7 @@ namespace OpenSim.Region.ClientStack.Linden
         public virtual void EnableSimulator(ulong handle, IPEndPoint endPoint, UUID avatarID, int regionSizeX, int regionSizeY)
         {
             if (DebugLevel > 0)
-                m_log.DebugFormat("{0} EnableSimulator. handle={1}, endPoint={2}, avatarID={3}",
-                    LogHeader, handle, endPoint, avatarID, regionSizeX, regionSizeY);
+                m_log.Debug($"{LogHeader} EnableSimulator. handle={handle}, endPoint={endPoint}, avatarID={avatarID}");
 
             osUTF8 sb = StartEvent("EnableSimulator");
             LLSDxmlEncode2.AddArrayAndMap("SimulatorInfo", sb);
@@ -103,8 +93,7 @@ namespace OpenSim.Region.ClientStack.Linden
                                 ulong regionHandle, int regionSizeX, int regionSizeY)
         {
             if (DebugLevel > 0)
-                m_log.DebugFormat("{0} EstablishAgentCommunication. handle={1}, endPoint={2}, avatarID={3}",
-                    LogHeader, regionHandle, endPoint, avatarID, regionSizeX, regionSizeY);
+                m_log.Debug($"{LogHeader} EstablishAgentCommunication. handle={regionHandle}, endPoint={endPoint}, avatarID={avatarID}");
 
             osUTF8 sb = StartEvent("EstablishAgentCommunication");
 
@@ -125,8 +114,7 @@ namespace OpenSim.Region.ClientStack.Linden
                                         UUID avatarID, int regionSizeX, int regionSizeY)
         {
             if (DebugLevel > 0)
-                m_log.DebugFormat("{0} TeleportFinishEvent. handle={1}, endPoint={2}, avatarID={3}",
-                    LogHeader, regionHandle, regionExternalEndPoint, avatarID, regionSizeX, regionSizeY);
+                m_log.Debug($"{LogHeader} TeleportFinishEvent. handle={regionHandle}, endPoint={regionExternalEndPoint}, avatarID={avatarID}");
 
             // not sure why flags get overwritten here
             if ((flags & (uint)TeleportFlags.IsFlying) != 0)
@@ -157,8 +145,7 @@ namespace OpenSim.Region.ClientStack.Linden
                                 string capsURL, UUID avatarID, UUID sessionID, int regionSizeX, int regionSizeY)
         {
             if (DebugLevel > 0)
-                m_log.DebugFormat("{0} CrossRegion. handle={1}, avatarID={2}, regionSize={3},{4}>",
-                    LogHeader, handle, avatarID, regionSizeX, regionSizeY);
+                m_log.Debug($"{LogHeader} CrossRegion. handle={handle}, avatarID={avatarID}, regionSize={regionSizeX},{regionSizeY}>");
 
             osUTF8 sb = StartEvent("CrossedRegion");
 
@@ -189,7 +176,7 @@ namespace OpenSim.Region.ClientStack.Linden
             Vector3 position, uint ttl, UUID transactionID, bool fromGroup, byte[] binaryBucket,
             bool checkEstate, int godLevel, bool limitedToEstate)
         {
-            osUTF8 sb = new osUTF8(512);
+            osUTF8 sb = new(512);
             LLSDxmlEncode2.AddMap("instantmessage", sb);
             LLSDxmlEncode2.AddMap("message_params", sb); //messageParams
             LLSDxmlEncode2.AddElem("type", dialog, sb);
@@ -350,7 +337,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void PlacesQueryReply(UUID avatarID, UUID queryID, UUID transactionID, PlacesReplyData[] replyDataArray)
         {
-            osUTF8 sb = new osUTF8(256);
+            osUTF8 sb = new(256);
             LLSDxmlEncode2.AddMap(sb);
             LLSDxmlEncode2.AddElem("message", "PlacesReplyMessage", sb);
             LLSDxmlEncode2.AddMap("QueryData[]", sb); LLSDxmlEncode2.AddArray(sb);
@@ -437,9 +424,8 @@ namespace OpenSim.Region.ClientStack.Linden
             LLSDxmlEncode2.AddEndMapAndArray(sb);
 
             LLSDxmlEncode2.AddRawElem("<key>FolderData</key><array><map><key>FolderID</key><uuid>00000000-0000-0000-0000-000000000000</uuid><key>Name</key><string></string><key>ParentID</key><uuid>00000000-0000-0000-0000-000000000000</uuid ><key>Type</key ><integer>-1</integer></map ></array>",sb);
-
-            osUTF8 osName = new osUTF8(Utils.StringToBytesNoTerm(item.Name, 255));
-            osUTF8 osDesc = new osUTF8(Utils.StringToBytesNoTerm(item.Description, 255));
+            osUTF8 osName = new osUTF8(item.Name, 255);
+            osUTF8 osDesc = new osUTF8(item.Description, 255);
 
             LLSDxmlEncode2.AddArray("ItemData", sb);
                 LLSDxmlEncode2.AddMap(sb);
@@ -480,7 +466,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public static string KeepAliveEvent()
         {
-            osUTF8 sb = new osUTF8(256);
+            osUTF8 sb = new(256);
             LLSDxmlEncode2.AddMap(sb);
             LLSDxmlEncode2.AddElem("message", "FAKEEVENT", sb);
             LLSDxmlEncode2.AddMap("body", sb);
@@ -489,9 +475,63 @@ namespace OpenSim.Region.ClientStack.Linden
             return sb.ToString();
         }
 
+        public void SendLargeGenericMessage(UUID avatarID, UUID? transationID, UUID? sessionID,
+                string method, UUID invoice, List<string> message)
+        {
+            osUTF8 sb = StartEvent("LargeGenericMessage");
+            LLSDxmlEncode2.AddArrayAndMap("AgentData", sb);
+            LLSDxmlEncode2.AddElem("AgentID", avatarID, sb);
+            if (transationID.HasValue)
+                LLSDxmlEncode2.AddElem("TransactionID", transationID.Value, sb);
+            if (sessionID.HasValue)
+                LLSDxmlEncode2.AddElem("SessionID", sessionID.Value, sb);
+            LLSDxmlEncode2.AddEndMapAndArray(sb);
+
+            LLSDxmlEncode2.AddArrayAndMap("MethodData", sb);
+            LLSDxmlEncode2.AddElem("Method", method, sb);
+            LLSDxmlEncode2.AddElem("Invoice", invoice, sb);
+            LLSDxmlEncode2.AddEndMapAndArray(sb);
+
+            LLSDxmlEncode2.AddArrayAndMap("ParamList", sb);
+            foreach (string s in message)
+                LLSDxmlEncode2.AddElem("Parameter", s, sb);
+            LLSDxmlEncode2.AddEndMapAndArray(sb);
+
+            Enqueue(EndEventToBytes(sb), avatarID);
+        }
+
+        public void SendLargeGenericMessage(UUID avatarID, UUID? transationID, UUID? sessionID,
+                string method, UUID invoice, List<byte[]> message)
+        {
+            osUTF8 sb = StartEvent("LargeGenericMessage");
+            LLSDxmlEncode2.AddArrayAndMap("AgentData", sb);
+            LLSDxmlEncode2.AddElem("AgentID", avatarID, sb);
+            if (transationID.HasValue)
+                LLSDxmlEncode2.AddElem("TransactionID", transationID.Value, sb);
+            if (sessionID.HasValue)
+                LLSDxmlEncode2.AddElem("SessionID", sessionID.Value, sb);
+            LLSDxmlEncode2.AddEndMapAndArray(sb);
+
+            LLSDxmlEncode2.AddArrayAndMap("MethodData", sb);
+            LLSDxmlEncode2.AddElem("Method", method, sb);
+            LLSDxmlEncode2.AddElem("Invoice", invoice, sb);
+            LLSDxmlEncode2.AddEndMapAndArray(sb);
+
+            LLSDxmlEncode2.AddArrayAndMap("ParamList", sb);
+            foreach (byte[] b in message)
+            {
+                LLSDxmlEncode2.AddLLSD("<key>Parameter</key><string>", sb);
+                sb.Append(b);
+                LLSDxmlEncode2.AddLLSD("</string>", sb);
+            }
+            LLSDxmlEncode2.AddEndMapAndArray(sb);
+
+            Enqueue(EndEventToBytes(sb), avatarID);
+        }
+
         public byte[] BuildEvent(string eventName, OSD eventBody)
         {
-            OSDMap llsdEvent = new OSDMap(2);
+            OSDMap llsdEvent = new(2);
             llsdEvent.Add("message", new OSDString(eventName));
             llsdEvent.Add("body", eventBody);
 

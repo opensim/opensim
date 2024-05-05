@@ -26,7 +26,6 @@
  */
 
 using System;
-using System.Runtime.Remoting.Lifetime;
 using System.Threading;
 using System.Reflection;
 using System.Collections;
@@ -50,16 +49,14 @@ using LSL_Vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 
 namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 {
-    public partial class ScriptBaseClass : MarshalByRefObject
+    public partial class ScriptBaseClass
     {
         public IMOD_Api m_MOD_Functions;
 
         public void ApiTypeMOD(IScriptApi api)
         {
-            if (!(api is IMOD_Api))
-                return;
-
-            m_MOD_Functions = (IMOD_Api)api;
+            if (api is IMOD_Api p)
+                m_MOD_Functions = p;
         }
 
         public void modInvokeN(string fname, params object[] parms)

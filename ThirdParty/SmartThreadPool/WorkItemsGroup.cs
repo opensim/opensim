@@ -16,7 +16,7 @@ namespace Amib.Threading.Internal
     {
         #region Private members
 
-        private readonly object _lock = new object();
+        private readonly object _lock = new();
 
         /// <summary>
         /// A reference to the SmartThreadPool instance that created this 
@@ -67,22 +67,19 @@ namespace Amib.Threading.Internal
         /// <summary>
         /// Signaled when all of the WorkItemsGroup's work item completed.
         /// </summary>
-        private readonly ManualResetEvent _isIdleWaitHandle = new ManualResetEvent(true);
+        private readonly ManualResetEvent _isIdleWaitHandle = new(true);
 
         /// <summary>
         /// A common object for all the work items that this work items group
         /// generate so we can mark them to cancel in O(1)
         /// </summary>
-        private CanceledWorkItemsGroup _canceledWorkItemsGroup = new CanceledWorkItemsGroup();
+        private CanceledWorkItemsGroup _canceledWorkItemsGroup = new();
 
         #endregion 
 
         #region Construction
 
-        public WorkItemsGroup(
-            SmartThreadPool stp, 
-            int concurrency, 
-            WIGStartInfo wigStartInfo)
+        public WorkItemsGroup(SmartThreadPool stp, int concurrency, WIGStartInfo wigStartInfo)
         {
             if (concurrency <= 0)
             {
@@ -236,10 +233,8 @@ namespace Amib.Threading.Internal
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void FireOnIdleImpl(WorkItemsGroupIdleHandler onIdle)
         {
-            if(null == onIdle)
-            {
+            if(onIdle is null)
                 return;
-            }
 
             Delegate[] delegates = onIdle.GetInvocationList();
             foreach(WorkItemsGroupIdleHandler eh in delegates)
@@ -298,7 +293,7 @@ namespace Amib.Threading.Internal
                 }
 
                 // If the work item is not null then enqueue it
-                if (null != workItem)
+                if (workItem is not null)
                 {
                     workItem.CanceledWorkItemsGroup = _canceledWorkItemsGroup;
 
@@ -323,7 +318,7 @@ namespace Amib.Threading.Internal
                         _stp.UnregisterWorkItemsGroup(this);
                         IsIdle = true;
                         _isIdleWaitHandle.Set();
-                        if (decrementWorkItemsInStpQueue && _onIdle != null && _onIdle.GetInvocationList().Length > 0)
+                        if (decrementWorkItemsInStpQueue && _onIdle is not null && _onIdle.GetInvocationList().Length > 0)
                         {
                             _stp.QueueWorkItem(new WorkItemCallback(FireOnIdle));
                         }

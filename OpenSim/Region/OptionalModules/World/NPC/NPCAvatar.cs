@@ -567,6 +567,9 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         }
 
         public float StartFar { get; set; }
+        public float FOV { get; set; } = 1.25f;
+        public int viewHeight { get; set; } = 480;
+        public int viewWidth { get; set; } = 640;
 
         public virtual UUID AgentId
         {
@@ -636,7 +639,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
         public bool IsGroupMember(UUID groupID)
         {
-            return (m_hostGroupID == groupID);
+            return m_hostGroupID.Equals(groupID);
         }
 
         public Dictionary<UUID, ulong> GetGroupPowers()

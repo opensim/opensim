@@ -117,7 +117,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 // This is it! Let's ask the other world
                 if (words[0].Contains("."))
                 {
-                    string[] names = words[0].Split(new char[] { '.' });
+                    string[] names = words[0].Split(Util.SplitDotArray);
                     if (names.Length >= 2)
                     {
                         string uriStr = "http://" + words[1];

@@ -1,5 +1,7 @@
 using System;
 using System.Threading;
+using System.Runtime.CompilerServices;
+
 
 namespace Amib.Threading.Internal
 {
@@ -13,14 +15,8 @@ namespace Amib.Threading.Internal
         {
             ValidateCallback(callback);
             ValidateCallback(workItemInfo.PostExecuteWorkItemCallback);
+            return new WorkItem(workItemsGroup, new WorkItemInfo(workItemInfo), callback, state);
 
-            WorkItem workItem = new WorkItem(
-                workItemsGroup,
-                new WorkItemInfo(workItemInfo),
-                callback,
-                state);
-
-            return workItem;
         }
 
         public static WorkItem CreateWorkItem(IWorkItemsGroup workItemsGroup, WIGStartInfo wigStartInfo,
@@ -28,7 +24,7 @@ namespace Amib.Threading.Internal
         {
             ValidateCallback(callback);
 
-            WorkItemInfo workItemInfo = new WorkItemInfo()
+            WorkItemInfo workItemInfo = new()
             {
                 UseCallerCallContext = wigStartInfo.UseCallerCallContext,
                 PostExecuteWorkItemCallback = wigStartInfo.PostExecuteWorkItemCallback,
@@ -36,12 +32,7 @@ namespace Amib.Threading.Internal
                 DisposeOfStateObjects = wigStartInfo.DisposeOfStateObjects,
             };
 
-            WorkItem workItem = new WorkItem(
-                workItemsGroup,
-                workItemInfo,
-                callback,
-                state);
-            return workItem;
+            return new WorkItem(workItemsGroup, workItemInfo, callback, state);
         }
 
         /// <summary>
@@ -51,6 +42,7 @@ namespace Amib.Threading.Internal
         /// <param name="wigStartInfo">Work item group start information</param>
         /// <param name="callback">A callback to execute</param>
         /// <returns>Returns a work item</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static WorkItem CreateWorkItem( IWorkItemsGroup workItemsGroup, WIGStartInfo wigStartInfo, WorkItemCallback callback)
         {
             return CreateWorkItem(workItemsGroup, wigStartInfo, callback, null);
@@ -64,15 +56,11 @@ namespace Amib.Threading.Internal
         /// <param name="workItemInfo">Work item info</param>
         /// <param name="callback">A callback to execute</param>
         /// <returns>Returns a work item</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static WorkItem CreateWorkItem( IWorkItemsGroup workItemsGroup, WIGStartInfo wigStartInfo,
             WorkItemInfo workItemInfo, WorkItemCallback callback)
         {
-            return CreateWorkItem(
-                workItemsGroup,
-                wigStartInfo,
-                workItemInfo, 
-                callback, 
-                null);
+            return CreateWorkItem(workItemsGroup, wigStartInfo, workItemInfo, callback, null);
         }
 
         /// <summary>
@@ -85,12 +73,13 @@ namespace Amib.Threading.Internal
         /// The context object of the work item. Used for passing arguments to the work item. 
         /// </param>
         /// <returns>Returns a work item</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static WorkItem CreateWorkItem( IWorkItemsGroup workItemsGroup, WIGStartInfo wigStartInfo,
             WorkItemCallback callback, object state)
         {
             ValidateCallback(callback);
             
-            WorkItemInfo workItemInfo = new WorkItemInfo()
+            WorkItemInfo workItemInfo = new()
             {
                 UseCallerCallContext = wigStartInfo.UseCallerCallContext,
                 PostExecuteWorkItemCallback = wigStartInfo.PostExecuteWorkItemCallback,
@@ -98,12 +87,7 @@ namespace Amib.Threading.Internal
                 DisposeOfStateObjects = wigStartInfo.DisposeOfStateObjects,
             };
 
-            WorkItem workItem = new WorkItem(
-                workItemsGroup,
-                workItemInfo,
-                callback, 
-                state);
-            return workItem;
+            return new WorkItem( workItemsGroup, workItemInfo, callback, state);
         }
 
         /// <summary>
@@ -117,13 +101,14 @@ namespace Amib.Threading.Internal
         /// The context object of the work item. Used for passing arguments to the work item. 
         /// </param>
         /// <returns>Returns a work item</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static WorkItem CreateWorkItem( IWorkItemsGroup workItemsGroup, WIGStartInfo wigStartInfo, WorkItemInfo workItemInfo,
             WorkItemCallback callback, object state)
         {
             ValidateCallback(callback);
             ValidateCallback(workItemInfo.PostExecuteWorkItemCallback);
 
-            WorkItem workItem = new WorkItem(
+            WorkItem workItem = new(
                 workItemsGroup,
                 new WorkItemInfo(workItemInfo),
                 callback,
@@ -145,29 +130,22 @@ namespace Amib.Threading.Internal
         /// A delegate to call after the callback completion
         /// </param>
         /// <returns>Returns a work item</returns>
-        public static WorkItem CreateWorkItem(
-            IWorkItemsGroup workItemsGroup,
-            WIGStartInfo wigStartInfo,
-            WorkItemCallback callback, 
-            object state,
-            PostExecuteWorkItemCallback postExecuteWorkItemCallback)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static WorkItem CreateWorkItem(IWorkItemsGroup workItemsGroup, WIGStartInfo wigStartInfo,
+            WorkItemCallback callback, object state,PostExecuteWorkItemCallback postExecuteWorkItemCallback)
         {
             ValidateCallback(callback);
             ValidateCallback(postExecuteWorkItemCallback);
 
-            WorkItemInfo workItemInfo = new WorkItemInfo();
-            workItemInfo.UseCallerCallContext = wigStartInfo.UseCallerCallContext;
-            workItemInfo.PostExecuteWorkItemCallback = postExecuteWorkItemCallback;
-            workItemInfo.CallToPostExecute = wigStartInfo.CallToPostExecute;
-            workItemInfo.DisposeOfStateObjects = wigStartInfo.DisposeOfStateObjects;
+            WorkItemInfo workItemInfo = new()
+            {
+                UseCallerCallContext = wigStartInfo.UseCallerCallContext,
+                PostExecuteWorkItemCallback = postExecuteWorkItemCallback,
+                CallToPostExecute = wigStartInfo.CallToPostExecute,
+                DisposeOfStateObjects = wigStartInfo.DisposeOfStateObjects
+            };
 
-            WorkItem workItem = new WorkItem(
-                workItemsGroup,
-                workItemInfo,
-                callback, 
-                state);
-
-            return workItem;
+            return new WorkItem( workItemsGroup, workItemInfo, callback, state);
         }
 
         /// <summary>
@@ -184,35 +162,29 @@ namespace Amib.Threading.Internal
         /// </param>
         /// <param name="callToPostExecute">Indicates on which cases to call to the post execute callback</param>
         /// <returns>Returns a work item</returns>
-        public static WorkItem CreateWorkItem(
-            IWorkItemsGroup workItemsGroup,
-            WIGStartInfo wigStartInfo,
-            WorkItemCallback callback, 
-            object state,
-            PostExecuteWorkItemCallback postExecuteWorkItemCallback,
-            CallToPostExecute callToPostExecute)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static WorkItem CreateWorkItem(IWorkItemsGroup workItemsGroup,WIGStartInfo wigStartInfo,
+            WorkItemCallback callback, object state,
+            PostExecuteWorkItemCallback postExecuteWorkItemCallback, CallToPostExecute callToPostExecute)
         {
             ValidateCallback(callback);
             ValidateCallback(postExecuteWorkItemCallback);
 
-            WorkItemInfo workItemInfo = new WorkItemInfo();
-            workItemInfo.UseCallerCallContext = wigStartInfo.UseCallerCallContext;
-            workItemInfo.PostExecuteWorkItemCallback = postExecuteWorkItemCallback;
-            workItemInfo.CallToPostExecute = callToPostExecute;
-            workItemInfo.DisposeOfStateObjects = wigStartInfo.DisposeOfStateObjects;
+            WorkItemInfo workItemInfo = new()
+            {
+                UseCallerCallContext = wigStartInfo.UseCallerCallContext,
+                PostExecuteWorkItemCallback = postExecuteWorkItemCallback,
+                CallToPostExecute = callToPostExecute,
+                DisposeOfStateObjects = wigStartInfo.DisposeOfStateObjects
+            };
 
-            WorkItem workItem = new WorkItem(
-                workItemsGroup,
-                workItemInfo,
-                callback, 
-                state);
-
-            return workItem;
+            return new WorkItem(workItemsGroup, workItemInfo, callback, state);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void ValidateCallback(Delegate callback)
         {
-            if (callback != null && callback.GetInvocationList().Length > 1)
+            if (callback is not null && callback.GetInvocationList().Length > 1)
             {
                 throw new NotSupportedException("SmartThreadPool doesn't support delegates chains");
             }

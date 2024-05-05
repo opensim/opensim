@@ -115,7 +115,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     m_accessIP = new HashSet<string>();
                     if (accessIP != String.Empty)
                     {
-                        string[] ips = accessIP.Split(new char[] { ',' });
+                        string[] ips = accessIP.Split(Util.SplitCommaArray);
                         foreach (string ip in ips)
                         {
                             string current = ip.Trim();
@@ -305,7 +305,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 if (requestData.ContainsKey("alerts"))
                 {
-                    string[] alertTimes = requestData["alerts"].ToString().Split( new char[] {','});
+                    string[] alertTimes = requestData["alerts"].ToString().Split(Util.SplitCommaArray);
                     if (alertTimes.Length == 1 && Convert.ToInt32(alertTimes[0]) == -1)
                     {
                         m_log.Info("[RADMIN]: Request to cancel restart.");

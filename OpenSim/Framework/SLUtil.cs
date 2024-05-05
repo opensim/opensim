@@ -27,23 +27,21 @@
 
 using OpenMetaverse;
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 
 namespace OpenSim.Framework
 {
     public static class SLUtil
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// Asset types used only in OpenSim.
         /// To avoid clashing with the code numbers used in Second Life, use only negative numbers here.
         /// </summary>
-        public enum OpenSimAssetType : sbyte
-        {
-            Material = -2
-        }
 
         #region SL / file extension / content-type conversions
 
@@ -55,81 +53,48 @@ namespace OpenSim.Framework
         {
             if (Enum.IsDefined(typeof(OpenMetaverse.AssetType), assetType))
                 return (OpenMetaverse.AssetType)assetType;
-            else if (Enum.IsDefined(typeof(OpenSimAssetType), assetType))
-                return (OpenSimAssetType)assetType;
             else
                 return OpenMetaverse.AssetType.Unknown;
         }
 
-        private class TypeMapping
+        private struct TypeMapping
         {
-            private sbyte assetType;
-            private sbyte inventoryType;
-            private string contentType;
-            private string contentType2;
-            private string extension;
-
-            public sbyte AssetTypeCode
-            {
-                get { return assetType; }
-            }
-
-            public object AssetType
-            {
-                get { return AssetTypeFromCode(assetType); }
-            }
-
-            public sbyte InventoryType
-            {
-                get { return inventoryType; }
-            }
-
-            public string ContentType
-            {
-                get { return contentType; }
-            }
-
-            public string ContentType2
-            {
-                get { return contentType2; }
-            }
-
-            public string Extension
-            {
-                get { return extension; }
-            }
+            public readonly sbyte AssetType;
+            public readonly sbyte InventoryType;
+            public readonly string ContentType;
+            public readonly string ContentType2;
+            public readonly string Extension;
 
             private TypeMapping(sbyte assetType, sbyte inventoryType, string contentType, string contentType2, string extension)
             {
-                this.assetType = assetType;
-                this.inventoryType = inventoryType;
-                this.contentType = contentType;
-                this.contentType2 = contentType2;
-                this.extension = extension;
+                AssetType = assetType;
+                InventoryType = inventoryType;
+                ContentType = contentType;
+                ContentType2 = contentType2;
+                Extension = extension;
             }
 
             public TypeMapping(AssetType assetType, sbyte inventoryType, string contentType, string contentType2, string extension)
-                : this((sbyte)assetType, inventoryType, contentType, contentType2, extension)
             {
+                AssetType = (sbyte)assetType;
+                InventoryType = inventoryType;
+                ContentType = contentType;
+                ContentType2 = contentType2;
+                Extension = extension;
             }
 
             public TypeMapping(AssetType assetType, InventoryType inventoryType, string contentType, string contentType2, string extension)
-                : this((sbyte)assetType, (sbyte)inventoryType, contentType, contentType2, extension)
+                : this(assetType, (sbyte)inventoryType, contentType, contentType2, extension)
             {
             }
 
             public TypeMapping(AssetType assetType, InventoryType inventoryType, string contentType, string extension)
-                : this((sbyte)assetType, (sbyte)inventoryType, contentType, null, extension)
+                : this(assetType, (sbyte)inventoryType, contentType, null, extension)
             {
             }
 
             public TypeMapping(AssetType assetType, FolderType inventoryType, string contentType, string extension)
-                : this((sbyte)assetType, (sbyte)inventoryType, contentType, null, extension)
-            {
-            }
-
-            public TypeMapping(OpenSimAssetType assetType, InventoryType inventoryType, string contentType, string extension)
-                : this((sbyte)assetType, (sbyte)inventoryType, contentType, null, extension)
+                : this(assetType, (sbyte)inventoryType, contentType, null, extension)
             {
             }
         }
@@ -140,7 +105,7 @@ namespace OpenSim.Framework
         ///   AssetType "AssetType.Texture" -> Content-Type "image-xj2c"
         ///   Content-Type "image/x-j2c" -> InventoryType "InventoryType.Texture"
         /// </summary>
-        private static TypeMapping[] MAPPINGS = new TypeMapping[] {
+        private static TypeMapping[] MAPPINGS = [
             new TypeMapping(AssetType.Unknown, InventoryType.Unknown, "application/octet-stream", "bin"),
             new TypeMapping(AssetType.Texture, InventoryType.Texture, "image/x-j2c", "image/jp2", "j2c"),
             new TypeMapping(AssetType.Texture, InventoryType.Snapshot, "image/x-j2c", "image/jp2", "j2c"),
@@ -183,15 +148,15 @@ namespace OpenSim.Framework
             new TypeMapping(AssetType.Folder, InventoryType.Folder, "application/vnd.ll.folder", "folder"),
 
             // OpenSim specific
-            new TypeMapping(OpenSimAssetType.Material, InventoryType.Unknown, "application/llsd+xml", "material")
-        };
+            new TypeMapping(AssetType.OSMaterial, InventoryType.Unknown, "application/llsd+xml", "material")
+        ];
 
-        private static Dictionary<sbyte, string> asset2Content;
-        private static Dictionary<sbyte, string> asset2Extension;
-        private static Dictionary<sbyte, string> inventory2Content;
-        private static Dictionary<string, sbyte> content2Asset;
-        private static Dictionary<string, sbyte> content2Inventory;
-        private static Dictionary<string, AssetType> name2Asset = new Dictionary<string, AssetType>()
+        private static readonly FrozenDictionary<sbyte, string> asset2Content;
+        private static readonly FrozenDictionary<sbyte, string> asset2Extension;
+        private static readonly FrozenDictionary<sbyte, string> inventory2Content;
+        private static readonly FrozenDictionary<string, sbyte> content2Asset;
+        private static readonly FrozenDictionary<string, sbyte> content2Inventory;
+        private static readonly FrozenDictionary<string, AssetType> name2Asset = new Dictionary<string, AssetType>()
         {
             {"texture", AssetType.Texture },
             {"sound", AssetType.Sound},
@@ -215,8 +180,9 @@ namespace OpenSim.Framework
             {"mesh", AssetType.Mesh},
             {"settings", AssetType.Settings},
             {"material", AssetType.Material}
-        };
-        private static Dictionary<string, FolderType> name2Inventory = new Dictionary<string, FolderType>()
+        }.ToFrozenDictionary();
+
+        private static readonly FrozenDictionary<string, FolderType> name2Inventory = new Dictionary<string, FolderType>()
         {
             {"texture", FolderType.Texture},
             {"sound", FolderType.Sound},
@@ -242,108 +208,94 @@ namespace OpenSim.Framework
             {"settings", FolderType.Settings},
             {"material", FolderType.Material},
             {"suitcase", FolderType.Suitcase}
-        };
+        }.ToFrozenDictionary();
 
         static SLUtil()
         {
-            asset2Content = new Dictionary<sbyte, string>();
-            asset2Extension = new Dictionary<sbyte, string>();
-            inventory2Content = new Dictionary<sbyte, string>();
-            content2Asset = new Dictionary<string, sbyte>();
-            content2Inventory = new Dictionary<string, sbyte>();
+            Dictionary<sbyte, string> asset2Contentd = [];
+            Dictionary<sbyte, string> asset2Extensiond = [];
+            Dictionary<sbyte, string> inventory2Contentd = [];
+            Dictionary<string, sbyte> content2Assetd = [];
+            Dictionary<string, sbyte> content2Inventoryd = [];
 
             foreach (TypeMapping mapping in MAPPINGS)
             {
-                sbyte assetType = mapping.AssetTypeCode;
-                if (!asset2Content.ContainsKey(assetType))
-                    asset2Content.Add(assetType, mapping.ContentType);
+                sbyte assetType = mapping.AssetType;
+                asset2Contentd.TryAdd(assetType, mapping.ContentType);
+                asset2Extensiond.TryAdd(assetType, mapping.Extension);
 
-                if (!asset2Extension.ContainsKey(assetType))
-                    asset2Extension.Add(assetType, mapping.Extension);
+                inventory2Contentd.TryAdd(mapping.InventoryType, mapping.ContentType);
 
-                if (!inventory2Content.ContainsKey(mapping.InventoryType))
-                    inventory2Content.Add(mapping.InventoryType, mapping.ContentType);
+                content2Assetd.TryAdd(mapping.ContentType, assetType);
 
-                if (!content2Asset.ContainsKey(mapping.ContentType))
-                    content2Asset.Add(mapping.ContentType, assetType);
-
-                if (!content2Inventory.ContainsKey(mapping.ContentType))
-                    content2Inventory.Add(mapping.ContentType, mapping.InventoryType);
+                content2Inventoryd.TryAdd(mapping.ContentType, mapping.InventoryType);
 
                 if (mapping.ContentType2 != null)
                 {
-                    if (!content2Asset.ContainsKey(mapping.ContentType2))
-                        content2Asset.Add(mapping.ContentType2, assetType);
-                    if (!content2Inventory.ContainsKey(mapping.ContentType2))
-                        content2Inventory.Add(mapping.ContentType2, mapping.InventoryType);
+                    content2Assetd.TryAdd(mapping.ContentType2, assetType);
+                    content2Inventoryd.TryAdd(mapping.ContentType2, mapping.InventoryType);
                 }
             }
+            asset2Content = asset2Contentd.ToFrozenDictionary();
+            asset2Extension = asset2Extensiond.ToFrozenDictionary();
+            inventory2Content = inventory2Contentd.ToFrozenDictionary();
+            content2Asset = content2Assetd.ToFrozenDictionary();
+            content2Inventory = content2Inventoryd.ToFrozenDictionary();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static AssetType SLAssetName2Type(string name)
         {
-            if (name2Asset.TryGetValue(name, out AssetType type))
-                return type;
-            return AssetType.Unknown;
+             return name2Asset.TryGetValue(name, out AssetType type) ? type : AssetType.Unknown;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static FolderType SLInvName2Type(string name)
         {
-            if (name2Inventory.TryGetValue(name, out FolderType type))
-                return type;
-            return FolderType.None;
+            return name2Inventory.TryGetValue(name, out FolderType type) ? type : FolderType.None;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string SLAssetTypeToContentType(int assetType)
         {
-            string contentType;
-            if (!asset2Content.TryGetValue((sbyte)assetType, out contentType))
-                contentType = asset2Content[(sbyte)AssetType.Unknown];
-            return contentType;
+            return asset2Content.TryGetValue((sbyte)assetType, out string contentType) ? contentType : asset2Content[(sbyte)AssetType.Unknown];
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string SLInvTypeToContentType(int invType)
         {
-            string contentType;
-            if (!inventory2Content.TryGetValue((sbyte)invType, out contentType))
-                contentType = inventory2Content[(sbyte)InventoryType.Unknown];
-            return contentType;
+            return inventory2Content.TryGetValue((sbyte)invType, out string contentType) ? contentType : inventory2Content[(sbyte)InventoryType.Unknown];
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static sbyte ContentTypeToSLAssetType(string contentType)
         {
-            sbyte assetType;
-            if (!content2Asset.TryGetValue(contentType, out assetType))
-                assetType = (sbyte)AssetType.Unknown;
-            return (sbyte)assetType;
+            return content2Asset.TryGetValue(contentType, out sbyte assetType) ? assetType : (sbyte)AssetType.Unknown;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static sbyte ContentTypeToSLInvType(string contentType)
         {
-            sbyte invType;
-            if (!content2Inventory.TryGetValue(contentType, out invType))
-                invType = (sbyte)InventoryType.Unknown;
-            return (sbyte)invType;
+            return content2Inventory.TryGetValue(contentType, out sbyte invType) ? invType : (sbyte)InventoryType.Unknown;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string SLAssetTypeToExtension(int assetType)
         {
-            string extension;
-            if (!asset2Extension.TryGetValue((sbyte)assetType, out extension))
-                extension = asset2Extension[(sbyte)AssetType.Unknown];
-            return extension;
+            return asset2Extension.TryGetValue((sbyte)assetType, out string extension) ? extension : asset2Extension[(sbyte)AssetType.Unknown];
         }
 
         #endregion SL / file extension / content-type conversions
 
-        static char[] seps = new char[] { '\t', '\n' };
-        static char[] stringseps = new char[] { '|', '\n' };
+        static readonly char[] seps = new char[] { '\t', '\n' };
+        static readonly char[] stringseps = new char[] { '|', '\n' };
 
         static byte[] moronize = new byte[16]
         {
             60, 17, 94, 81, 4, 244, 82, 60, 159, 166, 152, 175, 241, 3, 71, 48
         };
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static int getField(string note, int start, string name, bool isString, out string value)
         {
             value = String.Empty;
@@ -615,8 +567,8 @@ namespace OpenSim.Framework
             if(indx > 0)
             {
                 indx += 14;
-                List<UUID> textIDs = Util.GetUUIDsOnString(ref note, indx, note.Length - indx);
-                if(textIDs.Count > 0)
+                List<UUID> textIDs = Util.GetUUIDsOnString(note.AsSpan(indx, note.Length - indx));
+                if (textIDs.Count > 0)
                     ids.AddRange(textIDs);
             }
             if (ids.Count == 0)

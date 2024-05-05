@@ -114,10 +114,11 @@ namespace OpenSim.Services.PresenceService
                 (presence == null) ? null : presence.RegionID.ToString());
 
             bool ret = m_Database.Delete("SessionID", sessionID.ToString());
-            if(inCache && presence != null)
+            if(inCache)
             {
-                BySessionCache.Remove(presence.SessionID);
-                ByUserCache.Remove(presence.UserID);
+                BySessionCache.Remove(sessionID);
+                if(presence is not null)
+                    ByUserCache.Remove(presence.UserID);
             }
             return ret;
         }
@@ -125,7 +126,7 @@ namespace OpenSim.Services.PresenceService
         public bool LogoutRegionAgents(UUID regionID)
         {
             PresenceData[] prevSessions = GetRegionAgents(regionID);
-            if ((prevSessions == null) || (prevSessions.Length == 0))
+            if ((prevSessions is null) || (prevSessions.Length == 0))
                 return true;
 
             m_log.DebugFormat("[PRESENCE SERVICE]: Logout users in region {0}", regionID);
@@ -135,7 +136,6 @@ namespace OpenSim.Services.PresenceService
                 BySessionCache.Remove(pd.SessionID);
                 ByUserCache.Remove(pd.UserID);
             }
-
 
             // There's a small chance that LogoutRegionAgents() will logout different users than the
             // list that was logged above, but it's unlikely and not worth dealing with.

@@ -50,49 +50,50 @@ namespace OpenSim.Services.Interfaces
         public static GridInstantMessage GridInstantMessage(Dictionary<string, object> dict)
         {
             GridInstantMessage im = new GridInstantMessage();
+            object otmp;
 
-            if (dict.ContainsKey("BinaryBucket") && dict["BinaryBucket"] != null)
-                im.binaryBucket = OpenMetaverse.Utils.HexStringToBytes(dict["BinaryBucket"].ToString(), true);
+            if (dict.TryGetValue("BinaryBucket", out otmp) && otmp is string bbs)
+                im.binaryBucket = OpenMetaverse.Utils.HexStringToBytes(bbs, true);
 
-            if (dict.ContainsKey("Dialog") && dict["Dialog"] != null)
-                im.dialog = byte.Parse(dict["Dialog"].ToString());
+            if (dict.TryGetValue("Dialog", out otmp) && otmp is string ds)
+                im.dialog = byte.Parse(ds);
 
-            if (dict.ContainsKey("FromAgentID") && dict["FromAgentID"] != null)
-                im.fromAgentID = new Guid(dict["FromAgentID"].ToString());
+            if (dict.TryGetValue("FromAgentID", out otmp) && otmp is string faid)
+                im.fromAgentID = new Guid(faid);
 
-            if (dict.ContainsKey("FromAgentName") && dict["FromAgentName"] != null)
-                im.fromAgentName = dict["FromAgentName"].ToString();
+            if (dict.TryGetValue("FromAgentName", out otmp) && otmp is string fan)
+                im.fromAgentName = fan;
             else
                 im.fromAgentName = string.Empty;
 
-            if (dict.ContainsKey("FromGroup") && dict["FromGroup"] != null)
-                im.fromGroup = bool.Parse(dict["FromGroup"].ToString());
+            if (dict.TryGetValue("FromGroup", out otmp) && otmp is string fg)
+                im.fromGroup = bool.Parse(fg);
 
-            if (dict.ContainsKey("SessionID") && dict["SessionID"] != null)
-                im.imSessionID = new Guid(dict["SessionID"].ToString());
+            if (dict.TryGetValue("SessionID", out otmp) && otmp is string sid)
+                im.imSessionID = new Guid(sid);
 
-            if (dict.ContainsKey("Message") && dict["Message"] != null)
-                im.message = dict["Message"].ToString();
+            if (dict.TryGetValue("Message", out otmp) && otmp is string msg)
+                im.message = msg;
             else
                 im.message = string.Empty;
 
-            if (dict.ContainsKey("Offline") && dict["Offline"] != null)
-                im.offline = byte.Parse(dict["Offline"].ToString());
+            if (dict.TryGetValue("Offline", out otmp) && otmp is string off)
+                im.offline = byte.Parse(off);
 
-            if (dict.ContainsKey("EstateID") && dict["EstateID"] != null)
-                im.ParentEstateID = UInt32.Parse(dict["EstateID"].ToString());
+            if (dict.TryGetValue("EstateID", out otmp) && otmp is string eid)
+                im.ParentEstateID = UInt32.Parse(eid);
 
-            if (dict.ContainsKey("Position") && dict["Position"] != null)
-                im.Position = Vector3.Parse(dict["Position"].ToString());
+            if (dict.TryGetValue("Position", out otmp) && otmp is string vpos)
+                im.Position = Vector3.Parse(vpos);
 
-            if (dict.ContainsKey("RegionID") && dict["RegionID"] != null)
-                im.RegionID = new Guid(dict["RegionID"].ToString());
+            if (dict.TryGetValue("RegionID", out otmp) && otmp is string rid)
+                im.RegionID = new Guid(rid);
 
-            if (dict.ContainsKey("Timestamp") && dict["Timestamp"] != null)
-                im.timestamp = UInt32.Parse(dict["Timestamp"].ToString());
+            if (dict.TryGetValue("Timestamp", out otmp) && otmp is string ts)
+                im.timestamp = UInt32.Parse(ts);
 
-            if (dict.ContainsKey("ToAgentID") && dict["ToAgentID"] != null)
-                im.toAgentID = new Guid(dict["ToAgentID"].ToString());
+            if (dict.TryGetValue("ToAgentID", out otmp) && otmp is string tid)
+                im.toAgentID = new Guid(tid);
 
             return im;
         }
