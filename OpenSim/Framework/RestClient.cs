@@ -33,7 +33,6 @@ using System.Net.Http;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading;
 using System.Web;
 using log4net;
 
