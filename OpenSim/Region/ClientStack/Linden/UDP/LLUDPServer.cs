@@ -1772,7 +1772,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // on to en-US to avoid number parsing issues
             Culture.SetCurrentCulture();
 
-            while (IsRunningInbound)
+            while (m_IsRunningInbound)
             {
                 Scene.ThreadAlive(1);
                 try
@@ -1818,7 +1818,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Action generic every round
             Action<IClientAPI> clientPacketHandler = ClientOutgoingPacketHandler;
 
-            while (base.IsRunningOutbound)
+            while (m_IsRunningOutbound)
             {
                 Scene.ThreadAlive(2);
 

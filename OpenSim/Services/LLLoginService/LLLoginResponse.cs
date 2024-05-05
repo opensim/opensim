@@ -270,7 +270,6 @@ namespace OpenSim.Services.LLLoginService
             m_log.DebugFormat("[LOGIN RESPONSE] LLLoginResponse create. sizeX={0}, sizeY={1}", RegionSizeX, RegionSizeY);
 
             FillOutSeedCap(aCircuit, destination, clientIP);
-
             switch (DSTZone)
             {
                 case "none":
@@ -306,7 +305,6 @@ namespace OpenSim.Services.LLLoginService
                     {
                         DST = dstTimeZone.IsDaylightSavingTime(DateTime.Now) ? "Y" : "N";
                     }
-
                     break;
             }
         }
@@ -406,30 +404,7 @@ namespace OpenSim.Services.LLLoginService
 
         private void SetDefaultValues()
         {
-            TimeZoneInfo gridTimeZone;
-
-            // Disabled for now pending making timezone a config value, which can at some point have a default of
-            // a ; separated list of possible timezones.
-            // The problem here is that US/Pacific (or even the Olsen America/Los_Angeles) is not universal across
-            // windows, mac and various distributions of linux, introducing another element of consistency.
-            // The server operator needs to be able to control this setting
-//            try
-//            {
-//                // First try to fetch DST from Pacific Standard Time, because this is
-//                // the one expected by the viewer. "US/Pacific" is the string to search
-//                // on linux and mac, and should work also on Windows (to confirm)
-//                gridTimeZone = TimeZoneInfo.FindSystemTimeZoneById("US/Pacific");
-//            }
-//            catch (Exception e)
-//            {
-//                m_log.WarnFormat(
-//                    "[TIMEZONE]: {0} Falling back to system time. System time should be set to Pacific Standard Time to provide the expected time",
-//                    e.Message);
-
-                gridTimeZone = TimeZoneInfo.Local;
-//            }
-
-            DST = gridTimeZone.IsDaylightSavingTime(DateTime.Now) ? "Y" : "N";
+            DST = "N";
 
             StipendSinceLogin = "N";
             Gendered = "Y";
@@ -494,7 +469,7 @@ namespace OpenSim.Services.LLLoginService
 
             currency = String.Empty;
             ClassifiedFee = "0";
-            MaxAgentGroups = 42;
+            MaxAgentGroups = Constants.MaxAgentGroups;
         }
 
 

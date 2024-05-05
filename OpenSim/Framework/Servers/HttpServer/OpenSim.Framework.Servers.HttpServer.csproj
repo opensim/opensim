@@ -18,9 +18,6 @@
       <HintPath>..\..\..\..\bin\OpenMetaverseTypes.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="System.Web">
-      <Private>False</Private>
-    </Reference>
     <Reference Include="XMLRPC">
       <HintPath>..\..\..\..\bin\XMLRPC.dll</HintPath>
       <Private>False</Private>
