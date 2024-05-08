@@ -278,7 +278,7 @@ namespace OpenSim.Data.PGSQL
                             }
                             catch (NpgsqlException sqlEx)
                             {
-                                _Log.ErrorFormat("[REGION DB]: Store SceneObjectPrim SQL error: {0} at line {1}", sqlEx.Message, sqlEx.Line);
+                                _Log.Error($"[REGION DB]: Store SceneObjectPrim SQL error: {sqlEx.Message}");
                                 throw;
                             }
                         }
@@ -293,7 +293,7 @@ namespace OpenSim.Data.PGSQL
                             }
                             catch (NpgsqlException sqlEx)
                             {
-                                _Log.ErrorFormat("[REGION DB]: Store SceneObjectPrimShapes SQL error: {0} at line {1}", sqlEx.Message, sqlEx.Line);
+                                _Log.Error($"[REGION DB]: Store SceneObjectPrimShapes SQL error: {sqlEx.Message}");
                                 throw;
                             }
                         }
