@@ -1135,9 +1135,9 @@ namespace OpenSim.Framework
 
         public static bool IsEnvironmentSupported(ref string reason)
         {
-            if (Environment.Version.Major < 6)
+            if (Environment.Version.Major < 8)
             {
-                reason = "Dotnet 6.0 is required";
+                reason = "Dotnet 8.0 is required";
                 return false;
             }
             return true;

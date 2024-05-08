@@ -1518,6 +1518,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 writer.WriteEndElement();
             }
 
+            sog.LinksetData?.ToXML(writer);
 
             writer.WriteEndElement();
         }
