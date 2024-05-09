@@ -380,7 +380,7 @@ namespace OpenSim.Data.PGSQL
             :ForceMouselook, :ScriptAccessPin, :AllowedDrop, :DieAtEdge, :SalePrice, :SaleType, :ColorR, :ColorG, :ColorB, :ColorA,
             :ParticleSystem, :ClickAction, :Material, :CollisionSound, :CollisionSoundVolume, :PassTouches, :LinkNumber, :MediaURL, :DynAttrs,
             :PhysicsShapeType, :Density, :GravityModifier, :Friction, :Restitution, :PassCollisions, :RotationAxisLocks, :RezzerID, :Vehicle, :PhysInertia,
-            :standtargetx, :standtargety, :standtargetz,:sitactrange, :pseudocrc, :sopanims 
+            :standtargetx, :standtargety, :standtargetz,:sitactrange, :pseudocrc, :sopanims, :lnkstBinData
             where not EXISTS (SELECT ""UUID"" FROM prims WHERE ""UUID"" = :UUID);
         ";
 
