@@ -8401,6 +8401,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             { PacketType.GroupNoticesListRequest, new(HandleGroupNoticesListRequest, true) },
             { PacketType.GroupNoticeRequest, new(HandleGroupNoticeRequest, true) },
 
+            { PacketType.GroupRoleUpdate, new(HandleGroupRoleUpdate, true) },
             { PacketType.GroupRoleChanges, new(HandleGroupRoleChanges, true) },
 
             { PacketType.JoinGroupRequest, new(HandleJoinGroupRequest, true) },
