@@ -166,10 +166,6 @@ namespace OpenSim.Data.PGSQL
         {
             Type valueType = value.GetType();
 
-            if (valueType == typeof(UUID)) //TODO check if this works
-            {
-                return ((UUID) value).Guid;
-            }
             if (valueType == typeof(UUID))
             {
                 return ((UUID)value).Guid;
@@ -199,9 +195,9 @@ namespace OpenSim.Data.PGSQL
         {
             if (PGFieldType == "uuid")
             {
-                UUID uidout;
-                UUID.TryParse(value.ToString(), out uidout);
-                return uidout;
+                if(value is not UUID uid)
+                    UUID.TryParse(value.ToString(), out uid);
+                return uid.Guid;
             }
             if (PGFieldType == "integer")
             {
