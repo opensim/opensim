@@ -198,7 +198,7 @@ namespace OpenSim.Region.Framework.Scenes
         public PhysicsActor PhysActor { get; set; }
 
         [XmlIgnore]
-        public LinksetData LinksetData { get; set; } = null;
+        public LinksetData? LinksetData { get; set; } = null;
         
         //Xantor 20080528 Sound stuff:
         //  Note: This isn't persisted in the database right now, as the fields for that aren't just there yet.
