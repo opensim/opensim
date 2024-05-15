@@ -102,8 +102,6 @@ COMMIT;
 
 BEGIN TRANSACTION;
 
---# "creatorID" goes up to VARCHAR(128)
-
 alter table assets
   alter column "creatorID" type varchar(128);
 
