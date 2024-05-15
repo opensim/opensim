@@ -103,6 +103,6 @@ COMMIT;
 BEGIN TRANSACTION;
 
 alter table assets
-  alter column "creatorID" type varchar(128);
+  alter column "creatorid" type varchar(128);
 
 Commit;

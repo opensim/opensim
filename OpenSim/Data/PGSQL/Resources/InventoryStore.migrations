@@ -182,17 +182,6 @@ alter table inventoryitems
    
 COMMIT     ;
    
-:VERSION 7
-
-BEGIN TRANSACTION;
-
--- # "creatorID" goes back to VARCHAR(36) (???)
-
-alter table inventoryitems
-  alter column "creatorID" type varchar(36);
-
-COMMIT	;
-   
 :VERSION 8
 
 ALTER TABLE inventoryitems
@@ -202,8 +191,6 @@ ALTER TABLE inventoryitems
 :VERSION 9
 
 BEGIN TRANSACTION;
-
---# "creatorID" goes up to VARCHAR(255)
 
 alter table inventoryitems
   alter column "creatorID" type varchar(255);
