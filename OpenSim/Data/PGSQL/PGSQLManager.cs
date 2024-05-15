@@ -182,6 +182,10 @@ namespace OpenSim.Data.PGSQL
             {
                 return value;
             }
+            if (valueType == typeof(uint))
+            {
+                return (int)value;
+            }
             return value;
         }
 
