@@ -74,7 +74,7 @@ namespace OpenSim.Data.PGSQL
             {
                 return NpgsqlDbType.Double;
             }
-            if (type == typeof(Single))
+            if (type == typeof(float))
             {
                 return NpgsqlDbType.Double;
             }
@@ -282,6 +282,18 @@ namespace OpenSim.Data.PGSQL
                 parameter.Value = CreateParameterValue(parameterObject);
             }
 
+            return parameter;
+        }
+
+        internal NpgsqlParameter CreateParameterNullBytea(string parameterName)
+        {
+            //Tweak so we dont always have to add : sign
+            if (parameterName.StartsWith(":")) parameterName = parameterName.Replace(":", "");
+
+            //HACK if object is null, it is turned into a string, there are no nullable type till now
+            NpgsqlParameter parameter = new NpgsqlParameter(parameterName, NpgsqlDbType.Bytea);
+            parameter.Direction = ParameterDirection.Input;
+            parameter.Value = null;
             return parameter;
         }
 

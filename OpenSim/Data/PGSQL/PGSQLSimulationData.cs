@@ -1874,12 +1874,12 @@ namespace OpenSim.Data.PGSQL
             if (prim.Animations != null)
                 parameters.Add(_Database.CreateParameter("sopanims", prim.SerializeAnimations()));
             else
-                parameters.Add(_Database.CreateParameter("sopanims", null));
+                parameters.Add(_Database.CreateParameterNullBytea("sopanims"));
 
             if (prim.IsRoot && prim.ParentGroup.LinksetData is not null)
                 parameters.Add(_Database.CreateParameter("lnkstBinData", prim.ParentGroup.LinksetData.ToBin()));
             else
-                parameters.Add(_Database.CreateParameter("lnkstBinData", null));
+                parameters.Add(_Database.CreateParameterNullBytea("lnkstBinData"));
 
             return parameters.ToArray();
         }
