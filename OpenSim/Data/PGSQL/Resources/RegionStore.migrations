@@ -1166,7 +1166,7 @@ COMMIT;
 BEGIN TRANSACTION;
 
 ALTER TABLE prims ADD "PassCollisions" smallint NOT NULL DEFAULT (0);
-ALTER TABLE prims ADD "Vehicle" text COLLATE "default";
+ALTER TABLE prims ADD "Vehicle" text;
 ALTER TABLE regionsettings ADD "block_search" smallint NOT NULL DEFAULT (0);
 ALTER TABLE regionsettings ADD	"casino" smallint NOT NULL DEFAULT (0);
 ALTER TABLE land ADD "SeeAVs" smallint NOT NULL DEFAULT (1);
@@ -1226,43 +1226,36 @@ ALTER TABLE "public"."prims"
             END;
 COMMIT;
 
-:VERSION 48 #---- field Vehicle to table prims
-
-BEGIN TRANSACTION;
-
-ALTER TABLE prims ADD "Vehicle" TEXT;
-COMMIT;
-
 :VERSION 49         #----- Add standtarget and sit range
 
 BEGIN;
-ALTER TABLE `prims` 
-ADD COLUMN `standtargetx` real DEFAULT '0.0',
-ADD COLUMN `standtargety` real DEFAULT '0.0',
-ADD COLUMN `standtargetz` real DEFAULT '0.0',
-ADD COLUMN `sitactrange` real DEFAULT '0.0';
+ALTER TABLE "public"."prims" 
+ADD COLUMN "standtargetx" real DEFAULT '0.0',
+ADD COLUMN "standtargety" real DEFAULT '0.0',
+ADD COLUMN "standtargetz" real DEFAULT '0.0',
+ADD COLUMN "sitactrange" real DEFAULT '0.0';
 COMMIT;
 
 
 :VERSION 50         #----- Add pseudo CRC and region cache id
 
 BEGIN;
-ALTER TABLE `prims` ADD COLUMN `pseudocrc` integer DEFAULT '0';
-ALTER TABLE `regionsettings` ADD COLUMN `cacheID` uuid DEFAULT NULL;
+ALTER TABLE "public"."prims" ADD COLUMN "pseudocrc" integer DEFAULT '0';
+ALTER TABLE "public"."regionsettings" ADD COLUMN "cacheID" uuid DEFAULT NULL;
 COMMIT;
 
 :VERSION 51         #----- parcel environment store
 BEGIN;
-ALTER TABLE `land` ADD COLUMN `environment` varchar default NULL;
+ALTER TABLE "public"."land"" ADD COLUMN "environment" varchar default NULL;
 COMMIT;
 
 :VERSION 52         ##----- sop animations and materials
 BEGIN;
-ALTER TABLE `prims` ADD COLUMN `sopanims` bytea NULL;
-ALTER TABLE `primshapes` ADD COLUMN `MatOvrd` bytea NULL;
+ALTER TABLE "public"."prims" ADD COLUMN "sopanims" bytea NULL;
+ALTER TABLE "public"."primshapes" ADD COLUMN "MatOvrd" bytea NULL;
 COMMIT;
 
 :VERSION 53         #----- add linkset data binary storage column
 BEGIN;
-ALTER TABLE `prims` ADD COLUMN `lnkstBinData` bytea NULL;
+ALTER TABLE "public"."prims" ADD COLUMN "lnkstBinData" bytea NULL;
 COMMIT;
