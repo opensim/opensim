@@ -1246,7 +1246,7 @@ COMMIT;
 
 :VERSION 51         #----- parcel environment store
 BEGIN;
-ALTER TABLE "public"."land"" ADD COLUMN "environment" varchar default NULL;
+ALTER TABLE "public"."land" ADD COLUMN "environment" varchar default NULL;
 COMMIT;
 
 :VERSION 52         ##----- sop animations and materials
