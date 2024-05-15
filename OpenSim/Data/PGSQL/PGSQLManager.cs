@@ -207,6 +207,11 @@ namespace OpenSim.Data.PGSQL
                     UUID.TryParse(value.ToString(), out uid);
                 return uid.Guid;
             }
+            if (PGFieldType == "smallint")
+            {
+                short.TryParse(value.ToString(), out short sintout);
+                return sintout;
+            }
             if (PGFieldType == "integer")
             {
                 int intout;
