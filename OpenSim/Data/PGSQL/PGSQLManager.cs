@@ -207,18 +207,22 @@ namespace OpenSim.Data.PGSQL
                     UUID.TryParse(value.ToString(), out uid);
                 return uid.Guid;
             }
-            if (PGFieldType == "smallint")
+            if (PGFieldType == "smallint" || PGFieldType == "smallserial")
             {
                 short.TryParse(value.ToString(), out short sintout);
                 return sintout;
             }
             if (PGFieldType == "integer")
             {
-                int intout;
-                int.TryParse(value.ToString(), out intout);
+                int.TryParse(value.ToString(), out int intout);
                 return intout;
             }
-            if (PGFieldType == "boolean")
+            if (PGFieldType == "bigint")
+            {
+                long.TryParse(value.ToString(), out long lintout);
+                return lintout;
+            }
+            if (PGFieldType == "boolean" || PGFieldType == "bit")
             {
                 return (value.ToString() == "true");
             }
@@ -234,6 +238,9 @@ namespace OpenSim.Data.PGSQL
             {
                 return Convert.ToDouble(value);
             }
+            if (PGFieldType == "character" || PGFieldType == "character varying" || PGFieldType == "text")
+                return value.ToString();
+
             return CreateParameterValue(value);
         }
 
