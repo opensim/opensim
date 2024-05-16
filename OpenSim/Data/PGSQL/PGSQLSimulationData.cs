@@ -1924,8 +1924,17 @@ namespace OpenSim.Data.PGSQL
             parameters.Add(_Database.CreateParameter("ProfileEnd", s.ProfileEnd));
             parameters.Add(_Database.CreateParameter("ProfileCurve", s.ProfileCurve));
             parameters.Add(_Database.CreateParameter("ProfileHollow", s.ProfileHollow));
-            parameters.Add(_Database.CreateParameter("Texture", s.TextureEntry));
-            parameters.Add(_Database.CreateParameter("ExtraParams", s.ExtraParams));
+
+            if (s.TextureEntry is null)
+                parameters.Add(_Database.CreateParameterNullBytea("Texture"));
+            else
+                parameters.Add(_Database.CreateParameter("Texture", s.TextureEntry));
+
+            if (s.ExtraParams is null)
+                parameters.Add(_Database.CreateParameterNullBytea("ExtraParams"));
+            else
+                parameters.Add(_Database.CreateParameter("ExtraParams", s.ExtraParams));
+
             parameters.Add(_Database.CreateParameter("State", s.State));
 
             if (null == s.Media)
@@ -1938,7 +1947,10 @@ namespace OpenSim.Data.PGSQL
             }
 
             byte[] matovrdata = s.RenderMaterialsOvrToRawBin();
-            parameters.Add(_Database.CreateParameter("MatOvrd", matovrdata));
+            if(matovrdata is null)
+                parameters.Add(_Database.CreateParameterNullBytea("MatOvrd"));
+            else
+                parameters.Add(_Database.CreateParameter("MatOvrd", matovrdata));
 
             return parameters.ToArray();
         }
