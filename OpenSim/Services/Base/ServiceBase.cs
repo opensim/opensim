@@ -103,6 +103,8 @@ namespace OpenSim.Services.Base
                 m_log.ErrorFormat(
                         "[SERVICE BASE]: Failed to load plugin {0} from {1} with args {2}",
                         interfaceName, dllName, string.Join(", ", strArgs.ToArray()), e);
+                if (e.InnerException != null)
+                    m_log.Error($"\"[SERVICE BASE]: inner expection {e.InnerException.Message}");
 
                 return null;
             }
