@@ -4642,7 +4642,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Key llRequestAgentData(string id, int data)
         {
-            if(data < 1 || data >= ScriptBaseClass.DATA_PAYINFO)
+            if(data < 1 || data > ScriptBaseClass.DATA_PAYINFO)
                 return string.Empty;
 
             if (UUID.TryParse(id, out UUID uuid) && uuid.IsNotZero())
@@ -4715,14 +4715,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             break;
                         case 7:
                         case ScriptBaseClass.DATA_BORN:
+                        case ScriptBaseClass.DATA_PAYINFO:
                             if (udt.IsLocal)
                             {
                                 UserAccount account = m_userAccountService.GetUserAccount(RegionScopeID, uuid);
                                 if (account is not null)
                                 {
-                                    reply = data == 7 ?
-                                            account.UserLevel.ToString() :
-                                            Util.ToDateTime(account.Created).ToString("yyyy-MM-dd");
+                                    reply = data switch
+                                    { 
+                                        7 => account.UserLevel.ToString(),
+                                        ScriptBaseClass.DATA_BORN => Util.ToDateTime(account.Created).ToString("yyyy-MM-dd"),
+                                        _ => ((account.UserFlags >> 2) & 0x03).ToString()
+                                    };
                                 }
                             }
                             else
