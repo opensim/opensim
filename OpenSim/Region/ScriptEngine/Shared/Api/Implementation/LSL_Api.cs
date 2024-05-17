@@ -4642,24 +4642,33 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Key llRequestAgentData(string id, int data)
         {
+            if(data < 1 || data >= ScriptBaseClass.DATA_PAYINFO)
+                return string.Empty;
+
             if (UUID.TryParse(id, out UUID uuid) && uuid.IsNotZero())
             {
                 //pre process fast local avatars
                 switch(data)
                 {
+                    case ScriptBaseClass.DATA_RATING:
+                    case ScriptBaseClass.DATA_NAME: // DATA_NAME (First Last)
                     case ScriptBaseClass.DATA_ONLINE:
                         World.TryGetScenePresence(uuid, out ScenePresence sp);
                         if (sp != null)
                         {
+                            string reply = data switch
+                            {
+                                ScriptBaseClass.DATA_RATING => "0,0,0,0,0,0",
+                                ScriptBaseClass.DATA_NAME => sp.Firstname + " " + sp.Lastname,
+                                _ => "1"
+                            };
                             string ftid = m_AsyncCommands.DataserverPlugin.RequestWithImediatePost(m_host.LocalId,
-                                                    m_item.ItemID, "1");
+                                                    m_item.ItemID, reply);
                             ScriptSleep(m_sleepMsOnRequestAgentData);
                             return ftid;
                         }
                         break;
-                    case ScriptBaseClass.DATA_NAME: // DATA_NAME (First Last)
                     case ScriptBaseClass.DATA_BORN: // DATA_BORN (YYYY-MM-DD)
-                    case ScriptBaseClass.DATA_RATING: // DATA_RATING (0,0,0,0,0,0)
                     case 7: // DATA_USERLEVEL (integer).  This is not available in LL and so has no constant.
                     case ScriptBaseClass.DATA_PAYINFO: // DATA_PAYINFO (0|1|2|3)
                         break;
@@ -4669,63 +4678,64 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 void act(string eventID)
                 {
-                    UserAccount account = null;
-                    string reply;
+                    IUserManagement umm = World.RequestModuleInterface<IUserManagement>();
+                    if(umm == null)
+                        return;
 
-                    if (data == ScriptBaseClass.DATA_ONLINE)
+                    UserData udt = umm.GetUserData(uuid);
+                    if (udt == null || udt.IsUnknownUser)
+                        return;
+
+                    string reply = null;
+                    switch(data)
                     {
-                        World.TryGetScenePresence(uuid, out ScenePresence sp);
-                        if (sp != null)
-                            reply = "1";
-                        else
-                        {
-                            account = m_userAccountService.GetUserAccount(RegionScopeID, uuid);
-                            if (account == null)
-                                reply = "0";
-                            else
+                        case ScriptBaseClass.DATA_ONLINE:
+                            if (!m_PresenceInfoCache.TryGetValue(uuid, out PresenceInfo pinfo))
                             {
-                                if (!m_PresenceInfoCache.TryGetValue(uuid, out PresenceInfo pinfo))
+                                PresenceInfo[] pinfos = World.PresenceService.GetAgents([uuid.ToString()]);
+                                if (pinfos != null && pinfos.Length > 0)
                                 {
-                                    PresenceInfo[] pinfos = World.PresenceService.GetAgents(new string[] { uuid.ToString() });
-                                    if (pinfos != null && pinfos.Length > 0)
+                                    foreach (PresenceInfo p in pinfos)
                                     {
-                                        foreach (PresenceInfo p in pinfos)
+                                        if (!p.RegionID.IsZero())
                                         {
-                                            if (!p.RegionID.IsZero())
-                                            {
-                                                pinfo = p;
-                                            }
+                                            pinfo = p;
                                         }
                                     }
-                                    m_PresenceInfoCache.AddOrUpdate(uuid, pinfo, m_llRequestAgentDataCacheTimeout);
                                 }
-                                reply = pinfo == null ? "0" : "1";
+                                m_PresenceInfoCache.AddOrUpdate(uuid, pinfo, m_llRequestAgentDataCacheTimeout);
                             }
-                        }
-                    }
-                    else
-                    {
-                        account ??= m_userAccountService.GetUserAccount(RegionScopeID, uuid);
-
-                        if (account is null)
-                            reply = "0";
-                        else
-                            reply = data switch
+                            reply = pinfo == null ? "0" : "1";
+                            break;
+                        case ScriptBaseClass.DATA_NAME:
+                            reply = udt.FirstName + " " + udt.LastName;
+                            break;
+                        case ScriptBaseClass.DATA_RATING:
+                            reply = "0,0,0,0,0,0";
+                            break;
+                        case 7:
+                        case ScriptBaseClass.DATA_BORN:
+                            if (udt.IsLocal)
                             {
-                                // DATA_NAME (First Last)
-                                ScriptBaseClass.DATA_NAME => account.FirstName + " " + account.LastName,
-                                // DATA_BORN (YYYY-MM-DD)
-                                ScriptBaseClass.DATA_BORN => Util.ToDateTime(account.Created).ToString("yyyy-MM-dd"),
-                                // DATA_RATING (0,0,0,0,0,0)
-                                ScriptBaseClass.DATA_RATING => "0,0,0,0,0,0",
-                                // DATA_USERLEVEL (integer).  This is not available in LL and so has no constant.
-                                7 => account.UserLevel.ToString(),
-                                // DATA_PAYINFO (0|1|2|3)
-                                ScriptBaseClass.DATA_PAYINFO => "0",
-                                _ => "0",// Raise no event
-                            };
+                                UserAccount account = m_userAccountService.GetUserAccount(RegionScopeID, uuid);
+                                if (account is not null)
+                                {
+                                    reply = data == 7 ?
+                                            account.UserLevel.ToString() :
+                                            Util.ToDateTime(account.Created).ToString("yyyy-MM-dd");
+                                }
+                            }
+                            else
+                            {
+                                if (data == 7)
+                                    reply = "0";
+                            }
+                            break;
+                        default:
+                            break;
                     }
-                    m_AsyncCommands.DataserverPlugin.DataserverReply(eventID, reply);
+                    if(reply != null)
+                        m_AsyncCommands.DataserverPlugin.DataserverReply(eventID, reply);
                 }
 
                 UUID tid = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId,
