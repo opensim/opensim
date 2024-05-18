@@ -44,9 +44,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void Clear()
         {
-            Data.Clear();
-            LinksetDataBytesFree = LINKSETDATA_MAX;
-            LinksetDataBytesUsed = 0;            
+            lock(linksetDataLock)
+            {
+                Data.Clear();
+                LinksetDataBytesFree = LINKSETDATA_MAX;
+                LinksetDataBytesUsed = 0;
+            }
         }
 
         public int Count()
@@ -130,10 +133,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void DeserializeLinksetData(string data)
         {
-            if (data == null || data.Length == 0)
+            if (string.IsNullOrWhiteSpace(data))
                 return;
 
-            //? Need to adjust accounting
             lock (linksetDataLock)
             {
                 Data = JsonSerializer.Deserialize<SortedList<string, LinksetDataEntry>>(data);
@@ -252,7 +254,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool LinksetDataOverLimit()
         {
-            return (LinksetDataBytesFree <= 0);
+            lock (linksetDataLock)
+            {
+                return (LinksetDataBytesFree <= 0);
+            }
         }
 
         /// <summary>
@@ -325,6 +330,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         /// <summary>
         /// Add/Subtract an integer value from the current data allocated for the Linkset.
+        /// Assumes a lock is held from the caller.
         /// </summary>
         /// <param name="delta">An integer value, positive adds, negative subtracts delta bytes.</param>
         private void LinksetDataAccountingDelta(int delta)
