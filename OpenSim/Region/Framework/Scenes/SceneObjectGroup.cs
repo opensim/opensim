@@ -2585,7 +2585,7 @@ namespace OpenSim.Region.Framework.Scenes
             // If the rootpart we're copying has LinksetData do a deep copy of that to the new rootpart.
             if (part.LinksetData != null)
             {
-                newpart.LinksetData = part.LinksetData.Copy();
+                newpart.LinksetData = (LinksetData)part.LinksetData.Clone();
             }
 
             SetRootPart(newpart);
@@ -3196,9 +3196,9 @@ namespace OpenSim.Region.Framework.Scenes
             // Merge linksetData if there is any
             if (linkPart.LinksetData is not null)
             {
-                m_rootPart.LinksetData ??= new LinksetData();
+                m_rootPart.LinksetData ??= new();
                 m_rootPart.LinksetData.MergeLinksetData(linkPart.LinksetData);
-                linkPart.LinksetData = null;
+                linkPart.LinksetData.Clear();
             }
 
             if (m_rootPart.PhysActor != null)

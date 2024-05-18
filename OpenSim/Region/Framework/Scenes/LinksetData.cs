@@ -8,44 +8,55 @@ using System.Text.RegularExpressions;
 
 namespace OpenSim.Region.Framework.Scenes
 {
-    public class LinksetData
+    public class LinksetData : ICloneable
     {
         public const int LINKSETDATA_MAX = 131072;
 
         private static readonly object linksetDataLock = new object();
 
+        public SortedList<string, LinksetDataEntry> Data { get; private set; } = new();
+
+        public int LinksetDataBytesFree { get; private set; } = LINKSETDATA_MAX;
+
+        public int LinksetDataBytesUsed { get; private set; } = 0;
+
         public LinksetData()
         {
-            Data = new SortedList<string, LinksetDataEntry>();
-
+            Data.Clear();
             LinksetDataBytesFree = LINKSETDATA_MAX;
             LinksetDataBytesUsed = 0;
         }
 
-        public SortedList<string, LinksetDataEntry> Data { get; private set; } = null;
+        public object Clone()
+        {
+            LinksetData copy = new LinksetData();
 
-        public int LinksetDataBytesFree { get; private set; } = LINKSETDATA_MAX;
-        public int LinksetDataBytesUsed { get; private set; } = 0;
+            copy.LinksetDataBytesFree = this.LinksetDataBytesFree;
+            copy.LinksetDataBytesUsed = this.LinksetDataBytesUsed;
+    
+            foreach (KeyValuePair<string, LinksetDataEntry> entry in Data)
+            {
+                copy.Data.Add(entry.Key, (LinksetDataEntry) entry.Value.Clone());
+            }
 
-        // Deep Copy of Linkset Data
-        public LinksetData Copy()
+            return copy;
+        }
+
+        public void Clear()
+        {
+            Data.Clear();
+            LinksetDataBytesFree = LINKSETDATA_MAX;
+            LinksetDataBytesUsed = 0;            
+        }
+
+        public int Count()
         {
             lock (linksetDataLock)
             {
-                var copy = new LinksetData();
-
-                foreach (var entry in Data)
-                {
-                    LinksetDataEntry val = entry.Value.Copy();
-                    copy.Data[entry.Key] = val;
-
-                    copy.LinksetDataAccountingDelta(val.GetCost(entry.Key));
-                }
-
-                return copy;
+                return Data.Count;
             }
         }
-
+        
         /// <summary>
         /// Adds or updates a entry to linkset data
         /// </summary>
@@ -177,11 +188,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public bool HasLinksetData()
-        {
-            return Data.Count > 0;
-        }
-
         /// <summary>
         /// LinksetDataCountMatches - Return a count of the # of keys that match pattern.
         /// </summary>
@@ -205,11 +211,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                 return count;
             }
-        }
-
-        public int LinksetDataKeys()
-        {
-            return Data.Count;
         }
 
         public string[] LinksetDataMultiDelete(string pattern, string pass, out int deleted, out int not_deleted)
@@ -278,7 +279,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (LinksetDataOverLimit())
                         break;
 
-                    LinksetDataEntry val = kvp.Value.Copy();
+                    LinksetDataEntry val = (LinksetDataEntry)kvp.Value.Clone();
                     Data[kvp.Key] = val;
 
                     LinksetDataAccountingDelta(val.GetCost(kvp.Key));
@@ -314,23 +315,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        /// <summary>
-        /// ResetLinksetData - clear the list and update the accounting.
-        /// </summary>
-        public void ResetLinksetData()
-        {
-            lock (linksetDataLock)
-            {
-                if (Data.Count <= 0)
-                    return;
-
-                Data.Clear();
-
-                LinksetDataBytesFree = LINKSETDATA_MAX;
-                LinksetDataBytesUsed = 0;
-            }
-        }
-
         public string SerializeLinksetData()
         {
             lock (linksetDataLock)
@@ -353,7 +337,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
     }
 
-    public class LinksetDataEntry
+    public class LinksetDataEntry : ICloneable
     {
         public LinksetDataEntry()
         {
@@ -363,6 +347,15 @@ namespace OpenSim.Region.Framework.Scenes
         {
             Value = value;
             Password = password;
+        }
+        
+        public object Clone()
+        {
+            return new LinksetDataEntry
+            {
+                Password = Password,
+                Value = Value
+            };
         }
 
         public string Password { get; private set; } = string.Empty;
@@ -379,15 +372,6 @@ namespace OpenSim.Region.Framework.Scenes
         public string CheckPasswordAndGetValue(string pass)
         {
             return CheckPassword(pass) ? Value : string.Empty;
-        }
-
-        public LinksetDataEntry Copy()
-        {
-            return new LinksetDataEntry
-            {
-                Password = Password,
-                Value = Value
-            };
         }
 
         /// <summary>

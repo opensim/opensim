@@ -18571,8 +18571,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 rootPrim.LinksetData = new LinksetData();
             }
-
-            rootPrim.LinksetData.ResetLinksetData();
+            else
+            {
+                rootPrim.LinksetData.Clear();
+            }
 
             object[] parameters = new object[]
             {
@@ -18607,7 +18609,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 rootPrim.LinksetData = new LinksetData();
             }
 
-            return new LSL_Integer(rootPrim.LinksetData.LinksetDataKeys());
+            return new LSL_Integer(rootPrim.LinksetData.Count());
         }
 
         public LSL_Integer llLinksetDataCountFound(LSL_String pattern)

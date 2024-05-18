@@ -198,7 +198,7 @@ namespace OpenSim.Region.Framework.Scenes
         public PhysicsActor PhysActor { get; set; }
 
         [XmlIgnore]
-        public LinksetData? LinksetData { get; set; } = null;
+        public LinksetData LinksetData { get; set; }
         
         //Xantor 20080528 Sound stuff:
         //  Note: This isn't persisted in the database right now, as the fields for that aren't just there yet.
@@ -5678,7 +5678,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (IsRoot && (LinksetData != null))
             {
-                if (LinksetData.HasLinksetData())
+                if (LinksetData.Count() > 0)
                     return LinksetData.SerializeLinksetData();
             }
 
@@ -5687,14 +5687,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void DeserializeLinksetData(string data)
         {
-            if (string.IsNullOrEmpty(data) || data.Length == 0)
+            if (string.IsNullOrWhiteSpace(data))
                 return;
 
-            if (LinksetData == null)
-            {
-                LinksetData = new LinksetData();
-            }
-
+            LinksetData = new();
             LinksetData.DeserializeLinksetData(data);
         }
 
