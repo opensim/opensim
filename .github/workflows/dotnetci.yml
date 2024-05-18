@@ -1,4 +1,4 @@
-name: .NET
+name: dotnet package
 
 on:
   push:
@@ -8,16 +8,36 @@ on:
 
 jobs:
   build:
+
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dotnet-version: [ '8.0.x', '9.0.x' ]
+
     steps:
-    - uses: actions/checkout@v2
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v1
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET ${{matrix.dotnet-version }}
+      uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 8.0.*
+        dotnet-version: ${{ matrix.dotnet-version }}
+    
+    - name: Display dotnet version
+      run: dotnet --version
+
     - name: Restore dependencies
       run: dotnet restore
+
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build --configuration Release
+
 #    - name: Run Tests
 #      run: dotnet test --logger "trx;LogFileName=<TestResults.trx>"
+#
+#      - name: Create the package
+#        run: dotnet pack --configuration Release <my project>
+#      - name: Publish the package to GPR
+#        run: dotnet nuget push <my project>/bin/Release/*.nupkg
+#
+#    - name: Publish the package to GPR
+#      run: dotnet nuget push <my project>/bin/Release/*.nupkg

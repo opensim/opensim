@@ -37,8 +37,8 @@
     <Compile Remove="Handlers\FetchInventory\FetchInvDescServerConnector.cs" />
     <Compile Remove="Handlers\FetchInventory\FetchInventory2Handler.cs" />
     <Compile Remove="Handlers\FetchInventory\FetchInventory2ServerConnector.cs" />
-	<Compile Remove="Handlers\FetchInventory\FetchLib2Handler.cs" />
-	<Compile Remove="Handlers\FetchInventory\FetchLibDescHandler.cs" />
+	  <Compile Remove="Handlers\FetchInventory\FetchLib2Handler.cs" />
+	  <Compile Remove="Handlers\FetchInventory\FetchLibDescHandler.cs" />
     <Compile Remove="Handlers\GetAssets\GetAssetsHandler.cs" />
     <Compile Remove="Handlers\GetMesh\GetMeshHandler.cs" />
     <Compile Remove="Handlers\GetMesh\GetMeshServerConnector.cs" />
