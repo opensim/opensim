@@ -6571,5 +6571,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             return ret.ToString();
         }
+
+        public LSL_Vector osGetLinkColor(LSL_Integer link, LSL_Integer face)
+        {
+            SceneObjectPart linkedPart = link.value switch
+            {
+                ScriptBaseClass.LINK_ROOT => m_host.ParentGroup.RootPart,
+                ScriptBaseClass.LINK_THIS => m_host,
+                _ => m_host.ParentGroup.GetLinkNumPart(link.value)
+            };
+
+            if (linkedPart != null)
+            {
+                InitLSL();
+                return m_LSL_Api.GetColor(linkedPart, face.value);
+            }
+
+            return LSL_Vector.Zero;
+        }
     }
 }

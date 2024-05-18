@@ -2068,7 +2068,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return GetColor(m_host, face);
         }
 
-        protected static LSL_Vector GetColor(SceneObjectPart part, int face)
+        public LSL_Vector GetColor(SceneObjectPart part, int face)
         {
             Primitive.TextureEntry tex = part.Shape.Textures;
             Color4 texcolor;
