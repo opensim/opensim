@@ -77,6 +77,9 @@ namespace OpenSim.Region.Framework.Scenes
                 if (LinksetDataOverLimit())
                     return 1;
 
+                if (string.IsNullOrWhiteSpace(key))
+                    return 2;
+
                 if (Data.TryGetValue(key, out LinksetDataEntry entry))
                 {
                     if (!entry.CheckPassword(pass))
@@ -91,10 +94,10 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // Add New or Update handled here.
                 LinksetDataEntry newEntry = new LinksetDataEntry(value, pass);
-                Data[key] = newEntry;
+                int cost = newEntry.GetCost(key);
 
-                // Add the cost for the newply created entry
-                LinksetDataAccountingDelta(newEntry.GetCost(key));
+                LinksetDataAccountingDelta(cost);
+                Data[key] = newEntry;
 
                 return 0;
             }
@@ -116,6 +119,11 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (Data.Count <= 0)
                     return -1;
+
+                if (string.IsNullOrWhiteSpace(key))
+                {
+                    return -1;
+                }
 
                 LinksetDataEntry entry;
                 if (!Data.TryGetValue(key, out entry))
@@ -276,6 +284,10 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 foreach (var kvp in otherLinksetData.Data)
                 {
+                    // Shouldn't happen but we wont add invalid kvps
+                    if (string.IsNullOrWhiteSpace(kvp.Key))
+                        continue;
+
                     // If its already present skip it
                     if (Data.ContainsKey(kvp.Key))
                         continue;
@@ -390,12 +402,21 @@ namespace OpenSim.Region.Framework.Scenes
         {
             int cost = 0;
 
-            cost += Encoding.UTF8.GetBytes(key).Length;
-            cost += Encoding.UTF8.GetBytes(this.Value).Length;
-
-            if (!string.IsNullOrEmpty(this.Password))
+            if (string.IsNullOrWhiteSpace(key))
             {
-                // For parity, the pass adds 32 bytes regardless of the length. See LL caveats
+                return cost;
+            }
+
+            cost += Encoding.UTF8.GetBytes(key).Length;
+
+            if (string.IsNullOrWhiteSpace(this.Value) is false)
+            {
+                cost += Encoding.UTF8.GetBytes(this.Value).Length;
+            }
+
+            if (string.IsNullOrEmpty(this.Password) is false)
+            {
+                // For parity, the password adds 32 bytes regardless of the length. See LL caveats
                 cost += Math.Max(Encoding.UTF8.GetBytes(this.Password).Length, 32);
             }
 
