@@ -35,7 +35,6 @@ using System.Threading;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
-using log4net;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
@@ -44,6 +43,9 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Region.PhysicsModules.SharedBase;
 using PermissionMask = OpenSim.Framework.PermissionMask;
+using System.Text.Json;
+
+using log4net;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -2193,7 +2195,12 @@ namespace OpenSim.Region.Framework.Scenes
                 dupe.PhysActor.LocalID = plocalID;
 
             dupe.PseudoCRC = (int)(DateTime.UtcNow.Ticks);
-            dupe.DeserializeLinksetData(SerializeLinksetData());
+
+            if (LinksetData != null)
+            {
+                dupe.LinksetData = (LinksetData)LinksetData.Clone();
+                //dupe.DeserializeLinksetData(SerializeLinksetData()); // MCD XXX
+            }
 
             ParentGroup.Scene.EventManager.TriggerOnSceneObjectPartCopy(dupe, this, userExposed);
 
@@ -5679,7 +5686,10 @@ namespace OpenSim.Region.Framework.Scenes
             if (IsRoot && (LinksetData != null))
             {
                 if (LinksetData.Count() > 0)
+                {
+                    //return JsonSerializer.Serialize<LinksetData>(LinksetData);
                     return LinksetData.SerializeLinksetData();
+                }
             }
 
             return string.Empty;
@@ -5690,7 +5700,8 @@ namespace OpenSim.Region.Framework.Scenes
             if (string.IsNullOrWhiteSpace(data))
                 return;
 
-            LinksetData = new();
+            //LinksetData = JsonSerializer.Deserialize<LinksetData>(data);
+            LinksetData ??= new();
             LinksetData.DeserializeLinksetData(data);
         }
 
