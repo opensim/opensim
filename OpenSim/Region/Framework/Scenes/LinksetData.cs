@@ -59,7 +59,34 @@ namespace OpenSim.Region.Framework.Scenes
                 return Data.Count;
             }
         }
-        
+
+        public string SerializeLinksetData()
+        {
+            lock (linksetDataLock)
+            {
+                return JsonSerializer.Serialize<SortedList<string, LinksetDataEntry>>(Data);
+            }
+        }
+
+        public void DeserializeLinksetData(string data)
+        {
+            if (string.IsNullOrWhiteSpace(data))
+                return;
+
+            lock (linksetDataLock)
+            {
+                Clear();
+                
+                Data = JsonSerializer.Deserialize<SortedList<string, LinksetDataEntry>>(data);
+
+                // Handle Cost accounting
+                foreach (var kvp in Data)
+                {
+                    LinksetDataAccountingDelta(kvp.Value.GetCost(kvp.Key));
+                }
+            }        
+        }
+
         /// <summary>
         /// Adds or updates a entry to linkset data
         /// </summary>
@@ -115,38 +142,27 @@ namespace OpenSim.Region.Framework.Scenes
         /// </returns>
         public int DeleteLinksetDataKey(string key, string pass)
         {
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                return -1;
+            }
+
             lock (linksetDataLock)
             {
                 if (Data.Count <= 0)
                     return -1;
 
-                if (string.IsNullOrWhiteSpace(key))
-                {
-                    return -1;
-                }
-
                 LinksetDataEntry entry;
-                if (!Data.TryGetValue(key, out entry))
+                if (Data.TryGetValue(key, out entry) is false)
                     return -1;
 
-                if (!entry.CheckPassword(pass))
+                if (entry.CheckPassword(pass) is false)
                     return 1;
 
                 Data.Remove(key);
                 LinksetDataAccountingDelta(-entry.GetCost(key));
 
                 return 0;
-            }
-        }
-
-        public void DeserializeLinksetData(string data)
-        {
-            if (string.IsNullOrWhiteSpace(data))
-                return;
-
-            lock (linksetDataLock)
-            {
-                Data = JsonSerializer.Deserialize<SortedList<string, LinksetDataEntry>>(data);
             }
         }
 
@@ -329,14 +345,6 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 return string.Empty;
-            }
-        }
-
-        public string SerializeLinksetData()
-        {
-            lock (linksetDataLock)
-            {
-                return JsonSerializer.Serialize<SortedList<string, LinksetDataEntry>>(Data);
             }
         }
 

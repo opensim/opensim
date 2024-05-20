@@ -1,12 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-    <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
-        <AssemblyTitle>OpenSim.Framework</AssemblyTitle>
-        <Company>http://opensimulator.org</Company>
-        <Product>OpenSim.Framework</Product>
-        <Copyright>Copyright (c) OpenSimulator.org Developers 2007-2009</Copyright>
-        <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    </PropertyGroup>
+  <PropertyGroup>
+      <TargetFramework>net8.0</TargetFramework>
+      <AssemblyTitle>OpenSim.Framework</AssemblyTitle>
+      <Company>http://opensimulator.org</Company>
+      <Product>OpenSim.Framework</Product>
+      <Copyright>Copyright (c) OpenSimulator.org Developers 2007-2009</Copyright>
+      <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup> 
+  <ItemGroup>
+    <PackageReference Include="log4net" Version="2.0.15" />
+  </ItemGroup>
 	<ItemGroup>
     <Reference Include="LukeSkywalker.IPNetwork">
       <HintPath>..\..\bin\LukeSkywalker.IPNetwork.dll</HintPath>
