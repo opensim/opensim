@@ -13,7 +13,7 @@ jobs:
     if: github.repository == 'opensim/opensim'
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: shortsha
       id: vars
       run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"   
@@ -21,9 +21,9 @@ jobs:
       run: bash ${GITHUB_WORKSPACE}/runprebuild.sh
 
     - name: Setup dotnet
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '6.0.x'
+        dotnet-version: '8.0.x'
     - name: Build
       id: build
       run: dotnet build --configuration Release OpenSim.sln
