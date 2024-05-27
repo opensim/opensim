@@ -292,7 +292,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     int nbytes = 
                         await m_udpSocket.ReceiveFromAsync(buf.Data.AsMemory(), SocketFlags.None, workSktAddress, InboundCancellationSource.Token).ConfigureAwait(false);
-                    if (!m_IsRunningInbound)
+                    if (!m_IsRunningInbound || InboundCancellationSource.IsCancellationRequested)
                     {
                         FreeUDPBuffer(buf);
                         return;
@@ -302,7 +302,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         int startTick = Util.EnvironmentTickCount();
 
-                        buf.RemoteEndPoint = Util.GetEndPoint(workSktAddress);;
+                        buf.RemoteEndPoint = Util.GetEndPoint(workSktAddress);
                         buf.DataLength = nbytes;
                         UdpReceives++;
 

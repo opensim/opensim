@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -40,107 +41,66 @@ namespace OpenSim.Framework.Serialization.External
     /// </summary>
     public class LandDataSerializer
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private static Dictionary<string, Action<LandData, XmlReader>> m_ldProcessors
-            = new Dictionary<string, Action<LandData, XmlReader>>();
+        private static readonly FrozenDictionary<string, Action<LandData, XmlReader>> m_ldProcessors
+            = new Dictionary<string, Action<LandData, XmlReader>>()
+            {
+                { "Area",             (ld, xtr) => ld.Area = Convert.ToInt32(xtr.ReadElementString("Area")) },
+                { "AuctionID",        (ld, xtr) => ld.AuctionID = Convert.ToUInt32(xtr.ReadElementString("AuctionID")) },
+                { "AuthBuyerID",      (ld, xtr) => ld.AuthBuyerID = UUID.Parse(xtr.ReadElementString("AuthBuyerID"))},
+                { "Category",         (ld, xtr) => ld.Category = (ParcelCategory)Convert.ToSByte(xtr.ReadElementString("Category")) },
+                { "ClaimDate",        (ld, xtr) => ld.ClaimDate = Convert.ToInt32(xtr.ReadElementString("ClaimDate")) },
+                { "ClaimPrice",       (ld, xtr) => ld.ClaimPrice = Convert.ToInt32(xtr.ReadElementString("ClaimPrice")) },
+                { "GlobalID",         (ld, xtr) => ld.GlobalID = UUID.Parse(xtr.ReadElementString("GlobalID")) },
+                { "GroupID",          (ld, xtr) => ld.GroupID = UUID.Parse(xtr.ReadElementString("GroupID")) },
+                { "IsGroupOwned",     (ld, xtr) => ld.IsGroupOwned = Convert.ToBoolean(xtr.ReadElementString("IsGroupOwned")) },
+                { "Bitmap",           (ld, xtr) => ld.Bitmap = Convert.FromBase64String(xtr.ReadElementString("Bitmap")) },
+                { "Description",      (ld, xtr) => ld.Description = xtr.ReadElementString("Description") },
+                { "Flags",            (ld, xtr) => ld.Flags = Convert.ToUInt32(xtr.ReadElementString("Flags")) },
+                { "LandingType",      (ld, xtr) => ld.LandingType = Convert.ToByte(xtr.ReadElementString("LandingType")) },
+                { "Name",             (ld, xtr) => ld.Name = xtr.ReadElementString("Name") },
+                { "Status",           (ld, xtr) => ld.Status = (ParcelStatus) Convert.ToSByte(xtr.ReadElementString("Status")) },
+                { "LocalID",          (ld, xtr) => ld.LocalID = Convert.ToInt32(xtr.ReadElementString("LocalID")) },
+                { "MediaAutoScale",   (ld, xtr) => ld.MediaAutoScale = Convert.ToByte(xtr.ReadElementString("MediaAutoScale")) },
+                { "MediaID",          (ld, xtr) => ld.MediaID = UUID.Parse(xtr.ReadElementString("MediaID")) },
+                { "MediaURL",         (ld, xtr) => ld.MediaURL = xtr.ReadElementString("MediaURL") },
+                { "MusicURL",         (ld, xtr) => ld.MusicURL = xtr.ReadElementString("MusicURL") },
+                { "OwnerID",          (ld, xtr) => ld.OwnerID  = UUID.Parse(xtr.ReadElementString("OwnerID")) },
 
-        private static Dictionary<string, Action<LandAccessEntry, XmlReader>> m_laeProcessors
-            = new Dictionary<string, Action<LandAccessEntry, XmlReader>>();
+                { "ParcelAccessList", ProcessParcelAccessList },
+
+                { "Environment", ProcessParcelEnvironment },
+
+                { "PassHours",        (ld, xtr) => ld.PassHours = Convert.ToSingle(xtr.ReadElementString("PassHours"))},
+                { "PassPrice",        (ld, xtr) => ld.PassPrice = Convert.ToInt32(xtr.ReadElementString("PassPrice"))},
+                { "SalePrice",        (ld, xtr) => ld.SalePrice = Convert.ToInt32(xtr.ReadElementString("SalePrice"))},
+                { "SnapshotID",       (ld, xtr) => ld.SnapshotID = UUID.Parse(xtr.ReadElementString("SnapshotID"))},
+                { "UserLocation",     (ld, xtr) => ld.UserLocation = Vector3.Parse(xtr.ReadElementString("UserLocation"))},
+                { "UserLookAt",       (ld, xtr) => ld.UserLookAt = Vector3.Parse(xtr.ReadElementString("UserLookAt"))},
+
+                { "OtherCleanTime",   (ld, xtr) => ld.OtherCleanTime = Convert.ToInt32(xtr.ReadElementString("OtherCleanTime")) },
+                { "SeeAVs",           (ld, xtr) => ld.SeeAVs = xtr.ReadElementString("SeeAVs") == "1" },
+                { "AnyAVSnds",        (ld, xtr) => ld.AnyAVSounds = xtr.ReadElementString("AnyAVSnds") == "1" },
+                { "GrpAVSnds",        (ld, xtr) => ld.GroupAVSounds = xtr.ReadElementString("GrpAVSnds") == "1" },
+            }.ToFrozenDictionary();
+
+        private static readonly FrozenDictionary<string, Action<LandAccessEntry, XmlReader>> m_laeProcessors
+            = new Dictionary<string, Action<LandAccessEntry, XmlReader>>()
+            {
+                { "AgentID",          (lae, xtr) => lae.AgentID = UUID.Parse(xtr.ReadElementString("AgentID")) },
+                { "Time",             (lae, xtr) =>
+                    {
+                        // We really don't care about temp vs perm here and this
+                        // would break on old oars. Assume all bans are perm
+                        xtr.ReadElementString("Time");
+                        lae.Expires = 0; // Convert.ToUint(                       xtr.ReadElementString("Time"));
+                     } },
+                { "AccessList",       (lae, xtr) => lae.Flags = (AccessList) Convert.ToUInt32(xtr.ReadElementString("AccessList")) }
+            }.ToFrozenDictionary();
 
         static LandDataSerializer()
         {
-            // LandData processors
-            m_ldProcessors.Add(
-                "Area",             (ld, xtr) => ld.Area = Convert.ToInt32(xtr.ReadElementString("Area")));
-            m_ldProcessors.Add(
-                "AuctionID",        (ld, xtr) => ld.AuctionID = Convert.ToUInt32(xtr.ReadElementString("AuctionID")));
-            m_ldProcessors.Add(
-                "AuthBuyerID",      (ld, xtr) => ld.AuthBuyerID = UUID.Parse(xtr.ReadElementString("AuthBuyerID")));
-            m_ldProcessors.Add(
-                "Category",         (ld, xtr) => ld.Category = (ParcelCategory)Convert.ToSByte(xtr.ReadElementString("Category")));
-            m_ldProcessors.Add(
-                "ClaimDate",        (ld, xtr) => ld.ClaimDate = Convert.ToInt32(xtr.ReadElementString("ClaimDate")));
-            m_ldProcessors.Add(
-                "ClaimPrice",       (ld, xtr) => ld.ClaimPrice = Convert.ToInt32(xtr.ReadElementString("ClaimPrice")));
-            m_ldProcessors.Add(
-                "GlobalID",         (ld, xtr) => ld.GlobalID = UUID.Parse(xtr.ReadElementString("GlobalID")));
-            m_ldProcessors.Add(
-                "GroupID",          (ld, xtr) => ld.GroupID = UUID.Parse(xtr.ReadElementString("GroupID")));
-            m_ldProcessors.Add(
-                "IsGroupOwned",     (ld, xtr) => ld.IsGroupOwned = Convert.ToBoolean(xtr.ReadElementString("IsGroupOwned")));
-            m_ldProcessors.Add(
-                "Bitmap",           (ld, xtr) => ld.Bitmap = Convert.FromBase64String(xtr.ReadElementString("Bitmap")));
-            m_ldProcessors.Add(
-                "Description",      (ld, xtr) => ld.Description = xtr.ReadElementString("Description"));
-            m_ldProcessors.Add(
-                "Flags",            (ld, xtr) => ld.Flags = Convert.ToUInt32(xtr.ReadElementString("Flags")));
-            m_ldProcessors.Add(
-                "LandingType",      (ld, xtr) => ld.LandingType = Convert.ToByte(xtr.ReadElementString("LandingType")));
-            m_ldProcessors.Add(
-                "Name",             (ld, xtr) => ld.Name = xtr.ReadElementString("Name"));
-            m_ldProcessors.Add(
-                "Status",           (ld, xtr) => ld.Status = (ParcelStatus)Convert.ToSByte(xtr.ReadElementString("Status")));
-            m_ldProcessors.Add(
-                "LocalID",          (ld, xtr) => ld.LocalID = Convert.ToInt32(xtr.ReadElementString("LocalID")));
-            m_ldProcessors.Add(
-                "MediaAutoScale",   (ld, xtr) => ld.MediaAutoScale = Convert.ToByte(xtr.ReadElementString("MediaAutoScale")));
-            m_ldProcessors.Add(
-                "MediaID",          (ld, xtr) => ld.MediaID = UUID.Parse(xtr.ReadElementString("MediaID")));
-            m_ldProcessors.Add(
-                "MediaURL",         (ld, xtr) => ld.MediaURL = xtr.ReadElementString("MediaURL"));
-            m_ldProcessors.Add(
-                "MusicURL",         (ld, xtr) => ld.MusicURL = xtr.ReadElementString("MusicURL"));
-            m_ldProcessors.Add(
-                "OwnerID",          (ld, xtr) => ld.OwnerID  = UUID.Parse(xtr.ReadElementString("OwnerID")));
-
-            m_ldProcessors.Add(
-                "ParcelAccessList", ProcessParcelAccessList);
-
-            m_ldProcessors.Add(
-                "Environment", ProcessParcelEnvironment);
-
-            m_ldProcessors.Add(
-                "PassHours",        (ld, xtr) => ld.PassHours = Convert.ToSingle(xtr.ReadElementString("PassHours")));
-            m_ldProcessors.Add(
-                "PassPrice",        (ld, xtr) => ld.PassPrice = Convert.ToInt32(xtr.ReadElementString("PassPrice")));
-            m_ldProcessors.Add(
-                "SalePrice",        (ld, xtr) => ld.SalePrice = Convert.ToInt32(xtr.ReadElementString("SalePrice")));
-            m_ldProcessors.Add(
-                "SnapshotID",       (ld, xtr) => ld.SnapshotID = UUID.Parse(xtr.ReadElementString("SnapshotID")));
-            m_ldProcessors.Add(
-                "UserLocation",     (ld, xtr) => ld.UserLocation = Vector3.Parse(xtr.ReadElementString("UserLocation")));
-            m_ldProcessors.Add(
-                "UserLookAt",       (ld, xtr) => ld.UserLookAt = Vector3.Parse(xtr.ReadElementString("UserLookAt")));
-
-            // No longer used here                                                                                                                  //
-            // m_ldProcessors.Add("Dwell",    (landData, xtr) => return);
-
-            m_ldProcessors.Add(
-                "OtherCleanTime",   (ld, xtr) => ld.OtherCleanTime = Convert.ToInt32(xtr.ReadElementString("OtherCleanTime")));
-
-            m_ldProcessors.Add(
-                "SeeAVs", (ld, xtr) => ld.SeeAVs = xtr.ReadElementString("SeeAVs") == "1");
-            m_ldProcessors.Add(
-                "AnyAVSnds", (ld, xtr) => ld.AnyAVSounds = xtr.ReadElementString("AnyAVSnds") == "1");
-            m_ldProcessors.Add(
-                "GrpAVSnds", (ld, xtr) => ld.GroupAVSounds = xtr.ReadElementString("GrpAVSnds") == "1");
-
-            // LandAccessEntryProcessors
-            m_laeProcessors.Add(
-                "AgentID",          (lae, xtr) => lae.AgentID = UUID.Parse(xtr.ReadElementString("AgentID")));
-            m_laeProcessors.Add(
-                "Time",             (lae, xtr) =>
-                {
-                    // We really don't care about temp vs perm here and this
-                    // would break on old oars. Assume all bans are perm
-                    xtr.ReadElementString("Time");
-                    lae.Expires = 0; // Convert.ToUint(                       xtr.ReadElementString("Time"));
-                }
-            );
-            m_laeProcessors.Add(
-                "AccessList",       (lae, xtr) => lae.Flags = (AccessList)Convert.ToUInt32(xtr.ReadElementString("AccessList")));
-
         }
 
         public static void ProcessParcelEnvironment(LandData ld, XmlReader xtr)

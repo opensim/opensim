@@ -39,7 +39,7 @@ namespace OpenSim
     {
         public const string VersionNumber = "0.9.3.0";
         public const string AssemblyVersionNumber = "0.9.3.0";
-        public const string Release = "8882";
+        public const string Release = "8902";
 
         public static string Version
         {

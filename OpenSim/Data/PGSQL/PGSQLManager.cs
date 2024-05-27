@@ -74,7 +74,7 @@ namespace OpenSim.Data.PGSQL
             {
                 return NpgsqlDbType.Double;
             }
-            if (type == typeof(Single))
+            if (type == typeof(float))
             {
                 return NpgsqlDbType.Double;
             }
@@ -166,10 +166,6 @@ namespace OpenSim.Data.PGSQL
         {
             Type valueType = value.GetType();
 
-            if (valueType == typeof(UUID)) //TODO check if this works
-            {
-                return ((UUID) value).Guid;
-            }
             if (valueType == typeof(UUID))
             {
                 return ((UUID)value).Guid;
@@ -186,6 +182,14 @@ namespace OpenSim.Data.PGSQL
             {
                 return value;
             }
+            if (valueType == typeof(uint))
+            {
+                return (int)(uint)value;
+            }
+            if (valueType == typeof(ushort))
+            {
+                return (int)(ushort)value;
+            }
             return value;
         }
 
@@ -199,17 +203,26 @@ namespace OpenSim.Data.PGSQL
         {
             if (PGFieldType == "uuid")
             {
-                UUID uidout;
-                UUID.TryParse(value.ToString(), out uidout);
-                return uidout;
+                if(value is not UUID uid)
+                    UUID.TryParse(value.ToString(), out uid);
+                return uid.Guid;
+            }
+            if (PGFieldType == "smallint" || PGFieldType == "smallserial")
+            {
+                short.TryParse(value.ToString(), out short sintout);
+                return sintout;
             }
             if (PGFieldType == "integer")
             {
-                int intout;
-                int.TryParse(value.ToString(), out intout);
+                int.TryParse(value.ToString(), out int intout);
                 return intout;
             }
-            if (PGFieldType == "boolean")
+            if (PGFieldType == "bigint")
+            {
+                long.TryParse(value.ToString(), out long lintout);
+                return lintout;
+            }
+            if (PGFieldType == "boolean" || PGFieldType == "bit")
             {
                 return (value.ToString() == "true");
             }
@@ -225,6 +238,9 @@ namespace OpenSim.Data.PGSQL
             {
                 return Convert.ToDouble(value);
             }
+            if (PGFieldType == "character" || PGFieldType == "character varying" || PGFieldType == "text")
+                return value.ToString();
+
             return CreateParameterValue(value);
         }
 
@@ -266,6 +282,18 @@ namespace OpenSim.Data.PGSQL
                 parameter.Value = CreateParameterValue(parameterObject);
             }
 
+            return parameter;
+        }
+
+        internal NpgsqlParameter CreateParameterNullBytea(string parameterName)
+        {
+            //Tweak so we dont always have to add : sign
+            if (parameterName.StartsWith(":")) parameterName = parameterName.Replace(":", "");
+
+            //HACK if object is null, it is turned into a string, there are no nullable type till now
+            NpgsqlParameter parameter = new NpgsqlParameter(parameterName, NpgsqlDbType.Bytea);
+            parameter.Direction = ParameterDirection.Input;
+            parameter.Value = DBNull.Value;
             return parameter;
         }
 
