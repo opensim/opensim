@@ -295,7 +295,7 @@ namespace OpenSim.Data.PGSQL
             using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
             {
                 NpgsqlParameter idParameter = new NpgsqlParameter("EstateID", DbType.Int32);
-                idParameter.Value = es.EstateID;
+                idParameter.Value = (int)es.EstateID;
                 cmd.Parameters.Add(idParameter);
                 conn.Open();
                 using (NpgsqlDataReader reader = cmd.ExecuteReader())
@@ -324,7 +324,7 @@ namespace OpenSim.Data.PGSQL
             using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
             using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
             {
-                cmd.Parameters.Add(_Database.CreateParameter("EstateID", estateID));
+                cmd.Parameters.Add(_Database.CreateParameter("EstateID", (int)estateID));
                 conn.Open();
                 using (NpgsqlDataReader reader = cmd.ExecuteReader())
                 {
@@ -397,7 +397,7 @@ namespace OpenSim.Data.PGSQL
                 conn.Open();
                 using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
                 {
-                    cmd.Parameters.AddWithValue("EstateID", (int)estateID);
+                    cmd.Parameters.AddWithValue("EstateID", estateID);
                     using (NpgsqlDataReader reader = cmd.ExecuteReader())
                     {
                         if (reader.Read())

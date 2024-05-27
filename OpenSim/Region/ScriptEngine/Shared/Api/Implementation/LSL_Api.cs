@@ -12059,8 +12059,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         //  redundancy).
         //  </para>
         //  <para>
-        //  LSL requires a base64 string to be 8
-        //  characters in length. LSL also uses '/'
+        // LSL also uses '/'
         //  rather than '-' (MIME compliant).
         //  </para>
         //  <para>
@@ -12205,7 +12204,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         //  be returned.
         //  If fewer than 6 characters are supplied, then
         //  the answer will reflect a partial
-        //  accumulation.
+        //  accumulation of full bytes
         //  <para>
         //  The 6-bit segments are
         //  extracted left-to-right in big-endian mode,
@@ -12225,59 +12224,53 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Integer llBase64ToInteger(string str)
         {
-            int number = 0;
-            int digit;
-
-
-            //    Require a well-fromed base64 string
-
-            if (str.Length > 8)
+            if (str is null || str.Length < 2 || str.Length > 8)
                 return 0;
 
-            //    The loop is unrolled in the interests
-            //    of performance and simple necessity.
-            //
-            //    MUST find 6 digits to be well formed
-            //      -1 == invalid
-            //       0 == padding
-
+            int digit;
             if ((digit = c2itable[str[0]]) <= 0)
-            {
-                return digit < 0 ? (int)0 : number;
-            }
-            number += --digit<<26;
+                return 0;
+
+            int number = --digit << 26;
 
             if ((digit = c2itable[str[1]]) <= 0)
-            {
-                return digit < 0 ? (int)0 : number;
-            }
-            number += --digit<<20;
+                return 0;
+
+            if (str.Length == 2)
+                return number | (--digit & 0x30) << 20;
+
+            int next = --digit << 20;
 
             if ((digit = c2itable[str[2]]) <= 0)
-            {
-                return digit < 0 ? (int)0 : number;
-            }
-            number += --digit<<14;
+                return number;
+
+            number |= next;
+            if (str.Length == 3)
+                return number | (--digit & 0x3C) << 14;
+
+            next = --digit << 14;
 
             if ((digit = c2itable[str[3]]) <= 0)
-            {
-                return digit < 0 ? (int)0 : number;
-            }
-            number += --digit<<8;
+                return number;
+
+            number |= next;
+            number |= --digit << 8;
+            if (str.Length == 4)
+                return number;
 
             if ((digit = c2itable[str[4]]) <= 0)
-            {
-                return digit < 0 ? (int)0 : number;
-            }
-            number += --digit<<2;
+                return number;
+
+            if (str.Length == 5)
+                return number;
+
+            next = --digit << 2;
 
             if ((digit = c2itable[str[5]]) <= 0)
-            {
-                return digit < 0 ? (int)0 : number;
-            }
-            number += --digit>>4;
+                return number;
 
-            // ignore trailing padding
+            number |= next;
+            number |= --digit >> 4;
 
             return number;
         }
@@ -18578,8 +18571,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 rootPrim.LinksetData = new LinksetData();
             }
-
-            rootPrim.LinksetData.ResetLinksetData();
+            else
+            {
+                rootPrim.LinksetData.Clear();
+            }
 
             object[] parameters = new object[]
             {
@@ -18614,7 +18609,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 rootPrim.LinksetData = new LinksetData();
             }
 
-            return new LSL_Integer(rootPrim.LinksetData.LinksetDataKeys());
+            return new LSL_Integer(rootPrim.LinksetData.Count());
         }
 
         public LSL_Integer llLinksetDataCountFound(LSL_String pattern)

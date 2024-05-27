@@ -8,42 +8,83 @@ using System.Text.RegularExpressions;
 
 namespace OpenSim.Region.Framework.Scenes
 {
-    public class LinksetData
+    public class LinksetData : ICloneable
     {
         public const int LINKSETDATA_MAX = 131072;
 
         private static readonly object linksetDataLock = new object();
 
+        public SortedList<string, LinksetDataEntry> Data { get; private set; } = new();
+
+        public int LinksetDataBytesFree { get; private set; } = LINKSETDATA_MAX;
+
+        public int LinksetDataBytesUsed { get; private set; } = 0;
+
         public LinksetData()
         {
-            Data = new SortedList<string, LinksetDataEntry>();
-
+            Data.Clear();
             LinksetDataBytesFree = LINKSETDATA_MAX;
             LinksetDataBytesUsed = 0;
         }
 
-        public SortedList<string, LinksetDataEntry> Data { get; private set; } = null;
+        public object Clone()
+        {
+            LinksetData copy = new LinksetData();
 
-        public int LinksetDataBytesFree { get; private set; } = LINKSETDATA_MAX;
-        public int LinksetDataBytesUsed { get; private set; } = 0;
+            copy.LinksetDataBytesFree = this.LinksetDataBytesFree;
+            copy.LinksetDataBytesUsed = this.LinksetDataBytesUsed;
+    
+            foreach (KeyValuePair<string, LinksetDataEntry> entry in Data)
+            {
+                copy.Data.Add(entry.Key, (LinksetDataEntry) entry.Value.Clone());
+            }
 
-        // Deep Copy of Linkset Data
-        public LinksetData Copy()
+            return copy;
+        }
+
+        public void Clear()
+        {
+            lock(linksetDataLock)
+            {
+                Data.Clear();
+                LinksetDataBytesFree = LINKSETDATA_MAX;
+                LinksetDataBytesUsed = 0;
+            }
+        }
+
+        public int Count()
         {
             lock (linksetDataLock)
             {
-                var copy = new LinksetData();
-
-                foreach (var entry in Data)
-                {
-                    LinksetDataEntry val = entry.Value.Copy();
-                    copy.Data[entry.Key] = val;
-
-                    copy.LinksetDataAccountingDelta(val.GetCost(entry.Key));
-                }
-
-                return copy;
+                return Data.Count;
             }
+        }
+
+        public string SerializeLinksetData()
+        {
+            lock (linksetDataLock)
+            {
+                return JsonSerializer.Serialize<SortedList<string, LinksetDataEntry>>(Data);
+            }
+        }
+
+        public void DeserializeLinksetData(string data)
+        {
+            if (string.IsNullOrWhiteSpace(data))
+                return;
+
+            lock (linksetDataLock)
+            {
+                Clear();
+                
+                Data = JsonSerializer.Deserialize<SortedList<string, LinksetDataEntry>>(data);
+
+                // Handle Cost accounting
+                foreach (var kvp in Data)
+                {
+                    LinksetDataAccountingDelta(kvp.Value.GetCost(kvp.Key));
+                }
+            }        
         }
 
         /// <summary>
@@ -63,6 +104,9 @@ namespace OpenSim.Region.Framework.Scenes
                 if (LinksetDataOverLimit())
                     return 1;
 
+                if (string.IsNullOrWhiteSpace(key))
+                    return 2;
+
                 if (Data.TryGetValue(key, out LinksetDataEntry entry))
                 {
                     if (!entry.CheckPassword(pass))
@@ -77,10 +121,10 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // Add New or Update handled here.
                 LinksetDataEntry newEntry = new LinksetDataEntry(value, pass);
-                Data[key] = newEntry;
+                int cost = newEntry.GetCost(key);
 
-                // Add the cost for the newply created entry
-                LinksetDataAccountingDelta(newEntry.GetCost(key));
+                LinksetDataAccountingDelta(cost);
+                Data[key] = newEntry;
 
                 return 0;
             }
@@ -98,34 +142,27 @@ namespace OpenSim.Region.Framework.Scenes
         /// </returns>
         public int DeleteLinksetDataKey(string key, string pass)
         {
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                return -1;
+            }
+
             lock (linksetDataLock)
             {
                 if (Data.Count <= 0)
                     return -1;
 
                 LinksetDataEntry entry;
-                if (!Data.TryGetValue(key, out entry))
+                if (Data.TryGetValue(key, out entry) is false)
                     return -1;
 
-                if (!entry.CheckPassword(pass))
+                if (entry.CheckPassword(pass) is false)
                     return 1;
 
                 Data.Remove(key);
                 LinksetDataAccountingDelta(-entry.GetCost(key));
 
                 return 0;
-            }
-        }
-
-        public void DeserializeLinksetData(string data)
-        {
-            if (data == null || data.Length == 0)
-                return;
-
-            //? Need to adjust accounting
-            lock (linksetDataLock)
-            {
-                Data = JsonSerializer.Deserialize<SortedList<string, LinksetDataEntry>>(data);
             }
         }
 
@@ -177,11 +214,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public bool HasLinksetData()
-        {
-            return Data.Count > 0;
-        }
-
         /// <summary>
         /// LinksetDataCountMatches - Return a count of the # of keys that match pattern.
         /// </summary>
@@ -205,11 +237,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                 return count;
             }
-        }
-
-        public int LinksetDataKeys()
-        {
-            return Data.Count;
         }
 
         public string[] LinksetDataMultiDelete(string pattern, string pass, out int deleted, out int not_deleted)
@@ -251,7 +278,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool LinksetDataOverLimit()
         {
-            return (LinksetDataBytesFree <= 0);
+            lock (linksetDataLock)
+            {
+                return (LinksetDataBytesFree <= 0);
+            }
         }
 
         /// <summary>
@@ -270,6 +300,10 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 foreach (var kvp in otherLinksetData.Data)
                 {
+                    // Shouldn't happen but we wont add invalid kvps
+                    if (string.IsNullOrWhiteSpace(kvp.Key))
+                        continue;
+
                     // If its already present skip it
                     if (Data.ContainsKey(kvp.Key))
                         continue;
@@ -278,7 +312,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (LinksetDataOverLimit())
                         break;
 
-                    LinksetDataEntry val = kvp.Value.Copy();
+                    LinksetDataEntry val = (LinksetDataEntry)kvp.Value.Clone();
                     Data[kvp.Key] = val;
 
                     LinksetDataAccountingDelta(val.GetCost(kvp.Key));
@@ -315,32 +349,8 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// ResetLinksetData - clear the list and update the accounting.
-        /// </summary>
-        public void ResetLinksetData()
-        {
-            lock (linksetDataLock)
-            {
-                if (Data.Count <= 0)
-                    return;
-
-                Data.Clear();
-
-                LinksetDataBytesFree = LINKSETDATA_MAX;
-                LinksetDataBytesUsed = 0;
-            }
-        }
-
-        public string SerializeLinksetData()
-        {
-            lock (linksetDataLock)
-            {
-                return JsonSerializer.Serialize<SortedList<string, LinksetDataEntry>>(Data);
-            }
-        }
-
-        /// <summary>
         /// Add/Subtract an integer value from the current data allocated for the Linkset.
+        /// Assumes a lock is held from the caller.
         /// </summary>
         /// <param name="delta">An integer value, positive adds, negative subtracts delta bytes.</param>
         private void LinksetDataAccountingDelta(int delta)
@@ -353,7 +363,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
     }
 
-    public class LinksetDataEntry
+    public class LinksetDataEntry : ICloneable
     {
         public LinksetDataEntry()
         {
@@ -363,6 +373,15 @@ namespace OpenSim.Region.Framework.Scenes
         {
             Value = value;
             Password = password;
+        }
+        
+        public object Clone()
+        {
+            return new LinksetDataEntry
+            {
+                Password = Password,
+                Value = Value
+            };
         }
 
         public string Password { get; private set; } = string.Empty;
@@ -381,15 +400,6 @@ namespace OpenSim.Region.Framework.Scenes
             return CheckPassword(pass) ? Value : string.Empty;
         }
 
-        public LinksetDataEntry Copy()
-        {
-            return new LinksetDataEntry
-            {
-                Password = Password,
-                Value = Value
-            };
-        }
-
         /// <summary>
         /// Calculate the cost in bytes for this entry.  Adds in the passed in key and
         /// if a password is supplied uses 32 bytes minimum unless the password is longer.
@@ -400,12 +410,21 @@ namespace OpenSim.Region.Framework.Scenes
         {
             int cost = 0;
 
-            cost += Encoding.UTF8.GetBytes(key).Length;
-            cost += Encoding.UTF8.GetBytes(this.Value).Length;
-
-            if (!string.IsNullOrEmpty(this.Password))
+            if (string.IsNullOrWhiteSpace(key))
             {
-                // For parity, the pass adds 32 bytes regardless of the length. See LL caveats
+                return cost;
+            }
+
+            cost += Encoding.UTF8.GetBytes(key).Length;
+
+            if (string.IsNullOrWhiteSpace(this.Value) is false)
+            {
+                cost += Encoding.UTF8.GetBytes(this.Value).Length;
+            }
+
+            if (string.IsNullOrEmpty(this.Password) is false)
+            {
+                // For parity, the password adds 32 bytes regardless of the length. See LL caveats
                 cost += Math.Max(Encoding.UTF8.GetBytes(this.Password).Length, 32);
             }
 
