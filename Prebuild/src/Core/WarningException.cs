@@ -70,15 +70,6 @@ namespace Prebuild.Core
         {
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="info"></param>
-        /// <param name="context"></param>
-        protected WarningException(SerializationInfo info, StreamingContext context) : base(info, context)
-        {
-        }
-
         #endregion
     }
 }
