@@ -1807,5 +1807,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osGetLinkColor(link, face);
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public vector osTemperatureToLinearColor(LSL_Float dtemp)
+        {
+            return m_OSSL_Functions.osTemperatureToLinearColor(dtemp);
+        }
     }
 }

@@ -627,5 +627,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_String osAESDecrypt(string secret, string encryptedText);
         LSL_String osAESDecryptFrom(string secret, string encryptedText, string ivString);
             vector osGetLinkColor(LSL_Integer linknum, LSL_Integer face);
+            vector osTemperatureToLinearColor(LSL_Float dtemp);
     }
 }
