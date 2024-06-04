@@ -6590,7 +6590,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return LSL_Vector.Zero;
         }
 
-        public LSL_Vector osTemperatureToLinearColor(LSL_Float dtemp)
+        public LSL_Vector osTemperature2sRGB(LSL_Float dtemp)
         {
             float temp = (float)dtemp.value;
             if (temp <= 1000f)
