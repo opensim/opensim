@@ -6237,8 +6237,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             float rsy = World.RegionInfo.RegionSizeY;
 
             // can understand what sl does if position is not in region, so do something :)
-            float px = (float)Util.Clamp(pos.x, 0.5, rsx - 0.5);
-            float py = (float)Util.Clamp(pos.y, 0.5, rsy - 0.5);
+            float px = Math.Clamp((float)pos.x, 0.5f, rsx - 0.5f);
+            float py = Math.Clamp((float)pos.y, 0.5f, rsy - 0.5f);
 
             float ex, ey;
 
@@ -10247,10 +10247,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 return new LSL_List();
                             }
 
-                            float repeatX = (float)Util.Clamp(mnrepeat.x,-100.0, 100.0);
-                            float repeatY = (float)Util.Clamp(mnrepeat.y,-100.0, 100.0);
-                            float offsetX = (float)Util.Clamp(mnoffset.x, 0, 1.0);
-                            float offsetY = (float)Util.Clamp(mnoffset.y, 0, 1.0);
+                            float repeatX = Math.Clamp((float)mnrepeat.x,-100.0f, 100.0f);
+                            float repeatY = Math.Clamp((float)mnrepeat.y,-100.0f, 100.0f);
+                            float offsetX = Math.Clamp((float)mnoffset.x, 0f, 1.0f);
+                            float offsetY = Math.Clamp((float)mnoffset.y, 0f, 1.0f);
 
                             materialChanged |= SetMaterialNormalMap(part, face, mapID, repeatX, repeatY, offsetX, offsetY, mnrot);
                             break;
@@ -10349,15 +10349,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                return new LSL_List();
                             }
 
-                            float srepeatX = (float)Util.Clamp(msrepeat.x, -100.0, 100.0);
-                            float srepeatY = (float)Util.Clamp(msrepeat.y, -100.0, 100.0);
-                            float soffsetX = (float)Util.Clamp(msoffset.x, -1.0, 1.0);
-                            float soffsetY = (float)Util.Clamp(msoffset.y, -1.0, 1.0);
-                            byte colorR = (byte)(255.0 * Util.Clamp(mscolor.x, 0, 1.0) + 0.5);
-                            byte colorG = (byte)(255.0 * Util.Clamp(mscolor.y, 0, 1.0) + 0.5);
-                            byte colorB = (byte)(255.0 * Util.Clamp(mscolor.z, 0, 1.0) + 0.5);
-                            byte gloss = (byte)Util.Clamp((int)msgloss, 0, 255);
-                            byte env = (byte)Util.Clamp((int)msenv, 0, 255);
+                            float srepeatX = Math.Clamp((float)msrepeat.x, -100.0f, 100.0f);
+                            float srepeatY = Math.Clamp((float)msrepeat.y, -100.0f, 100.0f);
+                            float soffsetX = Math.Clamp((float)msoffset.x, -1.0f, 1.0f);
+                            float soffsetY = Math.Clamp((float)msoffset.y, -1.0f, 1.0f);
+                            byte colorR = (byte)(255.0f * Math.Clamp((float)mscolor.x, 0f, 1.0f) + 0.5f);
+                            byte colorG = (byte)(255.0f * Math.Clamp((float)mscolor.y, 0f, 1.0f) + 0.5f);
+                            byte colorB = (byte)(255.0f * Math.Clamp((float)mscolor.z, 0f, 1.0f) + 0.5f);
+                            byte gloss = (byte)Math.Clamp((int)msgloss, 0, 255);
+                            byte env = (byte)Math.Clamp((int)msenv, 0, 255);
 
                             materialChanged |= SetMaterialSpecMap(part, face, smapID, srepeatX, srepeatY, soffsetX, soffsetY,
                                                 msrot, colorR, colorG, colorB, gloss, env);
@@ -10426,9 +10426,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             {
                                 part.Shape.ProjectionEntry = true;
                                 part.Shape.ProjectionTextureUUID = stexID;
-                                part.Shape.ProjectionFOV = Util.Clamp(fov, 0, 3.0f);
-                                part.Shape.ProjectionFocus = Util.Clamp(focus, -20.0f, 20.0f);
-                                part.Shape.ProjectionAmbiance = Util.Clamp(amb, 0, 1.0f);
+                                part.Shape.ProjectionFOV = Math.Clamp(fov, 0, 3.0f);
+                                part.Shape.ProjectionFocus = Math.Clamp(focus, -20.0f, 20.0f);
+                                part.Shape.ProjectionAmbiance = Math.Clamp(amb, 0, 1.0f);
 
                                 part.ParentGroup.HasGroupChanged = true;
                                 part.ScheduleFullUpdate();
@@ -16586,32 +16586,32 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             int yInt = (int)yPos;
 
             // Corner 1 of 1x1 rectangle
-            int x = Util.Clamp<int>(xInt+1, 0, World.Heightmap.Width - 1);
-            int y = Util.Clamp<int>(yInt+1, 0, World.Heightmap.Height - 1);
+            int x = Math.Clamp(xInt+1, 0, World.Heightmap.Width - 1);
+            int y = Math.Clamp(yInt+1, 0, World.Heightmap.Height - 1);
             Vector3 pos1 = new(x, y, (float)World.Heightmap[x, y]);
             // Adjust bounding box
             zLower = Math.Min(zLower, pos1.Z);
             zUpper = Math.Max(zUpper, pos1.Z);
 
             // Corner 2 of 1x1 rectangle
-            x = Util.Clamp<int>(xInt, 0, World.Heightmap.Width - 1);
-            y = Util.Clamp<int>(yInt+1, 0, World.Heightmap.Height - 1);
+            x = Math.Clamp(xInt, 0, World.Heightmap.Width - 1);
+            y = Math.Clamp(yInt+1, 0, World.Heightmap.Height - 1);
             Vector3 pos2 = new(x, y, (float)World.Heightmap[x, y]);
             // Adjust bounding box
             zLower = Math.Min(zLower, pos2.Z);
             zUpper = Math.Max(zUpper, pos2.Z);
 
             // Corner 3 of 1x1 rectangle
-            x = Util.Clamp<int>(xInt, 0, World.Heightmap.Width - 1);
-            y = Util.Clamp<int>(yInt, 0, World.Heightmap.Height - 1);
+            x = Math.Clamp(xInt, 0, World.Heightmap.Width - 1);
+            y = Math.Clamp(yInt, 0, World.Heightmap.Height - 1);
             Vector3 pos3 = new(x, y, (float)World.Heightmap[x, y]);
             // Adjust bounding box
             zLower = Math.Min(zLower, pos3.Z);
             zUpper = Math.Max(zUpper, pos3.Z);
 
             // Corner 4 of 1x1 rectangle
-            x = Util.Clamp<int>(xInt+1, 0, World.Heightmap.Width - 1);
-            y = Util.Clamp<int>(yInt, 0, World.Heightmap.Height - 1);
+            x = Math.Clamp(xInt+1, 0, World.Heightmap.Width - 1);
+            y = Math.Clamp(yInt, 0, World.Heightmap.Height - 1);
             Vector3 pos4 = new(x, y, (float)World.Heightmap[x, y]);
             // Adjust bounding box
             zLower = Math.Min(zLower, pos4.Z);
