@@ -2068,7 +2068,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return GetColor(m_host, face);
         }
 
-        protected static LSL_Vector GetColor(SceneObjectPart part, int face)
+        public LSL_Vector GetColor(SceneObjectPart part, int face)
         {
             Primitive.TextureEntry tex = part.Shape.Textures;
             Color4 texcolor;
@@ -4642,24 +4642,33 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Key llRequestAgentData(string id, int data)
         {
+            if(data < 1 || data > ScriptBaseClass.DATA_PAYINFO)
+                return string.Empty;
+
             if (UUID.TryParse(id, out UUID uuid) && uuid.IsNotZero())
             {
                 //pre process fast local avatars
                 switch(data)
                 {
+                    case ScriptBaseClass.DATA_RATING:
+                    case ScriptBaseClass.DATA_NAME: // DATA_NAME (First Last)
                     case ScriptBaseClass.DATA_ONLINE:
                         World.TryGetScenePresence(uuid, out ScenePresence sp);
                         if (sp != null)
                         {
+                            string reply = data switch
+                            {
+                                ScriptBaseClass.DATA_RATING => "0,0,0,0,0,0",
+                                ScriptBaseClass.DATA_NAME => sp.Firstname + " " + sp.Lastname,
+                                _ => "1"
+                            };
                             string ftid = m_AsyncCommands.DataserverPlugin.RequestWithImediatePost(m_host.LocalId,
-                                                    m_item.ItemID, "1");
+                                                    m_item.ItemID, reply);
                             ScriptSleep(m_sleepMsOnRequestAgentData);
                             return ftid;
                         }
                         break;
-                    case ScriptBaseClass.DATA_NAME: // DATA_NAME (First Last)
                     case ScriptBaseClass.DATA_BORN: // DATA_BORN (YYYY-MM-DD)
-                    case ScriptBaseClass.DATA_RATING: // DATA_RATING (0,0,0,0,0,0)
                     case 7: // DATA_USERLEVEL (integer).  This is not available in LL and so has no constant.
                     case ScriptBaseClass.DATA_PAYINFO: // DATA_PAYINFO (0|1|2|3)
                         break;
@@ -4669,63 +4678,68 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 void act(string eventID)
                 {
-                    UserAccount account = null;
-                    string reply;
+                    IUserManagement umm = World.RequestModuleInterface<IUserManagement>();
+                    if(umm == null)
+                        return;
 
-                    if (data == ScriptBaseClass.DATA_ONLINE)
+                    UserData udt = umm.GetUserData(uuid);
+                    if (udt == null || udt.IsUnknownUser)
+                        return;
+
+                    string reply = null;
+                    switch(data)
                     {
-                        World.TryGetScenePresence(uuid, out ScenePresence sp);
-                        if (sp != null)
-                            reply = "1";
-                        else
-                        {
-                            account = m_userAccountService.GetUserAccount(RegionScopeID, uuid);
-                            if (account == null)
-                                reply = "0";
-                            else
+                        case ScriptBaseClass.DATA_ONLINE:
+                            if (!m_PresenceInfoCache.TryGetValue(uuid, out PresenceInfo pinfo))
                             {
-                                if (!m_PresenceInfoCache.TryGetValue(uuid, out PresenceInfo pinfo))
+                                PresenceInfo[] pinfos = World.PresenceService.GetAgents([uuid.ToString()]);
+                                if (pinfos != null && pinfos.Length > 0)
                                 {
-                                    PresenceInfo[] pinfos = World.PresenceService.GetAgents(new string[] { uuid.ToString() });
-                                    if (pinfos != null && pinfos.Length > 0)
+                                    foreach (PresenceInfo p in pinfos)
                                     {
-                                        foreach (PresenceInfo p in pinfos)
+                                        if (!p.RegionID.IsZero())
                                         {
-                                            if (!p.RegionID.IsZero())
-                                            {
-                                                pinfo = p;
-                                            }
+                                            pinfo = p;
                                         }
                                     }
-                                    m_PresenceInfoCache.AddOrUpdate(uuid, pinfo, m_llRequestAgentDataCacheTimeout);
                                 }
-                                reply = pinfo == null ? "0" : "1";
+                                m_PresenceInfoCache.AddOrUpdate(uuid, pinfo, m_llRequestAgentDataCacheTimeout);
                             }
-                        }
-                    }
-                    else
-                    {
-                        account ??= m_userAccountService.GetUserAccount(RegionScopeID, uuid);
-
-                        if (account is null)
-                            reply = "0";
-                        else
-                            reply = data switch
+                            reply = pinfo == null ? "0" : "1";
+                            break;
+                        case ScriptBaseClass.DATA_NAME:
+                            reply = udt.FirstName + " " + udt.LastName;
+                            break;
+                        case ScriptBaseClass.DATA_RATING:
+                            reply = "0,0,0,0,0,0";
+                            break;
+                        case 7:
+                        case ScriptBaseClass.DATA_BORN:
+                        case ScriptBaseClass.DATA_PAYINFO:
+                            if (udt.IsLocal)
                             {
-                                // DATA_NAME (First Last)
-                                ScriptBaseClass.DATA_NAME => account.FirstName + " " + account.LastName,
-                                // DATA_BORN (YYYY-MM-DD)
-                                ScriptBaseClass.DATA_BORN => Util.ToDateTime(account.Created).ToString("yyyy-MM-dd"),
-                                // DATA_RATING (0,0,0,0,0,0)
-                                ScriptBaseClass.DATA_RATING => "0,0,0,0,0,0",
-                                // DATA_USERLEVEL (integer).  This is not available in LL and so has no constant.
-                                7 => account.UserLevel.ToString(),
-                                // DATA_PAYINFO (0|1|2|3)
-                                ScriptBaseClass.DATA_PAYINFO => "0",
-                                _ => "0",// Raise no event
-                            };
+                                UserAccount account = m_userAccountService.GetUserAccount(RegionScopeID, uuid);
+                                if (account is not null)
+                                {
+                                    reply = data switch
+                                    { 
+                                        7 => account.UserLevel.ToString(),
+                                        ScriptBaseClass.DATA_BORN => Util.ToDateTime(account.Created).ToString("yyyy-MM-dd"),
+                                        _ => ((account.UserFlags >> 2) & 0x03).ToString()
+                                    };
+                                }
+                            }
+                            else
+                            {
+                                if (data == 7)
+                                    reply = "0";
+                            }
+                            break;
+                        default:
+                            break;
                     }
-                    m_AsyncCommands.DataserverPlugin.DataserverReply(eventID, reply);
+                    if(reply != null)
+                        m_AsyncCommands.DataserverPlugin.DataserverReply(eventID, reply);
                 }
 
                 UUID tid = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId,
@@ -6223,8 +6237,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             float rsy = World.RegionInfo.RegionSizeY;
 
             // can understand what sl does if position is not in region, so do something :)
-            float px = (float)Util.Clamp(pos.x, 0.5, rsx - 0.5);
-            float py = (float)Util.Clamp(pos.y, 0.5, rsy - 0.5);
+            float px = Math.Clamp((float)pos.x, 0.5f, rsx - 0.5f);
+            float py = Math.Clamp((float)pos.y, 0.5f, rsy - 0.5f);
 
             float ex, ey;
 
@@ -10233,10 +10247,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 return new LSL_List();
                             }
 
-                            float repeatX = (float)Util.Clamp(mnrepeat.x,-100.0, 100.0);
-                            float repeatY = (float)Util.Clamp(mnrepeat.y,-100.0, 100.0);
-                            float offsetX = (float)Util.Clamp(mnoffset.x, 0, 1.0);
-                            float offsetY = (float)Util.Clamp(mnoffset.y, 0, 1.0);
+                            float repeatX = Math.Clamp((float)mnrepeat.x,-100.0f, 100.0f);
+                            float repeatY = Math.Clamp((float)mnrepeat.y,-100.0f, 100.0f);
+                            float offsetX = Math.Clamp((float)mnoffset.x, 0f, 1.0f);
+                            float offsetY = Math.Clamp((float)mnoffset.y, 0f, 1.0f);
 
                             materialChanged |= SetMaterialNormalMap(part, face, mapID, repeatX, repeatY, offsetX, offsetY, mnrot);
                             break;
@@ -10335,15 +10349,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                return new LSL_List();
                             }
 
-                            float srepeatX = (float)Util.Clamp(msrepeat.x, -100.0, 100.0);
-                            float srepeatY = (float)Util.Clamp(msrepeat.y, -100.0, 100.0);
-                            float soffsetX = (float)Util.Clamp(msoffset.x, -1.0, 1.0);
-                            float soffsetY = (float)Util.Clamp(msoffset.y, -1.0, 1.0);
-                            byte colorR = (byte)(255.0 * Util.Clamp(mscolor.x, 0, 1.0) + 0.5);
-                            byte colorG = (byte)(255.0 * Util.Clamp(mscolor.y, 0, 1.0) + 0.5);
-                            byte colorB = (byte)(255.0 * Util.Clamp(mscolor.z, 0, 1.0) + 0.5);
-                            byte gloss = (byte)Util.Clamp((int)msgloss, 0, 255);
-                            byte env = (byte)Util.Clamp((int)msenv, 0, 255);
+                            float srepeatX = Math.Clamp((float)msrepeat.x, -100.0f, 100.0f);
+                            float srepeatY = Math.Clamp((float)msrepeat.y, -100.0f, 100.0f);
+                            float soffsetX = Math.Clamp((float)msoffset.x, -1.0f, 1.0f);
+                            float soffsetY = Math.Clamp((float)msoffset.y, -1.0f, 1.0f);
+                            byte colorR = (byte)(255.0f * Math.Clamp((float)mscolor.x, 0f, 1.0f) + 0.5f);
+                            byte colorG = (byte)(255.0f * Math.Clamp((float)mscolor.y, 0f, 1.0f) + 0.5f);
+                            byte colorB = (byte)(255.0f * Math.Clamp((float)mscolor.z, 0f, 1.0f) + 0.5f);
+                            byte gloss = (byte)Math.Clamp((int)msgloss, 0, 255);
+                            byte env = (byte)Math.Clamp((int)msenv, 0, 255);
 
                             materialChanged |= SetMaterialSpecMap(part, face, smapID, srepeatX, srepeatY, soffsetX, soffsetY,
                                                 msrot, colorR, colorG, colorB, gloss, env);
@@ -10412,9 +10426,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             {
                                 part.Shape.ProjectionEntry = true;
                                 part.Shape.ProjectionTextureUUID = stexID;
-                                part.Shape.ProjectionFOV = Util.Clamp(fov, 0, 3.0f);
-                                part.Shape.ProjectionFocus = Util.Clamp(focus, -20.0f, 20.0f);
-                                part.Shape.ProjectionAmbiance = Util.Clamp(amb, 0, 1.0f);
+                                part.Shape.ProjectionFOV = Math.Clamp(fov, 0, 3.0f);
+                                part.Shape.ProjectionFocus = Math.Clamp(focus, -20.0f, 20.0f);
+                                part.Shape.ProjectionAmbiance = Math.Clamp(amb, 0, 1.0f);
 
                                 part.ParentGroup.HasGroupChanged = true;
                                 part.ScheduleFullUpdate();
@@ -12047,8 +12061,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         //  redundancy).
         //  </para>
         //  <para>
-        //  LSL requires a base64 string to be 8
-        //  characters in length. LSL also uses '/'
+        // LSL also uses '/'
         //  rather than '-' (MIME compliant).
         //  </para>
         //  <para>
@@ -12193,7 +12206,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         //  be returned.
         //  If fewer than 6 characters are supplied, then
         //  the answer will reflect a partial
-        //  accumulation.
+        //  accumulation of full bytes
         //  <para>
         //  The 6-bit segments are
         //  extracted left-to-right in big-endian mode,
@@ -12213,59 +12226,53 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Integer llBase64ToInteger(string str)
         {
-            int number = 0;
-            int digit;
-
-
-            //    Require a well-fromed base64 string
-
-            if (str.Length > 8)
+            if (str is null || str.Length < 2 || str.Length > 8)
                 return 0;
 
-            //    The loop is unrolled in the interests
-            //    of performance and simple necessity.
-            //
-            //    MUST find 6 digits to be well formed
-            //      -1 == invalid
-            //       0 == padding
-
+            int digit;
             if ((digit = c2itable[str[0]]) <= 0)
-            {
-                return digit < 0 ? (int)0 : number;
-            }
-            number += --digit<<26;
+                return 0;
+
+            int number = --digit << 26;
 
             if ((digit = c2itable[str[1]]) <= 0)
-            {
-                return digit < 0 ? (int)0 : number;
-            }
-            number += --digit<<20;
+                return 0;
+
+            if (str.Length == 2)
+                return number | (--digit & 0x30) << 20;
+
+            int next = --digit << 20;
 
             if ((digit = c2itable[str[2]]) <= 0)
-            {
-                return digit < 0 ? (int)0 : number;
-            }
-            number += --digit<<14;
+                return number;
+
+            number |= next;
+            if (str.Length == 3)
+                return number | (--digit & 0x3C) << 14;
+
+            next = --digit << 14;
 
             if ((digit = c2itable[str[3]]) <= 0)
-            {
-                return digit < 0 ? (int)0 : number;
-            }
-            number += --digit<<8;
+                return number;
+
+            number |= next;
+            number |= --digit << 8;
+            if (str.Length == 4)
+                return number;
 
             if ((digit = c2itable[str[4]]) <= 0)
-            {
-                return digit < 0 ? (int)0 : number;
-            }
-            number += --digit<<2;
+                return number;
+
+            if (str.Length == 5)
+                return number;
+
+            next = --digit << 2;
 
             if ((digit = c2itable[str[5]]) <= 0)
-            {
-                return digit < 0 ? (int)0 : number;
-            }
-            number += --digit>>4;
+                return number;
 
-            // ignore trailing padding
+            number |= next;
+            number |= --digit >> 4;
 
             return number;
         }
@@ -16579,32 +16586,32 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             int yInt = (int)yPos;
 
             // Corner 1 of 1x1 rectangle
-            int x = Util.Clamp<int>(xInt+1, 0, World.Heightmap.Width - 1);
-            int y = Util.Clamp<int>(yInt+1, 0, World.Heightmap.Height - 1);
+            int x = Math.Clamp(xInt+1, 0, World.Heightmap.Width - 1);
+            int y = Math.Clamp(yInt+1, 0, World.Heightmap.Height - 1);
             Vector3 pos1 = new(x, y, (float)World.Heightmap[x, y]);
             // Adjust bounding box
             zLower = Math.Min(zLower, pos1.Z);
             zUpper = Math.Max(zUpper, pos1.Z);
 
             // Corner 2 of 1x1 rectangle
-            x = Util.Clamp<int>(xInt, 0, World.Heightmap.Width - 1);
-            y = Util.Clamp<int>(yInt+1, 0, World.Heightmap.Height - 1);
+            x = Math.Clamp(xInt, 0, World.Heightmap.Width - 1);
+            y = Math.Clamp(yInt+1, 0, World.Heightmap.Height - 1);
             Vector3 pos2 = new(x, y, (float)World.Heightmap[x, y]);
             // Adjust bounding box
             zLower = Math.Min(zLower, pos2.Z);
             zUpper = Math.Max(zUpper, pos2.Z);
 
             // Corner 3 of 1x1 rectangle
-            x = Util.Clamp<int>(xInt, 0, World.Heightmap.Width - 1);
-            y = Util.Clamp<int>(yInt, 0, World.Heightmap.Height - 1);
+            x = Math.Clamp(xInt, 0, World.Heightmap.Width - 1);
+            y = Math.Clamp(yInt, 0, World.Heightmap.Height - 1);
             Vector3 pos3 = new(x, y, (float)World.Heightmap[x, y]);
             // Adjust bounding box
             zLower = Math.Min(zLower, pos3.Z);
             zUpper = Math.Max(zUpper, pos3.Z);
 
             // Corner 4 of 1x1 rectangle
-            x = Util.Clamp<int>(xInt+1, 0, World.Heightmap.Width - 1);
-            y = Util.Clamp<int>(yInt, 0, World.Heightmap.Height - 1);
+            x = Math.Clamp(xInt+1, 0, World.Heightmap.Width - 1);
+            y = Math.Clamp(yInt, 0, World.Heightmap.Height - 1);
             Vector3 pos4 = new(x, y, (float)World.Heightmap[x, y]);
             // Adjust bounding box
             zLower = Math.Min(zLower, pos4.Z);

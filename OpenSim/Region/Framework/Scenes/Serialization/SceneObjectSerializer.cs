@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Frozen;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
@@ -434,7 +435,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         #region manual serialization
 
-        private static readonly Dictionary<string, Action<SceneObjectPart, XmlReader>> m_SOPXmlProcessors = new()
+        private static readonly FrozenDictionary<string, Action<SceneObjectPart, XmlReader>> m_SOPXmlProcessors = new Dictionary<string, Action<SceneObjectPart, XmlReader>>()
         {
             {"AllowedDrop", ProcessAllowedDrop },
             {"CreatorID", ProcessCreatorID },
@@ -526,9 +527,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             {"SOPAnims", ProcessSOPAnims },
 
             {"SitActRange", ProcessSitActRange }
-        };
+        }.ToFrozenDictionary();
 
-        private static readonly Dictionary<string, Action<TaskInventoryItem, XmlReader>> m_TaskInventoryXmlProcessors = new()
+        private static readonly FrozenDictionary<string, Action<TaskInventoryItem, XmlReader>> m_TaskInventoryXmlProcessors = new Dictionary<string, Action<TaskInventoryItem, XmlReader>>()
         {
             {"AssetID", ProcessTIAssetID },
             {"BasePermissions", ProcessTIBasePermissions },
@@ -554,9 +555,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             {"PermsMask", ProcessTIPermsMask },
             {"Type", ProcessTIType },
             {"OwnerChanged", ProcessTIOwnerChanged }
-        };
+        }.ToFrozenDictionary();
 
-        private static readonly Dictionary<string, Action<PrimitiveBaseShape, XmlReader>> m_ShapeXmlProcessors = new()
+        private static readonly FrozenDictionary<string, Action<PrimitiveBaseShape, XmlReader>> m_ShapeXmlProcessors = new Dictionary<string, Action<PrimitiveBaseShape, XmlReader>>()
         {
             {"ProfileCurve", ProcessShpProfileCurve },
             {"TextureEntry", ProcessShpTextureEntry },
@@ -608,7 +609,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             {"SculptEntry", ProcessShpSculptEntry },
             {"Media", ProcessShpMedia },
             {"MatOvrd", ProcessShpMatOvrd }
-        };
+        }.ToFrozenDictionary();
 
         #region SOPXmlProcessors
         private static void ProcessAllowedDrop(SceneObjectPart obj, XmlReader reader)
@@ -1518,6 +1519,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 writer.WriteEndElement();
             }
 
+            sog.LinksetData?.ToXML(writer);
 
             writer.WriteEndElement();
         }

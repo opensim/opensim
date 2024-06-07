@@ -51,13 +51,5 @@ namespace Prebuild.Core
         {
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="info"></param>
-        /// <param name="context"></param>
-        protected UnknownLanguageException(SerializationInfo info, StreamingContext context) : base(info, context)
-        {
-        }
     }
 }

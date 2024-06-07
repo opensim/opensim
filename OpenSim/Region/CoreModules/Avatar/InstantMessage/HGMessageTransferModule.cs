@@ -101,9 +101,6 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
         public virtual void PostInitialise()
         {
-            if (!m_Enabled)
-                return;
-
         }
 
         public virtual void RegionLoaded(Scene scene)

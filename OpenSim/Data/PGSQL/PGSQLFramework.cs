@@ -41,9 +41,7 @@ namespace OpenSim.Data.PGSQL
     /// </summary>
     public class PGSqlFramework
     {
-        private static readonly log4net.ILog m_log =
-                log4net.LogManager.GetLogger(
-                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger( System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         protected string m_connectionString;
         protected object m_dbLock = new object();

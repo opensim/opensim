@@ -1808,5 +1808,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osAESDecryptFrom(secret, encryptedText, ivString);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public vector osGetLinkColor(LSL_Integer link, LSL_Integer face)
+        {
+            return m_OSSL_Functions.osGetLinkColor(link, face);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public vector osTemperature2sRBG(LSL_Float dtemp)
+        {
+            return m_OSSL_Functions.osTemperature2sRGB(dtemp);
+        }
     }
 }
