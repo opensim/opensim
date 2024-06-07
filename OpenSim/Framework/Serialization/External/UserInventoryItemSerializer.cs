@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -44,34 +45,36 @@ namespace OpenSim.Framework.Serialization.External
     /// </summary>
     public class UserInventoryItemSerializer
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+         // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private static Dictionary<string, Action<InventoryItemBase, XmlReader>> m_InventoryItemXmlProcessors
-            = new Dictionary<string, Action<InventoryItemBase, XmlReader>>();
+        private static FrozenDictionary<string, Action<InventoryItemBase, XmlReader>> m_InventoryItemXmlProcessors
+            = new Dictionary<string, Action<InventoryItemBase, XmlReader>>()
+            {
+                { "Name", ProcessName },
+                { "ID", ProcessID },
+                { "InvType", ProcessInvType },
+                { "CreatorUUID", ProcessCreatorUUID },
+                { "CreatorID", ProcessCreatorID },
+                { "CreatorData", ProcessCreatorData },
+                { "CreationDate", ProcessCreationDate },
+                { "Owner", ProcessOwner },
+                { "Description", ProcessDescription },
+                { "AssetType", ProcessAssetType },
+                { "AssetID", ProcessAssetID },
+                { "SaleType", ProcessSaleType },
+                { "SalePrice", ProcessSalePrice },
+                { "BasePermissions", ProcessBasePermissions },
+                { "CurrentPermissions", ProcessCurrentPermissions },
+                { "EveryOnePermissions", ProcessEveryOnePermissions },
+                { "NextPermissions", ProcessNextPermissions },
+                { "Flags", ProcessFlags },
+                { "GroupID", ProcessGroupID },
+                { "GroupOwned", ProcessGroupOwned },
+                }.ToFrozenDictionary();
 
-        #region InventoryItemBase Processor initialization
+    #region InventoryItemBase Processor initialization
         static UserInventoryItemSerializer()
         {
-            m_InventoryItemXmlProcessors.Add("Name", ProcessName);
-            m_InventoryItemXmlProcessors.Add("ID", ProcessID);
-            m_InventoryItemXmlProcessors.Add("InvType", ProcessInvType);
-            m_InventoryItemXmlProcessors.Add("CreatorUUID", ProcessCreatorUUID);
-            m_InventoryItemXmlProcessors.Add("CreatorID", ProcessCreatorID);
-            m_InventoryItemXmlProcessors.Add("CreatorData", ProcessCreatorData);
-            m_InventoryItemXmlProcessors.Add("CreationDate", ProcessCreationDate);
-            m_InventoryItemXmlProcessors.Add("Owner", ProcessOwner);
-            m_InventoryItemXmlProcessors.Add("Description", ProcessDescription);
-            m_InventoryItemXmlProcessors.Add("AssetType", ProcessAssetType);
-            m_InventoryItemXmlProcessors.Add("AssetID", ProcessAssetID);
-            m_InventoryItemXmlProcessors.Add("SaleType", ProcessSaleType);
-            m_InventoryItemXmlProcessors.Add("SalePrice", ProcessSalePrice);
-            m_InventoryItemXmlProcessors.Add("BasePermissions", ProcessBasePermissions);
-            m_InventoryItemXmlProcessors.Add("CurrentPermissions", ProcessCurrentPermissions);
-            m_InventoryItemXmlProcessors.Add("EveryOnePermissions", ProcessEveryOnePermissions);
-            m_InventoryItemXmlProcessors.Add("NextPermissions", ProcessNextPermissions);
-            m_InventoryItemXmlProcessors.Add("Flags", ProcessFlags);
-            m_InventoryItemXmlProcessors.Add("GroupID", ProcessGroupID);
-            m_InventoryItemXmlProcessors.Add("GroupOwned", ProcessGroupOwned);
         }
         #endregion
 

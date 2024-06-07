@@ -273,7 +273,7 @@ namespace OpenSim.Data.PGSQL
                             }
                             catch (NpgsqlException sqlEx)
                             {
-                                _Log.ErrorFormat("[REGION DB]: Store SceneObjectPrim SQL error: {0} at line {1}", sqlEx.Message, sqlEx.Line);
+                                _Log.Error($"[REGION DB]: Store SceneObjectPrim SQL error: {sqlEx.Message}");
                                 throw;
                             }
                         }
@@ -288,7 +288,7 @@ namespace OpenSim.Data.PGSQL
                             }
                             catch (NpgsqlException sqlEx)
                             {
-                                _Log.ErrorFormat("[REGION DB]: Store SceneObjectPrimShapes SQL error: {0} at line {1}", sqlEx.Message, sqlEx.Line);
+                                _Log.Error($"[REGION DB]: Store SceneObjectPrimShapes SQL error: {sqlEx.Message}");
                                 throw;
                             }
                         }
@@ -1873,7 +1873,7 @@ namespace OpenSim.Data.PGSQL
             if (prim.Animations != null)
                 parameters.Add(_Database.CreateParameter("sopanims", prim.SerializeAnimations()));
             else
-                parameters.Add(_Database.CreateParameter("sopanims", null));
+                parameters.Add(_Database.CreateParameterNullBytea("sopanims"));
 
             if (prim.IsRoot && prim.LinksetData is not null)
                 parameters.Add(_Database.CreateParameter("linksetdata", prim.SerializeLinksetData()));
@@ -1923,8 +1923,17 @@ namespace OpenSim.Data.PGSQL
             parameters.Add(_Database.CreateParameter("ProfileEnd", s.ProfileEnd));
             parameters.Add(_Database.CreateParameter("ProfileCurve", s.ProfileCurve));
             parameters.Add(_Database.CreateParameter("ProfileHollow", s.ProfileHollow));
+
+            if (s.TextureEntry is null)
+                parameters.Add(_Database.CreateParameterNullBytea("Texture"));
+            else
             parameters.Add(_Database.CreateParameter("Texture", s.TextureEntry));
+
+            if (s.ExtraParams is null)
+                parameters.Add(_Database.CreateParameterNullBytea("ExtraParams"));
+            else
             parameters.Add(_Database.CreateParameter("ExtraParams", s.ExtraParams));
+
             parameters.Add(_Database.CreateParameter("State", s.State));
 
             if (null == s.Media)
@@ -1937,6 +1946,9 @@ namespace OpenSim.Data.PGSQL
             }
 
             byte[] matovrdata = s.RenderMaterialsOvrToRawBin();
+            if(matovrdata is null)
+                parameters.Add(_Database.CreateParameterNullBytea("MatOvrd"));
+            else
             parameters.Add(_Database.CreateParameter("MatOvrd", matovrdata));
 
             return parameters.ToArray();
