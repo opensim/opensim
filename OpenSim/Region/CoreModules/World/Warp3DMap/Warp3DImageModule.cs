@@ -81,7 +81,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         private bool m_renderMeshes = false;    // true if to render meshes rather than just bounding boxes
 
         private const float m_cameraHeight = 4096f;
-        private float m_renderMinHeight = -100f;
+        private float m_renderMinHeight = 0f;
         private float m_renderMaxHeight = 4096f;
 
         private bool m_Enabled = false;
@@ -128,8 +128,8 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             else if (m_renderMaxHeight > m_cameraHeight - 10f)
                 m_renderMaxHeight = m_cameraHeight - 10f;
 
-            if (m_renderMinHeight < -100f)
-                m_renderMinHeight = -100f;
+            if (m_renderMinHeight < 0f)
+                m_renderMinHeight = 0f;
             else if (m_renderMinHeight > m_renderMaxHeight - 10f)
                 m_renderMinHeight = m_renderMaxHeight - 10f;
         }
