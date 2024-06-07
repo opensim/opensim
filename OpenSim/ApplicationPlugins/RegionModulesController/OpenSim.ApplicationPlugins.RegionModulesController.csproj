@@ -12,9 +12,6 @@
 	  <PackageReference Include="Mono.Addins.Setup" Version="1.4.1" />
     <PackageReference Include="Mono.Addins.CecilReflector" Version="1.4.1" />
   </ItemGroup>
-  <!-- <ItemGroup>
-    <EmbeddedResource Include="Resources/OpenSim.ApplicationPlugins.RegionModulesController.addin.xml" />
-  </ItemGroup> -->
   <ItemGroup>
     <Reference Include="Nini">
       <HintPath>..\..\..\bin\Nini.dll</HintPath>

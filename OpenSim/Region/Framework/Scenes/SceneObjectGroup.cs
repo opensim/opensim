@@ -616,8 +616,6 @@ namespace OpenSim.Region.Framework.Scenes
             public uint ParentID;
         }
 
-        public LinksetData LinksetData;
-
         public bool inTransit = false;
         private delegate SceneObjectGroup SOGCrossDelegate(SceneObjectGroup sog,Vector3 pos, TeleportObjectData tpData);
 
@@ -2429,7 +2427,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             catch (Exception e)
             {
-                m_log.Error($"[SCENE]: Storing of {Name}, {UUID} in {m_scene.RegionInfo.RegionName} failed: {e.Message}");
+                m_log.Error($"[SCENE]: Storing of {Name}, {UUID} in {m_scene.RegionInfo.RegionName} failed: {e.Message}", e);
             }
         }
 
@@ -2516,9 +2514,6 @@ namespace OpenSim.Region.Framework.Scenes
             // new group as no sitting avatars
             dupe.m_sittingAvatars = new List<ScenePresence>();
 
-            if(LinksetData is not null)
-                dupe.LinksetData = LinksetData.Copy();
-
             dupe.CopyRootPart(m_rootPart, OwnerID, GroupID, userExposed);
             dupe.m_rootPart.LinkNum = m_rootPart.LinkNum;
 
@@ -2590,7 +2585,7 @@ namespace OpenSim.Region.Framework.Scenes
             // If the rootpart we're copying has LinksetData do a deep copy of that to the new rootpart.
             if (part.LinksetData != null)
             {
-                newpart.LinksetData = part.LinksetData.Copy();
+                newpart.LinksetData = (LinksetData)part.LinksetData.Clone();
             }
 
             SetRootPart(newpart);
@@ -3201,8 +3196,9 @@ namespace OpenSim.Region.Framework.Scenes
             // Merge linksetData if there is any
             if (linkPart.LinksetData is not null)
             {
-                m_rootPart.LinksetData ??= new LinksetData();
+                m_rootPart.LinksetData ??= new();
                 m_rootPart.LinksetData.MergeLinksetData(linkPart.LinksetData);
+                linkPart.LinksetData.Clear();
             }
 
             if (m_rootPart.PhysActor != null)

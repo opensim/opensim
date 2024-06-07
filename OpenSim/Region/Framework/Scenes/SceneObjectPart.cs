@@ -35,7 +35,6 @@ using System.Threading;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
-using log4net;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
@@ -44,6 +43,9 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Region.PhysicsModules.SharedBase;
 using PermissionMask = OpenSim.Framework.PermissionMask;
+using System.Text.Json;
+
+using log4net;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -198,7 +200,7 @@ namespace OpenSim.Region.Framework.Scenes
         public PhysicsActor PhysActor { get; set; }
 
         [XmlIgnore]
-        public LinksetData LinksetData { get; set; } = null;
+        public LinksetData LinksetData { get; set; }
         
         //Xantor 20080528 Sound stuff:
         //  Note: This isn't persisted in the database right now, as the fields for that aren't just there yet.
@@ -2193,7 +2195,12 @@ namespace OpenSim.Region.Framework.Scenes
                 dupe.PhysActor.LocalID = plocalID;
 
             dupe.PseudoCRC = (int)(DateTime.UtcNow.Ticks);
-            dupe.DeserializeLinksetData(SerializeLinksetData());
+
+            if (LinksetData != null)
+            {
+                dupe.LinksetData = (LinksetData)LinksetData.Clone();
+                //dupe.DeserializeLinksetData(SerializeLinksetData()); // MCD XXX
+            }
 
             ParentGroup.Scene.EventManager.TriggerOnSceneObjectPartCopy(dupe, this, userExposed);
 
@@ -5678,8 +5685,11 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (IsRoot && (LinksetData != null))
             {
-                if (LinksetData.HasLinksetData())
+                if (LinksetData.Count() > 0)
+                {
+                    //return JsonSerializer.Serialize<LinksetData>(LinksetData);
                     return LinksetData.SerializeLinksetData();
+                }
             }
 
             return string.Empty;
@@ -5687,14 +5697,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void DeserializeLinksetData(string data)
         {
-            if (string.IsNullOrEmpty(data) || data.Length == 0)
+            if (string.IsNullOrWhiteSpace(data))
                 return;
 
-            if (LinksetData == null)
-            {
-                LinksetData = new LinksetData();
-            }
-
+            //LinksetData = JsonSerializer.Deserialize<LinksetData>(data);
+            LinksetData ??= new();
             LinksetData.DeserializeLinksetData(data);
         }
 

@@ -20,10 +20,6 @@
       <HintPath>..\..\..\..\..\bin\Nini.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Nini">
-      <HintPath>..\..\..\..\..\bin\Nini.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="OpenMetaverse">
       <HintPath>..\..\..\..\..\bin\OpenMetaverse.dll</HintPath>
       <Private>False</Private>

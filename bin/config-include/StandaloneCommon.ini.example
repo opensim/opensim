@@ -35,7 +35,7 @@
     ; Uncomment these lines if you want to use PGSQL storage
     ; Change the connection string to your db details
     ;StorageProvider = "OpenSim.Data.PGSQL.dll"
-    ;ConnectionString = "Server=localhost;Database=opensim;User Id=opensim; password=***;"
+    ;ConnectionString = "Server=localhost;Database=opensim;User Id=opensim; password=***;SSL Mode = Disable"
 
 [Hypergrid]
     ; Uncomment the variable GatekeeperURI to enable 

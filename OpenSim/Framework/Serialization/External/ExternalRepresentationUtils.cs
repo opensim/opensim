@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Frozen;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -53,7 +54,7 @@ namespace OpenSim.Framework.Serialization.External
         /// <param name="xtr"></param>
         /// <returns>true on successful, false if there were any processing failures</returns>
         public static bool ExecuteReadProcessors<NodeType>(
-            NodeType nodeToFill, Dictionary<string, Action<NodeType, XmlReader>> processors, XmlReader xtr)
+            NodeType nodeToFill, FrozenDictionary<string, Action<NodeType, XmlReader>> processors, XmlReader xtr)
         {
             return ExecuteReadProcessors(
                 nodeToFill,
@@ -77,7 +78,7 @@ namespace OpenSim.Framework.Serialization.External
         /// <returns>true on successful, false if there were any processing failures</returns>
         public static bool ExecuteReadProcessors<NodeType>(
             NodeType nodeToFill,
-            Dictionary<string, Action<NodeType, XmlReader>> processors,
+            FrozenDictionary<string, Action<NodeType, XmlReader>> processors,
             XmlReader xtr,
             Action<NodeType, string, Exception> parseExceptionAction)
         {
