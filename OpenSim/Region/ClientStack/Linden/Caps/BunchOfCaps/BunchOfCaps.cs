@@ -350,8 +350,17 @@ namespace OpenSim.Region.ClientStack.Linden
                 {
                     case "SEED":
                         continue;
-                    case "ViewerBenefits": // this may need a proper cap but not currently
+                    case "ViewerBenefits":
                         m_HostCapsObj.Flags |= Caps.CapsFlags.ViewerBenefits;
+                        continue;
+                    case "VTPBR":
+                        if (m_Scene.RegionInfo.RegionSizeX == Constants.RegionSize &&
+                            m_Scene.RegionInfo.RegionSizeY == Constants.RegionSize &&
+                            m_Scene.RegionInfo.RegionSizeZ == Constants.RegionSize)
+                                m_HostCapsObj.Flags |= Caps.CapsFlags.TPBR;
+                        continue;
+                    case "VETPBR":
+                        m_HostCapsObj.Flags |= Caps.CapsFlags.TPBR;
                         continue;
                     case "ObjectAnimation":
                          m_HostCapsObj.Flags |= Caps.CapsFlags.ObjectAnim;
