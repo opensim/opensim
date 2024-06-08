@@ -856,6 +856,15 @@ namespace OpenSim.Region.Framework.Scenes
                 updatedTerrainTextures = true;
             }
 
+            if (rs.TerrainPBR1.IsZero())
+                rs.TerrainPBR1 = RegionSettings.DEFAULT_TERRAIN_PBR_1;
+            if (rs.TerrainPBR2.IsZero())
+                rs.TerrainPBR2 = RegionSettings.DEFAULT_TERRAIN_PBR_2;
+            if (rs.TerrainPBR3.IsZero())
+                rs.TerrainPBR3 = RegionSettings.DEFAULT_TERRAIN_PBR_3;
+            if (rs.TerrainPBR4.IsZero())
+                rs.TerrainPBR4 = RegionSettings.DEFAULT_TERRAIN_PBR_4;
+
             if (updatedTerrainTextures)
                 rs.Save();
 

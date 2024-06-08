@@ -6592,6 +6592,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Vector osTemperature2sRGB(LSL_Float dtemp)
         {
+            //aproximate fit to http://www.vendian.org/mncharity/dir3/blackbody/ 10degree D65 tables
             float temp = (float)dtemp.value;
             if (temp <= 1000f)
                 return new LSL_Vector(1.0, 0.0401, 0);
