@@ -3998,7 +3998,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             uint flags = ControllingClient.GetViewerCaps();
-            if ((flags & 0x1000) == 0) // wait for seeds sending
+            if ((flags & (uint)ViewerFlags.SentSeeds) == 0) // wait for seeds sending
                 return;
 
             // give some extra time to make sure viewers did process seeds
@@ -4057,6 +4057,10 @@ namespace OpenSim.Region.Framework.Scenes
                     IEntityTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
                     m_agentTransfer?.CloseOldChildAgents(this);
                 }
+
+                uint flags = ControllingClient.GetViewerCaps();
+                if ((flags & (uint)(ViewerFlags.TPBR | ViewerFlags.SentSeeds)) == (uint)ViewerFlags.TPBR)
+                    ControllingClient.SendRegionHandshake();
 
                 m_log.DebugFormat("[SCENE PRESENCE({0})]: SendInitialData for {1}", m_scene.RegionInfo.RegionName, UUID);
                 if (m_teleportFlags <= 0)

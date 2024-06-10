@@ -158,12 +158,6 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_features["MeshUploadEnabled"] = true;
                 m_features["MeshXferEnabled"] = true;
 
-                /*
-                m_features["MirrorsEnabled"] = false;
-                m_features["PBRMaterialSwatchEnabled"] = false;
-                m_features["PBRTerrainEnabled"] = false;
-                */
-
                 m_features["PhysicsMaterialsEnabled"] = true;
 
                 m_features["PhysicsShapeTypes"] = new OSDMap()
@@ -196,7 +190,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 new SimpleStreamHandler("/" + UUID.Random(),
                     delegate (IOSHttpRequest request, IOSHttpResponse response)
                     {
-                        HandleSimulatorFeaturesRequest(request, response, agentID);
+                        HandleSimulatorFeaturesRequest(request, response, caps);
                     }));
 
             if (m_doScriptSyntax && !m_scriptSyntaxID.IsZero() && m_scriptSyntaxXML != null)
@@ -276,7 +270,7 @@ namespace OpenSim.Region.ClientStack.Linden
             return (OSDMap)copy;
         }
 
-        private void HandleSimulatorFeaturesRequest(IOSHttpRequest request, IOSHttpResponse response, UUID agentID)
+        private void HandleSimulatorFeaturesRequest(IOSHttpRequest request, IOSHttpResponse response, Caps caps)
         {
             // m_log.DebugFormat("[SIMULATOR FEATURES MODULE]: SimulatorFeatures request");
 
@@ -286,24 +280,21 @@ namespace OpenSim.Region.ClientStack.Linden
                 return;
             }
 
-            /*
-            ScenePresence sp = m_scene.GetScenePresence(agentID);
-            if (sp == null)
-            {
-                response.StatusCode = (int)HttpStatusCode.ServiceUnavailable;
-                response.AddHeader("Retry-After", "5");
-                return;
-            }
-            */
-
             OSDMap copy = DeepCopy();
+
+            if ((caps.Flags & Caps.CapsFlags.TPBR) != 0)
+            {
+                copy["PBRMaterialSwatchEnabled"] = true;
+                copy["PBRTerrainEnabled"] = true;
+                copy["MirrorsEnabled"] = true;
+            }
 
             // Let's add the agentID to the destination guide, if it is expecting that.
             if(copy.TryGetValue("OpenSimExtras", out OSD oe))
             {
                 if(((OSDMap)oe).TryGetValue("destination-guide-url", out OSD dgl))
                 {
-                    ((OSDMap)oe)["destination-guide-url"] = Replace(dgl.AsString(), "[USERID]", agentID.ToString());
+                    ((OSDMap)oe)["destination-guide-url"] = Replace(dgl.AsString(), "[USERID]", caps.AgentID.ToString());
                 }
             }
 
@@ -312,7 +303,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 foreach(SimulatorFeaturesRequestDelegate sd in OnSimulatorFeaturesRequest.GetInvocationList())
                 try
                 {
-                    sd?.Invoke(agentID, ref copy);
+                    sd?.Invoke(caps.AgentID, ref copy);
                 }
                 catch { }
             }

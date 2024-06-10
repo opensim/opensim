@@ -357,10 +357,14 @@ namespace OpenSim.Region.ClientStack.Linden
                         if (m_Scene.RegionInfo.RegionSizeX == Constants.RegionSize &&
                             m_Scene.RegionInfo.RegionSizeY == Constants.RegionSize &&
                             m_Scene.RegionInfo.RegionSizeZ == Constants.RegionSize)
-                                m_HostCapsObj.Flags |= Caps.CapsFlags.TPBR;
+                        {
+                            m_HostCapsObj.Flags |= Caps.CapsFlags.PBR | Caps.CapsFlags.TPBR;
+                        }
+                        else
+                            m_HostCapsObj.Flags |= Caps.CapsFlags.PBR;
                         continue;
                     case "VETPBR":
-                        m_HostCapsObj.Flags |= Caps.CapsFlags.TPBR;
+                        m_HostCapsObj.Flags |= Caps.CapsFlags.PBR | Caps.CapsFlags.TPBR;
                         continue;
                     case "ObjectAnimation":
                          m_HostCapsObj.Flags |= Caps.CapsFlags.ObjectAnim;
@@ -379,7 +383,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 }
                 validCaps.Add(cstr);
             }
-            
+
             osUTF8 sb = LLSDxmlEncode2.Start();
             LLSDxmlEncode2.AddMap(sb);
             m_HostCapsObj.GetCapsDetailsLLSDxml(validCaps, sb);
