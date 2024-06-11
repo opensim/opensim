@@ -355,8 +355,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         continue;
                     case "VTPBR":
                         if (m_Scene.RegionInfo.RegionSizeX == Constants.RegionSize &&
-                            m_Scene.RegionInfo.RegionSizeY == Constants.RegionSize &&
-                            m_Scene.RegionInfo.RegionSizeZ == Constants.RegionSize)
+                            m_Scene.RegionInfo.RegionSizeY == Constants.RegionSize )
                         {
                             m_HostCapsObj.Flags |= Caps.CapsFlags.PBR | Caps.CapsFlags.TPBR;
                         }
