@@ -4059,7 +4059,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 uint flags = ControllingClient.GetViewerCaps();
-                if ((flags & (uint)(ViewerFlags.TPBR | ViewerFlags.SentSeeds)) == (uint)ViewerFlags.TPBR)
+                if ((flags & (uint)(ViewerFlags.TPBR | ViewerFlags.SentTPBR)) == (uint)ViewerFlags.TPBR)
                     ControllingClient.SendRegionHandshake();
 
                 m_log.DebugFormat("[SCENE PRESENCE({0})]: SendInitialData for {1}", m_scene.RegionInfo.RegionName, UUID);
