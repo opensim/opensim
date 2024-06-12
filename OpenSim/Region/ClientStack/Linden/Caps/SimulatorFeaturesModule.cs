@@ -158,6 +158,8 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_features["MeshUploadEnabled"] = true;
                 m_features["MeshXferEnabled"] = true;
 
+                m_features["MirrorsEnabled"] = true;
+
                 m_features["PhysicsMaterialsEnabled"] = true;
 
                 m_features["PhysicsShapeTypes"] = new OSDMap()
@@ -286,7 +288,6 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 copy["PBRMaterialSwatchEnabled"] = true;
                 copy["PBRTerrainEnabled"] = true;
-                copy["MirrorsEnabled"] = true;
             }
 
             // Let's add the agentID to the destination guide, if it is expecting that.
