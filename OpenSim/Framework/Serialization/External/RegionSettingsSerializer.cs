@@ -140,6 +140,18 @@ namespace OpenSim.Framework.Serialization.External
                     case "Texture4":
                         settings.TerrainTexture4 = UUID.Parse(xtr.ReadElementContentAsString());
                         break;
+                    case "PBR1":
+                        settings.TerrainPBR1 = UUID.Parse(xtr.ReadElementContentAsString());
+                        break;
+                    case "PBR2":
+                        settings.TerrainPBR2 = UUID.Parse(xtr.ReadElementContentAsString());
+                        break;
+                    case "PBR3":
+                        settings.TerrainPBR3 = UUID.Parse(xtr.ReadElementContentAsString());
+                        break;
+                    case "PBR4":
+                        settings.TerrainPBR3 = UUID.Parse(xtr.ReadElementContentAsString());
+                        break;
                     case "ElevationLowSW":
                         settings.Elevation1SW = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
                         break;
@@ -301,6 +313,10 @@ namespace OpenSim.Framework.Serialization.External
             xtw.WriteElementString("Texture2", settings.TerrainTexture2.ToString());
             xtw.WriteElementString("Texture3", settings.TerrainTexture3.ToString());
             xtw.WriteElementString("Texture4", settings.TerrainTexture4.ToString());
+            xtw.WriteElementString("PBR1", settings.TerrainPBR1.ToString());
+            xtw.WriteElementString("PBR2", settings.TerrainPBR2.ToString());
+            xtw.WriteElementString("PBR3", settings.TerrainPBR3.ToString());
+            xtw.WriteElementString("PBR4", settings.TerrainPBR4.ToString());
             xtw.WriteElementString("ElevationLowSW", settings.Elevation1SW.ToString());
             xtw.WriteElementString("ElevationLowNW", settings.Elevation1NW.ToString());
             xtw.WriteElementString("ElevationLowSE", settings.Elevation1SE.ToString());

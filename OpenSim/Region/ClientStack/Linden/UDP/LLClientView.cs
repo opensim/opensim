@@ -341,8 +341,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private readonly Prioritizer m_prioritizer;
         private bool m_disableFacelights;
 
-        // needs optimization
-        private HashSet<SceneObjectGroup> GroupsInView = new();
+        private HashSet<SceneObjectGroup> GroupsInView = [];
 #pragma warning disable 0414
         private bool m_VelocityInterpolate;
 #pragma warning restore 0414
@@ -350,6 +349,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private bool m_SupportObjectAnimations;
         private bool m_SupportPBR;
+        public bool SupportTerrainPBR { get; private set; }
+        public ViewerFlags ViewerFlags { get; private set; }
 
         /// <value>
         /// Maintain a record of all the objects killed.  This allows us to stop an update being sent from the
@@ -877,6 +878,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendRegionHandshake()
         {
+            GetViewerCaps(); // make sure this is up to date
+
             RegionInfo regionInfo = m_scene.RegionInfo;
             RegionSettings regionSettings = regionInfo.RegionSettings;
             EstateSettings es = regionInfo.EstateSettings;
@@ -915,14 +918,29 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // this seem now obsolete, sending zero uuids
             // we should send the basic low resolution default ?
             zc.AddZeros(16 * 4);
-            //TerrainDetail0
-            zc.AddUUID(regionSettings.TerrainTexture1);
-            //TerrainDetail1
-            zc.AddUUID(regionSettings.TerrainTexture2);
-            //TerrainDetail2
-            zc.AddUUID(regionSettings.TerrainTexture3);
-            //TerrainDetail3
-            zc.AddUUID(regionSettings.TerrainTexture4);
+            if(SupportTerrainPBR)
+            {
+                //TerrainDetail0
+                zc.AddUUID(regionSettings.TerrainPBR1);
+                //TerrainDetail1
+                zc.AddUUID(regionSettings.TerrainPBR2);
+                //TerrainDetail2
+                zc.AddUUID(regionSettings.TerrainPBR3);
+                //TerrainDetail3
+                zc.AddUUID(regionSettings.TerrainPBR4);
+                ViewerFlags |= ViewerFlags.SentTPBR;
+            }
+            else
+            {
+                //TerrainDetail0
+                zc.AddUUID(regionSettings.TerrainTexture1);
+                //TerrainDetail1
+                zc.AddUUID(regionSettings.TerrainTexture2);
+                //TerrainDetail2
+                zc.AddUUID(regionSettings.TerrainTexture3);
+                //TerrainDetail3
+                zc.AddUUID(regionSettings.TerrainTexture4);
+            }
             //TerrainStartHeight00
             zc.AddFloat((float)regionSettings.Elevation1SW);
             //TerrainStartHeight01
@@ -13435,21 +13453,29 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if(cap != null)
                 {
                     if((cap.Flags & Caps.CapsFlags.SentSeeds) != 0)
-                        ret |= 0x1000;
+                        ret |= (uint)ViewerFlags.SentSeeds;
                     if ((cap.Flags & Caps.CapsFlags.ObjectAnim) != 0)
                     {
                         m_SupportObjectAnimations = true;
-                        ret |= 0x2000;
+                        ret |= (uint)ViewerFlags.ObjectAnim;
                     }
                     if ((cap.Flags & Caps.CapsFlags.WLEnv) != 0)
-                        ret |= 0x4000;
+                        ret |= (uint)ViewerFlags.WLEnv;
                     if ((cap.Flags & Caps.CapsFlags.AdvEnv) != 0)
-                        ret |= 0x8000;
+                        ret |= (uint)ViewerFlags.AdvEnv;
                     if ((cap.Flags & Caps.CapsFlags.PBR) != 0)
+                    {
+                        ret |= (uint)ViewerFlags.PBR;
                         m_SupportPBR = true;
+                    }
+                    if ((cap.Flags & Caps.CapsFlags.TPBR) != 0)
+                    {
+                        ret |= (uint)ViewerFlags.TPBR;
+                        SupportTerrainPBR = true;
+                    }
                 }
             }
-
+            ViewerFlags = (ViewerFlags)ret;
             return ret;
         }
     }

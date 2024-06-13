@@ -731,8 +731,8 @@ namespace OpenSim.Services.LLLoginService
                 else
                 {
                     position = pinfo.LastPosition;
-                    position.X = Util.Clamp(position.X, 0.5f, region.RegionSizeX - 0.5f);
-                    position.Y = Util.Clamp(position.Y, 0.5f, region.RegionSizeY - 0.5f);
+                    position.X = Math.Clamp(position.X, 0.5f, region.RegionSizeX - 0.5f);
+                    position.Y = Math.Clamp(position.Y, 0.5f, region.RegionSizeY - 0.5f);
                     lookAt = pinfo.LastLookAt;
                 }
 

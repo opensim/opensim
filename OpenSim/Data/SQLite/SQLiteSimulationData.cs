@@ -1438,6 +1438,10 @@ namespace OpenSim.Data.SQLite
             createCol(regionsettings, "terrain_texture_2", typeof(String));
             createCol(regionsettings, "terrain_texture_3", typeof(String));
             createCol(regionsettings, "terrain_texture_4", typeof(String));
+            createCol(regionsettings, "TerrainPBR1", typeof(String));
+            createCol(regionsettings, "TerrainPBR2", typeof(String));
+            createCol(regionsettings, "TerrainPBR3", typeof(String));
+            createCol(regionsettings, "TerrainPBR4", typeof(String));
             createCol(regionsettings, "elevation_1_nw", typeof(Double));
             createCol(regionsettings, "elevation_2_nw", typeof(Double));
             createCol(regionsettings, "elevation_1_ne", typeof(Double));
@@ -2010,6 +2014,11 @@ namespace OpenSim.Data.SQLite
             if (row["cacheID"] is not System.DBNull)
                 newSettings.CacheID = new UUID((String)row["cacheID"]);
 
+            newSettings.TerrainPBR1 = new UUID((String)row["TerrainPBR1"]);
+            newSettings.TerrainPBR2 = new UUID((String)row["TerrainPBR2"]);
+            newSettings.TerrainPBR3 = new UUID((String)row["TerrainPBR3"]);
+            newSettings.TerrainPBR4 = new UUID((String)row["TerrainPBR4"]);
+
             return newSettings;
         }
 
@@ -2370,6 +2379,12 @@ namespace OpenSim.Data.SQLite
             row["block_search"] = settings.GodBlockSearch;
             row["casino"] = settings.Casino;
             row["cacheID"] = settings.CacheID;
+
+            row["TerrainPBR1"] = settings.TerrainPBR1.ToString();
+            row["TerrainPBR2"] = settings.TerrainPBR2.ToString();
+            row["TerrainPBR3"] = settings.TerrainPBR3.ToString();
+            row["TerrainPBR4"] = settings.TerrainPBR4.ToString();
+
         }
 
         /// <summary>

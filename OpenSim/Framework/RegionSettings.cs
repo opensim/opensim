@@ -116,6 +116,12 @@ namespace OpenSim.Framework
         public static readonly UUID DEFAULT_TERRAIN_TEXTURE_3 = new("179cdabd-398a-9b6b-1391-4dc333ba321f");
         public static readonly UUID DEFAULT_TERRAIN_TEXTURE_4 = new("beb169c7-11ea-fff2-efe5-0f24dc881df2");
 
+        public static readonly UUID DEFAULT_TERRAIN_PBR_1 = new("b8d3965a-ad78-bf43-699b-bff8eca6c975");
+        public static readonly UUID DEFAULT_TERRAIN_PBR_2 = new("abb783e6-3e93-26c0-248a-247666855da3");
+        public static readonly UUID DEFAULT_TERRAIN_PBR_3 = new("179cdabd-398a-9b6b-1391-4dc333ba321f");
+        public static readonly UUID DEFAULT_TERRAIN_PBR_4 =  new("beb169c7-11ea-fff2-efe5-0f24dc881df2");
+
+
         public void Save()
         {
             OnSave?.Invoke(this);
@@ -226,13 +232,7 @@ namespace OpenSim.Framework
         public UUID TerrainTexture1
         {
             get { return m_TerrainTexture1; }
-            set
-            {
-                if (value.IsZero())
-                    m_TerrainTexture1 = DEFAULT_TERRAIN_TEXTURE_1;
-                else
-                    m_TerrainTexture1 = value;
-            }
+            set { m_TerrainTexture1 = value.IsZero() ? DEFAULT_TERRAIN_TEXTURE_1 : value; }
         }
 
         private UUID m_TerrainTexture2 = UUID.Zero;
@@ -240,13 +240,7 @@ namespace OpenSim.Framework
         public UUID TerrainTexture2
         {
             get { return m_TerrainTexture2; }
-            set
-            {
-                if (value.IsZero())
-                    m_TerrainTexture2 = DEFAULT_TERRAIN_TEXTURE_2;
-                else
-                    m_TerrainTexture2 = value;
-            }
+            set { m_TerrainTexture2 = value.IsZero() ? DEFAULT_TERRAIN_TEXTURE_2 : value; }
         }
 
         private UUID m_TerrainTexture3 = UUID.Zero;
@@ -254,13 +248,7 @@ namespace OpenSim.Framework
         public UUID TerrainTexture3
         {
             get { return m_TerrainTexture3; }
-            set
-            {
-                if (value.IsZero())
-                    m_TerrainTexture3 = DEFAULT_TERRAIN_TEXTURE_3;
-                else
-                    m_TerrainTexture3 = value;
-            }
+            set { m_TerrainTexture3 = value.IsZero() ? DEFAULT_TERRAIN_TEXTURE_3 : value; }
         }
 
         private UUID m_TerrainTexture4 = UUID.Zero;
@@ -268,14 +256,37 @@ namespace OpenSim.Framework
         public UUID TerrainTexture4
         {
             get { return m_TerrainTexture4; }
-            set
-            {
-                if (value.IsZero())
-                    m_TerrainTexture4 = DEFAULT_TERRAIN_TEXTURE_4;
-                else
-                    m_TerrainTexture4 = value;
-            }
+            set { m_TerrainTexture4 = value.IsZero() ? DEFAULT_TERRAIN_TEXTURE_4 : value; }
         }
+
+        private UUID m_TerrainPBR1 = UUID.Zero;
+        public UUID TerrainPBR1
+        {
+            get { return m_TerrainPBR1; }
+            set { m_TerrainPBR1 = value.IsZero() ? DEFAULT_TERRAIN_PBR_1 : value; }
+        }
+
+        private UUID m_TerrainPBR2 = UUID.Zero;
+        public UUID TerrainPBR2
+        {
+            get { return m_TerrainPBR2; }
+            set { m_TerrainPBR2 = value.IsZero() ? DEFAULT_TERRAIN_PBR_2 : value; }
+        }
+
+        private UUID m_TerrainPBR3 = UUID.Zero;
+        public UUID TerrainPBR3
+        {
+            get { return m_TerrainPBR3; }
+            set { m_TerrainPBR3 = value.IsZero() ? DEFAULT_TERRAIN_PBR_3 : value; }
+        }
+        private UUID m_TerrainPBR4 = UUID.Zero;
+
+        public UUID TerrainPBR4
+        {
+            get { return m_TerrainPBR4; }
+            set { m_TerrainPBR4 = value.IsZero() ? DEFAULT_TERRAIN_PBR_4 : value; }
+        }
+
 
         private double m_Elevation1NW = 10;
         public double Elevation1NW

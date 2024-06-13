@@ -410,3 +410,12 @@ COMMIT;
 BEGIN;
 ALTER TABLE `prims` ADD COLUMN `lnkstBinData` blob default NULL;
 COMMIT;
+
+
+:VERSION 42         #----- add pbr terrain storage
+BEGIN;
+ALTER TABLE `regionsettings` ADD COLUMN `TerrainPBR1` char(36) NOT NULL;
+ALTER TABLE `regionsettings` ADD COLUMN `TerrainPBR2` char(36) NOT NULL;
+ALTER TABLE `regionsettings` ADD COLUMN `TerrainPBR3` char(36) NOT NULL;
+ALTER TABLE `regionsettings` ADD COLUMN `TerrainPBR4` char(36) NOT NULL;
+COMMIT;

@@ -57,6 +57,8 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         /// </summary>
         public event ChatToNPC OnChatToNPC;
 
+        public ViewerFlags ViewerFlags { get; private set; }
+
         /// <summary>
         /// Fired when the NPC receives an instant message.
         /// </summary>

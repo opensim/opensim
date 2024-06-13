@@ -1119,6 +1119,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             currentRegionSettings.TerrainTexture2 = loadedRegionSettings.TerrainTexture2;
             currentRegionSettings.TerrainTexture3 = loadedRegionSettings.TerrainTexture3;
             currentRegionSettings.TerrainTexture4 = loadedRegionSettings.TerrainTexture4;
+            currentRegionSettings.TerrainPBR1 = loadedRegionSettings.TerrainPBR1;
+            currentRegionSettings.TerrainPBR2 = loadedRegionSettings.TerrainPBR2;
+            currentRegionSettings.TerrainPBR3 = loadedRegionSettings.TerrainPBR3;
+            currentRegionSettings.TerrainPBR4 = loadedRegionSettings.TerrainPBR4;
             currentRegionSettings.UseEstateSun = loadedRegionSettings.UseEstateSun;
             currentRegionSettings.WaterHeight = loadedRegionSettings.WaterHeight;
             currentRegionSettings.TelehubObject = loadedRegionSettings.TelehubObject;
