@@ -13475,6 +13475,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                 }
             }
+            ret |= (uint)(ViewerFlags & (ViewerFlags.SentTPBR));
             ViewerFlags = (ViewerFlags)ret;
             return ret;
         }

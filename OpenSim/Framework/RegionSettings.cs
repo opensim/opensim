@@ -263,28 +263,28 @@ namespace OpenSim.Framework
         public UUID TerrainPBR1
         {
             get { return m_TerrainPBR1; }
-            set { m_TerrainPBR1 = value.IsZero() ? DEFAULT_TERRAIN_PBR_1 : value; }
+            set { m_TerrainPBR1 = value;}
         }
 
         private UUID m_TerrainPBR2 = UUID.Zero;
         public UUID TerrainPBR2
         {
             get { return m_TerrainPBR2; }
-            set { m_TerrainPBR2 = value.IsZero() ? DEFAULT_TERRAIN_PBR_2 : value; }
+            set { m_TerrainPBR2 = value; }
         }
 
         private UUID m_TerrainPBR3 = UUID.Zero;
         public UUID TerrainPBR3
         {
             get { return m_TerrainPBR3; }
-            set { m_TerrainPBR3 = value.IsZero() ? DEFAULT_TERRAIN_PBR_3 : value; }
+            set { m_TerrainPBR3 = value; }
         }
         private UUID m_TerrainPBR4 = UUID.Zero;
 
         public UUID TerrainPBR4
         {
             get { return m_TerrainPBR4; }
-            set { m_TerrainPBR4 = value.IsZero() ? DEFAULT_TERRAIN_PBR_4 : value; }
+            set { m_TerrainPBR4 = value; }
         }
 
 

@@ -263,9 +263,6 @@ namespace OpenSim.Region.ClientStack.Linden
                     m_HostCapsObj.RegisterSimpleHandler("UpdateScriptTaskInventory", oreq, true); //legacy
                 }
 
-                m_HostCapsObj.RegisterSimpleHandler("UpdateAgentInformation",
-                    new SimpleStreamHandler(GetNewCapPath(), UpdateAgentInformation));
-
                 m_HostCapsObj.RegisterSimpleHandler("CopyInventoryFromNotecard",
                     new SimpleOSDMapHandler("POST", GetNewCapPath(), CopyInventoryFromNotecard));
 
@@ -1892,29 +1889,6 @@ namespace OpenSim.Region.ClientStack.Linden
 
             // resp["transaction_id"] = "undef";
             httpResponse.RawBuffer = LLSDxmlEncode2.EndToNBBytes(lsl);
-            httpResponse.StatusCode = (int)HttpStatusCode.OK;
-        }
-
-        public void UpdateAgentInformation(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
-        {
-            if (httpRequest.HttpMethod != "POST")
-            {
-                httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
-                return;
-            }
-
-            // this is wrong now ignores request and sends same result for all
-            // we don't store and worse don't use that to filter contents
-
-            // OSDMap req = (OSDMap)OSDParser.DeserializeLLSDXml(request);
-            OSDMap resp = new OSDMap();
-
-            OSDMap accessPrefs = new OSDMap();
-            accessPrefs["max"] = "A";
-
-            resp["access_prefs"] = accessPrefs;
-
-            httpResponse.RawBuffer = OSDParser.SerializeLLSDXmlBytes(resp);
             httpResponse.StatusCode = (int)HttpStatusCode.OK;
         }
 
