@@ -7788,17 +7788,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetCameraEyeOffset(LSL_Vector offset)
         {
             m_host.SetCameraEyeOffset(offset);
-
-            if (m_host.ParentGroup.RootPart.GetCameraEyeOffset().IsZero())
-                m_host.ParentGroup.RootPart.SetCameraEyeOffset(offset);
         }
 
         public void llSetCameraAtOffset(LSL_Vector offset)
         {
             m_host.SetCameraAtOffset(offset);
-
-            if (m_host.ParentGroup.RootPart.GetCameraAtOffset().IsZero())
-                m_host.ParentGroup.RootPart.SetCameraAtOffset(offset);
         }
 
         public void llSetLinkCamera(LSL_Integer link, LSL_Vector eye, LSL_Vector at)
