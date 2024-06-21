@@ -1286,3 +1286,10 @@ ALTER TABLE public.regionsettings
                    ELSE NULL
                    END;
 COMMIT;
+
+:VERSION 56         #----- Fix the constraints on the spawn points 
+BEGIN;
+ALTER TABLE spawn_points DROP CONSTRAINT spawn_points_pkey;
+ALTER TABLE spawn_points ADD CONSTRAINT spawn_points_pkey
+    PRIMARY KEY ("RegionUUID", "Yaw", "Pitch", "Distance");
+COMMIT;
