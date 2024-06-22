@@ -1606,7 +1606,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
             returnMass = Density * BSParam.DensityScaleFactor * volume;
 
-            returnMass = Util.Clamp(returnMass, BSParam.MinimumObjectMass, BSParam.MaximumObjectMass);
+            returnMass = Math.Clamp(returnMass, BSParam.MinimumObjectMass, BSParam.MaximumObjectMass);
             // DetailLog("{0},BSPrim.CalculateMass,den={1},vol={2},mass={3}", LocalID, Density, volume, returnMass);
             DetailLog("{0},BSPrim.CalculateMass,den={1},vol={2},mass={3},pathB={4},pathE={5},profB={6},profE={7},siz={8}",
                                 LocalID, Density, volume, returnMass, pathBegin, pathEnd, profileBegin, profileEnd, _size);

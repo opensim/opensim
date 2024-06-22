@@ -57,6 +57,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         private UUID m_agentID = UUID.Random();
 
         public ISceneAgent SceneAgent { get; set; }
+        public ViewerFlags ViewerFlags { get; private set; } = 0;
 
         public int PingTimeMS { get { return 0; } }
 

@@ -68,6 +68,13 @@ namespace OpenSim.Region.CoreModules.World.Estate
                                " that coordinate.",
                                consoleSetTerrainTexture);
 
+            m_module.Scene.AddCommand("Regions", m_module, "set terrain pbr",
+                   "set terrain pbr <number> <uuid> [<x>] [<y>]",
+                   "Sets the pbr <number> to <uuid>, if <x> or <y> are specified, it will only " +
+                   "set it on regions with a matching coordinate. Specify -1 in <x> or <y> to wildcard" +
+                   " that coordinate.",
+                   consoleSetTerrainPBR);
+
             m_module.Scene.AddCommand("Regions", m_module, "set terrain heights",
                                "set terrain heights <corner> <min> <max> [<x>] [<y>]",
                                "Sets the terrain texture heights on corner #<corner> to <min>/<max>, if <x> or <y> are specified, it will only " +
@@ -118,6 +125,44 @@ namespace OpenSim.Region.CoreModules.World.Estate
                             break;
                         case 3:
                             m_module.Scene.RegionInfo.RegionSettings.TerrainTexture4 = texture;
+                            break;
+                    }
+
+                    m_module.Scene.RegionInfo.RegionSettings.Save();
+                    m_module.TriggerRegionInfoChange();
+                    m_module.sendRegionHandshakeToAll();
+                }
+            }
+        }
+        protected void consoleSetTerrainPBR(string module, string[] args)
+        {
+            string num = args[3];
+            string uuid = args[4];
+            int x = (args.Length > 5 ? int.Parse(args[5]) : -1);
+            int y = (args.Length > 6 ? int.Parse(args[6]) : -1);
+
+            if (x == -1 || m_module.Scene.RegionInfo.RegionLocX == x)
+            {
+                if (y == -1 || m_module.Scene.RegionInfo.RegionLocY == y)
+                {
+                    int corner = int.Parse(num);
+                    UUID texture = UUID.Parse(uuid);
+
+                    m_log.Debug($"[ESTATEMODULE]: Setting terrain PBR asset for {m_module.Scene.RegionInfo.RegionName} to {texture}");
+
+                    switch (corner)
+                    {
+                        case 0:
+                            m_module.Scene.RegionInfo.RegionSettings.TerrainPBR1 = texture;
+                            break;
+                        case 1:
+                            m_module.Scene.RegionInfo.RegionSettings.TerrainPBR2 = texture;
+                            break;
+                        case 2:
+                            m_module.Scene.RegionInfo.RegionSettings.TerrainPBR3 = texture;
+                            break;
+                        case 3:
+                            m_module.Scene.RegionInfo.RegionSettings.TerrainPBR4 = texture;
                             break;
                     }
 
