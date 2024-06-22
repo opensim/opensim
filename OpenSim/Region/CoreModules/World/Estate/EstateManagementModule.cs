@@ -541,22 +541,45 @@ namespace OpenSim.Region.CoreModules.World.Estate
             if (texture.IsZero())
                 return;
 
-            switch (level)
+            if((remoteClient.ViewerFlags & ViewerFlags.TPBR) != 0)
             {
-                case 0:
-                    Scene.RegionInfo.RegionSettings.TerrainTexture1 = texture;
-                    break;
-                case 1:
-                    Scene.RegionInfo.RegionSettings.TerrainTexture2 = texture;
-                    break;
-                case 2:
-                    Scene.RegionInfo.RegionSettings.TerrainTexture3 = texture;
-                    break;
-                case 3:
-                    Scene.RegionInfo.RegionSettings.TerrainTexture4 = texture;
-                    break;
-                default:
-                    return;
+                switch (level)
+                {
+                    case 0:
+                        Scene.RegionInfo.RegionSettings.TerrainPBR1 = texture;
+                        break;
+                    case 1:
+                        Scene.RegionInfo.RegionSettings.TerrainPBR2 = texture;
+                        break;
+                    case 2:
+                        Scene.RegionInfo.RegionSettings.TerrainPBR3 = texture;
+                        break;
+                    case 3:
+                        Scene.RegionInfo.RegionSettings.TerrainPBR4 = texture;
+                        break;
+                    default:
+                        return;
+                }
+            }
+            else
+            { 
+                switch (level)
+                {
+                    case 0:
+                        Scene.RegionInfo.RegionSettings.TerrainTexture1 = texture;
+                        break;
+                    case 1:
+                        Scene.RegionInfo.RegionSettings.TerrainTexture2 = texture;
+                        break;
+                    case 2:
+                        Scene.RegionInfo.RegionSettings.TerrainTexture3 = texture;
+                        break;
+                    case 3:
+                        Scene.RegionInfo.RegionSettings.TerrainTexture4 = texture;
+                        break;
+                    default:
+                        return;
+                }
             }
 
             Scene.RegionInfo.RegionSettings.Save();

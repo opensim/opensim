@@ -320,7 +320,19 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             if (regionSettings.TerrainTexture4 != RegionSettings.DEFAULT_TERRAIN_TEXTURE_4)
                 assetUuids[regionSettings.TerrainTexture4] = (sbyte)AssetType.Texture;
 
-            if(scene.RegionEnvironment != null)
+            if (regionSettings.TerrainPBR1 != RegionSettings.DEFAULT_TERRAIN_PBR_1)
+                assetUuids[regionSettings.TerrainPBR1] = (sbyte)AssetType.Texture; // it can be both tex or material
+
+            if (regionSettings.TerrainPBR2 != RegionSettings.DEFAULT_TERRAIN_PBR_2)
+                assetUuids[regionSettings.TerrainPBR2] = (sbyte)AssetType.Texture;
+
+            if (regionSettings.TerrainPBR3 != RegionSettings.DEFAULT_TERRAIN_PBR_3)
+                assetUuids[regionSettings.TerrainPBR3] = (sbyte)AssetType.Texture;
+
+            if (regionSettings.TerrainPBR4 != RegionSettings.DEFAULT_TERRAIN_PBR_4)
+                assetUuids[regionSettings.TerrainPBR4] = (sbyte)AssetType.Texture;
+
+            if (scene.RegionEnvironment != null)
                 scene.RegionEnvironment.GatherAssets(assetUuids);
 
             List<ILandObject> landObjects = scene.LandChannel.AllParcels();

@@ -951,7 +951,8 @@ namespace OpenSim.Data.PGSQL
 ,block_show_in_search = :block_show_in_search ,agent_limit = :agent_limit ,object_bonus = :object_bonus ,maturity = :maturity
 ,disable_scripts = :disable_scripts ,disable_collisions = :disable_collisions ,disable_physics = :disable_physics
 ,terrain_texture_1 = :terrain_texture_1 ,terrain_texture_2 = :terrain_texture_2 ,terrain_texture_3 = :terrain_texture_3
-,terrain_texture_4 = :terrain_texture_4 ,elevation_1_nw = :elevation_1_nw ,elevation_2_nw = :elevation_2_nw
+,terrain_texture_4 = :terrain_texture_4 , TerrainPBR1 = :TerrainPBR1, TerrainPBR2 = :TerrainPBR2, TerrainPBR3 = :TerrainPBR3
+,TerrainPBR4 = :TerrainPBR4, elevation_1_nw = :elevation_1_nw ,elevation_2_nw = :elevation_2_nw
 ,elevation_1_ne = :elevation_1_ne ,elevation_2_ne = :elevation_2_ne ,elevation_1_se = :elevation_1_se ,elevation_2_se = :elevation_2_se
 ,elevation_1_sw = :elevation_1_sw ,elevation_2_sw = :elevation_2_sw ,water_height = :water_height ,terrain_raise_limit = :terrain_raise_limit
 ,terrain_lower_limit = :terrain_lower_limit ,use_estate_sun = :use_estate_sun ,fixed_sun = :fixed_sun ,sun_position = :sun_position
@@ -1074,6 +1075,12 @@ namespace OpenSim.Data.PGSQL
 
             if (!(row["cacheID"] is DBNull))
                 newSettings.CacheID = new UUID((Guid)row["cacheID"]);
+
+            newSettings.TerrainPBR1 = new UUID((Guid)row["TerrainPBR1"]);
+            newSettings.TerrainPBR2 = new UUID((Guid)row["TerrainPBR2"]);
+            newSettings.TerrainPBR3 = new UUID((Guid)row["TerrainPBR3"]);
+            newSettings.TerrainPBR4 = new UUID((Guid)row["TerrainPBR4"]);
+
             return newSettings;
         }
 
@@ -1551,53 +1558,57 @@ namespace OpenSim.Data.PGSQL
         /// <returns></returns>
         private NpgsqlParameter[] CreateRegionSettingParameters(RegionSettings settings)
         {
-            List<NpgsqlParameter> parameters = new List<NpgsqlParameter>();
-
-            parameters.Add(_Database.CreateParameter("regionUUID", settings.RegionUUID));
-            parameters.Add(_Database.CreateParameter("block_terraform", settings.BlockTerraform));
-            parameters.Add(_Database.CreateParameter("block_fly", settings.BlockFly));
-            parameters.Add(_Database.CreateParameter("allow_damage", settings.AllowDamage));
-            parameters.Add(_Database.CreateParameter("restrict_pushing", settings.RestrictPushing));
-            parameters.Add(_Database.CreateParameter("allow_land_resell", settings.AllowLandResell));
-            parameters.Add(_Database.CreateParameter("allow_land_join_divide", settings.AllowLandJoinDivide));
-            parameters.Add(_Database.CreateParameter("block_show_in_search", settings.BlockShowInSearch));
-            parameters.Add(_Database.CreateParameter("agent_limit", settings.AgentLimit));
-            parameters.Add(_Database.CreateParameter("object_bonus", settings.ObjectBonus));
-            parameters.Add(_Database.CreateParameter("maturity", settings.Maturity));
-            parameters.Add(_Database.CreateParameter("disable_scripts", settings.DisableScripts));
-            parameters.Add(_Database.CreateParameter("disable_collisions", settings.DisableCollisions));
-            parameters.Add(_Database.CreateParameter("disable_physics", settings.DisablePhysics));
-            parameters.Add(_Database.CreateParameter("terrain_texture_1", settings.TerrainTexture1));
-            parameters.Add(_Database.CreateParameter("terrain_texture_2", settings.TerrainTexture2));
-            parameters.Add(_Database.CreateParameter("terrain_texture_3", settings.TerrainTexture3));
-            parameters.Add(_Database.CreateParameter("terrain_texture_4", settings.TerrainTexture4));
-            parameters.Add(_Database.CreateParameter("elevation_1_nw", settings.Elevation1NW));
-            parameters.Add(_Database.CreateParameter("elevation_2_nw", settings.Elevation2NW));
-            parameters.Add(_Database.CreateParameter("elevation_1_ne", settings.Elevation1NE));
-            parameters.Add(_Database.CreateParameter("elevation_2_ne", settings.Elevation2NE));
-            parameters.Add(_Database.CreateParameter("elevation_1_se", settings.Elevation1SE));
-            parameters.Add(_Database.CreateParameter("elevation_2_se", settings.Elevation2SE));
-            parameters.Add(_Database.CreateParameter("elevation_1_sw", settings.Elevation1SW));
-            parameters.Add(_Database.CreateParameter("elevation_2_sw", settings.Elevation2SW));
-            parameters.Add(_Database.CreateParameter("water_height", settings.WaterHeight));
-            parameters.Add(_Database.CreateParameter("terrain_raise_limit", settings.TerrainRaiseLimit));
-            parameters.Add(_Database.CreateParameter("terrain_lower_limit", settings.TerrainLowerLimit));
-            parameters.Add(_Database.CreateParameter("use_estate_sun", settings.UseEstateSun));
-            parameters.Add(_Database.CreateParameter("Sandbox", settings.Sandbox));
-            parameters.Add(_Database.CreateParameter("fixed_sun", settings.FixedSun));
-            parameters.Add(_Database.CreateParameter("sun_position", settings.SunPosition));
-            parameters.Add(_Database.CreateParameter("sunvectorx", settings.SunVector.X));
-            parameters.Add(_Database.CreateParameter("sunvectory", settings.SunVector.Y));
-            parameters.Add(_Database.CreateParameter("sunvectorz", settings.SunVector.Z));
-            parameters.Add(_Database.CreateParameter("covenant", settings.Covenant));
-            parameters.Add(_Database.CreateParameter("covenant_datetime", settings.CovenantChangedDateTime));
-            parameters.Add(_Database.CreateParameter("Loaded_Creation_DateTime", settings.LoadedCreationDateTime));
-            parameters.Add(_Database.CreateParameter("Loaded_Creation_ID", settings.LoadedCreationID));
-            parameters.Add(_Database.CreateParameter("TerrainImageID", settings.TerrainImageID));
-            parameters.Add(_Database.CreateParameter("ParcelImageID", settings.ParcelImageID));
-            parameters.Add(_Database.CreateParameter("TelehubObject", settings.TelehubObject));
-
-            parameters.Add(_Database.CreateParameter("cacheID", settings.CacheID));
+            List<NpgsqlParameter> parameters =
+            [
+                _Database.CreateParameter("regionUUID", settings.RegionUUID),
+                _Database.CreateParameter("block_terraform", settings.BlockTerraform),
+                _Database.CreateParameter("block_fly", settings.BlockFly),
+                _Database.CreateParameter("allow_damage", settings.AllowDamage),
+                _Database.CreateParameter("restrict_pushing", settings.RestrictPushing),
+                _Database.CreateParameter("allow_land_resell", settings.AllowLandResell),
+                _Database.CreateParameter("allow_land_join_divide", settings.AllowLandJoinDivide),
+                _Database.CreateParameter("block_show_in_search", settings.BlockShowInSearch),
+                _Database.CreateParameter("agent_limit", settings.AgentLimit),
+                _Database.CreateParameter("object_bonus", settings.ObjectBonus),
+                _Database.CreateParameter("maturity", settings.Maturity),
+                _Database.CreateParameter("disable_scripts", settings.DisableScripts),
+                _Database.CreateParameter("disable_collisions", settings.DisableCollisions),
+                _Database.CreateParameter("disable_physics", settings.DisablePhysics),
+                _Database.CreateParameter("terrain_texture_1", settings.TerrainTexture1),
+                _Database.CreateParameter("terrain_texture_2", settings.TerrainTexture2),
+                _Database.CreateParameter("terrain_texture_3", settings.TerrainTexture3),
+                _Database.CreateParameter("terrain_texture_4", settings.TerrainTexture4),
+                _Database.CreateParameter("elevation_1_nw", settings.Elevation1NW),
+                _Database.CreateParameter("elevation_2_nw", settings.Elevation2NW),
+                _Database.CreateParameter("elevation_1_ne", settings.Elevation1NE),
+                _Database.CreateParameter("elevation_2_ne", settings.Elevation2NE),
+                _Database.CreateParameter("elevation_1_se", settings.Elevation1SE),
+                _Database.CreateParameter("elevation_2_se", settings.Elevation2SE),
+                _Database.CreateParameter("elevation_1_sw", settings.Elevation1SW),
+                _Database.CreateParameter("elevation_2_sw", settings.Elevation2SW),
+                _Database.CreateParameter("water_height", settings.WaterHeight),
+                _Database.CreateParameter("terrain_raise_limit", settings.TerrainRaiseLimit),
+                _Database.CreateParameter("terrain_lower_limit", settings.TerrainLowerLimit),
+                _Database.CreateParameter("use_estate_sun", settings.UseEstateSun),
+                _Database.CreateParameter("Sandbox", settings.Sandbox),
+                _Database.CreateParameter("fixed_sun", settings.FixedSun),
+                _Database.CreateParameter("sun_position", settings.SunPosition),
+                _Database.CreateParameter("sunvectorx", settings.SunVector.X),
+                _Database.CreateParameter("sunvectory", settings.SunVector.Y),
+                _Database.CreateParameter("sunvectorz", settings.SunVector.Z),
+                _Database.CreateParameter("covenant", settings.Covenant),
+                _Database.CreateParameter("covenant_datetime", settings.CovenantChangedDateTime),
+                _Database.CreateParameter("Loaded_Creation_DateTime", settings.LoadedCreationDateTime),
+                _Database.CreateParameter("Loaded_Creation_ID", settings.LoadedCreationID),
+                _Database.CreateParameter("TerrainImageID", settings.TerrainImageID),
+                _Database.CreateParameter("ParcelImageID", settings.ParcelImageID),
+                _Database.CreateParameter("TelehubObject", settings.TelehubObject),
+                _Database.CreateParameter("cacheID", settings.CacheID),
+                _Database.CreateParameter("TerrainPBR1", settings.TerrainPBR1),
+                _Database.CreateParameter("TerrainPBR2", settings.TerrainPBR2),
+                _Database.CreateParameter("TerrainPBR3", settings.TerrainPBR3),
+                _Database.CreateParameter("TerrainPBR4", settings.TerrainPBR4),
+            ];
 
             return parameters.ToArray();
         }

@@ -3968,9 +3968,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 obj.Shape.ProjectionEntry = true;
                 obj.Shape.ProjectionTextureUUID = texID;
-                obj.Shape.ProjectionFOV = Util.Clamp((float)fov, 0, 3.0f);
-                obj.Shape.ProjectionFocus = Util.Clamp((float)focus, -20.0f, 20.0f);
-                obj.Shape.ProjectionAmbiance = Util.Clamp((float)amb, 0, 1.0f);
+                obj.Shape.ProjectionFOV = Math.Clamp((float)fov, 0, 3.0f);
+                obj.Shape.ProjectionFocus = Math.Clamp((float)focus, -20.0f, 20.0f);
+                obj.Shape.ProjectionAmbiance = Math.Clamp((float)amb, 0, 1.0f);
 
                 obj.ParentGroup.HasGroupChanged = true;
                 obj.ScheduleFullUpdate();
@@ -6570,6 +6570,59 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return LSL_String.Empty;
             }
             return ret.ToString();
+        }
+
+        public LSL_Vector osGetLinkColor(LSL_Integer link, LSL_Integer face)
+        {
+            SceneObjectPart linkedPart = link.value switch
+            {
+                ScriptBaseClass.LINK_ROOT => m_host.ParentGroup.RootPart,
+                ScriptBaseClass.LINK_THIS => m_host,
+                _ => m_host.ParentGroup.GetLinkNumPart(link.value)
+            };
+
+            if (linkedPart != null)
+            {
+                InitLSL();
+                return m_LSL_Api.GetColor(linkedPart, face.value);
+            }
+
+            return LSL_Vector.Zero;
+        }
+
+        public LSL_Vector osTemperature2sRGB(LSL_Float dtemp)
+        {
+            //aproximate fit to http://www.vendian.org/mncharity/dir3/blackbody/ 10degree D65 tables
+            float temp = (float)dtemp.value;
+            if (temp <= 1000f)
+                return new LSL_Vector(1.0, 0.0401, 0);
+            else if (temp >= 40000f)
+                return new LSL_Vector(0.3277, 0.5022, 1.0);
+
+            float green;
+            if (temp < 6600f)
+            {
+                green = temp - 1000f;
+                green = ((((-7.87308e-13f * green) - 7.10085e-9f) * green) + 0.00022693f) * green + 0.0374249f;
+                green = Math.Clamp(green, 0, 1.0f);
+
+                if (temp <= 19.0f)
+                    return new LSL_Vector(1.0, green, 0);
+
+                float blue = temp - 1900f;
+                blue = ((((-5.97E-12f * blue) + 5.49E-08f) * blue) + 8.85465E-05f) * blue - 0.0058959f;
+                blue = Math.Clamp(blue, 0f, 1.0f);
+
+                return new LSL_Vector(1.0, green, blue);
+            }
+
+            temp = 0.01f * (temp - 6000f);
+            float red = 1.897315f * MathF.Pow(temp, -0.346837f) + 0.0622044f;
+            red = Math.Clamp(red, 0, 1.0f);
+
+            green = 1.261989f * MathF.Pow(temp, -0.251708f) + 0.200836f;
+            green = Math.Clamp(green, 0, 1.0f);
+            return new LSL_Vector(red, green, 1.0f);
         }
     }
 }

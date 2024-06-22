@@ -152,7 +152,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     return;
                 }
                 //pass this in as degrees now, convert to radians later during actual work phase
-                rotation = Util.Clamp<float>(rotation, -359f, 359f);
+                rotation = Math.Clamp(rotation, -359f, 359f);
             });
             options.Add("rotation-center=", delegate(string v)
             {

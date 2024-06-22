@@ -232,9 +232,9 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                         detailTexture[t].UnlockBits(bmdata);
                         detailTexture[t].Dispose();
 
-                        mapColorsRed[t] = (byte)Util.Clamp(cR / npixeis, 0 , 255);
-                        mapColorsGreen[t] = (byte)Util.Clamp(cG / npixeis, 0 , 255);
-                        mapColorsBlue[t] = (byte)Util.Clamp(cB / npixeis, 0 , 255);
+                        mapColorsRed[t] = (byte)Math.Clamp(cR / npixeis, 0 , 255);
+                        mapColorsGreen[t] = (byte)Math.Clamp(cG / npixeis, 0 , 255);
+                        mapColorsBlue[t] = (byte)Math.Clamp(cB / npixeis, 0 , 255);
                     }
                 }
                 else

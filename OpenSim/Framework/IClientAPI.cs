@@ -598,6 +598,18 @@ namespace OpenSim.Framework
         public int Price;
     }
 
+    [Flags]
+    public enum ViewerFlags:uint
+    {
+        SentSeeds =  0x1000,
+        ObjectAnim = 0x2000,
+        WLEnv =      0x4000,
+        AdvEnv =     0x8000,
+        PBR =        0x10000,
+        TPBR =       0x20000,
+        SentTPBR =   0x40000,
+    }
+
     /// <summary>
     /// Specifies the fields that have been changed when sending a prim or
     /// avatar update
@@ -670,6 +682,8 @@ namespace OpenSim.Framework
         string ActiveGroupName { get; set;}
 
         ulong ActiveGroupPowers { get; set;}
+
+        ViewerFlags ViewerFlags { get;}
 
         Dictionary<UUID, ulong> GetGroupPowers();
 

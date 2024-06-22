@@ -659,6 +659,7 @@ namespace OpenSim.Framework
             return true;
         }
 
+        //obsolete  use Math.Clamp
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T Clamp<T>(T x, T min, T max)
             where T : IComparable<T>

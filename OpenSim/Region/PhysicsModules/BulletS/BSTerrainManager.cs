@@ -363,8 +363,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             // First, base addresses are never negative so correct for that possible problem.
             if (ret.X < 0f || ret.Y < 0f)
             {
-                ret.X = Util.Clamp<float>(ret.X, 0f, 1000000f);
-                ret.Y = Util.Clamp<float>(ret.Y, 0f, 1000000f);
+                ret.X = Math.Clamp(ret.X, 0f, 1000000f);
+                ret.Y = Math.Clamp(ret.Y, 0f, 1000000f);
                 DetailLog("{0},BSTerrainManager.ClampPositionToKnownTerrain,zeroingNegXorY,oldPos={1},newPos={2}",
                                             BSScene.DetailLogZero, pPos, ret);
             }
@@ -510,8 +510,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 return ret;
 
             // Just some sanity
-            ret.X = Util.Clamp<float>(ret.X, 0f, 1000000f);
-            ret.Y = Util.Clamp<float>(ret.Y, 0f, 1000000f);
+            ret.X = Math.Clamp(ret.X, 0f, 1000000f);
+            ret.Y = Math.Clamp(ret.Y, 0f, 1000000f);
             ret.Z = 0f;
 
             lock (m_terrains)
