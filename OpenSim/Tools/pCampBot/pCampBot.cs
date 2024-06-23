@@ -56,7 +56,7 @@ namespace pCampBot
         [STAThread]
         public static void Main(string[] args)
         {
-            XmlConfigurator.Configure(new System.IO.FileInfo("pCampBot.exe.config"));
+            XmlConfigurator.Configure(new System.IO.FileInfo("pCampBot.dll.config"));
 
             IConfig commandLineConfig = ParseConfig(args);
             if (commandLineConfig.Get("help") != null || commandLineConfig.Get("loginuri") == null)
