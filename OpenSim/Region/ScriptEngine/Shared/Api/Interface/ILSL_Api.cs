@@ -521,5 +521,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_Integer llLinksetDataWriteProtected(LSL_String name, LSL_String value, LSL_String pass);
 
         LSL_Integer llIsFriend(LSL_Key agent_id);
+        LSL_Integer llDerezObject(LSL_Key objectUUID, LSL_Integer flag);
     }
 }

@@ -2796,11 +2796,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_LSL_Functions.llLinksetDataFindKeys(pattern, start, count);
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public LSL_Integer llIsFriend(LSL_Key agent_id)
         {
             return m_LSL_Functions.llIsFriend(agent_id);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_Integer llDerezObject(LSL_Key objectUUID, LSL_Integer flag)
+        {
+            return m_LSL_Functions.llDerezObject(objectUUID, flag);
         }
     }
 }

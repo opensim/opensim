@@ -18762,6 +18762,37 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             return 0;
         }
+
+        public LSL_Integer llDerezObject(LSL_Key objectUUID, LSL_Integer flag)
+        {
+            if (!UUID.TryParse(objectUUID, out UUID objUUID))
+                return new LSL_Integer(0);
+
+            if (objUUID.IsZero())
+                return new LSL_Integer(0);
+
+            SceneObjectGroup sceneOG = World.GetSceneObjectGroup(objUUID);
+
+            if (sceneOG is null || sceneOG.IsDeleted || sceneOG.IsAttachment)
+                return new LSL_Integer(0);
+
+            if (sceneOG.OwnerID.NotEqual(m_host.OwnerID))
+                return new LSL_Integer(0);
+
+            // restrict to objects rezzed by host
+            if (sceneOG.RezzerID.NotEqual(m_host.ParentGroup.UUID))
+                return new LSL_Integer(0);
+
+            if (sceneOG.UUID.Equals(m_host.ParentGroup.UUID))
+                return new LSL_Integer(0);
+
+            if (flag.value == 0)
+                World.DeleteSceneObject(sceneOG, false);
+            else
+                sceneOG.RootPart.AddFlag(PrimFlags.TemporaryOnRez);
+
+            return new LSL_Integer(1);
+        }
     }
 
     public class NotecardCache
