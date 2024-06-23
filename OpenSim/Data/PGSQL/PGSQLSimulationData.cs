@@ -896,7 +896,7 @@ namespace OpenSim.Data.PGSQL
         public RegionSettings LoadRegionSettings(UUID regionUUID)
         {
             string sql = @"select * from regionsettings where ""regionUUID"" = :regionUUID";
-            RegionSettings regionSettings;
+            RegionSettings regionSettings = null;
             using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
             using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
             {
@@ -908,9 +908,12 @@ namespace OpenSim.Data.PGSQL
                     {
                         regionSettings = BuildRegionSettings(reader);
                         regionSettings.OnSave += StoreRegionSettings;
-
-                        return regionSettings;
                     }
+                }
+                if (regionSettings != null)
+                {
+                    LoadSpawnPoints(regionSettings);
+                    return regionSettings;
                 }
             }
 
@@ -1970,14 +1973,14 @@ namespace OpenSim.Data.PGSQL
                 conn.Open();
                 using (NpgsqlDataReader reader = cmd.ExecuteReader())
                 {
-                    if (reader.Read())
+                    while (reader.Read())
                     {
-                        SpawnPoint sp = new SpawnPoint();
-
-                        sp.Yaw = (float)reader["Yaw"];
-                        sp.Pitch = (float)reader["Pitch"];
-                        sp.Distance = (float)reader["Distance"];
-
+                        var sp = new SpawnPoint
+                        {
+                            Yaw = Convert.ToSingle(reader["Yaw"]),
+                            Pitch = Convert.ToSingle(reader["Pitch"]),
+                            Distance = Convert.ToSingle(reader["Distance"])
+                        };
                         rs.AddSpawnPoint(sp);
                     }
                 }
