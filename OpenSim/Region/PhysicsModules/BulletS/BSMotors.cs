@@ -408,7 +408,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             get { return base.Efficiency; }
             set
             {
-                base.Efficiency = Util.Clamp(value, 0f, 1f);
+                base.Efficiency = Math.Clamp(value, 0f, 1f);
 
                 // Compute factors based on efficiency.
                 // If efficiency is high (1f), use a factor value that moves the error value to zero with little overshoot.
