@@ -866,6 +866,18 @@ namespace OpenSim.Region.Framework.Scenes
                 updatedTerrainTextures = true;
             }
 
+            if (rs.TerrainPBR1.IsZero() &&
+                rs.TerrainPBR2.IsZero() &&
+                rs.TerrainPBR3.IsZero() &&
+                rs.TerrainPBR4.IsZero())
+            {
+                rs.TerrainPBR1 = rs.TerrainTexture1;
+                rs.TerrainPBR2 = rs.TerrainTexture2;
+                rs.TerrainPBR3 = rs.TerrainTexture3;
+                rs.TerrainPBR4 = rs.TerrainTexture4;
+                updatedTerrainTextures = true;
+            }
+
             if (updatedTerrainTextures)
                 rs.Save();
 
@@ -1885,7 +1897,7 @@ namespace OpenSim.Region.Framework.Scenes
                     nowMS = Util.GetTimeStampMS();
                     sleepMS = (float)(nowMS - lastMS);
                     sleepError = sleepMS - frameMS;
-                    Util.Clamp(sleepError, 0.0f, 20f);
+                    sleepError = Math.Clamp(sleepError, 0.0f, 20f);
                     frameMS = (float)(nowMS - framestart);
                     }
                 else

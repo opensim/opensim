@@ -1164,6 +1164,12 @@ namespace OpenSim.Region.CoreModules.Asset
                 gatherer.AddGathered(s.RegionInfo.RegionSettings.TerrainTexture2, (sbyte)AssetType.Texture);
                 gatherer.AddGathered(s.RegionInfo.RegionSettings.TerrainTexture3, (sbyte)AssetType.Texture);
                 gatherer.AddGathered(s.RegionInfo.RegionSettings.TerrainTexture4, (sbyte)AssetType.Texture);
+
+                gatherer.AddGathered(s.RegionInfo.RegionSettings.TerrainPBR1, (sbyte)AssetType.Texture);
+                gatherer.AddGathered(s.RegionInfo.RegionSettings.TerrainPBR2, (sbyte)AssetType.Texture);
+                gatherer.AddGathered(s.RegionInfo.RegionSettings.TerrainPBR3, (sbyte)AssetType.Texture);
+                gatherer.AddGathered(s.RegionInfo.RegionSettings.TerrainPBR4, (sbyte)AssetType.Texture);
+
                 gatherer.AddGathered(s.RegionInfo.RegionSettings.TerrainImageID, (sbyte)AssetType.Texture);
 
                 s.RegionEnvironment?.GatherAssets(gatheredids);

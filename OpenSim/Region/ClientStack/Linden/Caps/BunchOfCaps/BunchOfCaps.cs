@@ -263,9 +263,6 @@ namespace OpenSim.Region.ClientStack.Linden
                     m_HostCapsObj.RegisterSimpleHandler("UpdateScriptTaskInventory", oreq, true); //legacy
                 }
 
-                m_HostCapsObj.RegisterSimpleHandler("UpdateAgentInformation",
-                    new SimpleStreamHandler(GetNewCapPath(), UpdateAgentInformation));
-
                 m_HostCapsObj.RegisterSimpleHandler("CopyInventoryFromNotecard",
                     new SimpleOSDMapHandler("POST", GetNewCapPath(), CopyInventoryFromNotecard));
 
@@ -350,8 +347,20 @@ namespace OpenSim.Region.ClientStack.Linden
                 {
                     case "SEED":
                         continue;
-                    case "ViewerBenefits": // this may need a proper cap but not currently
+                    case "ViewerBenefits":
                         m_HostCapsObj.Flags |= Caps.CapsFlags.ViewerBenefits;
+                        continue;
+                    case "VTPBR":
+                        if (m_Scene.RegionInfo.RegionSizeX == Constants.RegionSize &&
+                            m_Scene.RegionInfo.RegionSizeY == Constants.RegionSize )
+                        {
+                            m_HostCapsObj.Flags |= Caps.CapsFlags.PBR | Caps.CapsFlags.TPBR;
+                        }
+                        else
+                            m_HostCapsObj.Flags |= Caps.CapsFlags.PBR;
+                        continue;
+                    case "VETPBR":
+                        m_HostCapsObj.Flags |= Caps.CapsFlags.PBR | Caps.CapsFlags.TPBR;
                         continue;
                     case "ObjectAnimation":
                          m_HostCapsObj.Flags |= Caps.CapsFlags.ObjectAnim;
@@ -370,7 +379,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 }
                 validCaps.Add(cstr);
             }
-            
+
             osUTF8 sb = LLSDxmlEncode2.Start();
             LLSDxmlEncode2.AddMap(sb);
             m_HostCapsObj.GetCapsDetailsLLSDxml(validCaps, sb);
@@ -1880,29 +1889,6 @@ namespace OpenSim.Region.ClientStack.Linden
 
             // resp["transaction_id"] = "undef";
             httpResponse.RawBuffer = LLSDxmlEncode2.EndToNBBytes(lsl);
-            httpResponse.StatusCode = (int)HttpStatusCode.OK;
-        }
-
-        public void UpdateAgentInformation(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
-        {
-            if (httpRequest.HttpMethod != "POST")
-            {
-                httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
-                return;
-            }
-
-            // this is wrong now ignores request and sends same result for all
-            // we don't store and worse don't use that to filter contents
-
-            // OSDMap req = (OSDMap)OSDParser.DeserializeLLSDXml(request);
-            OSDMap resp = new OSDMap();
-
-            OSDMap accessPrefs = new OSDMap();
-            accessPrefs["max"] = "A";
-
-            resp["access_prefs"] = accessPrefs;
-
-            httpResponse.RawBuffer = OSDParser.SerializeLLSDXmlBytes(resp);
             httpResponse.StatusCode = (int)HttpStatusCode.OK;
         }
 
