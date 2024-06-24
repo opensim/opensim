@@ -2020,15 +2020,62 @@ namespace OpenSim.Data.PGSQL
 
         public void SaveExtra(UUID regionID, string name, string value)
         {
+            const string queryString = """
+                                       INSERT INTO regionextra ("RegionID", "Name", "value")
+                                       VALUES (:RegionID, :Name, :Value)
+                                       """;
+            using var connection = new NpgsqlConnection(m_connectionString);
+            connection.Open();
+            using var command = new NpgsqlCommand(queryString, connection, connection.BeginTransaction());
+            try
+            {
+                command.Parameters.AddWithValue("RegionID", regionID.ToString());
+                command.Parameters.AddWithValue("Name", name);
+                command.Parameters.AddWithValue("Value", value);
+                command.ExecuteNonQuery();
+                command.Transaction.Commit();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                command.Transaction.Rollback();
+            }
         }
 
         public void RemoveExtra(UUID regionID, string name)
         {
+            const string queryString = """DELETE FROM regionextra WHERE "RegionID"=:RegionID AND "Name"=:Name""";
+            using var connection = new NpgsqlConnection(m_connectionString);
+            connection.Open();
+            using var command = new NpgsqlCommand(queryString, connection, connection.BeginTransaction());
+            try
+            {
+                command.Parameters.AddWithValue("RegionID", regionID.ToString());
+                command.Parameters.AddWithValue("Name", name);
+                command.ExecuteNonQuery();
+                command.Transaction.Commit();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                command.Transaction.Rollback();
+            }
         }
 
         public Dictionary<string, string> GetExtra(UUID regionID)
         {
-            return null;
+            const string queryString = """SELECT * FROM regionextra WHERE "RegionID" = :RegionID""";
+            using NpgsqlConnection conn = new NpgsqlConnection(m_connectionString);
+            using NpgsqlCommand cmd = new NpgsqlCommand(queryString, conn);
+            cmd.Parameters.Add(_Database.CreateParameter("RegionID", regionID.ToString()));
+            conn.Open();
+            using NpgsqlDataReader reader = cmd.ExecuteReader();
+            Dictionary<string, string> extraSettings = new Dictionary<string, string>();
+            while (reader.Read())
+            {
+                extraSettings.Add(reader["Name"].ToString(), reader["value"].ToString());
+            }
+            return extraSettings;
         }
     }
 }
