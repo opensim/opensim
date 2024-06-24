@@ -8802,7 +8802,7 @@
             </para>
             <para>
             The log4net configuration file can possible be specified in the application's
-            configuration file (either <c>MyAppName.exe.config</c> for a
+            configuration file (either <c>MyAppName.dll.config</c> for a
             normal application on <c>Web.config</c> for an ASP.NET application).
             </para>
             <example>
@@ -8867,7 +8867,7 @@
             </para>
             <para>
             The log4net configuration file can possible be specified in the application's
-            configuration file (either <c>MyAppName.exe.config</c> for a
+            configuration file (either <c>MyAppName.dll.config</c> for a
             normal application on <c>Web.config</c> for an ASP.NET application).
             </para>
             <example>
@@ -9367,7 +9367,7 @@
             </para>
             <para>
             The log4net configuration file can possible be specified in the application's
-            configuration file (either <c>MyAppName.exe.config</c> for a
+            configuration file (either <c>MyAppName.dll.config</c> for a
             normal application on <c>Web.config</c> for an ASP.NET application).
             </para>
             <para>
@@ -9465,7 +9465,7 @@
             </para>
             <para>
             The log4net configuration file can possible be specified in the application's
-            configuration file (either <c>MyAppName.exe.config</c> for a
+            configuration file (either <c>MyAppName.dll.config</c> for a
             normal application on <c>Web.config</c> for an ASP.NET application).
             </para>
             <para>
