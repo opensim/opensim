@@ -14993,11 +14993,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (!UUID.TryParse(name, out UUID assetID))
             {
                 TaskInventoryItem item = m_host.Inventory.GetInventoryItem(name, 7);
-                
+
                 if (item is null)
                 {
                     Error("llGetNotecardLineSync", "Can't find notecard '" + name + "'");
-
                     return ScriptBaseClass.NAK;
                 }
                 assetID = item.AssetID;
