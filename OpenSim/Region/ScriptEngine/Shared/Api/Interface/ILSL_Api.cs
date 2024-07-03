@@ -176,6 +176,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llGetNextEmail(string address, string subject);
            LSL_Key llGetNotecardLine(string name, int line);
            LSL_Key llGetNumberOfNotecardLines(string name);
+        LSL_String llGetNotecardLineSync(string name, int line);
        LSL_Integer llGetNumberOfPrims();
        LSL_Integer llGetNumberOfSides();
         LSL_String llGetObjectDesc();

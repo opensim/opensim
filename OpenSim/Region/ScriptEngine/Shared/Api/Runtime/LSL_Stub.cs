@@ -759,6 +759,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_String llGetNotecardLineSync(string name, int line)
+        {
+            return m_LSL_Functions.llGetNotecardLineSync(name, line);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public LSL_Integer llGetNumberOfPrims()
         {
             return m_LSL_Functions.llGetNumberOfPrims();
