@@ -14987,23 +14987,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_String llGetNotecardLineSync(string name, int line)
         {
+            if (line < 0)
+                return ScriptBaseClass.NAK;
+
             if (!UUID.TryParse(name, out UUID assetID))
             {
-                TaskInventoryItem item = m_host.Inventory.GetInventoryItem(name);
+                TaskInventoryItem item = m_host.Inventory.GetInventoryItem(name, 7);
                 
-                if (item != null && item.Type == 7)
-                    assetID = item.AssetID;
-                else
+                if (item is null)
                 {
                     Error("llGetNotecardLineSync", "Can't find notecard '" + name + "'");
 
                     return ScriptBaseClass.NAK;
                 }
+                assetID = item.AssetID;
             }
 
             if (NotecardCache.IsCached(assetID))
             {
-                return NotecardCache.GetLine(assetID, line, m_notecardLineReadCharsMax);
+                return NotecardCache.GetllLine(assetID, line, 1024);
             }
             else
             {
@@ -18860,6 +18862,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return text[lineNumber];
             }
             return "";
+        }
+
+        public static string GetllLine(UUID assetID, int lineNumber, int maxLength)
+        {
+            if (m_Notecards.TryGetValue(assetID, 30000, out string[] text))
+            {
+                if (lineNumber >= text.Length)
+                    return "\n\n\n";
+
+                return text[lineNumber].Length < maxLength ? text[lineNumber] : text[lineNumber][..maxLength];
+            }
+            return ScriptBaseClass.NAK;
         }
 
         /// <summary>
