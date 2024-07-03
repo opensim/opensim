@@ -14985,6 +14985,32 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return tid.ToString();
         }
 
+        public LSL_String llGetNotecardLineSync(string name, int line)
+        {
+            if (!UUID.TryParse(name, out UUID assetID))
+            {
+                TaskInventoryItem item = m_host.Inventory.GetInventoryItem(name);
+                
+                if (item != null && item.Type == 7)
+                    assetID = item.AssetID;
+                else
+                {
+                    Error("llGetNotecardLineSync", "Can't find notecard '" + name + "'");
+
+                    return ScriptBaseClass.NAK;
+                }
+            }
+
+            if (NotecardCache.IsCached(assetID))
+            {
+                return NotecardCache.GetLine(assetID, line, m_notecardLineReadCharsMax);
+            }
+            else
+            {
+                return ScriptBaseClass.NAK;
+            }
+        }
+
         public LSL_Key llGetNotecardLine(string name, int line)
         {
             if (!UUID.TryParse(name, out UUID assetID))
