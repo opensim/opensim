@@ -7731,16 +7731,16 @@
  <key>osGetSittingAvatarsCount</key>
  <map>
   <key>return</key><string>integer</string>
-  <key>arguments</key><array>
-   <map><key>object_id</key><map><key>type</key><string>key</string></map></map>
-  </array>
-  <key>tooltip</key><string>Returns the number of sitting avatars on the linkset that includes a prim with UUID objectID.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
+  <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns the number of sitting avatars on the current linkset.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetSittingAvatarsCount</key>
  <map>
   <key>return</key><string>integer</string>
-  <key>arguments</key><undef/>
-  <key>tooltip</key><string>Returns the number of sitting avatars on the current linkset.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
+  <key>arguments</key><array>
+   <map><key>object_id</key><map><key>type</key><string>key</string></map></map>
+  </array>
+  <key>tooltip</key><string>Returns the number of sitting avatars on the linkset that includes a prim with UUID objectID.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetStandTarget</key>
  <map>
