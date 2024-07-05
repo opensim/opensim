@@ -6783,6 +6783,44 @@
    <map><key>volume</key><map><key>type</key><string>float</string></map></map>
   </array>
  </map>
+ <key>osAESEncrypt</key>
+ <map>
+  <key>return</key><string>string</string>
+  <key>arguments</key><array>
+   <map><key>secret</key><map><key>type</key><string>string</string></map></map>
+   <map><key>plainText</key><map><key>type</key><string>string</string></map></map>
+  </array>
+  <key>tooltip</key><string>Encrypt a plain text using AES-256-CBC Symmetric Algorithm Key (secret) and a random Initialization Vector (IV). Returns the Hex string of the IV bytes and the Hex string of the encrypted text bytes separated with (:).\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
+ </map>
+ <key>osAESEncryptTo</key>
+ <map>
+  <key>return</key><string>string</string>
+  <key>arguments</key><array>
+   <map><key>secret</key><map><key>type</key><string>string</string></map></map>
+   <map><key>plainText</key><map><key>type</key><string>string</string></map></map>
+   <map><key>ivString</key><map><key>type</key><string>string</string></map></map>
+  </array>
+  <key>tooltip</key><string>Encrypt a plain text using AES-256-CBC Symmetric Algorithm Key (secret) and a custom Initialization Vector (ivString). Returns the Hex string of the IV bytes and the Hex string of the encrypted text bytes separated with (:).\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
+ </map>
+ <key>osAESDecrypt</key>
+ <map>
+  <key>return</key><string>string</string>
+  <key>arguments</key><array>
+   <map><key>secret</key><map><key>type</key><string>string</string></map></map>
+   <map><key>encryptedText</key><map><key>type</key><string>string</string></map></map>
+  </array>
+  <key>tooltip</key><string>Decrypt an encrypted text using osAESEncrypt() and the same  Key (secret) used in the encryption. Returns the decrypted text.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
+ </map>
+ <key>osAESDecryptFrom</key>
+ <map>
+  <key>return</key><string>string</string>
+  <key>arguments</key><array>
+   <map><key>secret</key><map><key>type</key><string>string</string></map></map>
+   <map><key>encryptedText</key><map><key>type</key><string>string</string></map></map>
+   <map><key>ivString</key><map><key>type</key><string>string</string></map></map>
+  </array>
+  <key>tooltip</key><string>Decrypt an encrypted text using osAESEncryptTo() and the same Key (secret) and Initialization Vector (ivString) used in the encryption. Returns the decrypted text.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
+ </map>
  <key>osAgentSaveAppearance</key>
  <map>
   <key>return</key><string>key</string>
@@ -6814,6 +6852,16 @@
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
+   <map><key>a</key><map><key>type</key><string>float</string></map></map>
+   <map><key>b</key><map><key>type</key><string>float</string></map></map>
+   <map><key>margin</key><map><key>type</key><string>float</string></map></map>
+  </array>
+  <key>tooltip</key><string>\n- Threat Level: VeryHigh.\n- Permissions: ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
+ </map>
+ <key>osApproxEquals</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
    <map><key>ra</key><map><key>type</key><string>rotation</string></map></map>
    <map><key>rb</key><map><key>type</key><string>rotation</string></map></map>
    <map><key>margin</key><map><key>type</key><string>float</string></map></map>
@@ -6824,27 +6872,8 @@
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
-   <map><key>a</key><map><key>type</key><string>float</string></map></map>
-   <map><key>b</key><map><key>type</key><string>float</string></map></map>
-   <map><key>margin</key><map><key>type</key><string>float</string></map></map>
-  </array>
-  <key>tooltip</key><string>\n- Threat Level: VeryHigh.\n- Permissions: ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
- </map>
- <key>osApproxEquals</key>
- <map>
-  <key>return</key><string>integer</string>
-  <key>arguments</key><array>
-   <map><key>va</key><map><key>type</key><string>vector</string></map></map>
-   <map><key>vb</key><map><key>type</key><string>vector</string></map></map>
-  </array>
-  <key>tooltip</key><string>\n- Threat Level: VeryHigh.\n- Permissions: ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
- </map>
- <key>osApproxEquals</key>
- <map>
-  <key>return</key><string>integer</string>
-  <key>arguments</key><array>
-   <map><key>a</key><map><key>type</key><string>float</string></map></map>
-   <map><key>b</key><map><key>type</key><string>float</string></map></map>
+   <map><key>ra</key><map><key>type</key><string>rotation</string></map></map>
+   <map><key>rb</key><map><key>type</key><string>rotation</string></map></map>
   </array>
   <key>tooltip</key><string>\n- Threat Level: VeryHigh.\n- Permissions: ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
@@ -6862,8 +6891,17 @@
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
-   <map><key>ra</key><map><key>type</key><string>rotation</string></map></map>
-   <map><key>rb</key><map><key>type</key><string>rotation</string></map></map>
+   <map><key>a</key><map><key>type</key><string>float</string></map></map>
+   <map><key>b</key><map><key>type</key><string>float</string></map></map>
+  </array>
+  <key>tooltip</key><string>\n- Threat Level: VeryHigh.\n- Permissions: ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
+ </map>
+ <key>osApproxEquals</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>va</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>vb</key><map><key>type</key><string>vector</string></map></map>
   </array>
   <key>tooltip</key><string>\n- Threat Level: VeryHigh.\n- Permissions: ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
@@ -9077,44 +9115,6 @@
   <key>return</key><string>string</string>
   <key>arguments</key><undef/>
   <key>tooltip</key><string>Gets active wind plugin name, specified by "wind_plugin" in OpenSim.ini ("SimpleRandomWind" or "ConfigurableWind").\n- Threat Level: None.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
- </map>
- <key>osAESEncrypt</key>
- <map>
-  <key>return</key><string>string</string>
-  <key>arguments</key><array>
-   <map><key>secret</key><map><key>type</key><string>string</string></map></map>
-   <map><key>plainText</key><map><key>type</key><string>string</string></map></map>
-  </array>
-  <key>tooltip</key><string>Encrypt a plain text using AES-256-CBC Symmetric Algorithm Key (secret) and a random Initialization Vector (IV). Returns the Hex string of the IV bytes and the Hex string of the encrypted text bytes separated with (:).\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
- </map>
- <key>osAESEncryptTo</key>
- <map>
-  <key>return</key><string>string</string>
-  <key>arguments</key><array>
-   <map><key>secret</key><map><key>type</key><string>string</string></map></map>
-   <map><key>plainText</key><map><key>type</key><string>string</string></map></map>
-   <map><key>ivString</key><map><key>type</key><string>string</string></map></map>
-  </array>
-  <key>tooltip</key><string>Encrypt a plain text using AES-256-CBC Symmetric Algorithm Key (secret) and a custom Initialization Vector (ivString). Returns the Hex string of the IV bytes and the Hex string of the encrypted text bytes separated with (:).\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
- </map>
- <key>osAESDecrypt</key>
- <map>
-  <key>return</key><string>string</string>
-  <key>arguments</key><array>
-   <map><key>secret</key><map><key>type</key><string>string</string></map></map>
-   <map><key>encryptedText</key><map><key>type</key><string>string</string></map></map>
-  </array>
-  <key>tooltip</key><string>Decrypt an encrypted text using osAESEncrypt() and the same  Key (secret) used in the encryption. Returns the decrypted text.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
- </map>
- <key>osAESDecryptFrom</key>
- <map>
-  <key>return</key><string>string</string>
-  <key>arguments</key><array>
-   <map><key>secret</key><map><key>type</key><string>string</string></map></map>
-   <map><key>encryptedText</key><map><key>type</key><string>string</string></map></map>
-   <map><key>ivString</key><map><key>type</key><string>string</string></map></map>
-  </array>
-  <key>tooltip</key><string>Decrypt an encrypted text using osAESEncryptTo() and the same Key (secret) and Initialization Vector (ivString) used in the encryption. Returns the decrypted text.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
 </map>
 </map></llsd>
