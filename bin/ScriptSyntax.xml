@@ -6783,25 +6783,6 @@
    <map><key>volume</key><map><key>type</key><string>float</string></map></map>
   </array>
  </map>
- <key>osAESEncrypt</key>
- <map>
-  <key>return</key><string>string</string>
-  <key>arguments</key><array>
-   <map><key>secret</key><map><key>type</key><string>string</string></map></map>
-   <map><key>plainText</key><map><key>type</key><string>string</string></map></map>
-  </array>
-  <key>tooltip</key><string>Encrypt a plain text using AES-256-CBC Symmetric Algorithm Key (secret) and a random Initialization Vector (IV). Returns the Hex string of the IV bytes and the Hex string of the encrypted text bytes separated with (:).\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
- </map>
- <key>osAESEncryptTo</key>
- <map>
-  <key>return</key><string>string</string>
-  <key>arguments</key><array>
-   <map><key>secret</key><map><key>type</key><string>string</string></map></map>
-   <map><key>plainText</key><map><key>type</key><string>string</string></map></map>
-   <map><key>ivString</key><map><key>type</key><string>string</string></map></map>
-  </array>
-  <key>tooltip</key><string>Encrypt a plain text using AES-256-CBC Symmetric Algorithm Key (secret) and a custom Initialization Vector (ivString). Returns the Hex string of the IV bytes and the Hex string of the encrypted text bytes separated with (:).\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
- </map>
  <key>osAESDecrypt</key>
  <map>
   <key>return</key><string>string</string>
@@ -6820,6 +6801,25 @@
    <map><key>ivString</key><map><key>type</key><string>string</string></map></map>
   </array>
   <key>tooltip</key><string>Decrypt an encrypted text using osAESEncryptTo() and the same Key (secret) and Initialization Vector (ivString) used in the encryption. Returns the decrypted text.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
+ </map>
+ <key>osAESEncrypt</key>
+ <map>
+  <key>return</key><string>string</string>
+  <key>arguments</key><array>
+   <map><key>secret</key><map><key>type</key><string>string</string></map></map>
+   <map><key>plainText</key><map><key>type</key><string>string</string></map></map>
+  </array>
+  <key>tooltip</key><string>Encrypt a plain text using AES-256-CBC Symmetric Algorithm Key (secret) and a random Initialization Vector (IV). Returns the Hex string of the IV bytes and the Hex string of the encrypted text bytes separated with (:).\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
+ </map>
+ <key>osAESEncryptTo</key>
+ <map>
+  <key>return</key><string>string</string>
+  <key>arguments</key><array>
+   <map><key>secret</key><map><key>type</key><string>string</string></map></map>
+   <map><key>plainText</key><map><key>type</key><string>string</string></map></map>
+   <map><key>ivString</key><map><key>type</key><string>string</string></map></map>
+  </array>
+  <key>tooltip</key><string>Encrypt a plain text using AES-256-CBC Symmetric Algorithm Key (secret) and a custom Initialization Vector (ivString). Returns the Hex string of the IV bytes and the Hex string of the encrypted text bytes separated with (:).\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osAgentSaveAppearance</key>
  <map>
@@ -7413,15 +7413,6 @@
    <map><key>itemNameOrId</key><map><key>type</key><string>string</string></map></map>
   </array>
   <key>tooltip</key><string>Returns a string that is the description of inventory item with id "itemName_or_itemId" if that parameter is a valid key or with that name if not.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
- </map>
- <key>osGetLinkInventoryDesc</key>
- <map>
-  <key>return</key><string>string</string>
-  <key>arguments</key><array>
-   <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>itemNameOrId</key><map><key>type</key><string>string</string></map></map>
-  </array>
-  <key>tooltip</key><string>Return the description of an item located in a linked prim inventory or an empty string if the item is not found.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetInventoryItemKey</key>
  <map>
