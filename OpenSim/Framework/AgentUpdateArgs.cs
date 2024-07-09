@@ -78,6 +78,7 @@ namespace OpenSim.Framework
         public bool NeedsCameraCollision;
         public uint lastpacketSequence;
         public double lastUpdateTS;
+        public double lastMoveUpdateTS;
 
         public AgentUpdateArgs()
         {

@@ -1,4 +1,4 @@
-9a2d5a5e-484a-40b0-82bc-092443b08ff7
+4782a83e-4ec0-2ed4-2d2a-c59df5a3ccf0
 <llsd><map><key>llsd-lsl-syntax-version</key><integer>2</integer>
 <key>controls</key>
 <map>
@@ -1714,7 +1714,7 @@
  </map>
  <key>OS_APIVERSION</key><map>
   <key>type</key><string>integer</string>
-  <key>value</key><string>22</string>
+  <key>value</key><string>23</string>
  </map>
  <key>OS_ATTACH_MSG_ALL</key><map>
   <key>type</key><string>integer</string>
@@ -3615,6 +3615,7 @@
   <key>arguments</key><array>
    <map><key>val</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns absolute version as val (ie as postive value)</string>
  </map>
  <key>llAcos</key>
  <map>
@@ -3622,6 +3623,7 @@
   <key>arguments</key><array>
    <map><key>val</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns cosine of val (val in radians)</string>
  </map>
  <key>llAddToLandBanList</key>
  <map>
@@ -3680,14 +3682,16 @@
   <key>arguments</key><array>
    <map><key>val</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns sine of val (val in radians)</string>
  </map>
  <key>llAtan2</key>
  <map>
   <key>return</key><string>float</string>
   <key>arguments</key><array>
-   <map><key>x</key><map><key>type</key><string>float</string></map></map>
    <map><key>y</key><map><key>type</key><string>float</string></map></map>
+   <map><key>x</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the angle whose tangent is the y/x</string>
  </map>
  <key>llAttachToAvatar</key>
  <map>
@@ -3871,6 +3875,14 @@
    <map><key>src</key><map><key>type</key><string>string</string></map></map>
    <map><key>start</key><map><key>type</key><string>integer</string></map></map>
    <map><key>end</key><map><key>type</key><string>integer</string></map></map>
+  </array>
+ </map>
+ <key>llDerezObject</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>objectUUID</key><map><key>type</key><string>key</string></map></map>
+   <map><key>flag</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>llDetachFromAvatar</key>
@@ -4164,6 +4176,16 @@
   <key>arguments</key><array>
    <map><key>obj</key><map><key>type</key><string>string</string></map></map>
   </array>
+ </map>
+ <key>llGetCameraAspect</key>
+ <map>
+  <key>return</key><string>float</string>
+  <key>arguments</key><undef/>
+ </map>
+ <key>llGetCameraFOV</key>
+ <map>
+  <key>return</key><string>float</string>
+  <key>arguments</key><undef/>
  </map>
  <key>llGetCameraPos</key>
  <map>
@@ -5009,7 +5031,6 @@
    <map><key>linknumber</key><map><key>type</key><string>integer</string></map></map>
    <map><key>sound</key><map><key>type</key><string>string</string></map></map>
    <map><key>volume</key><map><key>type</key><string>float</string></map></map>
-   <map><key>flags</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>llLinkPlaySound</key>
@@ -5018,6 +5039,7 @@
    <map><key>linknumber</key><map><key>type</key><string>integer</string></map></map>
    <map><key>sound</key><map><key>type</key><string>string</string></map></map>
    <map><key>volume</key><map><key>type</key><string>float</string></map></map>
+   <map><key>flags</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>llLinksetDataAvailable</key>
@@ -6934,8 +6956,7 @@
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
-   <map><key>sFirstName</key><map><key>type</key><string>string</string></map></map>
-   <map><key>sLastName</key><map><key>type</key><string>string</string></map></map>
+   <map><key>avkey</key><map><key>type</key><string>key</string></map></map>
   </array>
   <key>tooltip</key><string>Returns the type of a avatar in region:\n+ &lt; 0 in case of error.\n+ 0 if avatar not found in region.\n+ 1 if it is a normal avatar.\n+ 2 if it is a NPC.\n\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
@@ -6943,7 +6964,8 @@
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
-   <map><key>avkey</key><map><key>type</key><string>key</string></map></map>
+   <map><key>sFirstName</key><map><key>type</key><string>string</string></map></map>
+   <map><key>sLastName</key><map><key>type</key><string>string</string></map></map>
   </array>
   <key>tooltip</key><string>Returns the type of a avatar in region:\n+ &lt; 0 in case of error.\n+ 0 if avatar not found in region.\n+ 1 if it is a normal avatar.\n+ 2 if it is a NPC.\n\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
@@ -7067,6 +7089,8 @@
   <key>return</key><string>string</string>
   <key>arguments</key><array>
    <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
+   <map><key>startX</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>startY</key><map><key>type</key><string>integer</string></map></map>
    <map><key>endX</key><map><key>type</key><string>integer</string></map></map>
    <map><key>endY</key><map><key>type</key><string>integer</string></map></map>
   </array>
@@ -7077,8 +7101,6 @@
   <key>return</key><string>string</string>
   <key>arguments</key><array>
    <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
-   <map><key>startX</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>startY</key><map><key>type</key><string>integer</string></map></map>
    <map><key>endX</key><map><key>type</key><string>integer</string></map></map>
    <map><key>endY</key><map><key>type</key><string>integer</string></map></map>
   </array>
@@ -7482,6 +7504,52 @@
   </array>
   <key>tooltip</key><string>Returns a list of items names within the prim inventory specified by the items type or INVENTORY_ALL.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
+ <key>osGetLastChangedEventKey</key>
+ <map>
+  <key>return</key><string>key</string>
+  <key>arguments</key><undef/>
+ </map>
+ <key>osGetLinkColor</key>
+ <map>
+  <key>return</key><string>vector</string>
+  <key>arguments</key><array>
+   <map><key>linknum</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>face</key><map><key>type</key><string>integer</string></map></map>
+  </array>
+ </map>
+ <key>osGetLinkInventoryDesc</key>
+ <map>
+  <key>return</key><string>string</string>
+  <key>arguments</key><array>
+   <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>itemNameorid</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
+ <key>osGetLinkInventoryItemKey</key>
+ <map>
+  <key>return</key><string>key</string>
+  <key>arguments</key><array>
+   <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>name</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
+ <key>osGetLinkInventoryItemKeys</key>
+ <map>
+  <key>return</key><string>list</string>
+  <key>arguments</key><array>
+   <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>type</key><map><key>type</key><string>integer</string></map></map>
+  </array>
+ </map>
+ <key>osGetLinkInventoryKey</key>
+ <map>
+  <key>return</key><string>key</string>
+  <key>arguments</key><array>
+   <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>name</key><map><key>type</key><string>string</string></map></map>
+   <map><key>type</key><map><key>type</key><string>integer</string></map></map>
+  </array>
+ </map>
  <key>osGetLinkInventoryName</key>
  <map>
   <key>return</key><string>string</string>
@@ -7803,6 +7871,23 @@
   </array>
   <key>tooltip</key><string>Gets the value of param property for plugin module.\n- Threat Level: VeryLow.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
+ <key>osGiveLinkInventory</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>destination</key><map><key>type</key><string>key</string></map></map>
+   <map><key>inventory</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
+ <key>osGiveLinkInventoryList</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>destination</key><map><key>type</key><string>key</string></map></map>
+   <map><key>category</key><map><key>type</key><string>string</string></map></map>
+   <map><key>inventory</key><map><key>type</key><string>list</string></map></map>
+  </array>
+ </map>
  <key>osInviteToGroup</key>
  <map>
   <key>return</key><string>integer</string>
@@ -8023,7 +8108,6 @@
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
-   <map><key>options</key><map><key>type</key><string>integer</string></map></map>
   </array>
   <key>tooltip</key><string>Creates an NPC named firstname lastname at position from avatar appearance resource cloneFrom.\n- Threat Level: High.\n- Permissions: ${OSSL|osslNPC}.\n- Sleep: 0 seconds.</string>
  </map>
@@ -8035,6 +8119,7 @@
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
+   <map><key>options</key><map><key>type</key><string>integer</string></map></map>
   </array>
   <key>tooltip</key><string>Creates an NPC named firstname lastname at position from avatar appearance resource cloneFrom.\n- Threat Level: High.\n- Permissions: ${OSSL|osslNPC}.\n- Sleep: 0 seconds.</string>
  </map>
@@ -8119,6 +8204,7 @@
   <key>arguments</key><array>
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
+   <map><key>includeHuds</key><map><key>type</key><string>integer</string></map></map>
   </array>
   <key>tooltip</key><string>Save the NPC's current appearance to a notecard in the prim's inventory.\n- Threat Level: High.\n- Permissions: ${OSSL|osslNPC}.\n- Sleep: 0 seconds.</string>
  </map>
@@ -8128,7 +8214,6 @@
   <key>arguments</key><array>
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
-   <map><key>includeHuds</key><map><key>type</key><string>integer</string></map></map>
   </array>
   <key>tooltip</key><string>Save the NPC's current appearance including Huds to a notecard in the prim's inventory.\n- Threat Level: High.\n- Permissions: ${OSSL|osslNPC}.\n- Sleep: 0 seconds.</string>
  </map>
@@ -8136,7 +8221,6 @@
  <map>
   <key>arguments</key><array>
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
-   <map><key>channel</key><map><key>type</key><string>integer</string></map></map>
    <map><key>message</key><map><key>type</key><string>string</string></map></map>
   </array>
   <key>tooltip</key><string>Makes an npc says message on the given channel.\n- Threat Level: High.\n- Permissions: ${OSSL|osslNPC}.\n- Sleep: 0 seconds.</string>
@@ -8145,6 +8229,7 @@
  <map>
   <key>arguments</key><array>
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
+   <map><key>channel</key><map><key>type</key><string>integer</string></map></map>
    <map><key>message</key><map><key>type</key><string>string</string></map></map>
   </array>
   <key>tooltip</key><string>npc says message on the given channel.\n- Threat Level: High.\n- Permissions: ${OSSL|osslNPC}.\n- Sleep: 0 seconds.</string>
@@ -8338,6 +8423,7 @@
  <key>osRegionNotice</key>
  <map>
   <key>arguments</key><array>
+   <map><key>agentID</key><map><key>type</key><string>key</string></map></map>
    <map><key>msg</key><map><key>type</key><string>string</string></map></map>
   </array>
   <key>tooltip</key><string>Sends a region notice to the entire current region.\n- Threat Level: VeryHigh.\n- Permissions: ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
@@ -8345,7 +8431,14 @@
  <key>osRegionNotice</key>
  <map>
   <key>arguments</key><array>
-   <map><key>agentID</key><map><key>type</key><string>key</string></map></map>
+   <map><key>msg</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
+ <key>osRegionRestart</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>seconds</key><map><key>type</key><string>float</string></map></map>
    <map><key>msg</key><map><key>type</key><string>string</string></map></map>
   </array>
   <key>tooltip</key><string>Sends a region notice to the specified avatar in the current region.\n- Threat Level: VeryHigh.\n- Permissions: ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
@@ -8358,12 +8451,11 @@
   </array>
   <key>tooltip</key><string>Restarts a region after a specified timeout.\n- Threat Level: High.\n- Permissions: ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
- <key>osRegionRestart</key>
+ <key>osRemoveLinkInventory</key>
  <map>
-  <key>return</key><string>integer</string>
   <key>arguments</key><array>
-   <map><key>seconds</key><map><key>type</key><string>float</string></map></map>
-   <map><key>msg</key><map><key>type</key><string>string</string></map></map>
+   <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>name</key><map><key>type</key><string>string</string></map></map>
   </array>
   <key>tooltip</key><string>Send a warning messages to all users in the region and restart the region after a specified timeout.\n- Threat Level: High.\n- Permissions: ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
@@ -8633,7 +8725,7 @@
   <key>return</key><string>string</string>
   <key>arguments</key><array>
    <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
-   <map><key>color</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>color</key><map><key>type</key><string>string</string></map></map>
   </array>
   <key>tooltip</key><string>This sets the pen's drawing color to either the specified named .NET color named colors or to a 32-bit color value (formatted as eight hexadecimal digits in the format aarrggbb, representing the eight-bit alpha, red, green and blue channels).\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
@@ -8642,7 +8734,7 @@
   <key>return</key><string>string</string>
   <key>arguments</key><array>
    <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
-   <map><key>color</key><map><key>type</key><string>string</string></map></map>
+   <map><key>color</key><map><key>type</key><string>vector</string></map></map>
   </array>
   <key>tooltip</key><string>This sets the pen's drawing color to either the specified named .NET color named colors or to a 32-bit color value (formatted as eight hexadecimal digits in the format aarrggbb, representing the eight-bit alpha, red, green and blue channels).\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
@@ -8723,6 +8815,17 @@
    <map><key>amb</key><map><key>type</key><string>float</string></map></map>
   </array>
   <key>tooltip</key><string>Sets a prim projector parameters, argument projection is TRUE(1) or FALSE(0). The prim can be any prim with giving UUID.\n- Threat Level: Not Checked.\n- Permissions: Not Specified.\n- Sleep: 0 seconds.</string>
+ </map>
+ <key>osSetProjectionParams</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>linknumber</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>projection</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>texture</key><map><key>type</key><string>key</string></map></map>
+   <map><key>fov</key><map><key>type</key><string>float</string></map></map>
+   <map><key>focus</key><map><key>type</key><string>float</string></map></map>
+   <map><key>amb</key><map><key>type</key><string>float</string></map></map>
+  </array>
  </map>
  <key>osSetRegionSunSettings</key>
  <map>
@@ -8887,6 +8990,8 @@
   <key>arguments</key><array>
    <map><key>src</key><map><key>type</key><string>string</string></map></map>
    <map><key>value</key><map><key>type</key><string>string</string></map></map>
+   <map><key>start</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>count</key><map><key>type</key><string>integer</string></map></map>
    <map><key>ignorecase</key><map><key>type</key><string>integer</string></map></map>
   </array>
   <key>tooltip</key><string>Reports the zero-based index of the last occurrence of string value withing string scr. returns -1 if not found. It can compare ignoring case with ignoreCase TRUE(1) or considering case if FALSE(0).\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
@@ -8897,8 +9002,6 @@
   <key>arguments</key><array>
    <map><key>src</key><map><key>type</key><string>string</string></map></map>
    <map><key>value</key><map><key>type</key><string>string</string></map></map>
-   <map><key>start</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>count</key><map><key>type</key><string>integer</string></map></map>
    <map><key>ignorecase</key><map><key>type</key><string>integer</string></map></map>
   </array>
   <key>tooltip</key><string>Reports the zero-based index of the last occurrence of string value withing string scr. returns -1 if not found. It can compare ignoring case with ignoreCase TRUE(1) or considering case if FALSE(0).\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
@@ -8939,6 +9042,7 @@
   <key>arguments</key><array>
    <map><key>src</key><map><key>type</key><string>string</string></map></map>
    <map><key>start</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>length</key><map><key>type</key><string>integer</string></map></map>
   </array>
   <key>tooltip</key><string>\n- Threat Level: None.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
@@ -8948,7 +9052,6 @@
   <key>arguments</key><array>
    <map><key>src</key><map><key>type</key><string>string</string></map></map>
    <map><key>start</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>length</key><map><key>type</key><string>integer</string></map></map>
   </array>
   <key>tooltip</key><string>\n- Threat Level: None.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
@@ -8972,7 +9075,6 @@
  <map>
   <key>arguments</key><array>
    <map><key>agent</key><map><key>type</key><string>string</string></map></map>
-   <map><key>regionName</key><map><key>type</key><string>string</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>
@@ -8993,6 +9095,7 @@
  <map>
   <key>arguments</key><array>
    <map><key>agent</key><map><key>type</key><string>string</string></map></map>
+   <map><key>regionName</key><map><key>type</key><string>string</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>
@@ -9012,6 +9115,14 @@
  <key>osTeleportOwner</key>
  <map>
   <key>arguments</key><array>
+   <map><key>regionName</key><map><key>type</key><string>string</string></map></map>
+   <map><key>position</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
+  </array>
+ </map>
+ <key>osTeleportOwner</key>
+ <map>
+  <key>arguments</key><array>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>
@@ -9027,12 +9138,11 @@
   </array>
   <key>tooltip</key><string>Teleports the owner of the object containing the script to the specified location in the local grid; the region coordinates are specified as region cells (not as global coordinates based on meters).\n- Threat Level: None.\n- Permissions: osslParcelOG,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 5 seconds.</string>
  </map>
- <key>osTeleportOwner</key>
+ <key>osTemperature2sRGB</key>
  <map>
+  <key>return</key><string>vector</string>
   <key>arguments</key><array>
-   <map><key>regionName</key><map><key>type</key><string>string</string></map></map>
-   <map><key>position</key><map><key>type</key><string>vector</string></map></map>
-   <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>dtemp</key><map><key>type</key><string>float</string></map></map>
   </array>
   <key>tooltip</key><string>Teleports the owner of the object containing the script to the specified location in any addressable region, including hypergrid destinations.\n- Threat Level: None.\n- Permissions: osslParcelOG,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 5 seconds.</string>
  </map>

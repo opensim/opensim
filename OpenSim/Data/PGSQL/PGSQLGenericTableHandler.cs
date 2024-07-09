@@ -534,7 +534,7 @@ namespace OpenSim.Data.PGSQL
             {
                 for (int i = 0; i < fields.Length; i++)
                 {
-                    cmd.Parameters.AddWithValue(fields[i], keys[i]);
+                    cmd.Parameters.AddWithValue(fields[i], new Guid(keys[i]));
                     terms.Add("\"" + fields[i] + "\" = :" + fields[i]);
                 }
 
