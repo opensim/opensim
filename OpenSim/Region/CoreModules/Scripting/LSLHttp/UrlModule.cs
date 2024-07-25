@@ -92,6 +92,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         protected bool m_enabled = false;
         protected string m_ErrorStr;
         protected uint m_HttpsPort = 0;
+        protected uint m_HttpPort = 0;
         protected IHttpServer m_HttpServer = null;
         protected IHttpServer m_HttpsServer = null;
 
@@ -133,6 +134,8 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 ExternalHostNameForLSL = config.Configs["Network"].GetString("ExternalHostNameForLSL", null);
 
                 bool ssl_enabled = config.Configs["Network"].GetBoolean("https_listener", false);
+
+                m_HttpPort = (uint)config.Configs["Network"].GetInt("http_listener_port", 9000);
 
                 if (ssl_enabled)
                     m_HttpsPort = (uint)config.Configs["Network"].GetInt("https_port", (int)m_HttpsPort);
@@ -180,7 +183,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             {
                 // There can only be one
                 //
-                m_HttpServer = MainServer.Instance;
+                m_HttpServer = MainServer.GetHttpServer(m_HttpPort);
                 //
                 // We can use the https if it is enabled
                 if (m_HttpsPort > 0)

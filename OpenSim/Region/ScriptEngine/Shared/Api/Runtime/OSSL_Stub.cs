@@ -1465,6 +1465,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osGetLinkInventoryKey(linkNumber, name, type);
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_List osGetLinkInventoryKeys(LSL_Integer linkNumber, LSL_Integer type)
+        {
+            return m_OSSL_Functions.osGetLinkInventoryKeys(linkNumber, type);
+        }
     
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public LSL_Key osGetLinkInventoryItemKey(LSL_Integer linkNumber, LSL_String name)
