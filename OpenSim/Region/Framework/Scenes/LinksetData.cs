@@ -1,38 +1,39 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Metadata;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using log4net;
 
 namespace OpenSim.Region.Framework.Scenes
 {
     public class LinksetData : ICloneable
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         public const int LINKSETDATA_MAX = 131072;
 
         private static readonly object linksetDataLock = new object();
 
-        public SortedList<string, LinksetDataEntry> Data { get; private set; } = new();
+        public SortedList<string, LinksetDataEntry> Data { get; protected set; } = new();
 
-        public int LinksetDataBytesFree { get; private set; } = LINKSETDATA_MAX;
+        public int BytesFree { get; protected set; } = LINKSETDATA_MAX;
 
-        public int LinksetDataBytesUsed { get; private set; } = 0;
+        public int BytesUsed { get; protected set; } = 0;
 
         public LinksetData()
         {
-            Data.Clear();
-            LinksetDataBytesFree = LINKSETDATA_MAX;
-            LinksetDataBytesUsed = 0;
+
         }
 
         public object Clone()
         {
             LinksetData copy = new LinksetData();
 
-            copy.LinksetDataBytesFree = this.LinksetDataBytesFree;
-            copy.LinksetDataBytesUsed = this.LinksetDataBytesUsed;
+            copy.BytesFree = this.BytesFree;
+            copy.BytesUsed = this.BytesUsed;
     
             foreach (KeyValuePair<string, LinksetDataEntry> entry in Data)
             {
@@ -47,8 +48,8 @@ namespace OpenSim.Region.Framework.Scenes
             lock(linksetDataLock)
             {
                 Data.Clear();
-                LinksetDataBytesFree = LINKSETDATA_MAX;
-                LinksetDataBytesUsed = 0;
+                BytesFree = LINKSETDATA_MAX;
+                BytesUsed = 0;
             }
         }
 
@@ -64,27 +65,72 @@ namespace OpenSim.Region.Framework.Scenes
         {
             lock (linksetDataLock)
             {
-                return JsonSerializer.Serialize<SortedList<string, LinksetDataEntry>>(Data);
+                if (Data == null)
+                {
+                    return string.Empty;
+                }
+                else
+                {
+                    string res = JsonSerializer.Serialize<LinksetData>(this);
+                    m_log.Debug($"SerializeLinksetData returns {res}");
+                    return res;
+                }
             }
         }
 
-        public void DeserializeLinksetData(string data)
+        /* ****************************************************************************
+         * Deserialize a LinksetData structure.  Try the new format first which encodes
+         * the size information with the data.  If that fails try the old format with just
+         * the sorted list.  If we get that regenerate the cost data from the list contents
+         * ****************************************************************************/         
+        public static LinksetData? DeserializeLinksetData(string data)
         {
             if (string.IsNullOrWhiteSpace(data))
-                return;
-
-            lock (linksetDataLock)
             {
-                Clear();
-                
-                Data = JsonSerializer.Deserialize<SortedList<string, LinksetDataEntry>>(data);
+                m_log.Debug($"DeserializeLinksetData called with empty string");
+                return null;
+            }
 
-                // Handle Cost accounting
-                foreach (var kvp in Data)
+            LinksetData lsd = null;
+            
+            try
+            {           
+                lsd = JsonSerializer.Deserialize<LinksetData>(data);
+            }
+            catch (JsonException jse)
+            {
+                try
                 {
-                    LinksetDataAccountingDelta(kvp.Value.GetCost(kvp.Key));
+                    m_log.Error($"Exception deserializing LinkSetData, trying original format: {data}", jse);
+                    var listData = JsonSerializer.Deserialize<SortedList<string, LinksetDataEntry>>(data);
+                    lsd = new LinksetData { Data = listData }; 
                 }
-            }        
+                catch (Exception e)
+                {
+                    m_log.Error($"Exception deserializing LinkSetData original format: {data}", e);
+                }
+
+                return null;
+            }
+            finally
+            {
+                // if we got data but no costs calculate that
+                if (lsd?.BytesUsed <= 0)
+                {
+                    var cost = 0;
+
+                    foreach (var kvp in lsd?.Data)
+                    {
+                        cost += kvp.Value.GetCost(kvp.Key);
+                    }
+
+                    lsd.BytesUsed = cost;
+                    lsd.BytesFree = LINKSETDATA_MAX - cost;
+                }
+            }
+
+            m_log.Debug($"DeSerializeLinksetData called with data of {data} result of {lsd}");
+            return lsd;
         }
 
         /// <summary>
@@ -280,7 +326,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             lock (linksetDataLock)
             {
-                return (LinksetDataBytesFree <= 0);
+                return (BytesFree <= 0);
             }
         }
 
@@ -321,8 +367,8 @@ namespace OpenSim.Region.Framework.Scenes
                 // Clear the LinksetData entries from the "other" SOG
                 otherLinksetData.Data.Clear();
 
-                otherLinksetData.LinksetDataBytesFree = LINKSETDATA_MAX;
-                otherLinksetData.LinksetDataBytesUsed = 0;
+                otherLinksetData.BytesFree = LINKSETDATA_MAX;
+                otherLinksetData.BytesUsed = 0;
             }
         }
 
@@ -355,11 +401,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="delta">An integer value, positive adds, negative subtracts delta bytes.</param>
         private void LinksetDataAccountingDelta(int delta)
         {
-            LinksetDataBytesUsed += delta;
-            LinksetDataBytesFree = LINKSETDATA_MAX - LinksetDataBytesUsed;
+            BytesUsed += delta;
+            BytesFree = LINKSETDATA_MAX - BytesUsed;
 
-            if (LinksetDataBytesFree < 0)
-                LinksetDataBytesFree = 0;
+            if (BytesFree < 0)
+                BytesFree = 0;
         }
     }
 
@@ -377,16 +423,12 @@ namespace OpenSim.Region.Framework.Scenes
         
         public object Clone()
         {
-            return new LinksetDataEntry
-            {
-                Password = Password,
-                Value = Value
-            };
+            return new LinksetDataEntry(value: Value, password: Password);
         }
 
-        public string Password { get; private set; } = string.Empty;
+        public string Password { get; private set; } 
 
-        public string Value { get; private set; } = string.Empty;
+        public string Value { get; private set; }
 
         public bool CheckPassword(string pass)
         {
@@ -410,22 +452,20 @@ namespace OpenSim.Region.Framework.Scenes
         {
             int cost = 0;
 
-            if (string.IsNullOrWhiteSpace(key))
+            if (string.IsNullOrWhiteSpace(key) is false)
             {
-                return cost;
-            }
+                cost += Encoding.UTF8.GetBytes(key).Length;
 
-            cost += Encoding.UTF8.GetBytes(key).Length;
+                if (string.IsNullOrWhiteSpace(this.Value) is false)
+                {
+                    cost += Encoding.UTF8.GetBytes(this.Value).Length;
+                }
 
-            if (string.IsNullOrWhiteSpace(this.Value) is false)
-            {
-                cost += Encoding.UTF8.GetBytes(this.Value).Length;
-            }
-
-            if (string.IsNullOrEmpty(this.Password) is false)
-            {
-                // For parity, the password adds 32 bytes regardless of the length. See LL caveats
-                cost += Math.Max(Encoding.UTF8.GetBytes(this.Password).Length, 32);
+                if (string.IsNullOrEmpty(this.Password) is false)
+                {
+                    // For parity, the password adds 32 bytes regardless of the length. See LL caveats
+                    cost += Math.Max(Encoding.UTF8.GetBytes(this.Password).Length, 32);
+                }
             }
 
             return cost;

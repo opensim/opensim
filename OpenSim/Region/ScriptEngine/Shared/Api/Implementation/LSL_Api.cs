@@ -266,8 +266,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         private string m_lsl_shard = "OpenSim";
         private string m_lsl_user_agent = string.Empty;
 
-        private int m_linksetDataLimit = 32 * 1024;
-
         private static readonly Dictionary<string, string> MovementAnimationsForLSL = new(StringComparer.InvariantCultureIgnoreCase)
         {
             {"CROUCH", "Crouching"},
@@ -446,8 +444,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 m_AllowGodFunctions = seConfig.GetBoolean("AllowGodFunctions", false);
 
                 m_disable_underground_movement = seConfig.GetBoolean("DisableUndergroundMovement", true);
-
-                m_linksetDataLimit = seConfig.GetInt("LinksetDataLimit", m_linksetDataLimit);
             }
 
             if (m_notecardLineReadCharsMax > 65535)
@@ -18605,7 +18601,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 rootPrim.LinksetData = new LinksetData();
             }
 
-            return new LSL_Integer(rootPrim.LinksetData.LinksetDataBytesFree);
+            return new LSL_Integer(rootPrim.LinksetData.BytesFree);
         }
 
         public LSL_Integer llLinksetDataCountKeys()

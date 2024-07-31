@@ -1408,9 +1408,13 @@ namespace OpenSim.Data.PGSQL
                 prim.Animations = null;
             }
 
-            if ((primRow["LinksetData"] is DBNull) == false)
+            if (primRow["LinksetData"] is DBNull)
             {
-                prim.DeserializeLinksetData(((string)primRow["linksetdata"]));
+                prim.LinksetData = null;
+            }
+            else
+            {
+                prim.LinksetData = LinksetData.DeserializeLinksetData(((string)primRow["linksetdata"]));
             }
 
             return prim;
