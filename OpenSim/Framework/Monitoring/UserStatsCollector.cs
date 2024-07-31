@@ -36,7 +36,7 @@ namespace OpenSim.Framework.Monitoring
     /// </summary>
     public class UserStatsCollector : BaseStatsCollector
     {
-        private Timer ageStatsTimer = new Timer(24 * 60 * 60 * 1000);
+        private System.Timers.Timer ageStatsTimer = new System.Timers.Timer(24 * 60 * 60 * 1000);
 
         private int successfulLoginsToday;
         public int SuccessfulLoginsToday { get { return successfulLoginsToday; } }
