@@ -546,7 +546,31 @@ public partial class OpenSimRegionContext : DbContext
                 .IsFixedLength()
                 .HasColumnName("terrain_texture_4");
             entity.Property(e => e.UseEstateSun).HasColumnName("use_estate_sun");
-            entity.Property(e => e.WaterHeight).HasColumnName("water_height");
+            entity.Property(e => e.WaterHeight).HasColumnName("water_height");            
+            entity.Property(e => e.TerrainPBR1)
+                .HasColumnName("TerrainPBR1")
+                .IsRequired()
+                .HasMaxLength(36)
+                .IsFixedLength()
+                .HasDefaultValueSql("'00000000-0000-0000-0000-000000000000'");
+            entity.Property(e => e.TerrainPBR2)
+                .HasColumnName("TerrainPBR2")
+                .IsRequired()
+                .HasMaxLength(36)
+                .IsFixedLength()
+                .HasDefaultValueSql("'00000000-0000-0000-0000-000000000000'");
+            entity.Property(e => e.TerrainPBR3)
+                .HasColumnName("TerrainPBR3")
+                .IsRequired()
+                .HasMaxLength(36)
+                .IsFixedLength()
+                .HasDefaultValueSql("'00000000-0000-0000-0000-000000000000'");
+            entity.Property(e => e.TerrainPBR4)
+                .HasColumnName("TerrainPBR4")
+                .IsRequired()
+                .HasMaxLength(36)
+                .IsFixedLength()
+                .HasDefaultValueSql("'00000000-0000-0000-0000-000000000000'");
         });
 
         modelBuilder.Entity<Regionwindlight>(entity =>

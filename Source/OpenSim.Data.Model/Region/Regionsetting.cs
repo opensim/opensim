@@ -96,4 +96,12 @@ public partial class Regionsetting
     public sbyte Casino { get; set; }
 
     public string CacheId { get; set; }
+
+    public string TerrainPBR1 { get; set; } 
+
+    public string TerrainPBR2 { get; set; } 
+
+    public string TerrainPBR3 { get; set; } 
+
+    public string TerrainPBR4 { get; set; } 
 }

@@ -151,6 +151,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{7F5EC7C6
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Tests.Common", "Tests\OpenSim.Tests.Common\OpenSim.Tests.Common.csproj", "{4B7616BC-6CCE-4B78-AE40-1F24C92442F5}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Source", "Source", "{E886CEB5-B01D-411F-A7A0-72AA1B71761D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Data.Model", "Source\OpenSim.Data.Model\OpenSim.Data.Model.csproj", "{B120B128-D6C6-40B6-9D83-4F1F7D921109}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -449,12 +453,17 @@ Global
 		{4B7616BC-6CCE-4B78-AE40-1F24C92442F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4B7616BC-6CCE-4B78-AE40-1F24C92442F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4B7616BC-6CCE-4B78-AE40-1F24C92442F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B120B128-D6C6-40B6-9D83-4F1F7D921109}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B120B128-D6C6-40B6-9D83-4F1F7D921109}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B120B128-D6C6-40B6-9D83-4F1F7D921109}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B120B128-D6C6-40B6-9D83-4F1F7D921109}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{4B7616BC-6CCE-4B78-AE40-1F24C92442F5} = {7F5EC7C6-FD99-4084-8530-5D3F28D6D7C0}
+		{B120B128-D6C6-40B6-9D83-4F1F7D921109} = {E886CEB5-B01D-411F-A7A0-72AA1B71761D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A40AD54B-8BC7-41E4-B241-19B59EA65D2A}
