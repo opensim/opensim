@@ -541,7 +541,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             if (texture.IsZero())
                 return;
 
-            if((remoteClient.ViewerFlags & ViewerFlags.TPBR) != 0)
+            if(remoteClient is not null && (remoteClient.ViewerFlags & ViewerFlags.TPBR) != 0)
             {
                 switch (level)
                 {
