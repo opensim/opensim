@@ -1804,9 +1804,13 @@ namespace OpenSim.Data.SQLite
                 prim.Animations = null;
             }
 
-            if (!(row["linksetdata"] is DBNull))
+            if (row["linksetdata"] is DBNull)
             {
-                prim.DeserializeLinksetData((string)row["LinksetData"]);
+                prim.LinksetData = null;
+            }
+            else
+            {
+                prim.LinksetData = LinksetData.DeserializeLinksetData((string)row["LinksetData"]);
             }
 
             return prim;
@@ -2207,7 +2211,7 @@ namespace OpenSim.Data.SQLite
             row["pseudocrc"] = prim.PseudoCRC;
             row["sopanims"] = prim.SerializeAnimations();
 
-            if (prim.IsRoot && prim.LinksetData is not null)
+            if (prim.LinksetData is not null)
                 row["linksetdata"] = prim.SerializeLinksetData();
             else
                 row["linksetdata"] = null;

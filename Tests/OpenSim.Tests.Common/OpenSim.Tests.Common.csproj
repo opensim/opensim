@@ -1,0 +1,62 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.0" />
+    <PackageReference Include="xunit" Version="2.4.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.collector" Version="6.0.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="FluentAssertions" Version="6.12.0" />
+    <PackageReference Include="System.Runtime.Caching" Version="8.0.0" />
+    <PackageReference Include="Mono.Addins" Version="1.4.1" />
+    <PackageReference Include="Mono.Addins.CecilReflector" Version="1.4.1" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Reference Include="OpenMetaverse">
+      <HintPath>..\..\bin\OpenMetaverse.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverse.StructuredData">
+      <HintPath>..\..\bin\OpenMetaverse.StructuredData.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverseTypes">
+      <HintPath>..\..\bin\OpenMetaverseTypes.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Nini">
+      <HintPath>..\..\bin\Nini.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\OpenSim\Framework\OpenSim.Framework.csproj" />
+    <ProjectReference Include="..\..\OpenSim\Framework\Servers\OpenSim.Framework.Servers.csproj" />
+    <ProjectReference Include="..\..\OpenSim\Framework\Servers\HttpServer\OpenSim.Framework.Servers.HttpServer.csproj" />
+    <ProjectReference Include="..\..\OpenSim\Services\Interfaces\OpenSim.Services.Interfaces.csproj" />
+    <ProjectReference Include="..\..\OpenSim\Region\Framework\OpenSim.Region.Framework.csproj" />
+    <ProjectReference Include="..\..\OpenSim\Region\CoreModules\OpenSim.Region.CoreModules.csproj" />
+    <ProjectReference Include="..\..\OpenSim\Region\PhysicsModules\SharedBase\OpenSim.Region.PhysicsModules.SharedBase.csproj" />
+    <ProjectReference Include="..\..\OpenSim\Region\PhysicsModules\BasicPhysics\OpenSim.Region.PhysicsModule.BasicPhysics.csproj" />
+    <ProjectReference Include="..\..\OpenSim\Data\Null\OpenSim.Data.Null.csproj" />
+    <ProjectReference Include="..\..\OpenSim\Data\OpenSim.Data.csproj" />
+    <ProjectReference Include="..\..\OpenSim\Region\ScriptEngine\Shared\OpenSim.Region.ScriptEngine.Shared.csproj" />
+    <ProjectReference Include="..\..\OpenSim\Region\OptionalModules\OpenSim.Region.OptionalModules.csproj" />
+  </ItemGroup>
+</Project>

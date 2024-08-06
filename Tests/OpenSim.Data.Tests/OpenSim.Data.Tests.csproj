@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+ <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="OpenMetaverse">
+      <HintPath>..\..\bin\OpenMetaverse.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverseTypes">
+      <HintPath>..\..\bin\OpenMetaverseTypes.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Source\OpenSim.Data\OpenSim.Data.csproj" />
+    <ProjectReference Include="..\..\Source\OpenSim.Data.MySQL\OpenSim.Data.MySQL.csproj" />
+    <ProjectReference Include="..\..\Source\OpenSim.Framework\OpenSim.Framework.csproj" />
+    <ProjectReference Include="..\..\Source\OpenSim.Region.CoreModules\OpenSim.Region.CoreModules.csproj" />
+    <ProjectReference Include="..\..\Source\OpenSim.Region.Framework\OpenSim.Region.Framework.csproj" />
+    <ProjectReference Include="..\..\Tests\OpenSim.Tests.Common\OpenSim.Tests.Common.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\TestDataConnections.ini" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
+    <PackageReference Include="MySqlConnector" Version="2.3.5" />
+    <PackageReference Include="coverlet.collector" Version="6.0.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
+    <PackageReference Include="NUnit" Version="4.1.0" />
+    <PackageReference Include="NUnit.Analyzers" Version="4.1.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="NUnit.Framework" />
+  </ItemGroup>
+
+</Project>
