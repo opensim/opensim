@@ -2174,7 +2174,7 @@ namespace OpenSim.Region.Framework.Scenes
             byte[] extraP = new byte[oldextrap.Length];
             Array.Copy(oldextrap, extraP, extraP.Length);
             dupe.Shape.ExtraParams = extraP;
-
+            
             if (Shape.RenderMaterials is not null && Shape.RenderMaterials.overrides is not null &&
                 Shape.RenderMaterials.overrides.Length > 0)
             {
