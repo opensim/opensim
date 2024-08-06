@@ -2579,15 +2579,6 @@ namespace OpenSim.Region.Framework.Scenes
         public void CopyRootPart(SceneObjectPart part, UUID cAgentID, UUID cGroupID, bool userExposed)
         {
             SceneObjectPart newpart = part.Copy(m_scene.AllocateLocalId(), OwnerID, GroupID, 0, userExposed);
-            //            SceneObjectPart newpart = part.Copy(part.LocalId, OwnerID, GroupID, 0, userExposed);
-            //            newpart.LocalId = m_scene.AllocateLocalId();
-
-            // If the rootpart we're copying has LinksetData do a deep copy of that to the new rootpart.
-            if (part.LinksetData != null)
-            {
-                newpart.LinksetData = (LinksetData)part.LinksetData.Clone();
-            }
-
             SetRootPart(newpart);
 
             if (userExposed)
@@ -3148,9 +3139,8 @@ namespace OpenSim.Region.Framework.Scenes
             // If the configured linkset capacity is greater than zero,
             // and the new linkset would have a prim count higher than this
             // value, do not link it.
-            if (m_scene.m_linksetCapacity > 0 &&
-                    (PrimCount + objectGroup.PrimCount) >
-                    m_scene.m_linksetCapacity)
+            if ((m_scene.m_linksetCapacity > 0) &&
+                (PrimCount + objectGroup.PrimCount) > m_scene.m_linksetCapacity)
             {
                 m_log.DebugFormat(
                     "[SCENE OBJECT GROUP]: Cannot link group with root" +
@@ -3194,15 +3184,26 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectPart linkPart = objectGroup.m_rootPart;
 
             // Merge linksetData if there is any
-            if (linkPart.LinksetData is not null)
+            if ((linkPart.LinksetData is not null) && (linkPart.LinksetData.Count() > 0))
             {
-                m_rootPart.LinksetData ??= new();
-                m_rootPart.LinksetData.MergeLinksetData(linkPart.LinksetData);
+                if (m_rootPart.LinksetData is null)
+                {
+                    // If we dont already have linkset data just copy it over
+                    m_rootPart.LinksetData = (LinksetData)linkPart.LinksetData.Clone();                    
+                }
+                else
+                {
+                    // Otherwise merge the two LinksetData stores.
+                    m_rootPart.LinksetData.MergeLinksetData(linkPart.LinksetData);
+                }
+
+                // Clear the data in the old Linkset Part.
                 linkPart.LinksetData.Clear();
             }
 
             if (m_rootPart.PhysActor != null)
                 m_rootPart.PhysActor.Building = true;
+
             if (linkPart.PhysActor is not null)
                 linkPart.PhysActor.Building = true;
 
@@ -3223,8 +3224,10 @@ namespace OpenSim.Region.Framework.Scenes
             // (radams1: Not sure if the multiple setting of OffsetPosition is required. If not,
             //   this code can be reordered to have a more logical flow.)
             linkPart.setOffsetPosition(linkPart.GroupPosition - AbsolutePosition);
+
             // Assign the new parent to the root of the old group
             linkPart.ParentID = m_rootPart.LocalId;
+
             // Now that it's a child, it's group position is our root position
             linkPart.setGroupPosition(AbsolutePosition);
 
@@ -3308,6 +3311,7 @@ namespace OpenSim.Region.Framework.Scenes
                             part.PhysActor.link(m_rootPart.PhysActor);
                         }
                     }
+
                     part.ClearUndoState();
                 }
             }

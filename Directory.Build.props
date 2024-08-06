@@ -1,20 +1,23 @@
 <Project>
   <PropertyGroup>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <ImplicitUsings>disable</ImplicitUsings>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <GenerateDependencyFile>false</GenerateDependencyFile>
     <EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
-    <MSBuildProjectExtensionsPath>$(SolutionDir)\obj\$(Configuration)\$(MSBuildProjectName)\</MSBuildProjectExtensionsPath>
-    <IntermediateOutputPath>$(SolutionDir)\obj\$(Configuration)\$(MSBuildProjectName)\</IntermediateOutputPath>
-    <OutputPath>$(SolutionDir)\build\$(Configuration)\$(AssemblyName)\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup>      
+    <MSBuildProjectExtensionsPath>$(SolutionDir)/obj/$(Configuration)/$(MSBuildProjectName)/</MSBuildProjectExtensionsPath>
+    <IntermediateOutputPath>$(SolutionDir)/obj/$(Configuration)/$(MSBuildProjectName)/</IntermediateOutputPath>
+    <OutputPath>$(SolutionDir)/build/$(Configuration)/$(AssemblyName)/</OutputPath>
     <OutDir>$(OutputPath)</OutDir>
   </PropertyGroup>
 
 <!-- <ItemGroup>
-  <PackageReference Include="Nerdbank.GitVersioning" Version="3.6.133">
+  <PackageReference Include="Nerdbank.GitVersioning" Condition="!Exists('packages.config')">
     <PrivateAssets>all</PrivateAssets>
-    <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    <Version>3.6.133</Version>
   </PackageReference>
 </ItemGroup> -->
 

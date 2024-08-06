@@ -1,45 +1,45 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Metadata;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using ICSharpCode.SharpZipLib.Zip;
+using log4net;
 
 namespace OpenSim.Region.Framework.Scenes
 {
     public class LinksetData : ICloneable
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         public const int LINKSETDATA_MAX = 131072;
 
         private static readonly object linksetDataLock = new object();
 
-        public SortedList<string, LinksetDataEntry> Data { get; private set; } = new();
+        public SortedList<string, LinksetDataEntry> Data { get; set; }
 
-        public int LinksetDataBytesFree { get; private set; } = LINKSETDATA_MAX;
+        public int BytesFree { get; set; }
 
-        public int LinksetDataBytesUsed { get; private set; } = 0;
+        /* Make BytesUsed required so we can fail on an old format serialization.  
+         * If we see that we fall back to deserializing the Collection and calculating
+         * size.  This will require it be present in the data going forward 
+         */
+        [JsonRequired]
+        public int BytesUsed { get; set; }
 
         public LinksetData()
         {
-            Data.Clear();
-            LinksetDataBytesFree = LINKSETDATA_MAX;
-            LinksetDataBytesUsed = 0;
+            Data = new();
+            BytesFree = LINKSETDATA_MAX;
+            BytesUsed = 0;
         }
 
         public object Clone()
         {
-            LinksetData copy = new LinksetData();
-
-            copy.LinksetDataBytesFree = this.LinksetDataBytesFree;
-            copy.LinksetDataBytesUsed = this.LinksetDataBytesUsed;
-    
-            foreach (KeyValuePair<string, LinksetDataEntry> entry in Data)
-            {
-                copy.Data.Add(entry.Key, (LinksetDataEntry) entry.Value.Clone());
-            }
-
-            return copy;
+            return LinksetData.DeserializeLinksetData(this.SerializeLinksetData());
         }
 
         public void Clear()
@@ -47,8 +47,8 @@ namespace OpenSim.Region.Framework.Scenes
             lock(linksetDataLock)
             {
                 Data.Clear();
-                LinksetDataBytesFree = LINKSETDATA_MAX;
-                LinksetDataBytesUsed = 0;
+                BytesFree = LINKSETDATA_MAX;
+                BytesUsed = 0;
             }
         }
 
@@ -64,27 +64,57 @@ namespace OpenSim.Region.Framework.Scenes
         {
             lock (linksetDataLock)
             {
-                return JsonSerializer.Serialize<SortedList<string, LinksetDataEntry>>(Data);
+                return ((Data is null) || (Data.Count <= 0)) ? 
+                    null : JsonSerializer.Serialize<LinksetData>(this);
             }
         }
-
-        public void DeserializeLinksetData(string data)
+   
+        public static LinksetData DeserializeLinksetData(string data)
         {
-            if (string.IsNullOrWhiteSpace(data))
-                return;
-
-            lock (linksetDataLock)
-            {
-                Clear();
-                
-                Data = JsonSerializer.Deserialize<SortedList<string, LinksetDataEntry>>(data);
-
-                // Handle Cost accounting
-                foreach (var kvp in Data)
+            LinksetData lsd = null;
+            
+            if (string.IsNullOrWhiteSpace(data) is false)
+            {           
+                try
                 {
-                    LinksetDataAccountingDelta(kvp.Value.GetCost(kvp.Key));
+                    lsd = JsonSerializer.Deserialize<LinksetData>(data);                  
                 }
-            }        
+                catch (JsonException jse)
+                {
+                    try
+                    {
+                        m_log.Debug($"Exception deserializing LinkSetData, trying original format: {data}", jse);
+                        var listData = JsonSerializer.Deserialize<SortedList<string, LinksetDataEntry>>(data);
+                        lsd = new LinksetData { Data = listData }; 
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.Error($"Exception deserializing LinkSetData new and original format: {data}", e);
+                    }
+                    finally
+                    {
+                        // if we got data but no costs calculate that
+                        if (lsd?.BytesUsed <= 0)
+                        {
+                            var cost = 0;
+
+                            foreach (var kvp in lsd?.Data)
+                            {
+                                cost += kvp.Value.GetCost(kvp.Key);
+                            }
+
+                            lsd.BytesUsed = cost;
+                            lsd.BytesFree = LINKSETDATA_MAX - cost;
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    m_log.Error($"General Exception deserializing LinkSetData", e);
+                }
+            }
+
+            return lsd;
         }
 
         /// <summary>
@@ -120,11 +150,11 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 // Add New or Update handled here.
-                LinksetDataEntry newEntry = new LinksetDataEntry(value, pass);
-                int cost = newEntry.GetCost(key);
+                var newEntry = new LinksetDataEntry(value, pass);
+                Data.Add(key, newEntry);
 
+                int cost = newEntry.GetCost(key);
                 LinksetDataAccountingDelta(cost);
-                Data[key] = newEntry;
 
                 return 0;
             }
@@ -160,6 +190,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return 1;
 
                 Data.Remove(key);
+
                 LinksetDataAccountingDelta(-entry.GetCost(key));
 
                 return 0;
@@ -280,7 +311,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             lock (linksetDataLock)
             {
-                return (LinksetDataBytesFree <= 0);
+                return (BytesFree <= 0);
             }
         }
 
@@ -293,7 +324,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void MergeLinksetData(LinksetData otherLinksetData)
         {
             // Nothing to merge?
-            if (otherLinksetData == null)
+            if (otherLinksetData is null)
                 return;
 
             lock (linksetDataLock)
@@ -321,8 +352,8 @@ namespace OpenSim.Region.Framework.Scenes
                 // Clear the LinksetData entries from the "other" SOG
                 otherLinksetData.Data.Clear();
 
-                otherLinksetData.LinksetDataBytesFree = LINKSETDATA_MAX;
-                otherLinksetData.LinksetDataBytesUsed = 0;
+                otherLinksetData.BytesFree = LINKSETDATA_MAX;
+                otherLinksetData.BytesUsed = 0;
             }
         }
 
@@ -355,11 +386,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="delta">An integer value, positive adds, negative subtracts delta bytes.</param>
         private void LinksetDataAccountingDelta(int delta)
         {
-            LinksetDataBytesUsed += delta;
-            LinksetDataBytesFree = LINKSETDATA_MAX - LinksetDataBytesUsed;
+            BytesUsed += delta;
+            BytesFree = LINKSETDATA_MAX - BytesUsed;
 
-            if (LinksetDataBytesFree < 0)
-                LinksetDataBytesFree = 0;
+            if (BytesFree < 0)
+                BytesFree = 0;
         }
     }
 
@@ -374,19 +405,16 @@ namespace OpenSim.Region.Framework.Scenes
             Value = value;
             Password = password;
         }
-        
+
         public object Clone()
         {
-            return new LinksetDataEntry
-            {
-                Password = Password,
-                Value = Value
-            };
+            return JsonSerializer.Deserialize<LinksetDataEntry>(
+                JsonSerializer.Serialize<LinksetDataEntry>(this));
         }
 
-        public string Password { get; private set; } = string.Empty;
+        public string Password { get; set; } 
 
-        public string Value { get; private set; } = string.Empty;
+        public string Value { get; set; }
 
         public bool CheckPassword(string pass)
         {
@@ -400,6 +428,11 @@ namespace OpenSim.Region.Framework.Scenes
             return CheckPassword(pass) ? Value : string.Empty;
         }
 
+        public bool IsProtected()
+        {
+            return !string.IsNullOrEmpty(Password);
+        }
+
         /// <summary>
         /// Calculate the cost in bytes for this entry.  Adds in the passed in key and
         /// if a password is supplied uses 32 bytes minimum unless the password is longer.
@@ -410,30 +443,23 @@ namespace OpenSim.Region.Framework.Scenes
         {
             int cost = 0;
 
-            if (string.IsNullOrWhiteSpace(key))
+            if (string.IsNullOrWhiteSpace(key) is false)
             {
-                return cost;
-            }
+                cost += Encoding.UTF8.GetBytes(key).Length;
 
-            cost += Encoding.UTF8.GetBytes(key).Length;
+                if (string.IsNullOrWhiteSpace(this.Value) is false)
+                {
+                    cost += Encoding.UTF8.GetBytes(this.Value).Length;
+                }
 
-            if (string.IsNullOrWhiteSpace(this.Value) is false)
-            {
-                cost += Encoding.UTF8.GetBytes(this.Value).Length;
-            }
-
-            if (string.IsNullOrEmpty(this.Password) is false)
-            {
-                // For parity, the password adds 32 bytes regardless of the length. See LL caveats
-                cost += Math.Max(Encoding.UTF8.GetBytes(this.Password).Length, 32);
+                if (string.IsNullOrEmpty(this.Password) is false)
+                {
+                    // For parity, the password adds 32 bytes regardless of the length. See LL caveats
+                    cost += Math.Max(Encoding.UTF8.GetBytes(this.Password).Length, 32);
+                }
             }
 
             return cost;
-        }
-
-        public bool IsProtected()
-        {
-            return !string.IsNullOrEmpty(Password);
         }
     }
 }

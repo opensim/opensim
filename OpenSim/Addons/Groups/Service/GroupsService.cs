@@ -103,7 +103,7 @@ namespace OpenSim.Groups
 
         #region Daily Cleanup
 
-        private Timer m_CleanupTimer;
+        private System.Timers.Timer m_CleanupTimer;
 
         public GroupsService(IConfigSource config, string configName)
             : base(config, configName)
@@ -114,7 +114,7 @@ namespace OpenSim.Groups
             : this(config, string.Empty)
         {
             // Once a day
-            m_CleanupTimer = new Timer(24 * 60 * 60 * 1000);
+            m_CleanupTimer = new System.Timers.Timer(24 * 60 * 60 * 1000);
             m_CleanupTimer.AutoReset = true;
             m_CleanupTimer.Elapsed += new ElapsedEventHandler(m_CleanupTimer_Elapsed);
             m_CleanupTimer.Enabled = true;

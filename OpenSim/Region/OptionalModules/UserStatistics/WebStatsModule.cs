@@ -76,6 +76,10 @@ namespace OpenSim.Region.UserStatistics
         private string m_loglines = String.Empty;
         private volatile int lastHit = 12000;
 
+        public WebStatsModule()
+        {
+        }
+
         #region ISharedRegionModule
 
         public virtual void Initialise(IConfigSource config)
@@ -764,7 +768,7 @@ VALUES
 )
 ";
 
-    #endregion
+        #endregion
 
     }
 
