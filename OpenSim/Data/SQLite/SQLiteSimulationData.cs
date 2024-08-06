@@ -2211,7 +2211,7 @@ namespace OpenSim.Data.SQLite
             row["pseudocrc"] = prim.PseudoCRC;
             row["sopanims"] = prim.SerializeAnimations();
 
-            if (prim.IsRoot && prim.LinksetData is not null)
+            if (prim.LinksetData is not null)
                 row["linksetdata"] = prim.SerializeLinksetData();
             else
                 row["linksetdata"] = null;

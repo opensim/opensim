@@ -1890,7 +1890,7 @@ namespace OpenSim.Data.PGSQL
             else
                 parameters.Add(_Database.CreateParameterNullBytea("sopanims"));
 
-            if (prim.IsRoot && prim.LinksetData is not null)
+            if (prim.LinksetData is not null)
                 parameters.Add(_Database.CreateParameter("linksetdata", prim.SerializeLinksetData()));
             else
                 parameters.Add(_Database.CreateParameter("linksetdata", null));

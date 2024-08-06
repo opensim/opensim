@@ -4,7 +4,9 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using ICSharpCode.SharpZipLib.Zip;
 using log4net;
 
 namespace OpenSim.Region.Framework.Scenes
@@ -17,30 +19,27 @@ namespace OpenSim.Region.Framework.Scenes
 
         private static readonly object linksetDataLock = new object();
 
-        public SortedList<string, LinksetDataEntry> Data { get; protected set; } = new();
+        public SortedList<string, LinksetDataEntry> Data { get; set; }
 
-        public int BytesFree { get; protected set; } = LINKSETDATA_MAX;
+        public int BytesFree { get; set; }
 
-        public int BytesUsed { get; protected set; } = 0;
+        /* Make BytesUsed required so we can fail on an old format serialization.  
+         * If we see that we fall back to deserializing the Collection and calculating
+         * size.  This will require it be present in the data going forward 
+         */
+        [JsonRequired]
+        public int BytesUsed { get; set; }
 
         public LinksetData()
         {
-
+            Data = new();
+            BytesFree = LINKSETDATA_MAX;
+            BytesUsed = 0;
         }
 
         public object Clone()
         {
-            LinksetData copy = new LinksetData();
-
-            copy.BytesFree = this.BytesFree;
-            copy.BytesUsed = this.BytesUsed;
-    
-            foreach (KeyValuePair<string, LinksetDataEntry> entry in Data)
-            {
-                copy.Data.Add(entry.Key, (LinksetDataEntry) entry.Value.Clone());
-            }
-
-            return copy;
+            return LinksetData.DeserializeLinksetData(this.SerializeLinksetData());
         }
 
         public void Clear()
@@ -65,71 +64,62 @@ namespace OpenSim.Region.Framework.Scenes
         {
             lock (linksetDataLock)
             {
-                if (Data == null)
+                if ((Data is null) || (Data.Count <= 0))
                 {
-                    return string.Empty;
+                    return null;
                 }
                 else
                 {
-                    string res = JsonSerializer.Serialize<LinksetData>(this);
-                    m_log.Debug($"SerializeLinksetData returns {res}");
-                    return res;
+                    return JsonSerializer.Serialize<LinksetData>(this);
                 }
             }
         }
-
-        /* ****************************************************************************
-         * Deserialize a LinksetData structure.  Try the new format first which encodes
-         * the size information with the data.  If that fails try the old format with just
-         * the sorted list.  If we get that regenerate the cost data from the list contents
-         * ****************************************************************************/         
+   
         public static LinksetData? DeserializeLinksetData(string data)
         {
-            if (string.IsNullOrWhiteSpace(data))
-            {
-                m_log.Debug($"DeserializeLinksetData called with empty string");
-                return null;
-            }
-
-            LinksetData lsd = null;
+            LinksetData? lsd = null;
             
-            try
+            if (string.IsNullOrWhiteSpace(data) is false)
             {           
-                lsd = JsonSerializer.Deserialize<LinksetData>(data);
-            }
-            catch (JsonException jse)
-            {
                 try
                 {
-                    m_log.Error($"Exception deserializing LinkSetData, trying original format: {data}", jse);
-                    var listData = JsonSerializer.Deserialize<SortedList<string, LinksetDataEntry>>(data);
-                    lsd = new LinksetData { Data = listData }; 
+                    lsd = JsonSerializer.Deserialize<LinksetData>(data);                  
+                }
+                catch (JsonException jse)
+                {
+                    try
+                    {
+                        m_log.Debug($"Exception deserializing LinkSetData, trying original format: {data}", jse);
+                        var listData = JsonSerializer.Deserialize<SortedList<string, LinksetDataEntry>>(data);
+                        lsd = new LinksetData { Data = listData }; 
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.Error($"Exception deserializing LinkSetData new and original format: {data}", e);
+                    }
+                    finally
+                    {
+                        // if we got data but no costs calculate that
+                        if (lsd?.BytesUsed <= 0)
+                        {
+                            var cost = 0;
+
+                            foreach (var kvp in lsd?.Data)
+                            {
+                                cost += kvp.Value.GetCost(kvp.Key);
+                            }
+
+                            lsd.BytesUsed = cost;
+                            lsd.BytesFree = LINKSETDATA_MAX - cost;
+                        }
+                    }
                 }
                 catch (Exception e)
                 {
-                    m_log.Error($"Exception deserializing LinkSetData original format: {data}", e);
-                }
-
-                return null;
-            }
-            finally
-            {
-                // if we got data but no costs calculate that
-                if (lsd?.BytesUsed <= 0)
-                {
-                    var cost = 0;
-
-                    foreach (var kvp in lsd?.Data)
-                    {
-                        cost += kvp.Value.GetCost(kvp.Key);
-                    }
-
-                    lsd.BytesUsed = cost;
-                    lsd.BytesFree = LINKSETDATA_MAX - cost;
+                    m_log.Error($"General Exception deserializing LinkSetData", e);
                 }
             }
 
-            m_log.Debug($"DeSerializeLinksetData called with data of {data} result of {lsd}");
             return lsd;
         }
 
@@ -166,11 +156,11 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 // Add New or Update handled here.
-                LinksetDataEntry newEntry = new LinksetDataEntry(value, pass);
-                int cost = newEntry.GetCost(key);
+                var newEntry = new LinksetDataEntry(value, pass);
+                Data.Add(key, newEntry);
 
+                int cost = newEntry.GetCost(key);
                 LinksetDataAccountingDelta(cost);
-                Data[key] = newEntry;
 
                 return 0;
             }
@@ -206,6 +196,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return 1;
 
                 Data.Remove(key);
+
                 LinksetDataAccountingDelta(-entry.GetCost(key));
 
                 return 0;
@@ -339,7 +330,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void MergeLinksetData(LinksetData otherLinksetData)
         {
             // Nothing to merge?
-            if (otherLinksetData == null)
+            if (otherLinksetData is null)
                 return;
 
             lock (linksetDataLock)
@@ -420,15 +411,16 @@ namespace OpenSim.Region.Framework.Scenes
             Value = value;
             Password = password;
         }
-        
+
         public object Clone()
         {
-            return new LinksetDataEntry(value: Value, password: Password);
+            return JsonSerializer.Deserialize<LinksetDataEntry>(
+                JsonSerializer.Serialize<LinksetDataEntry>(this));
         }
 
-        public string Password { get; private set; } 
+        public string Password { get; set; } 
 
-        public string Value { get; private set; }
+        public string Value { get; set; }
 
         public bool CheckPassword(string pass)
         {
@@ -440,6 +432,11 @@ namespace OpenSim.Region.Framework.Scenes
         public string CheckPasswordAndGetValue(string pass)
         {
             return CheckPassword(pass) ? Value : string.Empty;
+        }
+
+        public bool IsProtected()
+        {
+            return !string.IsNullOrEmpty(Password);
         }
 
         /// <summary>
@@ -469,11 +466,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             return cost;
-        }
-
-        public bool IsProtected()
-        {
-            return !string.IsNullOrEmpty(Password);
         }
     }
 }

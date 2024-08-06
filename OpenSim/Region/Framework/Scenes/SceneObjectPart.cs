@@ -2174,6 +2174,7 @@ namespace OpenSim.Region.Framework.Scenes
             byte[] extraP = new byte[oldextrap.Length];
             Array.Copy(oldextrap, extraP, extraP.Length);
             dupe.Shape.ExtraParams = extraP;
+
             if (Shape.RenderMaterials is not null && Shape.RenderMaterials.overrides is not null &&
                 Shape.RenderMaterials.overrides.Length > 0)
             {
@@ -2201,14 +2202,13 @@ namespace OpenSim.Region.Framework.Scenes
 
             dupe.PseudoCRC = (int)(DateTime.UtcNow.Ticks);
 
+            dupe.LinksetData = null;  
             if (LinksetData is not null)
             {
                 dupe.LinksetData = (LinksetData)LinksetData.Clone();
             }
 
             ParentGroup.Scene.EventManager.TriggerOnSceneObjectPartCopy(dupe, this, userExposed);
-
-            //            m_log.DebugFormat("[SCENE OBJECT PART]: Clone of {0} {1} finished", Name, UUID);
 
             return dupe;
         }
@@ -5687,7 +5687,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public string SerializeLinksetData()
         {
-            if (IsRoot && (LinksetData is not null))
+            if (LinksetData is not null)
             {
                 return LinksetData.SerializeLinksetData();
             }
