@@ -14993,6 +14993,33 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return tid.ToString();
         }
 
+        public LSL_String llGetNotecardLineSync(string name, int line)
+        {
+            if (line < 0)
+                return ScriptBaseClass.NAK;
+
+            if (!UUID.TryParse(name, out UUID assetID))
+            {
+                TaskInventoryItem item = m_host.Inventory.GetInventoryItem(name, 7);
+
+                if (item is null)
+                {
+                    Error("llGetNotecardLineSync", "Can't find notecard '" + name + "'");
+                    return ScriptBaseClass.NAK;
+                }
+                assetID = item.AssetID;
+            }
+
+            if (NotecardCache.IsCached(assetID))
+            {
+                return NotecardCache.GetllLine(assetID, line, 1024);
+            }
+            else
+            {
+                return ScriptBaseClass.NAK;
+            }
+        }
+
         public LSL_Key llGetNotecardLine(string name, int line)
         {
             if (!UUID.TryParse(name, out UUID assetID))
@@ -18832,6 +18859,37 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             return 0;
         }
+
+        public LSL_Integer llDerezObject(LSL_Key objectUUID, LSL_Integer flag)
+        {
+            if (!UUID.TryParse(objectUUID, out UUID objUUID))
+                return new LSL_Integer(0);
+
+            if (objUUID.IsZero())
+                return new LSL_Integer(0);
+
+            SceneObjectGroup sceneOG = World.GetSceneObjectGroup(objUUID);
+
+            if (sceneOG is null || sceneOG.IsDeleted || sceneOG.IsAttachment)
+                return new LSL_Integer(0);
+
+            if (sceneOG.OwnerID.NotEqual(m_host.OwnerID))
+                return new LSL_Integer(0);
+
+            // restrict to objects rezzed by host
+            if (sceneOG.RezzerID.NotEqual(m_host.ParentGroup.UUID))
+                return new LSL_Integer(0);
+
+            if (sceneOG.UUID.Equals(m_host.ParentGroup.UUID))
+                return new LSL_Integer(0);
+
+            if (flag.value == 0)
+                World.DeleteSceneObject(sceneOG, false);
+            else
+                sceneOG.RootPart.AddFlag(PrimFlags.TemporaryOnRez);
+
+            return new LSL_Integer(1);
+        }
      }
 
     public class NotecardCache
@@ -18873,6 +18931,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return text[lineNumber];
             }
             return "";
+        }
+
+        public static string GetllLine(UUID assetID, int lineNumber, int maxLength)
+        {
+            if (m_Notecards.TryGetValue(assetID, 30000, out string[] text))
+            {
+                if (lineNumber >= text.Length)
+                    return "\n\n\n";
+
+                return text[lineNumber].Length < maxLength ? text[lineNumber] : text[lineNumber][..maxLength];
+            }
+            return ScriptBaseClass.NAK;
         }
 
         /// <summary>

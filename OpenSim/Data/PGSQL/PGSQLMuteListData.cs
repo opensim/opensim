@@ -26,63 +26,47 @@
  */
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Reflection;
+using OpenSim.Framework;
 using OpenMetaverse;
+using Npgsql;
 
-namespace OpenSim.Framework
+namespace OpenSim.Data.PGSQL
 {
-    /// <summary>
-    /// Client provided parameters for avatar movement
-    /// </summary>
-    public class AgentUpdateArgs : EventArgs
+    public class PGSQLMuteListData: PGSQLGenericTableHandler<MuteData>, IMuteListData
     {
-        /// <summary>
-        /// Rotation of the avatar's body
-        /// </summary>
-        public Quaternion BodyRotation;
-
-        /// <summary>
-        /// AT portion of the camera matrix
-        /// </summary>
-        public Vector3 CameraAtAxis;
-
-        /// <summary>
-        /// Position of the camera in the Scene
-        /// </summary>
-        public Vector3 CameraCenter;
-        public Vector3 CameraLeftAxis;
-        public Vector3 CameraUpAxis;
-
-        /// <summary>
-        /// Bitflag field for agent movement.  Fly, forward, backward, turn left, turn right, go up, go down, Straffe, etc.
-        /// </summary>
-        public uint ControlFlags;
-
-        /// <summary>
-        /// Agent's client Draw distance setting
-        /// </summary>
-        public float Far;
-        public byte Flags;
-
-        /// <summary>
-        /// Rotation of the avatar's head
-        /// </summary>
-        public Quaternion HeadRotation;
-
-        /// <summary>
-        /// Session Id
-        /// </summary>
-        public byte State;
-
-        public Vector3 ClientAgentPosition;
-        public bool UseClientAgentPosition;
-        public bool NeedsCameraCollision;
-        public uint lastpacketSequence;
-        public double lastUpdateTS;
-        public double lastMoveUpdateTS;
-
-        public AgentUpdateArgs()
+        public PGSQLMuteListData(string connectionString)
+            : base(connectionString, "MuteList", "MuteListStore")
         {
-            UseClientAgentPosition = false;
+        }
+
+        public MuteData[] Get(UUID agentID)
+        {
+            var data = base.Get("AgentID", agentID.ToString());
+            return data;
+        }
+
+        public bool Delete(UUID agentID, UUID muteID, string muteName)
+        {
+            var query = $"DELETE FROM MuteList WHERE \"AgentID\" = :AgentID and " +
+                        $"\"MuteID\" = :MuteID and " +
+                        $"\"MuteName\" = :MuteName";
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
+            using (NpgsqlCommand cmd = new NpgsqlCommand())
+            {
+                cmd.CommandText = query;
+                cmd.Parameters.AddWithValue(":AgentID", agentID.ToString());
+                cmd.Parameters.AddWithValue(":MuteID", muteID.ToString());
+                cmd.Parameters.AddWithValue("MuteName", muteName);
+                cmd.Connection = conn;
+                conn.Open();
+                cmd.ExecuteNonQuery();
+
+                return true;
+            }
         }
     }
 }

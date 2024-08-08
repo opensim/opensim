@@ -10,10 +10,6 @@
       <HintPath>..\..\..\bin\Nini.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Npgsql">
-      <HintPath>..\..\..\bin\Npgsql.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="OpenMetaverse">
       <HintPath>..\..\..\bin\OpenMetaverse.dll</HintPath>
       <Private>False</Private>
@@ -63,5 +59,6 @@
     <PackageReference Include="Mono.Addins" Version="1.4.1" />
     <PackageReference Include="Mono.Addins.CecilReflector" Version="1.4.1" />
     <PackageReference Include="MySqlConnector" Version="2.2.6" />
+    <PackageReference Include="Npgsql" Version="8.0.3" />
   </ItemGroup>
 </Project>

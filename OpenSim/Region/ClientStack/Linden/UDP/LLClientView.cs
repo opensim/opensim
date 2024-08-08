@@ -1003,6 +1003,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // reset agent update args
             m_thisAgentUpdateArgs.CameraAtAxis.X = float.MinValue;
             m_thisAgentUpdateArgs.lastUpdateTS = 0;
+            m_thisAgentUpdateArgs.lastMoveUpdateTS = 0;
             m_thisAgentUpdateArgs.ControlFlags = 0;
 
             UDPPacketBuffer buf = OpenSimUDPBase.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
@@ -8501,27 +8502,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private const float VDELTA = 0.01f;
 
         /// <summary>
-        /// This checks the update significance against the last update made.
-        /// </summary>
-        /// <remarks>Can only be called by one thread at a time</remarks>
-        /// <returns></returns>
-        /// <param name='x'></param>
-        public bool CheckAgentUpdateSignificance(AgentUpdatePacket.AgentDataBlock x)
-        {
-            return CheckAgentMovementUpdateSignificance(x) || CheckAgentCameraUpdateSignificance(x);
-        }
-
-        /// <summary>
         /// This checks the movement/state update significance against the last update made.
         /// </summary>
         /// <remarks>Can only be called by one thread at a time</remarks>
         /// <returns></returns>
         /// <param name='x'></param>
-        private bool CheckAgentMovementUpdateSignificance(AgentUpdatePacket.AgentDataBlock x)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private bool CheckAgentMovementUpdateSignificance(AgentUpdatePacket.AgentDataBlock x, double now)
         {
-            if(
+            if((x.ControlFlags & ~(uint)AgentManager.ControlFlags.AGENT_CONTROL_FINISH_ANIM) != (uint)AgentManager.ControlFlags.NONE &&
+                    now > m_thisAgentUpdateArgs.lastMoveUpdateTS + 20)
+                return true;
+
+            if (
                 (x.ControlFlags != m_thisAgentUpdateArgs.ControlFlags)   // significant if control flags changed
-                || (x.ControlFlags & ~(uint)AgentManager.ControlFlags.AGENT_CONTROL_FINISH_ANIM) != (uint)AgentManager.ControlFlags.NONE
                 || (x.Flags != m_thisAgentUpdateArgs.Flags)                 // significant if Flags changed
                 || (x.State != m_thisAgentUpdateArgs.State)                 // significant if Stats changed
                 || (MathF.Abs(x.Far - m_thisAgentUpdateArgs.Far) >= 32f)      // significant if far distance changed
@@ -8538,6 +8532,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <remarks>Can only be called by one thread at a time</remarks>
         /// <returns></returns>
         /// <param name='x'></param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool CheckAgentCameraUpdateSignificance(AgentUpdatePacket.AgentDataBlock x)
         {
              return (MathF.Abs(x.CameraCenter.X - m_thisAgentUpdateArgs.CameraCenter.X) > VDELTA ||
@@ -8575,26 +8570,28 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             c.m_thisAgentUpdateArgs.lastpacketSequence = seq;
 
-            c.OnPreAgentUpdate?.Invoke(c, c.m_thisAgentUpdateArgs);
-
             bool movement;
             bool camera;
 
             double now = Util.GetTimeStampMS();
-            if(now - c.m_thisAgentUpdateArgs.lastUpdateTS > 500.0) // at least 2 per sec
+            if (now - c.m_thisAgentUpdateArgs.lastUpdateTS > 500.0) // at least 2 per sec
             {
                 movement = true;
                 camera = true;
             }
             else
             {
-                movement = c.CheckAgentMovementUpdateSignificance(x);
+                movement = c.CheckAgentMovementUpdateSignificance(x, now);
                 camera = c.CheckAgentCameraUpdateSignificance(x);
             }
+
+            c.OnPreAgentUpdate?.Invoke(c, c.m_thisAgentUpdateArgs);
 
             // Was there a significant movement/state change?
             if (movement)
             {
+                c.m_thisAgentUpdateArgs.lastMoveUpdateTS = now;
+
                 c.m_thisAgentUpdateArgs.BodyRotation = x.BodyRotation;
                 c.m_thisAgentUpdateArgs.ControlFlags = x.ControlFlags;
                 c.m_thisAgentUpdateArgs.Far = x.Far;
