@@ -5157,6 +5157,8 @@ namespace OpenSim.Region.Framework.Scenes
             if (engines.Length == 0) // No engine at all
                 return 0.0f;
 
+            try
+            {
             float time = 0.0f;
 
             // get all the scripts in all parts
@@ -5164,8 +5166,11 @@ namespace OpenSim.Region.Framework.Scenes
             List<TaskInventoryItem> scripts = new();
             for (int i = 0; i < parts.Length; i++)
             {
+                    IEntityInventory inv = parts[i].Inventory;
+                    if (inv is not null)
                 scripts.AddRange(parts[i].Inventory.GetInventoryItems(InventoryType.LSL));
             }
+
             // extract the UUIDs
             HashSet<UUID> unique = new();
             foreach (TaskInventoryItem script in scripts)
@@ -5183,6 +5188,11 @@ namespace OpenSim.Region.Framework.Scenes
             }
             return time;
         }
+            catch
+            {
+                return 0.0f;
+            }
+        }
 
         public bool ScriptsMemory(out int memory)
         {
@@ -5191,12 +5201,16 @@ namespace OpenSim.Region.Framework.Scenes
             if (engines.Length == 0) // No engine at all
                 return false;
 
+            try
+            {
             // get all the scripts in all parts
             SceneObjectPart[] parts = m_parts.GetArray();
             List<TaskInventoryItem> scripts = new();
             for (int i = 0; i < parts.Length; i++)
             {
-                scripts.AddRange(parts[i].Inventory.GetInventoryItems(InventoryType.LSL));
+                    IEntityInventory inv = parts[i].Inventory;
+                    if(inv is not null)
+                        scripts.AddRange(inv.GetInventoryItems(InventoryType.LSL));
             }
 
             if (scripts.Count == 0)
@@ -5217,6 +5231,12 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
             return true;
+        }
+            catch
+            { 
+                return false;
+            }
+
         }
 
         /// <summary>

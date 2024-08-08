@@ -81,6 +81,7 @@
     <Compile Remove="PGSQL\PGSQLInventoryData.cs" />
     <Compile Remove="PGSQL\PGSQLManager.cs" />
     <Compile Remove="PGSQL\PGSQLMigration.cs" />
+    <Compile Remove="PGSQL\PGSQLMutelistData.cs" />
     <Compile Remove="PGSQL\PGSQLOfflineIMData.cs" />
     <Compile Remove="PGSQL\PGSQLPresenceData.cs" />
     <Compile Remove="PGSQL\PGSQLRegionData.cs" />
