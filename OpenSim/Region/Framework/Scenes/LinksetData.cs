@@ -83,7 +83,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     try
                     {
-                        m_log.Debug($"Exception deserializing LinkSetData, trying original format: {data}", jse);
+                        m_log.Debug($"Exception deserializing LinkSetData, trying original format: {jse.Message}");
                         var listData = JsonSerializer.Deserialize<SortedList<string, LinksetDataEntry>>(data);
                         lsd = new LinksetData { Data = listData }; 
                     }
