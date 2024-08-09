@@ -151,7 +151,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // Add New or Update handled here.
                 var newEntry = new LinksetDataEntry(value, pass);
-                Data[key] = newEntry);
+                Data[key] = newEntry;
 
                 int cost = newEntry.GetCost(key);
                 LinksetDataAccountingDelta(cost);
