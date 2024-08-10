@@ -37,8 +37,8 @@ namespace OpenSim
 {
     public class VersionInfo
     {
-        public const string VersionNumber = "0.9.3.0";
-        public const string AssemblyVersionNumber = "0.9.3.0";
+        public const string VersionNumber = "0.9.3";
+        public const string AssemblyVersionNumber = "0.9.3";
         public const string Release = "<#= (int)DateTimeOffset.UtcNow.Subtract(new DateTimeOffset(2000, 1, 1, 0, 0, 0, TimeSpan.Zero)).TotalDays #>";
 
         public static string Version
