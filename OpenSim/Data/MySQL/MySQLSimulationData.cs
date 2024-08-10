@@ -1184,10 +1184,11 @@ namespace OpenSim.Data.MySQL
             int pseudocrc = (int)row["pseudocrc"];
             if(pseudocrc != 0)
                 prim.PseudoCRC = pseudocrc;
-
-            if (!(row["linksetdata"] is DBNull))
+            
+            prim.LinksetData = null;
+            if (row["linksetdata"] is not DBNull)
             {
-                prim.DeserializeLinksetData((string)row["linksetdata"]);
+                prim.LinksetData = LinksetData.DeserializeLinksetData((string)row["linksetdata"]);
             }
 
             return prim;
@@ -1616,7 +1617,7 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("sitactrange", prim.SitActiveRange);
             cmd.Parameters.AddWithValue("pseudocrc", prim.PseudoCRC);
 
-            if (prim.IsRoot && prim.LinksetData is not null)
+            if (prim.LinksetData is not null)
             {
                 cmd.Parameters.AddWithValue("linksetdata", prim.SerializeLinksetData());
             }

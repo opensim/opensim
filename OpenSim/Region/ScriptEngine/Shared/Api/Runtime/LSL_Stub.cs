@@ -759,6 +759,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_String llGetNotecardLineSync(string name, int line)
+        {
+            return m_LSL_Functions.llGetNotecardLineSync(name, line);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public LSL_Integer llGetNumberOfPrims()
         {
             return m_LSL_Functions.llGetNumberOfPrims();
@@ -2801,6 +2807,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public LSL_Integer llIsFriend(LSL_Key agent_id)
         {
             return m_LSL_Functions.llIsFriend(agent_id);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_Integer llDerezObject(LSL_Key objectUUID, LSL_Integer flag)
+        {
+            return m_LSL_Functions.llDerezObject(objectUUID, flag);
         }
     }
 }

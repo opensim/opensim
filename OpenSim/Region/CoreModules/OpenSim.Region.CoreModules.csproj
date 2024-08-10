@@ -91,14 +91,12 @@
     <Compile Remove="Avatar\Inventory\Transfer\Tests\InventoryTransferModuleTests.cs" />
     <Compile Remove="World\Media\Moap\Tests\MoapTests.cs" />
   </ItemGroup>
-  <!-- <ItemGroup>
-    <EmbeddedResource Include="Resources\OpenSim.Region.CoreModules.addin.xml" />
-  </ItemGroup> -->
+
   <ItemGroup>
     <PackageReference Include="Ionic.Zlib.Core" Version="1.0.0" />
     <PackageReference Include="log4net" Version="2.0.15" />
-    <PackageReference Include="MailKit" Version="3.4.2" />
-    <PackageReference Include="MimeKit" Version="3.4.2" />
+    <PackageReference Include="MailKit" Version="4.7.1.1" />
+    <PackageReference Include="MimeKit" Version="4.7.1" />
     <PackageReference Include="Mono.Addins" Version="1.4.1" />
     <PackageReference Include="Mono.Addins.CecilReflector" Version="1.4.1" />
     <PackageReference Include="MySqlConnector" Version="2.2.6" />

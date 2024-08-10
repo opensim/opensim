@@ -37,7 +37,7 @@ namespace OpenSim.Framework.Monitoring
     /// </summary>
     public class AssetStatsCollector : BaseStatsCollector
     {
-        private Timer ageStatsTimer = new Timer(24 * 60 * 60 * 1000);
+        private System.Timers.Timer ageStatsTimer = new System.Timers.Timer(24 * 60 * 60 * 1000);
         private DateTime startTime = DateTime.Now;
 
         private long assetRequestsToday;

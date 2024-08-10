@@ -267,7 +267,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return UUID.Zero;
             }
 
-            if (item.OwnerID.NotEqual(avatarId))
+            if (!Permissions.CanEditObjectInventory(objectID, avatarId))
                 return UUID.Zero;
 
             InventoryType itemType = (InventoryType)item.InvType;

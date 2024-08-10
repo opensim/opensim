@@ -396,10 +396,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     e = StartEventHandler(evc, evt.Params);
                 }
                 //m_RunOnePhase = "done running";
-                m_CPUTime += DateTime.UtcNow.Subtract(now).TotalMilliseconds;
+                m_CPUTime +=  Util.GetTimeStampMS() - m_SliceStart;
 
-                 // Maybe it puqued.
-                if(e is not null)
+                // Maybe it puqued.
+                if (e is not null)
                 {
                     //m_RunOnePhase = "handling exception " + e.Message;
                     HandleScriptException(e);
