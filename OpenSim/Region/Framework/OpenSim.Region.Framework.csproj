@@ -77,6 +77,6 @@
     <PackageReference Include="Mono.Addins" Version="1.4.1" />
     <PackageReference Include="Mono.Addins.CecilReflector" Version="1.4.1" />
     <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
-    <PackageReference Include="System.Text.Json" Version="6.0.9" />
+    <PackageReference Include="System.Text.Json" Version="8.0.4" />
   </ItemGroup>
 </Project>

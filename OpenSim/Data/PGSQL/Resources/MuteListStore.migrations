@@ -1,0 +1,17 @@
+:VERSION 1
+
+BEGIN TRANSACTION;
+
+CREATE TABLE IF NOT EXISTS MuteList (
+
+    "AgentID" varchar(36) NOT NULL,
+    "MuteId" varchar(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000',
+    "MuteName" varchar(64) NOT NULL DEFAULT '',
+    "MuteType" int4 NOT NULL DEFAULT 1,
+    "MuteFlags" int4 NOT NULL DEFAULT 0,
+    "Stamp" int4 NOT NULL,
+    CONSTRAINT pk_agent_id PRIMARY KEY ("AgentID"),
+    CONSTRAINT unique_agent_2 UNIQUE ("AgentID", "MuteId", "MuteName")
+);
+
+COMMIT;

@@ -1262,8 +1262,45 @@ COMMIT;
 
 :VERSION 54         #----- add pbr terrain storage
 BEGIN;
-ALTER TABLE regionsettings ADD COLUMN "TerrainPBR1" uuid NOT NULL default '00000000-0000-0000-0000-000000000000';
-ALTER TABLE regionsettings ADD COLUMN "TerrainPBR2" uuid NOT NULL default '00000000-0000-0000-0000-000000000000';
-ALTER TABLE regionsettings ADD COLUMN "TerrainPBR3" uuid NOT NULL default '00000000-0000-0000-0000-000000000000';
-ALTER TABLE regionsettings ADD COLUMN "TerrainPBR4" uuid NOT NULL default '00000000-0000-0000-0000-000000000000';
+ALTER TABLE regionsettings ADD COLUMN "TerrainPBR1" uuid NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000';
+ALTER TABLE regionsettings ADD COLUMN "TerrainPBR2" uuid NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000';
+ALTER TABLE regionsettings ADD COLUMN "TerrainPBR3" uuid NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000';
+ALTER TABLE regionsettings ADD COLUMN "TerrainPBR4" uuid NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000';
+COMMIT;
+
+:VERSION 55         #----- Fix data type for columns
+BEGIN;
+ALTER TABLE public.regionsettings  ALTER COLUMN "block_search" DROP DEFAULT;
+ALTER TABLE public.regionsettings  ALTER COLUMN "casino" DROP DEFAULT;
+ALTER TABLE public.regionsettings
+    ALTER COLUMN "block_search" TYPE BOOLEAN
+        USING CASE WHEN "block_search" = 0 THEN FALSE
+                   WHEN "block_search" = 1 THEN TRUE
+                   ELSE NULL
+                   END;
+
+ALTER TABLE public.regionsettings
+    ALTER COLUMN "casino" TYPE BOOLEAN
+        USING CASE WHEN "casino" = 0 THEN FALSE
+                   WHEN "casino" = 1 THEN TRUE
+                   ELSE NULL
+                   END;
+COMMIT;
+
+:VERSION 56         #----- Fix the constraints on the spawn points 
+BEGIN;
+ALTER TABLE spawn_points DROP CONSTRAINT spawn_points_pkey;
+ALTER TABLE spawn_points ADD CONSTRAINT spawn_points_pkey
+    PRIMARY KEY ("RegionUUID", "Yaw", "Pitch", "Distance");
+COMMIT;
+
+:VERSION 57         #----- Adding a table missing from the PgSQL adapter
+BEGIN;
+CREATE TABLE "regionextra"
+    (
+        "RegionID" char(36),
+        "Name" varchar(32),
+        "value" text,
+        PRIMARY KEY ("RegionID", "Name")
+    );
 COMMIT;

@@ -105,7 +105,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
         private bool m_enabled;
         private ICommandConsole m_console;
         private List<Scene> m_Scenes = new List<Scene> ();
-        private Timer m_masterTimer;
+        private System.Timers.Timer m_masterTimer;
         private bool m_busy;
         private int m_KeepFilesForDays = -1;
         private string m_backupDir;
@@ -167,7 +167,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
             m_log.Debug(m_defaultState.ToString());
 
             m_log.Info("[AUTO BACKUP]: AutoBackupModule enabled");
-            m_masterTimer = new Timer();
+            m_masterTimer = new System.Timers.Timer();
             m_masterTimer.Interval = m_baseInterval;
             m_masterTimer.Elapsed += HandleElapsed;
             m_masterTimer.AutoReset = false;

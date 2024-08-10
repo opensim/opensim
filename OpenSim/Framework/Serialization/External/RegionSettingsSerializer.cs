@@ -150,7 +150,7 @@ namespace OpenSim.Framework.Serialization.External
                         settings.TerrainPBR3 = UUID.Parse(xtr.ReadElementContentAsString());
                         break;
                     case "PBR4":
-                        settings.TerrainPBR3 = UUID.Parse(xtr.ReadElementContentAsString());
+                        settings.TerrainPBR4 = UUID.Parse(xtr.ReadElementContentAsString());
                         break;
                     case "ElevationLowSW":
                         settings.Elevation1SW = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
