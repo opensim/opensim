@@ -66,7 +66,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
         //private static readonly string m_chatSessionRequestPath = "0209/";
 
         // Control info
-        private static bool   m_Enabled  = false;
+        private static bool m_Enabled = false;
 
         // FreeSwitch server is going to contact us and ask us all
         // sorts of things.
@@ -111,8 +111,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
 
             try
             {
-                string serviceDll = m_Config.GetString("LocalServiceModule",
-                        String.Empty);
+                string serviceDll = m_Config.GetString("LocalServiceModule", String.Empty);
 
                 if (serviceDll.Length == 0)
                 {
@@ -324,6 +323,25 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
 
             m_log.DebugFormat(
                 "[FreeSwitchVoice][PROVISIONVOICE]: ProvisionVoiceAccountRequest() request for {0}", agentID.ToString());
+
+            Stream inputStream = request.InputStream;
+            if (inputStream.Length > 0)
+            {
+                OSD tmp = OSDParser.DeserializeLLSDXml(inputStream);
+                request.InputStream.Dispose();
+
+                if (tmp is OSDMap map)
+                {
+                    if (map.TryGetValue("voice_server_type", out OSD vstosd))
+                    {
+                        if (vstosd is OSDString vst && !((string)vst).Equals("vivox", StringComparison.OrdinalIgnoreCase))
+                        {
+                            response.RawBuffer = Util.UTF8.GetBytes("<llsd><undef /></llsd>");
+                            return;
+                        }
+                    }
+                }
+            }
 
             response.StatusCode = (int)HttpStatusCode.OK;
 
