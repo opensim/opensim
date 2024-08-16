@@ -617,7 +617,7 @@ namespace OpenSim.Services.GridService
                 }
 
                 //this should be the prefererred way of setting up hg links now
-                if (cmdparams[2].StartsWith("http") || cmdparams[2].StartsWith("https"))
+                if (cmdparams[2].StartsWith("http"))
                 {
                     RunLinkRegionCommand(cmdparams);
                 }
