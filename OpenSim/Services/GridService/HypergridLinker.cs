@@ -632,11 +632,7 @@ namespace OpenSim.Services.GridService
                         parameters.Insert(3, parts[2]);
                         cmdparams = (string[])parameters.ToArray(typeof(string));
                     }
-                    string uri = cmdparams[2].StartsWith("https")
-                               ? "https://" + parts[0] + ':' + parts[1]
-                               : "http://" + parts[0] + ':' + parts[1];
-
-                    cmdparams[2] = uri;
+                    cmdparams[2] = "http://" + parts[0] + ':' + parts[1];
 
                     RunLinkRegionCommand(cmdparams);
                 }
