@@ -355,7 +355,7 @@ namespace OpenSim
             
             // Sure is not the right place for this but do the job...
             // Must always be called before (all) / the HTTP servers starting for the Certs creation or renewals.
-            if(startupConfig.GetBoolean("EnableSelfsignedCertSupport"))
+            if(startupConfig.GetBoolean("EnableSelfsignedCertSupport", false))
             {
                 if(!File.Exists("SSL\\ssl\\"+ startupConfig.GetString("CertFileName") +".p12") || startupConfig.GetBoolean("CertRenewOnStartup"))
                 {               
