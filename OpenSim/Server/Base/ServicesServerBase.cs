@@ -134,7 +134,7 @@ namespace OpenSim.Server.Base
 
                 prompt = startupConfig.GetString("Prompt", prompt);
 
-                if(startupConfig.GetBoolean("EnableRobustSelfsignedCertSupport"))
+                if(startupConfig.GetBoolean("EnableRobustSelfsignedCertSupport", false))
                 {
                     if(!File.Exists("SSL\\ssl\\"+ startupConfig.GetString("RobustCertFileName") +".p12") || startupConfig.GetBoolean("RobustCertRenewOnStartup"))
                     {               
