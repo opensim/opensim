@@ -1,0 +1,26 @@
+<Nini>
+	<Section Name="OpenSim Test">
+		<Key Name="RegionUUID" Value="e3be865f-35b6-4f7c-9aea-9ab017b07635"/>
+		<Key Name="InternalAddress" Value="0.0.0.0"/>
+		<Key Name="InternalPort" Value="9000"/>
+		<Key Name="AllowAlternatePorts" Value="False"/>
+		<Key Name="ExternalHostName" Value="127.0.0.1"/>
+		<Key Name="ResolveAddress" Value="False"/>
+		<Key Name="Location" Value="1000,1000"/>
+		<Key Name="SizeX" Value="256"/>
+		<Key Name="SizeY" Value="256"/>
+		<Key Name="ClampPrimSize" Value="False"/>
+	</Section>
+	<Section Name="OpenSim Test2">
+		<Key Name="RegionUUID" Value="e3be865f-35b6-4f7c-9aea-9ab017b07636"/>
+		<Key Name="InternalAddress" Value="0.0.0.0"/>
+		<Key Name="InternalPort" Value="9001"/>
+		<Key Name="AllowAlternatePorts" Value="False"/>
+		<Key Name="ExternalHostName" Value="127.0.0.1"/>
+		<Key Name="ResolveAddress" Value="False"/>
+		<Key Name="Location" Value="1000,1001"/>
+		<Key Name="SizeX" Value="256"/>
+		<Key Name="SizeY" Value="256"/>
+		<Key Name="ClampPrimSize" Value="False"/>
+	</Section>
+</Nini>

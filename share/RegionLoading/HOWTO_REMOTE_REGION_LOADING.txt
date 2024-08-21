@@ -1,0 +1,9 @@
+The remote region loading ability allows easier management of what regions a simulator run s from a webserver.
+In OpenSim.ini, change the 'region_info_source = filesystem' under [Startup] to 'region_info_source = web'. 
+Then change the line 'regionload_webserver_url = ' to 'regionload_webserver_url = http://127.0.0.1/default.xml'
+replacing 'http://127.0.0.1/default.xml' with the URL of the region XML file.
+
+The XML file of a remote region is similar to the filesystem version, except it is in one file instead of multiple 
+region_xxx.xml files.
+
+See example_web.xml for an example on how to make a web version for region loading.

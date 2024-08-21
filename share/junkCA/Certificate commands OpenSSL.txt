@@ -1,0 +1,86 @@
+To generate a cert request and sign it with the JunkCA
+
+REMEMBER TO APPEND THE CA2.pem file to the bottom of the app_settings/CA.pem in the Linden client folders or you won't be able to connect!
+
+Generate a Host Key:
+ openssl genrsa -out host.key 2048
+
+Generate a Certificate signing request with *OpenSSL*:
+  openssl req -new -nodes -key host.key -out host.csr
+  When prompted for: 'Common Name (eg, YOUR name) []:', please type the domain name that this certificate will be used on.
+
+Or you could;
+
+Generate a Certificate request with the *IIS Snapin*:
+  Go to Control Panel ---> Administrative tools ---> Internet Information Services
+  Pick a web site on your server.
+  right click, choose properties from the context menu
+  Go to the Directory Security tab
+  Click On the 'Server Certificate...' button
+  Click 'Prepare the request now, but send it later' and then follow the wizard.
+  Be sure to type the common name as the domain name that you will be servicing.   www.osgrid.org or whatever server will be using this cert
+
+Sign the certificate request with the junkCA;
+openssl x509 -req -days 3620 -CA CA.crt -CAkey CA.key -CAcreateserial -in host.csr -out signed.cer
+
+Import it into your MY store on windows.
+
+ If you used OpenSSL to generate the certificate;
+   openssl pkcs12 -export -in server.crt -inkey server.key.unsecure -out server.pfx -name "My Lovely Cert" 
+   server.crt is the signed cert from the CA.
+   server.key.unsecure is the *unencrypted* private key.
+
+   You will be asked for a password, set this if you want.
+
+   In Windows, fire up "mmc", add the certificates Snap-in, set it to manage the local computer. Go to personal certificates folder, import server.pfx, enter password if you gave it one earlier.
+
+   In IIS, get it to let you choose from currently installed certs. You should now be able to choose the one you just installed.
+
+ If you used the IIS Snap-in, 
+   Go to Control Panel ---> Administrative tools ---> Internet Information Services
+   Pick a web site on your server.
+   right click, choose properties from the context menu
+   Go to the Directory Security tab
+   Click On the 'Server Certificate...' button
+   Choose the radio button that says, 'Assign an existing certificate'
+
+
+Mono, you must use httpcfg in the Mono-1.9.1/lib/mono/2.0 folder.
+ httpcfg -add -port <TYPE HTTPS PORT> -pvk <TYPE PRIVATE KEY FILE> -cert MyCert
+ From Lexa:
+ It expect the key to be in the windows pvk format
+ pvk -in host.key -nocrypt -out host.pvk -topvk" and use -pvk host.pvk
+ pvk is a package on FreeBSD that gets installed as part of the Mono installation
+
+After that, make sure to set-up your opensim.ini!
+
+
+OpenSSL can be found:
+http://www.slproweb.com/products/Win32OpenSSL.html
+
+httpcfg.exe for windowsXP can be found:
+http://www.microsoft.com/downloads/details.aspx?FamilyID=49ae8576-9bb9-4126-9761-ba8011fabf38&displaylang=en
+
+Windows Vista users need to use netsh http!
+
+---------------------------------------------------
+
+Additional notes
+
+To create your own CA
+
+openssl genrsa -out yourCA.key 2048
+openssl req -new -key yourCA.key -x509 -days 3620 -out yourCA.crt
+
+and the final step..  (AND THIS IS IMPORTANT)
+
+openssl x509 -in CA.crt -out yourCA.pem -outform PEM
+
+The last step will produce a certificate in the PEM format that you can append to the Linden client's app_settings/CA.pem file 
+so that it can validate certificates that are generated from your CA.   
+
+One last important thing!  
+
+All users that connect with linden clients 
+using SSL NEED the pem file you created in that last step appended to theirs, or their client will give them a weird error about 
+their clock being wrong!
