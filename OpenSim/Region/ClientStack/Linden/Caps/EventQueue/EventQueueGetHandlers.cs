@@ -412,6 +412,12 @@ namespace OpenSim.Region.ClientStack.Linden
             Enqueue(EndEventToBytes(sb), avatarID);
         }
 
+        public void SendEnvironmentUpdate(UUID experience_id, UUID agent_id, EnvironmentUpdate update)
+        {
+            string update_message = "<? llsd/notation ?>\n" + OSDParser.SerializeLLSDNotation(update.ToMap());
+            SendLargeGenericMessage(agent_id, UUID.Zero, UUID.Zero, "PushExpEnvironment", experience_id, new List<string> { update_message });
+        }
+
         public void SendBulkUpdateInventoryItem(InventoryItemBase item, UUID avatarID, UUID? transationID = null)
         {
             const uint FULL_MASK_PERMISSIONS = (uint)0x7ffffff;

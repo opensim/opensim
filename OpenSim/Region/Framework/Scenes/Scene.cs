@@ -311,6 +311,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected IAuthorizationService m_AuthorizationService;
         protected IInventoryService m_InventoryService;
         protected IGridService m_GridService;
+        protected IExperienceModule m_ExperienceModule;
         protected ILibraryService m_LibraryService;
         protected ISimulationService m_simulationService;
         protected IAuthenticationService m_AuthenticationService;
@@ -631,6 +632,27 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 return m_GridService;
+            }
+        }
+
+        public IExperienceModule ExperienceModule
+        {
+            get
+            {
+                m_ExperienceModule ??= RequestModuleInterface<IExperienceModule>();
+                return m_ExperienceModule;
+
+                //if (m_ExperienceModule == null)
+                //{
+                //    m_ExperienceModule = RequestModuleInterface<IExperienceModule>();
+
+                //    if (m_ExperienceModule == null)
+                //    {
+                //        throw new Exception("No IExperienceModule available. This could happen if the config_include folder doesn't exist or if the OpenSim.ini [Architecture] section isn't set.");
+                //    }
+                //}
+
+                //return m_ExperienceModule;
             }
         }
 
@@ -3057,7 +3079,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // We currently do this in Scene.MakeRootAgent() instead.
                     bool attached = false;
                     if (AttachmentsModule is not null)
-                        attached = AttachmentsModule.AttachObject(sp, grp, 0, false, false, true);
+                        attached = AttachmentsModule.AttachObject(sp, grp, 0, false, false, true, UUID.Zero);
 
                     if (attached)
                         RootPrim.RemFlag(PrimFlags.TemporaryOnRez);

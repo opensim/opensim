@@ -36,6 +36,7 @@
     <Compile Remove="MySQL\MySQLAuthenticationData.cs" />
     <Compile Remove="MySQL\MySQLAvatarData.cs" />
     <Compile Remove="MySQL\MySQLEstateData.cs" />
+    <Compile Remove="MySQL\MySQLExperienceData.cs" />
     <Compile Remove="MySQL\MySQLFramework.cs" />
     <Compile Remove="MySQL\MySQLFriendsData.cs" />
     <Compile Remove="MySQL\MySQLFSAssetData.cs" />

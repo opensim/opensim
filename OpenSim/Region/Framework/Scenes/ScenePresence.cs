@@ -2645,7 +2645,19 @@ namespace OpenSim.Region.Framework.Scenes
             //    SendAgentTerseUpdate(this);
 
             if ((allFlags & ACFlags.AGENT_CONTROL_STAND_UP) != 0)
+            {
+                if (ParentPart != null && !ParentPart.AllowUnsit)
+                {
+                    // Check that the experience still has permission to keep the user seated
+                    if(Scene.ExperienceModule.GetExperiencePermission(remoteClient.AgentId, ParentPart.ExperienceUsedForSit) == ExperiencePermission.Allowed)
+                    {
+                        ControllingClient.SendAgentAlertMessage(string.Format("'{0}' will not allow you to stand at this time.", ParentPart.Name), false);
+                        return;
+                    }
+                }
+
                 StandUp();
+            }
 
             if ((allFlags & ACFlags.AGENT_CONTROL_SIT_ON_GROUND) != 0)
                 HandleAgentSitOnGround();
@@ -3374,16 +3386,57 @@ namespace OpenSim.Region.Framework.Scenes
             if (IsChildAgent)
                 return;
 
+            SceneObjectPart part = Scene.GetSceneObjectPart(targetID);
+            if (part == null)
+                return;
+
+            if(part.ScriptedSitOnly)
+            {
+                ControllingClient.SendAgentAlertMessage("There is no suitable surface to sit on, try another spot.", false);
+                return;
+            }
+
             if (ParentID != 0)
             {
                 if (targetID.Equals(ParentPart.UUID))
                     return; // already sitting here, ignore
+
+
+                if (!ParentPart.AllowUnsit)
+                {
+                    if (Scene.ExperienceModule.GetExperiencePermission(this.UUID, ParentPart.ExperienceUsedForSit) == ExperiencePermission.Allowed)
+                    {
+                        ControllingClient.SendAgentAlertMessage(string.Format("'{0}' will not allow you to change your seat at this time.", ParentPart.Name), false);
+                        return;
+                    }
+                }
+
                 StandUp();
             }
             else if (SitGround)
                 StandUp();
 
             SendSitResponse(targetID, offset, Quaternion.Identity);
+        }
+
+        public void ScriptedSit(SceneObjectPart part, UUID agent_id, UUID experience_id)
+        {
+            // todo: come back to this!
+
+            if (IsChildAgent)
+                return;
+
+            if (ParentID != 0)
+            {
+                if (agent_id.Equals(ParentPart.UUID))
+                    return; // already sitting here, ignore
+                StandUp();
+            }
+            else if (SitGround)
+                StandUp();
+
+
+            SendSitResponse(part.UUID, part.SitTargetPositionLL, part.SitTargetOrientationLL);
         }
 
         // returns  false if does not suport so older sit can be tried

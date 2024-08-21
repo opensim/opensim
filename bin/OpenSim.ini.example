@@ -1322,6 +1322,10 @@
 ;    FullNames = "Test User, Foo Bar"
 ;    Surnames = "Kryztlsk"
 
+[Experience]
+    ;# {Enabled} {} {Use Experience Tools on this region} {true false} false
+    ; Enabled = true
+
 [Architecture]
     ;# {Include-Architecture} {} {Choose one of the following architectures} {config-include/Standalone.ini config-include/StandaloneHypergrid.ini config-include/Grid.ini config-include/GridHypergrid.ini} config-include/Standalone.ini
     ;; Uncomment one of the following includes as required.  For instance, to create a standalone OpenSim,

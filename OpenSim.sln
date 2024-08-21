@@ -147,6 +147,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenSim.Region.OptionalModu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenSim.Server.MoneyServer", "addon-modules\OpenSim.Server.MoneyServer\OpenSim.Server.MoneyServer\OpenSim.Server.MoneyServer.csproj", "{C3AEE6AC-BE40-4003-A7A3-E8AA039E4451}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Services.ExperienceService", "OpenSim\Services\ExperienceService\OpenSim.Services.ExperienceService.csproj", "{186509B6-EF90-431A-9034-75A1221E4120}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{7F5EC7C6-FD99-4084-8530-5D3F28D6D7C0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSim.Tests.Common", "Tests\OpenSim.Tests.Common\OpenSim.Tests.Common.csproj", "{4B7616BC-6CCE-4B78-AE40-1F24C92442F5}"
@@ -457,6 +459,10 @@ Global
 		{B120B128-D6C6-40B6-9D83-4F1F7D921109}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B120B128-D6C6-40B6-9D83-4F1F7D921109}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B120B128-D6C6-40B6-9D83-4F1F7D921109}.Release|Any CPU.Build.0 = Release|Any CPU
+		{186509B6-EF90-431A-9034-75A1221E4120}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{186509B6-EF90-431A-9034-75A1221E4120}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{186509B6-EF90-431A-9034-75A1221E4120}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{186509B6-EF90-431A-9034-75A1221E4120}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
