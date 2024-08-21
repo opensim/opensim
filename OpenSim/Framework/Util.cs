@@ -1417,7 +1417,7 @@ namespace OpenSim.Framework
                 }
             }
 
-            return $"{Convert.ToHexString(iv)}:{Convert.ToHexString(encryptedText)}";
+            return $"{Convert.ToHexString(iv)}:{Convert.ToHexString(encryptedText).ToLower()}";
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
