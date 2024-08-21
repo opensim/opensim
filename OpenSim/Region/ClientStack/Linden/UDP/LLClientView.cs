@@ -11005,7 +11005,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     return;
                 case "estateexperiencedelta":
-                    if (((Scene)c.m_scene).Permissions.CanIssueEstateCommand(c.m_agentId, false))
+                    if (c.m_scene.Permissions.CanIssueEstateCommand(c.m_agentId, false))
                     {
                         int estateAccessType = Convert.ToInt16(Utils.BytesToString(messagePacket.ParamList[1].Parameter));
 
