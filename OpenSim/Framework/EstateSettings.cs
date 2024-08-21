@@ -278,6 +278,22 @@ namespace OpenSim.Framework
             set { l_EstateGroups = new List<UUID>(value); }
         }
 
+        private List<UUID> l_AllowedExperiences = new List<UUID>();
+
+        public UUID[] AllowedExperiences
+        {
+            get { return l_AllowedExperiences.ToArray(); }
+            set { l_AllowedExperiences = new List<UUID>(value); }
+        }
+
+        private List<UUID> l_KeyExperiences = new List<UUID>();
+
+        public UUID[] KeyExperiences
+        {
+            get { return l_KeyExperiences.ToArray(); }
+            set { l_KeyExperiences = new List<UUID>(value); }
+        }
+
         public bool DoDenyMinors = true;
         public bool DoDenyAnonymous = true;
 
@@ -447,6 +463,46 @@ namespace OpenSim.Framework
         public bool GroupAccess(UUID groupID)
         {
             return l_EstateGroups.Contains(groupID);
+        }
+
+        public int AllowedExperiencesCount()
+        {
+            return l_AllowedExperiences.Count;
+        }
+
+        public void AddAllowedExperience(UUID experienceKey)
+        {
+            if (experienceKey == UUID.Zero)
+                return;
+            if (!l_AllowedExperiences.Contains(experienceKey) &&
+                (l_AllowedExperiences.Count < (int)Constants.EstateAccessLimits.AllowedExperiences))
+                l_AllowedExperiences.Add(experienceKey);
+        }
+
+        public void RemoveAllowedExperience(UUID experienceKey)
+        {
+            if (l_AllowedExperiences.Contains(experienceKey))
+                l_AllowedExperiences.Remove(experienceKey);
+        }
+
+        public int KeyExperiencesCount()
+        {
+            return l_KeyExperiences.Count;
+        }
+
+        public void AddKeyExperience(UUID experienceKey)
+        {
+            if (experienceKey == UUID.Zero)
+                return;
+            if (!l_KeyExperiences.Contains(experienceKey) &&
+                (l_KeyExperiences.Count < (int)Constants.EstateAccessLimits.KeyExperiences))
+                l_KeyExperiences.Add(experienceKey);
+        }
+
+        public void RemoveKeyExperience(UUID experienceKey)
+        {
+            if (l_KeyExperiences.Contains(experienceKey))
+                l_KeyExperiences.Remove(experienceKey);
         }
 
         public Dictionary<string, object> ToMap()

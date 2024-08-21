@@ -354,7 +354,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="isScriptRunning">Indicates whether the script to update is currently running</param>
         /// <param name="data"></param>
         public ArrayList CapsUpdateTaskInventoryScriptAsset(IClientAPI remoteClient, UUID itemId,
-                                                       UUID primId, bool isScriptRunning, byte[] data)
+                                                       UUID primId, bool isScriptRunning, UUID experience, byte[] data)
         {
             if (!Permissions.CanEditScript(itemId, primId, remoteClient.AgentId))
             {
@@ -391,16 +391,36 @@ namespace OpenSim.Region.Framework.Scenes
 
             part.Inventory.RemoveScriptInstance(item.ItemID, false);
 
+            ArrayList errors = new ArrayList();
+
+            bool allowed_to_contribute = true;
+
+            if (experience != UUID.Zero)
+            {
+                allowed_to_contribute = ExperienceModule.IsExperienceContributor(remoteClient.AgentId, experience);
+
+                if (!allowed_to_contribute)
+                {
+                    experience = UUID.Zero;
+                    errors = new ArrayList(1);
+                    errors.Add("Access denied to experience!");
+                }
+            }
+
             // Update item with new asset
             item.AssetID = asset.FullID;
+            item.ExperienceID = experience;
             group.UpdateInventoryItem(item);
             group.InvalidateEffectivePerms();
 
             part.SendPropertiesToClient(remoteClient);
 
-            // Trigger rerunning of script (use TriggerRezScript event, see RezScript)
-            // Needs to determine which engine was running it and use that
-            ArrayList errors = part.Inventory.CreateScriptInstanceEr(item.ItemID, 0, false, DefaultScriptEngine, 1);
+            if (allowed_to_contribute)
+            {
+                // Trigger rerunning of script (use TriggerRezScript event, see RezScript)
+                // Needs to determine which engine was running it and use that
+                errors = part.Inventory.CreateScriptInstanceEr(item.ItemID, 0, false, DefaultScriptEngine, 1);
+            }
 
             // Tell anyone managing scripts that a script has been reloaded/changed
             EventManager.TriggerUpdateScript(remoteClient.AgentId, itemId, primId, isScriptRunning, item.AssetID);
@@ -413,12 +433,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// <see>CapsUpdateTaskInventoryScriptAsset(IClientAPI, UUID, UUID, bool, byte[])</see>
         /// </summary>
         public ArrayList CapsUpdateTaskInventoryScriptAsset(UUID avatarId, UUID itemId,
-                                                        UUID primId, bool isScriptRunning, byte[] data)
+                                                        UUID primId, bool isScriptRunning, UUID experience, byte[] data)
         {
             if (TryGetScenePresence(avatarId, out ScenePresence avatar))
             {
                 return CapsUpdateTaskInventoryScriptAsset(
-                    avatar.ControllingClient, itemId, primId, isScriptRunning, data);
+                    avatar.ControllingClient, itemId, primId, isScriptRunning, experience, data);
             }
             else
             {

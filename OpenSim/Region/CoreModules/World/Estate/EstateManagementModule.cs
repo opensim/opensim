@@ -1165,6 +1165,249 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 runnigDeltaExec = false;
         }
 
+        private object expdeltareqLock = new object();
+        private bool runnigExpDeltaExec = false;
+
+        private class EstateExperienceDeltaRequest
+        {
+            public IClientAPI remote_client;
+            public UUID invoice;
+            public int estateAccessType;
+            public UUID experience;
+        }
+
+        private BlockingCollection<EstateExperienceDeltaRequest> experienceDeltaRequests = new BlockingCollection<EstateExperienceDeltaRequest>();
+
+        private void handleEstateExperienceDeltaRequest(IClientAPI _remote_client, UUID _invoice, int _estateAccessType, UUID _experience)
+        {
+            EstateExperienceDeltaRequest newreq = new EstateExperienceDeltaRequest();
+            newreq.remote_client = _remote_client;
+            newreq.invoice = _invoice;
+            newreq.estateAccessType = _estateAccessType;
+            newreq.experience = _experience;
+
+            experienceDeltaRequests.Add(newreq);
+
+            lock (expdeltareqLock)
+            {
+                if (!runnigExpDeltaExec)
+                {
+                    runnigExpDeltaExec = true;
+                    WorkManager.RunInThreadPool(execExpDeltaRequests, null, "execExpDeltaRequests");
+                }
+            }
+        }
+
+        private void execExpDeltaRequests(object o)
+        {
+            IClientAPI remote_client;
+            UUID invoice;
+            int estateAccessType;
+            UUID experience;
+            Dictionary<int, EstateSettings> changed = new Dictionary<int, EstateSettings>();
+            Dictionary<IClientAPI, UUID> sendExperienceLists = new Dictionary<IClientAPI, UUID>();
+
+            List<EstateSettings> otherEstates = new List<EstateSettings>();
+
+            bool sentAllowedFull = false;
+
+            EstateExperienceDeltaRequest req;
+            while (Scene.IsRunning)
+            {
+                req = null;
+                experienceDeltaRequests.TryTake(out req, 500);
+
+                if (!Scene.IsRunning)
+                    break;
+
+                if (req == null)
+                {
+                    if (changed.Count > 0)
+                    {
+                        foreach (EstateSettings est in changed.Values)
+                            Scene.EstateDataService.StoreEstateSettings(est);
+
+                        TriggerEstateInfoChange();
+                    }
+
+                    EstateSettings es = Scene.RegionInfo.EstateSettings;
+                    foreach (KeyValuePair<IClientAPI, UUID> kvp in sendExperienceLists)
+                    {
+                        IClientAPI cli = kvp.Key;
+                        UUID invoive = kvp.Value;
+                        cli.SendEstateExperiences(invoive, es.AllowedExperiences, es.KeyExperiences, es.EstateID);
+                    }
+
+                    sendExperienceLists.Clear();
+                    otherEstates.Clear();
+                    changed.Clear();
+                    lock (expdeltareqLock)
+                    {
+                        if (experienceDeltaRequests.Count != 0)
+                            continue;
+                        runnigExpDeltaExec = false;
+                        return;
+                    }
+                }
+
+                remote_client = req.remote_client;
+                if (!remote_client.IsActive)
+                    continue;
+
+                invoice = req.invoice;
+                experience = req.experience;
+
+                estateAccessType = req.estateAccessType;
+
+                bool needReply = ((estateAccessType & 1024) == 0);
+                bool doOtherEstates = ((estateAccessType & 3) != 0);
+
+                EstateSettings thisSettings = Scene.RegionInfo.EstateSettings;
+                int thisEstateID = (int)thisSettings.EstateID;
+
+                UUID agentID = remote_client.AgentId;
+
+                bool isadmin = Scene.Permissions.IsAdministrator(agentID);
+                // just in case recheck rights
+                if (!isadmin && !Scene.Permissions.IsEstateManager(agentID))
+                {
+                    remote_client.SendAlertMessage("Method EstateAccess Failed, you don't have permissions");
+                    continue;
+                }
+
+                otherEstates.Clear();
+                if (doOtherEstates)
+                {
+                    UUID thisOwner = Scene.RegionInfo.EstateSettings.EstateOwner;
+                    List<int> estateIDs = Scene.EstateDataService.GetEstatesByOwner(thisOwner);
+                    foreach (int estateID in estateIDs)
+                    {
+                        if (estateID == thisEstateID)
+                            continue;
+
+                        EstateSettings estateSettings;
+                        if (changed.ContainsKey(estateID))
+                            estateSettings = changed[estateID];
+                        else
+                            estateSettings = Scene.EstateDataService.LoadEstateSettings(estateID);
+
+                        if (!isadmin && !estateSettings.IsEstateManagerOrOwner(agentID))
+                            continue;
+                        otherEstates.Add(estateSettings);
+                    }
+                    estateIDs.Clear();
+                }
+
+                if ((estateAccessType & 4) != 0) // add key experience
+                {
+                    if (thisSettings.KeyExperiencesCount() >= (int)Constants.EstateAccessLimits.KeyExperiences)
+                    {
+                        if (!sentAllowedFull)
+                        {
+                            sentAllowedFull = true;
+                            remote_client.SendAlertMessage("Estate Allowed Experiences list is full");
+                        }
+                    }
+                    else
+                    {
+                        if (doOtherEstates)
+                        {
+                            foreach (EstateSettings estateSettings in otherEstates)
+                            {
+                                if (!isadmin && !estateSettings.IsEstateManagerOrOwner(agentID))
+                                    continue;
+                                if (estateSettings.KeyExperiencesCount() >= (int)Constants.EstateAccessLimits.KeyExperiences)
+                                    continue;
+                                estateSettings.AddKeyExperience(experience);
+                                changed[(int)estateSettings.EstateID] = estateSettings;
+                            }
+                        }
+
+                        thisSettings.AddKeyExperience(experience);
+                        changed[thisEstateID] = thisSettings;
+
+                        if (needReply)
+                            sendExperienceLists[remote_client] = invoice;
+                    }
+                }
+
+                if ((estateAccessType & 8) != 0) // remove key experience
+                {
+                    if (doOtherEstates) // All estates
+                    {
+                        foreach (EstateSettings estateSettings in otherEstates)
+                        {
+                            if (!isadmin && !estateSettings.IsEstateManagerOrOwner(agentID))
+                                continue;
+                            estateSettings.RemoveKeyExperience(experience);
+                            changed[(int)estateSettings.EstateID] = estateSettings;
+                        }
+                    }
+
+                    thisSettings.RemoveKeyExperience(experience);
+                    changed[thisEstateID] = thisSettings;
+
+                    if (needReply)
+                        sendExperienceLists[remote_client] = invoice;
+                }
+
+                if ((estateAccessType & 16) != 0) // add allowed experience
+                {
+                    if (thisSettings.AllowedExperiencesCount() >= (int)Constants.EstateAccessLimits.AllowedExperiences)
+                    {
+                        if (!sentAllowedFull)
+                        {
+                            sentAllowedFull = true;
+                            remote_client.SendAlertMessage("Estate Allowed Experiences list is full");
+                        }
+                    }
+                    else
+                    {
+                        if (doOtherEstates)
+                        {
+                            foreach (EstateSettings estateSettings in otherEstates)
+                            {
+                                if (!isadmin && !estateSettings.IsEstateManagerOrOwner(agentID))
+                                    continue;
+                                if (estateSettings.AllowedExperiencesCount() >= (int)Constants.EstateAccessLimits.AllowedExperiences)
+                                    continue;
+                                estateSettings.AddAllowedExperience(experience);
+                                changed[(int)estateSettings.EstateID] = estateSettings;
+                            }
+                        }
+
+                        thisSettings.AddAllowedExperience(experience);
+                        changed[thisEstateID] = thisSettings;
+
+                        if (needReply)
+                            sendExperienceLists[remote_client] = invoice;
+                    }
+                }
+
+                if ((estateAccessType & 32) != 0) // remove allowed experience
+                {
+                    if (doOtherEstates) // All estates
+                    {
+                        foreach (EstateSettings estateSettings in otherEstates)
+                        {
+                            if (!isadmin && !estateSettings.IsEstateManagerOrOwner(agentID))
+                                continue;
+                            estateSettings.RemoveAllowedExperience(experience);
+                            changed[(int)estateSettings.EstateID] = estateSettings;
+                        }
+                    }
+
+                    thisSettings.RemoveAllowedExperience(experience);
+                    changed[thisEstateID] = thisSettings;
+
+                    if (needReply)
+                        sendExperienceLists[remote_client] = invoice;
+                }
+            }
+            lock (deltareqLock)
+                runnigDeltaExec = false;
+        }
+
         public void HandleOnEstateManageTelehub(IClientAPI client, UUID invoice, UUID senderID, string cmd, uint param1)
         {
             SceneObjectPart part;
@@ -1856,6 +2099,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             client.OnEstateChangeInfo += HandleEstateChangeInfo;
             client.OnEstateManageTelehub += HandleOnEstateManageTelehub;
             client.OnUpdateEstateAccessDeltaRequest += HandleEstateAccessDeltaRequest;
+            client.OnUpdateEstateExperienceDeltaRequest += handleEstateExperienceDeltaRequest;
             client.OnSimulatorBlueBoxMessageRequest += SendSimulatorBlueBoxMessage;
             client.OnEstateBlueBoxMessageRequest += SendEstateBlueBoxMessage;
             client.OnEstateDebugRegionRequest += HandleEstateDebugRegionRequest;

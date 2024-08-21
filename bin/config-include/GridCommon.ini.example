@@ -234,3 +234,11 @@
 
 [MuteListService]
     MuteListServerURI = "${Const|PrivURL}:${Const|PrivatePort}"
+
+[ExperienceService]
+    LocalServiceModule = "OpenSim.Services.Connectors.dll:RemoteExperienceServiceConnector"
+
+    ;
+    ; Change this to your grid-wide experience server
+    ;
+    ExperienceServerURI = "${Const|BaseURL}:${Const|PrivatePort}"

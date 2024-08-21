@@ -378,6 +378,9 @@ namespace OpenSim.Framework
     public delegate void UpdateEstateAccessDeltaRequest(
         IClientAPI remote_client, UUID invoice, int estateAccessType, UUID user);
 
+    public delegate void UpdateEstateExperienceDeltaRequest(
+        IClientAPI remote_client, UUID invoice, int estateAccessType, UUID user);
+
     public delegate void SimulatorBlueBoxMessageRequest(
         IClientAPI remoteClient, UUID invoice, UUID senderID, UUID sessionID, string senderName, string message);
 
@@ -931,6 +934,7 @@ namespace OpenSim.Framework
         event EstateRestartSimRequest OnEstateRestartSimRequest;
         event EstateChangeCovenantRequest OnEstateChangeCovenantRequest;
         event UpdateEstateAccessDeltaRequest OnUpdateEstateAccessDeltaRequest;
+        event UpdateEstateExperienceDeltaRequest OnUpdateEstateExperienceDeltaRequest;
         event SimulatorBlueBoxMessageRequest OnSimulatorBlueBoxMessageRequest;
         event EstateBlueBoxMessageRequest OnEstateBlueBoxMessageRequest;
         event EstateDebugRegionRequest OnEstateDebugRegionRequest;
@@ -1099,6 +1103,8 @@ namespace OpenSim.Framework
         void SendGenericMessage(string method, UUID invoice, List<string> message);
         void SendGenericMessage(string method, UUID invoice, List<byte[]> message);
 
+        void SendGenericMessageForExperience(UUID experience_id, UUID avatar_id, int action, string obj_name, string parcel, bool is_attachment = false);
+
         bool CanSendLayerData();
 
         void SendLayerData();
@@ -1249,7 +1255,7 @@ namespace OpenSim.Framework
         void SendAvatarProperties(UUID avatarID, string aboutText, string bornOn, Byte[] membershipType, string flAbout,
                                   uint flags, UUID flImageID, UUID imageID, string profileURL, UUID partnerID);
 
-        void SendScriptQuestion(UUID taskID, string taskName, string ownerName, UUID itemID, int question);
+        void SendScriptQuestion(UUID taskID, string taskName, string ownerName, UUID itemID, int question, UUID experience);
         void SendHealth(float health);
 
 
@@ -1262,6 +1268,8 @@ namespace OpenSim.Framework
 
         void SendDetailedEstateData(UUID invoice, string estateName, uint estateID, uint parentEstate, uint estateFlags,
                                     uint sunPosition, UUID covenant, uint covenantChanged, string abuseEmail, UUID estateOwner);
+
+        void SendEstateExperiences(UUID invoice, UUID[] allowed, UUID[] key, uint estateID);
 
         /// <summary>
         /// Send land properties to the client.

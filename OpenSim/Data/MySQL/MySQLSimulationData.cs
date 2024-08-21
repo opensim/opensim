@@ -171,7 +171,7 @@ namespace OpenSim.Data.MySQL
                                     "PhysicsShapeType, Density, GravityModifier, " +
                                     "Friction, Restitution, Vehicle, PhysInertia, DynAttrs, " +
                                     "RotationAxisLocks, sopanims, sitactrange, pseudocrc, " +
-                                    "linksetdata" +
+                                    "linksetdata, AllowUnsit, ScriptedSitOnly" +
                                     ") values (" + "?UUID, " +
                                     "?CreationDate, ?Name, ?Text, " +
                                     "?Description, ?SitName, ?TouchName, " +
@@ -207,7 +207,7 @@ namespace OpenSim.Data.MySQL
                                     "?PhysicsShapeType, ?Density, ?GravityModifier, " +
                                     "?Friction, ?Restitution, ?Vehicle, ?PhysInertia, ?DynAttrs," +
                                     "?RotationAxisLocks, ?sopanims, ?sitactrange, ?pseudocrc, " +
-                                    "?linksetdata)";
+                                    "?linksetdata, ?AllowUnsit, ?ScriptedSitOnly)";
 
                             FillPrimCommand(cmd, prim, obj.UUID, regionUUID);
 
@@ -1191,6 +1191,9 @@ namespace OpenSim.Data.MySQL
                 prim.LinksetData = LinksetData.DeserializeLinksetData((string)row["linksetdata"]);
             }
 
+            prim.AllowUnsit = ((sbyte)row["AllowUnsit"] != 0);
+            prim.ScriptedSitOnly = ((sbyte)row["ScriptedSitOnly"] != 0);
+
             return prim;
         }
 
@@ -1624,7 +1627,17 @@ namespace OpenSim.Data.MySQL
             else 
             {
                 cmd.Parameters.AddWithValue("linksetdata", null);
-            }           
+            }
+
+            if (prim.AllowUnsit)
+                cmd.Parameters.AddWithValue("AllowUnsit", 1);
+            else
+                cmd.Parameters.AddWithValue("AllowUnsit", 0);
+
+            if (prim.ScriptedSitOnly)
+                cmd.Parameters.AddWithValue("ScriptedSitOnly", 1);
+            else
+                cmd.Parameters.AddWithValue("ScriptedSitOnly", 0);
         }
 
         /// <summary>

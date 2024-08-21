@@ -339,6 +339,7 @@ namespace OpenSim.Tests.Common
         public event GodUpdateRegionInfoUpdate OnGodUpdateRegionInfoUpdate;
         public event GenericCall2 OnUpdateThrottles;
         public event AgentFOV OnAgentFOV;
+        public event UpdateEstateExperienceDeltaRequest OnUpdateEstateExperienceDeltaRequest;
 
 #pragma warning restore 67
 
@@ -1406,5 +1407,19 @@ namespace OpenSim.Tests.Common
             return 0x1000;
         }
 
+        public void SendGenericMessageForExperience(UUID experience_id, UUID avatar_id, int action, string obj_name, string parcel, bool is_attachment = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SendScriptQuestion(UUID taskID, string taskName, string ownerName, UUID itemID, int question, UUID experience)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SendEstateExperiences(UUID invoice, UUID[] allowed, UUID[] key, uint estateID)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -75,5 +75,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         void path_update(int type, LSL_List data);
         void region_cross(LSL_Vector newpos, LSL_Vector oldpos);
         void linkset_data(LSL_Integer action, string name, string value);
+        void experience_permissions(LSL_Key agent_id);
+        void experience_permissions_denied(LSL_Key agent_id, LSL_Integer reason);
     }
 }

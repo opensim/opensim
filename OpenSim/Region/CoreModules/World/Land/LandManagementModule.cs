@@ -690,7 +690,9 @@ namespace OpenSim.Region.CoreModules.World.Land
                 uint flags, UUID transactionID, int landLocalID, List<LandAccessEntry> entries,
                 IClientAPI remote_client)
         {
-            if ((flags & 0x03) == 0)
+            // Todo: update the actual AccessList enum!
+
+            if ((flags & (uint)0x1Bu) == 0)
                 return; // we only have access and ban
 
             if(m_scene.RegionInfo.EstateSettings.TaxFree)
@@ -709,8 +711,12 @@ namespace OpenSim.Region.CoreModules.World.Land
                     requiredPowers |= GroupPowers.LandManageAllowed;
                 if ((flags & (uint)AccessList.Ban) != 0)
                     requiredPowers |= GroupPowers.LandManageBanned;
+                if ((flags & (uint)8u) != 0)
+                    requiredPowers |= GroupPowers.LandManageAllowed;
+                if ((flags & (uint)0x10u) != 0)
+                    requiredPowers |= GroupPowers.LandManageBanned;
 
-                if(requiredPowers == GroupPowers.None)
+                if (requiredPowers == GroupPowers.None)
                     return;
 
                 if (m_scene.Permissions.CanEditParcelProperties(agentID,

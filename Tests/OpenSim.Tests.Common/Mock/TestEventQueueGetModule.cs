@@ -224,5 +224,10 @@ namespace OpenSim.Tests.Common
         {
             throw new NotImplementedException();
         }
+
+        public void SendEnvironmentUpdate(UUID experience_id, UUID agent_id, EnvironmentUpdate update)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

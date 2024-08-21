@@ -1016,6 +1016,8 @@ namespace OpenSim.Region.CoreModules.World.Land
             int now = Util.UnixTimeSinceEpoch();
             List<LandAccessEntry> accesslist = new();
             List<LandAccessEntry> banlist = new();
+            List<LandAccessEntry> allowed = new();
+            List<LandAccessEntry> blocked = new();
             foreach (LandAccessEntry entry in LandData.ParcelAccessList)
             {
                 if(entry.Expires > now || entry.Expires == 0)
@@ -1024,6 +1026,10 @@ namespace OpenSim.Region.CoreModules.World.Land
                         accesslist.Add(entry);
                     else if (entry.Flags == AccessList.Ban)
                         banlist.Add(entry);
+                    else if((uint)entry.Flags == 8u) // Todo: Update to AccessList.Allowed
+                        allowed.Add(entry);
+                    else if((uint)entry.Flags == 0x10u) // Todo: Update to AccessList.Blocked
+                        blocked.Add(entry);
                 }
             }
 
@@ -1046,7 +1052,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void UpdateAccessList(uint flags, UUID transactionID, List<LandAccessEntry> entries)
         {
-            flags &= 0x03;
+            flags &= 0x1Bu; // Todo: Update to AccessList.All
             if (flags == 0)
                 return; // we only have access and ban
 
