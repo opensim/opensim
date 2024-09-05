@@ -138,7 +138,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         // guards m_DetachQuantum, m_EventQueue, m_EventCounts, m_Running, m_Suspended
         public Object m_QueueLock = new Object();
 
-        // true iff allowed to accept new events
+        // true if allowed to accept new events
         public bool m_Running = true;
 
         // queue of events that haven't been acted upon yet

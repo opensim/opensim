@@ -5561,6 +5561,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return LSL_String.NullKey;
         }
 
+        public LSL_List osGetLinkInventoryKeys(LSL_Integer linkNumber, LSL_Integer type)
+        {
+            LSL_List ret = new();
+            
+            SceneObjectPart part = GetSingleLinkPart(linkNumber);
+            if(part == null)
+                return ret;
+
+            part.TaskInventory.LockItemsForRead(true);
+            foreach (KeyValuePair<UUID, TaskInventoryItem> inv in part.TaskInventory)
+            {
+                if (inv.Value.Type == type || type == -1 &&
+                                    (inv.Value.CurrentPermissions
+                                    & (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify))
+                                    == (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify))
+                    ret.Add(inv.Value.AssetID.ToString());
+            }
+
+            part.TaskInventory.LockItemsForRead(false);
+            return ret;
+        }
+
         public LSL_Key osGetLinkInventoryItemKey(LSL_Integer linkNumber, LSL_String name)
         {
             SceneObjectPart part = GetSingleLinkPart(linkNumber);

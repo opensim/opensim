@@ -459,6 +459,25 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
             response.StatusCode = (int)HttpStatusCode.OK;
             try
             {
+                Stream inputStream = request.InputStream;
+                if (inputStream.Length > 0)
+                {
+                    OSD tmp = OSDParser.DeserializeLLSDXml(inputStream);
+                    request.InputStream.Dispose();
+
+                    if (tmp is OSDMap map)
+                    {
+                        if (map.TryGetValue("voice_server_type", out OSD vstosd))
+                        {
+                            if (vstosd is OSDString vst && !((string)vst).Equals("vivox", StringComparison.OrdinalIgnoreCase))
+                            {
+                                response.RawBuffer = Util.UTF8.GetBytes("<llsd><undef /></llsd>");
+                                return;
+                            }
+                        }
+                    }
+                }
+
                 ScenePresence avatar = null;
                 string        avatarName = null;
 

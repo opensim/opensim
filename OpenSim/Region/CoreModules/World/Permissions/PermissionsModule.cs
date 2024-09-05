@@ -2336,9 +2336,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                     return false;
             }
 
-            bool notSameOwner = srcsog.OwnerID.NotEqual(destsog.OwnerID);
-
-            if(notSameOwner)
+            if(srcsog.OwnerID.NotEqual(destsog.OwnerID))
             {
                 if((itperms & (uint)PermissionMask.Transfer) == 0)
                     return false;
@@ -2350,7 +2348,8 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             }
             else
             {
-                if((destsogEffectiveOwnerPerms & (uint)PermissionMask.Modify) == 0)
+                if((destsogEffectiveOwnerPerms & (uint)PermissionMask.Modify) == 0 &&
+                     (destsog.RootPart.GetEffectiveObjectFlags() & (uint)PrimFlags.AllowInventoryDrop) == 0)
                     return false;
             }
 

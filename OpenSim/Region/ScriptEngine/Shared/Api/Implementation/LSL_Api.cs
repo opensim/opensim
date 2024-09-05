@@ -13857,7 +13857,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ScenePresence presence = World.GetScenePresence(agentID);
 
             // we are not interested in child-agents
-            if (presence.IsChildAgent)
+            if (presence is null || presence.IsChildAgent)
                 return;
 
             presence.ControllingClient.SendClearFollowCamProperties(objectID);
@@ -20548,7 +20548,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             return new LSL_Integer(1);
         }
-     }
+    }
 
     public class NotecardCache
     {

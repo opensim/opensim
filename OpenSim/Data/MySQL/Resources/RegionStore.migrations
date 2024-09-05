@@ -569,7 +569,6 @@ ALTER TABLE `regionsettings` ADD COLUMN `TerrainPBR4` varchar(36) NOT NULL DEFAU
 COMMIT;
 
 :VERSION 67         #----- Add allow unsit and scripted sit only
-
 BEGIN;
 ALTER TABLE `prims`
 	ADD COLUMN `AllowUnsit` TINYINT(3) NULL DEFAULT '1',

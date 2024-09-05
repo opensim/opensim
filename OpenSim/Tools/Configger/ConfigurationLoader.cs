@@ -201,7 +201,7 @@ namespace OpenSim.Tools.Configger
             Uri configUri;
 
             return Uri.TryCreate(file, UriKind.Absolute,
-                    out configUri) && configUri.Scheme == Uri.UriSchemeHttp;
+                    out configUri) && (configUri.Scheme == Uri.UriSchemeHttp || configUri.Scheme == Uri.UriSchemeHttps);
         }
 
         /// <summary>

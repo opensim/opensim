@@ -5169,35 +5169,35 @@ namespace OpenSim.Region.Framework.Scenes
 
             try
             {
-            float time = 0.0f;
+                float time = 0.0f;
 
-            // get all the scripts in all parts
-            SceneObjectPart[] parts = m_parts.GetArray();
-            List<TaskInventoryItem> scripts = new();
-            for (int i = 0; i < parts.Length; i++)
-            {
+                // get all the scripts in all parts
+                SceneObjectPart[] parts = m_parts.GetArray();
+                List<TaskInventoryItem> scripts = new();
+                for (int i = 0; i < parts.Length; i++)
+                {
                     IEntityInventory inv = parts[i].Inventory;
                     if (inv is not null)
-                scripts.AddRange(parts[i].Inventory.GetInventoryItems(InventoryType.LSL));
-            }
-
-            // extract the UUIDs
-            HashSet<UUID> unique = new();
-            foreach (TaskInventoryItem script in scripts)
-                unique.Add(script.ItemID);
-
-            List<UUID> ids = unique.ToList();
-
-            // Offer the list of script UUIDs to each engine found and accumulate the time
-            foreach (IScriptModule e in engines)
-            {
-                if (e is not null)
-                {
-                    time += e.GetScriptExecutionTime(ids);
+                        scripts.AddRange(parts[i].Inventory.GetInventoryItems(InventoryType.LSL));
                 }
+
+                // extract the UUIDs
+                HashSet<UUID> unique = new();
+                foreach (TaskInventoryItem script in scripts)
+                    unique.Add(script.ItemID);
+
+                List<UUID> ids = unique.ToList();
+
+                // Offer the list of script UUIDs to each engine found and accumulate the time
+                foreach (IScriptModule e in engines)
+                {
+                    if (e is not null)
+                    {
+                        time += e.GetScriptExecutionTime(ids);
+                    }
+                }
+                return time;
             }
-            return time;
-        }
             catch
             {
                 return 0.0f;
@@ -5213,40 +5213,39 @@ namespace OpenSim.Region.Framework.Scenes
 
             try
             {
-            // get all the scripts in all parts
-            SceneObjectPart[] parts = m_parts.GetArray();
-            List<TaskInventoryItem> scripts = new();
-            for (int i = 0; i < parts.Length; i++)
-            {
+                // get all the scripts in all parts
+                SceneObjectPart[] parts = m_parts.GetArray();
+                List<TaskInventoryItem> scripts = new();
+                for (int i = 0; i < parts.Length; i++)
+                {
                     IEntityInventory inv = parts[i].Inventory;
                     if(inv is not null)
                         scripts.AddRange(inv.GetInventoryItems(InventoryType.LSL));
-            }
-
-            if (scripts.Count == 0)
-                return false;
-
-            // extract the UUIDs
-            HashSet<UUID> unique = new();
-            foreach (TaskInventoryItem script in scripts)
-                unique.Add(script.ItemID);
-
-            List<UUID> ids = unique.ToList();
-            // Offer the list of script UUIDs to each engine found and accumulate the memory
-            foreach (IScriptModule e in engines)
-            {
-                if (e is not null)
-                {
-                    memory += e.GetScriptsMemory(ids);
                 }
+
+                if (scripts.Count == 0)
+                    return false;
+
+                // extract the UUIDs
+                HashSet<UUID> unique = new();
+                foreach (TaskInventoryItem script in scripts)
+                    unique.Add(script.ItemID);
+
+                List<UUID> ids = unique.ToList();
+                // Offer the list of script UUIDs to each engine found and accumulate the memory
+                foreach (IScriptModule e in engines)
+                {
+                    if (e is not null)
+                    {
+                        memory += e.GetScriptsMemory(ids);
+                    }
+                }
+                return true;
             }
-            return true;
-        }
             catch
             { 
                 return false;
             }
-
         }
 
         /// <summary>

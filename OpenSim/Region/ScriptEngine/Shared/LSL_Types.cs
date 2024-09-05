@@ -154,7 +154,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 while (++comma < str.Length)
                 {
                     c = Unsafe.Add(ref MemoryMarshal.GetReference(str), comma);
-                    if (c == ' ' || c == '>')
+                    if (c == '>')
                         break;
                 }
 
@@ -575,7 +575,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 while (++comma < str.Length)
                 {
                     c = Unsafe.Add(ref MemoryMarshal.GetReference(str), comma);
-                    if (c == ' ' || c == '>')
+                    if (c == '>')
                         break;
                 }
 
