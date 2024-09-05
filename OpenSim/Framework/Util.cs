@@ -56,6 +56,7 @@ using OpenMetaverse.StructuredData;
 using Amib.Threading;
 using System.Collections.Concurrent;
 using System.Net.Http;
+using System.Security.Cryptography.X509Certificates;
 
 namespace OpenSim.Framework
 {
@@ -1098,14 +1099,18 @@ namespace OpenSim.Framework
         /// Is the platform Windows?
         /// </summary>
         /// <returns>true if so, false otherwise</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsWindows()
         {
+            return RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            /*
             PlatformID platformId = Environment.OSVersion.Platform;
 
             return (platformId == PlatformID.Win32NT
                 || platformId == PlatformID.Win32S
                 || platformId == PlatformID.Win32Windows
                 || platformId == PlatformID.WinCE);
+            */
         }
 
         public static bool LoadArchSpecificWindowsDll(string libraryName)
@@ -1478,6 +1483,71 @@ namespace OpenSim.Framework
             using StreamReader streamReader = new(cryptoStream);
           
             return streamReader.ReadToEnd();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void CreateOrUpdateSelfsignedCert(string certFileName, string certHostName, string certHostIp, string certPassword)
+        {
+            CreateOrUpdateSelfsignedCertificate(certFileName, certHostName, certHostIp, certPassword);
+        }
+
+        /// <summary>
+        /// Create or renew an SSL selfsigned certificate using the parameters set in the startup section of OpenSim.ini
+        /// </summary>
+        /// <param name="certFileName">The certificate file name.</param>
+        /// <param name="certHostName">The certificate host DNS name (CN).</param>
+        /// <param name="certHostIp">The certificate host IP address.</param>
+        /// <param name="certPassword">The certificate password.</param>
+        private static void CreateOrUpdateSelfsignedCertificate(string certFileName, string certHostName, string certHostIp, string certPassword)
+        {
+            SubjectAlternativeNameBuilder san = new();
+            san.AddDnsName(certHostName);
+            san.AddIpAddress(IPAddress.Parse(certHostIp));
+
+            // What OpenSim check (CN).
+            X500DistinguishedName dn = new($"CN={certHostName}");
+
+            using (RSA rsa = RSA.Create(2048))
+            {
+                CertificateRequest request = new(dn, rsa, HashAlgorithmName.SHA256,RSASignaturePadding.Pkcs1);
+
+                // (Optional)...
+                request.CertificateExtensions.Add(
+                new X509KeyUsageExtension(X509KeyUsageFlags.DataEncipherment | X509KeyUsageFlags.KeyEncipherment | X509KeyUsageFlags.DigitalSignature , false));
+
+                // (Optional) SSL Server Authentication...
+                request.CertificateExtensions.Add(
+                new X509EnhancedKeyUsageExtension(
+                    new OidCollection { new Oid("1.3.6.1.5.5.7.3.1") }, false));
+
+                request.CertificateExtensions.Add(san.Build());
+
+                X509Certificate2 certificate = request.CreateSelfSigned(new DateTimeOffset(DateTime.UtcNow), new DateTimeOffset(DateTime.UtcNow.AddDays(3650)));
+
+                string privateKey = Convert.ToBase64String(rsa.ExportRSAPrivateKey(), Base64FormattingOptions.InsertLineBreaks);
+
+                // Create the SSL folder and sub folders if not exists.
+                if (!Directory.Exists("SSL\\src\\"))
+                    Directory.CreateDirectory("SSL\\src\\");
+
+                if (!Directory.Exists("SSL\\ssl\\"))
+                    Directory.CreateDirectory("SSL\\ssl\\");
+
+                // Store the RSA key in SSL\src\
+                File.WriteAllText($"SSL\\src\\{certFileName}.txt", privateKey);
+
+                // Export and store the .pfx and .p12 certificates in SSL\ssl\.
+                // Note: Pfx is a Pkcs12 certificate and both files work for OpenSim.
+                byte[] pfxCertBytes = string.IsNullOrEmpty(certPassword) 
+                                    ? certificate.Export(X509ContentType.Pfx) 
+                                    : certificate.Export(X509ContentType.Pfx, certPassword);
+                File.WriteAllBytes($"SSL\\ssl\\{certFileName}.pfx", pfxCertBytes);
+
+                byte[] p12CertBytes = string.IsNullOrEmpty(certPassword) 
+                                    ? certificate.Export(X509ContentType.Pkcs12) 
+                                    : certificate.Export(X509ContentType.Pkcs12, certPassword);
+                File.WriteAllBytes($"SSL\\ssl\\{certFileName}.p12", p12CertBytes);
+            }
         }
 
         public static int fast_distance2d(int x, int y)
@@ -3032,6 +3102,39 @@ namespace OpenSim.Framework
 
             start = end = 0;
             return false;
+        }
+
+        [DllImport("winmm.dll")]
+        private static extern uint timeBeginPeriod(uint period);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void TimeBeginPeriod(uint period)
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                timeBeginPeriod(period);
+        }
+
+        [DllImport("winmm.dll")]
+        private static extern uint timeEndPeriod(uint period);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void TimeEndPeriod(uint period)
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                timeEndPeriod(period);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ThreadSleep(int period)
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                timeEndPeriod(1);
+                Thread.Sleep(period);
+                timeEndPeriod(1);
+            }
+            else
+                Thread.Sleep(period);
         }
 
         /// <summary>
