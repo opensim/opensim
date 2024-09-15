@@ -1099,14 +1099,18 @@ namespace OpenSim.Framework
         /// Is the platform Windows?
         /// </summary>
         /// <returns>true if so, false otherwise</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsWindows()
         {
+            return RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            /*
             PlatformID platformId = Environment.OSVersion.Platform;
 
             return (platformId == PlatformID.Win32NT
                 || platformId == PlatformID.Win32S
                 || platformId == PlatformID.Win32Windows
                 || platformId == PlatformID.WinCE);
+            */
         }
 
         public static bool LoadArchSpecificWindowsDll(string libraryName)
@@ -3098,6 +3102,39 @@ namespace OpenSim.Framework
 
             start = end = 0;
             return false;
+        }
+
+        [DllImport("winmm.dll")]
+        private static extern uint timeBeginPeriod(uint period);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void TimeBeginPeriod(uint period)
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                timeBeginPeriod(period);
+        }
+
+        [DllImport("winmm.dll")]
+        private static extern uint timeEndPeriod(uint period);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void TimeEndPeriod(uint period)
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                timeEndPeriod(period);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ThreadSleep(int period)
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                timeEndPeriod(1);
+                Thread.Sleep(period);
+                timeEndPeriod(1);
+            }
+            else
+                Thread.Sleep(period);
         }
 
         /// <summary>
