@@ -2481,28 +2481,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     UserAgentServiceConnector userConnection = new(serverURI);
 
-                    if (userConnection is not null && serverURI.StartsWith("http://"))
+                    if (userConnection is not null)
                     {
                         userID = userConnection.GetUUID(realFirstName, realLastName);
                         if (!userID.IsZero())
                         {
                             userManager.AddUser(userID, realFirstName, realLastName, serverURI);
                             return userID.ToString();
-                        }
-                    }
-                    else
-                    {
-                        // Override hardcoded http in Util.ParseForeignAvatarName
-                        string SSLserverURI = serverURI.Replace("http://", "https://");
-                        userConnection = new(SSLserverURI);
-                        if (userConnection is not null)
-                        {
-                            userID = userConnection.GetUUID(realFirstName, realLastName);
-                            if (!userID.IsZero())
-                            {
-                                userManager.AddUser(userID, realFirstName, realLastName, SSLserverURI);
-                                return userID.ToString();
-                            }
                         }
                     }
                 }
