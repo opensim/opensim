@@ -1421,7 +1421,7 @@ namespace OpenSim.Framework
                 }
             }
 
-            return $"{Convert.ToHexString(iv)}:{Convert.ToHexString(encryptedText).ToLower()}";
+            return $"{Convert.ToHexString(iv)}:{Convert.ToHexString(encryptedText)}";
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1548,6 +1548,53 @@ namespace OpenSim.Framework
                                     : certificate.Export(X509ContentType.Pkcs12, certPassword);
                 File.WriteAllBytes($"SSL\\ssl\\{certFileName}.p12", p12CertBytes);
             }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ConvertPemToPKCS12(string certFileName, string fullChainPath, string privateKeyPath)
+        {
+            ConvertPemToPKCS12Certificate(certFileName, fullChainPath, privateKeyPath, null);
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ConvertPemToPKCS12(string certFileName, string fullChainPath, string privateKeyPath, string outputPassword)
+        {
+            ConvertPemToPKCS12Certificate(certFileName, fullChainPath, privateKeyPath, outputPassword);
+        }
+
+        /// <summary>
+        /// Convert or renew .pem certificate to PKCS12 .pfx and .p12 usable by OpenSim.
+        /// the parameters are set in the startup section of OpenSim.ini
+        /// </summary>
+        /// <param name="certFileName">The output certificate file name.</param>
+        /// <param name="certPath">The path of fullchain.pem. If your CA don't provide 
+        /// the fullchain file, you can set the cert.pem instead.</param>
+        /// <param name="keyPath">The path of the private key (privkey.pem).</param>
+        /// <param name="certPassword">The output certificates password.</param>
+        private static void ConvertPemToPKCS12Certificate(string certFileName, string certPath, string keyPath, string outputPassword)
+        {
+            if(string.IsNullOrEmpty(certPath) || string.IsNullOrEmpty(keyPath)){
+                m_log.ErrorFormat("[UTIL]: Missing or invalid fullchain.pem / privkey.pem path!.");
+                return;
+            }
+            // Create the SSL folder and sub folders if not exists.
+            if (!Directory.Exists("SSL\\ssl\\"))
+                Directory.CreateDirectory("SSL\\ssl\\");
+
+            // Convert .pem (like Let's Encrypt files) to X509Certificate2 certificate.
+            X509Certificate2 certificate = X509Certificate2.CreateFromPemFile(certPath, keyPath);
+
+            // Export and store the .pfx and .p12 certificates in SSL\ssl\.
+            byte[] pfxCertBytes = string.IsNullOrEmpty(outputPassword)
+                                ? certificate.Export(X509ContentType.Pfx)
+                                : certificate.Export(X509ContentType.Pfx, outputPassword);
+            File.WriteAllBytes($"SSL\\ssl\\{certFileName}.pfx", pfxCertBytes);
+
+                byte[] p12CertBytes = string.IsNullOrEmpty(outputPassword) 
+                                    ? certificate.Export(X509ContentType.Pkcs12) 
+                                    : certificate.Export(X509ContentType.Pkcs12, outputPassword);
+                File.WriteAllBytes($"SSL\\ssl\\{certFileName}.p12", p12CertBytes);
+            
         }
 
         public static int fast_distance2d(int x, int y)
