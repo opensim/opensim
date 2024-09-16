@@ -6577,7 +6577,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 OSSLShoutError("osAESEncryptTo: Failed to encrypt!");
                 return LSL_String.Empty;
             }
-            return ret.ToString().ToLower();
+            return ret.ToString();
         }
 
         public LSL_String osAESDecryptFrom(string secret, string encryptedText, string ivString)
