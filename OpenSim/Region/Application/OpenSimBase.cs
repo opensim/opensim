@@ -367,6 +367,16 @@ namespace OpenSim
                     );
                 }
             }
+
+            if(startupConfig.GetBoolean("EnableCertConverter", false))
+            {
+                 Util.ConvertPemToPKCS12(
+                    string.IsNullOrEmpty(startupConfig.GetString("outputCertName")) ? "letsencrypt" : startupConfig.GetString("outputCertName"),
+                    string.IsNullOrEmpty(startupConfig.GetString("PemCertPublicKey")) ? string.Empty : startupConfig.GetString("PemCertPublicKey"),
+                    string.IsNullOrEmpty(startupConfig.GetString("PemCertPrivateKey")) ? string.Empty : startupConfig.GetString("PemCertPrivateKey"),
+                    string.IsNullOrEmpty(startupConfig.GetString("outputCertPassword")) ? string.Empty : startupConfig.GetString("outputCertPassword")
+                );
+            }
             
             if(m_networkServersInfo.HttpUsesSSL)
             {
