@@ -1579,9 +1579,10 @@ namespace OpenSim.Framework
             }
 
             // Convert .pem (like Let's Encrypt files) to X509Certificate2 certificate.
+            X509Certificate2 certificate;
             try
             {
-                X509Certificate2 certificate = X509Certificate2.CreateFromPemFile(certPath, keyPath);
+                certificate = X509Certificate2.CreateFromPemFile(certPath, keyPath);
             }
             catch(CryptographicException e)
             {
