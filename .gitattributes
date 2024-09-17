@@ -18,4 +18,3 @@
 *.ogg binary
 *.dll binary
 *.exe binary
-*.cs text eol=crlf
