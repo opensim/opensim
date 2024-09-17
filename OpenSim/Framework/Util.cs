@@ -1570,19 +1570,28 @@ namespace OpenSim.Framework
         /// <param name="certPath">The path of fullchain.pem. If your CA don't provide 
         /// the fullchain file, you can set the cert.pem instead.</param>
         /// <param name="keyPath">The path of the private key (privkey.pem).</param>
-        /// <param name="certPassword">The output certificates password.</param>
+        /// <param name="outputPassword">The output certificates password.</param>
         private static void ConvertPemToPKCS12Certificate(string certFileName, string certPath, string keyPath, string outputPassword)
         {
             if(string.IsNullOrEmpty(certPath) || string.IsNullOrEmpty(keyPath)){
-                m_log.ErrorFormat("[UTIL]: Missing or invalid fullchain.pem / privkey.pem path!.");
+                m_log.Error($"[UTIL PemToPKCS12]: Missing fullchain.pem or privkey.pem path!.");
                 return;
             }
-            // Create the SSL folder and sub folders if not exists.
-            if (!Directory.Exists("SSL\\ssl\\"))
-                Directory.CreateDirectory("SSL\\ssl\\");
 
             // Convert .pem (like Let's Encrypt files) to X509Certificate2 certificate.
-            X509Certificate2 certificate = X509Certificate2.CreateFromPemFile(certPath, keyPath);
+            try
+            {
+                X509Certificate2 certificate = X509Certificate2.CreateFromPemFile(certPath, keyPath);
+            }
+            catch(CryptographicException e)
+            {
+                m_log.Error($"[UTIL PemToPKCS12]: {e.Message}" );
+                return;
+            }
+
+            // Create the SSL folder and ssl sub folder if not exists.
+            if (!Directory.Exists("SSL\\ssl\\"))
+                Directory.CreateDirectory("SSL\\ssl\\");
 
             // Export and store the .pfx and .p12 certificates in SSL\ssl\.
             byte[] pfxCertBytes = string.IsNullOrEmpty(outputPassword)
@@ -1590,10 +1599,10 @@ namespace OpenSim.Framework
                                 : certificate.Export(X509ContentType.Pfx, outputPassword);
             File.WriteAllBytes($"SSL\\ssl\\{certFileName}.pfx", pfxCertBytes);
 
-                byte[] p12CertBytes = string.IsNullOrEmpty(outputPassword) 
-                                    ? certificate.Export(X509ContentType.Pkcs12) 
-                                    : certificate.Export(X509ContentType.Pkcs12, outputPassword);
-                File.WriteAllBytes($"SSL\\ssl\\{certFileName}.p12", p12CertBytes);
+            byte[] p12CertBytes = string.IsNullOrEmpty(outputPassword) 
+                                ? certificate.Export(X509ContentType.Pkcs12) 
+                                : certificate.Export(X509ContentType.Pkcs12, outputPassword);
+            File.WriteAllBytes($"SSL\\ssl\\{certFileName}.p12", p12CertBytes);
             
         }
 
