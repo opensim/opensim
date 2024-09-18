@@ -294,6 +294,20 @@ namespace OpenSim.Services.Connectors
         {
         }
 
+        public bool SetDisplayName(UUID agentID, string displayName)
+        {
+            //m_log.DebugFormat("[ACCOUNTS CONNECTOR]: SetDisplayName {0}", agentID);
+            Dictionary<string, object> sendData = new Dictionary<string, object>();
+            sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
+            sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
+            sendData["METHOD"] = "setdisplayname";
+
+            sendData["PrincipalID"] = agentID.ToString();
+            sendData["DisplayName"] = displayName;
+
+            return SendAndGetBoolReply(sendData);
+        }
+
         public List<UserAccount> GetUserAccountsWhere(UUID scopeID, string where)
         {
             return null; // Not implemented for regions

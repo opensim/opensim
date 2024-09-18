@@ -29,3 +29,13 @@ BEGIN;
 ALTER TABLE `UserAccounts` ADD `active` INT NOT NULL DEFAULT '1';
 
 COMMIT;
+
+:VERSION 7		# -------------------------
+
+BEGIN;
+
+ALTER TABLE `useraccounts` 
+ADD COLUMN `DisplayName` VARCHAR(31) NULL AFTER `active`,
+ADD COLUMN `NameChanged` INT NULL DEFAULT 0 AFTER `DisplayName`;
+
+COMMIT;

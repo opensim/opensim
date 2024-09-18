@@ -751,6 +751,7 @@
     Cap_GetMesh = "localhost"
     Cap_AvatarPickerSearch = "localhost"
     Cap_GetDisplayNames = "localhost"
+    Cap_SetDisplayName = "localhost"
 
 
 [SimulatorFeatures]

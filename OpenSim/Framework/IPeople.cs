@@ -42,6 +42,56 @@ namespace OpenSim.Framework
         public bool HasGridUserTried;
         public bool IsLocal;
         public double LastWebFail = -1;
+        public string DisplayName;
+        public DateTime NameChanged;
+
+        public bool IsNameDefault
+        {
+            get
+            {
+                return string.IsNullOrWhiteSpace(DisplayName);
+            }
+        }
+
+        public string LegacyName
+        {
+            get
+            {
+                if (LastName.ToLower() == "resident")
+                    return FirstName;
+                else return $"{FirstName} {LastName}";
+            }
+        }
+
+        public string Username
+        {
+            get
+            {
+                if (LastName.ToLower() == "resident")
+                    return FirstName;
+                else if(LastName.StartsWith("@"))
+                    return $"{FirstName}{LastName}";
+                else return $"{FirstName}.{LastName}";
+            }
+        }
+
+        public string LowerUsername
+        {
+            get
+            {
+                return Username.ToLower();
+            }
+        }
+
+        public string ViewerDisplayName
+        {
+            get
+            {
+                if (IsNameDefault)
+                    return LegacyName;
+                else return DisplayName;
+            }
+        }
     }
 
     public interface IPeople
