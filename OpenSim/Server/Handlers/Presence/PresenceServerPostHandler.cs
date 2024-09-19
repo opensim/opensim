@@ -69,18 +69,24 @@ namespace OpenSim.Server.Handlers.Presence
             string method = string.Empty;
             try
             {
-                Dictionary<string, object> request =
-                        ServerUtils.ParseQueryString(body);
+                Dictionary<string, object> request = ServerUtils.ParseQueryString(body);
 
-                if (!request.ContainsKey("METHOD"))
+                if (!request.TryGetValue("METHOD", out object tmpobj) || tmpobj is not string)
                     return FailureResult();
 
-                method = request["METHOD"].ToString();
-
+                method = (string)tmpobj;
                 switch (method)
                 {
                     case "login":
-                        return LoginAgent(request);
+                        {
+                            //return LoginAgent(request); this is ilegal
+                            if (request.TryGetValue("UserID", out object uo) && uo is string user)
+                                m_log.Debug($"[PRESENCE HANDLER]: ilegal login try from {httpRequest.RemoteIPEndPoint} for userID {user}");
+                            else
+                                m_log.Debug($"[PRESENCE HANDLER]: ilegal login try from {httpRequest.RemoteIPEndPoint} for unkown user");
+
+                            return FailureResult();
+                        }
                     case "logout":
                         return LogoutAgent(request);
                     case "logoutregion":
@@ -92,11 +98,11 @@ namespace OpenSim.Server.Handlers.Presence
                     case "getagents":
                         return GetAgents(request);
                 }
-                m_log.DebugFormat("[PRESENCE HANDLER]: unknown method request: {0}", method);
+                m_log.Debug($"[PRESENCE HANDLER]: unknown method request: {method}");
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[PRESENCE HANDLER]: Exception in method {0}: {1}", method, e);
+                m_log.Debug($"[PRESENCE HANDLER]: Exception in method {method}: {e.Message}");
             }
 
             return FailureResult();
