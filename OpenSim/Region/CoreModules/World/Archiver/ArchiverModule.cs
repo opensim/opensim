@@ -106,6 +106,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             bool mergeTerrain = false;
             bool mergeParcels = false;
             bool noObjects = false;
+            bool noDefaultUser = false;
+            bool lookupAliases = false;
+
             Vector3 displacement = new Vector3(0f, 0f, 0f);
             String defaultUser = "";
             float rotation = 0f;
@@ -115,6 +118,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             bool debug = false;
             
             OptionSet options = new OptionSet();
+
             options.Add("m|merge", delegate(string v) { mergeOar = (v != null); });
             options.Add("mergeReplaceObjects", delegate (string v) { mergeReplaceObjects = (v != null); });
             options.Add("s|skip-assets", delegate(string v) { skipAssets = (v != null); });
@@ -126,6 +130,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             options.Add("forceparcels", delegate (string v) { mergeParcels = (v != null); });   // downward compatibility
             options.Add("no-objects", delegate(string v) { noObjects = (v != null); });
             options.Add("default-user=", delegate(string v) { defaultUser = (v == null) ? "" : v; });
+            options.Add("no-defaultuser", delegate(string v) { noDefaultUser = (v != null); });
+            options.Add("lookup-aliases", delegate(string v) { lookupAliases = (v != null); });
             options.Add("displacement=", delegate(string v)
             {
                 try
@@ -151,6 +157,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     m_log.ErrorFormat("[ARCHIVER MODULE]    Must be an angle in degrees between -360 and +360: --rotation 45");
                     return;
                 }
+
                 //pass this in as degrees now, convert to radians later during actual work phase
                 rotation = Math.Clamp(rotation, -359f, 359f);
             });
@@ -214,6 +221,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 //                m_log.DebugFormat("GOT PARAM [{0}]", param);
 
             Dictionary<string, object> archiveOptions = new Dictionary<string, object>();
+
             if (mergeOar) archiveOptions.Add("merge", null);
             if (skipAssets) archiveOptions.Add("skipAssets", null);
             if (mergeReplaceObjects) archiveOptions.Add("mReplaceObjects", null);
@@ -241,11 +249,15 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     archiveOptions.Add("default-user", defaultUserUUID);
                 }
             }
+            if (noDefaultUser) archiveOptions.Add("no-defaultuser", null);
+            if (lookupAliases) archiveOptions.Add("lookup-aliases", null);
+                        
             archiveOptions.Add("displacement", displacement);
             archiveOptions.Add("rotation", rotation);
             archiveOptions.Add("rotation-center", rotationCenter);
             archiveOptions.Add("bounding-origin", boundingOrigin);
             archiveOptions.Add("bounding-size", boundingSize);
+            
             if (debug) archiveOptions.Add("debug", null);
 
             if (mainParams.Count > 2)
