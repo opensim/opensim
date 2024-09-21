@@ -1075,12 +1075,19 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                 lock (m_userAliases)
                 {
+                    // Have we seen this UUID before?
                     if (m_userAliases.TryGetValue(aliasID, out aliasUser) is false)
                     {
+                        // If not look it up and get result, null if it doesnt exist
                         aliasUser = UserAliasService?.GetUserForAlias(aliasID); 
-                        if (aliasUser is not null)
+
+                        // Plug it into the cache
+                        m_userAliases[aliasID] = aliasUser;
+
+                        // And since its the first time we've seen this and no alias exists print a warning
+                        if (aliasUser is null)
                         {
-                            m_userAliases[aliasID] = aliasUser;
+                            m_log.Warn($"[ARCHIVEREADREQUEST] No alias found for User {aliasID} and not a local user");
                         }
                     }
                 }
