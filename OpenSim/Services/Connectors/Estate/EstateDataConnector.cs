@@ -35,8 +35,6 @@ using OpenMetaverse;
 using Nini.Config;
 
 using OpenSim.Framework;
-using OpenSim.Framework.ServiceAuth;
-using OpenSim.Services.Connectors;
 using OpenSim.Services.Interfaces;
 using OpenSim.Server.Base;
 using System.Net.Http;
@@ -45,9 +43,7 @@ namespace OpenSim.Services.Connectors
 {
     public class EstateDataRemoteConnector : BaseServiceConnector, IEstateDataService
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private string m_ServerURI = String.Empty;
         private ExpiringCache<string, List<EstateSettings>> m_EstateCache = new ExpiringCache<string, List<EstateSettings>>();
@@ -61,15 +57,13 @@ namespace OpenSim.Services.Connectors
         public virtual void Initialise(IConfigSource source)
         {
             IConfig gridConfig = source.Configs["EstateService"];
-            if (gridConfig == null)
+            if (gridConfig is null)
             {
                 m_log.Error("[ESTATE CONNECTOR]: EstateService missing from OpenSim.ini");
                 throw new Exception("Estate connector init error");
             }
 
-            string serviceURI = gridConfig.GetString("EstateServerURI",
-                    String.Empty);
-
+            string serviceURI = gridConfig.GetString("EstateServerURI", string.Empty);
             if (serviceURI.Length == 0)
             {
                 m_log.Error("[ESTATE CONNECTOR]: No Server URI named in section EstateService");
@@ -84,45 +78,41 @@ namespace OpenSim.Services.Connectors
 
         public List<EstateSettings> LoadEstateSettingsAll()
         {
-            string reply = string.Empty;
             string uri = m_ServerURI + "/estates";
-
-            reply = MakeRequest("GET", uri, string.Empty);
+            string reply = MakeRequest("GET", uri, string.Empty);
             if (String.IsNullOrEmpty(reply))
-                return new List<EstateSettings>();
+                return [];
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
-
-            List<EstateSettings> estates = new List<EstateSettings>();
             if (replyData != null && replyData.Count > 0)
             {
-                m_log.DebugFormat("[ESTATE CONNECTOR]: LoadEstateSettingsAll returned {0} elements", replyData.Count);
+                m_log.Debug($"[ESTATE CONNECTOR]: LoadEstateSettingsAll returned {replyData.Count} elements");
                 Dictionary<string, object>.ValueCollection estateData = replyData.Values;
+                List<EstateSettings> estates = [];
                 foreach (object r in estateData)
                 {
-                    if (r is Dictionary<string, object>)
+                    if (r is Dictionary<string, object> dr )
                     {
-                        EstateSettings es = new EstateSettings((Dictionary<string, object>)r);
+                        EstateSettings es = new EstateSettings(dr);
                         estates.Add(es);
                     }
                 }
                 m_EstateCache.AddOrUpdate("estates", estates, EXPIRATION);
+                return estates;
             }
             else
-                m_log.DebugFormat("[ESTATE CONNECTOR]: LoadEstateSettingsAll from {0} received null or zero response", uri);
+                m_log.Debug($"[ESTATE CONNECTOR]: LoadEstateSettingsAll from {uri} received empty response");
 
-            return estates;
-
+            return [];
         }
 
         public List<int> GetEstatesAll()
         {
-            List<int> eids = new List<int>();
             // If we don't have them, load them from the server
-            List<EstateSettings> estates = null;
-            if (!m_EstateCache.TryGetValue("estates", out estates))
+            if (!m_EstateCache.TryGetValue("estates", out List<EstateSettings> estates))
                 estates = LoadEstateSettingsAll();
 
+            List<int> eids = [];
             foreach (EstateSettings es in estates)
                 eids.Add((int)es.EstateID);
 
@@ -132,11 +122,10 @@ namespace OpenSim.Services.Connectors
         public List<int> GetEstates(string search)
         {
             // If we don't have them, load them from the server
-            List<EstateSettings> estates = null;
-            if (!m_EstateCache.TryGetValue("estates", out estates))
+            if (!m_EstateCache.TryGetValue("estates", out List<EstateSettings> estates))
                 estates = LoadEstateSettingsAll();
 
-            List<int> eids = new List<int>();
+            List<int> eids = [];
             foreach (EstateSettings es in estates)
                 if (es.EstateName == search)
                     eids.Add((int)es.EstateID);
@@ -147,13 +136,12 @@ namespace OpenSim.Services.Connectors
         public List<int> GetEstatesByOwner(UUID ownerID)
         {
             // If we don't have them, load them from the server
-            List<EstateSettings> estates = null;
-            if (!m_EstateCache.TryGetValue("estates", out estates))
+            if (!m_EstateCache.TryGetValue("estates", out List<EstateSettings> estates))
                 estates = LoadEstateSettingsAll();
 
-            List<int> eids = new List<int>();
+            List<int> eids = [];
             foreach (EstateSettings es in estates)
-                if (es.EstateOwner == ownerID)
+                if (es.EstateOwner.Equals(ownerID))
                     eids.Add((int)es.EstateID);
 
             return eids;
@@ -161,49 +149,36 @@ namespace OpenSim.Services.Connectors
 
         public List<UUID> GetRegions(int estateID)
         {
-            string reply = string.Empty;
             // /estates/regions/?eid=int
             string uri = m_ServerURI + "/estates/regions/?eid=" + estateID.ToString();
 
-            reply = MakeRequest("GET", uri, string.Empty);
+            string reply = MakeRequest("GET", uri, string.Empty);
             if (String.IsNullOrEmpty(reply))
-                return new List<UUID>();
+                return [];
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
-
-            List<UUID> regions = new List<UUID>();
             if (replyData != null && replyData.Count > 0)
             {
-                m_log.DebugFormat("[ESTATE CONNECTOR]: GetRegions for estate {0} returned {1} elements", estateID, replyData.Count);
+                m_log.Debug($"[ESTATE CONNECTOR]: GetRegions for estate {estateID} returned {replyData.Count} elements");
+                List<UUID> regions = [];
                 Dictionary<string, object>.ValueCollection data = replyData.Values;
                 foreach (object r in data)
                 {
-                    UUID uuid = UUID.Zero;
-                    if (UUID.TryParse(r.ToString(), out uuid))
+                    if (UUID.TryParse(r.ToString(), out UUID uuid))
                         regions.Add(uuid);
                 }
+                return regions;
             }
             else
-                m_log.DebugFormat("[ESTATE CONNECTOR]: GetRegions from {0} received null or zero response", uri);
-
-            return regions;
+                m_log.Debug($"[ESTATE CONNECTOR]: GetRegions from {uri} received null or zero response");
+            return [];
         }
 
         public EstateSettings LoadEstateSettings(UUID regionID, bool create)
         {
-            string reply = string.Empty;
             // /estates/estate/?region=uuid&create=[t|f]
-            string uri = m_ServerURI + string.Format("/estates/estate/?region={0}&create={1}", regionID, create);
-
-            reply = MakeRequest("GET", uri, string.Empty);
-            if(reply == null)
-            {
-                // this is a fatal error
-                m_log.DebugFormat("[ESTATE CONNECTOR] connection to remote estates service failed");
-                m_log.DebugFormat("[ESTATE CONNECTOR] simulator needs to terminate");
-                Environment.Exit(-1);
-            }
-
+            string uri = m_ServerURI + $"/estates/estate/?region={regionID}&create={create}";
+            string reply = MakeRequest("GET", uri, string.Empty);
             if (String.IsNullOrEmpty(reply))
                 return null;
 
@@ -223,11 +198,10 @@ namespace OpenSim.Services.Connectors
 
         public EstateSettings LoadEstateSettings(int estateID)
         {
-            string reply = string.Empty;
             // /estates/estate/?eid=int
-            string uri = m_ServerURI + string.Format("/estates/estate/?eid={0}", estateID);
+            string uri = m_ServerURI + $"/estates/estate/?eid={estateID}";
 
-            reply = MakeRequest("GET", uri, string.Empty);
+            string reply = MakeRequest("GET", uri, string.Empty);
             if (String.IsNullOrEmpty(reply))
                 return null;
 
@@ -235,7 +209,7 @@ namespace OpenSim.Services.Connectors
 
             if (replyData != null && replyData.Count > 0)
             {
-                m_log.DebugFormat("[ESTATE CONNECTOR]: LoadEstateSettings({0}) returned {1} elements", estateID, replyData.Count);
+                m_log.Debug($"[ESTATE CONNECTOR]: LoadEstateSettings({estateID}) returned {replyData.Count} elements");
                 EstateSettings es = new EstateSettings(replyData);
                 return es;
             }
@@ -258,7 +232,7 @@ namespace OpenSim.Services.Connectors
         public void StoreEstateSettings(EstateSettings es)
         {
             // /estates/estate/
-            string uri = m_ServerURI + ("/estates/estate");
+            string uri = m_ServerURI + "/estates/estate";
 
             Dictionary<string, object> formdata = es.ToMap();
             formdata["OP"] = "STORE";
@@ -269,10 +243,12 @@ namespace OpenSim.Services.Connectors
         public bool LinkRegion(UUID regionID, int estateID)
         {
             // /estates/estate/?eid=int&region=uuid
-            string uri = m_ServerURI + String.Format("/estates/estate/?eid={0}&region={1}", estateID, regionID);
+            string uri = m_ServerURI + $"/estates/estate/?eid={estateID}&region={regionID}";
 
-            Dictionary<string, object> formdata = new Dictionary<string, object>();
-            formdata["OP"] = "LINK";
+            Dictionary<string, object> formdata = new()
+            {
+                ["OP"] = "LINK"
+            };
             return PostRequest(uri, formdata);
         }
 
@@ -285,20 +261,21 @@ namespace OpenSim.Services.Connectors
                 return false;
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
-
-            bool result = false;
             if (replyData != null && replyData.Count > 0)
             {
-                if (replyData.ContainsKey("Result"))
+                if (replyData.TryGetValue("Result", out object ortmp) && ortmp is string srtmp)
                 {
-                    if (Boolean.TryParse(replyData["Result"].ToString(), out result))
-                        m_log.DebugFormat("[ESTATE CONNECTOR]: PostRequest {0} returned {1}", uri, result);
+                    if (bool.TryParse(srtmp, out  bool result))
+                    {
+                        m_log.Debug($"[ESTATE CONNECTOR]: PostRequest {uri} returned {result}");
+                        return result;
+                    }
                 }
             }
             else
-                m_log.DebugFormat("[ESTATE CONNECTOR]: PostRequest {0} received null or zero response", uri);
+                m_log.Debug($"[ESTATE CONNECTOR]: PostRequest {uri} received empty response");
 
-            return result;
+            return false;
         }
 
         /// <summary>
@@ -326,22 +303,20 @@ namespace OpenSim.Services.Connectors
                 {
                     if (status == HttpStatusCode.Unauthorized)
                     {
-                        m_log.Error(string.Format("[ESTATE CONNECTOR]: Web request {0} requires authentication ", uri));
+                        m_log.Error($"[ESTATE CONNECTOR]: Web request {uri} requires authentication ");
                     }
                     else if (status != HttpStatusCode.NotFound)
                     {
-                        m_log.Error(string.Format("[ESTATE CONNECTOR]: Resource {0} not found ", uri));
+                        m_log.Error($"[ESTATE CONNECTOR]: Resource {uri} not found ");
                         return reply;
                     }
                 }
                 else
-                    m_log.Error(string.Format(
-                        "[ESTATE CONNECTOR]: WebException for {0} {1} {2} {3}",
-                        verb, uri, formdata, e.Message));
+                    m_log.Error($"[ESTATE CONNECTOR]: WebException for {verb} {uri} {formdata} {e.Message}");
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[ESTATE CONNECTOR]: Exception when contacting estate server at {0}: {1}", uri, e.Message);
+                m_log.DebugFormat($"[ESTATE CONNECTOR]: Exception when contacting estate server at {uri}: {e.Message}");
             }
 
             return null;

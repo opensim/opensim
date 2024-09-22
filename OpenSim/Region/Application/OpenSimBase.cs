@@ -1059,7 +1059,7 @@ namespace OpenSim
             m_log.WarnFormat("[ESTATE] Region {0} is not part of an estate.", regInfo.RegionName);
 
             List<EstateSettings> estates = EstateDataService.LoadEstateSettingsAll();
-            Dictionary<string, EstateSettings> estatesByName = new Dictionary<string, EstateSettings>();
+            Dictionary<string, EstateSettings> estatesByName = [];
 
             foreach (EstateSettings estate in estates)
                 estatesByName[estate.EstateName] = estate;

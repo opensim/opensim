@@ -874,7 +874,12 @@ namespace OpenSim.Region.Framework.Scenes
             RegionInfo.RegionSettings = rs;
 
             if (estateDataService is not null)
-                RegionInfo.EstateSettings = estateDataService.LoadEstateSettings(RegionInfo.RegionID, false);
+            {
+                EstateSettings es = estateDataService.LoadEstateSettings(RegionInfo.RegionID, false);
+                if (es == null)
+                    m_log.Error($"[SCENE]: Region {Name} failed to load estate settings. Using defaults");
+                RegionInfo.EstateSettings = new EstateSettings();
+            }
 
             SceneGridInfo = new GridInfo(config, RegionInfo.ServerURI);
 
@@ -5815,7 +5820,10 @@ Environment.Exit(1);
             if (estateDataService is not null)
             {
                 bool parcelEnvOvr = RegionInfo.EstateSettings.AllowEnvironmentOverride;
-                RegionInfo.EstateSettings = estateDataService.LoadEstateSettings(RegionInfo.RegionID, false);
+                EstateSettings es = estateDataService.LoadEstateSettings(RegionInfo.RegionID, false);
+                if (es == null)
+                    m_log.Error($"[SCENE]: Region {RegionInfo.RegionName} failed to reload estate settings. Using defaults");
+                RegionInfo.EstateSettings = es;
                 if(parcelEnvOvr && !RegionInfo.EstateSettings.AllowEnvironmentOverride)
                     ClearAllParcelEnvironments();
             }
