@@ -34,7 +34,7 @@ COMMIT;
 
 BEGIN;
 
-ALTER TABLE `useraccounts` 
+ALTER TABLE `UserAccounts` 
 ADD COLUMN `DisplayName` VARCHAR(31) NULL AFTER `active`,
 ADD COLUMN `NameChanged` INT NULL DEFAULT 0 AFTER `DisplayName`;
 
