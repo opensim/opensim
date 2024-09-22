@@ -878,7 +878,7 @@ namespace OpenSim.Region.Framework.Scenes
                 EstateSettings es = estateDataService.LoadEstateSettings(RegionInfo.RegionID, false);
                 if (es == null)
                     m_log.Error($"[SCENE]: Region {Name} failed to load estate settings. Using defaults");
-                RegionInfo.EstateSettings = new EstateSettings();
+                RegionInfo.EstateSettings = es;
             }
 
             SceneGridInfo = new GridInfo(config, RegionInfo.ServerURI);
