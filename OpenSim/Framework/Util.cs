@@ -1485,6 +1485,9 @@ namespace OpenSim.Framework
             return streamReader.ReadToEnd();
         }
 
+        private static readonly string pathSSLRsaPriv = Path.Combine("SSL","src");
+        private static readonly string pathSSLcerts = Path.Combine("SSL","ssl");
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void CreateOrUpdateSelfsignedCert(string certFileName, string certHostName, string certHostIp, string certPassword)
         {
@@ -1513,12 +1516,10 @@ namespace OpenSim.Framework
 
                 // (Optional)...
                 request.CertificateExtensions.Add(
-                new X509KeyUsageExtension(X509KeyUsageFlags.DataEncipherment | X509KeyUsageFlags.KeyEncipherment | X509KeyUsageFlags.DigitalSignature , false));
+                    new X509KeyUsageExtension(X509KeyUsageFlags.DataEncipherment | X509KeyUsageFlags.KeyEncipherment | X509KeyUsageFlags.DigitalSignature , false));
 
                 // (Optional) SSL Server Authentication...
-                request.CertificateExtensions.Add(
-                new X509EnhancedKeyUsageExtension(
-                    new OidCollection { new Oid("1.3.6.1.5.5.7.3.1") }, false));
+                request.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension([new Oid("1.3.6.1.5.5.7.3.1")], false));
 
                 request.CertificateExtensions.Add(san.Build());
 
@@ -1527,26 +1528,25 @@ namespace OpenSim.Framework
                 string privateKey = Convert.ToBase64String(rsa.ExportRSAPrivateKey(), Base64FormattingOptions.InsertLineBreaks);
 
                 // Create the SSL folder and sub folders if not exists.
-                if (!Directory.Exists("SSL\\src\\"))
-                    Directory.CreateDirectory("SSL\\src\\");
-
-                if (!Directory.Exists("SSL\\ssl\\"))
-                    Directory.CreateDirectory("SSL\\ssl\\");
+                if (!Directory.Exists(pathSSLRsaPriv))
+                    Directory.CreateDirectory(pathSSLRsaPriv);
+                if (!Directory.Exists(pathSSLcerts))
+                    Directory.CreateDirectory(pathSSLcerts);
 
                 // Store the RSA key in SSL\src\
-                File.WriteAllText($"SSL\\src\\{certFileName}.txt", privateKey);
-
+                File.WriteAllText(Path.Combine(pathSSLRsaPriv, certFileName) + ".txt", privateKey);
                 // Export and store the .pfx and .p12 certificates in SSL\ssl\.
                 // Note: Pfx is a Pkcs12 certificate and both files work for OpenSim.
+                string sslFileNames = Path.Combine(pathSSLcerts, certFileName);
                 byte[] pfxCertBytes = string.IsNullOrEmpty(certPassword) 
                                     ? certificate.Export(X509ContentType.Pfx) 
                                     : certificate.Export(X509ContentType.Pfx, certPassword);
-                File.WriteAllBytes($"SSL\\ssl\\{certFileName}.pfx", pfxCertBytes);
+                File.WriteAllBytes(sslFileNames + ".pfx", pfxCertBytes);
 
                 byte[] p12CertBytes = string.IsNullOrEmpty(certPassword) 
                                     ? certificate.Export(X509ContentType.Pkcs12) 
                                     : certificate.Export(X509ContentType.Pkcs12, certPassword);
-                File.WriteAllBytes($"SSL\\ssl\\{certFileName}.p12", p12CertBytes);
+                File.WriteAllBytes(sslFileNames + ".p12", p12CertBytes);
             }
         }
 
@@ -1591,19 +1591,20 @@ namespace OpenSim.Framework
             }
 
             // Create the SSL folder and ssl sub folder if not exists.
-            if (!Directory.Exists("SSL\\ssl\\"))
-                Directory.CreateDirectory("SSL\\ssl\\");
+            if (!Directory.Exists(pathSSLcerts))
+                Directory.CreateDirectory(pathSSLcerts);
 
+            string sslFileNames = System.IO.Path.Combine(pathSSLcerts, certFileName);
             // Export and store the .pfx and .p12 certificates in SSL\ssl\.
             byte[] pfxCertBytes = string.IsNullOrEmpty(outputPassword)
                                 ? certificate.Export(X509ContentType.Pfx)
                                 : certificate.Export(X509ContentType.Pfx, outputPassword);
-            File.WriteAllBytes($"SSL\\ssl\\{certFileName}.pfx", pfxCertBytes);
+            File.WriteAllBytes(sslFileNames + ".pfx", pfxCertBytes);
 
             byte[] p12CertBytes = string.IsNullOrEmpty(outputPassword) 
                                 ? certificate.Export(X509ContentType.Pkcs12) 
                                 : certificate.Export(X509ContentType.Pkcs12, outputPassword);
-            File.WriteAllBytes($"SSL\\ssl\\{certFileName}.p12", p12CertBytes);
+            File.WriteAllBytes(sslFileNames + ".p12", p12CertBytes);
             
         }
 
@@ -3186,12 +3187,43 @@ namespace OpenSim.Framework
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                timeEndPeriod(1);
+                timeBeginPeriod(1);
                 Thread.Sleep(period);
                 timeEndPeriod(1);
             }
             else
                 Thread.Sleep(period);
+        }
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool SetProcessInformation(IntPtr hProcess, int ProcessInformationClass,
+                    IntPtr ProcessInformation, UInt32 ProcessInformationSize);
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct PROCESS_POWER_THROTTLING_STATE
+        {
+            public uint Version;
+            public uint ControlMask;
+            public uint StateMask;
+        }
+
+        public static void DisableTimerThrottling()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                int sz = Marshal.SizeOf(typeof(PROCESS_POWER_THROTTLING_STATE));
+                PROCESS_POWER_THROTTLING_STATE PwrInfo = new()
+                {
+                    Version = 1,
+                    ControlMask = 4,
+                    StateMask = 0
+                };  // disable that flag explicitly
+                nint PwrInfoPtr = Marshal.AllocHGlobal(sz);
+                Marshal.StructureToPtr(PwrInfo, PwrInfoPtr, false);
+                IntPtr handle = Process.GetCurrentProcess().Handle;
+                bool r = SetProcessInformation(handle, 4, PwrInfoPtr, (uint)sz);
+                Marshal.FreeHGlobal(PwrInfoPtr);
+            }
         }
 
         /// <summary>
