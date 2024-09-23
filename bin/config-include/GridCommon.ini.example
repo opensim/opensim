@@ -158,6 +158,12 @@
     ;
     UserAccountServerURI = "${Const|PrivURL}:${Const|PrivatePort}"
 
+[UserAliasService]
+    ;
+    ; Change this to your grid-wide user accounts server
+    ;
+    UserAliasServerURI = "${Const|PrivURL}:${Const|PrivatePort}"
+
 [GridUserService]
     ;
     ; Change this to your grid-wide user server
