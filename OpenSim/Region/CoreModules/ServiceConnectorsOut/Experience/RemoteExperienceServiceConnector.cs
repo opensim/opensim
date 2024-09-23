@@ -42,14 +42,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Experience
             IConfig moduleConfig = source.Configs["Modules"];
             if (moduleConfig != null)
             {
-                string name = moduleConfig.GetString("InventoryServices", "");
+                string name = moduleConfig.GetString("ExperienceServices", "");
                 if (name == Name)
                 {
 
                     m_remoteConnector = new ExperienceServicesConnector(source);
                     m_Enabled = true;
 
-                    m_log.Info("[XINVENTORY CONNECTOR]: Remote ExperienceService enabled");
+                    m_log.Info("[EXPERIENCE CONNECTOR]: Remote ExperienceService enabled");
                 }
             }
         }

@@ -63,21 +63,18 @@ namespace OpenSim.Services.ExperienceService
                 lastName = MainConsole.Instance.Prompt("Experience owner last name", "Resident");
             else lastName = cmdparams[3];
 
+            UUID suggestedKey = UUID.Random();
+
             if (cmdparams.Length < 5)
-                experienceKey = MainConsole.Instance.Prompt("Experience Key (leave blank for random)", "");
+                experienceKey = MainConsole.Instance.Prompt("Experience Key", suggestedKey.ToString());
             else experienceKey = cmdparams[4];
 
             UUID newExperienceKey;
 
-            if (experienceKey == "")
-                newExperienceKey = UUID.Random();
-            else
+            if(!UUID.TryParse(experienceKey, out newExperienceKey))
             {
-                if(!UUID.TryParse(experienceKey, out newExperienceKey))
-                {
-                    MainConsole.Instance.Output("Invalid UUID");
-                    return;
-                }
+                MainConsole.Instance.Output("Invalid UUID");
+                return;
             }
 
             UserAccount account = m_UserService.GetUserAccount(UUID.Zero, firstName, lastName);
