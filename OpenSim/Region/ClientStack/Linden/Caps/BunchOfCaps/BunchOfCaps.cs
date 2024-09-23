@@ -63,14 +63,14 @@ namespace OpenSim.Region.ClientStack.Linden
         int cost, UUID texturesFolder, int nreqtextures, int nreqmeshs, int nreqinstances,
         bool IsAtestUpload, ref string error, ref int nextOwnerMask, ref int groupMask, ref int everyoneMask, int[] meshesSides);
 
-    public delegate void UpdateTaskScript(UUID itemID, UUID primID, bool isScriptRunning, byte[] data, ref ArrayList errors);
+    public delegate void UpdateTaskScript(UUID itemID, UUID primID, bool isScriptRunning, UUID experience, byte[] data, ref ArrayList errors);
 
     public delegate void NewInventoryItem(UUID userID, InventoryItemBase item, uint cost);
 
     public delegate void NewAsset(AssetBase asset);
 
     public delegate ArrayList TaskScriptUpdatedCallback(UUID userID, UUID itemID, UUID primID,
-                                                   bool isScriptRunning, byte[] data);
+                                                   bool isScriptRunning, UUID experience, byte[] data);
 
     /// <summary>
     /// XXX Probably not a particularly nice way of allow us to get the scene presence from the scene (chiefly so that
@@ -2234,16 +2234,15 @@ namespace OpenSim.Region.ClientStack.Linden
                         if (string.IsNullOrEmpty(ud.FirstName) || ud.FirstName.Equals("Unkown"))
                             continue;
 
-                        string fullname = ud.FirstName + " " + ud.LastName;
                         LLSDxmlEncode2.AddMap(lsl);
-                        LLSDxmlEncode2.AddElem("username", fullname, lsl);
-                        LLSDxmlEncode2.AddElem("display_name", fullname, lsl);
-                        LLSDxmlEncode2.AddElem("display_name_next_update", DateTime.UtcNow.AddDays(8), lsl);
-                        LLSDxmlEncode2.AddElem("display_name_expires", DateTime.UtcNow.AddMonths(1), lsl);
+                        LLSDxmlEncode2.AddElem("username", ud.LowerUsername, lsl);
+                        LLSDxmlEncode2.AddElem("display_name", ud.ViewerDisplayName, lsl);
+                        LLSDxmlEncode2.AddElem("display_name_next_update", ud.NameChanged.AddDays(7), lsl);
+                        LLSDxmlEncode2.AddElem("display_name_expires", DateTime.UtcNow.AddDays(1), lsl);
                         LLSDxmlEncode2.AddElem("legacy_first_name", ud.FirstName, lsl);
                         LLSDxmlEncode2.AddElem("legacy_last_name", ud.LastName, lsl);
                         LLSDxmlEncode2.AddElem("id", ud.Id, lsl);
-                        LLSDxmlEncode2.AddElem("is_display_name_default", true, lsl);
+                        LLSDxmlEncode2.AddElem("is_display_name_default", ud.IsNameDefault, lsl);
                         LLSDxmlEncode2.AddEndMap(lsl);
                     }
                     LLSDxmlEncode2.AddEndArray(lsl);

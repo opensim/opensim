@@ -123,6 +123,7 @@ namespace OpenSim.Framework
         public uint NextPermissions { get; set; } = FULL_MASK_PERMISSIONS_GENERAL;
         public UUID PermsGranter { get; set; }
         public int PermsMask { get; set; }
+        public UUID ExperienceID { get; set; }
 
         private bool _ownerChanged = false;
         public bool OwnerChanged

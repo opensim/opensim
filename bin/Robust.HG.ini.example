@@ -23,9 +23,15 @@
 ; * uses to write data.
 ; *
 [Const]
+    ; The domain or IP of the Robust server.
+    BaseHostname = "127.0.0.1"
 
-    ; The URL of the Robust server
-    BaseURL = "http://127.0.0.1"
+    ; The http URL of the Robust server.
+    BaseURL = "http://${Const|BaseHostname}"
+
+    ; The https URL of the Robust server.
+    ; Use this if you have the SSL enabled.
+    ; BaseURL = "https://${Const|BaseHostname}"
 
     ; The public port of the Robust server
     PublicPort = "8002"
@@ -72,7 +78,29 @@
 
     ; Time stamp commands in history file (default false)
     ; ConsoleHistoryTimeStamp = false
-	
+
+    ;; SSL selfsigned certificate settings.
+    ; Enable selfsigned certificate creation for local and external use. When set to true, will create a folder SSL\ and 2 sub folders SSL\ssl\ and SSL\src\.
+    ; Next creates and store an RSA private key in SSL\src\ and the derived selfsigned certificate in SSL\ssl\ folder.
+    ; Is also possible to renew the certificate on every server restart if CertRenewOnStartup is set to true.
+    EnableRobustSelfsignedCertSupport = false
+
+    ;Renew the selfsigned certificate on every server startup ?
+    RobustCertRenewOnStartup = false
+
+    ;; Certificate options:
+    ; Set the certificate file name. the output files extensions are CertFileName.p12 and RobustCertFileName.pfx. This must be different than CertFileName in OpenSim.ini
+    RobustCertFileName = "Robust"
+
+    ; Set the certificate password.
+    RobustCertPassword = "mycertpass"
+
+    ; The certificate host name (CN).
+    RobustCertHostName = ${Const|BaseHostname}
+
+    ; The certificate host IP.
+    RobustCertHostIp = "127.0.0.1"
+
     ; peers SSL certificate validation options
     ; you can allow selfsigned certificates or no official CA with next option set to true
     NoVerifyCertChain = true
@@ -100,6 +128,8 @@
     FriendsServiceConnector = "${Const|PrivatePort}/OpenSim.Server.Handlers.dll:FriendsServiceConnector"
     MapAddServiceConnector = "${Const|PrivatePort}/OpenSim.Server.Handlers.dll:MapAddServiceConnector"
     MapGetServiceConnector = "${Const|PublicPort}/OpenSim.Server.Handlers.dll:MapGetServiceConnector"
+    ;; Uncomment this if you want experience tools to work
+    ; ExperienceServiceConnector = "${Const|PrivatePort}/OpenSim.Server.Handlers.dll:ExperienceServiceConnector"
     ;; Uncomment this if you want offline IM to work
     ; OfflineIMServiceConnector = "${Const|PrivatePort}/OpenSim.Addons.OfflineIM.dll:OfflineIMServiceRobustConnector"
     ;; Uncomment this if you want Groups V2 to work
@@ -856,3 +886,10 @@
 
 [MuteListService]
 	LocalServiceModule = "OpenSim.Services.MuteListService.dll:MuteListService"
+
+
+[ExperienceService]
+    LocalServiceModule = "OpenSim.Services.ExperienceService.dll:ExperienceService"
+    ;; ConnectionString = "Data Source=localhost;Database=robust;User ID=robust;Password=*****;Old Guids=true;CharSet=utf8mb4;"
+
+    UserAccountService = "OpenSim.Services.UserAccountService.dll:UserAccountService"

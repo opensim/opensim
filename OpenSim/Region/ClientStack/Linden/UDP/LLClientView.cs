@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Frozen;
+using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Runtime;
@@ -51,6 +52,7 @@ using AssetLandmark = OpenSim.Framework.AssetLandmark;
 using Caps = OpenSim.Framework.Capabilities.Caps;
 using PermissionMask = OpenSim.Framework.PermissionMask;
 using RegionFlags = OpenMetaverse.RegionFlags;
+
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
@@ -215,6 +217,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event EstateRestartSimRequest OnEstateRestartSimRequest;
         public event EstateChangeCovenantRequest OnEstateChangeCovenantRequest;
         public event UpdateEstateAccessDeltaRequest OnUpdateEstateAccessDeltaRequest;
+        public event UpdateEstateExperienceDeltaRequest OnUpdateEstateExperienceDeltaRequest;
         public event SimulatorBlueBoxMessageRequest OnSimulatorBlueBoxMessageRequest;
         public event EstateBlueBoxMessageRequest OnEstateBlueBoxMessageRequest;
         public event EstateDebugRegionRequest OnEstateDebugRegionRequest;
@@ -1347,6 +1350,92 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 //m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task, null, false, true);
                 m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task);
             }
+        }
+
+        public void SendGenericMessageForExperience(UUID experience_id, UUID avatar_id, int action, string obj_name, string parcel, bool is_attachment)
+        {
+            // Todo: Finish decoding this. Stop manaully making the bytes. And use the proper serialiser! And drink some water while you're at it.
+
+            // <? LLSD/Binary ?>\n
+            // {
+            // 0x00 0x00 0x00 0x02 == number of args
+            // 'k' key
+            // 0x00 0x00 0x00 0x07 == Length of the following arg header
+            // 0x4F 0x77 0x6E 0x65 0x72 0x49 0x44 == "OwnerID"
+            // 0x75 == 'u' == uuid
+            // 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 == 16 bytes owner of the script
+            // 'k' key
+            // 0x00 0x00 0x00 0x0A == Length of the following arg header
+            // 0x50 0x65 0x72 0x6D 0x69 0x73 0x73 0x69 0x6F 0x6E == "Permission"
+            // 0x69 == 'i' == integer 
+            // 0x00, 0x00, 0x00, 0x10 == 4 byte permission int
+            // }
+            // 0x00
+
+            byte[] header = new byte[18] { 0x3C, 0x3F, 0x20, 0x4C, 0x4C, 0x53, 0x44, 0x2F, 0x42, 0x69, 0x6E, 0x61, 0x72, 0x79, 0x20, 0x3F, 0x3E, 0x0A };
+
+
+            Dictionary<string, object> vals = new Dictionary<string, object>();
+            vals.Add("OwnerID", avatar_id);
+            vals.Add("Permission", action);
+            if (is_attachment)
+                vals.Add("IsAttachment", 1);
+
+            byte[] arg_count = Utils.IntToBytes(vals.Count).Reverse().ToArray();
+
+            List<byte> new_body = new List<byte>();
+            new_body.AddRange(header);              // <? LLSD/Binary ?>\n
+            new_body.Add(0x7B);                     // {
+            new_body.AddRange(arg_count);           // How many args
+
+            foreach (var pair in vals)
+            {
+                object o = pair.Value;
+
+                new_body.Add(0x6B);                     // k
+
+                byte[] val_name = Util.StringToBytes256(pair.Key);
+                Array.Resize(ref val_name, val_name.Length - 1); // trim the trailing 0x00
+
+                byte[] value_length = Utils.IntToBytes(val_name.Length).Reverse().ToArray();
+
+                new_body.AddRange(value_length);        // How long is the header name
+                new_body.AddRange(val_name);            // Header name in bytes
+
+                if (o is UUID)
+                {
+                    byte[] uuid_bytes = ((UUID)o).GetBytes();
+
+                    new_body.Add(0x75);                 // u Value is a UUID
+                    new_body.AddRange(uuid_bytes); // Owner of the script doigthe action
+                }
+                else if (o is int)
+                {
+                    byte[] int_bytes = Utils.IntToBytes((int)o).Reverse().ToArray();
+
+                    new_body.Add(0x69);                 // i Value is an int32
+                    new_body.AddRange(int_bytes);       // What permission was used
+                }
+            }
+
+            new_body.Add(0x7D);                 // }
+            new_body.Add(0x00);                 // 0x00 Null end Parameter
+
+            GenericMessagePacket p = new GenericMessagePacket();
+            p.AgentData = new GenericMessagePacket.AgentDataBlock();
+            p.AgentData.AgentID = m_agentId;
+            p.MethodData = new GenericMessagePacket.MethodDataBlock();
+            p.MethodData.Method = Util.StringToBytes256("ExperienceEvent");
+            p.MethodData.Invoice = experience_id;
+            p.ParamList = new GenericMessagePacket.ParamListBlock[3];
+            p.ParamList[0] = new GenericMessagePacket.ParamListBlock();
+            p.ParamList[0].Parameter = new_body.ToArray();
+            p.ParamList[1] = new GenericMessagePacket.ParamListBlock();
+            p.ParamList[1].Parameter = Util.StringToBytes256(obj_name);
+            p.ParamList[2] = new GenericMessagePacket.ParamListBlock();
+            p.ParamList[2].Parameter = Util.StringToBytes256(parcel); // this function seems to add the trailing 0x00
+
+            OutPacket(p, ThrottleOutPacketType.Task);
         }
 
         public void SendGroupActiveProposals(UUID groupID, UUID transactionID, GroupActiveProposals[] Proposals)
@@ -6352,6 +6441,50 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             } while (TotalnumberIDs > 0);
         }
 
+        public void SendEstateExperiences(UUID invoice, UUID[] allowed, UUID[] key, uint estateID)
+        {
+            EstateOwnerMessagePacket packet = new EstateOwnerMessagePacket();
+            packet.AgentData.TransactionID = UUID.Random();
+            packet.AgentData.AgentID = AgentId;
+            packet.AgentData.SessionID = SessionId;
+            packet.MethodData.Invoice = invoice;
+            packet.MethodData.Method = Utils.StringToBytes("setexperience");
+
+            int numberIDs = allowed.Length + key.Length;
+
+            EstateOwnerMessagePacket.ParamListBlock[] returnblock = new EstateOwnerMessagePacket.ParamListBlock[5 + numberIDs];
+
+            for (int i = 0; i < (5 + numberIDs); i++)
+            {
+                returnblock[i] = new EstateOwnerMessagePacket.ParamListBlock();
+            }
+
+            returnblock[0].Parameter = Utils.StringToBytes(estateID.ToString());
+
+            returnblock[1].Parameter = Utils.StringToBytes("0");
+            returnblock[2].Parameter = Utils.StringToBytes("0");
+            returnblock[3].Parameter = Utils.StringToBytes(key.Length.ToString());
+            returnblock[4].Parameter = Utils.StringToBytes(allowed.Length.ToString());
+
+            int j = 5;
+
+            for (int i = 0; i < key.Length; i++)
+            {
+                returnblock[j].Parameter = key[i].GetBytes();
+                j++;
+            }
+
+            for (int i = 0; i < allowed.Length; i++)
+            {
+                returnblock[j].Parameter = allowed[i].GetBytes();
+                j++;
+            }
+
+            packet.ParamList = returnblock;
+            packet.Header.Reliable = true;
+            OutPacket(packet, ThrottleOutPacketType.Task);
+        }
+
         public void SendBannedUserList(UUID invoice, EstateBan[] bl, uint estateID)
         {
             List<UUID> BannedUsers = new();
@@ -10871,6 +11004,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     }
                     return;
+                case "estateexperiencedelta":
+                    if (c.m_scene.Permissions.CanIssueEstateCommand(c.m_agentId, false))
+                    {
+                        int estateAccessType = Convert.ToInt16(Utils.BytesToString(messagePacket.ParamList[1].Parameter));
+
+                        c.OnUpdateEstateExperienceDeltaRequest(c, messagePacket.MethodData.Invoice, estateAccessType, new UUID(Utils.BytesToString(messagePacket.ParamList[2].Parameter)));
+
+                    }
+                    return;
                 case "simulatormessage":
                     if (c.m_scene.Permissions.CanIssueEstateCommand(c.m_agentId, false))
                     {
@@ -12179,7 +12321,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #endregion Packet Handlers
 
-        public void SendScriptQuestion(UUID taskID, string taskName, string ownerName, UUID itemID, int question)
+        public void SendScriptQuestion(UUID taskID, string taskName, string ownerName, UUID itemID, int question, UUID experience)
         {
             ScriptQuestionPacket scriptQuestion = (ScriptQuestionPacket)PacketPool.Instance.GetPacket(PacketType.ScriptQuestion);
             scriptQuestion.Data.TaskID = taskID;
@@ -12187,6 +12329,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             scriptQuestion.Data.Questions = question;
             scriptQuestion.Data.ObjectName = Util.StringToBytes256(taskName);
             scriptQuestion.Data.ObjectOwner = Util.StringToBytes256(ownerName);
+
+            if (experience != UUID.Zero)
+            {
+                scriptQuestion.Experience = new ScriptQuestionPacket.ExperienceBlock
+                {
+                    ExperienceID = experience
+                };
+            }
+
             OutPacket(scriptQuestion, ThrottleOutPacketType.Task);
         }
 

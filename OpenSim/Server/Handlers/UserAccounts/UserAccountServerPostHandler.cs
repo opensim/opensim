@@ -104,6 +104,8 @@ namespace OpenSim.Server.Handlers.UserAccounts
                         return GetAccounts(request);
                     case "getmultiaccounts":
                         return GetMultiAccounts(request);
+                    case "setdisplayname":
+                        return SetDisplayName(request);
                     case "setaccount":
                         if (m_AllowSetAccount)
                             return StoreAccount(request);
@@ -254,6 +256,28 @@ namespace OpenSim.Server.Handlers.UserAccounts
 
             //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
             return Util.UTF8NoBomEncoding.GetBytes(xmlString);
+        }
+
+        byte[] SetDisplayName(Dictionary<string, object> request)
+        {
+            object otmp;
+            UUID principalID = UUID.Zero;
+            if (request.TryGetValue("PrincipalID", out otmp) && !UUID.TryParse(otmp.ToString(), out principalID))
+                return FailureResult();
+
+            UserAccount existingAccount = m_UserAccountService.GetUserAccount(UUID.Zero, principalID);
+            if (existingAccount == null)
+                return FailureResult();
+
+            if (!request.TryGetValue("DisplayName", out otmp))
+                return FailureResult();
+            
+            if (!m_UserAccountService.SetDisplayName(principalID, otmp.ToString()))
+                return FailureResult();
+
+            Dictionary<string, object> result = new Dictionary<string, object>();
+            result["result"] = "success";
+            return ResultToBytes(result);
         }
 
         byte[] StoreAccount(Dictionary<string, object> request)

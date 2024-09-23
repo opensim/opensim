@@ -91,7 +91,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="append">Append to attachment point rather than replace.</param>
         /// <returns>true if the object was successfully attached, false otherwise</returns>
         bool AttachObject(IScenePresence sp, SceneObjectGroup grp, uint AttachmentPt, bool silent,
-                    bool addToInventory, bool append);
+                    bool addToInventory, bool append, UUID experience);
 
         /// <summary>
         /// Rez an attachment from user inventory and change inventory status to match.

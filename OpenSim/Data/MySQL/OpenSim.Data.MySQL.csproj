@@ -33,6 +33,7 @@
     <EmbeddedResource Include="Resources\Avatar.migrations" />
     <EmbeddedResource Include="Resources\EstateStore.migrations" />
     <EmbeddedResource Include="Resources\FriendsStore.migrations" />
+    <EmbeddedResource Include="Resources\Experience.migrations" />
     <EmbeddedResource Include="Resources\FSAssetStore.migrations" />
     <EmbeddedResource Include="Resources\GridStore.migrations" />
     <EmbeddedResource Include="Resources\GridUserStore.migrations" />

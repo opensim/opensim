@@ -25,11 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.IO.Compression;
-using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Xml;
@@ -39,13 +35,11 @@ using OpenSim.Framework;
 using OpenSim.Framework.Monitoring;
 using OpenSim.Framework.Serialization;
 using OpenSim.Framework.Serialization.External;
-using OpenSim.Region.CoreModules.World.Terrain;
 using OpenSim.Region.CoreModules.World.Land;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Services.Interfaces;
-using System.Threading;
 
 namespace OpenSim.Region.CoreModules.World.Archiver
 {
@@ -156,7 +150,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// Used to cache lookups for valid uuids.
         /// </summary>
         private readonly Dictionary<UUID, bool> m_validUserUuids = new();
-
+       
         private IUserManagement m_UserMan;
         private IUserManagement UserManager
         {
@@ -177,6 +171,26 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         private readonly IAssetService m_assetService = null;
 
         private UUID m_defaultUser;
+
+        protected bool m_noDefaultUser = false;
+
+        protected bool m_lookupAliases = false;
+
+        private IUserAliasService m_UserAliasService = null;
+        private IUserAliasService UserAliasService
+        {
+            get
+            {
+                m_UserAliasService ??= m_rootScene.RequestModuleInterface<IUserAliasService>();
+                return m_UserAliasService;
+            }
+        }
+        
+        /// <summary>
+        /// Cache aliased user lookups since we will likely have many instances 
+        /// </summary>
+        private readonly Dictionary<UUID, UserAlias> m_userAliases = new();
+ 
 
         public ArchiveReadRequest(Scene scene, string loadPath, Guid requestId, Dictionary<string, object> options)
         {
@@ -213,6 +227,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_mergeParcels = options.ContainsKey("merge-parcels");
             m_noObjects = options.ContainsKey("no-objects");
             m_skipAssets = options.ContainsKey("skipAssets");
+
+            m_noDefaultUser = options.ContainsKey("no-defaultuser");
+            m_lookupAliases = options.ContainsKey("lookup-aliases");
+
             m_requestId = requestId;
             m_displacement = options.ContainsKey("displacement") ? (Vector3)options["displacement"] : Vector3.Zero;
             m_rotation = options.ContainsKey("rotation") ? (float)options["rotation"] : 0f;
@@ -274,6 +292,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_requestId = requestId;
 
             m_defaultUser = scene.RegionInfo.EstateSettings.EstateOwner;
+            m_noDefaultUser = options.ContainsKey("no-defaultuser");
+            m_lookupAliases = options.ContainsKey("lookup-aliases");
 
             // Zero can never be a valid user id
             m_validUserUuids[UUID.Zero] = false;
@@ -770,24 +790,25 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             {
                 if (string.IsNullOrEmpty(part.CreatorData))
                 {
-                    if (!ResolveUserUuid(scene, part.CreatorID))
-                        part.CreatorID = m_defaultUser;
+                    // Creators can't be groups.
+                    part.CreatorID = ResolveUserAliasOrDefault(scene, part.CreatorID, checkGroup: false);
                 }
+
                 if (UserManager is not null)
+                {
                     UserManager.AddCreatorUser(part.CreatorID, part.CreatorData);
+                }
 
-                if (!(ResolveUserUuid(scene, part.OwnerID) || ResolveGroupUuid(part.OwnerID)))
-                    part.OwnerID = m_defaultUser;
+                part.OwnerID = ResolveUserAliasOrDefault(scene, part.OwnerID, checkGroup: true);
+                part.LastOwnerID = ResolveUserAliasOrDefault(scene, part.LastOwnerID, checkGroup: true);
 
-                if (!(ResolveUserUuid(scene, part.LastOwnerID) || ResolveGroupUuid(part.LastOwnerID)))
-                    part.LastOwnerID = m_defaultUser;
-
-                if (!ResolveGroupUuid(part.GroupID))
+                // If there is no matching local group initialize it to a null key
+                if (ResolveGroupUuid(part.GroupID) is false)
                     part.GroupID = UUID.Zero;
 
                 // And zap any troublesome sit target information
-                //                    part.SitTargetOrientation = new Quaternion(0, 0, 0, 1);
-                //                    part.SitTargetPosition    = new Vector3(0, 0, 0);
+                // part.SitTargetOrientation = new Quaternion(0, 0, 0, 1);
+                // part.SitTargetPosition    = new Vector3(0, 0, 0);
 
                 // Fix ownership/creator of inventory items
                 // Not doing so results in inventory items
@@ -802,23 +823,23 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     TaskInventoryDictionary inv = part.TaskInventory;
                     foreach (KeyValuePair<UUID, TaskInventoryItem> kvp in inv)
                     {
-                        if (!(ResolveUserUuid(scene, kvp.Value.OwnerID) || ResolveGroupUuid(kvp.Value.OwnerID)))
-                        {
-                            kvp.Value.OwnerID = m_defaultUser;
-                        }
-
                         if (string.IsNullOrEmpty(kvp.Value.CreatorData))
                         {
-                            if (!ResolveUserUuid(scene, kvp.Value.CreatorID))
-                                kvp.Value.CreatorID = m_defaultUser;
+                            // Creator can't be a group
+                            kvp.Value.CreatorID = ResolveUserAliasOrDefault(scene, kvp.Value.CreatorID, checkGroup: false);
                         }
 
                         if (UserManager is not null)
+                        {
                             UserManager.AddCreatorUser(kvp.Value.CreatorID, kvp.Value.CreatorData);
+                        }
+
+                        kvp.Value.OwnerID = ResolveUserAliasOrDefault(scene, kvp.Value.OwnerID, checkGroup: true);
 
                         if (!ResolveGroupUuid(kvp.Value.GroupID))
                             kvp.Value.GroupID = UUID.Zero;
                     }
+
                     part.TaskInventory.LockItemsForRead(false);
                 }
             }
@@ -1025,6 +1046,66 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 }
 
                 return m_validGroupUuids[uuid];
+            }
+        }
+
+        /// <summary>
+        /// Look up and return the original user, the default user or a user alias if one is found
+        /// based on the options passed in at run time.  
+        /// </summary>
+        /// <param name="scene">The scene we are loading this OAR into.</param>
+        /// <param name="aliasID">The id we are locally for locally or as an alias</param>
+        /// <param name="checkGroup">The incoming ID may be a group so check for that as well</param>
+        /// <returns>UUID - the ID to use based on incoming ID and settings</returns>
+        private UUID ResolveUserAliasOrDefault(Scene scene, UUID aliasID, bool checkGroup)
+        {
+            if (ResolveUserUuid(scene, aliasID) is true)
+            {
+                return aliasID;
+            }
+
+            if (checkGroup && ResolveGroupUuid(aliasID) is true)
+            {
+                return aliasID;
+            }
+
+            if (m_lookupAliases is true)
+            {
+                UserAlias aliasUser = null;
+
+                lock (m_userAliases)
+                {
+                    // Have we seen this UUID before?
+                    if (m_userAliases.TryGetValue(aliasID, out aliasUser) is false)
+                    {
+                        // If not look it up and get result, null if it doesnt exist
+                        aliasUser = UserAliasService?.GetUserForAlias(aliasID); 
+
+                        // Plug it into the cache
+                        m_userAliases[aliasID] = aliasUser;
+
+                        // And since its the first time we've seen this and no alias exists print a warning
+                        if (aliasUser is null)
+                        {
+                            m_log.Warn($"[ARCHIVEREADREQUEST] No alias found for User {aliasID} and not a local user");
+                        }
+                    }
+                }
+
+                if (aliasUser != null)
+                {
+                    if (ResolveUserUuid(scene, aliasUser.UserID) is true)
+                        return aliasUser.UserID;
+                }
+            }
+
+            if (m_noDefaultUser is false)
+            {
+                return m_defaultUser;
+            }
+            else 
+            {
+                return aliasID;
             }
         }
 

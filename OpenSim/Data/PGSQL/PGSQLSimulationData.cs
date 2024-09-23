@@ -983,9 +983,9 @@ namespace OpenSim.Data.PGSQL
                         command.Parameters.AddRange(CreateRegionSettingParameters(regionSettings));
                         command.ExecuteNonQuery();
                         command.Transaction.Commit();
-            }
+                    }
                     catch (Exception e)
-            {
+                    {
                         Console.WriteLine(e);
                         command.Transaction.Rollback();
                         throw;

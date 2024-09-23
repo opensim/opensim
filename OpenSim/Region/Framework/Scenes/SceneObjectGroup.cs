@@ -89,9 +89,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         path_update = 40,
         linkset_data = 41,
+        experience_permissions = 42,
+        experience_permissions_denied = 43,
 
         // marks highest numbered event
-        Size = 42
+        Size = 44
     }
 
     // this is not the right place for this
@@ -143,6 +145,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         path_update = 1UL << 40,
         linkset_data = 1UL << 41,
+        experience_permissions = 1UL << 42,
+        experience_permissions_denied = 1UL << 43,
 
         anytouch = touch | touch_end | touch_start,
         anyTarget = at_target | not_at_target | at_rot_target | not_at_rot_target,
@@ -311,6 +315,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// Is this scene object acting as an attachment?
         /// </summary>
         public bool IsAttachment { get; set; }
+
+        /// <summary>
+        /// What experience temp attached this item
+        /// This will not be set if the object wasn't temp attached
+        /// </summary>
+        public UUID AttachedExperienceID { get; set; }
 
         /// <summary>
         /// The avatar to which this scene object is attached.
@@ -5159,35 +5169,35 @@ namespace OpenSim.Region.Framework.Scenes
 
             try
             {
-            float time = 0.0f;
+                float time = 0.0f;
 
-            // get all the scripts in all parts
-            SceneObjectPart[] parts = m_parts.GetArray();
-            List<TaskInventoryItem> scripts = new();
-            for (int i = 0; i < parts.Length; i++)
-            {
+                // get all the scripts in all parts
+                SceneObjectPart[] parts = m_parts.GetArray();
+                List<TaskInventoryItem> scripts = new();
+                for (int i = 0; i < parts.Length; i++)
+                {
                     IEntityInventory inv = parts[i].Inventory;
                     if (inv is not null)
-                scripts.AddRange(parts[i].Inventory.GetInventoryItems(InventoryType.LSL));
-            }
-
-            // extract the UUIDs
-            HashSet<UUID> unique = new();
-            foreach (TaskInventoryItem script in scripts)
-                unique.Add(script.ItemID);
-
-            List<UUID> ids = unique.ToList();
-
-            // Offer the list of script UUIDs to each engine found and accumulate the time
-            foreach (IScriptModule e in engines)
-            {
-                if (e is not null)
-                {
-                    time += e.GetScriptExecutionTime(ids);
+                        scripts.AddRange(parts[i].Inventory.GetInventoryItems(InventoryType.LSL));
                 }
+
+                // extract the UUIDs
+                HashSet<UUID> unique = new();
+                foreach (TaskInventoryItem script in scripts)
+                    unique.Add(script.ItemID);
+
+                List<UUID> ids = unique.ToList();
+
+                // Offer the list of script UUIDs to each engine found and accumulate the time
+                foreach (IScriptModule e in engines)
+                {
+                    if (e is not null)
+                    {
+                        time += e.GetScriptExecutionTime(ids);
+                    }
+                }
+                return time;
             }
-            return time;
-        }
             catch
             {
                 return 0.0f;
@@ -5203,40 +5213,39 @@ namespace OpenSim.Region.Framework.Scenes
 
             try
             {
-            // get all the scripts in all parts
-            SceneObjectPart[] parts = m_parts.GetArray();
-            List<TaskInventoryItem> scripts = new();
-            for (int i = 0; i < parts.Length; i++)
-            {
+                // get all the scripts in all parts
+                SceneObjectPart[] parts = m_parts.GetArray();
+                List<TaskInventoryItem> scripts = new();
+                for (int i = 0; i < parts.Length; i++)
+                {
                     IEntityInventory inv = parts[i].Inventory;
                     if(inv is not null)
                         scripts.AddRange(inv.GetInventoryItems(InventoryType.LSL));
-            }
-
-            if (scripts.Count == 0)
-                return false;
-
-            // extract the UUIDs
-            HashSet<UUID> unique = new();
-            foreach (TaskInventoryItem script in scripts)
-                unique.Add(script.ItemID);
-
-            List<UUID> ids = unique.ToList();
-            // Offer the list of script UUIDs to each engine found and accumulate the memory
-            foreach (IScriptModule e in engines)
-            {
-                if (e is not null)
-                {
-                    memory += e.GetScriptsMemory(ids);
                 }
+
+                if (scripts.Count == 0)
+                    return false;
+
+                // extract the UUIDs
+                HashSet<UUID> unique = new();
+                foreach (TaskInventoryItem script in scripts)
+                    unique.Add(script.ItemID);
+
+                List<UUID> ids = unique.ToList();
+                // Offer the list of script UUIDs to each engine found and accumulate the memory
+                foreach (IScriptModule e in engines)
+                {
+                    if (e is not null)
+                    {
+                        memory += e.GetScriptsMemory(ids);
+                    }
+                }
+                return true;
             }
-            return true;
-        }
             catch
             { 
                 return false;
             }
-
         }
 
         /// <summary>

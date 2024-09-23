@@ -106,6 +106,7 @@ namespace OpenSim.Region.Framework.Interfaces
         byte[] BuildEvent(string eventName, OSD eventBody);
         void partPhysicsProperties(uint localID, byte physhapetype, float density, float friction, float bounce, float gravmod, UUID avatarID);
         void WindlightRefreshEvent(int interpolate, UUID avatarID);
+        void SendEnvironmentUpdate(UUID experience_id, UUID agent_id, EnvironmentUpdate update);
         void SendBulkUpdateInventoryItem(InventoryItemBase item, UUID avatarID, UUID? transationID = null);
         osUTF8 StartEvent(string eventName);
         osUTF8 StartEvent(string eventName, int cap);

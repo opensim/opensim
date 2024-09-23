@@ -303,6 +303,9 @@ namespace OpenSim.Region.Framework.Scenes
         private Dictionary<UUID, scriptEvents> m_scriptEvents = new Dictionary<UUID, scriptEvents>();
         private Quaternion m_sitTargetOrientation = Quaternion.Identity;
         private Vector3 m_sitTargetPosition;
+        private bool m_scriptedSitOnly = false;
+        private bool m_allowUnsit = true;
+        private UUID m_experienceUsedForSit = UUID.Zero;
         private string m_sitAnimation = "SIT";
         private UndoRedoState m_UndoRedo = null;
         private readonly object m_UndoLock = new object();
@@ -1264,8 +1267,44 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_sitTargetOrientation = value; }
         }
 
-        public float SitActiveRange { get; set; }
-        public Vector3 StandOffset { get; set; }
+        [XmlIgnore]
+        public bool AllowUnsit
+        {
+            get { return m_allowUnsit; }
+            set
+            {
+                m_allowUnsit = value;
+
+                if (ParentGroup != null)
+                    ParentGroup.HasGroupChanged = true;
+            }
+        }
+
+        [XmlIgnore]
+        public bool ScriptedSitOnly
+        {
+            get { return m_scriptedSitOnly; }
+            set
+            {
+                m_scriptedSitOnly = value;
+
+                if (ParentGroup != null)
+                    ParentGroup.HasGroupChanged = true;
+            }
+        }
+
+        [XmlIgnore]
+        public UUID ExperienceUsedForSit
+        {
+            get { return m_experienceUsedForSit; }
+            set
+            {
+                m_experienceUsedForSit = value;
+            }
+        }
+
+        public float SitActiveRange { get; set;}
+        public Vector3 StandOffset { get; set;}
 
         public bool Stopped
         {
