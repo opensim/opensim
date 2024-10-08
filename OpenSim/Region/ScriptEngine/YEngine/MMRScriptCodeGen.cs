@@ -2516,6 +2516,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
             else
             {
+                if (curDeclFunc.fullName != "$globalvarinit()")
+                {
+                    PushXMRInst();
+                    ilGen.Emit(curDeclFunc, OpCodes.Ldloc, curHeapSize);
+                    ilGen.Emit(curDeclFunc, OpCodes.Stfld, heapUsedFieldInfo);
+                }
+
                 ilGen.Emit(stateStmt, OpCodes.Ldc_I4, index);  // new state's index
                 ilGen.Emit(stateStmt, OpCodes.Newobj, scriptChangeStateExceptionConstructorInfo);
             }
