@@ -831,17 +831,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                     if (WebUtil.DebugLevel >= 5)
                     {
                         string output = System.Text.Encoding.UTF8.GetString(buffer);
-
-                        if (WebUtil.DebugLevel >= 6)
-                        {
-                            // Always truncate binary blobs. We don't have a ContentType, so detect them using the request name.
-                            if (requestHandler is not null && requestHandler.Name.Equals("GetMesh"))
-                            {
-                                if (output.Length > WebUtil.MaxRequestDiagLength)
-                                    output = string.Concat(output.AsSpan(0, WebUtil.MaxRequestDiagLength), "...");
-                            }
-                        }
-
                         WebUtil.LogResponseDetail(RequestNumber, output);
                     }
 

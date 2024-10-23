@@ -333,7 +333,7 @@ namespace OpenSim.Framework
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void LogOutgoingDetail(string context, string output)
         {
-            if (DebugLevel == 5)
+            if (DebugLevel >= 5)
             {
                 if (output.Length > MaxRequestDiagLength)
                     output = output[..MaxRequestDiagLength] + "...";
