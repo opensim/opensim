@@ -221,6 +221,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int INVENTORY_ANIMATION = 20;
         public const int INVENTORY_GESTURE = 21;
         public const int INVENTORY_SETTING = 56;
+        public const int INVENTORY_MATERIAL = 57;
 
         public const int ATTACH_CHEST = 1;
         public const int ATTACH_HEAD = 2;
@@ -379,6 +380,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int CHANGED_REGION_RESTART = 1024;
         public const int CHANGED_REGION_START = 1024; //LL Changed the constant from CHANGED_REGION_RESTART
         public const int CHANGED_MEDIA = 2048;
+        public const int CHANGED_RENDER_MATERIAL = 0x1000; //4096
+
         //ApiDesc opensim specific
         public const int CHANGED_ANIMATION = 16384;
         //ApiDesc opensim specific
@@ -539,6 +542,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         // PRIM_REFLECTION_PROBE flags
         public const int PRIM_REFLECTION_PROBE_BOX = 1; // 1
         public const int PRIM_REFLECTION_PROBE_DYNAMIC = 2; // 2
+        public const int PRIM_REFLECTION_PROBE_MIRROR = 4; // 2
 
         public const int PROFILE_NONE = 0;
         public const int PROFILE_SCRIPT_MEMORY = 1;
