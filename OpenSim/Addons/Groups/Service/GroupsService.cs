@@ -1072,10 +1072,11 @@ namespace OpenSim.Groups
                 if (role is null)
                 {
                     m_log.Warn($"[GROUPSERVICE] role with id {rdata.RoleID} is null");
-                    return false;
+                    continue;
                 }
 
-                return (UInt64.Parse(role.Data["Powers"]) & (ulong)power) != 0;
+                if ((UInt64.Parse(role.Data["Powers"]) & (ulong)power) != 0)
+                    return true;
             }
             return false;
         }
