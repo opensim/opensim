@@ -2351,38 +2351,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected static LSL_String GetTexture(SceneObjectPart part, int face)
         {
+            if (face == ScriptBaseClass.ALL_SIDES)
+                face = 0;
+            if (face < 0)
+                return ScriptBaseClass.NULL_KEY;
+
             Primitive.TextureEntry tex = part.Shape.Textures;
             int nsides = GetNumberOfSides(part);
-
-            if (face == ScriptBaseClass.ALL_SIDES)
-            {
-                face = 0;
-            }
-
-            if (face >= 0 && face < nsides)
-            {
-                Primitive.TextureEntryFace texface;
-                texface = tex.GetFace((uint)face);
-                string texture = texface.TextureID.ToString();
-
-                lock (part.TaskInventory)
-                {
-                    foreach (KeyValuePair<UUID, TaskInventoryItem> inv in part.TaskInventory)
-                    {
-                        if (inv.Value.AssetID.Equals(texface.TextureID))
-                        {
-                            texture = inv.Value.Name.ToString();
-                            break;
-                        }
-                    }
-                }
-
-                return texture;
-            }
-            else
-            {
+            if (face >= nsides)
                 return ScriptBaseClass.NULL_KEY;
+
+            Primitive.TextureEntryFace texface;
+            texface = tex.GetFace((uint)face);
+
+            lock (part.TaskInventory)
+            {
+                foreach (KeyValuePair<UUID, TaskInventoryItem> inv in part.TaskInventory)
+                {
+                    if (inv.Value.AssetID.Equals(texface.TextureID))
+                        return inv.Value.Name.ToString();
+                }
             }
+
+            return texface.TextureID.ToString();
         }
 
         public void llSetPos(LSL_Vector pos)

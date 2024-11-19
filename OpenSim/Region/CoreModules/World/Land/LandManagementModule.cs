@@ -1228,8 +1228,6 @@ namespace OpenSim.Region.CoreModules.World.Land
                     for (int y = start_y; y < end_y; y++)
                     {
                         ILandObject tempLandObject = GetLandObject(x, y);
-                        if (tempLandObject is null)
-                            return;
                         if (tempLandObject != startLandObject)
                             return;
                         area++;

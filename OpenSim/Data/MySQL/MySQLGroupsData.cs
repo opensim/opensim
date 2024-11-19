@@ -199,7 +199,7 @@ namespace OpenSim.Data.MySQL
         public RoleMembershipData[] RetrieveMemberRoles(UUID groupID, string principalID)
         {
             RoleMembershipData[] data = m_RoleMembership.Get(new string[] { "GroupID", "PrincipalID" },
-                                                             new string[] { groupID.ToString(), principalID.ToString() });
+                                                             new string[] { groupID.ToString(), principalID });
 
             return data;
         }

@@ -28,17 +28,13 @@
 using System;
 using System.Text;
 using System.Xml;
-using System.IO;
 using System.Collections.Generic;
 using System.Collections;
 using System.Reflection;
-using System.Threading;
 using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.Framework.Scenes.Scripting;
-using OpenSim.Region.Framework.Scenes.Serialization;
 using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.Framework.Scenes
@@ -1388,9 +1384,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (m_inventoryFileData.Length < 2)
                     changed = true;
 
-                bool includeAssets = false;
-                if (m_part.ParentGroup.Scene.Permissions.CanEditObjectInventory(m_part.UUID, client.AgentId))
-                    includeAssets = true;
+                bool includeAssets = m_part.ParentGroup.Scene.Permissions.CanEditObjectInventory(m_part.UUID, client.AgentId);
 
                 if (m_inventoryPrivileged != includeAssets)
                     changed = true;
@@ -1412,38 +1406,31 @@ namespace OpenSim.Region.Framework.Scenes
 
                 foreach (TaskInventoryItem item in m_items.Values)
                 {
-                    UUID ownerID = item.OwnerID;
-                    UUID groupID = item.GroupID;
-                    uint everyoneMask = item.EveryonePermissions;
-                    uint baseMask = item.BasePermissions;
-                    uint ownerMask = item.CurrentPermissions;
-                    uint groupMask = item.GroupPermissions;
-
                     invString.AddItemStart();
                     invString.AddNameValueLine("item_id", item.ItemID.ToString());
                     invString.AddNameValueLine("parent_id", m_part.UUID.ToString());
 
                     invString.AddPermissionsStart();
 
-                    invString.AddNameValueLine("base_mask", Utils.UIntToHexString(baseMask));
-                    invString.AddNameValueLine("owner_mask", Utils.UIntToHexString(ownerMask));
-                    invString.AddNameValueLine("group_mask", Utils.UIntToHexString(groupMask));
-                    invString.AddNameValueLine("everyone_mask", Utils.UIntToHexString(everyoneMask));
+                    invString.AddNameValueLine("base_mask", Utils.UIntToHexString(item.BasePermissions));
+                    invString.AddNameValueLine("owner_mask", Utils.UIntToHexString(item.CurrentPermissions));
+                    invString.AddNameValueLine("group_mask", Utils.UIntToHexString(item.GroupPermissions));
+                    invString.AddNameValueLine("everyone_mask", Utils.UIntToHexString(item.EveryonePermissions));
                     invString.AddNameValueLine("next_owner_mask", Utils.UIntToHexString(item.NextPermissions));
 
                     invString.AddNameValueLine("creator_id", item.CreatorID.ToString());
 
                     invString.AddNameValueLine("last_owner_id", item.LastOwnerID.ToString());
 
-                    invString.AddNameValueLine("group_id",groupID.ToString());
-                    if(!groupID.IsZero() && ownerID.Equals(groupID))
+                    invString.AddNameValueLine("group_id", item.GroupID.ToString());
+                    if(item.GroupID.IsNotZero() && item.OwnerID.Equals(item.GroupID))
                     {
                         invString.AddNameValueLine("owner_id", UUID.ZeroString);
                         invString.AddNameValueLine("group_owned","1");
                     }
                     else
                     {
-                        invString.AddNameValueLine("owner_id", ownerID.ToString());
+                        invString.AddNameValueLine("owner_id", item.OwnerID.ToString());
                         invString.AddNameValueLine("group_owned","0");
                     }
 
@@ -1452,7 +1439,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (includeAssets)
                         invString.AddNameValueLine("asset_id", item.AssetID.ToString());
                     else
-                        invString.AddNameValueLine("asset_id", UUID.Zero.ToString());
+                        invString.AddNameValueLine("asset_id", UUID.ZeroString);
                     invString.AddNameValueLine("type", Utils.AssetTypeToString((AssetType)item.Type));
                     invString.AddNameValueLine("inv_type", Utils.InventoryTypeToString((InventoryType)item.InvType));
                     invString.AddNameValueLine("flags", Utils.UIntToHexString(item.Flags));
@@ -1558,9 +1545,9 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 BuildString.Append("\t\t");
                 BuildString.Append(name);
-                BuildString.Append("\t");
+                BuildString.Append('\t');
                 BuildString.Append(value);
-                BuildString.Append("\n");
+                BuildString.Append('\n');
             }
 
             public String GetString()
