@@ -47,7 +47,7 @@ namespace OpenSim.Region.Framework.Scenes
         private byte[] m_inventoryFileNameBytes = Array.Empty<byte>();
         private string m_inventoryFileName = "";
         private uint m_inventoryFileNameSerial = 0;
-        private bool m_inventoryPrivileged = false;
+        private int m_inventoryPrivileged = 0;
         private object m_inventoryFileLock = new object();
 
         private Dictionary<UUID, ArrayList> m_scriptErrors = new Dictionary<UUID, ArrayList>();
@@ -1384,9 +1384,22 @@ namespace OpenSim.Region.Framework.Scenes
                 if (m_inventoryFileData.Length < 2)
                     changed = true;
 
-                bool includeAssets = m_part.ParentGroup.Scene.Permissions.CanEditObjectInventory(m_part.UUID, client.AgentId);
+                int privilegedmask = 0;
+                bool includeAssets;
+                bool isVGod = client.SceneAgent is ScenePresence sp && sp.IsViewerUIGod;
+                if (isVGod)
+                {
+                    privilegedmask = 3;
+                    includeAssets = true;
+                }
+                else
+                {
+                    includeAssets = m_part.ParentGroup.Scene.Permissions.CanEditObjectInventory(m_part.UUID, client.AgentId);
+                    if(includeAssets)
+                        privilegedmask = 1;
+                }
 
-                if (m_inventoryPrivileged != includeAssets)
+                if(m_inventoryPrivileged != privilegedmask)
                     changed = true;
 
                 if (!changed)
@@ -1398,9 +1411,9 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
                 }
 
-                m_inventoryPrivileged = includeAssets;
+                m_inventoryPrivileged = privilegedmask;
 
-                InventoryStringBuilder invString = new InventoryStringBuilder(m_part.UUID, UUID.Zero);
+                InventoryStringBuilder invString = new(m_part.UUID, UUID.Zero);
 
                 m_items.LockItemsForRead(true);
 
@@ -1437,7 +1450,28 @@ namespace OpenSim.Region.Framework.Scenes
                     invString.AddSectionEnd();
 
                     if (includeAssets)
-                        invString.AddNameValueLine("asset_id", item.AssetID.ToString());
+                    {
+                        if(isVGod)
+                            invString.AddNameValueLine("asset_id", item.AssetID.ToString());
+                        else
+                        {
+                            bool allow = item.InvType switch 
+                            {
+                                //(int)InventoryType.Sound => (item.CurrentPermissions & (uint)PermissionMask.Modify) != 0,
+                                (int)InventoryType.Notecard => (item.CurrentPermissions & (uint)(PermissionMask.Modify | PermissionMask.Copy)) != 0,
+                                (int)InventoryType.LSL => (item.CurrentPermissions & (uint)(PermissionMask.Modify | PermissionMask.Copy)) == 
+                                        (uint)(PermissionMask.Modify | PermissionMask.Copy),
+                                //(int)InventoryType.Animation => (item.CurrentPermissions & (uint)PermissionMask.Modify) != 0,
+                                //(int)InventoryType.Gesture => (item.CurrentPermissions & (uint)PermissionMask.Modify) != 0,
+                                (int)InventoryType.Settings => (item.CurrentPermissions & (uint)(PermissionMask.Modify | PermissionMask.Copy)) == 
+                                        (uint)(PermissionMask.Modify | PermissionMask.Copy),
+                                (int)InventoryType.Material => (item.CurrentPermissions & (uint)(PermissionMask.Modify | PermissionMask.Copy)) == 
+                                        (uint)(PermissionMask.Modify | PermissionMask.Copy),
+                                _ => true
+                            };
+                            invString.AddNameValueLine("asset_id", allow ? item.AssetID.ToString() : UUID.ZeroString);
+                        }
+                    }
                     else
                         invString.AddNameValueLine("asset_id", UUID.ZeroString);
                     invString.AddNameValueLine("type", Utils.AssetTypeToString((AssetType)item.Type));
@@ -1465,7 +1499,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_inventoryFileName = "inventory_" + UUID.Random().ToString() + ".tmp";
                     m_inventoryFileNameBytes = Util.StringToBytes256(m_inventoryFileName);
                     xferManager.AddNewFile(m_inventoryFileName, m_inventoryFileData);
-                    client.SendTaskInventory(m_part.UUID, (short)m_inventoryFileNameSerial,m_inventoryFileNameBytes);
+                    client.SendTaskInventory(m_part.UUID, (short)m_inventoryFileNameSerial, m_inventoryFileNameBytes);
                     return;
                 }
 
@@ -1479,13 +1513,13 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="datastore"></param>
         public void ProcessInventoryBackup(ISimulationDataService datastore)
         {
-// Removed this because linking will cause an immediate delete of the new
-// child prim from the database and the subsequent storing of the prim sees
-// the inventory of it as unchanged and doesn't store it at all. The overhead
-// of storing prim inventory needlessly is much less than the aggravation
-// of prim inventory loss.
-//            if (HasInventoryChanged)
-//            {
+                // Removed this because linking will cause an immediate delete of the new
+                // child prim from the database and the subsequent storing of the prim sees
+                // the inventory of it as unchanged and doesn't store it at all. The overhead
+                // of storing prim inventory needlessly is much less than the aggravation
+                // of prim inventory loss.
+                //if (HasInventoryChanged)
+                //    {
                 m_items.LockItemsForRead(true);
                 ICollection<TaskInventoryItem> itemsvalues = m_items.Values;
                 HasInventoryChanged = false;
@@ -1495,7 +1529,7 @@ namespace OpenSim.Region.Framework.Scenes
                     datastore.StorePrimInventory(m_part.UUID, itemsvalues);
                 }
                 catch {}
-//            }
+                //    }
         }
 
         public class InventoryStringBuilder
@@ -1541,7 +1575,7 @@ namespace OpenSim.Region.Framework.Scenes
                 BuildString.Append(addLine);
             }
 
-            public void AddNameValueLine(string name, string value)
+            public void AddNameValueLine(ReadOnlySpan<char> name, ReadOnlySpan<char> value)
             {
                 BuildString.Append("\t\t");
                 BuildString.Append(name);
