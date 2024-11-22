@@ -523,5 +523,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
         LSL_Integer llIsFriend(LSL_Key agent_id);
         LSL_Integer llDerezObject(LSL_Key objectUUID, LSL_Integer flag);
+
+            LSL_Key llRezObjectWithParams(string inventory, LSL_List lparam);
+         LSL_String llGetStartString();
+
     }
 }
