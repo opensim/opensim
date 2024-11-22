@@ -1218,6 +1218,72 @@ namespace OpenSim.Region.Framework.Scenes
             return true;
         }
 
+        public SceneObjectGroup GetSingleRezReadySceneObject(TaskInventoryItem item, UUID NewOwner, UUID NewGroup)
+        {
+            AssetBase rezAsset = m_part.ParentGroup.Scene.AssetService.Get(item.AssetID.ToString());
+            if (rezAsset is null)
+            {
+                m_log.Warn($"[PRIM INVENTORY]: Could not find asset {item.AssetID} for inventory item {item.Name} in {m_part.Name}");
+                return null;
+            }
+
+            SceneObjectGroup group  = m_part.ParentGroup.Scene.GetSingleObjectToRez(rezAsset.Data);
+            if (group == null)
+                return null;
+
+            group.ResetIDs();
+
+            SceneObjectPart rootPart = group.RootPart;
+
+            rootPart.Name = item.Name;
+            rootPart.Description = item.Description;
+
+            group.SetGroup(NewGroup, null);
+            SceneObjectPart[] partList = group.Parts;
+
+            bool slamThings = (item.CurrentPermissions & (uint)PermissionMask.Slam) != 0 || (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0;
+            if (slamThings || rootPart.OwnerID.NotEqual(NewOwner))
+            {
+                if (m_part.ParentGroup.Scene.Permissions.PropagatePermissions())
+                {
+                    foreach (SceneObjectPart part in partList)
+                    {
+                        if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteEveryone) != 0)
+                            part.EveryoneMask = item.EveryonePermissions;
+                        if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteNextOwner) != 0)
+                            part.NextOwnerMask = item.NextPermissions;
+                        if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteGroup) != 0)
+                            part.GroupMask = item.GroupPermissions;
+                    }
+
+                    group.ApplyNextOwnerPermissions();
+                }
+            }
+
+            foreach (SceneObjectPart part in partList)
+            {
+                if (part.OwnerID.NotEqual(NewOwner))
+                {
+                    if(part.GroupID.NotEqual(part.OwnerID))
+                        part.LastOwnerID = part.OwnerID;
+                    part.OwnerID = NewOwner;
+                    part.Inventory.ChangeInventoryOwner(NewOwner);
+                }
+
+                if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteEveryone) != 0)
+                    part.EveryoneMask = item.EveryonePermissions;
+                if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteNextOwner) != 0)
+                    part.NextOwnerMask = item.NextPermissions;
+                if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteGroup) != 0)
+                    part.GroupMask = item.GroupPermissions;
+            }
+
+            rootPart.TrimPermissions();
+            group.InvalidateDeepEffectivePerms();
+
+            return group;
+        }
+
         /// <summary>
         /// Update an existing inventory item.
         /// </summary>

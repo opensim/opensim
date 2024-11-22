@@ -1049,5 +1049,31 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int SOUND_LOOP = 1;
         public const int SOUND_TRIGGER = 2;
         public const int SOUND_SYNC = 4;
+
+        //llRezObjectWithParams Parameters
+        public const int REZ_PARAM = 0;
+        public const int REZ_FLAGS = 1;
+
+        //rez flags vlaues
+        public const int REZ_FLAG_TEMP = 0x0001;
+        public const int REZ_FLAG_PHYSICAL = 0x0002;
+        public const int REZ_FLAG_PHANTOM = 0x0004;
+        public const int REZ_FLAG_DIE_ON_COLLIDE = 0x0008;
+        public const int REZ_FLAG_DIE_ON_NOENTRY = 0x0010;
+        public const int REZ_FLAG_NO_COLLIDE_OWNER = 0x0020;
+        public const int REZ_FLAG_NO_COLLIDE_FAMILY = 0x0040;
+        public const int REZ_FLAG_BLOCK_GRAB_OBJECT = 0x0080;
+
+        public const int REZ_POS = 2;
+        public const int REZ_ROT = 3;
+        public const int REZ_VEL = 4;
+        public const int REZ_ACCEL = 5;
+        public const int REZ_OMEGA = 7;
+        public const int REZ_DAMAGE = 8;
+        public const int REZ_SOUND = 9;
+        public const int REZ_SOUND_COLLIDE = 10;
+        public const int REZ_LOCK_AXES = 11;
+        public const int REZ_DAMAGE_TYPE = 12;
+        public const int REZ_PARAM_STRING = 13;
     }
 }
