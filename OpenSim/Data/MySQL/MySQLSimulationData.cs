@@ -1627,6 +1627,11 @@ namespace OpenSim.Data.MySQL
                 cmd.Parameters.AddWithValue("lnkstBinData", prim.ParentGroup.LinksetData.ToBin());
             else
                 cmd.Parameters.AddWithValue("lnkstBinData", null);
+
+            if(prim.IsRoot)
+                cmd.Parameters.AddWithValue("StartStr", prim.ParentGroup.RezStringParameter);
+            else
+                cmd.Parameters.AddWithValue("StartStr", null);
         }
 
         /// <summary>
