@@ -1304,3 +1304,8 @@ CREATE TABLE "regionextra"
         PRIMARY KEY ("RegionID", "Name")
     );
 COMMIT;
+
+:VERSION 58         #----- add rez start string param column
+BEGIN;
+ALTER TABLE `prims` ADD COLUMN `StartStr` TEXT;
+COMMIT;
