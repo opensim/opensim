@@ -2806,6 +2806,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 group.RezzerID = rezzerID;
+                group.RezStringParameter = null;
 
                 if (rezSelected)
                 {
