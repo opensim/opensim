@@ -3771,7 +3771,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     sog.RootPart.Shape.LastAttachPoint = (byte)sog.AttachmentPoint;
                 }
 
-                sog.RezzerID = m_host.UUID;
+                sog.RezzerID = m_host.ParentGroup.RootPart.UUID;
                 sog.UUID = newID;
 
                 // We can only call this after adding the scene object, since the scene object references the scene
