@@ -117,7 +117,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected float m_recoilScaleFactor = 0.0f;
         protected bool m_AllowGodFunctions;
 
-        protected double m_timer = Util.GetTimeStampMS();
+        protected double m_timer = Util.GetTimeStamp();
         protected bool m_waitingForScriptAnswer = false;
         protected bool m_automaticLinkPermission = false;
         protected int m_notecardLineReadCharsMax = 255;
@@ -2821,21 +2821,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Float llGetTime()
         {
-            double ScriptTime = Util.GetTimeStampMS() - m_timer;
-            return (float)Math.Round((ScriptTime / 1000.0), 3);
+            double ScriptTime = Util.GetTimeStamp() - m_timer;
+            return Math.Round(ScriptTime, 3);
         }
 
         public void llResetTime()
         {
-            m_timer = Util.GetTimeStampMS();
+            m_timer = Util.GetTimeStamp();
         }
 
         public LSL_Float llGetAndResetTime()
         {
-            double now = Util.GetTimeStampMS();
+            double now = Util.GetTimeStamp();
             double ScriptTime = now - m_timer;
             m_timer = now;
-            return (float)Math.Round((ScriptTime / 1000.0), 3);
+            return Math.Round(ScriptTime, 3);
         }
 
         public void llSound(string sound, double volume, int queue, int loop)
