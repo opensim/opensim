@@ -1174,12 +1174,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             else if (_position.X < 0.0f)
             {
                 fixbody = true;
-                _position.X = 0.1f;
+                _position.X = 0.01f;
             }
-            else if (_position.X > m_parent_scene.WorldExtents.X - 0.1f)
+            else if (_position.X > m_parent_scene.WorldExtents.X - 0.01f)
             {
                 fixbody = true;
-                _position.X = m_parent_scene.WorldExtents.X - 0.1f;
+                _position.X = m_parent_scene.WorldExtents.X - 0.01f;
             }
 
             if ((Single.IsNaN(_position.Y) || Single.IsInfinity(_position.Y)))
@@ -1190,12 +1190,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             else if (_position.Y < 0.0f)
             {
                 fixbody = true;
-                _position.Y = 0.1f;
+                _position.Y = 0.01f;
             }
-            else if (_position.Y > m_parent_scene.WorldExtents.Y - 0.1f)
+            else if (_position.Y > m_parent_scene.WorldExtents.Y - 0.01f)
             {
                 fixbody = true;
-                _position.Y = m_parent_scene.WorldExtents.Y - 0.1f;
+                _position.Y = m_parent_scene.WorldExtents.Y - 0.01f;
             }
 
             if ((Single.IsNaN(_position.Z) || Single.IsInfinity(_position.Z)))
