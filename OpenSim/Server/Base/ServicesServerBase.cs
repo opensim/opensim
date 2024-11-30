@@ -180,9 +180,10 @@ namespace OpenSim.Server.Base
             RegisterCommonAppenders(startupConfig);
             LogEnvironmentInformation();
 
-            if (startupConfig.GetString("PIDFile", String.Empty) != String.Empty)
+            string pidfile = startupConfig.GetString("PIDFile", string.Empty);
+            if (pidfile.Length > 0)
             {
-                CreatePIDFile(startupConfig.GetString("PIDFile"));
+                CreatePIDFile(pidfile);
             }
 
             RegisterCommonCommands();
