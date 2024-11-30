@@ -3526,7 +3526,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             case ScriptBaseClass.REZ_VEL:
                                 try
                                 {
-                                    pos = lparam.GetVector3Item(idx);
+                                    vel = lparam.GetVector3Item(idx);
                                 }
                                 catch (InvalidCastException)
                                 {
