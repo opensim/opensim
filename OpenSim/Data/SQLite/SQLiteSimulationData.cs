@@ -2223,9 +2223,9 @@ namespace OpenSim.Data.SQLite
                 row["lnkstBinData"] = null;
 
             if (prim.IsRoot)
-                row["StartSrc"] = prim.ParentGroup.RezStringParameter;
+                row["StartStr"] = prim.ParentGroup.RezStringParameter;
             else
-                row["StartSrc"] = null;
+                row["StartStr"] = null;
         }
 
         /// <summary>
