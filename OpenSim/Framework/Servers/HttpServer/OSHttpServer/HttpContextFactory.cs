@@ -61,12 +61,11 @@ namespace OSHttpServer
 
         private void OnFreeContext(object sender, DisconnectedEventArgs e)
         {
-            var imp = sender as HttpClientContext;
-            if (imp == null || imp.contextID < 0)
-                return;
-
-            m_activeContexts.TryRemove(imp.contextID, out HttpClientContext dummy);
-            imp.Close();
+            if (sender is HttpClientContext imp && imp.contextID >= 0)
+            {
+                m_activeContexts.TryRemove(imp.contextID, out _);
+                imp.Close();
+            }
         }
 
 

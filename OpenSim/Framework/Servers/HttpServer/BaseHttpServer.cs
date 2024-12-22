@@ -372,7 +372,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public void RemoveWebSocketHandler(string servicepath)
         {
-            m_WebSocketHandlers.TryRemove(servicepath, out WebSocketRequestDelegate dummy);
+            m_WebSocketHandlers.TryRemove(servicepath, out _);
         }
 
         public List<string> GetStreamHandlerKeys()
@@ -526,7 +526,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public void RemoveIndexPHPMethodHandler(string key)
         {
-            m_indexPHPmethods.TryRemove(key, out SimpleStreamMethod sh);
+            m_indexPHPmethods.TryRemove(key, out _);
         }
 
         public SimpleStreamMethod TryGetIndexPHPMethodHandler(string key)
@@ -543,7 +543,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public void RemoveGlobalPMethodHandler(string key)
         {
-            m_globalMethods.TryRemove(key, out SimpleStreamMethod sh);
+            m_globalMethods.TryRemove(key, out _);
         }
 
         public bool TryGetGlobalMethodHandler(string key, out SimpleStreamMethod sh)
