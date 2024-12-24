@@ -9,106 +9,186 @@ on:
       - main
 
 jobs:
-  build-linux:
-    name: Build on Linux
-    runs-on: ubuntu-latest
+  build:
+    name: Build on ${{ matrix.os }} with .NET ${{ matrix.dotnet-version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        dotnet-version: [6.0, 8.0]
 
     steps:
-      # 1. Checkout dein Repository
+      # 1. Checkout Repository
       - name: Checkout Repository
         uses: actions/checkout@v3
 
       # 2. Skripte hinzufügen
       - name: Add Example Scripts
         run: |
-          mkdir -p bin/assets
-          mkdir -p bin/inventory/ScriptsLibrary
-          git init temp_repo
-          cd temp_repo
-          git remote add origin https://github.com/ManfredAabye/opensim-ossl-example-scripts.git
-          git config core.sparseCheckout true
-          echo "ScriptsAssetSet/" >> .git/info/sparse-checkout
-          echo "inventory/ScriptsLibrary/" >> .git/info/sparse-checkout
-          git pull origin main
-          cp -r ScriptsAssetSet/* ../bin/assets/
-          cp -r inventory/ScriptsLibrary/* ../bin/inventory/ScriptsLibrary/
-          cd ..
-          rm -rf temp_repo
+          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            mkdir -p bin/assets
+            mkdir -p bin/inventory/ScriptsLibrary
+            git init temp_repo
+            cd temp_repo
+            git remote add origin https://github.com/ManfredAabye/opensim-ossl-example-scripts.git
+            git config core.sparseCheckout true
+            echo "ScriptsAssetSet/" >> .git/info/sparse-checkout
+            echo "inventory/ScriptsLibrary/" >> .git/info/sparse-checkout
+            git pull origin main
+            cp -r ScriptsAssetSet/* ../bin/assets/
+            cp -r inventory/ScriptsLibrary/* ../bin/inventory/ScriptsLibrary/
+            cd ..
+            rm -rf temp_repo
+          else
+            mkdir bin\assets
+            mkdir bin\inventory\ScriptsLibrary
+            git init temp_repo
+            cd temp_repo
+            git remote add origin https://github.com/ManfredAabye/opensim-ossl-example-scripts.git
+            git config core.sparseCheckout true
+            echo ScriptsAssetSet\ >> .git/info/sparse-checkout
+            echo inventory/ScriptsLibrary\ >> .git/info/sparse-checkout
+            git pull origin main
+            xcopy /s /e /y ScriptsAssetSet\* ..\bin\assets\
+            xcopy /s /e /y inventory\ScriptsLibrary\* ..\bin\inventory\ScriptsLibrary\
+            cd ..
+            rmdir /s /q temp_repo
 
-      # Weitere Repository-Schritte (MoneyServer, Region, Avatare) - wie zuvor
+      # 3. MoneyServer hinzufügen
+      - name: Add MoneyServer
+        run: |
+          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            mkdir -p addon-modules
+            mkdir -p bin
+            git init temp_repo
+            cd temp_repo
+            git remote add origin https://github.com/ManfredAabye/opensimcurrencyserver-dotnet.git
+            git config core.sparseCheckout true
+            echo "addon-modules/" >> .git/info/sparse-checkout
+            echo "bin/" >> .git/info/sparse-checkout
+            git pull origin main
+            cp -r addon-modules/* ../addon-modules/
+            cp -r bin/* ../bin/
+            cd ..
+            rm -rf temp_repo
+          else
+            mkdir addon-modules
+            mkdir bin
+            git init temp_repo
+            cd temp_repo
+            git remote add origin https://github.com/ManfredAabye/opensimcurrencyserver-dotnet.git
+            git config core.sparseCheckout true
+            echo addon-modules\ >> .git/info/sparse-checkout
+            echo bin\ >> .git/info/sparse-checkout
+            git pull origin main
+            xcopy /s /e /y addon-modules\* ..\addon-modules\
+            xcopy /s /e /y bin\* ..\bin\
+            cd ..
+            rmdir /s /q temp_repo
 
-      # 3. Prebuild ausführen
+      # 4. Beispielregion hinzufügen
+      - name: Add Example Region
+        run: |
+          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            mkdir -p bin
+            git init temp_repo
+            cd temp_repo
+            git remote add origin https://github.com/ManfredAabye/OpenSim-Terrain.git
+            git pull origin main
+            cp -r * ../bin/
+            cd ..
+            rm -rf temp_repo
+          else
+            mkdir bin
+            git init temp_repo
+            cd temp_repo
+            git remote add origin https://github.com/ManfredAabye/OpenSim-Terrain.git
+            git pull origin main
+            xcopy /s /e /y * ..\bin\
+            cd ..
+            rmdir /s /q temp_repo
+
+      # 5. Female Avatar Assets hinzufügen
+      - name: Add Female Avatar Assets
+        run: |
+          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            mkdir -p bin/Library
+            git init temp_repo
+            cd temp_repo
+            git remote add origin https://github.com/RuthAndRoth/Ruth2.git
+            git config core.sparseCheckout true
+            echo "Artifacts/IAR/" >> .git/info/sparse-checkout
+            git pull origin master
+            cp -r Artifacts/IAR/* ../bin/Library/
+            cd ..
+            rm -rf temp_repo
+          else
+            mkdir bin\Library
+            git init temp_repo
+            cd temp_repo
+            git remote add origin https://github.com/RuthAndRoth/Ruth2.git
+            git config core.sparseCheckout true
+            echo Artifacts\IAR\ >> .git/info/sparse-checkout
+            git pull origin master
+            xcopy /s /e /y Artifacts\IAR\* ..\bin\Library\
+            cd ..
+            rmdir /s /q temp_repo
+
+      # 6. Male Avatar Assets hinzufügen
+      - name: Add Male Avatar Assets
+        run: |
+          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            mkdir -p bin/Library
+            git init temp_repo
+            cd temp_repo
+            git remote add origin https://github.com/RuthAndRoth/Roth2.git
+            git config core.sparseCheckout true
+            echo "Artifacts/IAR/" >> .git/info/sparse-checkout
+            git pull origin master
+            cp -r Artifacts/IAR/* ../bin/Library/
+            cd ..
+            rm -rf temp_repo
+          else
+            mkdir bin\Library
+            git init temp_repo
+            cd temp_repo
+            git remote add origin https://github.com/RuthAndRoth/Roth2.git
+            git config core.sparseCheckout true
+            echo Artifacts\IAR\ >> .git/info/sparse-checkout
+            git pull origin master
+            xcopy /s /e /y Artifacts\IAR\* ..\bin\Library\
+            cd ..
+            rmdir /s /q temp_repo
+
+      # 7. Prebuild ausführen
       - name: Run Prebuild Script
         run: |
-          chmod +x runprebuild.sh
-          ./runprebuild.sh
+          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            chmod +x runprebuild.sh
+            ./runprebuild.sh
+          else
+            runprebuild.bat
 
-      # 4. Build ausführen
-      - name: Setup .NET
+      # 8. Setup .NET
+      - name: Setup .NET ${{ matrix.dotnet-version }}
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '8.0'
+          dotnet-version: ${{ matrix.dotnet-version }}
 
+      # 9. Build Solution
       - name: Restore Dependencies
         run: dotnet restore
 
       - name: Build Solution
         run: dotnet build --configuration Release
 
-      # 5. Artefakte speichern
-      - name: Publish Linux Build Artifacts
+      # 10. Tests ausführen
+      - name: Run Tests
+        run: dotnet test --no-build --verbosity normal
+
+      # 11. Artefakte speichern
+      - name: Publish Build Artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: BuildOutput-Linux
+          name: BuildOutput-${{ matrix.os }}-dotnet${{ matrix.dotnet-version }}
           path: bin/Release
-
-  build-windows:
-    name: Build on Windows
-    runs-on: windows-latest
-
-    steps:
-      # 1. Checkout dein Repository
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-
-      # 2. Skripte hinzufügen
-      - name: Add Example Scripts
-        run: |
-          mkdir bin\assets
-          mkdir bin\inventory\ScriptsLibrary
-          git init temp_repo
-          cd temp_repo
-          git remote add origin https://github.com/ManfredAabye/opensim-ossl-example-scripts.git
-          git config core.sparseCheckout true
-          echo ScriptsAssetSet\ >> .git/info/sparse-checkout
-          echo inventory/ScriptsLibrary\ >> .git/info/sparse-checkout
-          git pull origin main
-          xcopy /s /e /y ScriptsAssetSet\* ..\bin\assets\
-          xcopy /s /e /y inventory\ScriptsLibrary\* ..\bin\inventory\ScriptsLibrary\
-          cd ..
-          rmdir /s /q temp_repo
-
-      # Weitere Repository-Schritte (MoneyServer, Region, Avatare) - angepasst für Windows
-
-      # 3. Prebuild ausführen
-      - name: Run Prebuild Script
-        run: runprebuild.bat
-
-      # 4. Build ausführen
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: '8.0'
-
-      - name: Restore Dependencies
-        run: dotnet restore
-
-      - name: Build Solution
-        run: dotnet build --configuration Release
-
-      # 5. Artefakte speichern
-      - name: Publish Windows Build Artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: BuildOutput-Windows
-          path: bin\Release
