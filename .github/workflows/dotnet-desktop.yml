@@ -1,65 +1,23 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
-# This workflow will build, test, sign and package a WPF or Windows Forms desktop application
-# built on .NET Core.
-# To learn how to migrate your existing application to .NET Core,
-# refer to https://docs.microsoft.com/en-us/dotnet/desktop-wpf/migration/convert-project-from-net-framework
-#
-# To configure this workflow:
-#
-# 1. Configure environment variables
-# GitHub sets default environment variables for every workflow run.
-# Replace the variables relative to your project in the "env" section below.
-#
-# 2. Signing
-# Generate a signing certificate in the Windows Application
-# Packaging Project or add an existing signing certificate to the project.
-# Next, use PowerShell to encode the .pfx file using Base64 encoding
-# by running the following Powershell script to generate the output string:
-#
-# $pfx_cert = Get-Content '.\SigningCertificate.pfx' -Encoding Byte
-# [System.Convert]::ToBase64String($pfx_cert) | Out-File 'SigningCertificate_Encoded.txt'
-#
-# Open the output file, SigningCertificate_Encoded.txt, and copy the
-# string inside. Then, add the string to the repo as a GitHub secret
-# and name it "Base64_Encoded_Pfx."
-# For more information on how to configure your signing certificate for
-# this workflow, refer to https://github.com/microsoft/github-actions-for-desktop-apps#signing
-#
-# Finally, add the signing certificate password to the repo as a secret and name it "Pfx_Key".
-# See "Build the Windows Application Packaging project" below to see how the secret is used.
-#
-# For more information on GitHub Actions, refer to https://github.com/features/actions
-# For a complete CI/CD sample to get started with GitHub Action workflows for Desktop Applications,
-# refer to https://github.com/microsoft/github-actions-for-desktop-apps
-
-name: .NET Core Desktop
+name: LastExtendedDotNetAutoBuild
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "main" ]   # Auslösen bei jedem Push auf den main Branch
   pull_request:
-    branches: [ "master" ]
+    branches: [ "main" ]   # Auslösen bei jedem Pull-Request auf den main Branch
 
 jobs:
-
   build:
-
     strategy:
       matrix:
-        configuration: [Debug, Release]
+        os: [windows-latest, ubuntu-latest]   # Matrix für Windows und Linux
+        configuration: [Debug, Release]      # Unterschiedliche Konfigurationen (Debug und Release)
 
-    runs-on: windows-latest  # For a list of available runner types, refer to
-                             # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
+    runs-on: ${{ matrix.os }}  # Läuft entweder auf Windows oder Linux basierend auf der Matrix
 
     env:
-      Solution_Name: your-solution-name                         # Replace with your solution name, i.e. MyWpfApp.sln.
-      Test_Project_Path: your-test-project-path                 # Replace with the path to your test project, i.e. MyWpfApp.Tests\MyWpfApp.Tests.csproj.
-      Wap_Project_Directory: your-wap-project-directory-name    # Replace with the Wap project directory relative to the solution, i.e. MyWpfApp.Package.
-      Wap_Project_Path: your-wap-project-path                   # Replace with the path to your Wap project, i.e. MyWpf.App.Package\MyWpfApp.Package.wapproj.
+      Solution_Name: OpenSim.sln                        # Deine .sln-Datei oder spezifische Lösung
+      Test_Project_Path: MyTestProject/MyTestProject.csproj # Pfad zu einem Testprojekt, falls erforderlich
 
     steps:
     - name: Checkout
@@ -67,49 +25,64 @@ jobs:
       with:
         fetch-depth: 0
 
-    # Install the .NET Core workload
+    # Installiere .NET 8.0 (oder die Version, die du benötigst)
     - name: Install .NET Core
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
 
-    # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
-    - name: Setup MSBuild.exe
+    # Wenn Windows, MSBuild Setup hinzufügen
+    - name: Setup MSBuild.exe (Windows only)
+      if: runner.os == 'Windows'
       uses: microsoft/setup-msbuild@v2
 
-    # Execute all unit tests in the solution
-    - name: Execute unit tests
-      run: dotnet test
+    # Restore alle NuGet-Pakete
+    - name: Restore NuGet packages
+      run: dotnet restore ${{ env.Solution_Name }}
 
-    # Restore the application to populate the obj folder with RuntimeIdentifiers
-    - name: Restore the application
-      run: msbuild $env:Solution_Name /t:Restore /p:Configuration=$env:Configuration
-      env:
-        Configuration: ${{ matrix.configuration }}
+    # Build das Projekt in Debug oder Release
+    - name: Build the project
+      run: msbuild ${{ env.Solution_Name }} /p:Configuration=${{ matrix.configuration }}
+      if: runner.os == 'Windows'
 
-    # Decode the base 64 encoded pfx and save the Signing_Certificate
-    - name: Decode the pfx
+    # Build das Projekt in Debug oder Release (für Linux)
+    - name: Build the project (Linux)
+      run: dotnet build ${{ env.Solution_Name }} -c ${{ matrix.configuration }}
+      if: runner.os == 'Linux'
+
+    # Beispiel für das Hinzufügen von zusätzlichen Repositories und Dateien
+    - name: Add additional repositories and files
       run: |
-        $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.Base64_Encoded_Pfx }}")
-        $certificatePath = Join-Path -Path $env:Wap_Project_Directory -ChildPath GitHubActionsWorkflow.pfx
-        [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
+        # Füge Scripts und andere Verzeichnisse hinzu
+        git clone https://github.com/ManfredAabye/opensim-ossl-example-scripts.git
+        cp -r opensim-ossl-example-scripts/ScriptsAssetSet $GITHUB_WORKSPACE/opensim/bin/assets
+        cp -r opensim-ossl-example-scripts/inventory/ScriptsLibrary $GITHUB_WORKSPACE/opensim/bin/inventory/ScriptsLibrary
 
-    # Create the app package by building and packaging the Windows Application Packaging project
-    - name: Create the app package
-      run: msbuild $env:Wap_Project_Path /p:Configuration=$env:Configuration /p:UapAppxPackageBuildMode=$env:Appx_Package_Build_Mode /p:AppxBundle=$env:Appx_Bundle /p:PackageCertificateKeyFile=GitHubActionsWorkflow.pfx /p:PackageCertificatePassword=${{ secrets.Pfx_Key }}
-      env:
-        Appx_Bundle: Always
-        Appx_Bundle_Platforms: x86|x64
-        Appx_Package_Build_Mode: StoreUpload
-        Configuration: ${{ matrix.configuration }}
+        # Füge das MoneyServer-Modul hinzu
+        git clone https://github.com/ManfredAabye/opensimcurrencyserver-dotnet.git
+        cp -r opensimcurrencyserver-dotnet/addon-modules $GITHUB_WORKSPACE/opensim/addon-modules
+        cp -r opensimcurrencyserver-dotnet/bin $GITHUB_WORKSPACE/opensim/bin
 
-    # Remove the pfx
-    - name: Remove the pfx
-      run: Remove-Item -path $env:Wap_Project_Directory\GitHubActionsWorkflow.pfx
+        # Füge Terrain und Avatare hinzu
+        git clone https://github.com/ManfredAabye/OpenSim-Terrain.git
+        cp -r OpenSim-Terrain/* $GITHUB_WORKSPACE/opensim/bin
 
-    # Upload the MSIX package: https://github.com/marketplace/actions/upload-a-build-artifact
+        # Male/Female Avatar Assets
+        git clone https://github.com/RuthAndRoth/Ruth2.git
+        cp -r RuthAndRoth/Ruth2/Artifacts/IAR $GITHUB_WORKSPACE/opensim/bin/Library
+        git clone https://github.com/RuthAndRoth/Roth2.git
+        cp -r RothAndRoth/Roth2/Artifacts/IAR $GITHUB_WORKSPACE/opensim/bin/Library
+
+    # Optional: Erstelle eine ZIP-Datei der Builds oder Artefakte
+    - name: Create Build Artifacts
+      run: |
+        mkdir $GITHUB_WORKSPACE/output
+        cp -r $GITHUB_WORKSPACE/opensim/bin/* $GITHUB_WORKSPACE/output
+        zip -r $GITHUB_WORKSPACE/output/opensim-build.zip $GITHUB_WORKSPACE/output/
+
+    # Lade Artefakte hoch
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: MSIX Package
-        path: ${{ env.Wap_Project_Directory }}\AppPackages
+        name: OpenSim Build Artifacts
+        path: $GITHUB_WORKSPACE/output/opensim-build.zip
