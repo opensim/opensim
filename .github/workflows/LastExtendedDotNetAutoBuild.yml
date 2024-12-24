@@ -1,0 +1,114 @@
+name: LastExtendedDotNetAutoBuild
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-linux:
+    name: Build on Linux
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout dein Repository
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      # 2. Skripte hinzufügen
+      - name: Add Example Scripts
+        run: |
+          mkdir -p bin/assets
+          mkdir -p bin/inventory/ScriptsLibrary
+          git init temp_repo
+          cd temp_repo
+          git remote add origin https://github.com/ManfredAabye/opensim-ossl-example-scripts.git
+          git config core.sparseCheckout true
+          echo "ScriptsAssetSet/" >> .git/info/sparse-checkout
+          echo "inventory/ScriptsLibrary/" >> .git/info/sparse-checkout
+          git pull origin main
+          cp -r ScriptsAssetSet/* ../bin/assets/
+          cp -r inventory/ScriptsLibrary/* ../bin/inventory/ScriptsLibrary/
+          cd ..
+          rm -rf temp_repo
+
+      # Weitere Repository-Schritte (MoneyServer, Region, Avatare) - wie zuvor
+
+      # 3. Prebuild ausführen
+      - name: Run Prebuild Script
+        run: |
+          chmod +x runprebuild.sh
+          ./runprebuild.sh
+
+      # 4. Build ausführen
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0'
+
+      - name: Restore Dependencies
+        run: dotnet restore
+
+      - name: Build Solution
+        run: dotnet build --configuration Release
+
+      # 5. Artefakte speichern
+      - name: Publish Linux Build Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: BuildOutput-Linux
+          path: bin/Release
+
+  build-windows:
+    name: Build on Windows
+    runs-on: windows-latest
+
+    steps:
+      # 1. Checkout dein Repository
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      # 2. Skripte hinzufügen
+      - name: Add Example Scripts
+        run: |
+          mkdir bin\assets
+          mkdir bin\inventory\ScriptsLibrary
+          git init temp_repo
+          cd temp_repo
+          git remote add origin https://github.com/ManfredAabye/opensim-ossl-example-scripts.git
+          git config core.sparseCheckout true
+          echo ScriptsAssetSet\ >> .git/info/sparse-checkout
+          echo inventory/ScriptsLibrary\ >> .git/info/sparse-checkout
+          git pull origin main
+          xcopy /s /e /y ScriptsAssetSet\* ..\bin\assets\
+          xcopy /s /e /y inventory\ScriptsLibrary\* ..\bin\inventory\ScriptsLibrary\
+          cd ..
+          rmdir /s /q temp_repo
+
+      # Weitere Repository-Schritte (MoneyServer, Region, Avatare) - angepasst für Windows
+
+      # 3. Prebuild ausführen
+      - name: Run Prebuild Script
+        run: runprebuild.bat
+
+      # 4. Build ausführen
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0'
+
+      - name: Restore Dependencies
+        run: dotnet restore
+
+      - name: Build Solution
+        run: dotnet build --configuration Release
+
+      # 5. Artefakte speichern
+      - name: Publish Windows Build Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: BuildOutput-Windows
+          path: bin\Release
