@@ -2,21 +2,21 @@ name: LastExtendedDotNetAutoBuild
 
 on:
   push:
-    branches: [ "main" ]   # Auslösen bei jedem Push auf den main Branch
+    branches: [ "main" ]   # Ausloesen bei jedem Push auf den main Branch
   pull_request:
-    branches: [ "main" ]   # Auslösen bei jedem Pull-Request auf den main Branch
+    branches: [ "main" ]   # Ausloesen bei jedem Pull-Request auf den main Branch
 
 jobs:
   build:
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-latest]   # Matrix für Windows und Linux
+        os: [windows-latest, ubuntu-latest]   # Matrix fuer Windows und Linux
         configuration: [Debug, Release]      # Unterschiedliche Konfigurationen (Debug und Release)
 
-    runs-on: ${{ matrix.os }}  # Läuft entweder auf Windows oder Linux basierend auf der Matrix
+    runs-on: ${{ matrix.os }}  # Laeuft entweder auf Windows oder Linux basierend auf der Matrix
 
     env:
-      Solution_Name: OpenSim.sln                        # Deine .sln-Datei oder spezifische Lösung
+      Solution_Name: OpenSim.sln                        # Deine .sln-Datei oder spezifische Loesung
       Test_Project_Path: MyTestProject/MyTestProject.csproj # Pfad zu einem Testprojekt, falls erforderlich
 
     steps:
@@ -25,13 +25,13 @@ jobs:
       with:
         fetch-depth: 0
 
-    # Installiere .NET 8.0 (oder die Version, die du benötigst)
+    # Installiere .NET 8.0 (oder die Version, die du benoetigst)
     - name: Install .NET Core
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
 
-    # Wenn Windows, MSBuild Setup hinzufügen
+    # Wenn Windows, MSBuild Setup hinzufuegen
     - name: Setup MSBuild.exe (Windows only)
       if: runner.os == 'Windows'
       uses: microsoft/setup-msbuild@v2
@@ -45,25 +45,25 @@ jobs:
       run: msbuild ${{ env.Solution_Name }} /p:Configuration=${{ matrix.configuration }}
       if: runner.os == 'Windows'
 
-    # Build das Projekt in Debug oder Release (für Linux)
+    # Build das Projekt in Debug oder Release (fuer Linux)
     - name: Build the project (Linux)
       run: dotnet build ${{ env.Solution_Name }} -c ${{ matrix.configuration }}
       if: runner.os == 'Linux'
 
-    # Beispiel für das Hinzufügen von zusätzlichen Repositories und Dateien
+    # Beispiel fuer das Hinzufuegen von zusaetzlichen Repositories und Dateien
     - name: Add additional repositories and files
       run: |
-        # Füge Scripts und andere Verzeichnisse hinzu
+        # Fuege Scripts und andere Verzeichnisse hinzu
         git clone https://github.com/ManfredAabye/opensim-ossl-example-scripts.git
         cp -r opensim-ossl-example-scripts/ScriptsAssetSet $GITHUB_WORKSPACE/opensim/bin/assets
         cp -r opensim-ossl-example-scripts/inventory/ScriptsLibrary $GITHUB_WORKSPACE/opensim/bin/inventory/ScriptsLibrary
 
-        # Füge das MoneyServer-Modul hinzu
+        # Fuege das MoneyServer-Modul hinzu
         git clone https://github.com/ManfredAabye/opensimcurrencyserver-dotnet.git
         cp -r opensimcurrencyserver-dotnet/addon-modules $GITHUB_WORKSPACE/opensim/addon-modules
         cp -r opensimcurrencyserver-dotnet/bin $GITHUB_WORKSPACE/opensim/bin
 
-        # Füge Terrain und Avatare hinzu
+        # Fuege Terrain und Avatare hinzu
         git clone https://github.com/ManfredAabye/OpenSim-Terrain.git
         cp -r OpenSim-Terrain/* $GITHUB_WORKSPACE/opensim/bin
 
