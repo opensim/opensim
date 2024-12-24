@@ -2,22 +2,23 @@ name: LastExtendedDotNetAutoBuild
 
 on:
   push:
-    branches: [ "main" ]   # Ausloesen bei jedem Push auf den main Branch
+    branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]   # Ausloesen bei jedem Pull-Request auf den main Branch
+    branches: [ "main" ]
 
 jobs:
   build:
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-latest]   # Matrix fuer Windows und Linux
-        configuration: [Debug, Release]      # Unterschiedliche Konfigurationen (Debug und Release)
+        os: [windows-latest, ubuntu-latest]
+        configuration: [Debug, Release]
 
-    runs-on: ${{ matrix.os }}  # Laeuft entweder auf Windows oder Linux basierend auf der Matrix
+    runs-on: ${{ matrix.os }}
 
     env:
-      Solution_Name: OpenSim.sln                        # Deine .sln-Datei oder spezifische Loesung
-      Test_Project_Path: MyTestProject/MyTestProject.csproj # Pfad zu einem Testprojekt, falls erforderlich
+      Solution_Name: OpenSim.sln  # Platzhalter, wird nach Prebuild erstellt
+      Test_Project_Path: MyTestProject/MyTestProject.csproj  # Falls Tests erforderlich sind
+      DOTNET_ROOT: C:\Program Files\dotnet
 
     steps:
     - name: Checkout
@@ -25,45 +26,60 @@ jobs:
       with:
         fetch-depth: 0
 
-    # Installiere .NET 8.0 (oder die Version, die du benoetigst)
+    # Installiere .NET
     - name: Install .NET Core
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
 
-    # Wenn Windows, MSBuild Setup hinzufuegen
+    # Installiere MSBuild auf Windows
     - name: Setup MSBuild.exe (Windows only)
       if: runner.os == 'Windows'
       uses: microsoft/setup-msbuild@v2
 
-    # Restore alle NuGet-Pakete
+    # Führe das Prebuild-Skript aus (Windows)
+    - name: Run prebuild.bat (Windows)
+      if: runner.os == 'Windows'
+      run: .\runprebuild.bat
+
+    # Führe das Prebuild-Skript aus (Linux)
+    - name: Run prebuild.sh (Linux)
+      if: runner.os == 'Linux'
+      run: ./runprebuild.sh
+
+    # Wiederherstellung der NuGet-Pakete
     - name: Restore NuGet packages
       run: dotnet restore ${{ env.Solution_Name }}
 
-    # Build das Projekt in Debug oder Release
+    # Build das Projekt
     - name: Build the project
-      run: msbuild ${{ env.Solution_Name }} /p:Configuration=${{ matrix.configuration }}
-      if: runner.os == 'Windows'
+      run: |
+        if [ "${{ matrix.configuration }}" == "Debug" ]; then
+          dotnet build ${{ env.Solution_Name }} -c Debug
+        else
+          dotnet build ${{ env.Solution_Name }} -c Release
+        fi
+      working-directory: ${{ github.workspace }}/src/OpenSim
 
-    # Build das Projekt in Debug oder Release (fuer Linux)
-    - name: Build the project (Linux)
-      run: dotnet build ${{ env.Solution_Name }} -c ${{ matrix.configuration }}
-      if: runner.os == 'Linux'
+    # Führe Tests aus (falls notwendig)
+    - name: Run tests
+      run: dotnet test ${{ env.Solution_Name }} --configuration ${{ matrix.configuration }}
+      working-directory: ${{ github.workspace }}/src/OpenSim
 
-    # Beispiel fuer das Hinzufuegen von zusaetzlichen Repositories und Dateien
+    # Weitere Schritte zum Hinzufügen von Repositories und Dateien
     - name: Add additional repositories and files
       run: |
-        # Fuege Scripts und andere Verzeichnisse hinzu
+        # Füge Scripts und andere Verzeichnisse hinzu
         git clone https://github.com/ManfredAabye/opensim-ossl-example-scripts.git
         cp -r opensim-ossl-example-scripts/ScriptsAssetSet $GITHUB_WORKSPACE/opensim/bin/assets
         cp -r opensim-ossl-example-scripts/inventory/ScriptsLibrary $GITHUB_WORKSPACE/opensim/bin/inventory/ScriptsLibrary
 
-        # Fuege das MoneyServer-Modul hinzu
+        # Füge das MoneyServer-Modul hinzu
         git clone https://github.com/ManfredAabye/opensimcurrencyserver-dotnet.git
         cp -r opensimcurrencyserver-dotnet/addon-modules $GITHUB_WORKSPACE/opensim/addon-modules
         cp -r opensimcurrencyserver-dotnet/bin $GITHUB_WORKSPACE/opensim/bin
 
-        # Fuege Terrain und Avatare hinzu
+        # Füge Terrain und Avatare hinzu
         git clone https://github.com/ManfredAabye/OpenSim-Terrain.git
         cp -r OpenSim-Terrain/* $GITHUB_WORKSPACE/opensim/bin
 
