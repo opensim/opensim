@@ -1,4 +1,5 @@
 Welcome to OpenSimulator (OpenSim for short)!
+This is an extended version by Manfred Aabye.
 
 # Overview
 
