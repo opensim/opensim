@@ -1058,13 +1058,24 @@ namespace OpenSim.Groups
         private bool HasPower(string agentID, UUID groupID, GroupPowers power)
         {
             RoleMembershipData[] rmembership = m_Database.RetrieveMemberRoles(groupID, agentID);
-            if (rmembership == null || (rmembership != null && rmembership.Length == 0))
+            if (rmembership is null || rmembership.Length == 0)
                 return false;
 
             foreach (RoleMembershipData rdata in rmembership)
             {
+                if(rdata is null)
+                {
+                    m_log.Warn($"[GROUPSERVICE] null membership  data entry in group {groupID} for agent {agentID}");
+                    continue;
+                }
                 RoleData role = m_Database.RetrieveRole(groupID, rdata.RoleID);
-                if ( (UInt64.Parse(role.Data["Powers"]) & (ulong)power) != 0 )
+                if (role is null)
+                {
+                    m_log.Warn($"[GROUPSERVICE] role with id {rdata.RoleID} is null");
+                    continue;
+                }
+
+                if ((UInt64.Parse(role.Data["Powers"]) & (ulong)power) != 0)
                     return true;
             }
             return false;
@@ -1073,14 +1084,14 @@ namespace OpenSim.Groups
         private bool IsOwner(string agentID, UUID groupID)
         {
             GroupData group = m_Database.RetrieveGroup(groupID);
-            if (group == null)
+            if (group is null)
                 return false;
 
-            RoleMembershipData rmembership = m_Database.RetrieveRoleMember(groupID, new UUID(group.Data["OwnerRoleID"]), agentID);
-            if (rmembership == null)
+            if(!UUID.TryParse(group.Data["OwnerRoleID"], out UUID ownerRoleID))
                 return false;
 
-            return true;
+            RoleMembershipData rmembership = m_Database.RetrieveRoleMember(groupID, ownerRoleID, agentID);
+            return rmembership is not null;
         }
         #endregion
 

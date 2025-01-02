@@ -171,7 +171,7 @@ namespace OpenSim.Data.MySQL
                                     "PhysicsShapeType, Density, GravityModifier, " +
                                     "Friction, Restitution, Vehicle, PhysInertia, DynAttrs, " +
                                     "RotationAxisLocks, sopanims, sitactrange, pseudocrc, " +
-                                    "lnkstBinData" +
+                                    "lnkstBinData, StartStr" +
                                     ") values (" + "?UUID, " +
                                     "?CreationDate, ?Name, ?Text, " +
                                     "?Description, ?SitName, ?TouchName, " +
@@ -207,7 +207,7 @@ namespace OpenSim.Data.MySQL
                                     "?PhysicsShapeType, ?Density, ?GravityModifier, " +
                                     "?Friction, ?Restitution, ?Vehicle, ?PhysInertia, ?DynAttrs, " +
                                     "?RotationAxisLocks, ?sopanims, ?sitactrange, ?pseudocrc, " +
-                                    "?lnkstBinData)";
+                                    "?lnkstBinData, ?StartStr)";
 
                             FillPrimCommand(cmd, prim, obj.UUID, regionUUID);
 
@@ -361,6 +361,10 @@ namespace OpenSim.Data.MySQL
                                         {
                                             byte[] data = (byte[])reader["lnkstBinData"];
                                             newSog.LinksetData = LinksetData.FromBin(data);
+                                        }
+                                        if(reader["StartStr"] is not  DBNull)
+                                        {
+                                            newSog.RezStringParameter = (string)reader["StartStr"];
                                         }
                                     }
                                     else
@@ -1623,6 +1627,11 @@ namespace OpenSim.Data.MySQL
                 cmd.Parameters.AddWithValue("lnkstBinData", prim.ParentGroup.LinksetData.ToBin());
             else
                 cmd.Parameters.AddWithValue("lnkstBinData", null);
+
+            if(prim.IsRoot)
+                cmd.Parameters.AddWithValue("StartStr", prim.ParentGroup.RezStringParameter);
+            else
+                cmd.Parameters.AddWithValue("StartStr", null);
         }
 
         /// <summary>

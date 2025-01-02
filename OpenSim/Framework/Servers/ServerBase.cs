@@ -86,7 +86,7 @@ namespace OpenSim.Framework.Servers
 
             try
             {
-                string pidstring = System.Diagnostics.Process.GetCurrentProcess().Id.ToString();
+                string pidstring = Environment.ProcessId.ToString();
 
                 using (FileStream fs = File.Create(path))
                 {

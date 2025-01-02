@@ -1694,7 +1694,7 @@ namespace OpenSim.Region.Framework.Scenes
                     terrainMS = (float)(nowMS - lastMS);
                     lastMS = nowMS;
 
-                    if (PhysicsEnabled && Frame % m_update_physics == 0)
+                    if (m_physicsEnabled && Frame % m_update_physics == 0)
                         m_sceneGraph.UpdatePreparePhysics();
 
                     nowMS = Util.GetTimeStampMS();
@@ -1731,10 +1731,9 @@ namespace OpenSim.Region.Framework.Scenes
 
                     // Perform the main physics update.  This will do the actual work of moving objects and avatars according to their
                     // velocity
-                    if (Frame % m_update_physics == 0)
+                    if (m_physicsEnabled && Frame % m_update_physics == 0)
                     {
-                        if (PhysicsEnabled)
-                            physicsFPS = m_sceneGraph.UpdatePhysics(FrameTime);
+                        physicsFPS = m_sceneGraph.UpdatePhysics(FrameTime);
                     }
 
                     nowMS = Util.GetTimeStampMS();

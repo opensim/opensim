@@ -567,3 +567,8 @@ ALTER TABLE `regionsettings` ADD COLUMN `TerrainPBR2` varchar(36) NOT NULL DEFAU
 ALTER TABLE `regionsettings` ADD COLUMN `TerrainPBR3` varchar(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000';
 ALTER TABLE `regionsettings` ADD COLUMN `TerrainPBR4` varchar(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000';
 COMMIT;
+
+:VERSION 67         #----- add rez start string param column
+BEGIN;
+ALTER TABLE `prims` ADD COLUMN `StartStr` text default NULL;
+COMMIT;

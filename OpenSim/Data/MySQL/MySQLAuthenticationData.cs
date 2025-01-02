@@ -122,8 +122,7 @@ namespace OpenSim.Data.MySQL
 
         public bool Store(AuthenticationData data)
         {
-            if (data.Data.ContainsKey("UUID"))
-                data.Data.Remove("UUID");
+            data.Data.Remove("UUID");
 
             string[] fields = new List<string>(data.Data.Keys).ToArray();
 

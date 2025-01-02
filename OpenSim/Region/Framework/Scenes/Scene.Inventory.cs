@@ -2590,6 +2590,31 @@ namespace OpenSim.Region.Framework.Scenes
             return true;
         }
 
+        public SceneObjectGroup GetSingleObjectToRez(byte[] assetData)
+        {
+            string xmlData = string.Empty;
+            try
+            {
+                xmlData = ExternalRepresentationUtils.SanitizeXml(Utils.BytesToString(assetData));
+                using XmlTextReader wrappedReader = new(xmlData, XmlNodeType.Element, null);
+                using XmlReader reader = XmlReader.Create(wrappedReader, Util.SharedXmlReaderSettings);
+                reader.Read();
+
+                if (!"CoalescedObject".Equals(reader.Name))
+                {
+                    SceneObjectGroup g = SceneObjectSerializer.FromOriginalXmlFormat(reader);
+                    return g;
+                }
+            }
+            catch (Exception e)
+            {
+                m_log.Error("[AGENT INVENTORY]: single object xml deserialization failed" + e.Message);
+                Util.LogFailedXML("[AGENT INVENTORY]:", xmlData);
+            }
+
+            return null;
+        }
+
         /// <summary>
         /// Event Handler Rez an object into a scene
         /// Calls the non-void event handler
@@ -2781,6 +2806,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 group.RezzerID = rezzerID;
+                group.RezStringParameter = null;
 
                 if (rezSelected)
                 {
@@ -2811,6 +2837,65 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             return objlist;
+        }
+
+        public SceneObjectGroup ScriptRezObject(SceneObjectPart sourcePart, TaskInventoryItem item,
+                UUID newSOGID,
+                Vector3 pos, Quaternion? rot, Vector3 vel, int param, bool atRoot)
+        {
+            if (item is null)
+                return null;
+
+            if(TryGetSceneObjectGroup(newSOGID, out _))
+                return null;
+
+            SceneObjectGroup sog = sourcePart.Inventory.GetSingleRezReadySceneObject(item, sourcePart.OwnerID, sourcePart.GroupID);
+            if(sog is null)
+                return null;
+
+            int totalPrims  = sog.PrimCount;
+
+            if (!Permissions.CanRezObject(totalPrims, sourcePart.OwnerID, pos))
+                return null;
+
+            if (!Permissions.BypassPermissions())
+            {
+                if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
+                    sourcePart.Inventory.RemoveInventoryItem(item.ItemID);
+            }
+
+            //  position adjust
+            if (totalPrims > 1) // nothing to do on a single prim
+            {
+                // current object position is root position
+                if(!atRoot)
+                {
+                    Quaternion orot = rot ?? sog.RootPart.GetWorldRotation();
+                    // possible should be bbox, but geometric center looks better
+                    Vector3 off = sog.GetGeometricCenter();
+                    off *= orot;
+                    pos -= off;
+                }
+            }
+
+            if (sog.IsAttachment == false && sog.RootPart.Shape.State != 0)
+            {
+                sog.RootPart.AttachedPos = sog.AbsolutePosition;
+                sog.RootPart.Shape.LastAttachPoint = (byte)sog.AttachmentPoint;
+            }
+
+            sog.RezzerID = sourcePart.UUID;
+
+            AddNewSceneObject(sog, true, pos, rot, vel);
+
+            // We can only call this after adding the scene object, since the scene object references the scene
+            // to find out if scripts should be activated at all.
+            sog.InvalidateEffectivePerms();
+            sog.CreateScriptInstances(param, true, DefaultScriptEngine, 3);
+
+            sog.ScheduleGroupForUpdate(PrimUpdateFlags.FullUpdatewithAnimMatOvr);
+
+            return sog;
         }
 
         public virtual bool returnObjects(SceneObjectGroup[] returnobjects,

@@ -75,7 +75,6 @@ namespace OpenSim.ConsoleClient
 
             Requester.MakeRequest("http://"+m_Host+":"+m_Port.ToString()+"/StartSession/", String.Format("USER={0}&PASS={1}", m_User, m_Pass), LoginReply);
 
-            string pidFile = serverConfig.GetString("PIDFile", String.Empty);
 
             while (m_Server.Running)
             {
@@ -83,7 +82,8 @@ namespace OpenSim.ConsoleClient
                 MainConsole.Instance.Prompt();
             }
 
-            if (pidFile != String.Empty)
+            string pidFile = serverConfig.GetString("PIDFile", string.Empty);
+            if (pidFile.Length > 0)
                 File.Delete(pidFile);
 
             Environment.Exit(0);

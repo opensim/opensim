@@ -620,7 +620,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             // Trim off the file portion if we aren't already dealing with a directory path
             if (TarArchiveReader.TarEntryType.TYPE_DIRECTORY != entryType)
-                path = path.Remove(path.LastIndexOf("/") + 1);
+                path = path.Remove(path.LastIndexOf('/') + 1);
 
             InventoryFolderBase foundFolder
                 = ReplicateArchivePathToUserInventory(

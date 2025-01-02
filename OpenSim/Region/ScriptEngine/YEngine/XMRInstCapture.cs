@@ -115,7 +115,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
                 if(m_XMRLSLApi is not null)
                 {
-                    double scriptTime = Util.GetTimeStampMS() - m_XMRLSLApi.getLSLTimer();
+                    double scriptTime = Util.GetTimeStampMS() - m_XMRLSLApi.getLSLTimerMS();
                     XmlElement scriptTimeN = doc.CreateElement("", "scrpTime", "");
                     scriptTimeN.AppendChild(doc.CreateTextNode(scriptTime.ToString()));
                     scriptStateN.AppendChild(scriptTimeN);

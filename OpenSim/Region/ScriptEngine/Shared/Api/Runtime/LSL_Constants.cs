@@ -221,6 +221,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int INVENTORY_ANIMATION = 20;
         public const int INVENTORY_GESTURE = 21;
         public const int INVENTORY_SETTING = 56;
+        public const int INVENTORY_MATERIAL = 57;
 
         public const int ATTACH_CHEST = 1;
         public const int ATTACH_HEAD = 2;
@@ -379,6 +380,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int CHANGED_REGION_RESTART = 1024;
         public const int CHANGED_REGION_START = 1024; //LL Changed the constant from CHANGED_REGION_RESTART
         public const int CHANGED_MEDIA = 2048;
+        public const int CHANGED_RENDER_MATERIAL = 0x1000; //4096
+
         //ApiDesc opensim specific
         public const int CHANGED_ANIMATION = 16384;
         //ApiDesc opensim specific
@@ -539,6 +542,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         // PRIM_REFLECTION_PROBE flags
         public const int PRIM_REFLECTION_PROBE_BOX = 1; // 1
         public const int PRIM_REFLECTION_PROBE_DYNAMIC = 2; // 2
+        public const int PRIM_REFLECTION_PROBE_MIRROR = 4; // 2
 
         public const int PROFILE_NONE = 0;
         public const int PROFILE_SCRIPT_MEMORY = 1;
@@ -1045,5 +1049,31 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int SOUND_LOOP = 1;
         public const int SOUND_TRIGGER = 2;
         public const int SOUND_SYNC = 4;
+
+        //llRezObjectWithParams Parameters
+        public const int REZ_PARAM = 0;
+        public const int REZ_FLAGS = 1;
+
+        //rez flags vlaues
+        public const int REZ_FLAG_TEMP = 0x0001;
+        public const int REZ_FLAG_PHYSICAL = 0x0002;
+        public const int REZ_FLAG_PHANTOM = 0x0004;
+        public const int REZ_FLAG_DIE_ON_COLLIDE = 0x0008;
+        public const int REZ_FLAG_DIE_ON_NOENTRY = 0x0010;
+        public const int REZ_FLAG_NO_COLLIDE_OWNER = 0x0020;
+        public const int REZ_FLAG_NO_COLLIDE_FAMILY = 0x0040;
+        public const int REZ_FLAG_BLOCK_GRAB_OBJECT = 0x0080;
+
+        public const int REZ_POS = 2;
+        public const int REZ_ROT = 3;
+        public const int REZ_VEL = 4;
+        public const int REZ_ACCEL = 5;
+        public const int REZ_OMEGA = 7;
+        public const int REZ_DAMAGE = 8;
+        public const int REZ_SOUND = 9;
+        public const int REZ_SOUND_COLLIDE = 10;
+        public const int REZ_LOCK_AXES = 11;
+        public const int REZ_DAMAGE_TYPE = 12;
+        public const int REZ_PARAM_STRING = 13;
     }
 }

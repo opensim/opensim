@@ -1143,20 +1143,20 @@ namespace OpenSim.Region.Framework.Scenes
             IsInLocalTransit = true;
 
             UserAccount account = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, m_uuid);
-            if (account != null)
+            if (account is not null)
+            { 
                 m_userFlags = account.UserFlags;
+                GodController = new GodController(world, this, account.UserLevel);
+            }
             else
+            {
                 m_userFlags = 0;
+                GodController = new GodController(world, this, 0);
+            }
 
-            int userlevel = 0;
-            if (account != null)
-                userlevel = account.UserLevel;
-
-            GodController = new GodController(world, this, userlevel);
-
- //           IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
- //           if (gm != null)
- //              Grouptitle = gm.GetGroupTitle(m_uuid);
+            //IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
+            //if (gm != null)
+            //    Grouptitle = gm.GetGroupTitle(m_uuid);
 
             m_scriptEngines = m_scene.RequestModuleInterfaces<IScriptModule>();
 

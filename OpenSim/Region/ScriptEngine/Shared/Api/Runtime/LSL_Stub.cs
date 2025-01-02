@@ -2814,5 +2814,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_LSL_Functions.llDerezObject(objectUUID, flag);
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_Key llRezObjectWithParams(string inventory, LSL_List lparam)
+        {
+            return m_LSL_Functions.llRezObjectWithParams(inventory, lparam);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_String llGetStartString()
+        {
+            return m_LSL_Functions.llGetStartString();
+        }
+
     }
 }

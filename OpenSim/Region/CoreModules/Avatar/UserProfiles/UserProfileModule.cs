@@ -97,10 +97,8 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                         {
                             ScenePresence p = req.presence;
 
-                            bool ok = true;
                             bool foreign = GetUserProfileServerURI(req.agent, out string serverURI);
-                            if(serverURI.Length == 0)
-                                ok = false;
+                            bool ok  = serverURI.Length > 0;
 
                             Byte[] membershipType = new Byte[1];
                             string born = string.Empty;

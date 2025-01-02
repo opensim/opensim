@@ -151,6 +151,11 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 sceneObject.LinksetData = LinksetData.FromXML(innerlnkstdttxt.AsSpan());
             }
 
+            if (reader.Name == "StartStr" && reader.NodeType == XmlNodeType.Element)
+            {
+                sceneObject.RezStringParameter = reader.ReadElementContentAsString();
+            }
+
             // Script state may, or may not, exist. Not having any, is NOT
             // ever a problem.
             sceneObject.LoadScriptState(reader);
@@ -260,6 +265,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 writer.WriteEndElement();
             }
 
+            if(sceneObject.RezStringParameter is not null)
+                writer.WriteElementString("StartStr", sceneObject.RezStringParameter);
+
             sceneObject.LinksetData?.ToXML(writer);
 
             if (doScriptStates)
@@ -336,6 +344,10 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 XmlNodeList keylinksetdata = doc.GetElementsByTagName("lnkstdt");
                 if (keylinksetdata.Count > 0)
                     sceneObject.LinksetData = LinksetData.FromXML(keylinksetdata[0].InnerText.AsSpan());
+
+                XmlNodeList StartStr = doc.GetElementsByTagName("StartStr");
+                if (StartStr.Count > 0)
+                    sceneObject.RezStringParameter = StartStr[0].InnerText;
 
                 // Script state may, or may not, exist. Not having any, is NOT
                 // ever a problem.
@@ -1518,6 +1530,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 writer.WriteBase64(data, 0, data.Length);
                 writer.WriteEndElement();
             }
+
+            if(sog.RezStringParameter is not null)
+                writer.WriteElementString("StartStr", sog.RezStringParameter);
 
             sog.LinksetData?.ToXML(writer);
 

@@ -2835,7 +2835,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
              // Output compare and branch instructions in a tree-like fashion so we do O(log2 n) comparisons.
             defaultLabel ??= ilGen.DefineLabel("default");
-            OutputStrCase(testRVal, caseTreeTop, defaultLabel);
+            if(caseTreeTop is not null)
+                OutputStrCase(testRVal, caseTreeTop, defaultLabel);
 
              // Output code for the cases themselves, in the order given by the programmer, 
              // so they fall through as programmer wants.  This includes the default case, if any.

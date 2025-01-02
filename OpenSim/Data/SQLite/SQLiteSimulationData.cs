@@ -662,7 +662,10 @@ namespace OpenSim.Data.SQLite
                                 byte[] data = (byte[])primRow["lnkstBinData"];
                                 group.LinksetData = LinksetData.FromBin(data);
                             }
-
+                            if(primRow["StartStr"] is not  DBNull)
+                            {
+                                group.RezStringParameter = (string)primRow["StartStr"];
+                            }
                             createdObjects.Add(group.UUID, group);
                             retvals.Add(group);
                             LoadItems(prim);
@@ -1251,6 +1254,7 @@ namespace OpenSim.Data.SQLite
             createCol(prims, "sopanims", typeof(byte[]));
 
             createCol(prims, "lnkstBinData", typeof(byte[]));
+            createCol(prims, "StartStr", typeof(string));
 
             // Add in contraints
             prims.PrimaryKey = new DataColumn[] { prims.Columns["UUID"] };
@@ -2217,6 +2221,11 @@ namespace OpenSim.Data.SQLite
                 row["lnkstBinData"] = prim.ParentGroup.LinksetData.ToBin();
             else
                 row["lnkstBinData"] = null;
+
+            if (prim.IsRoot)
+                row["StartStr"] = prim.ParentGroup.RezStringParameter;
+            else
+                row["StartStr"] = null;
         }
 
         /// <summary>
