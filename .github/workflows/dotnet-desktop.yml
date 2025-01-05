@@ -1,0 +1,104 @@
+name: LastExtendedDotNetAutoBuild
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+        configuration: [Debug, Release]
+
+    runs-on: ${{ matrix.os }}
+
+    env:
+      Solution_Name: OpenSim.sln  # Platzhalter, wird nach Prebuild erstellt
+      Test_Project_Path: MyTestProject/MyTestProject.csproj  # Falls Tests erforderlich sind
+      DOTNET_ROOT: C:\Program Files\dotnet
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    # Installiere .NET
+    - name: Install .NET Core
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    # Installiere MSBuild auf Windows
+    - name: Setup MSBuild.exe (Windows only)
+      if: runner.os == 'Windows'
+      uses: microsoft/setup-msbuild@v2
+
+    # Führe das Prebuild-Skript aus (Windows)
+    - name: Run prebuild.bat (Windows)
+      if: runner.os == 'Windows'
+      run: .\runprebuild.bat
+
+    # Führe das Prebuild-Skript aus (Linux)
+    - name: Run prebuild.sh (Linux)
+      if: runner.os == 'Linux'
+      run: ./runprebuild.sh
+
+    # Wiederherstellung der NuGet-Pakete
+    - name: Restore NuGet packages
+      run: dotnet restore ${{ env.Solution_Name }}
+
+    # Build das Projekt
+    - name: Build the project
+      run: |
+        if [ "${{ matrix.configuration }}" == "Debug" ]; then
+          dotnet build ${{ env.Solution_Name }} -c Debug
+        else
+          dotnet build ${{ env.Solution_Name }} -c Release
+        fi
+      working-directory: ${{ github.workspace }}/src/OpenSim
+
+    # Führe Tests aus (falls notwendig)
+    - name: Run tests
+      run: dotnet test ${{ env.Solution_Name }} --configuration ${{ matrix.configuration }}
+      working-directory: ${{ github.workspace }}/src/OpenSim
+
+    # Weitere Schritte zum Hinzufügen von Repositories und Dateien
+    - name: Add additional repositories and files
+      run: |
+        # Füge Scripts und andere Verzeichnisse hinzu
+        git clone https://github.com/ManfredAabye/opensim-ossl-example-scripts.git
+        cp -r opensim-ossl-example-scripts/ScriptsAssetSet $GITHUB_WORKSPACE/opensim/bin/assets
+        cp -r opensim-ossl-example-scripts/inventory/ScriptsLibrary $GITHUB_WORKSPACE/opensim/bin/inventory/ScriptsLibrary
+
+        # Füge das MoneyServer-Modul hinzu
+        git clone https://github.com/ManfredAabye/opensimcurrencyserver-dotnet.git
+        cp -r opensimcurrencyserver-dotnet/addon-modules $GITHUB_WORKSPACE/opensim/addon-modules
+        cp -r opensimcurrencyserver-dotnet/bin $GITHUB_WORKSPACE/opensim/bin
+
+        # Füge Terrain und Avatare hinzu
+        git clone https://github.com/ManfredAabye/OpenSim-Terrain.git
+        cp -r OpenSim-Terrain/* $GITHUB_WORKSPACE/opensim/bin
+
+        # Male/Female Avatar Assets
+        git clone https://github.com/RuthAndRoth/Ruth2.git
+        cp -r RuthAndRoth/Ruth2/Artifacts/IAR $GITHUB_WORKSPACE/opensim/bin/Library
+        git clone https://github.com/RuthAndRoth/Roth2.git
+        cp -r RothAndRoth/Roth2/Artifacts/IAR $GITHUB_WORKSPACE/opensim/bin/Library
+
+    # Optional: Erstelle eine ZIP-Datei der Builds oder Artefakte
+    - name: Create Build Artifacts
+      run: |
+        mkdir $GITHUB_WORKSPACE/output
+        cp -r $GITHUB_WORKSPACE/opensim/bin/* $GITHUB_WORKSPACE/output
+        zip -r $GITHUB_WORKSPACE/output/opensim-build.zip $GITHUB_WORKSPACE/output/
+
+    # Lade Artefakte hoch
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: OpenSim Build Artifacts
+        path: $GITHUB_WORKSPACE/output/opensim-build.zip
