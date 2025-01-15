@@ -506,7 +506,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             }
 
             if (map.TryGetValue("prim_bonus", out tmp) && tmp is not null)
-                es.ObjectBonus = tmp.AsInteger();
+                es.ObjectBonus = tmp.AsReal();
 
             if (map.TryGetValue("sim_access", out tmp) && tmp is not null)
             {
