@@ -153,6 +153,8 @@ namespace OpenSim.Services.InventoryService
                 CreateFolder(principalID, rootFolder.ID, (int)FolderType.Trash, "Trash");
             if (!Array.Exists(sysFolders, delegate (XInventoryFolder f) { if (f.type == (int)FolderType.Settings) return true; return false; }))
                 CreateFolder(principalID, rootFolder.ID, (int)FolderType.Settings, "Settings");
+            if (!Array.Exists(sysFolders, delegate (XInventoryFolder f) { if (f.type == (int)FolderType.Material) return true; return false; }))
+                CreateFolder(principalID, rootFolder.ID, (int)FolderType.Material, "Materials");
 
             return result;
         }
