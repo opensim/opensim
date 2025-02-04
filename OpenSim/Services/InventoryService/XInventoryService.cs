@@ -115,45 +115,62 @@ namespace OpenSim.Services.InventoryService
 
             XInventoryFolder[] sysFolders = GetSystemFolders(principalID, rootFolder.ID);
 
-            if (!Array.Exists(sysFolders, delegate(XInventoryFolder f) { if (f.type == (int)FolderType.Animation) return true; return false; }))
+            if (!Array.Exists(sysFolders, f => f.type == (int)FolderType.Animation))
                 CreateFolder(principalID, rootFolder.ID, (int)FolderType.Animation, "Animations");
-            if (!Array.Exists(sysFolders, delegate(XInventoryFolder f) { if (f.type == (int)FolderType.BodyPart) return true; return false; }))
+
+            if (!Array.Exists(sysFolders, f => f.type == (int)FolderType.BodyPart))
                 CreateFolder(principalID, rootFolder.ID, (int)FolderType.BodyPart, "Body Parts");
-            if (!Array.Exists(sysFolders, delegate(XInventoryFolder f) { if (f.type == (int)FolderType.CallingCard) return true; return false; }))
+
+            if (!Array.Exists(sysFolders, f => f.type == (int)FolderType.CallingCard))
             {
                 XInventoryFolder folder = CreateFolder(principalID, rootFolder.ID, (int)FolderType.CallingCard, "Calling Cards");
                 folder = CreateFolder(principalID, folder.folderID, (int)FolderType.CallingCard, "Friends");
                 CreateFolder(principalID, folder.folderID, (int)FolderType.CallingCard, "All");
             }
-            if (!Array.Exists(sysFolders, delegate(XInventoryFolder f) { if (f.type == (int)FolderType.Clothing) return true; return false; }))
+
+            if (!Array.Exists(sysFolders, f => f.type == (int)FolderType.Clothing))
                 CreateFolder(principalID, rootFolder.ID, (int)FolderType.Clothing, "Clothing");
-            if (!Array.Exists(sysFolders, delegate(XInventoryFolder f) { if (f.type == (int)FolderType.CurrentOutfit) return true; return false; }))
+
+            if (!Array.Exists(sysFolders, f => f.type == (int)FolderType.CurrentOutfit))
                 CreateFolder(principalID, rootFolder.ID, (int)FolderType.CurrentOutfit, "Current Outfit");
-            if (!Array.Exists(sysFolders, delegate(XInventoryFolder f) { if (f.type == (int)FolderType.Favorites) return true; return false; }))
+
+            if (!Array.Exists(sysFolders, f => f.type == (int)FolderType.Favorites))
                 CreateFolder(principalID, rootFolder.ID, (int)FolderType.Favorites, "Favorites");
-            if (!Array.Exists(sysFolders, delegate(XInventoryFolder f) { if (f.type == (int)FolderType.Gesture) return true; return false; }))
+
+            if (!Array.Exists(sysFolders, f => f.type == (int)FolderType.Gesture))
                 CreateFolder(principalID, rootFolder.ID, (int)FolderType.Gesture, "Gestures");
-            if (!Array.Exists(sysFolders, delegate(XInventoryFolder f) { if (f.type == (int)FolderType.Landmark) return true; return false; }))
+
+            if (!Array.Exists(sysFolders, f => f.type == (int)FolderType.Landmark))
                 CreateFolder(principalID, rootFolder.ID, (int)FolderType.Landmark, "Landmarks");
-            if (!Array.Exists(sysFolders, delegate(XInventoryFolder f) { if (f.type == (int)FolderType.LostAndFound) return true; return false; }))
+
+            if (!Array.Exists(sysFolders, f => f.type == (int)FolderType.LostAndFound))
                 CreateFolder(principalID, rootFolder.ID, (int)FolderType.LostAndFound, "Lost And Found");
-            if (!Array.Exists(sysFolders, delegate(XInventoryFolder f) { if (f.type == (int)FolderType.Notecard) return true; return false; }))
+
+            if (!Array.Exists(sysFolders, f => f.type == (int)FolderType.Notecard))
                 CreateFolder(principalID, rootFolder.ID, (int)FolderType.Notecard, "Notecards");
-            if (!Array.Exists(sysFolders, delegate(XInventoryFolder f) { if (f.type == (int)FolderType.Object) return true; return false; }))
+
+            if (!Array.Exists(sysFolders, f => f.type == (int)FolderType.Object))
                 CreateFolder(principalID, rootFolder.ID, (int)FolderType.Object, "Objects");
-            if (!Array.Exists(sysFolders, delegate(XInventoryFolder f) { if (f.type == (int)FolderType.Snapshot) return true; return false; }))
+
+            if (!Array.Exists(sysFolders, f => f.type == (int)FolderType.Snapshot))
                 CreateFolder(principalID, rootFolder.ID, (int)FolderType.Snapshot, "Photo Album");
-            if (!Array.Exists(sysFolders, delegate(XInventoryFolder f) { if (f.type == (int)FolderType.LSLText) return true; return false; }))
+
+            if (!Array.Exists(sysFolders, f => f.type == (int)FolderType.LSLText))
                 CreateFolder(principalID, rootFolder.ID, (int)FolderType.LSLText, "Scripts");
-            if (!Array.Exists(sysFolders, delegate(XInventoryFolder f) { if (f.type == (int)FolderType.Sound) return true; return false; }))
+
+            if (!Array.Exists(sysFolders, f => f.type == (int)FolderType.Sound))
                 CreateFolder(principalID, rootFolder.ID, (int)FolderType.Sound, "Sounds");
-            if (!Array.Exists(sysFolders, delegate(XInventoryFolder f) { if (f.type == (int)FolderType.Texture) return true; return false; }))
+
+            if (!Array.Exists(sysFolders, f => f.type == (int)FolderType.Texture))
                 CreateFolder(principalID, rootFolder.ID, (int)FolderType.Texture, "Textures");
-            if (!Array.Exists(sysFolders, delegate(XInventoryFolder f) { if (f.type == (int)FolderType.Trash) return true; return false; }))
+
+            if (!Array.Exists(sysFolders, f => f.type == (int)FolderType.Trash))
                 CreateFolder(principalID, rootFolder.ID, (int)FolderType.Trash, "Trash");
-            if (!Array.Exists(sysFolders, delegate (XInventoryFolder f) { if (f.type == (int)FolderType.Settings) return true; return false; }))
+
+            if (!Array.Exists(sysFolders, f => f.type == (int)FolderType.Settings))
                 CreateFolder(principalID, rootFolder.ID, (int)FolderType.Settings, "Settings");
-            if (!Array.Exists(sysFolders, delegate (XInventoryFolder f) { if (f.type == (int)FolderType.Material) return true; return false; }))
+
+            if (!Array.Exists(sysFolders, f => f.type == (int)FolderType.Material))
                 CreateFolder(principalID, rootFolder.ID, (int)FolderType.Material, "Materials");
 
             return result;
@@ -178,23 +195,16 @@ namespace OpenSim.Services.InventoryService
 
         protected virtual XInventoryFolder[] GetSystemFolders(UUID principalID, UUID rootID)
         {
-//            m_log.DebugFormat("[XINVENTORY SERVICE]: Getting system folders for {0}", principalID);
+            //m_log.DebugFormat("[XINVENTORY SERVICE]: Getting system folders for {0}", principalID);
 
             XInventoryFolder[] allFolders = m_Database.GetFolders(
-                    new string[] { "agentID", "parentFolderID" },
-                    new string[] { principalID.ToString(), rootID.ToString() });
+                    [ "agentID", "parentFolderID" ],
+                    [ principalID.ToString(), rootID.ToString() ]);
 
-            XInventoryFolder[] sysFolders = Array.FindAll(
-                    allFolders,
-                    delegate (XInventoryFolder f)
-                    {
-                        if (f.type > 0)
-                            return true;
-                        return false;
-                    });
+            XInventoryFolder[] sysFolders = Array.FindAll(allFolders, f => f.type > 0);
 
-//            m_log.DebugFormat(
-//                "[XINVENTORY SERVICE]: Found {0} system folders for {1}", sysFolders.Length, principalID);
+            //m_log.DebugFormat(
+            //    "[XINVENTORY SERVICE]: Found {0} system folders for {1}", sysFolders.Length, principalID);
 
             return sysFolders;
         }
@@ -202,13 +212,13 @@ namespace OpenSim.Services.InventoryService
         public virtual List<InventoryFolderBase> GetInventorySkeleton(UUID principalID)
         {
             XInventoryFolder[] allFolders = m_Database.GetFolders(
-                    new string[] { "agentID" },
-                    new string[] { principalID.ToString() });
+                    [ "agentID" ],
+                    [ principalID.ToString() ]);
 
             if (allFolders.Length == 0)
                 return null;
 
-            List<InventoryFolderBase> folders = new();
+            List<InventoryFolderBase> folders = [];
 
             foreach (XInventoryFolder x in allFolders)
             {
@@ -222,8 +232,8 @@ namespace OpenSim.Services.InventoryService
         public virtual InventoryFolderBase GetRootFolder(UUID principalID)
         {
             XInventoryFolder[] folders = m_Database.GetFolders(
-                    new string[] { "agentID", "parentFolderID"},
-                    new string[] { principalID.ToString(), UUID.Zero.ToString() });
+                    [ "agentID", "parentFolderID" ],
+                    [ principalID.ToString(), UUID.Zero.ToString() ]);
 
             if (folders.Length == 0)
                 return null;
@@ -269,8 +279,8 @@ namespace OpenSim.Services.InventoryService
                 return rootFolder;
 
             XInventoryFolder[] folders = m_Database.GetFolders(
-                    new string[] { "agentID", "parentFolderID", "type"},
-                    new string[] { rootFolder.Owner.ToString(), rootFolder.ID.ToString(), ((int)type).ToString() });
+                    ["agentID", "parentFolderID", "type"],
+                    [rootFolder.Owner.ToString(), rootFolder.ID.ToString(), ((int)type).ToString()]);
 
             if (folders.Length == 0)
             {
@@ -295,13 +305,13 @@ namespace OpenSim.Services.InventoryService
             InventoryCollection inventory = new()
             {
                 OwnerID = principalID,
-                Folders = new List<InventoryFolderBase>(),
-                Items = new List<InventoryItemBase>()
+                Folders = [],
+                Items = []
             };
 
             XInventoryFolder[] folders = m_Database.GetFolders(
-                    new string[] { "parentFolderID"},
-                    new string[] { folderID.ToString() });
+                    ["parentFolderID"],
+                    [folderID.ToString()]);
 
             foreach (XInventoryFolder x in folders)
             {
@@ -310,8 +320,8 @@ namespace OpenSim.Services.InventoryService
             }
 
             XInventoryItem[] items = m_Database.GetItems(
-                    new string[] { "parentFolderID"},
-                    new string[] { folderID.ToString() });
+                    ["parentFolderID"],
+                    [folderID.ToString()]);
 
             foreach (XInventoryItem i in items)
             {
@@ -349,8 +359,8 @@ namespace OpenSim.Services.InventoryService
             List<InventoryItemBase> invItems = new();
 
             XInventoryItem[] items = m_Database.GetItems(
-                    new string[] { "parentFolderID" },
-                    new string[] { folderID.ToString() });
+                    ["parentFolderID"],
+                    [folderID.ToString()]);
 
             foreach (XInventoryItem i in items)
                 invItems.Add(ConvertToOpenSim(i));
