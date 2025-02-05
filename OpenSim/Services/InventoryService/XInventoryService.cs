@@ -90,8 +90,7 @@ namespace OpenSim.Services.InventoryService
             if (dllName.Length == 0)
                 throw new Exception("No StorageProvider configured");
 
-            m_Database = LoadPlugin<IXInventoryData>(dllName,
-                    new Object[] {connString, String.Empty});
+            m_Database = LoadPlugin<IXInventoryData>(dllName, [connString, string.Empty]);
 
             if (m_Database == null)
                 throw new Exception("Could not find a storage interface in the given module");
@@ -392,8 +391,7 @@ namespace OpenSim.Services.InventoryService
                 // Check we're not trying to add this as a system folder.
                 if (folder.ParentID == rootFolder.ID)
                 {
-                    InventoryFolderBase existingSystemFolder
-                        = GetSystemFolderForType(rootFolder, (FolderType)folder.Type);
+                    InventoryFolderBase existingSystemFolder = GetSystemFolderForType(rootFolder, (FolderType)folder.Type);
 
                     if (existingSystemFolder != null)
                     {
@@ -494,9 +492,7 @@ namespace OpenSim.Services.InventoryService
             if (onlyIfTrash && !ParentIsTrashOrLost(folder.ID))
                 return false;
 
-            XInventoryFolder[] subFolders = m_Database.GetFolders(
-                    new string[] { "parentFolderID" },
-                    new string[] { folder.ID.ToString() });
+            XInventoryFolder[] subFolders = m_Database.GetFolders(["parentFolderID"], [folder.ID.ToString()]);
 
             foreach (XInventoryFolder x in subFolders)
             {
@@ -592,12 +588,12 @@ namespace OpenSim.Services.InventoryService
                 foreach (UUID id in itemIDs)
                 {
                     if (!m_Database.DeleteItems(
-                        new string[] { "inventoryID", "assetType" },
-                        new string[] { id.ToString(), ((sbyte)AssetType.Link).ToString() }))
+                        ["inventoryID", "assetType"],
+                        [id.ToString(), ((sbyte)AssetType.Link).ToString()]))
                     {
                         m_Database.DeleteItems(
-                            new string[] { "inventoryID", "assetType" },
-                            new string[] { id.ToString(), ((sbyte)AssetType.LinkFolder).ToString() });
+                            ["inventoryID", "assetType"],
+                            [id.ToString(), ((sbyte)AssetType.LinkFolder).ToString()]);
                     }
                 }
             }
@@ -614,9 +610,7 @@ namespace OpenSim.Services.InventoryService
 
         public virtual InventoryItemBase GetItem(UUID principalID, UUID itemID)
         {
-            XInventoryItem[] items = m_Database.GetItems(
-                    new string[] { "inventoryID" },
-                    new string[] { itemID.ToString() });
+            XInventoryItem[] items = m_Database.GetItems(["inventoryID"], [itemID.ToString()]);
 
             if (items.Length == 0)
                 return null;
@@ -757,7 +751,7 @@ namespace OpenSim.Services.InventoryService
 
         private bool ParentIsTrash(UUID folderID)
         {
-            XInventoryFolder[] folder = m_Database.GetFolders(new string[] {"folderID"}, new string[] {folderID.ToString()});
+            XInventoryFolder[] folder = m_Database.GetFolders(["folderID"], [folderID.ToString()]);
             if (folder.Length < 1)
                 return false;
 
@@ -768,7 +762,7 @@ namespace OpenSim.Services.InventoryService
 
             while (!parentFolder.IsZero())
             {
-                XInventoryFolder[] parent = m_Database.GetFolders(new string[] {"folderID"}, new string[] {parentFolder.ToString()});
+                XInventoryFolder[] parent = m_Database.GetFolders(["folderID"], [parentFolder.ToString()]);
                 if (parent.Length < 1)
                     return false;
 
@@ -784,7 +778,7 @@ namespace OpenSim.Services.InventoryService
 
         private bool ParentIsTrashOrLost(UUID folderID)
         {
-            XInventoryFolder[] folder = m_Database.GetFolders(new string[] { "folderID" }, new string[] { folderID.ToString() });
+            XInventoryFolder[] folder = m_Database.GetFolders(["folderID"], [folderID.ToString()]);
             if (folder.Length < 1)
                 return false;
 
@@ -795,7 +789,7 @@ namespace OpenSim.Services.InventoryService
 
             while (parentFolder.IsNotZero())
             {
-                XInventoryFolder[] parent = m_Database.GetFolders(new string[] { "folderID" }, new string[] { parentFolder.ToString() });
+                XInventoryFolder[] parent = m_Database.GetFolders(["folderID"], [parentFolder.ToString()]);
                 if (parent.Length < 1)
                     return false;
 
