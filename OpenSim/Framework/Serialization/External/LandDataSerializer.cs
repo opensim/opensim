@@ -127,6 +127,8 @@ namespace OpenSim.Framework.Serialization.External
                     ld.ParcelAccessList.Add(lae);
                 }
             }
+            else
+                xtr.Read();
         }
 
         /// <summary>
