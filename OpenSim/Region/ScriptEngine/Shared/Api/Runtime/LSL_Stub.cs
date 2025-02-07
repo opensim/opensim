@@ -2822,9 +2822,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public LSL_String llGetStartString()
+        public LSL_Integer llGetLinkSitFlags(LSL_Integer linknum)
         {
-            return m_LSL_Functions.llGetStartString();
+            return m_LSL_Functions.llGetLinkSitFlags(linknum);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void llSetLinkSitFlags(LSL_Integer linknum, LSL_Integer flags)
+        {
+            m_LSL_Functions.llSetLinkSitFlags(linknum, flags);
         }
 
     }

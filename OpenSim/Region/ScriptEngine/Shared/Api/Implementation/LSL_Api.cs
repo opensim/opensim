@@ -4961,37 +4961,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// The number of a link in the linkset or a link-related constant.
         /// </param>
         /// <returns>
-        /// The name determined to match the specified link number.
+        /// The name determined to match the specified link number, NULL_KEY
         /// </returns>
-        /// <remarks>
-        /// The rules governing the returned name are not simple. The only
-        /// time a blank name is returned is if the target prim has a blank
-        /// name. If no prim with the given link number can be found then
-        /// usually NULL_KEY is returned but there are exceptions.
-        ///
-        /// In a single unlinked prim, A call with 0 returns the name, all
-        /// other values for link number return NULL_KEY
-        ///
-        /// In link sets it is more complicated.
-        ///
-        /// If the script is in the root prim:-
-        ///     A zero link number returns NULL_KEY.
-        ///     Positive link numbers return the name of the prim, or NULL_KEY
-        ///     if a prim does not exist at that position.
-        ///     Negative link numbers return the name of the first child prim.
-        ///
-        /// If the script is in a child prim:-
-        ///     Link numbers 0 or 1 return the name of the root prim.
-        ///     Positive link numbers return the name of the prim or NULL_KEY
-        ///     if a prim does not exist at that position.
-        ///     Negative numbers return the name of the root prim.
-        ///
-        /// References
-        /// http://lslwiki.net/lslwiki/wakka.php?wakka=llGetLinkName
-        /// Mentions NULL_KEY being returned
-        /// http://wiki.secondlife.com/wiki/LlGetLinkName
-        /// Mentions using the LINK_* constants, some of which are negative
-        /// </remarks>
+     
         public LSL_String llGetLinkName(int linknum)
         {
 
@@ -19325,6 +19297,31 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             return new LSL_Integer(1);
         }
+
+        public LSL_Integer llGetLinkSitFlags(LSL_Integer linknum)
+        {
+            SceneObjectPart part = linknum == ScriptBaseClass.LINK_THIS ? m_host : m_host.ParentGroup.GetLinkNumPart(linknum);
+            if (part is not null)
+            {
+                int flags = ScriptBaseClass.SIT_FLAG_OPENSIMFORCED;
+                if(part.IsSitTargetSet)
+                    flags |= 0x01;
+                return new LSL_Integer(flags);
+            }
+            return new LSL_Integer(0);
+        }
+
+        public void llSetLinkSitFlags(LSL_Integer linknum, LSL_Integer flags)
+        {
+            // does nothing since we do not have any of the flags
+            /*
+            SceneObjectPart part = linknum == ScriptBaseClass.LINK_THIS ? m_host : m_host.ParentGroup.GetLinkNumPart(linknum);
+            if (part is not null)
+            {
+            }
+            */
+        }
+
     }
 
     public class NotecardCache

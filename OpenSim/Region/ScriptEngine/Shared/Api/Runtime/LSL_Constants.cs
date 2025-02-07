@@ -1075,5 +1075,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int REZ_LOCK_AXES = 11;
         public const int REZ_DAMAGE_TYPE = 12;
         public const int REZ_PARAM_STRING = 13;
+
+        public const int SIT_FLAG_SIT_TARGET    = 0x01;
+        public const int SIT_FLAG_ALLOW_UNSIT   = 0x02; // unsupported always true
+        public const int SIT_FLAG_SCRIPTED_ONLY = 0x04; // unsupported always false
+        public const int SIT_FLAG_NO_COLLIDE    = 0x10; // unsupported always true
+        public const int SIT_FLAG_NO_DAMAGE     = 0x20; // unsupported always true
+        public const int SIT_FLAG_OPENSIMFORCED = SIT_FLAG_ALLOW_UNSIT | SIT_FLAG_NO_COLLIDE | SIT_FLAG_NO_DAMAGE;
+
     }
 }
