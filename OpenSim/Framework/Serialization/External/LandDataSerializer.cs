@@ -116,7 +116,7 @@ namespace OpenSim.Framework.Serialization.External
             {
                 while (xtr.Read() && xtr.NodeType == XmlNodeType.Element && "ParcelAccessEntry".Equals(xtr.Name))
                 {
-                    LandAccessEntry lae = new LandAccessEntry();
+                    LandAccessEntry lae = new();
 
                     xtr.ReadStartElement("ParcelAccessEntry");
 
@@ -127,8 +127,6 @@ namespace OpenSim.Framework.Serialization.External
                     ld.ParcelAccessList.Add(lae);
                 }
             }
-
-            xtr.Read();
         }
 
         /// <summary>
