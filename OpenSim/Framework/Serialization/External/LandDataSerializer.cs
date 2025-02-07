@@ -114,7 +114,7 @@ namespace OpenSim.Framework.Serialization.External
         {
             if (!xtr.IsEmptyElement)
             {
-                while (xtr.Read() && xtr.NodeType != XmlNodeType.EndElement)
+                while (xtr.Read() && xtr.NodeType == XmlNodeType.Element && "ParcelAccessEntry".Equals(xtr.Name))
                 {
                     LandAccessEntry lae = new LandAccessEntry();
 
