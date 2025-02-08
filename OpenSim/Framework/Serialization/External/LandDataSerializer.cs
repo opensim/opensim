@@ -66,6 +66,14 @@ namespace OpenSim.Framework.Serialization.External
                 { "MediaID",          (ld, xtr) => ld.MediaID = UUID.Parse(xtr.ReadElementString("MediaID")) },
                 { "MediaURL",         (ld, xtr) => ld.MediaURL = xtr.ReadElementString("MediaURL") },
                 { "MusicURL",         (ld, xtr) => ld.MusicURL = xtr.ReadElementString("MusicURL") },
+
+                { "MediaType",        (ld, xtr) => ld.MediaType = xtr.ReadElementString("MediaType") },
+                { "MediaDesc",        (ld, xtr) => ld.MediaDescription = xtr.ReadElementString("MediaDesc") },
+                { "MediaH",           (ld, xtr) => ld.MediaHeight = Convert.ToInt32(xtr.ReadElementString("MediaH")) },
+                { "MediaW",           (ld, xtr) => ld.MediaWidth = Convert.ToInt32(xtr.ReadElementString("MediaW")) },
+                { "MediaLoop",        (ld, xtr) => ld.MediaLoop = Convert.ToBoolean(xtr.ReadElementString("MediaLoop")) },
+                { "ObscureMOAP",        (ld, xtr) => ld.ObscureMedia = Convert.ToBoolean(xtr.ReadElementString("ObscureMOAP")) },
+
                 { "OwnerID",          (ld, xtr) => ld.OwnerID  = UUID.Parse(xtr.ReadElementString("OwnerID")) },
 
                 { "ParcelAccessList", ProcessParcelAccessList },
@@ -207,6 +215,13 @@ namespace OpenSim.Framework.Serialization.External
             xtw.WriteElementString("MediaID",        landData.MediaID.ToString());
             xtw.WriteElementString("MediaURL",       landData.MediaURL);
             xtw.WriteElementString("MusicURL",       landData.MusicURL);
+
+            xtw.WriteElementString("MediaType",      landData.MediaType);
+            xtw.WriteElementString("MediaDesc",      landData.MediaDescription);
+            xtw.WriteElementString("MediaH",         Convert.ToString(landData.MediaHeight));
+            xtw.WriteElementString("MediaW",         Convert.ToString(landData.MediaWidth));
+            xtw.WriteElementString("MediaLoop",      Convert.ToString(landData.MediaLoop));
+            xtw.WriteElementString("ObscureMOAP",    Convert.ToString(landData.ObscureMedia));
 
             UUID ownerID = options.ContainsKey("wipe-owners") ? UUID.Zero : landData.OwnerID;
             xtw.WriteElementString("OwnerID",        ownerID.ToString());
