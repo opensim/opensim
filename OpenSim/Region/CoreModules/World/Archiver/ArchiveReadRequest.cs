@@ -117,6 +117,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// Should we ignore any assets when reloading the archive?
         /// </value>
         protected bool m_skipAssets;
+        /// <value>
+        /// Should we replace assets in cache and even try to upload existent ones?
+        /// </value>
+        protected bool m_ForceAssetsCache;
 
         /// <value>
         /// Displacement added to each object as it is added to the world
@@ -175,6 +179,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         private readonly IGroupsModule m_groupsModule;
 
         private readonly IAssetService m_assetService = null;
+        private readonly IAssetCache m_assetCache = null;
 
         private UUID m_defaultUser;
 
@@ -213,6 +218,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_mergeParcels = options.ContainsKey("merge-parcels");
             m_noObjects = options.ContainsKey("no-objects");
             m_skipAssets = options.ContainsKey("skipAssets");
+            m_ForceAssetsCache = options.ContainsKey("forceAssets");
+            if(m_ForceAssetsCache)
+                m_skipAssets = false;
             m_requestId = requestId;
             m_displacement = options.ContainsKey("displacement") ? (Vector3)options["displacement"] : Vector3.Zero;
             m_rotation = options.ContainsKey("rotation") ? (float)options["rotation"] : 0f;
@@ -261,6 +269,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             m_groupsModule = m_rootScene.RequestModuleInterface<IGroupsModule>();
             m_assetService = m_rootScene.AssetService;
+            m_assetCache = m_rootScene.RequestModuleInterface <IAssetCache>();
         }
 
         public ArchiveReadRequest(Scene scene, Stream loadStream, Guid requestId, Dictionary<string, object> options)
@@ -269,6 +278,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_loadPath = null;
             m_loadStream = loadStream;
             m_skipAssets = options.ContainsKey("skipAssets");
+            m_ForceAssetsCache = options.ContainsKey("forceAssets");
+            if(m_ForceAssetsCache)
+                m_skipAssets = false;
             m_merge = options.ContainsKey("merge");
             m_mergeReplaceObjects = options.ContainsKey("mReplaceObjects");
             m_requestId = requestId;
@@ -330,40 +342,57 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 failedAssetRestores++;
             }
 
-            bool[] exits = m_assetService.AssetsExist(ids.ToArray());
-            ids.Clear();
-
-            if (exits is null)
+            if(m_ForceAssetsCache && m_assetCache != null)
             {
-                m_log.Error("[ARCHIVER]: asset service AssetsExists failed");
-                failedAssetRestores += uuids.Count;
-                return;
-            }
-
-            if (exits.Length != uuids.Count)
-            {
-                m_log.Error("[ARCHIVER]: asset service AssetsExists return size mismatch");
-                failedAssetRestores += uuids.Count;
-                return;
-            }
-
-            for (int i = 0; i < uuids.Count; ++i)
-            {
-                if (exits[i])
+                for (int i = 0; i < uuids.Count; ++i)
                 {
-                    ++skipedAssetRestores;
-                }
-                else
-                {
-                    if (TryUploadAsset(uuids[i],types[i], datas[i]))
+                    if (TryUploadAsset(uuids[i],types[i], datas[i], m_assetCache))
                         successfulAssetRestores++;
                     else
                         failedAssetRestores++;
+
+                    int tot = successfulAssetRestores + failedAssetRestores + skipedAssetRestores;
+                    if (tot % 250 == 0)
+                        m_log.Debug("[ARCHIVER]:  done " + tot  + "; uploaded: " + successfulAssetRestores + " failed: "+ failedAssetRestores + " assets...");
+                }
+            }
+            else
+            {
+                bool[] exits = m_assetService.AssetsExist(ids.ToArray());
+                ids.Clear();
+
+                if (exits is null)
+                {
+                    m_log.Error("[ARCHIVER]: asset service AssetsExists failed");
+                    failedAssetRestores += uuids.Count;
+                    return;
                 }
 
-                int tot = successfulAssetRestores + failedAssetRestores + skipedAssetRestores;
-                if (tot % 250 == 0)
-                    m_log.Debug("[ARCHIVER]:  done " + tot  + "; uploaded: " + successfulAssetRestores + " skipped: " + skipedAssetRestores + " failed: "+ failedAssetRestores + " assets...");
+                if (exits.Length != uuids.Count)
+                {
+                    m_log.Error("[ARCHIVER]: asset service AssetsExists return size mismatch");
+                    failedAssetRestores += uuids.Count;
+                    return;
+                }
+
+                for (int i = 0; i < uuids.Count; ++i)
+                {
+                    if (exits[i])
+                    {
+                        ++skipedAssetRestores;
+                    }
+                    else
+                    {
+                        if (TryUploadAsset(uuids[i],types[i], datas[i]))
+                            successfulAssetRestores++;
+                        else
+                            failedAssetRestores++;
+                    }
+
+                    int tot = successfulAssetRestores + failedAssetRestores + skipedAssetRestores;
+                    if (tot % 250 == 0)
+                        m_log.Debug("[ARCHIVER]:  done " + tot  + "; uploaded: " + successfulAssetRestores + " failed: "+ failedAssetRestores + " assets...");
+                }
             }
         }
 
@@ -1028,7 +1057,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             }
         }
 
-        private bool TryUploadAsset(UUID assetID, sbyte assetType, byte[] data)
+        private bool TryUploadAsset(UUID assetID, sbyte assetType, byte[] data, IAssetCache forceCache = null)
         {
             if (assetType == (sbyte)AssetType.Unknown)
             {
@@ -1054,6 +1083,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             };
 
             m_assetService.Store(asset);
+            forceCache?.Cache(asset,true);
             return true; // not right
         }
 

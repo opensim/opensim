@@ -3480,7 +3480,7 @@ namespace OpenSim.Framework
                     finally
                     {
                         Interlocked.Decrement(ref numRunningThreadFuncs);
-                        activeThreads.TryRemove(threadFuncNum, out ThreadInfo dummy);
+                        activeThreads.TryRemove(threadFuncNum, out _);
                         if (loggingEnabled && threadInfo.LogThread)
                             m_log.Debug($"Exit threadfunc {threadFuncNum} ({FormatDuration(threadInfo.Elapsed())}");
                         callback = null;
