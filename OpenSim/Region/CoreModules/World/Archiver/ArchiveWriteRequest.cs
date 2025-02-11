@@ -340,6 +340,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             {
                 if(lo.LandData != null && lo.LandData.Environment != null)
                     lo.LandData.Environment.GatherAssets(assetUuids);
+                if(lo.LandData.MediaID.IsNotZero())
+                    assetUuids[lo.LandData.MediaID] = (sbyte)AssetType.Texture;
             }
 
             Save(scene, sceneObjects, regionDir);
