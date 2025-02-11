@@ -56,6 +56,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// Determine whether this archive will save assets.  Default is true.
         /// </summary>
         public bool SaveAssets { get; set; }
+        public bool SkipBadAssets { get; set; }
+
 
         /// <summary>
         /// Determines which items will be included in the archive, according to their permissions.
@@ -136,6 +138,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             m_assetGatherer = new UuidGatherer(m_scene.AssetService);
 
             SaveAssets = true;
+            SkipBadAssets = false;
             FilterContent = null;
         }
 
@@ -201,55 +204,64 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 return;
             }
 
-            if (options.ContainsKey("verbose"))
-                m_log.InfoFormat(
-                    "[INVENTORY ARCHIVER]: Saving item {0} {1} (asset UUID {2})",
-                    inventoryItem.ID, inventoryItem.Name, inventoryItem.AssetID);
-
-            string filename = path + CreateArchiveItemName(inventoryItem);
 
             // Record the creator of this item for user record purposes (which might go away soon)
             m_userUuids[inventoryItem.CreatorIdAsUuid] = 1;
-
-            string serialization = UserInventoryItemSerializer.Serialize(inventoryItem, options, userAccountService);
-            m_archiveWriter.WriteFile(filename, serialization);
 
             AssetType itemAssetType = (AssetType)inventoryItem.AssetType;
 
             // Count inventory items (different to asset count)
             CountItems++;
-            
+            bool badasset = false;
             // Don't chase down link asset items as they actually point to their target item IDs rather than an asset
             if (SaveAssets && itemAssetType != AssetType.Link && itemAssetType != AssetType.LinkFolder)
             {
-                int curErrorCntr = m_assetGatherer.ErrorCount;
-                int possible = m_assetGatherer.possibleNotAssetCount;
-                m_assetGatherer.AddForInspection(inventoryItem.AssetID);
-                m_assetGatherer.GatherAll();
-                curErrorCntr =  m_assetGatherer.ErrorCount - curErrorCntr;
-                possible = m_assetGatherer.possibleNotAssetCount - possible;
-
-                if(curErrorCntr > 0 || possible > 0)
+                if(SkipBadAssets)
                 {
-                    string spath;
-                    int indx = path.IndexOf("__");
-                    if(indx > 0)
-                         spath = path.Substring(0,indx);
-                    else
-                        spath = path;
+                    AssetBase asset = m_scene.AssetService.Get(inventoryItem.AssetID.ToString());
+                    if(asset is null || asset.Data is null || asset.Data.Length == 0)
+                        badasset = true;
+                }
+                if(!badasset)
+                { 
+                    int curErrorCntr = m_assetGatherer.ErrorCount;
+                    int possible = m_assetGatherer.possibleNotAssetCount;
+                    m_assetGatherer.AddForInspection(inventoryItem.AssetID);
+                    m_assetGatherer.GatherAll();
+                    curErrorCntr =  m_assetGatherer.ErrorCount - curErrorCntr;
+                    possible = m_assetGatherer.possibleNotAssetCount - possible;
 
-                    if(curErrorCntr > 0)
+                    if(curErrorCntr > 0 || possible > 0)
                     {
-                        m_log.ErrorFormat("[INVENTORY ARCHIVER Warning]: item {0} '{1}', type {2}, in '{3}', contains {4} references to  missing or damaged assets",
-                            inventoryItem.ID, inventoryItem.Name, itemAssetType.ToString(), spath, curErrorCntr);
-                        if(possible > 0)
-                            m_log.WarnFormat("[INVENTORY ARCHIVER Warning]: item also contains {0} references that may be to missing or damaged assets or not a problem", possible);
-                    }
-                    else if(possible > 0)
-                    {
-                        m_log.WarnFormat("[INVENTORY ARCHIVER Warning]: item {0} '{1}', type {2}, in '{3}', contains {4} references that may be to missing or damaged assets or not a problem", inventoryItem.ID, inventoryItem.Name, itemAssetType.ToString(), spath, possible);
+                        string spath;
+                        int indx = path.IndexOf("__");
+                        if(indx > 0)
+                             spath = path.Substring(0,indx);
+                        else
+                            spath = path;
+
+                        if(curErrorCntr > 0)
+                        {
+                            m_log.ErrorFormat("[INVENTORY ARCHIVER Warning]: item {0} '{1}', type {2}, in '{3}', contains {4} references to  missing or damaged assets",
+                                inventoryItem.ID, inventoryItem.Name, itemAssetType.ToString(), spath, curErrorCntr);
+                            if(possible > 0)
+                                m_log.WarnFormat("[INVENTORY ARCHIVER Warning]: item also contains {0} references that may be to missing or damaged assets or not a problem", possible);
+                        }
+                        else if(possible > 0)
+                        {
+                            m_log.WarnFormat("[INVENTORY ARCHIVER Warning]: item {0} '{1}', type {2}, in '{3}', contains {4} references that may be to missing or damaged assets or not a problem", inventoryItem.ID, inventoryItem.Name, itemAssetType.ToString(), spath, possible);
+                        }
                     }
                 }
+            }
+            if(!badasset)
+            {
+                if (options.ContainsKey("verbose"))
+                    m_log.Info(
+                        $"[INVENTORY ARCHIVER]: Saving item {inventoryItem.ID} {inventoryItem.Name} (asset UUID {inventoryItem.AssetID})");
+                string filename = path + CreateArchiveItemName(inventoryItem);
+                string serialization = UserInventoryItemSerializer.Serialize(inventoryItem, options, userAccountService);
+                m_archiveWriter.WriteFile(filename, serialization);
             }
         }
 
@@ -341,6 +353,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         {
             if (options.ContainsKey("noassets") && (bool)options["noassets"])
                 SaveAssets = false;
+
+            if (options.ContainsKey("skipbadassets") && (bool)options["skipbadassets"])
+            { 
+                SaveAssets = true;
+                SkipBadAssets = true;
+            }
 
             // Set Permission filter if flag is set
             if (options.ContainsKey("checkPermissions"))
