@@ -70,6 +70,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// </summary>
         public int CountItems { get; set; }
 
+        public int CountBadAssetSkipItems { get; set; }
+
         /// <summary>
         /// Counter for inventory items skipped due to permission filter option for passing to compltion event
         /// </summary>
@@ -210,59 +212,64 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             AssetType itemAssetType = (AssetType)inventoryItem.AssetType;
 
-            // Count inventory items (different to asset count)
-            CountItems++;
-            bool badasset = false;
             // Don't chase down link asset items as they actually point to their target item IDs rather than an asset
             if (SaveAssets && itemAssetType != AssetType.Link && itemAssetType != AssetType.LinkFolder)
             {
                 if(SkipBadAssets)
                 {
                     AssetBase asset = m_scene.AssetService.Get(inventoryItem.AssetID.ToString());
-                    if(asset is null || asset.Data is null || asset.Data.Length == 0)
-                        badasset = true;
-                }
-                if(!badasset)
-                { 
-                    int curErrorCntr = m_assetGatherer.ErrorCount;
-                    int possible = m_assetGatherer.possibleNotAssetCount;
-                    m_assetGatherer.AddForInspection(inventoryItem.AssetID);
-                    m_assetGatherer.GatherAll();
-                    curErrorCntr =  m_assetGatherer.ErrorCount - curErrorCntr;
-                    possible = m_assetGatherer.possibleNotAssetCount - possible;
-
-                    if(curErrorCntr > 0 || possible > 0)
+                    if(asset is null)
                     {
-                        string spath;
-                        int indx = path.IndexOf("__");
-                        if(indx > 0)
-                             spath = path.Substring(0,indx);
-                        else
-                            spath = path;
+                        m_log.Error($"[INVENTORY ARCHIVER] missing asset {inventoryItem.AssetID} on item { inventoryItem.Name} ({inventoryItem.ID}) type {inventoryItem.InvType}");
+                        CountBadAssetSkipItems++;
+                        return;
+                    }
+                    if(asset.Data is null || asset.Data.Length == 0)
+                    {
+                        m_log.Error($"[INVENTORY ARCHIVER] empty asset {inventoryItem.AssetID} on item { inventoryItem.Name} ({inventoryItem.ID}) type {inventoryItem.InvType}");
+                        CountBadAssetSkipItems++;
+                        return;
+                    }
+                }
 
-                        if(curErrorCntr > 0)
-                        {
-                            m_log.ErrorFormat("[INVENTORY ARCHIVER Warning]: item {0} '{1}', type {2}, in '{3}', contains {4} references to  missing or damaged assets",
-                                inventoryItem.ID, inventoryItem.Name, itemAssetType.ToString(), spath, curErrorCntr);
-                            if(possible > 0)
-                                m_log.WarnFormat("[INVENTORY ARCHIVER Warning]: item also contains {0} references that may be to missing or damaged assets or not a problem", possible);
-                        }
-                        else if(possible > 0)
-                        {
-                            m_log.WarnFormat("[INVENTORY ARCHIVER Warning]: item {0} '{1}', type {2}, in '{3}', contains {4} references that may be to missing or damaged assets or not a problem", inventoryItem.ID, inventoryItem.Name, itemAssetType.ToString(), spath, possible);
-                        }
+                int curErrorCntr = m_assetGatherer.ErrorCount;
+                int possible = m_assetGatherer.possibleNotAssetCount;
+                m_assetGatherer.AddForInspection(inventoryItem.AssetID);
+                m_assetGatherer.GatherAll();
+                curErrorCntr =  m_assetGatherer.ErrorCount - curErrorCntr;
+                possible = m_assetGatherer.possibleNotAssetCount - possible;
+
+                if(curErrorCntr > 0 || possible > 0)
+                {
+                    string spath;
+                    int indx = path.IndexOf("__");
+                    if(indx > 0)
+                            spath = path.Substring(0,indx);
+                    else
+                        spath = path;
+
+                    if(curErrorCntr > 0)
+                    {
+                        m_log.ErrorFormat("[INVENTORY ARCHIVER Warning]: item {0} '{1}', type {2}, in '{3}', contains {4} references to  missing or damaged assets",
+                            inventoryItem.ID, inventoryItem.Name, itemAssetType.ToString(), spath, curErrorCntr);
+                        if(possible > 0)
+                            m_log.WarnFormat("[INVENTORY ARCHIVER Warning]: item also contains {0} references that may be to missing or damaged assets or not a problem", possible);
+                    }
+                    else if(possible > 0)
+                    {
+                        m_log.WarnFormat("[INVENTORY ARCHIVER Warning]: item {0} '{1}', type {2}, in '{3}', contains {4} references that may be to missing or damaged assets or not a problem", inventoryItem.ID, inventoryItem.Name, itemAssetType.ToString(), spath, possible);
                     }
                 }
             }
-            if(!badasset)
-            {
-                if (options.ContainsKey("verbose"))
-                    m_log.Info(
-                        $"[INVENTORY ARCHIVER]: Saving item {inventoryItem.ID} {inventoryItem.Name} (asset UUID {inventoryItem.AssetID})");
-                string filename = path + CreateArchiveItemName(inventoryItem);
-                string serialization = UserInventoryItemSerializer.Serialize(inventoryItem, options, userAccountService);
-                m_archiveWriter.WriteFile(filename, serialization);
-            }
+
+            if (options.ContainsKey("verbose"))
+                m_log.Info(
+                    $"[INVENTORY ARCHIVER]: Saving item {inventoryItem.ID} {inventoryItem.Name} (asset UUID {inventoryItem.AssetID})");
+            string filename = path + CreateArchiveItemName(inventoryItem);
+            string serialization = UserInventoryItemSerializer.Serialize(inventoryItem, options, userAccountService);
+            m_archiveWriter.WriteFile(filename, serialization);
+            // Count inventory items (different to asset count)
+            CountItems++;
         }
 
         /// <summary>
