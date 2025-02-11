@@ -220,13 +220,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     AssetBase asset = m_scene.AssetService.Get(inventoryItem.AssetID.ToString());
                     if(asset is null)
                     {
-                        m_log.Error($"[INVENTORY ARCHIVER] missing asset {inventoryItem.AssetID} on item { inventoryItem.Name} ({inventoryItem.ID}) type {inventoryItem.InvType}");
+                        m_log.Error($"[INVENTORY ARCHIVER] missing asset {inventoryItem.AssetID} on item { inventoryItem.Name} ({inventoryItem.ID}) type {inventoryItem.InvType}({itemAssetType})");
                         CountBadAssetSkipItems++;
                         return;
                     }
                     if(asset.Data is null || asset.Data.Length == 0)
                     {
-                        m_log.Error($"[INVENTORY ARCHIVER] empty asset {inventoryItem.AssetID} on item { inventoryItem.Name} ({inventoryItem.ID}) type {inventoryItem.InvType}");
+                        m_log.Error($"[INVENTORY ARCHIVER] empty asset {inventoryItem.AssetID} on item { inventoryItem.Name} ({inventoryItem.ID}) type {inventoryItem.InvType}({itemAssetType})");
                         CountBadAssetSkipItems++;
                         return;
                     }
