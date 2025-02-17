@@ -604,6 +604,9 @@
     ; optional web page for profiles
     ;[AGENT_NAME] will be converted to Firstname.LastName by viewers
     ; web_profile_url = http://webprofilesurl:ItsPort?name=[AGENT_NAME]
+    
+    ; By default a xmlrpc handler outputs some grid statistics via /get_grid_stats This can be turned off here
+    ;DisableStatsEndpoint = true
 
 [Messaging]
     ; OfflineIM
