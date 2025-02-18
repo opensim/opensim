@@ -47,8 +47,8 @@ namespace OpenSim.Server.Handlers.Grid
     {
         private static readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private IConfigSource m_Config;
-        private Dictionary<string, string> _info = new Dictionary<string, string>();
-        private Dictionary<string, string> _stats = new Dictionary<string, string>();
+        private Dictionary<string, string> _info = [];
+        private Dictionary<string, string> _stats = [];
         private byte[] cachedJsonAnswer = null;
         private byte[] cachedRestAnswer = null;
         private byte[] cachedStatAnswer = null;
@@ -79,6 +79,7 @@ namespace OpenSim.Server.Handlers.Grid
             IConfig gridCfg = configSource.Configs["GridInfoService"];
 
             stats_available = !gridCfg.GetBoolean("DisableStatsEndpoint", false);
+            _lastrun = 0;
 
             if (stats_available)
             {
@@ -87,13 +88,9 @@ namespace OpenSim.Server.Handlers.Grid
                 {
                     ServiceBase serviceBase = new(configSource);
 
-                    string dllName = String.Empty;
-                    string connString = String.Empty;
 
-                    if (dllName.Length == 0)
-                        dllName = dbConfig.GetString("StorageProvider", String.Empty);
-                    if (connString.Length == 0)
-                        connString = dbConfig.GetString("ConnectionString", String.Empty);
+                    string dllName = dbConfig.GetString("StorageProvider", String.Empty);
+                    string connString = dbConfig.GetString("ConnectionString", String.Empty);
 
                     if (dllName.Length != 0 && connString.Length != 0)
                     {
@@ -105,7 +102,6 @@ namespace OpenSim.Server.Handlers.Grid
                     {
                         stats_available = true;
                         _log.Debug("[GRID INFO SERVICE]: Grid Stats enabled");
-                        GetGridStats();
                     }
                 }
                 if (!stats_available)
@@ -139,8 +135,7 @@ namespace OpenSim.Server.Handlers.Grid
 
                 _info.TryGetValue("home", out string tmp);
 
-                tmp = Util.GetConfigVarFromSections<string>(m_Config, "HomeURI",
-                    new string[] { "Startup", "Hypergrid" }, tmp);
+                tmp = Util.GetConfigVarFromSections<string>(m_Config, "HomeURI", ["Startup", "Hypergrid"], tmp);
 
                 if (string.IsNullOrEmpty(tmp))
                 {
@@ -151,8 +146,7 @@ namespace OpenSim.Server.Handlers.Grid
                 if (!string.IsNullOrEmpty(tmp))
                     _info["home"] = OSD.FromString(tmp);
 
-                tmp = Util.GetConfigVarFromSections<string>(m_Config, "HomeURIAlias",
-                    new string[] { "Startup", "Hypergrid" }, string.Empty);
+                tmp = Util.GetConfigVarFromSections<string>(m_Config, "HomeURIAlias", ["Startup", "Hypergrid"], string.Empty);
                 if (!string.IsNullOrEmpty(tmp))
                     _info["homealias"] = OSD.FromString(tmp);
 
@@ -162,8 +156,7 @@ namespace OpenSim.Server.Handlers.Grid
                 if (!string.IsNullOrEmpty(tmp))
                     _info["gatekeeper"] = OSD.FromString(tmp);
 
-                tmp = Util.GetConfigVarFromSections<string>(m_Config, "GatekeeperURIAlias",
-                    new string[] { "Startup", "Hypergrid" }, string.Empty);
+                tmp = Util.GetConfigVarFromSections<string>(m_Config, "GatekeeperURIAlias", ["Startup", "Hypergrid"], string.Empty);
                 if (!string.IsNullOrEmpty(tmp))
                     _info["gatekeeperalias"] = OSD.FromString(tmp);
 
@@ -190,7 +183,7 @@ namespace OpenSim.Server.Handlers.Grid
         public XmlRpcResponse XmlRpcGridInfoMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable responseData = new Hashtable();
+            Hashtable responseData = [];
 
             _log.Debug("[GRID INFO SERVICE]: Request for grid info");
 
@@ -271,23 +264,23 @@ namespace OpenSim.Server.Handlers.Grid
             httpResponse.RawBuffer = cachedJsonAnswer;
         }
 
-        public void GetGridStats()
+        public void GetGridStats(int now)
         {
             int region_count = 0;
             int active_users = 0;
             int residents = 0;
 
-            _stats["region_count"] = region_count.ToString();
-            _stats["active_users"] = active_users.ToString();
-            _stats["residents"] = residents.ToString();
-
-            int epoch = (int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
-            _lastrun = epoch;
-
             try
             {
                 // Fetch region data
                 List<RegionData> regions = m_Database_regions.GetOnlineRegions(UUID.Zero);
+                foreach (RegionData region in regions)
+                {
+                    // Count individual region equivalent
+                    region_count += (region.sizeX / 256) * (region.sizeY / 256);
+                }
+                regions = null;
+
                 // Fetch all grid users, can't do a simple query unfortunately
                 GridUserData[] gridusers = m_Database_griduser.GetAll(string.Empty);
 
@@ -305,47 +298,21 @@ namespace OpenSim.Server.Handlers.Grid
                             continue;
 
                         // Count if last login was within the last 30 days
-                        if (last_login > (epoch - 2592000))
+                        if (last_login > (now - 2592000))
                             active_users++;
                     }
                 }
-
-                foreach (RegionData region in regions)
-                {
-                    // Count individual region equivalent
-                    region_count += (region.sizeX / 256) * (region.sizeY / 256);
-                }
-
-                _stats["residents"] = residents.ToString();
-                _stats["active_users"] = active_users.ToString();
-                _stats["region_count"] = region_count.ToString();
             }
             catch (Exception ex)
             {
                 _log.ErrorFormat("[GRID INFO SERVICE]: Could not fetch grid stats: {0}", ex.Message);
             }
-        }
 
-        public XmlRpcResponse GridStatsHandler(XmlRpcRequest request, IPEndPoint remoteClient)
-        {
-            XmlRpcResponse response = new();
-            Hashtable responseData = [];
+            _stats["residents"] = residents.ToString();
+            _stats["active_users"] = active_users.ToString();
+            _stats["region_count"] = region_count.ToString();
 
-            // Only fetch new stats if the last run is 5 minutes old since this is heavy db stuff
-            int Epoch = (int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
-            if ((Epoch - 300) > _lastrun)
-                GetGridStats();
-                
-            _log.DebugFormat("[GRID INFO SERVICE]: Request for grid stats from {0}", remoteClient.Address.ToString());
-
-            foreach (KeyValuePair<string, string> k in _stats)
-            {
-                responseData[k.Key] = k.Value;
-            }
-            response.Value = responseData;
-
-            return response;
-            
+            _lastrun = now;
         }
 
         public void RestGridStatsHandler(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
@@ -357,12 +324,12 @@ namespace OpenSim.Server.Handlers.Grid
                 return;
             }
 
-            // Only fetch new stats if the last run is 5 minutes old since this is heavy db stuff
-            int Epoch = (int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
+            // Only fetch new stats if the last run is 15 minutes old since this is heavy db stuff
+            int now = Util.UnixTimeSinceEpoch();
 
-            if (cachedStatAnswer == null || (Epoch - 300) > _lastrun)
+            if (cachedStatAnswer == null || (now - 900) > _lastrun)
             {
-                GetGridStats();
+                GetGridStats(now);
                 osUTF8 osb = OSUTF8Cached.Acquire();
                 osb.AppendASCII("<gridstats>");
                 foreach (KeyValuePair<string, string> k in _stats)

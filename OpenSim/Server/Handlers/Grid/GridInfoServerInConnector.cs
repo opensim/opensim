@@ -59,7 +59,6 @@ namespace OpenSim.Server.Handlers.Grid
             if (!stats_disabled)
             {
                 server.AddSimpleStreamHandler(new SimpleStreamHandler("/get_grid_stats", handlers.RestGridStatsHandler));
-                server.AddXmlRPCHandler("get_grid_stats", handlers.GridStatsHandler, false);
             }
         }
     }
