@@ -172,7 +172,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private float m_PIDHoverTau;
         private bool m_useHoverPID;
         private PIDHoverType m_PIDHoverType;
-        private float m_targetHoverHeight;
 
         public OdeCharacter(uint localID, String avName, ODEScene parent_scene, Vector3 pos, Vector3 pSize, float pfeetOffset, float density, float walk_divisor, float rundivisor)
         {
@@ -1311,7 +1310,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 vec.Z = depth * pidp50;
 
                 Vector3 n = m_parent_scene.GetTerrainNormalAtXY(tmpX, tmpY);
-                if (!m_flying)
+                if (!m_flying && !hoverPIDActive)
                 {
                     vec.Z -= vel.Z * PID_D;
 
