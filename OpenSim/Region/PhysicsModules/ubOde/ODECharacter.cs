@@ -1364,7 +1364,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 }     // end switch (m_PIDHoverType)
 
                 // don't go underground
-                if (m_targetHoverHeight > terrainheight + _position.Z)
+                if (m_targetHoverHeight > terrainheight + CapsuleSizeZ)
                 {
                     float fz = (m_targetHoverHeight - _position.Z);
 
@@ -1393,6 +1393,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (!m_iscolliding)
                 CollideNormal.Z = 0;
 
+            tviszero = ctv.IsZero();
             if (!tviszero)
             {
                 m_freemove = false;
