@@ -1242,8 +1242,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             Vector3 vel = UBOdeNative.BodyGetLinearVelOMV(Body);
 
-            //******************************************
-            // colide with land
             float tmpX = _position.X;
             float tmpY = _position.Y;
             if (m_flying)
@@ -1254,6 +1252,49 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             Vector3 vec = Vector3.Zero;
             float terrainheight = m_parent_scene.GetTerrainHeightAtXY(tmpX, tmpY);
+
+            bool hoverPIDActive = false;
+            if (m_useHoverPID && m_PIDHoverTau != 0 && m_PIDHoverHeight != 0)
+            {
+                float targetHoverHeight = m_PIDHoverHeight;
+                switch (m_PIDHoverType)
+                {
+                    case PIDHoverType.Ground:
+                        targetHoverHeight += terrainheight;
+                        break;
+
+                    case PIDHoverType.GroundAndWater:
+                        if (terrainheight > m_parent_scene.WaterLevel)
+                            targetHoverHeight += terrainheight;
+                        else
+                            targetHoverHeight += m_parent_scene.WaterLevel;
+                        break;
+                }     // end switch (m_PIDHoverType)
+
+                hoverPIDActive = true;
+
+                float fz = targetHoverHeight - _position.Z;
+
+                //  if error is zero, use position control; otherwise, velocity control
+                if (MathF.Abs(fz) < 0.01f)
+                {
+                    ctv.Z *= 0.1f;
+                }
+                else
+                {
+                    _zeroFlag = false;
+                    fz /= m_PIDHoverTau;
+
+                    float tmp = MathF.Abs(fz);
+                    if (tmp > 50f)
+                        fz = 50f * MathF.Sign(fz);
+                    else if (tmp < 0.1f)
+                        fz = 0.1f * MathF.Sign(fz);
+
+                    ctv.Z = fz + 0.1f * ctv.Z;
+                }
+            }
+
             if (aabbminz < terrainheight)
             {
                 if (ctv.Z < 0f)
@@ -1343,51 +1384,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 }
             }
 
-            bool hoverPIDActive = false;
-
-            if (m_useHoverPID && m_PIDHoverTau != 0 && m_PIDHoverHeight != 0)
-            {
-                hoverPIDActive = true;
-
-                switch (m_PIDHoverType)
-                {
-                    case PIDHoverType.Ground:
-                        m_targetHoverHeight = terrainheight + m_PIDHoverHeight;
-                        break;
-
-                    case PIDHoverType.GroundAndWater:
-                        if (terrainheight > m_parent_scene.WaterLevel)
-                            m_targetHoverHeight = terrainheight + m_PIDHoverHeight;
-                        else
-                            m_targetHoverHeight = m_parent_scene.WaterLevel + m_PIDHoverHeight;
-                        break;
-                }     // end switch (m_PIDHoverType)
-
-                // don't go underground
-                if (m_targetHoverHeight > terrainheight + CapsuleSizeZ)
-                {
-                    float fz = (m_targetHoverHeight - _position.Z);
-
-                    //  if error is zero, use position control; otherwise, velocity control
-                    if (MathF.Abs(fz) < 0.01f)
-                    {
-                        ctv.Z = 0;
-                    }
-                    else
-                    {
-                        _zeroFlag = false;
-                        fz /= m_PIDHoverTau;
-
-                        float tmp = MathF.Abs(fz);
-                        if (tmp > 50f)
-                            fz = 50f * MathF.Sign(fz);
-                        else if (tmp < 0.1f)
-                            fz = 0.1f * MathF.Sign(fz);
-
-                        ctv.Z = fz;
-                    }
-                }
-            }
 
             //******************************************
             if (!m_iscolliding)
