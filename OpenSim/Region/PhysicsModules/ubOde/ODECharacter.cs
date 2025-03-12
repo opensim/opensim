@@ -1263,12 +1263,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         break;
 
                     case PIDHoverType.GroundAndWater:
-                        if (terrainheight > m_parent_scene.WaterLevel)
-                            targetHoverHeight += terrainheight;
-                        else
-                            targetHoverHeight += m_parent_scene.WaterLevel;
+                        targetHoverHeight += terrainheight > m_parent_scene.WaterLevel ? terrainheight : m_parent_scene.WaterLevel;
                         break;
-                }     // end switch (m_PIDHoverType)
+                }
 
                 hoverPIDActive = true;
 
