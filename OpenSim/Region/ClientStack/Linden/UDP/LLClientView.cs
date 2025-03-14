@@ -4323,7 +4323,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(muteListUpdate, ThrottleOutPacketType.Task);
         }
 
-        public void SendPickInfoReply(UUID pickID, UUID creatorID, bool topPick, UUID parcelID, string name, string desc, UUID snapshotID, string user, string originalName, string simName, Vector3 posGlobal, int sortOrder, bool enabled)
+        public void SendPickInfoReply(UUID pickID, UUID creatorID, bool topPick, UUID parcelID, string name, string desc, UUID snapshotID, string user, string originalName, string simName, Vector3d posGlobal, int sortOrder, bool enabled)
         {
             PickInfoReplyPacket pickInfoReply = (PickInfoReplyPacket)PacketPool.Instance.GetPacket(PacketType.PickInfoReply);
 
@@ -4335,13 +4335,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 CreatorID = creatorID,
                 TopPick = topPick,
                 ParcelID = parcelID,
-                Name = Utils.StringToBytes(name),
-                Desc = Utils.StringToBytes(desc),
+                Name = Utils.StringToBytes(name, 128),
+                Desc = Utils.StringToBytes(desc, 1022),
                 SnapshotID = snapshotID,
-                User = Utils.StringToBytes(user),
-                OriginalName = Utils.StringToBytes(originalName),
+                User = Utils.StringToBytes(user, 128), // 64?
+                OriginalName = Utils.StringToBytes(originalName, 128),
                 SimName = Utils.StringToBytes(simName),
-                PosGlobal = new Vector3d(posGlobal),
+                PosGlobal = posGlobal,
                 SortOrder = sortOrder,
                 Enabled = enabled
             };
@@ -12094,13 +12094,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private static void HandlePickInfoUpdate(LLClientView c, Packet Pack)
         {
+            if(c.OnPickInfoUpdate is null)
+                return;
             PickInfoUpdatePacket pickInfoUpdate = (PickInfoUpdatePacket)Pack;
+            string name = Utils.BytesToString(pickInfoUpdate.Data.Name);
+            if(name.Length > 128)
+                name = name[..128];
+            string desc = Utils.BytesToString(pickInfoUpdate.Data.Desc);
+            if(desc.Length > 1022)
+                desc = desc[..1022];
             c.OnPickInfoUpdate?.Invoke(c,
                         pickInfoUpdate.Data.PickID,
                         pickInfoUpdate.Data.CreatorID,
                         pickInfoUpdate.Data.TopPick,
-                        Utils.BytesToString(pickInfoUpdate.Data.Name),
-                        Utils.BytesToString(pickInfoUpdate.Data.Desc),
+                        name,
+                        desc,
                         pickInfoUpdate.Data.SnapshotID,
                         pickInfoUpdate.Data.SortOrder,
                         pickInfoUpdate.Data.Enabled);

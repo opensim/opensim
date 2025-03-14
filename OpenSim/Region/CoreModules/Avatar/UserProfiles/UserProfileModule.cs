@@ -964,7 +964,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                     if(uce.picks is not null && uce.picks.ContainsKey(pick.PickId))
                     {
                         pick = uce.picks[pick.PickId];
-                        if(Vector3.TryParse(pick.GlobalPos, out Vector3 gPos))
+                        if(Vector3d.TryParse(pick.GlobalPos, out Vector3d gPos))
                             remoteClient.SendPickInfoReply(pick.PickId,pick.CreatorId,pick.TopPick,pick.ParcelId,pick.Name,
                                            pick.Desc,pick.SnapshotId,pick.ParcelName,pick.OriginalName,pick.SimName,
                                            gPos,pick.SortOrder,pick.Enabled);
@@ -988,7 +988,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             if(foreign)
                 cacheForeignImage(targetID, pick.SnapshotId);
 
-            if(!Vector3.TryParse(pick.GlobalPos, out Vector3 globalPos))
+            if(!Vector3d.TryParse(pick.GlobalPos, out Vector3d globalPos))
                 return;
 
             if (m_thisGridInfo.IsLocalGrid(pick.Gatekeeper, true) == 0)
@@ -1090,7 +1090,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 
             Vector3 avaPos = p.AbsolutePosition;
             // Getting the global position for the Avatar
-            Vector3 posGlobal = new(remoteClient.Scene.RegionInfo.WorldLocX + avaPos.X,
+            Vector3d posGlobal = new(remoteClient.Scene.RegionInfo.WorldLocX + avaPos.X,
                                     remoteClient.Scene.RegionInfo.WorldLocY + avaPos.Y,
                                     avaPos.Z);
 
