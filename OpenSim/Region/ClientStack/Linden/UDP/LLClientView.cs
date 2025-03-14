@@ -51,6 +51,7 @@ using AssetLandmark = OpenSim.Framework.AssetLandmark;
 using Caps = OpenSim.Framework.Capabilities.Caps;
 using PermissionMask = OpenSim.Framework.PermissionMask;
 using RegionFlags = OpenMetaverse.RegionFlags;
+using System.Linq;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
@@ -4199,17 +4200,29 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 TargetID = targetID
             };
 
-            ap.Data = new AvatarPicksReplyPacket.DataBlock[picks.Count];
+            if(picks.Count > 0)
+            { 
+                List<KeyValuePair<UUID, string>> spicks = picks.ToList();
+                spicks.Sort((a,b) => string.Compare(a.Value, b.Value));
 
-            int i = 0;
-            foreach (KeyValuePair<UUID, string> pick in picks)
-            {
-                ap.Data[i++] = new AvatarPicksReplyPacket.DataBlock
+                int npicks = spicks.Count > Constants.MaxProfilePicks ? Constants.MaxProfilePicks : spicks.Count;
+                int maxtrlen = (LLUDPServer.MTU - 128) / npicks - 1;
+                if( maxtrlen > 128)
+                    maxtrlen = 128;
+
+                ap.Data = new AvatarPicksReplyPacket.DataBlock[npicks];
+                for(int i = 0; i < npicks; ++i)
                 {
-                    PickID = pick.Key,
-                    PickName = Utils.StringToBytes(pick.Value)
-                };
+                    KeyValuePair<UUID, string> pick = spicks[i];
+                    ap.Data[i++] = new AvatarPicksReplyPacket.DataBlock
+                    {
+                        PickID = pick.Key,
+                        PickName = Utils.StringToBytes(pick.Value, maxtrlen)
+                    };
+                }
             }
+            else
+                ap.Data = [];
 
             OutPacket(ap, ThrottleOutPacketType.Task);
         }

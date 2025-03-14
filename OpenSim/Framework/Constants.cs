@@ -37,6 +37,9 @@ namespace OpenSim.Framework
         public const int MaxEstateAccessIds = 500;
         public const int MaxEstateManagers = 20;
 
+
+        public const int MaxProfilePicks = 20;
+
         // 'RegionSize' is the legacy region size.
         // DO NOT USE THIS FOR ANY NEW CODE. Use Scene.RegionInfo.RegionSize[XYZ] as a region might not
         //      be the legacy region size.
