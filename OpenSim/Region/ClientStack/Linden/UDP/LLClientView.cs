@@ -4214,7 +4214,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 for(int i = 0; i < npicks; ++i)
                 {
                     KeyValuePair<UUID, string> pick = spicks[i];
-                    ap.Data[i++] = new AvatarPicksReplyPacket.DataBlock
+                    ap.Data[i] = new AvatarPicksReplyPacket.DataBlock
                     {
                         PickID = pick.Key,
                         PickName = Utils.StringToBytes(pick.Value, maxtrlen)

@@ -154,6 +154,8 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 m_features["MaxTextureResolution"] = OSD.FromInteger(Constants.MaxTextureResolution);
 
+                m_features["MaxProfilePicks"] = OSD.FromInteger(Constants.MaxProfilePicks);
+
                 m_features["MeshRezEnabled"] = true;
                 m_features["MeshUploadEnabled"] = true;
                 m_features["MeshXferEnabled"] = true;
