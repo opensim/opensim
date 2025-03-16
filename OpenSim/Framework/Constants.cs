@@ -32,6 +32,7 @@ namespace OpenSim.Framework
     public class Constants
     {
         public const int MaxAgentAttachments = 38;
+        public const int MaxAgentAnimatedObjectAttachments = 3;
         public const int MaxAgentGroups = 60;
 
         public const int MaxEstateAccessIds = 500;

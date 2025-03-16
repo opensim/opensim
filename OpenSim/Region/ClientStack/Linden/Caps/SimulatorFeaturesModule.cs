@@ -136,7 +136,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_features["AnimatedObjects"] = new OSDMap()
                 {
                     ["AnimatedObjectMaxTris"] = OSD.FromInteger(150000),
-                    ["MaxAgentAnimatedObjectAttachments"] = OSD.FromInteger(2)
+                    ["MaxAgentAnimatedObjectAttachments"] = OSD.FromInteger(Constants.MaxAgentAnimatedObjectAttachments)
                 };
 
                 m_features["BakesOnMeshEnabled"] = true;
