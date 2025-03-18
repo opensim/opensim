@@ -83,25 +83,26 @@ namespace OpenSim.Server.Handlers.Grid
 
             if (stats_available)
             {
+                stats_available = false;
                 IConfig dbConfig = configSource.Configs["DatabaseService"];
                 if (dbConfig is not null)
                 {
                     ServiceBase serviceBase = new(configSource);
-
-
                     string dllName = dbConfig.GetString("StorageProvider", String.Empty);
                     string connString = dbConfig.GetString("ConnectionString", String.Empty);
 
                     if (dllName.Length != 0 && connString.Length != 0)
                     {
                         m_Database_regions = serviceBase.LoadPlugin<IRegionData>(dllName, [connString, "regions"]);
-                        m_Database_griduser = serviceBase.LoadPlugin<IGridUserData>(dllName, [connString, "GridUser"]);
-                    }
-
-                    if (m_Database_griduser != null && m_Database_regions != null)
-                    {
-                        stats_available = true;
-                        _log.Debug("[GRID INFO SERVICE]: Grid Stats enabled");
+                        if(m_Database_regions != null)
+                        {
+                            m_Database_griduser = serviceBase.LoadPlugin<IGridUserData>(dllName, [connString, "GridUser"]);
+                            if (m_Database_griduser != null)
+                            {
+                                stats_available = true;
+                                _log.Debug("[GRID INFO SERVICE]: Grid Stats enabled");
+                            }
+                        }
                     }
                 }
                 if (!stats_available)
@@ -151,8 +152,7 @@ namespace OpenSim.Server.Handlers.Grid
                     _info["homealias"] = OSD.FromString(tmp);
 
                 _info.TryGetValue("gatekeeper", out tmp);
-                tmp = Util.GetConfigVarFromSections<string>(m_Config, "GatekeeperURI",
-                    new string[] { "Startup", "Hypergrid" }, tmp);
+                tmp = Util.GetConfigVarFromSections<string>(m_Config, "GatekeeperURI", ["Startup", "Hypergrid"], tmp);
                 if (!string.IsNullOrEmpty(tmp))
                     _info["gatekeeper"] = OSD.FromString(tmp);
 
@@ -174,9 +174,9 @@ namespace OpenSim.Server.Handlers.Grid
             _log.Warn("[GRID INFO SERVICE]: found no [GridInfoService] section in your configuration files");
             _log.Warn("[GRID INFO SERVICE]: trying to guess sensible defaults, you might want to provide better ones:");
 
-            foreach (string k in _info.Keys)
+            foreach (KeyValuePair<string, string> k in _info)
             {
-                _log.WarnFormat("[GRID INFO SERVICE]: {0}: {1}", k, _info[k]);
+                _log.Warn($"[GRID INFO SERVICE]: {k.Key}: {k.Value}");
             }
         }
 
@@ -277,7 +277,7 @@ namespace OpenSim.Server.Handlers.Grid
                 foreach (RegionData region in regions)
                 {
                     // Count individual region equivalent
-                    region_count += (region.sizeX / 256) * (region.sizeY / 256);
+                    region_count += (region.sizeX * region.sizeY) >> 16;
                 }
                 regions = null;
 
@@ -291,8 +291,8 @@ namespace OpenSim.Server.Handlers.Grid
                     if (!griduser.UserID.Contains(';'))
                         residents++;
 
-                    griduser.Data.TryGetValue("Login", out string login);
-                    if (int.TryParse(login, out int last_login))
+                    if(griduser.Data.TryGetValue("Login", out string login) &&
+                            int.TryParse(login, out int last_login))
                     {
                         if (last_login == 0)
                             continue;
@@ -305,7 +305,7 @@ namespace OpenSim.Server.Handlers.Grid
             }
             catch (Exception ex)
             {
-                _log.ErrorFormat("[GRID INFO SERVICE]: Could not fetch grid stats: {0}", ex.Message);
+                _log.Error($"[GRID INFO SERVICE]: Could not fetch grid stats: {ex.Message}");
             }
 
             _stats["residents"] = residents.ToString();
