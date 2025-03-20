@@ -145,6 +145,11 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 sceneObject.RootPart.KeyframeMotion = KeyframeMotion.FromData(sceneObject, Convert.FromBase64String(innerkeytxt));
             }
 
+            if (reader.Name == "StartStr" && reader.NodeType == XmlNodeType.Element)
+            {
+                sceneObject.RezStringParameter = reader.ReadElementContentAsString();
+            }
+
             // Script state may, or may not, exist. Not having any, is NOT
             // ever a problem.
             sceneObject.LoadScriptState(reader);
@@ -254,6 +259,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 writer.WriteEndElement();
             }
 
+            if(sceneObject.RezStringParameter is not null)
+                writer.WriteElementString("StartStr", sceneObject.RezStringParameter);
+
             if (doScriptStates)
                 sceneObject.SaveScriptedState(writer);
 
@@ -324,6 +332,10 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 XmlNodeList keymotion = doc.GetElementsByTagName("KeyframeMotion");
                 if (keymotion.Count > 0)
                     sceneObject.RootPart.KeyframeMotion = KeyframeMotion.FromData(sceneObject, Convert.FromBase64String(keymotion[0].InnerText));
+
+                XmlNodeList StartStr = doc.GetElementsByTagName("StartStr");
+                if (StartStr.Count > 0)
+                    sceneObject.RezStringParameter = StartStr[0].InnerText;
 
                 // Script state may, or may not, exist. Not having any, is NOT
                 // ever a problem.
@@ -1534,6 +1546,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 writer.WriteBase64(data, 0, data.Length);
                 writer.WriteEndElement();
             }
+
+            if(sog.RezStringParameter is not null)
+                writer.WriteElementString("StartStr", sog.RezStringParameter);
 
             writer.WriteEndElement();
         }

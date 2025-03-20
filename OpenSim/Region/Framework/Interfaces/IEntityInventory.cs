@@ -253,6 +253,8 @@ namespace OpenSim.Region.Framework.Interfaces
         bool GetRezReadySceneObjects(TaskInventoryItem item, out List<SceneObjectGroup> objlist, out List<Vector3> veclist, out Vector3 bbox, out float offsetHeight);
         bool GetRezReadySceneObjects(TaskInventoryItem item, UUID newOwner, UUID NewGroup, out List<SceneObjectGroup> objlist, out List<Vector3> veclist, out Vector3 bbox, out float offsetHeight);
 
+        SceneObjectGroup GetSingleRezReadySceneObject(TaskInventoryItem item, UUID NewOwner, UUID NewGroup);
+
         /// <summary>
         /// Update an existing inventory item.
         /// </summary>

@@ -128,7 +128,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
                 scene.AddCommand(
                     "Archiving", this, "save iar",
-                    "save iar [-h|--home=<url>] [--noassets] <first> <last> <inventory path> <password> [<IAR path>] [-c|--creators] [-e|--exclude=<name/uuid>] [-f|--excludefolder=<foldername/uuid>] [-v|--verbose]",
+                    "save iar [-h|--home=<url>] [--noassets | --skipbadassets] <first> <last> <inventory path> <password> [<IAR path>] [-c|--creators] [-e|--exclude=<name/uuid>] [-f|--excludefolder=<foldername/uuid>] [-v|--verbose]",
                     "Save user inventory archive (IAR).",
                     "<first> is the user's first name.\n"
                     + "<last> is the user's last name.\n"
@@ -141,6 +141,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     + "-f|--excludefolder=<folder/uuid> don't save contents of the folder in archive" + Environment.NewLine
                     + "-v|--verbose extra debug messages.\n"
                     + "--noassets stops assets being saved to the IAR."
+                    + "--skipbadassets skips inventory items when their main asset is missing. Avoid to use unless tring to recover a already very damaged inventory"
                     + "--perm=<permissions> stops items with insufficient permissions from being saved to the IAR.\n"
                     + "   <permissions> can contain one or more of these characters: \"C\" = Copy, \"T\" = Transfer, \"M\" = Modify.\n",
                     HandleSaveInvConsoleCommand);
@@ -446,6 +447,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             ops.Add("v|verbose", delegate(string v) { options["verbose"] = v; });
             ops.Add("c|creators", delegate(string v) { options["creators"] = v; });
             ops.Add("noassets", delegate(string v) { options["noassets"] = v != null; });
+            ops.Add("skipbadassets", delegate(string v) { options["skipbadassets"] = v != null; });
             ops.Add("e|exclude=", delegate(string v)
                 {
                     if (!options.ContainsKey("exclude"))
@@ -467,7 +469,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 if (mainParams.Count < 6)
                 {
                     m_log.Error(
-                        "[INVENTORY ARCHIVER]: save iar [-h|--home=<url>] [--noassets] <first> <last> <inventory path> <password> [<IAR path>] [-c|--creators] [-e|--exclude=<name/uuid>] [-f|--excludefolder=<foldername/uuid>] [-v|--verbose]");
+                        "[INVENTORY ARCHIVER]: save iar [-h|--home=<url>] [--noassets | --skipbadassets] <first> <last> <inventory path> <password> [<IAR path>] [-c|--creators] [-e|--exclude=<name/uuid>] [-f|--excludefolder=<foldername/uuid>] [-v|--verbose]");
                     return;
                 }
 

@@ -411,24 +411,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             if (DebugLevel > 0)
                 m_log.Debug($"[ATTACHMENTS MODULE]: Rezzing any attachments for {sp.Name} from simulator-side");
 
-            XmlDocument doc = new();
+            Dictionary<UUID, string> itemData = new();
             IAttachmentsService attServ = m_scene.RequestModuleInterface<IAttachmentsService>();
             if (attServ is not null)
             {
+                // old avination service that was never donated
                 m_log.Debug("[ATTACHMENT]: Loading attachment data from attachment service");
                 string stateData = attServ.Get(sp.UUID.ToString());
                 if (!string.IsNullOrEmpty(stateData))
                 {
                     try
                     {
+                        XmlDocument doc = new();
                         doc.LoadXml(stateData);
-                    }
-                    catch { }
-                }
-            }
-
-            Dictionary<UUID, string> itemData = new();
-
             XmlNodeList nodes = doc.GetElementsByTagName("Attachment");
             if (nodes.Count > 0)
             {
@@ -439,6 +434,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     string xml = elem.InnerXml;
 
                     itemData[new UUID(itemID)] = xml;
+                }
+            }
+                    }
+                    catch { }
                 }
             }
 

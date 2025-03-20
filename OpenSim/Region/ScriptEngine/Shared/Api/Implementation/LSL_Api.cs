@@ -59,6 +59,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using AssetLandmark = OpenSim.Framework.AssetLandmark;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
+using MappingType = OpenMetaverse.MappingType;
 using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
 using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
 using LSL_Key = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
@@ -119,7 +120,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected bool m_AllowGodFunctions;
 
         protected string m_GetWallclockTimeZone = String.Empty;     // Defaults to UTC
-        protected double m_timer = Util.GetTimeStampMS();
+        protected double m_timer = Util.GetTimeStamp();
+        
         protected bool m_waitingForScriptAnswer = false;
         protected bool m_waitingForScriptExperienceAnswer = false;
         protected bool m_automaticLinkPermission = false;
@@ -2437,38 +2439,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected static LSL_String GetTexture(SceneObjectPart part, int face)
         {
+            if (face == ScriptBaseClass.ALL_SIDES)
+                face = 0;
+            if (face < 0)
+                return ScriptBaseClass.NULL_KEY;
+
             Primitive.TextureEntry tex = part.Shape.Textures;
             int nsides = GetNumberOfSides(part);
+            if (face >= nsides)
+                return ScriptBaseClass.NULL_KEY;
 
-            if (face == ScriptBaseClass.ALL_SIDES)
-            {
-                face = 0;
-            }
-
-            if (face >= 0 && face < nsides)
-            {
                 Primitive.TextureEntryFace texface;
                 texface = tex.GetFace((uint)face);
-                string texture = texface.TextureID.ToString();
 
                 lock (part.TaskInventory)
                 {
                     foreach (KeyValuePair<UUID, TaskInventoryItem> inv in part.TaskInventory)
                     {
                         if (inv.Value.AssetID.Equals(texface.TextureID))
-                        {
-                            texture = inv.Value.Name.ToString();
-                            break;
-                        }
+                        return inv.Value.Name.ToString();
                     }
                 }
 
-                return texture;
-            }
-            else
-            {
-                return ScriptBaseClass.NULL_KEY;
-            }
+            return texface.TextureID.ToString();
         }
 
         public void llSetPos(LSL_Vector pos)
@@ -2924,21 +2917,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Float llGetTime()
         {
-            double ScriptTime = Util.GetTimeStampMS() - m_timer;
-            return (float)Math.Round((ScriptTime / 1000.0), 3);
+            double ScriptTime = Util.GetTimeStamp() - m_timer;
+            return Math.Round(ScriptTime, 3);
         }
 
         public void llResetTime()
         {
-            m_timer = Util.GetTimeStampMS();
+            m_timer = Util.GetTimeStamp();
         }
 
         public LSL_Float llGetAndResetTime()
         {
-            double now = Util.GetTimeStampMS();
+            double now = Util.GetTimeStamp();
             double ScriptTime = now - m_timer;
             m_timer = now;
-            return (float)Math.Round((ScriptTime / 1000.0), 3);
+            return Math.Round(ScriptTime, 3);
         }
 
         public void llSound(string sound, double volume, int queue, int loop)
@@ -3425,7 +3418,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 List<SceneObjectGroup> new_groups = World.RezObject(m_host, item, pos, wrot, vel, param, atRoot);
 
                 // If either of these are null, then there was an unknown error.
-                if (new_groups == null)
+                if (new_groups == null || new_groups.Count == 0)
                     return;
 
                 bool notAttachment = !m_host.ParentGroup.IsAttachment;
@@ -3445,14 +3438,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     if (notAttachment)
                     {
-                        float groupmass = group.GetMass();
-
                         PhysicsActor pa = group.RootPart.PhysActor;
 
                         //Recoil.
                         if (pa != null && pa.IsPhysical && !((Vector3)vel).IsZero())
                         {
-                            Vector3 recoil = -vel * groupmass * m_recoilScaleFactor;
+                            Vector3 recoil = -vel * group.GetMass() * m_recoilScaleFactor;
                             if (!recoil.IsZero())
                             {
                                 llApplyImpulse(recoil, 0);
@@ -3469,6 +3460,514 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llRezObject(string inventory, LSL_Vector pos, LSL_Vector vel, LSL_Rotation rot, int param)
         {
             doObjectRez(inventory, pos, vel, rot, param, false);
+        }
+
+        public LSL_Key llRezObjectWithParams(string inventory, LSL_List lparam)
+        {
+            /* flags not supported
+             * REZ_FLAG_DIE_ON_NOENTRY
+             * REZ_FLAG_NO_COLLIDE_OWNER
+             * REZ_FLAG_NO_COLLIDE_FAMILY
+             *
+             * parameters not supported
+             * REZ_ACCEL
+             * REZ_DAMAGE
+             * REZ_DAMAGE_TYPE
+             * REZ_OMEGA only does viewer side lltargetomega
+             */
+
+            if (string.IsNullOrEmpty(inventory))
+                return LSL_Key.NullKey;
+
+            TaskInventoryItem item = m_host.Inventory.GetInventoryItem(inventory);
+            if (item == null)
+            {
+               Error("llRezObjectWithParams", "Can't find object '" + inventory + "'");
+               return LSL_Key.NullKey;
+            }
+
+            if (item.InvType != (int)InventoryType.Object)
+            {
+               Error("llRezObjectWithParams", "Can't create requested object; object is missing from database");
+               return LSL_Key.NullKey;
+            }
+
+            int flags = 0;
+            Vector3 pos = Vector3.Zero;
+            Vector3 vel = Vector3.Zero;
+            Quaternion rot = Quaternion.Identity;
+            Vector3 acel = Vector3.Zero;
+            Vector3 omega = Vector3.Zero;
+            float omegaSpin = 0;
+            float omegaGain = 0;
+
+            float damage = 0;
+
+            string sound = null;
+            float soundVol = 0;
+            bool  soundLoop = false;
+
+            string collisionSound = null;
+            float CollisionSoundVol = 0;
+
+            int param = 0;
+
+            Vector3 lockAxis = Vector3.Zero;
+
+            string stringparam = null;
+            bool atRoot = false;
+
+            if(lparam != null && lparam.Length > 0)
+            {
+                try
+                {
+                    int idx = 0;
+                    while (idx < lparam.Length)
+                    {
+                        int rezrelative = 0;
+                        int code = lparam.GetIntegerItem(idx++);
+                        switch(code)
+                        {
+                            case ScriptBaseClass.REZ_PARAM:
+                                try
+                                {
+                                    param = lparam.GetIntegerItem(idx);
+                                }
+                                catch (InvalidCastException)
+                                {
+                                    throw new InvalidCastException($"arg #{idx} must a integer");
+                                }
+                                break;
+
+                            case ScriptBaseClass.REZ_FLAGS:
+                                try
+                                {
+                                    flags = lparam.GetIntegerItem(idx);
+                                }
+                                catch (InvalidCastException)
+                                {
+                                    throw new InvalidCastException($"arg #{idx} must a integer");
+                                }
+                                break;
+
+                            case ScriptBaseClass.REZ_POS:
+                                try
+                                {
+                                    pos = lparam.GetVector3Item(idx);
+                                }
+                                catch (InvalidCastException)
+                                {
+                                    throw new InvalidCastException($"arg #{idx} must be vector");
+                                }
+
+                                idx++;
+                                try
+                                {
+                                    rezrelative = lparam.GetIntegerItem(idx);
+                                }
+                                catch (InvalidCastException)
+                                {
+                                    throw new InvalidCastException($"arg #{idx} must be integer");
+                                }
+
+                                idx++;
+                                int rezAtRot = 0;
+                                try
+                                {
+                                    rezAtRot = lparam.GetIntegerItem(idx);
+                                    atRoot = rezAtRot != 0;
+                                }
+                                catch (InvalidCastException)
+                                {
+                                    throw new InvalidCastException($"arg #{idx} must be integer");
+                                }
+
+                                if(rezrelative != 0)
+                                {
+                                    if(pos.LengthSquared() > m_Script10mDistanceSquare)
+                                        return LSL_Key.NullKey;
+                                    pos += m_host.GetWorldPosition();
+                                }
+                                else if ((pos - m_host.GetWorldPosition()).LengthSquared() > m_Script10mDistanceSquare)
+                                    return LSL_Key.NullKey;
+
+                                break;
+
+                            case ScriptBaseClass.REZ_ROT:
+                                try
+                                {
+                                    rot = lparam.GetQuaternionItem(idx);
+                                }
+                                catch (InvalidCastException)
+                                {
+                                    throw new InvalidCastException($"arg #{idx} must be rotation");
+                                }
+
+                                idx++;
+                                try
+                                {
+                                    rezrelative = lparam.GetIntegerItem(idx);
+                                }
+                                catch (InvalidCastException)
+                                {
+                                    throw new InvalidCastException($"arg #{idx} must be integer");
+                                }
+
+                                if(rezrelative > 0)
+                                    rot *= m_host.GetWorldRotation();
+
+                                rot.Normalize();
+                                break;
+
+                            case ScriptBaseClass.REZ_VEL:
+                                try
+                                {
+                                    vel = lparam.GetVector3Item(idx);
+                                }
+                                catch (InvalidCastException)
+                                {
+                                    throw new InvalidCastException($"arg #{idx} must be vector");
+                                }
+
+                                idx++;
+                                try
+                                {
+                                    rezrelative = lparam.GetIntegerItem(idx);
+                                }
+                                catch (InvalidCastException)
+                                {
+                                    throw new InvalidCastException($"arg #{idx} must be integer");
+                                }
+
+                                idx++;
+                                int addVel = 0;
+                                try
+                                {
+                                    addVel = lparam.GetIntegerItem(idx);
+                                }
+                                catch (InvalidCastException)
+                                {
+                                    throw new InvalidCastException($"arg #{idx} must be integer");
+                                }
+
+                                if(rezrelative > 0)
+                                    vel *= m_host.GetWorldRotation();
+                                if(addVel > 0)
+                                    vel += m_host.ParentGroup.Velocity;
+
+                                break;
+
+                            case ScriptBaseClass.REZ_ACCEL:
+                                try
+                                {
+                                    acel = lparam.GetVector3Item(idx);
+                                }
+                                catch (InvalidCastException)
+                                {
+                                    throw new InvalidCastException($"arg #{idx} must be vector");
+                                }
+
+                                idx++;
+                                try
+                                {
+                                    rezrelative = lparam.GetIntegerItem(idx);
+                                }
+                                catch (InvalidCastException)
+                                {
+                                    throw new InvalidCastException($"arg #{idx} must be integer");
+                                }
+
+                                break;
+
+                            case ScriptBaseClass.REZ_OMEGA:
+                                try
+                                {
+                                    omega = lparam.GetVector3Item(idx);
+                                }
+                                catch (InvalidCastException)
+                                {
+                                    throw new InvalidCastException($"arg #{idx} must be vector");
+                                }
+
+                                idx++;
+                                try
+                                {
+                                    rezrelative = lparam.GetIntegerItem(idx);
+                                    if(rezrelative > 0)
+                                        omega *= m_host.GetWorldRotation();
+                                }
+                                catch (InvalidCastException)
+                                {
+                                    throw new InvalidCastException($"arg #{idx} must be integer");
+                                }
+
+                                idx++;
+                                try
+                                {
+                                    omegaSpin = lparam.GetFloatItem(idx);
+                                }
+                                catch (InvalidCastException)
+                                {
+                                    throw new InvalidCastException($"arg #{idx} must be float");
+                                }
+
+                                idx++;
+                                try
+                                {
+                                    omegaGain = lparam.GetFloatItem(idx);
+                                }
+                                catch (InvalidCastException)
+                                {
+                                    throw new InvalidCastException($"arg #{idx} must be float");
+                                }
+
+                                break;
+
+                            case ScriptBaseClass.REZ_DAMAGE:
+                                try
+                                {
+                                    damage = lparam.GetFloatItem(idx);
+                                }
+                                catch (InvalidCastException)
+                                {
+                                    throw new InvalidCastException($"arg #{idx} must be float");
+                                }
+                                break;
+
+                            case ScriptBaseClass.REZ_SOUND:
+                                try
+                                {
+                                    sound = lparam.GetStringItem(idx);
+                                }
+                                catch (InvalidCastException)
+                                {
+                                    throw new InvalidCastException($"arg #{idx} must be string");
+                                }
+
+                                idx++;
+                                try
+                                {
+                                    soundVol = lparam.GetFloatItem(idx);
+                                }
+                                catch (InvalidCastException)
+                                {
+                                    throw new InvalidCastException($"arg #{idx} must be float");
+                                }
+
+                                idx++;
+                                try
+                                {
+                                    soundLoop = lparam.GetIntegerItem(idx) > 0;
+                                }
+                                catch (InvalidCastException)
+                                {
+                                    throw new InvalidCastException($"arg #{idx} must be integer");
+                                }
+                                break;
+
+                            case ScriptBaseClass.REZ_SOUND_COLLIDE:
+                                try
+                                {
+                                    collisionSound = lparam.GetStringItem(idx);
+                                }
+                                catch (InvalidCastException)
+                                {
+                                    throw new InvalidCastException($"arg #{idx} must be string");
+                                }
+
+                                idx++;
+                                try
+                                {
+                                    CollisionSoundVol = lparam.GetFloatItem(idx);
+                                }
+                                catch (InvalidCastException)
+                                {
+                                    throw new InvalidCastException($"arg #{idx} must be float");
+                                }
+                                break;
+
+                            case ScriptBaseClass.REZ_LOCK_AXES:
+                                try
+                                {
+                                    lockAxis = lparam.GetVector3Item(idx);
+                                }
+                                catch (InvalidCastException)
+                                {
+                                    throw new InvalidCastException($"arg #{idx} must be vector");
+                                }
+                                break;
+                            case ScriptBaseClass.REZ_DAMAGE_TYPE:
+                                try
+                                {
+                                    int damageType = lparam.GetIntegerItem(idx);
+                                }
+                                catch (InvalidCastException)
+                                {
+                                    throw new InvalidCastException($"arg #{idx} must be integer");
+                                }
+                                break;
+
+                            case ScriptBaseClass.REZ_PARAM_STRING:
+                                try
+                                {
+                                    stringparam = lparam.GetStringItem(idx);
+                                }
+                                catch (InvalidCastException)
+                                {
+                                    throw new InvalidCastException($"arg #{idx} must be string");
+                                }
+
+                                _ = Utils.osUTF8GetBytesCount(stringparam, 1024, out int maxsourcelen);
+                                if(maxsourcelen < stringparam.Length)
+                                    stringparam = stringparam[..maxsourcelen];
+                                break;
+
+                            default:
+                                Error("llRezObjectWithParams", $"Unknown parameter {code} at {idx}");
+                                return LSL_Key.NullKey;
+                        }
+                        idx++;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Error("llRezObjectWithParams", "error " + e.Message);
+                    return LSL_Key.NullKey;
+                }
+            }
+
+            UUID newID = UUID.Random();
+
+            Util.FireAndForget(x =>
+            {
+                SceneObjectGroup sog = m_host.Inventory.GetSingleRezReadySceneObject(item, m_host.OwnerID, m_host.GroupID);
+                if(sog is null)
+                    return;
+
+                int totalPrims  = sog.PrimCount;
+
+                if (!World.Permissions.CanRezObject(totalPrims, m_host.OwnerID, pos))
+                    return;
+
+                if (!World.Permissions.BypassPermissions())
+                {
+                    if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
+                        m_host.Inventory.RemoveInventoryItem(item.ItemID);
+                }
+
+                //  position adjust
+                if (!atRoot && totalPrims > 1) // nothing to do on a single prim
+                {
+                    pos -= sog.GetGeometricCenter() * rot;
+                }
+
+                if (sog.IsAttachment == false && sog.RootPart.Shape.State != 0)
+                {
+                    sog.RootPart.AttachedPos = sog.AbsolutePosition;
+                    sog.RootPart.Shape.LastAttachPoint = (byte)sog.AttachmentPoint;
+                }
+
+                sog.RezzerID = m_host.ParentGroup.RootPart.UUID;
+                sog.UUID = newID;
+
+                // We can only call this after adding the scene object, since the scene object references the scene
+                // to find out if scripts should be activated at all.
+ 
+                SceneObjectPart groot = sog.RootPart;
+
+                if(groot.PhysActor != null)
+                    groot.PhysActor.Building = true;
+
+                // objects rezzed with this method are die_at_edge by default.
+                groot.SetDieAtEdge(true);
+
+                if((flags & ScriptBaseClass.REZ_FLAG_TEMP) != 0)
+                    groot.AddFlag(PrimFlags.TemporaryOnRez);
+                else 
+                    groot.RemFlag(PrimFlags.TemporaryOnRez);
+
+                if(!sog.IsVolumeDetect && (flags & ScriptBaseClass.REZ_FLAG_PHYSICAL) != 0)
+                {
+                    groot.KeyframeMotion?.Stop();
+                    groot.KeyframeMotion = null;
+                    groot.AddFlag(PrimFlags.Physics);
+                }
+                else
+                    groot.RemFlag(PrimFlags.Physics);
+
+                if((flags & ScriptBaseClass.REZ_FLAG_PHANTOM) != 0)
+                    groot.AddFlag(PrimFlags.Phantom);
+                else if (!sog.IsVolumeDetect)
+                    groot.RemFlag(PrimFlags.Phantom);
+
+                sog.BlockGrabOverride = (flags & ScriptBaseClass.REZ_FLAG_BLOCK_GRAB_OBJECT) != 0;
+
+                if(groot.PhysActor != null)
+                    groot.PhysActor.Building = false;
+
+                sog.RezStringParameter = stringparam;
+
+                sog.InvalidateEffectivePerms();
+                if(omegaGain > 1e-6)
+                {
+                    groot.UpdateAngularVelocity(omega * omegaSpin);
+                }
+
+                if(lockAxis.IsNotZero())
+                {
+                    byte axislock = 0;
+                    if(lockAxis.X != 0)
+                        axislock = 2;
+                    if(lockAxis.Y != 0)
+                        axislock |= 4;
+                    if(lockAxis.X != 0)
+                        axislock |= 8;
+                    groot.RotationAxisLocks = axislock;
+                }
+
+                if(collisionSound != null)
+                {
+                    UUID soundID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, collisionSound, AssetType.Sound);
+                    if(soundID.IsNotZero())
+                    {
+                        groot.CollisionSoundType = 1;
+                        groot.CollisionSoundVolume = CollisionSoundVol;
+                        groot.CollisionSound = soundID;
+                    }
+                    else
+                        groot.CollisionSoundType = -1;
+                }
+
+                World.AddNewSceneObject(sog, true, pos, rot, vel);
+
+                sog.CreateScriptInstances(param, true, m_ScriptEngine.ScriptEngineName, 3);
+                sog.ResumeScripts();
+
+                sog.ScheduleGroupForUpdate(PrimUpdateFlags.FullUpdatewithAnimMatOvr);
+
+                m_ScriptEngine.PostObjectEvent(m_host.LocalId, new EventParams(
+                        "object_rez",
+                        [
+                            new LSL_String(groot.UUID.ToString())
+                        ],
+                        Array.Empty<DetectParams>()));
+
+                if(soundVol > 0 && !string.IsNullOrEmpty(sound) && m_SoundModule is not null)
+                {
+                    UUID soundID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound, AssetType.Sound);
+                    if(soundID.IsNotZero())
+                    {
+                        if(soundLoop)
+                            m_SoundModule.LoopSound(groot, soundID, soundVol, false, false);
+                        else
+                            m_SoundModule.SendSound(groot, soundID, soundVol, false, 0, false, false);
+                    }
+                }
+
+            }, null, "LSL_Api.ObjectRezWithParam");
+
+            ScriptSleep(m_sleepMsOnRezAtRoot);
+            return new(newID.ToString());
         }
 
         public void llLookAt(LSL_Vector target, double strength, double damping)
@@ -4104,6 +4603,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return m_ScriptEngine.GetStartParameter(m_item.ItemID);
         }
 
+        public LSL_String  llGetStartString()
+        {
+            if(string.IsNullOrEmpty(m_host.ParentGroup.RezStringParameter))
+                return LSL_String.Empty;
+            return new(m_host.ParentGroup.RezStringParameter);
+        }
+
         public void llRequestPermissions(string agent, int perm)
         {
             if (!UUID.TryParse(agent, out UUID agentID) || agentID.IsZero())
@@ -4586,37 +5092,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// The number of a link in the linkset or a link-related constant.
         /// </param>
         /// <returns>
-        /// The name determined to match the specified link number.
+        /// The name determined to match the specified link number, NULL_KEY
         /// </returns>
-        /// <remarks>
-        /// The rules governing the returned name are not simple. The only
-        /// time a blank name is returned is if the target prim has a blank
-        /// name. If no prim with the given link number can be found then
-        /// usually NULL_KEY is returned but there are exceptions.
-        ///
-        /// In a single unlinked prim, A call with 0 returns the name, all
-        /// other values for link number return NULL_KEY
-        ///
-        /// In link sets it is more complicated.
-        ///
-        /// If the script is in the root prim:-
-        ///     A zero link number returns NULL_KEY.
-        ///     Positive link numbers return the name of the prim, or NULL_KEY
-        ///     if a prim does not exist at that position.
-        ///     Negative link numbers return the name of the first child prim.
-        ///
-        /// If the script is in a child prim:-
-        ///     Link numbers 0 or 1 return the name of the root prim.
-        ///     Positive link numbers return the name of the prim or NULL_KEY
-        ///     if a prim does not exist at that position.
-        ///     Negative numbers return the name of the root prim.
-        ///
-        /// References
-        /// http://lslwiki.net/lslwiki/wakka.php?wakka=llGetLinkName
-        /// Mentions NULL_KEY being returned
-        /// http://wiki.secondlife.com/wiki/LlGetLinkName
-        /// Mentions using the LINK_* constants, some of which are negative
-        /// </remarks>
+     
         public LSL_String llGetLinkName(int linknum)
         {
 
@@ -20544,6 +21022,31 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             return new LSL_Integer(1);
         }
+
+        public LSL_Integer llGetLinkSitFlags(LSL_Integer linknum)
+        {
+            SceneObjectPart part = linknum == ScriptBaseClass.LINK_THIS ? m_host : m_host.ParentGroup.GetLinkNumPart(linknum);
+            if (part is not null)
+            {
+                int flags = ScriptBaseClass.SIT_FLAG_OPENSIMFORCED;
+                if(part.IsSitTargetSet)
+                    flags |= 0x01;
+                return new LSL_Integer(flags);
+            }
+            return new LSL_Integer(0);
+        }
+
+        public void llSetLinkSitFlags(LSL_Integer linknum, LSL_Integer flags)
+        {
+            // does nothing since we do not have any of the flags
+            /*
+            SceneObjectPart part = linknum == ScriptBaseClass.LINK_THIS ? m_host : m_host.ParentGroup.GetLinkNumPart(linknum);
+            if (part is not null)
+            {
+            }
+            */
+        }
+
     }
 
     public class NotecardCache

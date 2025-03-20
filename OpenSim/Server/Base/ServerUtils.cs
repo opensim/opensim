@@ -543,19 +543,21 @@ namespace OpenSim.Server.Base
 
         public static Dictionary<string, object> ParseXmlResponse(string data)
         {
+            if(!string.IsNullOrEmpty(data))
+            {
             try
             {
                 using XmlReader xr = XmlReader.Create(new StringReader(data), 
                     ParseXmlStringResponseXmlReaderSettings, ParseXmlResponseXmlParserContext);
-                     if(!xr.ReadToFollowing("ServerResponse"))
-                            return new Dictionary<string, object>();
+                    if (xr.ReadToFollowing("ServerResponse"))
                     return ScanXmlResponse(xr);
                 }
             catch (Exception e)
             {
-                m_log.DebugFormat("[serverUtils.ParseXmlResponse]: failed error: {0}\n --string:\n{1}\n", e.Message, data);
+                    m_log.Debug($"[serverUtils.ParseXmlResponse]: failed error: {e.Message}\n --string:\n{data}\n");
             }
-            return new Dictionary<string, object>();
+            }
+            return [];
         }
 
         private static readonly XmlReaderSettings ParseXmlStreamResponseXmlReaderSettings = new()

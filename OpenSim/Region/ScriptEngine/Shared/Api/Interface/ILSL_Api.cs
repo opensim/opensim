@@ -524,8 +524,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
       LSL_Integer llIsFriend(LSL_Key agent_id);
 
-      LSL_Integer llDerezObject(LSL_Key objectUUID, LSL_Integer flag);
-
       void llRequestExperiencePermissions(string agent_id, string unused);
       LSL_Integer llAgentInExperience(string agent_id);
       LSL_List llGetExperienceDetails(string experience_key);
@@ -540,5 +538,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
       LSL_Key llDataSizeKeyValue();
       LSL_Integer llSetAgentEnvironment(LSL_Key agent_id, LSL_Float transition, LSL_List param_list);
       LSL_Integer llReplaceAgentEnvironment(LSL_Key agent_id, LSL_Float transition, LSL_String environment);
+
+      LSL_Integer llDerezObject(LSL_Key objectUUID, LSL_Integer flag);
+      LSL_Key llRezObjectWithParams(string inventory, LSL_List lparam);
+      LSL_String llGetStartString();
+      LSL_Integer llGetLinkSitFlags(LSL_Integer linknum);
+      void llSetLinkSitFlags(LSL_Integer linknum, LSL_Integer flags);
     }
 }

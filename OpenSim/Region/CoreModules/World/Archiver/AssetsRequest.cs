@@ -150,7 +150,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                     if(asset == null)
                     {
-                        m_notFoundAssetUuids.Add(new UUID(thiskey));
+                        m_notFoundAssetUuids.Add(kvp.Key);
                         continue;
                     }
 

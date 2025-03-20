@@ -1093,6 +1093,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                 group.SetGroup(groupID, remoteClient);
 
+                group.RezStringParameter = null;
+
                 // If we're rezzing an attachment then don't ask
                 // AddNewSceneObject() to update the client since
                 // we'll be doing that later on.  Scheduling more than

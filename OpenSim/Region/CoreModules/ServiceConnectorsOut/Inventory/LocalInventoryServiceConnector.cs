@@ -46,9 +46,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "LocalInventoryServicesConnector")]
     public class LocalInventoryServicesConnector : ISharedRegionModule, IInventoryService
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// Scene used by this module.  This currently needs to be publicly settable for HGInventoryBroker.
@@ -62,10 +60,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         {
             get
             {
-                if (m_UserManager == null)
-                {
-                    m_UserManager = Scene.RequestModuleInterface<IUserManagement>();
-                }
+                m_UserManager ??= Scene.RequestModuleInterface<IUserManagement>();
                 return m_UserManager;
             }
         }
@@ -105,10 +100,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                         return;
                     }
 
-                    Object[] args = new Object[] { source };
                     m_log.DebugFormat("[LOCAL INVENTORY SERVICES CONNECTOR]: Service dll = {0}", serviceDll);
 
-                    m_InventoryService = ServerUtils.LoadPlugin<IInventoryService>(serviceDll, args);
+                    m_InventoryService = ServerUtils.LoadPlugin<IInventoryService>(serviceDll, [source]);
 
                     if (m_InventoryService == null)
                     {
@@ -137,8 +131,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
             scene.RegisterModuleInterface<IInventoryService>(this);
 
-            if (Scene == null)
-                Scene = scene;
+            Scene ??= scene;
         }
 
         public void RemoveRegion(Scene scene)
@@ -189,7 +182,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                     foreach (InventoryItemBase item in items)
                         if (!string.IsNullOrEmpty(item.CreatorData))
                             UserManager.AddCreatorUser(item.CreatorIdAsUuid, item.CreatorData);
-                }, null, string.Format("GetFolderContent (user {0}, folder {1})", userID, folderID));
+                }, null, $"GetFolderContent (user {userID}, folder {folderID})");
             }
 
             return invCol;

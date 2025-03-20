@@ -514,7 +514,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 XmlElement scpttimeN = (XmlElement)scriptStateN.SelectSingleNode("scrpTime");
                 if (scpttimeN != null && Double.TryParse(scpttimeN.InnerText, out double t))
                 {
-                    m_XMRLSLApi.SetLSLTimer(Util.GetTimeStampMS() - t);
+                    m_XMRLSLApi.SetLSLTimerMS(Util.GetTimeStampMS() - t);
                 }
             }
 

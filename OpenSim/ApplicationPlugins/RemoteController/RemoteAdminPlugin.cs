@@ -878,7 +878,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     int estateID = estateIDs[0];
 
                     region.EstateSettings = m_application.EstateDataService.LoadEstateSettings(region.RegionID, false);
-
                     if (region.EstateSettings.EstateID != estateID)
                     {
                         // The region is already part of an estate, but not the one we want.
