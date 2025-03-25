@@ -1687,45 +1687,44 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if(!UUID.TryParse(reqid, out UUID id) || id.IsZero())
                 return;
 
-            // Make sure the content type is text/plain to start with
-            m_UrlModule.HttpContentType(id, "text/plain");
-
-            // Is the object owner online and in the region
-            ScenePresence agent = World.GetScenePresence(m_host.ParentGroup.OwnerID);
-            if (agent == null || agent.IsChildAgent || agent.IsDeleted)
-                return;  // Fail if the owner is not in the same region
-
-            // Is it the embeded browser?
-            string userAgent = m_UrlModule.GetHttpHeader(id, "user-agent");
-            if(string.IsNullOrEmpty(userAgent))
-                return;
-
-            if (userAgent.IndexOf("SecondLife") < 0)
-                return; // Not the embedded browser
-
-            // Use the IP address of the client and check against the request
-            // seperate logins from the same IP will allow all of them to get non-text/plain as long
-            // as the owner is in the region. Same as SL!
-            string logonFromIPAddress = agent.ControllingClient.RemoteEndPoint.Address.ToString();
-            if (string.IsNullOrEmpty(logonFromIPAddress))
-                return;
-
-            string requestFromIPAddress = m_UrlModule.GetHttpHeader(id, "x-remote-ip");
-            //m_log.Debug("IP from header='" + requestFromIPAddress + "' IP from endpoint='" + logonFromIPAddress + "'");
-            if (requestFromIPAddress == null)
-                return;
-
-            requestFromIPAddress = requestFromIPAddress.Trim();
-
-            // If the request isnt from the same IP address then the request cannot be from the owner
-            if (!requestFromIPAddress.Equals(logonFromIPAddress))
-                return;
-
             switch (type)
             {
                 case ScriptBaseClass.CONTENT_TYPE_HTML:
+                {
+                    // Make sure the content type is text/plain to start with
+                    m_UrlModule.HttpContentType(id, "text/plain");
+
+                    // Is the object owner online and in the region
+                    ScenePresence agent = World.GetScenePresence(m_host.ParentGroup.OwnerID);
+                    if (agent == null || agent.IsChildAgent || agent.IsDeleted)
+                        return;  // Fail if the owner is not in the same region
+
+                    // Is it the embeded browser?
+                    string userAgent = m_UrlModule.GetHttpHeader(id, "user-agent");
+                    if(string.IsNullOrEmpty(userAgent) || userAgent.IndexOf("SecondLife") < 0)
+                        return; // Not the embedded browser
+
+                    // Use the IP address of the client and check against the request
+                    // seperate logins from the same IP will allow all of them to get non-text/plain as long
+                    // as the owner is in the region. Same as SL!
+                    string logonFromIPAddress = agent.ControllingClient.RemoteEndPoint.Address.ToString();
+                    if (string.IsNullOrEmpty(logonFromIPAddress))
+                        return;
+
+                    string requestFromIPAddress = m_UrlModule.GetHttpHeader(id, "x-remote-ip");
+                    //m_log.Debug("IP from header='" + requestFromIPAddress + "' IP from endpoint='" + logonFromIPAddress + "'");
+                    if (requestFromIPAddress == null)
+                        return;
+
+                    requestFromIPAddress = requestFromIPAddress.Trim();
+
+                    // If the request isnt from the same IP address then the request cannot be from the owner
+                    if (!requestFromIPAddress.Equals(logonFromIPAddress))
+                        return;
+
                     m_UrlModule.HttpContentType(id, "text/html");
                     break;
+                }
                 case ScriptBaseClass.CONTENT_TYPE_XML:
                     m_UrlModule.HttpContentType(id, "application/xml");
                     break;
