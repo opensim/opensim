@@ -64,7 +64,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FloodBrushes
                     {
                         if (n >= 0 && n < map.Width)
                         {
-                            for (int l = y - sy; l < y + sy; ++l)
+                            for (int l = y - sy; l <= y + sy; ++l)
                             {
                                 if (l >= 0 && l < map.Height)
                                 {
