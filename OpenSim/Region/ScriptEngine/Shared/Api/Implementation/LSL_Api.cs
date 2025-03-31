@@ -6544,6 +6544,66 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return -1;
         }
 
+        public LSL_Integer llListFindListNext(LSL_List src, LSL_List test, LSL_Integer instance)
+        {
+            if (src.Length == 0 && test.Length == 0)
+                return 0;
+            if (test.Length == 0)
+                return instance;
+            if (test.Length > src.Length)
+                return -1;
+
+            int count = Math.Abs(instance);
+
+            if (instance >= 0)
+            {
+                int match = 0;
+                count++;
+                for (int i = 0; i < src.Length; i++)
+                {
+                    if (LSL_List.ListFind_areEqual(src[i], test[match]))
+                    {
+                        match++;
+                        if (match == test.Length)
+                        {
+                            count--;
+                            if (count == 0)
+                                return i - test.Length + 1;
+                            match = 0;
+                        }
+                    }
+                    else
+                    {
+                        match = LSL_List.ListFind_areEqual(src[i], test[0]) ? 1 : 0;
+                    }
+                }
+            }
+            else if (instance < 0)
+            {
+                int match = test.Length - 1;
+                for (int i = src.Length - 1; i >= 0; i--)
+                {
+                    if (LSL_List.ListFind_areEqual(src[i], test[match]))
+                    {
+                        match--;
+                        if (match < 0)
+                        {
+                            count--;
+                            if (count == 0)
+                                return i;
+                            match = test.Length - 1;
+                        }
+                    }
+                    else
+                    {
+                        match = test.Length - 1;
+                    }
+                }
+            }
+
+            return -1;
+        }
+
         public LSL_Integer llListFindStrided(LSL_List src, LSL_List test, LSL_Integer lstart, LSL_Integer lend, LSL_Integer lstride)
         {
             if (src.Length == 0)

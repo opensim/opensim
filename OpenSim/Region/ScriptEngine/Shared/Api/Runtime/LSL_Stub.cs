@@ -1287,6 +1287,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_Integer llListFindListNext(LSL_List src, LSL_List test, LSL_Integer instance)
+        {
+            return m_LSL_Functions.llListFindListNext(src, test, instance);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public LSL_Integer llListFindStrided(LSL_List src, LSL_List test, LSL_Integer lstart, LSL_Integer lend, LSL_Integer lstride)
         {
             return m_LSL_Functions.llListFindStrided(src, test, lstart, lend, lstride);
