@@ -13638,6 +13638,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return (int)tmp;
         }
 
+        public LSL_String llGetInventoryDesc(string name)
+        {
+            TaskInventoryItem item = m_host.Inventory.GetInventoryItem(name);
+            if (item is null)
+            {
+                Error("llGetInventoryDesc", "Item " + name + " not found");
+                return new LSL_String();
+            }
+
+            return new LSL_String(item.Description);
+        }
+
         public LSL_Integer llGetInventoryType(string name)
         {
 

@@ -651,6 +651,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_String llGetInventoryDesc(string name)
+        {
+            return m_LSL_Functions.llGetInventoryDesc(name);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public LSL_Integer llGetInventoryType(string name)
         {
             return m_LSL_Functions.llGetInventoryType(name);
