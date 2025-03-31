@@ -8407,6 +8407,42 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return Util.SHA1Hash(src, Encoding.UTF8).ToLower();
         }
 
+        public LSL_String llHMAC(LSL_String private_key, LSL_String message, LSL_String algo)
+        {
+            if (private_key.Length < 1 || message.Length < 1)
+                return new LSL_String();
+
+            HMAC hasher;
+            switch (algo)
+            {
+                case "md5":
+                    hasher = new HMACMD5(Encoding.UTF8.GetBytes(private_key));
+                    break;
+                case "sha1":
+                    hasher = new HMACSHA1(Encoding.UTF8.GetBytes(private_key));
+                    break;
+                case "sha224":
+                    hasher = new HMACSHA224(Encoding.UTF8.GetBytes(private_key));
+                    break;
+                case "sha256":
+                    hasher = new HMACSHA256(Encoding.UTF8.GetBytes(private_key));
+                    break;
+                case "sha384":
+                    hasher = new HMACSHA384(Encoding.UTF8.GetBytes(private_key));
+                    break;
+                case "sha512":
+                    hasher = new HMACSHA512(Encoding.UTF8.GetBytes(private_key));
+                    break;
+                default:
+                    return new LSL_String();
+            }
+            using (HMAC hmac = hasher)
+            {
+                byte[] hashBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(message));
+                return new LSL_String(BitConverter.ToString(hashBytes).Replace("-", "").ToLower());
+            }
+        }
+
         public LSL_String llSHA256String(LSL_String input)
         {
             byte[] bytes;
@@ -19357,5 +19393,46 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return line;
         }
 
+    }
+
+    public class HMACSHA224 : HMAC
+    {
+        public HMACSHA224(byte[] key)
+        {
+            HashName = "SHA-224";
+            HashSizeValue = 224;
+            base.Key = key;
+            HashAlgorithm = new SHA224Managed();
+        }
+
+        public SHA224Managed HashAlgorithm { get; }
+    }
+
+    public class SHA224Managed : SHA256
+    {
+        public byte[] ComputeHashe(byte[] buffer)
+        {
+            using (SHA256 sha256 = SHA256.Create())
+            {
+                byte[] fullHash = sha256.ComputeHash(buffer);
+                Array.Resize(ref fullHash, 28); // Truncate to 224 bits
+                return fullHash;
+            }
+        }
+
+        public override void Initialize()
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override void HashCore(byte[] array, int ibStart, int cbSize)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override byte[] HashFinal()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
