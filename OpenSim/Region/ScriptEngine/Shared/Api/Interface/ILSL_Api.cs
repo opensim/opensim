@@ -327,6 +327,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llRemoveVehicleFlags(int flags);
            LSL_Key llRequestUserKey(LSL_String username);
            LSL_Key llRequestAgentData(string id, int data);
+          LSL_List llGetVisualParams(string id, LSL_List visualparams);
            LSL_Key llRequestInventoryData(LSL_String name);
               void llRequestPermissions(string agent, int perm);
            LSL_Key llRequestSecureURL();

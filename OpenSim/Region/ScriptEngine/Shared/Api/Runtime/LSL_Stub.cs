@@ -1665,6 +1665,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_List llGetVisualParams(string id, LSL_List visualparams)
+        {
+            return m_LSL_Functions.llGetVisualParams(id, visualparams);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public LSL_Key llRequestInventoryData(LSL_String name)
         {
             return m_LSL_Functions.llRequestInventoryData(name);

@@ -5116,6 +5116,91 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 m_host.PassTouches = false;
         }
 
+        public LSL_List llGetVisualParams(string id, LSL_List visualparams)
+        {
+            if (visualparams.Length < 1)
+                return new LSL_List();
+
+            if (UUID.TryParse(id, out UUID agentid))
+            {
+                ScenePresence agent = World.GetScenePresence(agentid);
+                if (agent is null)
+                    return new LSL_List();
+
+                LSL_List returns = new LSL_List();
+
+                for (int i = 0; i < visualparams.Length; i++)
+                {
+                    switch ((string)visualparams[i])
+                    {
+                        case "33":
+                        case "height":
+                            returns.Add(Encoding.UTF8.GetString(new Byte[] { agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_HEIGHT] }));
+                            break;
+                        case "38":
+                        case "torso_length":
+                            returns.Add(Encoding.UTF8.GetString(new Byte[] { agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_TORSO_LENGTH] })); ;
+                            break;
+                        case "80":
+                        case "male":
+                            returns.Add(Encoding.UTF8.GetString(new Byte[] { agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_MALE] }));
+                            break;
+                        case "198":
+                        case "heel_height":
+                            returns.Add(Encoding.UTF8.GetString(new Byte[] { agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHOES_HEEL_HEIGHT] })); ;
+                            break;
+                        case "503":
+                        case "platform_height":
+                            returns.Add(Encoding.UTF8.GetString(new Byte[] { agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHOES_PLATFORM_HEIGHT] }));
+                            break;
+                        case "616":
+                        case "shoe_height":
+                            returns.Add(Encoding.UTF8.GetString(new Byte[] { agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHOES_SHOE_HEIGHT] }));
+                            break;
+                        case "675":
+                        case "hand_size":
+                            returns.Add(Encoding.UTF8.GetString(new Byte[] { agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_HAND_SIZE] }));
+                            break;
+                        case "682":
+                        case "head_size":
+                            returns.Add(Encoding.UTF8.GetString(new Byte[] { agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_HEAD_SIZE] }));
+                            break;
+                        case "692":
+                        case "leg_length":
+                            returns.Add(Encoding.UTF8.GetString(new Byte[] { agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_LEG_LENGTH] }));
+                            break;
+                        case "693":
+                        case "arm_length":
+                            returns.Add(Encoding.UTF8.GetString(new Byte[] { agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_ARM_LENGTH] }));
+                            break;
+                        case "756":
+                        case "neck_length":
+                            returns.Add(Encoding.UTF8.GetString(new Byte[] { agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_NECK_LENGTH] }));
+                            break;
+                        case "814":
+                        case "waist_height":
+                            returns.Add(Encoding.UTF8.GetString(new Byte[] { agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.PANTS_WAIST_HEIGHT] }));
+                            break;
+                        case "842":
+                        case "hip_length":
+                            returns.Add(Encoding.UTF8.GetString(new Byte[] { agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_HIP_LENGTH] }));
+                            break;
+                        case "11001":
+                        case "hover":
+                            returns.Add(Encoding.UTF8.GetString(new Byte[] { agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_HOVER] }));
+                            break;
+                        default:
+                            returns.Add("");
+                            break;
+                    }
+                }
+
+                if (returns.Length > 0)
+                    return returns;
+            }
+            return new LSL_List();
+        }
+
         public LSL_Key llRequestAgentData(string id, int data)
         {
             if(data < 1 || data > ScriptBaseClass.DATA_PAYINFO)
