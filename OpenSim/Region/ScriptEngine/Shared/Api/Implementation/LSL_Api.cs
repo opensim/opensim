@@ -13056,6 +13056,69 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return ScriptBaseClass.NULL_KEY;
         }
 
+        public LSL_Float llGetSimStats(LSL_Integer stat_type)
+        {
+            switch ((int)stat_type)
+            {
+                case ScriptBaseClass.SIM_STAT_PCT_CHARS_STEPPED:
+                    return 0; // Not implemented
+                case ScriptBaseClass.SIM_STAT_PHYSICS_FPS:
+                    return World.StatsReporter.LastReportedSimStats[(int)StatsIndex.PhysicsFPS];
+                case ScriptBaseClass.SIM_STAT_AGENT_UPDATES:
+                    return World.StatsReporter.LastReportedSimStats[(int)StatsIndex.AgentUpdates];
+                case ScriptBaseClass.SIM_STAT_FRAME_MS:
+                    return World.StatsReporter.LastReportedSimStats[(int)StatsIndex.FrameMS];
+                case ScriptBaseClass.SIM_STAT_NET_MS:
+                    return World.StatsReporter.LastReportedSimStats[(int)StatsIndex.NetMS];
+                case ScriptBaseClass.SIM_STAT_OTHER_MS:
+                    return World.StatsReporter.LastReportedSimStats[(int)StatsIndex.OtherMS];
+                case ScriptBaseClass.SIM_STAT_PHYSICS_MS:
+                    return World.StatsReporter.LastReportedSimStats[(int)StatsIndex.PhysicsMS];
+                case ScriptBaseClass.SIM_STAT_AGENT_MS:
+                    return World.StatsReporter.LastReportedSimStats[(int)StatsIndex.AgentMS];
+                case ScriptBaseClass.SIM_STAT_IMAGE_MS:
+                    return World.StatsReporter.LastReportedSimStats[(int)StatsIndex.ImageMS];
+                case ScriptBaseClass.SIM_STAT_SCRIPT_MS:
+                    return World.StatsReporter.LastReportedSimStats[(int)StatsIndex.ScriptMS];
+                case ScriptBaseClass.SIM_STAT_AGENT_COUNT:
+                    return World.StatsReporter.LastReportedSimStats[(int)StatsIndex.Agents];
+                case ScriptBaseClass.SIM_STAT_CHILD_AGENT_COUNT:
+                    return World.StatsReporter.LastReportedSimStats[(int)StatsIndex.ChildAgents];
+                case ScriptBaseClass.SIM_STAT_ACTIVE_SCRIPT_COUNT:
+                    return World.StatsReporter.LastReportedSimStats[(int)StatsIndex.ActiveScripts];
+                case ScriptBaseClass.SIM_STAT_PACKETS_IN:
+                    return World.StatsReporter.LastReportedSimStats[(int)StatsIndex.InPacketsPerSecond];
+                case ScriptBaseClass.SIM_STAT_PACKETS_OUT:
+                    return World.StatsReporter.LastReportedSimStats[(int)StatsIndex.OutPacketsPerSecond];
+                case ScriptBaseClass.SIM_STAT_ASSET_DOWNLOADS:
+                    return 0; // Not implemented
+                case ScriptBaseClass.SIM_STAT_ASSET_UPLOADS:
+                    return 0; // Not implemented
+                case ScriptBaseClass.SIM_STAT_UNACKED_BYTES:
+                    return World.StatsReporter.LastReportedSimStats[(int)StatsIndex.UnAckedBytes];
+                case ScriptBaseClass.SIM_STAT_PHYSICS_STEP_MS:
+                    return World.StatsReporter.LastReportedSimStats[(int)StatsIndex.SimPhysicsStepMs];
+                case ScriptBaseClass.SIM_STAT_PHYSICS_SHAPE_MS:
+                    return World.StatsReporter.LastReportedSimStats[(int)StatsIndex.SimPhysicsShapeMs];
+                case ScriptBaseClass.SIM_STAT_PHYSICS_OTHER_MS:
+                    return World.StatsReporter.LastReportedSimStats[(int)StatsIndex.SimPhysicsOtherMs];
+                case ScriptBaseClass.SIM_STAT_SCRIPT_EPS:
+                    return World.StatsReporter.LastReportedSimStats[(int)StatsIndex.ScriptEps];
+                case ScriptBaseClass.SIM_STAT_SPARE_MS:
+                    return World.StatsReporter.LastReportedSimStats[(int)StatsIndex.SimSpareMs];
+                case ScriptBaseClass.SIM_STAT_SLEEP_MS:
+                    return World.StatsReporter.LastReportedSimStats[(int)StatsIndex.SimSleepMs];
+                case ScriptBaseClass.SIM_STAT_IO_PUMP_MS:
+                    return World.StatsReporter.LastReportedSimStats[(int)StatsIndex.SimIoPumpTime];
+                case ScriptBaseClass.SIM_STAT_SCRIPT_RUN_PCT:
+                    return World.StatsReporter.LastReportedSimStats[(int)StatsIndex.SimPCTSscriptsRun];
+                case ScriptBaseClass.SIM_STAT_AI_MS:
+                    return World.StatsReporter.LastReportedSimStats[(int)StatsIndex.SimAIStepTimeMS];
+                default:
+                    return 0;
+            }
+        }
+
         public LSL_Key llRequestSimulatorData(string simulator, int data)
         {
             try

@@ -1681,6 +1681,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_LSL_Functions.llRequestSimulatorData(simulator, data);
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_Float llGetSimStats(LSL_Integer stat_type)
+        {
+            return m_LSL_Functions.llGetSimStats(stat_type);
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public LSL_Key llRequestURL()
         {

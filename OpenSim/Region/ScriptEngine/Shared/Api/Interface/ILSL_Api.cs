@@ -330,6 +330,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llRequestPermissions(string agent, int perm);
            LSL_Key llRequestSecureURL();
            LSL_Key llRequestSimulatorData(string simulator, int data);
+         LSL_Float llGetSimStats(LSL_Integer stat_type);
            LSL_Key llRequestURL();
               void llResetLandBanList();
               void llResetLandPassList();
