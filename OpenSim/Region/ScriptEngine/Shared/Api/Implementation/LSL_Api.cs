@@ -5271,6 +5271,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.ParentGroup.Damage = (float)damage;
         }
 
+        public LSL_Float llGetHealth(LSL_String key)
+        {
+            if (UUID.TryParse(key, out UUID agent))
+            {
+                ScenePresence user = World.GetScenePresence(agent);
+                if (user is not null)
+                    return user.Health;
+            }
+            return new LSL_Float(-1.0);
+        }
+
         public void llTeleportAgentHome(string agent)
         {
             if (UUID.TryParse(agent, out UUID agentId) && agentId.IsNotZero())

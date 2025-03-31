@@ -373,6 +373,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llSetColor(LSL_Vector color, int face);
               void llSetContentType(LSL_Key id, LSL_Integer type);
               void llSetDamage(double damage);
+        LSL_Float llGetHealth(LSL_String key);
               void llSetForce(LSL_Vector force, int local);
               void llSetForceAndTorque(LSL_Vector force, LSL_Vector torque, int local);
               void llSetVelocity(LSL_Vector vel, int local);

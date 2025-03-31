@@ -1941,6 +1941,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_Float llGetHealth(LSL_String key)
+        {
+            return m_LSL_Functions.llGetHealth(key);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void llSetForce(LSL_Vector force, int local)
         {
             m_LSL_Functions.llSetForce(force, local);
