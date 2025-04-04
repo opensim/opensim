@@ -6643,9 +6643,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer osListFindListNext(LSL_List src, LSL_List test, LSL_Integer lstart, LSL_Integer lend, LSL_Integer instance)
         {
             if (src.Length == 0)
-                return -1;
+                return test.Length == 0 ? 0 : -1;
+
             if (test.Length == 0)
-                return 0;
+            {
+                if(instance >= 0)
+                    return instance < src.Length ? instance : -1;
+
+                instance += src.Length;
+                return instance >= 0 ? instance : -1;
+            }
+
             if (test.Length > src.Length)
                 return -1;
 
@@ -6670,35 +6678,66 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             else if (end > src.Length - test.Length)
                 end = src.Length - test.Length;
 
-            if(instance < 0)
-                instance = 0;
-            else if (instance > src.Length / test.Length)
-                return -1;
-
-            int nmatchs = 0;
             object test0 = test[0];
-            for (int i = start; i <= end; i++)
+
+            if(instance >= 0)
             {
-                if (LSL_List.ListFind_areEqual(test0, src[i]))
+                if (instance > src.Length / test.Length)
+                    return -1;
+
+                int nmatchs = 0;
+                for (int i = start; i <= end; i++)
                 {
-                    int k = i + 1;
-                    int j = 1;
-                    while(j < test.Length)
+                    if (LSL_List.ListFind_areEqual(test0, src[i]))
                     {
-                        if (!LSL_List.ListFind_areEqual(test[j], src[k]))
-                            break;
-                        ++j;
-                        ++k;
-                    }
+                        int k = i + 1;
+                        int j = 1;
+                        while(j < test.Length)
+                        {
+                            if (!LSL_List.ListFind_areEqual(test[j], src[k]))
+                                break;
+                            ++j;
+                            ++k;
+                        }
 
-                    if (j == test.Length)
+                        if (j == test.Length)
+                        {
+                            if(nmatchs == instance)
+                                return i;
+
+                            nmatchs++;
+                        }
+                     }
+                }
+            }
+            else
+            {
+                // cpu wasteland
+                List<int> matchs = new(src.Length / test.Length);
+                for (int i = start; i <= end; i++)
+                {
+                    if (LSL_List.ListFind_areEqual(test0, src[i]))
                     {
-                        if(nmatchs == instance)
-                            return i;
+                        int k = i + 1;
+                        int j = 1;
+                        while(j < test.Length)
+                        {
+                            if (!LSL_List.ListFind_areEqual(test[j], src[k]))
+                                break;
+                            ++j;
+                            ++k;
+                        }
 
-                        nmatchs++;
-                    }
-                 }
+                        if (j == test.Length)
+                            matchs.Add(i);
+                     }
+                }
+
+                if (matchs.Count == 0)
+                    return -1;
+
+                instance += matchs.Count;
+                return instance >= 0 ? matchs[instance] : -1;
             }
             return -1;
         }
