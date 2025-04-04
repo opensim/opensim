@@ -39,16 +39,18 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FloodBrushes
             int startX, int endX, int startY, int endY)
         {
             strength *= 0.08f;
-
-            int x, y;
-            for (x = startX; x <= endX; x++)
+            if(strength < 1e-4f)
+                return;
+            for (int x = startX; x <= endX; x++)
             {
-                for (y = startY; y <= endY; y++)
+                for (int y = startY; y <= endY; y++)
                 {
                     if (fillArea[x, y])
                     {
                         float noise = (float)TerrainUtil.PerlinNoise2D((double) x / map.Width, (double) y / map.Height, 8, 1.0);
                         map[x, y] += noise * strength;
+                        if(map[x, y] < 0)
+                            map[x, y] = 0;
                     }
                 }
             }

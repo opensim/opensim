@@ -1369,8 +1369,107 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     }
 
                     return result + GetSublist(start, Data.Length);
-
                 }
+            }
+
+            // compare for ??ListFindList* functions
+            public static bool ListFind_areEqual(object l, object r)
+            {
+                if (l is null || r is null)
+                    return false;
+
+                if (l is LSLInteger lli)
+                {
+                    if (r is LSLInteger rli)
+                        return lli.value == rli.value;
+                    if (r is int ri)
+                        return lli.value == ri;
+                    return false;
+                    }
+
+                if (l is int li)
+                {
+                    if (r is LSLInteger rli)
+                        return li == rli.value;
+                    if (r is int ri)
+                        return li == ri;
+                    return false;
+                    }
+
+                if (l is LSLFloat llf)
+                {
+                    if (r is LSLFloat rlf)
+                        return llf.value == rlf.value;
+                    if (r is float rf)
+                        return llf.value == (double)rf;
+                    if (r is double rd)
+                        return llf.value == rd;
+                    return false;
+                    }
+                if (l is double ld)
+                {
+                    if (r is LSL_Types.LSLFloat rlf)
+                        return ld == rlf.value;
+                    if (r is float rf)
+                        return ld == (double)rf;
+                    if (r is double rd)
+                        return ld == rd;
+                    return false;
+                    }
+                if (l is float lf)
+                {
+                    if (r is LSLFloat rlf)
+                        return lf == (float)rlf.value;
+                    if (r is float rf)
+                        return lf == rf;
+                    if (r is double rd)
+                            return lf == (float)rd;
+                    return false;
+                    }
+
+                if (l is LSLString lls)
+                {
+                    if (r is LSLString rls)
+                        return lls.m_string.Equals(rls.m_string, StringComparison.Ordinal);
+                    if (r is string rs)
+                        return lls.m_string.Equals(rs, StringComparison.Ordinal);
+                        return false;
+                    }
+
+                if (l is string ls)
+                {
+                    if (r is LSLString rls)
+                        return ls.Equals(rls.m_string, StringComparison.Ordinal);
+                    if (r is string rs)
+                        return ls.Equals(rs, StringComparison.Ordinal);
+                    if (r is LSL_Types.key rlk)
+                        return ls.Equals(rlk.value, StringComparison.OrdinalIgnoreCase);
+                    return false;
+                }
+
+                if(l is key llk)
+                {
+                    if (r is key rlk)
+                        return llk.value.Equals(rlk.value, StringComparison.OrdinalIgnoreCase);
+                    if (r is string rk)
+                        return llk.value.Equals(rk, StringComparison.OrdinalIgnoreCase);
+                }
+
+                if (l is Vector3 llv)
+                {
+                    if(r is Vector3 rlv)
+                        return llv.Equals(rlv);
+                    return false;
+                }
+
+                if (l is Quaternion llr)
+                {
+                    if(r is Quaternion rlr)
+                        return llr.Equals(rlr);
+                    return false;
+                }
+
+                return false;
             }
 
             private static int compare(object left, object right, bool ascending)
