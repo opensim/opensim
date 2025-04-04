@@ -629,5 +629,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_String osAESDecryptFrom(string secret, string encryptedText, string ivString);
             vector osGetLinkColor(LSL_Integer linknum, LSL_Integer face);
             vector osTemperature2sRGB(LSL_Float dtemp);
+
+        /// <summary>
+        /// osListFindListNext identical to llListFindListNext but with search limited to sublist from start to end (excluded) 
+        /// </summary>
+        /// <param name="src">string to test for match</param>
+        /// <param name="test">string to use as pattern</param>
+        /// <param name="start">index of where to start search</param>
+        /// <param name="end">index of where to stop search.</param>
+        /// <param name="instance">number of match to return</param>
+        /// <returns>a integer with index of match point or -1</returns>
+        LSL_Integer osListFindListNext(LSL_List src, LSL_List test, LSL_Integer start, LSL_Integer end, LSL_Integer instance);
     }
 }

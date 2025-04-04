@@ -1369,6 +1369,32 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     }
 
                     return result + GetSublist(start, Data.Length);
+                }
+            }
+
+            // compare for ??ListFindList* functions
+            public static bool ListFind_areEqual(object l, object r)
+            {
+                if (l is null || r is null)
+                    return false;
+
+                if (l is LSLInteger lli)
+                {
+                    if (r is LSLInteger rli)
+                        return lli.value == rli.value;
+                    if (r is int ri)
+                        return lli.value == ri;
+                    return false;
+                    }
+
+                if (l is int li)
+                {
+                    if (r is LSLInteger rli)
+                        return li == rli.value;
+                    if (r is int ri)
+                        return li == ri;
+                    return false;
+                    }
 
                 }
             }

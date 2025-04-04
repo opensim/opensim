@@ -6492,105 +6492,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         }
 
-        private static bool ListFind_areEqual(object l, object r)
-        {
-            if (l is null || r is null)
-                return false;
-
-            if (l is LSL_Integer lli)
-            {
-                if (r is LSL_Integer rli)
-                    return lli.value == rli.value;
-                if (r is int ri)
-                    return lli.value == ri;
-                return false;
-            }
-
-            if (l is int li)
-            {
-                if (r is LSL_Integer rli)
-                    return li == rli.value;
-                if (r is int ri)
-                    return li == ri;
-                return false;
-            }
-
-            if (l is LSL_Float llf)
-            {
-                if (r is LSL_Float rlf)
-                    return llf.value == rlf.value;
-                if (r is float rf)
-                    return llf.value == (double)rf;
-                if (r is double rd)
-                    return llf.value == rd;
-                return false;
-            }
-            if (l is double ld)
-            {
-                if (r is LSL_Float rlf)
-                    return ld == rlf.value;
-                if (r is float rf)
-                    return ld == (double)rf;
-                if (r is double rd)
-                    return ld == rd;
-                return false;
-            }
-            if (l is float lf)
-            {
-                if (r is LSL_Float rlf)
-                    return lf == (float)rlf.value;
-                if (r is float rf)
-                    return lf == rf;
-                if (r is double rd)
-                    return lf == (float)rd;
-                return false;
-            }
-
-            if (l is LSL_String lls)
-            {
-                if (r is LSL_String rls)
-                    return lls.m_string.Equals(rls.m_string, StringComparison.Ordinal);
-                if (r is string rs)
-                    return lls.m_string.Equals(rs, StringComparison.Ordinal);
-                return false;
-            }
-
-            if (l is string ls)
-            {
-                if (r is LSL_String rls)
-                    return ls.Equals(rls.m_string, StringComparison.Ordinal);
-                if (r is string rs)
-                    return ls.Equals(rs, StringComparison.Ordinal);
-                if (r is LSL_Key rlk)
-                    return ls.Equals(rlk.m_string, StringComparison.OrdinalIgnoreCase);
-                return false;
-            }
-
-            if(l is LSL_Key llk)
-            {
-                if (r is LSL_Key rlk)
-                    return llk.m_string.Equals(rlk.m_string, StringComparison.OrdinalIgnoreCase);
-                if (r is string rk)
-                    return llk.m_string.Equals(rk, StringComparison.OrdinalIgnoreCase);
-            }
-
-            if (l is LSL_Vector llv)
-            {
-                if(r is LSL_Vector rlv)
-                    return llv.Equals(rlv);
-                return false;
-            }
-
-            if (l is LSL_Rotation llr)
-            {
-                if(r is LSL_Rotation rlr)
-                    return llr.Equals(rlr);
-                return false;
-            }
-
-            return false;
-        }
-
         /// <summary>
         /// Returns the index of the first occurrence of test
         /// in src.
@@ -6613,13 +6514,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             object test0 = test[0];
             for (int i = 0; i <= src.Length - test.Length; i++)
             {
-                if (ListFind_areEqual(test0, src[i]))
+                if (LSL_List.ListFind_areEqual(test0, src[i]))
                 {
                     int k = i + 1;
                     int j = 1;
                     while(j < test.Length)
                     {
-                        if (!ListFind_areEqual(test[j], src[k]))
+                        if (!LSL_List.ListFind_areEqual(test[j], src[k]))
                             break;
                         ++j;
                         ++k;
@@ -6669,13 +6570,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             object test0 = test[0];
             for (int i = start; i <= end; i += stride)
             {
-                if (ListFind_areEqual(test0, src[i]))
+                if (LSL_List.ListFind_areEqual(test0, src[i]))
                 {
                     int k = i + 1;
                     int j = 1;
                     while (j < test.Length)
                     {
-                        if (!ListFind_areEqual(test[j], src[k]))
+                        if (!LSL_List.ListFind_areEqual(test[j], src[k]))
                             break;
                         ++j;
                         ++k;
