@@ -2852,5 +2852,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llSetLinkSitFlags(linknum, flags);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_String llHMAC(LSL_String private_key, LSL_String message, LSL_String algo)
+        {
+            return m_LSL_Functions.llHMAC(private_key, message, algo);
+        }
+
     }
 }

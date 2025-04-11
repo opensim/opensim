@@ -531,6 +531,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
          LSL_String llGetStartString();
         LSL_Integer llGetLinkSitFlags(LSL_Integer linknum);
                void llSetLinkSitFlags(LSL_Integer linknum, LSL_Integer flags);
-
+         LSL_String llHMAC(LSL_String private_key, LSL_String message, LSL_String algo);
     }
 }
