@@ -6642,29 +6642,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Integer osListFindListNext(LSL_List lsrc, LSL_List ltest, LSL_Integer lstart, LSL_Integer lend, LSL_Integer linstance)
         {
-            if (lsrc.Length == 0)
-                return ltest.Length == 0 ? 0 : -1;
+            int srclen = lsrc.Length;
+            int testlen = ltest.Length;
+            if (srclen == 0)
+                return testlen == 0 ? 0 : -1;
 
             int instance = linstance.value;
-            if (ltest.Length == 0)
+            if (testlen == 0)
             {
                 if(instance >= 0)
-                    return instance < lsrc.Length ? instance : -1;
+                    return instance < srclen ? instance : -1;
 
-                instance += lsrc.Length;
+                instance += srclen;
                 return instance >= 0 ? instance : -1;
             }
 
-            if (ltest.Length > lsrc.Length)
+            if (testlen > srclen)
                 return -1;
 
-            object[] src = lsrc.Data;
-            object[] test = ltest.Data;
 
             int start = lstart.value;
             if (start < 0)
             {
-                start += src.Length;
+                start += srclen;
                 if (start < 0)
                     return -1;
             }
@@ -6674,13 +6674,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             int end = lend.value;
             if (end < 0)
             {
-                end += src.Length;
+                end += srclen;
                 if (end < 0)
                     return -1;
-                end -= test.Length - 1;
+                end -= testlen - 1;
             }
-            else if (end > src.Length - test.Length)
-                end = src.Length - test.Length;
+            else if (end > srclen - testlen)
+                end = srclen - testlen;
+
+            object[] src = lsrc.Data;
+            object[] test = ltest.Data;
 
             object test0 = test[0];
             int nmatchs = 0;
@@ -6693,7 +6696,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     {
                         int k = i + 1;
                         int j = 1;
-                        while(j < test.Length)
+                        while(j < testlen)
                         {
                             if (!LSL_List.ListFind_areEqual(test[j], src[k]))
                                 break;
@@ -6701,7 +6704,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             ++k;
                         }
 
-                        if (j == test.Length)
+                        if (j == testlen)
                         {
                             if(nmatchs == instance)
                                 return i;
@@ -6721,7 +6724,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     {
                         int k = i + 1;
                         int j = 1;
-                        while(j < test.Length)
+                        while(j < testlen)
                         {
                             if (!LSL_List.ListFind_areEqual(test[j], src[k]))
                                 break;
@@ -6729,7 +6732,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             ++k;
                         }
 
-                        if (j == test.Length)
+                        if (j == testlen)
                         {
                             if(nmatchs == instance)
                                 return i;
