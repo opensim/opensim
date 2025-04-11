@@ -6558,14 +6558,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// The index number of the point in src where test was found if it was found.
         /// Otherwise returns -1
         /// </returns>
-        public LSL_Integer llListFindList(LSL_List src, LSL_List test)
+        public LSL_Integer llListFindList(LSL_List lsrc, LSL_List ltest)
         {
-            if (src.Length == 0)
+            if (lsrc.Length == 0)
                 return -1;
-            if (test.Length == 0)
+            if (ltest.Length == 0)
                 return 0;
-            if (test.Length > src.Length)
+            if (ltest.Length > lsrc.Length)
                 return -1;
+
+            object[] src = lsrc.Data;
+            object[] test = ltest.Data;
 
             object test0 = test[0];
             for (int i = 0; i <= src.Length - test.Length; i++)
@@ -6589,23 +6592,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return -1;
         }
 
-        public LSL_Integer llListFindListNext(LSL_List src, LSL_List test, LSL_Integer linstance)
+        public LSL_Integer llListFindListNext(LSL_List lsrc, LSL_List ltest, LSL_Integer linstance)
         {
-            if (src.Length == 0)
-                return test.Length == 0 ? 0 : -1;
+            if (lsrc.Length == 0)
+                return ltest.Length == 0 ? 0 : -1;
 
             int instance = linstance.value;
-            if (test.Length == 0)
+            if (ltest.Length == 0)
             {
                 if(instance >= 0)
-                    return instance < src.Length ? instance : -1;
+                    return instance < lsrc.Length ? instance : -1;
 
-                instance += src.Length;
+                instance += lsrc.Length;
                 return instance >= 0 ? instance : -1;
             }
 
-            if (test.Length > src.Length)
+            if (ltest.Length > lsrc.Length)
                 return -1;
+
+            object[] src = lsrc.Data;
+            object[] test = ltest.Data;
 
             object test0 = test[0];
             int nmatchs = 0;

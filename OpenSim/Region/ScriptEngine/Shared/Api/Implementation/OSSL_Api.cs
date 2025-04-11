@@ -6640,23 +6640,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return new LSL_Vector(red, green, 1.0f);
         }
 
-        public LSL_Integer osListFindListNext(LSL_List src, LSL_List test, LSL_Integer lstart, LSL_Integer lend, LSL_Integer linstance)
+        public LSL_Integer osListFindListNext(LSL_List lsrc, LSL_List ltest, LSL_Integer lstart, LSL_Integer lend, LSL_Integer linstance)
         {
-            if (src.Length == 0)
-                return test.Length == 0 ? 0 : -1;
+            if (lsrc.Length == 0)
+                return ltest.Length == 0 ? 0 : -1;
 
             int instance = linstance.value;
-            if (test.Length == 0)
+            if (ltest.Length == 0)
             {
                 if(instance >= 0)
-                    return instance < src.Length ? instance : -1;
+                    return instance < lsrc.Length ? instance : -1;
 
-                instance += src.Length;
+                instance += lsrc.Length;
                 return instance >= 0 ? instance : -1;
             }
 
-            if (test.Length > src.Length)
+            if (ltest.Length > lsrc.Length)
                 return -1;
+
+            object[] src = lsrc.Data;
+            object[] test = ltest.Data;
 
             int start = lstart.value;
             if (start < 0)
