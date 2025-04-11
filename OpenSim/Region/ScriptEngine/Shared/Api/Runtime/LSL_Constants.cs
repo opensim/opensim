@@ -1083,5 +1083,39 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int SIT_FLAG_NO_DAMAGE     = 0x20; // unsupported always true
         public const int SIT_FLAG_OPENSIMFORCED = SIT_FLAG_ALLOW_UNSIT | SIT_FLAG_NO_COLLIDE | SIT_FLAG_NO_DAMAGE;
 
+        public const int ERR_GENERIC              = -1;
+        public const int ERR_PARCEL_PERMISSIONS   = -2;
+        public const int ERR_MALFORMED_PARAMS     = -3;
+        public const int ERR_RUNTIME_PERMISSIONS  = -4;
+        public const int ERR_THROTTLED            = -5;
+
+        public const int SIM_STAT_PCT_CHARS_STEPPED    =  0;
+        public const int SIM_STAT_PHYSICS_FPS          =  1;
+        public const int SIM_STAT_AGENT_UPDATES        =  2;
+        public const int SIM_STAT_FRAME_MS             =  3;
+        public const int SIM_STAT_NET_MS               =  4;
+        public const int SIM_STAT_OTHER_MS             =  5;
+        public const int SIM_STAT_PHYSICS_MS           =  6;
+        public const int SIM_STAT_AGENT_MS             =  7;
+        public const int SIM_STAT_IMAGE_MS             =  8;
+        public const int SIM_STAT_SCRIPT_MS            =  9;
+        public const int SIM_STAT_AGENT_COUNT          = 10;
+        public const int SIM_STAT_CHILD_AGENT_COUNT    = 11;
+        public const int SIM_STAT_ACTIVE_SCRIPT_COUNT  = 12;
+        public const int SIM_STAT_PACKETS_IN           = 13;
+        public const int SIM_STAT_PACKETS_OUT          = 14;
+        public const int SIM_STAT_ASSET_DOWNLOADS      = 15;
+        public const int SIM_STAT_ASSET_UPLOADS        = 16;
+        public const int SIM_STAT_UNACKED_BYTES        = 17;
+        public const int SIM_STAT_PHYSICS_STEP_MS      = 18;
+        public const int SIM_STAT_PHYSICS_SHAPE_MS     = 19;
+        public const int SIM_STAT_PHYSICS_OTHER_MS     = 20;
+        public const int SIM_STAT_SCRIPT_EPS           = 21;
+        public const int SIM_STAT_SPARE_MS             = 22;
+        public const int SIM_STAT_SLEEP_MS             = 23;
+        public const int SIM_STAT_IO_PUMP_MS           = 24;
+        public const int SIM_STAT_SCRIPT_RUN_PCT       = 25;
+        public const int SIM_STAT_AI_MS                = 26;
+
     }
 }
