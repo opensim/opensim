@@ -301,29 +301,51 @@ namespace OpenSim.Region.Framework.Scenes
 
             // KF: Check for out-of-region, move inside and make static.
             Vector3 npos = sceneObject.RootPart.GroupPosition;
-            bool clampZ = m_parentScene.ClampNegativeZ;
 
-            if (!((sceneObject.RootPart.Shape.PCode == (byte)PCode.Prim) && (sceneObject.RootPart.Shape.State != 0)) && (npos.X < 0.0 || npos.Y < 0.0 || (npos.Z < 0.0 && clampZ) ||
-                npos.X > regionSizeX || npos.Y > regionSizeY))
+            if (!((sceneObject.RootPart.Shape.PCode == (byte)PCode.Prim) && sceneObject.RootPart.Shape.State != 0))
             {
-                if (npos.X < 0.0) npos.X = 1.0f;
-                if (npos.Y < 0.0) npos.Y = 1.0f;
-                if (npos.Z < 0.0 && clampZ) npos.Z = 0.0f;
-                if (npos.X > regionSizeX) npos.X = regionSizeX - 1.0f;
-                if (npos.Y > regionSizeY) npos.Y = regionSizeY - 1.0f;
-
-                SceneObjectPart rootpart = sceneObject.RootPart;
-                rootpart.GroupPosition = npos;
-
-                foreach (SceneObjectPart part in sceneObject.Parts)
-                {
-                    if (part == rootpart)
-                        continue;
-                    part.GroupPosition = npos;
+                bool clamped = false;
+                if (npos.X < 0.0f)
+                { 
+                    npos.X = 1.0f;
+                    clamped = true;
                 }
-                rootpart.Velocity = Vector3.Zero;
-                rootpart.AngularVelocity = Vector3.Zero;
-                rootpart.Acceleration = Vector3.Zero;
+                else if (npos.X > regionSizeX)
+                {
+                    npos.X = regionSizeX - 1.0f;
+                    clamped = true;
+                }
+                if (npos.Y < 0.0f)
+                {
+                    npos.Y = 1.0f;
+                    clamped = true;
+                }
+                else if (npos.Y > regionSizeY)
+                {
+                    npos.Y = regionSizeY - 1.0f;
+                    clamped = true;
+                }
+                if (npos.Z < Constants.MinSimulationHeight)
+                {
+                    npos.Z = Constants.MinSimulationHeight;
+                    clamped = true;
+                }
+
+                if(clamped)
+                {
+                    SceneObjectPart rootpart = sceneObject.RootPart;
+                    rootpart.GroupPosition = npos;
+
+                    foreach (SceneObjectPart part in sceneObject.Parts)
+                    {
+                        if (part == rootpart)
+                            continue;
+                        part.GroupPosition = npos;
+                    }
+                    rootpart.Velocity = Vector3.Zero;
+                    rootpart.AngularVelocity = Vector3.Zero;
+                    rootpart.Acceleration = Vector3.Zero;
+                }
             }
 
             bool ret = AddSceneObject(sceneObject, attachToBackup, sendClientUpdates);
