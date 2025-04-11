@@ -6640,11 +6640,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return new LSL_Vector(red, green, 1.0f);
         }
 
-        public LSL_Integer osListFindListNext(LSL_List src, LSL_List test, LSL_Integer lstart, LSL_Integer lend, LSL_Integer instance)
+        public LSL_Integer osListFindListNext(LSL_List src, LSL_List test, LSL_Integer lstart, LSL_Integer lend, LSL_Integer linstance)
         {
             if (src.Length == 0)
                 return test.Length == 0 ? 0 : -1;
 
+            int instance = linstance.value;
             if (test.Length == 0)
             {
                 if(instance >= 0)
@@ -6679,13 +6680,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 end = src.Length - test.Length;
 
             object test0 = test[0];
+            int nmatchs = 0;
 
             if(instance >= 0)
             {
-                if (instance > src.Length / test.Length)
-                    return -1;
-
-                int nmatchs = 0;
                 for (int i = start; i <= end; i++)
                 {
                     if (LSL_List.ListFind_areEqual(test0, src[i]))
@@ -6712,9 +6710,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                // cpu wasteland
-                List<int> matchs = new(src.Length / test.Length);
-                for (int i = start; i <= end; i++)
+                instance++;
+                instance = -instance;
+                for (int i = end; i >= start; i--)
                 {
                     if (LSL_List.ListFind_areEqual(test0, src[i]))
                     {
@@ -6729,15 +6727,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
 
                         if (j == test.Length)
-                            matchs.Add(i);
+                        {
+                            if(nmatchs == instance)
+                                return i;
+
+                            nmatchs++;
+                        }
                      }
                 }
-
-                if (matchs.Count == 0)
-                    return -1;
-
-                instance += matchs.Count;
-                return instance >= 0 ? matchs[instance] : -1;
             }
             return -1;
         }

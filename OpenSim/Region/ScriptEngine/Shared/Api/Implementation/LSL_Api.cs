@@ -6589,11 +6589,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return -1;
         }
 
-        public LSL_Integer llListFindListNext(LSL_List src, LSL_List test, LSL_Integer instance)
+        public LSL_Integer llListFindListNext(LSL_List src, LSL_List test, LSL_Integer linstance)
         {
             if (src.Length == 0)
                 return test.Length == 0 ? 0 : -1;
 
+            int instance = linstance.value;
             if (test.Length == 0)
             {
                 if(instance >= 0)
@@ -6611,9 +6612,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if(instance >= 0)
             {
-                if (instance > src.Length / test.Length)
-                    return -1;
-
                 for (int i = 0; i <= src.Length - test.Length; i++)
                 {
                     if (LSL_List.ListFind_areEqual(test0, src[i]))
@@ -6642,8 +6640,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 instance++;
                 instance = -instance;
-                if (instance > src.Length / test.Length)
-                    return -1;
 
                 for (int i = src.Length - test.Length; i >= 0 ; i--)
                 {
