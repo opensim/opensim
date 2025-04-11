@@ -5110,10 +5110,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llPassTouches(int pass)
         {
-            if (pass != 0)
-                m_host.PassTouches = true;
-            else
-                m_host.PassTouches = false;
+            m_host.PassTouches = pass != 0;
         }
 
         public LSL_List llGetVisualParams(string id, LSL_List visualparams)
@@ -5131,67 +5128,30 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 for (int i = 0; i < visualparams.Length; i++)
                 {
-                    switch ((string)visualparams[i])
+                    int val = visualparams[i].ToString() switch
                     {
-                        case "33":
-                        case "height":
-                            returns.Add(Encoding.UTF8.GetString(new Byte[] { agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_HEIGHT] }));
-                            break;
-                        case "38":
-                        case "torso_length":
-                            returns.Add(Encoding.UTF8.GetString(new Byte[] { agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_TORSO_LENGTH] })); ;
-                            break;
-                        case "80":
-                        case "male":
-                            returns.Add(Encoding.UTF8.GetString(new Byte[] { agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_MALE] }));
-                            break;
-                        case "198":
-                        case "heel_height":
-                            returns.Add(Encoding.UTF8.GetString(new Byte[] { agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHOES_HEEL_HEIGHT] })); ;
-                            break;
-                        case "503":
-                        case "platform_height":
-                            returns.Add(Encoding.UTF8.GetString(new Byte[] { agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHOES_PLATFORM_HEIGHT] }));
-                            break;
-                        case "616":
-                        case "shoe_height":
-                            returns.Add(Encoding.UTF8.GetString(new Byte[] { agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHOES_SHOE_HEIGHT] }));
-                            break;
-                        case "675":
-                        case "hand_size":
-                            returns.Add(Encoding.UTF8.GetString(new Byte[] { agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_HAND_SIZE] }));
-                            break;
-                        case "682":
-                        case "head_size":
-                            returns.Add(Encoding.UTF8.GetString(new Byte[] { agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_HEAD_SIZE] }));
-                            break;
-                        case "692":
-                        case "leg_length":
-                            returns.Add(Encoding.UTF8.GetString(new Byte[] { agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_LEG_LENGTH] }));
-                            break;
-                        case "693":
-                        case "arm_length":
-                            returns.Add(Encoding.UTF8.GetString(new Byte[] { agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_ARM_LENGTH] }));
-                            break;
-                        case "756":
-                        case "neck_length":
-                            returns.Add(Encoding.UTF8.GetString(new Byte[] { agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_NECK_LENGTH] }));
-                            break;
-                        case "814":
-                        case "waist_height":
-                            returns.Add(Encoding.UTF8.GetString(new Byte[] { agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.PANTS_WAIST_HEIGHT] }));
-                            break;
-                        case "842":
-                        case "hip_length":
-                            returns.Add(Encoding.UTF8.GetString(new Byte[] { agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_HIP_LENGTH] }));
-                            break;
-                        case "11001":
-                        case "hover":
-                            returns.Add(Encoding.UTF8.GetString(new Byte[] { agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_HOVER] }));
-                            break;
-                        default:
-                            returns.Add("");
-                            break;
+                        "33" or "height" => agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_HEIGHT],
+                        "38" or "torso_length" => agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_TORSO_LENGTH],
+                        "80" or "male" => agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_MALE],
+                        "198" or "heel_height" => agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHOES_HEEL_HEIGHT],
+                        "503" or "platform_height" => agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHOES_PLATFORM_HEIGHT],
+                        "616" or "shoe_height" => agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHOES_SHOE_HEIGHT],
+                        "675" or "hand_size" => agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_HAND_SIZE],
+                        "682" or "head_size" => agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_HEAD_SIZE],
+                        "692" or  "leg_length" => agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_LEG_LENGTH],
+                        "693" or "arm_length" => agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_ARM_LENGTH],
+                        "756" or "neck_length" => agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_NECK_LENGTH],
+                        "814" or "waist_height" => agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.PANTS_WAIST_HEIGHT],
+                        "842" or "hip_length" => agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_HIP_LENGTH],
+                        "11001" or "hover" => agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_HOVER],
+                        _ => 9999,
+                    };
+                    if (val == 9999)
+                        returns.Add(LSL_String.Empty);
+                    else
+                    {
+                        float fval = MathF.Round(val * 0.0039215686f, 6); //(1/255)
+                        returns.Add(fval.ToString());
                     }
                 }
 
