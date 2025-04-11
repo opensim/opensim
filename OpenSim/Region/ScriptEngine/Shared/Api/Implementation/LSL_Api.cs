@@ -6607,13 +6607,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return -1;
 
             object test0 = test[0];
+            int nmatchs = 0;
 
             if(instance >= 0)
             {
                 if (instance > src.Length / test.Length)
                     return -1;
 
-                int nmatchs = 0;
                 for (int i = 0; i <= src.Length - test.Length; i++)
                 {
                     if (LSL_List.ListFind_areEqual(test0, src[i]))
@@ -6640,9 +6640,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                // cpu wasteland
-                List<int> matchs = new(src.Length / test.Length);
-                for (int i = 0; i <= src.Length - test.Length; i++)
+                instance++;
+                instance = -instance;
+                if (instance > src.Length / test.Length)
+                    return -1;
+
+                for (int i = src.Length - test.Length; i >= 0 ; i++)
                 {
                     if (LSL_List.ListFind_areEqual(test0, src[i]))
                     {
@@ -6657,15 +6660,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
 
                         if (j == test.Length)
-                            matchs.Add(i);
+                        {
+                            if(nmatchs == instance)
+                                return i;
+
+                            nmatchs++;
+                        }
                      }
                 }
-
-                if (matchs.Count == 0)
-                    return -1;
-
-                instance += matchs.Count;
-                return instance >= 0 ? matchs[instance] : -1;
             }
 
             return -1;
