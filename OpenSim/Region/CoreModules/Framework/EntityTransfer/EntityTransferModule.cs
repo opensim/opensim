@@ -497,7 +497,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 sp.Name, position, m_sceneName);
 
             // Teleport within the same region
-            if (!m_scene.PositionIsInCurrentRegion(position) || position.Z < 0)
+            if (!m_scene.PositionIsInCurrentRegion(position))
             {
                 Vector3 emergencyPos = new(128, 128, 128);
 
@@ -520,6 +520,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             {
                 position.Z = posZLimit;
             }
+
+            if(position.Z < Constants.MinSimulationHeight)
+                position.Z = Constants.MinSimulationHeight;
+            else if(position.Z > Constants.MaxSimulationHeight)
+                position.Z = Constants.MaxSimulationHeight;
+
 /*
             if(!sp.CheckLocalTPLandingPoint(ref position))
             {

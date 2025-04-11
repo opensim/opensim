@@ -63,6 +63,8 @@ namespace OpenSim.Framework
         public const float MinWaterHeight = 0;
         public const float MaxWaterHeight = 8000f;
 
+        public const float DefaultLandingBorderBuffer = 5.0f;
+
         public const int MaxTextureResolution = 2048;
 
         public static readonly string DefaultTexture = "89556747-24cb-43ed-920b-47caed15465f"; //plywood
