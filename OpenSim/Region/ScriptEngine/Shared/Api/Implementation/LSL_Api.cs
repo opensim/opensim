@@ -6546,59 +6546,81 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Integer llListFindListNext(LSL_List src, LSL_List test, LSL_Integer instance)
         {
-            if (src.Length == 0 && test.Length == 0)
-                return 0;
+            if (src.Length == 0)
+                return test.Length == 0 ? 0 : -1;
+
             if (test.Length == 0)
-                return instance;
+            {
+                if(instance >= 0)
+                    return instance < src.Length ? instance : -1;
+
+                instance += src.Length;
+                return instance >= 0 ? instance : -1;
+            }
+
             if (test.Length > src.Length)
                 return -1;
 
-            int count = Math.Abs(instance);
+            object test0 = test[0];
 
-            if (instance >= 0)
+            if(instance >= 0)
             {
-                int match = 0;
-                count++;
-                for (int i = 0; i < src.Length; i++)
+                if (instance > src.Length / test.Length)
+                    return -1;
+
+                int nmatchs = 0;
+                for (int i = 0; i <= src.Length - test.Length; i++)
                 {
-                    if (LSL_List.ListFind_areEqual(src[i], test[match]))
+                    if (LSL_List.ListFind_areEqual(test0, src[i]))
                     {
-                        match++;
-                        if (match == test.Length)
+                        int k = i + 1;
+                        int j = 1;
+                        while(j < test.Length)
                         {
-                            count--;
-                            if (count == 0)
-                                return i - test.Length + 1;
-                            match = 0;
+                            if (!LSL_List.ListFind_areEqual(test[j], src[k]))
+                                break;
+                            ++j;
+                            ++k;
                         }
-                    }
-                    else
-                    {
-                        match = LSL_List.ListFind_areEqual(src[i], test[0]) ? 1 : 0;
-                    }
+
+                        if (j == test.Length)
+                        {
+                            if(nmatchs == instance)
+                                return i;
+
+                            nmatchs++;
+                        }
+                     }
                 }
             }
-            else if (instance < 0)
+            else
             {
-                int match = test.Length - 1;
-                for (int i = src.Length - 1; i >= 0; i--)
+                // cpu wasteland
+                List<int> matchs = new(src.Length / test.Length);
+                for (int i = 0; i <= src.Length - test.Length; i++)
                 {
-                    if (LSL_List.ListFind_areEqual(src[i], test[match]))
+                    if (LSL_List.ListFind_areEqual(test0, src[i]))
                     {
-                        match--;
-                        if (match < 0)
+                        int k = i + 1;
+                        int j = 1;
+                        while(j < test.Length)
                         {
-                            count--;
-                            if (count == 0)
-                                return i;
-                            match = test.Length - 1;
+                            if (!LSL_List.ListFind_areEqual(test[j], src[k]))
+                                break;
+                            ++j;
+                            ++k;
                         }
-                    }
-                    else
-                    {
-                        match = test.Length - 1;
-                    }
+
+                        if (j == test.Length)
+                            matchs.Add(i);
+                     }
                 }
+
+                if (matchs.Count == 0)
+                    return -1;
+
+                instance += matchs.Count;
+                return instance >= 0 ? matchs[instance] : -1;
             }
 
             return -1;
