@@ -6645,7 +6645,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (instance > src.Length / test.Length)
                     return -1;
 
-                for (int i = src.Length - test.Length; i >= 0 ; i++)
+                for (int i = src.Length - test.Length; i >= 0 ; i--)
                 {
                     if (LSL_List.ListFind_areEqual(test0, src[i]))
                     {
