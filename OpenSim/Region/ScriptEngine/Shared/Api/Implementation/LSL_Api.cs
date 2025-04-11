@@ -8411,36 +8411,51 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             if (private_key.Length < 1 || message.Length < 1)
                 return new LSL_String();
+            
+            try
+            {
+                HMAC hasher;
+                switch (algo)
+                {
+                    case "md5":
+                        hasher = new HMACMD5(Encoding.UTF8.GetBytes(private_key));
+                        break;
+                    case "sha1":
+                        hasher = new HMACSHA1(Encoding.UTF8.GetBytes(private_key));
+                        break;
+                    case "sha224":
+                        hasher = new HMACSHA224(Encoding.UTF8.GetBytes(private_key));
+                        break;
+                    case "sha256":
+                        hasher = new HMACSHA256(Encoding.UTF8.GetBytes(private_key));
+                        break;
+                    case "sha384":
+                        hasher = new HMACSHA384(Encoding.UTF8.GetBytes(private_key));
+                        break;
+                    case "sha512":
+                        hasher = new HMACSHA512(Encoding.UTF8.GetBytes(private_key));
+                        break;
+                    default:
+                        return new LSL_String();
+                }
 
-            HMAC hasher;
-            switch (algo)
-            {
-                case "md5":
-                    hasher = new HMACMD5(Encoding.UTF8.GetBytes(private_key));
-                    break;
-                case "sha1":
-                    hasher = new HMACSHA1(Encoding.UTF8.GetBytes(private_key));
-                    break;
-                case "sha224":
-                    hasher = new HMACSHA224(Encoding.UTF8.GetBytes(private_key));
-                    break;
-                case "sha256":
-                    hasher = new HMACSHA256(Encoding.UTF8.GetBytes(private_key));
-                    break;
-                case "sha384":
-                    hasher = new HMACSHA384(Encoding.UTF8.GetBytes(private_key));
-                    break;
-                case "sha512":
-                    hasher = new HMACSHA512(Encoding.UTF8.GetBytes(private_key));
-                    break;
-                default:
+                byte[] hashBytes;
+                try
+                {
+                    hashBytes = hasher.ComputeHash(Encoding.UTF8.GetBytes(message));
+                }
+                catch
+                {
                     return new LSL_String();
+                }
+                finally
+                {
+                    hasher.Dispose();
+                }
+                return new LSL_String(Util.bytesToLowcaseHexString(hashBytes));
             }
-            using (HMAC hmac = hasher)
-            {
-                byte[] hashBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(message));
-                return new LSL_String(BitConverter.ToString(hashBytes).Replace("-", "").ToLower());
-            }
+            catch { }
+            return new LSL_String();
         }
 
         public LSL_String llSHA256String(LSL_String input)
