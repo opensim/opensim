@@ -6703,7 +6703,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             int end = lend.value;
             if (end < 0)
             {
-                end += src.Length;
+                end += srclen;
                 if (end < 0)
                     return -1;
                 end -= testlen - 1;

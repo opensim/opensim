@@ -6668,7 +6668,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (start < 0)
                     return -1;
             }
-            else if (start >= src.Length)
+            else if (start >= srclen)
                 return -1;
 
             int end = lend.value;
