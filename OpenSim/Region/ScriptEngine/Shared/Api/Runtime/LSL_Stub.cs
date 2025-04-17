@@ -2870,5 +2870,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llHMAC(private_key, message, algo);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_String llComputeHash(LSL_String message, LSL_String algo)
+        {
+            return m_LSL_Functions.llComputeHash(message, algo);
+        }
+
     }
 }

@@ -19480,13 +19480,65 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return new LSL_String();
         }
 
+        static string HMAC_SHA224(string key, string message)
+        {
+            const int blockSize = 64;
+            byte[] keyBytes = Encoding.UTF8.GetBytes(key);
+
+            if (keyBytes.Length > blockSize)
+            {
+                using (SHA224 sha224 = SHA224.Create())
+                {
+                    byte[] hashedBytes = sha224.ComputeHash(keyBytes);
+                }
+            }
+
+            if (keyBytes.Length < blockSize)
+            {
+                byte[] tmp = new byte[blockSize];
+                Array.Copy(keyBytes, tmp, keyBytes.Length);
+                keyBytes = tmp;
+            }
+
+            byte[] o_key_pad = new byte[blockSize];
+            byte[] i_key_pad = new byte[blockSize];
+
+            for (int i = 0; i < blockSize; i++)
+            {
+                o_key_pad[i] = (byte)(keyBytes[i] ^ 0x5c);
+                i_key_pad[i] = (byte)(keyBytes[i] ^ 0x36);
+            }
+
+            byte[] messageBytes = Encoding.UTF8.GetBytes(message);
+
+            byte[] inner = new byte[i_key_pad.Length + messageBytes.Length];
+            Array.Copy(i_key_pad, 0, inner, 0, i_key_pad.Length);
+            Array.Copy(messageBytes, 0, inner, i_key_pad.Length, messageBytes.Length);
+
+            byte[] innerHash;
+
+            using (SHA224 sha224 = SHA224.Create())
+            {
+                innerHash = sha224.ComputeHash(inner);
+            }
+
+            byte[] outer = new byte[o_key_pad.Length + innerHash.Length];
+            Array.Copy(o_key_pad, 0, outer, 0, o_key_pad.Length);
+            Array.Copy(innerHash, 0, outer, o_key_pad.Length, innerHash.Length);
+
+            using (SHA224 sha224 = SHA224.Create())
+            {
+                return Util.bytesToLowcaseHexString(sha224.ComputeHash(outer));
+            }
+        }
+
         public LSL_String llHMAC(LSL_String private_key, LSL_String message, LSL_String algo)
         {
             if (private_key.Length < 1 || message.Length < 1)
                 return new LSL_String();
 
-            //if (algo.Equals("sha224"))
-            //    return HMAC_SHA224(private_key, message);
+            if (algo.Equals("sha224"))
+                return HMAC_SHA224(private_key, message);
 
             try
             {
