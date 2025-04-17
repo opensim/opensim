@@ -19537,9 +19537,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (private_key.Length < 1 || message.Length < 1)
                 return new LSL_String();
 
-            if (algo.Equals("sha224"))
-                return HMAC_SHA224(private_key, message);
-
             try
             {
                 HMAC hasher;
@@ -19551,6 +19548,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     case "sha1":
                         hasher = new HMACSHA1(Encoding.UTF8.GetBytes(private_key));
                         break;
+                    case "sha224":
+                        return HMAC_SHA224(private_key, message);
+
                     case "sha256":
                         hasher = new HMACSHA256(Encoding.UTF8.GetBytes(private_key));
                         break;
