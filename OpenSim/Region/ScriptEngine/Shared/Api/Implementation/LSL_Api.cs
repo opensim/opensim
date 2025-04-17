@@ -8547,57 +8547,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return Util.SHA1Hash(src, Encoding.UTF8).ToLower();
         }
 
-        public LSL_String llHMAC(LSL_String private_key, LSL_String message, LSL_String algo)
-        {
-            if (private_key.Length < 1 || message.Length < 1)
-                return new LSL_String();
-            
-            try
-            {
-                HMAC hasher;
-                switch (algo)
-                {
-                    case "md5":
-                        hasher = new HMACMD5(Encoding.UTF8.GetBytes(private_key));
-                        break;
-                    case "sha1":
-                        hasher = new HMACSHA1(Encoding.UTF8.GetBytes(private_key));
-                        break;
-                    case "sha224":
-                        hasher = new HMACSHA224(Encoding.UTF8.GetBytes(private_key));
-                        break;
-                    case "sha256":
-                        hasher = new HMACSHA256(Encoding.UTF8.GetBytes(private_key));
-                        break;
-                    case "sha384":
-                        hasher = new HMACSHA384(Encoding.UTF8.GetBytes(private_key));
-                        break;
-                    case "sha512":
-                        hasher = new HMACSHA512(Encoding.UTF8.GetBytes(private_key));
-                        break;
-                    default:
-                        return new LSL_String();
-                }
-
-                byte[] hashBytes;
-                try
-                {
-                    hashBytes = hasher.ComputeHash(Encoding.UTF8.GetBytes(message));
-                }
-                catch
-                {
-                    return new LSL_String();
-                }
-                finally
-                {
-                    hasher.Dispose();
-                }
-                return new LSL_String(Util.bytesToLowcaseHexString(hashBytes));
-            }
-            catch { }
-            return new LSL_String();
-        }
-
         public LSL_String llSHA256String(LSL_String input)
         {
             byte[] bytes;
@@ -19472,6 +19421,115 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             */
         }
 
+        public LSL_String llComputeHash(LSL_String message, LSL_String algo)
+        {
+            switch (algo)
+            {
+                case "md5":
+                    using (MD5 md5 = MD5.Create())
+                    {
+                        byte[] hashedBytes = md5.ComputeHash(Encoding.UTF8.GetBytes(message));
+                        return Util.bytesToLowcaseHexString(hashedBytes);
+                    }
+                case "md5_sha1":
+                    using (MD5 md5 = MD5.Create())
+                    using (SHA1 sha1 = SHA1.Create())
+                    {
+                        byte[] inputBytes = Encoding.UTF8.GetBytes(message);
+                        byte[] md5Hash = md5.ComputeHash(inputBytes);
+                        byte[] sha1Hash = sha1.ComputeHash(inputBytes);
+
+                        byte[] combinedHash = new byte[md5Hash.Length + sha1Hash.Length];
+                        Buffer.BlockCopy(md5Hash, 0, combinedHash, 0, md5Hash.Length);
+                        Buffer.BlockCopy(sha1Hash, 0, combinedHash, md5Hash.Length, sha1Hash.Length);
+                        return BitConverter.ToString(combinedHash).Replace("-", "").ToLower();
+                    }
+                case "sha1":
+                    using (SHA1 sha1 = SHA1.Create())
+                    {
+                        byte[] hashedBytes = sha1.ComputeHash(Encoding.UTF8.GetBytes(message));
+                        return Util.bytesToLowcaseHexString(hashedBytes);
+                    }
+                case "sha224":
+                    using (SHA224 sha224 = SHA224.Create())
+                    {
+                        byte[] hashedBytes = sha224.ComputeHash(Encoding.UTF8.GetBytes(message));
+                        return Util.bytesToLowcaseHexString(hashedBytes);
+                    }
+                case "sha256":
+                    using (SHA256 sha1 = SHA256.Create())
+                    {
+                        byte[] hashedBytes = sha1.ComputeHash(Encoding.UTF8.GetBytes(message));
+                        return Util.bytesToLowcaseHexString(hashedBytes);
+                    }
+                case "sha384":
+                    using (SHA384 sha1 = SHA384.Create())
+                    {
+                        byte[] hashedBytes = sha1.ComputeHash(Encoding.UTF8.GetBytes(message));
+                        return Util.bytesToLowcaseHexString(hashedBytes);
+                    }
+                case "sha512":
+                    using (SHA512 sha1 = SHA512.Create())
+                    {
+                        byte[] hashedBytes = sha1.ComputeHash(Encoding.UTF8.GetBytes(message));
+                        return Util.bytesToLowcaseHexString(hashedBytes);
+                    }
+                default:
+                    break;
+            }
+            return new LSL_String();
+        }
+
+        public LSL_String llHMAC(LSL_String private_key, LSL_String message, LSL_String algo)
+        {
+            if (private_key.Length < 1 || message.Length < 1)
+                return new LSL_String();
+
+            if (algo.Equals("sha224"))
+                return HMAC_SHA224(private_key, message);
+
+            try
+            {
+                HMAC hasher;
+                switch (algo)
+                {
+                    case "md5":
+                        hasher = new HMACMD5(Encoding.UTF8.GetBytes(private_key));
+                        break;
+                    case "sha1":
+                        hasher = new HMACSHA1(Encoding.UTF8.GetBytes(private_key));
+                        break;
+                    case "sha256":
+                        hasher = new HMACSHA256(Encoding.UTF8.GetBytes(private_key));
+                        break;
+                    case "sha384":
+                        hasher = new HMACSHA384(Encoding.UTF8.GetBytes(private_key));
+                        break;
+                    case "sha512":
+                        hasher = new HMACSHA512(Encoding.UTF8.GetBytes(private_key));
+                        break;
+                    default:
+                        return new LSL_String();
+                }
+
+                byte[] hashBytes;
+                try
+                {
+                    hashBytes = hasher.ComputeHash(Encoding.UTF8.GetBytes(message));
+                }
+                catch
+                {
+                    return new LSL_String();
+                }
+                finally
+                {
+                    hasher.Dispose();
+                }
+                return new LSL_String(Util.bytesToLowcaseHexString(hashBytes));
+            }
+            catch { }
+            return new LSL_String();
+        }
     }
 
     public class NotecardCache
@@ -19551,44 +19609,128 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
     }
 
-    public class HMACSHA224 : HMAC
+    // C# doesn't have a native way to do this so instead of adding a library this will do
+    public class SHA224 : HashAlgorithm, IDisposable
     {
-        public HMACSHA224(byte[] key)
+        private byte[] stream;
+
+        public SHA224()
         {
-            HashName = "SHA-224";
             HashSizeValue = 224;
-            base.Key = key;
-            HashAlgorithm = new SHA224Managed();
-        }
-
-        public SHA224Managed HashAlgorithm { get; }
-    }
-
-    public class SHA224Managed : SHA256
-    {
-        public byte[] ComputeHashe(byte[] buffer)
-        {
-            using (SHA256 sha256 = SHA256.Create())
-            {
-                byte[] fullHash = sha256.ComputeHash(buffer);
-                Array.Resize(ref fullHash, 28); // Truncate to 224 bits
-                return fullHash;
-            }
         }
 
         public override void Initialize()
         {
-            throw new NotImplementedException();
+            stream = new byte[224];
+        }
+
+        public static new SHA224 Create()
+        {
+            return new SHA224();
+        }
+
+        public new void Dispose()
+        {
+            base.Dispose();
+        }
+
+        private static byte[] ComputeHashInternal(byte[] data)
+        {
+            uint[] K = {
+            0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+            0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+            0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+            0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+            0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+            0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+            0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+            0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+            };
+
+            uint[] H = {
+            0xc1059ed8, 0x367cd507, 0x3070dd17, 0xf70e5939,
+            0xffc00b31, 0x68581511, 0x64f98fa7, 0xbefa4fa4
+            };
+
+            ulong bitLength = (ulong)data.Length * 8;
+            int paddedLength = ((data.Length + 9 + 63) / 64) * 64;
+            byte[] padded = new byte[paddedLength];
+            Array.Copy(data, padded, data.Length);
+            padded[data.Length] = 0x80;
+
+            for (int i = 0; i < 8; i++)
+                padded[padded.Length - 8 + i] = (byte)((bitLength >> ((7 - i) * 8)) & 0xFF);
+
+            for (int chunk = 0; chunk < padded.Length / 64; chunk++)
+            {
+                uint[] W = new uint[64];
+
+                for (int i = 0; i < 16; i++)
+                {
+                    W[i] = (uint)(padded[chunk * 64 + i * 4] << 24) |
+                           (uint)(padded[chunk * 64 + i * 4 + 1] << 16) |
+                           (uint)(padded[chunk * 64 + i * 4 + 2] << 8) |
+                           (uint)(padded[chunk * 64 + i * 4 + 3]);
+                }
+
+                for (int i = 16; i < 64; i++)
+                {
+                    uint s0 = (W[i - 15] >> 7 | W[i - 15] << 25) ^ (W[i - 15] >> 18 | W[i - 15] << 14) ^ (W[i - 15] >> 3);
+                    uint s1 = (W[i - 2] >> 17 | W[i - 2] << 15) ^ (W[i - 2] >> 19 | W[i - 2] << 13) ^ (W[i - 2] >> 10);
+                    W[i] = W[i - 16] + s0 + W[i - 7] + s1;
+                }
+
+                uint a = H[0], b = H[1], c = H[2], d = H[3], e = H[4], f = H[5], g = H[6], h = H[7];
+
+                for (int i = 0; i < 64; i++)
+                {
+                    uint S1 = (e >> 6 | e << 26) ^ (e >> 11 | e << 21) ^ (e >> 25 | e << 7);
+                    uint ch = (e & f) ^ (~e & g);
+                    uint temp1 = h + S1 + ch + K[i] + W[i];
+                    uint S0 = (a >> 2 | a << 30) ^ (a >> 13 | a << 19) ^ (a >> 22 | a << 10);
+                    uint maj = (a & b) ^ (a & c) ^ (b & c);
+                    uint temp2 = S0 + maj;
+
+                    h = g;
+                    g = f;
+                    f = e;
+                    e = d + temp1;
+                    d = c;
+                    c = b;
+                    b = a;
+                    a = temp1 + temp2;
+                }
+
+                H[0] += a;
+                H[1] += b;
+                H[2] += c;
+                H[3] += d;
+                H[4] += e;
+                H[5] += f;
+                H[6] += g;
+                H[7] += h;
+            }
+
+            byte[] result = new byte[28];
+            for (int i = 0; i < 7; i++)
+            {
+                result[i * 4 + 0] = (byte)((H[i] >> 24) & 0xFF);
+                result[i * 4 + 1] = (byte)((H[i] >> 16) & 0xFF);
+                result[i * 4 + 2] = (byte)((H[i] >> 8) & 0xFF);
+                result[i * 4 + 3] = (byte)(H[i] & 0xFF);
+            }
+
+            return result;
         }
 
         protected override void HashCore(byte[] array, int ibStart, int cbSize)
         {
-            throw new NotImplementedException();
+            stream = array;
         }
 
         protected override byte[] HashFinal()
         {
-            throw new NotImplementedException();
+            return ComputeHashInternal(stream);
         }
     }
 }
