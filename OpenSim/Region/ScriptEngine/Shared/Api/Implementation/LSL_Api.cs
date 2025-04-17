@@ -19421,7 +19421,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             */
         }
 
-        public static LSL_String llComputeHash(LSL_String message, LSL_String algo)
+        public LSL_String llComputeHash(LSL_String message, LSL_String algo)
         {
             switch (algo)
             {
