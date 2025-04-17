@@ -17361,6 +17361,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     break;
                 case ScriptBaseClass.ESTATE_ACCESS_BANNED_AGENT_ADD:
                     if (!isAccount) return 0;
+                    if(World.Permissions.IsAdministrator(id)) return 0;
                     if (estate.IsBanned(id, World.GetUserFlags(id))) return 1;
                     EstateBan ban = new()
                     {
