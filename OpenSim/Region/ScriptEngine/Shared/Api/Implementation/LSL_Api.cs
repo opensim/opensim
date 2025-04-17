@@ -19421,7 +19421,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             */
         }
 
-        public LSL_String llComputeHash(LSL_String message, LSL_String algo)
+        public static LSL_String llComputeHash(LSL_String message, LSL_String algo)
         {
             switch (algo)
             {
@@ -19485,8 +19485,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (private_key.Length < 1 || message.Length < 1)
                 return new LSL_String();
 
-            if (algo.Equals("sha224"))
-                return HMAC_SHA224(private_key, message);
+            //if (algo.Equals("sha224"))
+            //    return HMAC_SHA224(private_key, message);
 
             try
             {
