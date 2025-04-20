@@ -805,6 +805,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             {
                 RezSingleAttachmentFromInventory(sp, rez.Key, rez.Value);
             }
+            m_scene.AvatarFactory?.QueueAppearanceSave(sp.UUID);
         }
 
         public void DetachSingleAttachmentToGround(IScenePresence sp, uint soLocalId)
