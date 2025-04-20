@@ -802,6 +802,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public int Length
             {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get
                 {
                     if (m_data is null)
@@ -860,12 +861,13 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public object[] Data
             {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get
                 {
                     m_data ??= new object[0];
                     return m_data;
                 }
-
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 set { m_data = value; }
             }
 
@@ -878,6 +880,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
             /// </remarks>
             /// <returns></returns>
             /// <param name='itemIndex'></param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public Type GetLSLListItemType(int itemIndex)
             {
                 return Data[itemIndex].GetType();
@@ -1105,6 +1108,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                         Data[itemIndex].GetType().Name : "null"));
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public LSL_Types.key GetKeyItem(int itemIndex)
             {
                 return (LSL_Types.key)Data[itemIndex];
@@ -1137,12 +1141,14 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public object this[int i]
             {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get
                 {
                     if(m_data is null || i >= m_data.Length)
                         return null;
                     return m_data[i];
                 }
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 set
                 {
                     if (m_data is null || i >= m_data.Length)
@@ -1151,6 +1157,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 }
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static implicit operator Boolean(list l)
             {
                 return l.Length != 0;
@@ -1174,6 +1181,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return a;
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static bool operator ==(list a, list b)
             {
                 if (b is null)
@@ -1181,6 +1189,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return a is not null && a.Length == b.Length;
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static bool operator !=(list a, list b)
             {
                 if (b is null)
@@ -2233,6 +2242,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 }
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public override bool Equals(object o)
             {
                 if (o is list lo)
@@ -2240,6 +2250,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return false;
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public override int GetHashCode()
             {
                 return Data.GetHashCode();

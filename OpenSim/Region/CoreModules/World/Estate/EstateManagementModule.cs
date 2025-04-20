@@ -972,8 +972,12 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
                 if ((estateAccessType & 64) != 0) // Ban add
                 {
-
-                    if(thisSettings.EstateBansCount() >= (int)Constants.EstateAccessLimits.EstateBans)
+                    bool userIsAdmin = Scene.Permissions.IsAdministrator(user);
+                    if(userIsAdmin)
+                    {
+                        remote_client.SendAlertMessage("Cannot ban a Administrator");
+                    }
+                    else if(thisSettings.EstateBansCount() >= (int)Constants.EstateAccessLimits.EstateBans)
                     {
                         if(!sentBansFull)
                         {

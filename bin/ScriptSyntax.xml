@@ -1,4 +1,4 @@
-4782a83e-4ec0-2ed4-2d2a-c59df5a3ccf0
+78a7efc0-6d62-85ab-bdc0-b8a94e521ae0
 <llsd><map><key>llsd-lsl-syntax-version</key><integer>2</integer>
 <key>controls</key>
 <map>
@@ -817,6 +817,10 @@
   <key>type</key><string>integer</string>
   <key>value</key><string>1024</string>
  </map>
+ <key>CHANGED_RENDER_MATERIAL</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>0x1000</string>
+ </map>
  <key>CHANGED_SCALE</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>8</string>
@@ -1001,6 +1005,26 @@
   <key>type</key><string>string</string>
   <key>value</key><string>\n\n\n</string>
  </map>
+ <key>ERR_GENERIC</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>-1</string>
+ </map>
+ <key>ERR_MALFORMED_PARAMS</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>-3</string>
+ </map>
+ <key>ERR_PARCEL_PERMISSIONS</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>-2</string>
+ </map>
+ <key>ERR_RUNTIME_PERMISSIONS</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>-4</string>
+ </map>
+ <key>ERR_THROTTLED</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>-5</string>
+ </map>
  <key>ESTATE_ACCESS_ALLOWED_AGENT_ADD</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>0</string>
@@ -1132,6 +1156,10 @@
  <key>INVENTORY_LANDMARK</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>3</string>
+ </map>
+ <key>INVENTORY_MATERIAL</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>57</string>
  </map>
  <key>INVENTORY_NONE</key><map>
   <key>type</key><string>integer</string>
@@ -1444,6 +1472,10 @@
  <key>MASK_OWNER</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>1</string>
+ </map>
+ <key>NAK</key><map>
+  <key>type</key><string>string</string>
+  <key>value</key><string>\n\u0015\n</string>
  </map>
  <key>NPC</key><map>
   <key>type</key><string>integer</string>
@@ -2525,6 +2557,10 @@
   <key>type</key><string>integer</string>
   <key>value</key><string>2</string>
  </map>
+ <key>PRIM_REFLECTION_PROBE_MIRROR</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>4</string>
+ </map>
  <key>PRIM_RENDER_MATERIAL</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>49</string>
@@ -3007,6 +3043,90 @@
   <key>type</key><string>integer</string>
   <key>value</key><string>4</string>
  </map>
+ <key>REZ_ACCEL</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>5</string>
+ </map>
+ <key>REZ_DAMAGE</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>8</string>
+ </map>
+ <key>REZ_DAMAGE_TYPE</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>12</string>
+ </map>
+ <key>REZ_FLAG_BLOCK_GRAB_OBJECT</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>0x0080</string>
+ </map>
+ <key>REZ_FLAG_DIE_ON_COLLIDE</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>0x0008</string>
+ </map>
+ <key>REZ_FLAG_DIE_ON_NOENTRY</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>0x0010</string>
+ </map>
+ <key>REZ_FLAG_NO_COLLIDE_FAMILY</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>0x0040</string>
+ </map>
+ <key>REZ_FLAG_NO_COLLIDE_OWNER</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>0x0020</string>
+ </map>
+ <key>REZ_FLAG_PHANTOM</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>0x0004</string>
+ </map>
+ <key>REZ_FLAG_PHYSICAL</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>0x0002</string>
+ </map>
+ <key>REZ_FLAG_TEMP</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>0x0001</string>
+ </map>
+ <key>REZ_FLAGS</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>1</string>
+ </map>
+ <key>REZ_LOCK_AXES</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>11</string>
+ </map>
+ <key>REZ_OMEGA</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>7</string>
+ </map>
+ <key>REZ_PARAM</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>0</string>
+ </map>
+ <key>REZ_PARAM_STRING</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>13</string>
+ </map>
+ <key>REZ_POS</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>2</string>
+ </map>
+ <key>REZ_ROT</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>3</string>
+ </map>
+ <key>REZ_SOUND</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>9</string>
+ </map>
+ <key>REZ_SOUND_COLLIDE</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>10</string>
+ </map>
+ <key>REZ_VEL</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>4</string>
+ </map>
  <key>ROTATE</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>32</string>
@@ -3018,6 +3138,138 @@
  <key>SCRIPTED</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>8</string>
+ </map>
+ <key>SIM_STAT_ACTIVE_SCRIPT_COUNT</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>12</string>
+ </map>
+ <key>SIM_STAT_AGENT_COUNT</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>10</string>
+ </map>
+ <key>SIM_STAT_AGENT_MS</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>7</string>
+ </map>
+ <key>SIM_STAT_AGENT_UPDATES</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>2</string>
+ </map>
+ <key>SIM_STAT_AI_MS</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>26</string>
+ </map>
+ <key>SIM_STAT_ASSET_DOWNLOADS</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>15</string>
+ </map>
+ <key>SIM_STAT_ASSET_UPLOADS</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>16</string>
+ </map>
+ <key>SIM_STAT_CHILD_AGENT_COUNT</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>11</string>
+ </map>
+ <key>SIM_STAT_FRAME_MS</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>3</string>
+ </map>
+ <key>SIM_STAT_IMAGE_MS</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>8</string>
+ </map>
+ <key>SIM_STAT_IO_PUMP_MS</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>24</string>
+ </map>
+ <key>SIM_STAT_NET_MS</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>4</string>
+ </map>
+ <key>SIM_STAT_OTHER_MS</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>5</string>
+ </map>
+ <key>SIM_STAT_PACKETS_IN</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>13</string>
+ </map>
+ <key>SIM_STAT_PACKETS_OUT</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>14</string>
+ </map>
+ <key>SIM_STAT_PCT_CHARS_STEPPED</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>0</string>
+ </map>
+ <key>SIM_STAT_PHYSICS_FPS</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>1</string>
+ </map>
+ <key>SIM_STAT_PHYSICS_MS</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>6</string>
+ </map>
+ <key>SIM_STAT_PHYSICS_OTHER_MS</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>20</string>
+ </map>
+ <key>SIM_STAT_PHYSICS_SHAPE_MS</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>19</string>
+ </map>
+ <key>SIM_STAT_PHYSICS_STEP_MS</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>18</string>
+ </map>
+ <key>SIM_STAT_SCRIPT_EPS</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>21</string>
+ </map>
+ <key>SIM_STAT_SCRIPT_MS</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>9</string>
+ </map>
+ <key>SIM_STAT_SCRIPT_RUN_PCT</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>25</string>
+ </map>
+ <key>SIM_STAT_SLEEP_MS</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>23</string>
+ </map>
+ <key>SIM_STAT_SPARE_MS</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>22</string>
+ </map>
+ <key>SIM_STAT_UNACKED_BYTES</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>17</string>
+ </map>
+ <key>SIT_FLAG_ALLOW_UNSIT</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>0x02</string>
+ </map>
+ <key>SIT_FLAG_NO_COLLIDE</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>0x10</string>
+ </map>
+ <key>SIT_FLAG_NO_DAMAGE</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>0x20</string>
+ </map>
+ <key>SIT_FLAG_OPENSIMFORCED</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>SIT_FLAG_ALLOW_UNSIT | SIT_FLAG_NO_COLLIDE | SIT_FLAG_NO_DAMAGE</string>
+ </map>
+ <key>SIT_FLAG_SCRIPTED_ONLY</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>0x04</string>
+ </map>
+ <key>SIT_FLAG_SIT_TARGET</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>0x01</string>
  </map>
  <key>SMOOTH</key><map>
   <key>type</key><string>integer</string>
@@ -3932,6 +4184,14 @@
   </array>
   <key>tooltip</key><string>Not Supported - does nothing</string>
  </map>
+ <key>llComputeHash</key>
+ <map>
+  <key>return</key><string>string</string>
+  <key>arguments</key><array>
+   <map><key>message</key><map><key>type</key><string>string</string></map></map>
+   <map><key>algo</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
  <key>llCos</key>
  <map>
   <key>return</key><string>float</string>
@@ -4368,6 +4628,13 @@
   <key>return</key><string>float</string>
   <key>arguments</key><undef/>
  </map>
+ <key>llGetHealth</key>
+ <map>
+  <key>return</key><string>float</string>
+  <key>arguments</key><array>
+   <map><key>key</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
  <key>llGetHTTPHeader</key>
  <map>
   <key>return</key><string>string</string>
@@ -4388,6 +4655,13 @@
   <key>return</key><string>key</string>
   <key>arguments</key><array>
    <map><key>item</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
+ <key>llGetInventoryDesc</key>
+ <map>
+  <key>return</key><string>string</string>
+  <key>arguments</key><array>
+   <map><key>name</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
  <key>llGetInventoryKey</key>
@@ -4489,6 +4763,13 @@
    <map><key>rules</key><map><key>type</key><string>list</string></map></map>
   </array>
  </map>
+ <key>llGetLinkSitFlags</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>linknum</key><map><key>type</key><string>integer</string></map></map>
+  </array>
+ </map>
  <key>llGetListEntryType</key>
  <map>
   <key>return</key><string>integer</string>
@@ -4559,6 +4840,14 @@
  <key>llGetNotecardLine</key>
  <map>
   <key>return</key><string>key</string>
+  <key>arguments</key><array>
+   <map><key>name</key><map><key>type</key><string>string</string></map></map>
+   <map><key>line</key><map><key>type</key><string>integer</string></map></map>
+  </array>
+ </map>
+ <key>llGetNotecardLineSync</key>
+ <map>
+  <key>return</key><string>string</string>
   <key>arguments</key><array>
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
    <map><key>line</key><map><key>type</key><string>integer</string></map></map>
@@ -4824,6 +5113,13 @@
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
+ <key>llGetSimStats</key>
+ <map>
+  <key>return</key><string>float</string>
+  <key>arguments</key><array>
+   <map><key>stat_type</key><map><key>type</key><string>integer</string></map></map>
+  </array>
+ </map>
  <key>llGetSimulatorHostname</key>
  <map>
   <key>return</key><string>string</string>
@@ -4837,6 +5133,11 @@
  <key>llGetStartParameter</key>
  <map>
   <key>return</key><string>integer</string>
+  <key>arguments</key><undef/>
+ </map>
+ <key>llGetStartString</key>
+ <map>
+  <key>return</key><string>string</string>
   <key>arguments</key><undef/>
  </map>
  <key>llGetStatus</key>
@@ -4935,6 +5236,14 @@
   <key>return</key><string>vector</string>
   <key>arguments</key><undef/>
  </map>
+ <key>llGetVisualParams</key>
+ <map>
+  <key>return</key><string>list</string>
+  <key>arguments</key><array>
+   <map><key>id</key><map><key>type</key><string>string</string></map></map>
+   <map><key>visualparams</key><map><key>type</key><string>list</string></map></map>
+  </array>
+ </map>
  <key>llGetWallclock</key>
  <map>
   <key>return</key><string>float</string>
@@ -5011,6 +5320,15 @@
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
    <map><key>s</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
+ <key>llHMAC</key>
+ <map>
+  <key>return</key><string>string</string>
+  <key>arguments</key><array>
+   <map><key>private_key</key><map><key>type</key><string>string</string></map></map>
+   <map><key>message</key><map><key>type</key><string>string</string></map></map>
+   <map><key>algo</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
  <key>llHTTPRequest</key>
@@ -5607,6 +5925,15 @@
    <map><key>test</key><map><key>type</key><string>list</string></map></map>
   </array>
  </map>
+ <key>llListFindListNext</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>src</key><map><key>type</key><string>list</string></map></map>
+   <map><key>test</key><map><key>type</key><string>list</string></map></map>
+   <map><key>instance</key><map><key>type</key><string>integer</string></map></map>
+  </array>
+ </map>
  <key>llListFindStrided</key>
  <map>
   <key>return</key><string>integer</string>
@@ -6177,6 +6504,14 @@
    <map><key>param</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
+ <key>llRezObjectWithParams</key>
+ <map>
+  <key>return</key><string>key</string>
+  <key>arguments</key><array>
+   <map><key>inventory</key><map><key>type</key><string>string</string></map></map>
+   <map><key>lparam</key><map><key>type</key><string>list</string></map></map>
+  </array>
+ </map>
  <key>llRot2Angle</key>
  <map>
   <key>return</key><string>float</string>
@@ -6494,6 +6829,13 @@
   <key>arguments</key><array>
    <map><key>linknum</key><map><key>type</key><string>integer</string></map></map>
    <map><key>rules</key><map><key>type</key><string>list</string></map></map>
+  </array>
+ </map>
+ <key>llSetLinkSitFlags</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>linknum</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>flags</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>llSetLinkTexture</key>
@@ -7132,7 +7474,6 @@
    <map><key>secret</key><map><key>type</key><string>string</string></map></map>
    <map><key>encryptedText</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Decrypt an encrypted text using osAESEncrypt() and the same  Key (secret) used in the encryption. Returns the decrypted text.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osAESDecryptFrom</key>
  <map>
@@ -7142,7 +7483,6 @@
    <map><key>encryptedText</key><map><key>type</key><string>string</string></map></map>
    <map><key>ivString</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Decrypt an encrypted text using osAESEncryptTo() and the same Key (secret) and Initialization Vector (ivString) used in the encryption. Returns the decrypted text.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osAESEncrypt</key>
  <map>
@@ -7151,7 +7491,6 @@
    <map><key>secret</key><map><key>type</key><string>string</string></map></map>
    <map><key>plainText</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Encrypt a plain text using AES-256-CBC Symmetric Algorithm Key (secret) and a random Initialization Vector (IV). Returns the Hex string of the IV bytes and the Hex string of the encrypted text bytes separated with (:).\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osAESEncryptTo</key>
  <map>
@@ -7161,7 +7500,6 @@
    <map><key>plainText</key><map><key>type</key><string>string</string></map></map>
    <map><key>ivString</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Encrypt a plain text using AES-256-CBC Symmetric Algorithm Key (secret) and a custom Initialization Vector (ivString). Returns the Hex string of the IV bytes and the Hex string of the encrypted text bytes separated with (:).\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osAgentSaveAppearance</key>
  <map>
@@ -7171,7 +7509,6 @@
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
    <map><key>includeHuds</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Save an arbitrary avatar's appearance (with the choice to include Huds or no) to a notecard in the prim's inventory.\n- Threat Level: VeryHigh.\n- Permissions: ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osAgentSaveAppearance</key>
  <map>
@@ -7180,7 +7517,6 @@
    <map><key>agentId</key><map><key>type</key><string>key</string></map></map>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Save an arbitrary avatar's appearance to a notecard in the prim's inventory.\n- Threat Level: VeryHigh.\n- Permissions: ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osAngleBetween</key>
  <map>
@@ -7194,21 +7530,10 @@
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
-   <map><key>a</key><map><key>type</key><string>float</string></map></map>
-   <map><key>b</key><map><key>type</key><string>float</string></map></map>
-   <map><key>margin</key><map><key>type</key><string>float</string></map></map>
-  </array>
-  <key>tooltip</key><string>\n- Threat Level: VeryHigh.\n- Permissions: ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
- </map>
- <key>osApproxEquals</key>
- <map>
-  <key>return</key><string>integer</string>
-  <key>arguments</key><array>
    <map><key>ra</key><map><key>type</key><string>rotation</string></map></map>
    <map><key>rb</key><map><key>type</key><string>rotation</string></map></map>
    <map><key>margin</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>\n- Threat Level: VeryHigh.\n- Permissions: ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osApproxEquals</key>
  <map>
@@ -7217,7 +7542,14 @@
    <map><key>ra</key><map><key>type</key><string>rotation</string></map></map>
    <map><key>rb</key><map><key>type</key><string>rotation</string></map></map>
   </array>
-  <key>tooltip</key><string>\n- Threat Level: VeryHigh.\n- Permissions: ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
+ </map>
+ <key>osApproxEquals</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>va</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>vb</key><map><key>type</key><string>vector</string></map></map>
+  </array>
  </map>
  <key>osApproxEquals</key>
  <map>
@@ -7227,7 +7559,6 @@
    <map><key>vb</key><map><key>type</key><string>vector</string></map></map>
    <map><key>margin</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>\n- Threat Level: VeryHigh.\n- Permissions: ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osApproxEquals</key>
  <map>
@@ -7236,16 +7567,15 @@
    <map><key>a</key><map><key>type</key><string>float</string></map></map>
    <map><key>b</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>\n- Threat Level: VeryHigh.\n- Permissions: ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osApproxEquals</key>
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
-   <map><key>va</key><map><key>type</key><string>vector</string></map></map>
-   <map><key>vb</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>a</key><map><key>type</key><string>float</string></map></map>
+   <map><key>b</key><map><key>type</key><string>float</string></map></map>
+   <map><key>margin</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>\n- Threat Level: VeryHigh.\n- Permissions: ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osAvatarName2Key</key>
  <map>
@@ -7254,7 +7584,6 @@
    <map><key>firstname</key><map><key>type</key><string>string</string></map></map>
    <map><key>lastname</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns an avatar's key, based on his/her first and last name.\n- Threat Level: Low.\n- Permissions: osslParcelOG,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osAvatarPlayAnimation</key>
  <map>
@@ -7262,7 +7591,6 @@
    <map><key>avatarId</key><map><key>type</key><string>key</string></map></map>
    <map><key>animation</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>This function causes an animation to be played on the specified avatar.\nThe variable animation must be the name of an animation within the task inventory. For security reasons, UUIDs are not allowed here.\n- Threat Level: VeryHigh.\n- Permissions: Always disabled by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osAvatarStopAnimation</key>
  <map>
@@ -7270,7 +7598,6 @@
    <map><key>avatarId</key><map><key>type</key><string>key</string></map></map>
    <map><key>animation</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>This function stops the specified animation if it is playing on the avatar given.\nThe value avatar is a UUID, and the animation value is either the name of an animation in the task inventory or the UUID of an animation. If the specified avatar is not logged in or on the same sim as the script, then osAvatarStopAnimation silently fails. \n- Threat Level: VeryHigh.\n- Permissions: Always disabled by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osAvatarType</key>
  <map>
@@ -7278,7 +7605,6 @@
   <key>arguments</key><array>
    <map><key>avkey</key><map><key>type</key><string>key</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns the type of a avatar in region:\n+ &lt; 0 in case of error.\n+ 0 if avatar not found in region.\n+ 1 if it is a normal avatar.\n+ 2 if it is a NPC.\n\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osAvatarType</key>
  <map>
@@ -7286,7 +7612,6 @@
   <key>arguments</key><array>
    <map><key>avkey</key><map><key>type</key><string>key</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns the type of a avatar in region:\n+ &lt; 0 in case of error.\n+ 0 if avatar not found in region.\n+ 1 if it is a normal avatar.\n+ 2 if it is a NPC.\n\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osCauseDamage</key>
  <map>
@@ -7294,7 +7619,6 @@
    <map><key>avatar</key><map><key>type</key><string>key</string></map></map>
    <map><key>damage</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>Causes damage to the specified avatar, reducing their health by the specified points\n- Threat Level: High.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osCauseHealing</key>
  <map>
@@ -7302,24 +7626,20 @@
    <map><key>agentId</key><map><key>type</key><string>key</string></map></map>
    <map><key>healing</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>Do the opposite of osCauseDamage. It gives specified health points to the specified avatar.\n- Threat Level: VeryHigh.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osCheckODE</key>
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>\n- Threat Level: VeryHigh.\n- Permissions: ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osClearInertia</key>
  <map>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>That it checks if physics engine is legacy ODE and returns 1 ( TRUE ) it is, or 0 ( FALSE ) if not.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osClearObjectAnimations</key>
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>Clears all animations on the prim, returning how many it had running.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osCollisionSound</key>
  <map>
@@ -7327,7 +7647,6 @@
    <map><key>impact_sound</key><map><key>type</key><string>string</string></map></map>
    <map><key>impact_volume</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>Sets collision sound to impact_sound with specified volume.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osConsoleCommand</key>
  <map>
@@ -7335,7 +7654,6 @@
   <key>arguments</key><array>
    <map><key>Command</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>This function allows an LSL script to directly execute a command to opensim's console. Even if the function is available, only administrators/gods can successfully execute it. \n- Threat Level: Severe.\n- Permissions: Always disabled by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osDetectedCountry</key>
  <map>
@@ -7343,14 +7661,12 @@
   <key>arguments</key><array>
    <map><key>number</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns a string that indicates the country in which the avatar is located.\n- Threat Level: None.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osDie</key>
  <map>
   <key>arguments</key><array>
    <map><key>objectUUID</key><map><key>type</key><string>key</string></map></map>
   </array>
-  <key>tooltip</key><string>Deletes an object depending on the target uuid.\n- Threat Level: Low.\n- Permissions: osslParcelOG,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osDrawEllipse</key>
  <map>
@@ -7360,7 +7676,6 @@
    <map><key>width</key><map><key>type</key><string>integer</string></map></map>
    <map><key>height</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Appends an Ellipse drawing command to the string provided in drawList and returns the result.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osDrawFilledEllipse</key>
  <map>
@@ -7370,7 +7685,6 @@
    <map><key>width</key><map><key>type</key><string>integer</string></map></map>
    <map><key>height</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Appends an FillEllipse drawing command to the string provided in drawList and returns the result.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osDrawFilledPolygon</key>
  <map>
@@ -7380,7 +7694,6 @@
    <map><key>x</key><map><key>type</key><string>list</string></map></map>
    <map><key>y</key><map><key>type</key><string>list</string></map></map>
   </array>
-  <key>tooltip</key><string>Appends a FillPolygon drawing command to the string provided in drawList and returns the result. This fills in the interior of the specified polygon.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osDrawFilledRectangle</key>
  <map>
@@ -7390,7 +7703,6 @@
    <map><key>width</key><map><key>type</key><string>integer</string></map></map>
    <map><key>height</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Appends a FillRectangle drawing command to the string provided in drawList and returns the result.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osDrawImage</key>
  <map>
@@ -7401,7 +7713,6 @@
    <map><key>height</key><map><key>type</key><string>integer</string></map></map>
    <map><key>imageUrl</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Appends an Image drawing command to the string provided in drawList and returns the result.\nRetrieves an image specified by the imageUrl parameter and draws it at the specified height and width, with the upper left corner of the image placed at the pen's current position.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osDrawLine</key>
  <map>
@@ -7411,7 +7722,6 @@
    <map><key>endX</key><map><key>type</key><string>integer</string></map></map>
    <map><key>endY</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Appends a LineTo drawing command, or MoveTo and LineTo commands, to the string provided in drawList and returns the result.\nDraws a line using the current pen size and color from the pen's current position to the coordinates indicated by endX and endY. \n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osDrawLine</key>
  <map>
@@ -7421,7 +7731,6 @@
    <map><key>endX</key><map><key>type</key><string>integer</string></map></map>
    <map><key>endY</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Appends a LineTo drawing command, or MoveTo and LineTo commands, to the string provided in drawList and returns the result.\nDraws a line using the current pen size and color from to the coordinates indicated by startX and startY to the coordinates indicated by endX and endY.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osDrawPolygon</key>
  <map>
@@ -7431,7 +7740,6 @@
    <map><key>x</key><map><key>type</key><string>list</string></map></map>
    <map><key>y</key><map><key>type</key><string>list</string></map></map>
   </array>
-  <key>tooltip</key><string>Appends a Polygon drawing command to the string provided in drawList and returns the result.\nThe polygon is drawn with the current pen size and color on the x,y point pairs that comes from LSL list.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osDrawRectangle</key>
  <map>
@@ -7441,7 +7749,6 @@
    <map><key>width</key><map><key>type</key><string>integer</string></map></map>
    <map><key>height</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Appends a Rectangle drawing command to the string provided in drawList and returns the result.\nThe outline of a rectangle is drawn with the current pen size and color, at the specified width and height (in pixels), with the upper left corner of the rectangle placed at the pen's current position\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osDrawResetTransform</key>
  <map>
@@ -7449,7 +7756,6 @@
   <key>arguments</key><array>
    <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Reset all transforms.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osDrawRotationTransform</key>
  <map>
@@ -7458,7 +7764,6 @@
    <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
    <map><key>x</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osDrawScaleTransform</key>
  <map>
@@ -7468,7 +7773,6 @@
    <map><key>x</key><map><key>type</key><string>float</string></map></map>
    <map><key>y</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>\n- Threat Level: None.\n- Permissions: Not specified.\n- Sleep: Not specified.</string>
  </map>
  <key>osDrawText</key>
  <map>
@@ -7477,7 +7781,6 @@
    <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
    <map><key>text</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Appends a Text drawing command to the string provided in drawList and returns the result.\nThe specified text will be drawn with the current pen color, using the currently defined font, size and properties (which default to regular 14-point Arial).\nThe text will be drawn with the upper left corner of the first glyph at the pen's current position (however, note that glyphs within the font may be defined to extend to the left of their origin point).\n- Threat Level: None.\n- Permissions: Not specified.\n- Sleep: Not specified.</string>
  </map>
  <key>osDrawTranslationTransform</key>
  <map>
@@ -7487,12 +7790,10 @@
    <map><key>x</key><map><key>type</key><string>float</string></map></map>
    <map><key>y</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osDropAttachment</key>
  <map>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>Drops an attachment like a user-triggered attachment drop. Requires script to be granted PERMISSION_ATTACH.\n- Threat Level: Moderate.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osDropAttachmentAt</key>
  <map>
@@ -7500,7 +7801,6 @@
    <map><key>pos</key><map><key>type</key><string>vector</string></map></map>
    <map><key>rot</key><map><key>type</key><string>rotation</string></map></map>
   </array>
-  <key>tooltip</key><string>Drops an attachment at position pos with rotation rot. Requires script to be granted PERMISSION_ATTACH.\n- Threat Level: Moderate.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osEjectFromGroup</key>
  <map>
@@ -7508,14 +7808,12 @@
   <key>arguments</key><array>
    <map><key>agentId</key><map><key>type</key><string>key</string></map></map>
   </array>
-  <key>tooltip</key><string>Eject the given user from the group the object is set to.\nThe object owner must have the right to eject users from the group the object is set to.\nThe group member who is ejected can be offline. The user gets an instant message, that he/she has been ejected from that group.The result is TRUE, if the user could be ejected, otherwise FALSE. \n- Threat Level: VeryLow.\n- Permissions: osslParcelOG,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osForceAttachToAvatar</key>
  <map>
   <key>arguments</key><array>
    <map><key>attachment</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Works exactly like llAttachToAvatar() except that PERMISSION_ATTACH is not required.\n- Threat Level: High.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osForceAttachToAvatarFromInventory</key>
  <map>
@@ -7523,7 +7821,6 @@
    <map><key>itemName</key><map><key>type</key><string>string</string></map></map>
    <map><key>attachment</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Attach an inventory item in the object containing this script to the script owner without asking for PERMISSION_ATTACH. Nothing happens if the avatar is not in the region. \n- Threat Level: High.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osForceAttachToOtherAvatarFromInventory</key>
  <map>
@@ -7532,19 +7829,16 @@
    <map><key>itemName</key><map><key>type</key><string>string</string></map></map>
    <map><key>attachmentPoint</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Attach an inventory item in the object containing this script to any avatar in the region without asking for PERMISSION_ATTACH. Nothing happens if the avatar is not in the region. \n- Threat Level: VeryHigh.\n- Permissions: Always disabled by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osForceBreakAllLinks</key>
  <map>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>Identical to llBreakAllLinks() except that it doesn't require the link permission to be granted.\n- Threat Level: VeryLow.\n- Permissions: osslParcelOG,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osForceBreakLink</key>
  <map>
   <key>arguments</key><array>
    <map><key>linknum</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Identical to llBreakLink(integer linknumber) except that it doesn't require the link permission to be granted.\n- Threat Level: VeryLow.\n- Permissions: osslParcelOG,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osForceCreateLink</key>
  <map>
@@ -7552,17 +7846,14 @@
    <map><key>target</key><map><key>type</key><string>string</string></map></map>
    <map><key>parent</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Idential to llCreateLink() except that it doesn't require the link permission to be granted.\n- Threat Level: VeryLow.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osForceDetachFromAvatar</key>
  <map>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>Works exactly like llDetachFromAvatar() except that PERMISSION_ATTACH is not required.\n- Threat Level: High.\n- Permissions: Always disabled by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osForceDropAttachment</key>
  <map>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>Drops an attachment like a user-triggered attachment drop without checking if PERMISSION_ATTACH has been granted.\n- Threat Level: High.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osForceDropAttachmentAt</key>
  <map>
@@ -7570,7 +7861,6 @@
    <map><key>pos</key><map><key>type</key><string>vector</string></map></map>
    <map><key>rot</key><map><key>type</key><string>rotation</string></map></map>
   </array>
-  <key>tooltip</key><string>Drops an attachment at position pos with rotation rot without checking if PERMISSION_ATTACH has been granted.\n- Threat Level: High.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osForceOtherSit</key>
  <map>
@@ -7578,14 +7868,12 @@
    <map><key>avatar</key><map><key>type</key><string>string</string></map></map>
    <map><key>target</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Forces a sit of targeted avatar onto prim.\n- Threat Level: VeryHigh.\n- Permissions: Always disabled by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osForceOtherSit</key>
  <map>
   <key>arguments</key><array>
    <map><key>avatar</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Forces a sit of targeted avatar.\n- Threat Level: VeryHigh.\n- Permissions: Always disabled by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osFormatString</key>
  <map>
@@ -7594,7 +7882,6 @@
    <map><key>str</key><map><key>type</key><string>string</string></map></map>
    <map><key>strings</key><map><key>type</key><string>list</string></map></map>
   </array>
-  <key>tooltip</key><string>Return the string with parameters substituted into it. These parameters need to be incrementing numbers, starting at zero, and surrounded by single accolades (also known as curly brackets).\n- Threat Level: Low.\n- Permissions: Not specified.\n- Sleep: Not specified.</string>
  </map>
  <key>osGetAgentCountry</key>
  <map>
@@ -7602,7 +7889,6 @@
   <key>arguments</key><array>
    <map><key>agentId</key><map><key>type</key><string>key</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns a string that indicates the country in which an avatar is located.\n- Threat Level: None.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetAgentIP</key>
  <map>
@@ -7610,19 +7896,16 @@
   <key>arguments</key><array>
    <map><key>agent</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns the IP address of an avatar. osGetAgentIP is always restricted to Administrators.\n- Threat Level: Severe.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetAgents</key>
  <map>
   <key>return</key><string>list</string>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>Returns a list of all the agents names in the region.\n- Threat Level: None.\n- Permissions: osslParcelOG,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetApparentRegionTime</key>
  <map>
   <key>return</key><string>float</string>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>Returns region time in seconds since midnight.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetApparentRegionTimeString</key>
  <map>
@@ -7630,13 +7913,11 @@
   <key>arguments</key><array>
    <map><key>format24</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns a string with current region sun hour. Will use 12 or 24 hour format if format24 is 0 or 1, respectible.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetApparentTime</key>
  <map>
   <key>return</key><string>float</string>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>Returns parcel time in seconds since midnight. If parcel does not have own enviroment, region time is returned\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetApparentTimeString</key>
  <map>
@@ -7644,7 +7925,6 @@
   <key>arguments</key><array>
    <map><key>format24</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns a string with current parcel sun hour. Will use 12 or 24 hour format if format24 is 0 or 1, respectible. If parcel does not have own evironment, region hour is returned.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetAvatarHomeURI</key>
  <map>
@@ -7652,19 +7932,16 @@
   <key>arguments</key><array>
    <map><key>uuid</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns an avatar's Home URI.\n- Threat Level: Low.\n- Permissions: osslParcelOG,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetAvatarList</key>
  <map>
   <key>return</key><string>list</string>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>Returns a strided list of the UUID, position, and name of each avatar in the region except the owner. This function is similar to osGetAgents but returns enough info for a radar. \n- Threat Level: None.\n- Permissions: osslParcelOG,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetCurrentSunHour</key>
  <map>
   <key>return</key><string>float</string>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>Returns a float value of the current region sun hour (24 hour clock).\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetDrawStringSize</key>
  <map>
@@ -7675,7 +7952,6 @@
    <map><key>fontName</key><map><key>type</key><string>string</string></map></map>
    <map><key>fontSize</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns a vector containing the horizontal and vertical dimensions in pixels of the specified text, if drawn in the specified font and at the specified point size. The horizontal extent is returned in the .x component of the vector, and the vertical extent is returned in .y. The .z component is not used.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetGender</key>
  <map>
@@ -7683,7 +7959,6 @@
   <key>arguments</key><array>
    <map><key>rawAvatarId</key><map><key>type</key><string>key</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns a string with one of the following values: "male", "female", or "unknown". \n- Threat Level: None.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetGridCustom</key>
  <map>
@@ -7691,37 +7966,31 @@
   <key>arguments</key><array>
    <map><key>key</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns the value of the GridInfo key as a string.\n- Threat Level: Moderate.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetGridGatekeeperURI</key>
  <map>
   <key>return</key><string>string</string>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>Returns the current grid's Gatekeeper URI as a string. If HG is not configured, returns empty string.\n- Threat Level: Moderate.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetGridHomeURI</key>
  <map>
   <key>return</key><string>string</string>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>Returns the current grid's home URI as a string. if HG is not configured, returns empty string\n- Threat Level: Moderate.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetGridLoginURI</key>
  <map>
   <key>return</key><string>string</string>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>Returns the current grid's login URI as a string.\n- Threat Level: Moderate.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetGridName</key>
  <map>
   <key>return</key><string>string</string>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>Returns the current grid's name as a string.\n- Threat Level: None.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetGridNick</key>
  <map>
   <key>return</key><string>string</string>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>Returns the current grid's nickname as a string.\n- Threat Level: None.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetHealRate</key>
  <map>
@@ -7729,7 +7998,6 @@
   <key>arguments</key><array>
    <map><key>agentId</key><map><key>type</key><string>key</string></map></map>
   </array>
-  <key>tooltip</key><string>Gets the current automatic healing rate in % per second. Default heal rate is now around 0.5% per second. A value of zero can disable automatic heal, current maximum value is 100 % per second.\n- Threat Level: None.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetHealth</key>
  <map>
@@ -7737,13 +8005,11 @@
   <key>arguments</key><array>
    <map><key>agentId</key><map><key>type</key><string>key</string></map></map>
   </array>
-  <key>tooltip</key><string>Gets an avatars health by key and returns the value as a float.\n- Threat Level: None.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetInertiaData</key>
  <map>
   <key>return</key><string>list</string>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string> Caution ! Only supported by ubOde for now. This fonction retrun a list of inertia data.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetInventoryDesc</key>
  <map>
@@ -7751,7 +8017,6 @@
   <key>arguments</key><array>
    <map><key>itemNameOrId</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns a string that is the description of inventory item with id "itemName_or_itemId" if that parameter is a valid key or with that name if not.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetInventoryItemKey</key>
  <map>
@@ -7759,35 +8024,6 @@
   <key>arguments</key><array>
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns id(key) of a inventory item within a prim inventory. If name is not unique result maybe unpredictable.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
- </map>
-<key>osGetLinkInventoryKey</key>
- <map>
-  <key>return</key><string>key</string>
-  <key>arguments</key><array>
-   <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>name</key><map><key>type</key><string>string</string></map></map>
-   <map><key>type</key><map><key>type</key><string>integer</string></map></map>
-  </array>
-  <key>tooltip</key><string>Returns the UUID (same as llGetInventoryKey) of an item within a linked prim inventory. If name is not unique result maybe unpredictable.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
- </map>
- <key>osGetLinkInventoryKeys</key>
- <map>
-  <key>return</key><string>list</string>
-  <key>arguments</key><array>
-   <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>type</key><map><key>type</key><string>integer</string></map></map>
-  </array>
-  <key>tooltip</key><string>Returns a list of the UUIDs (same as llGetInventoryKey) of the items within a linked prim inventory filtred by type or INVENTORY_ALL.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
- </map>
-<key>osGetLinkInventoryItemKey</key>
- <map>
-  <key>return</key><string>key</string>
-  <key>arguments</key><array>
-   <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>name</key><map><key>type</key><string>string</string></map></map>
-  </array>
-  <key>tooltip</key><string>Returns the id(key) of an item within a linked prim inventory. If name is not unique result maybe unpredictable.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetInventoryItemKeys</key>
  <map>
@@ -7795,7 +8031,6 @@
   <key>arguments</key><array>
    <map><key>type</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns a list of items IDs (keys) within a linked prim inventory filtred by type or INVENTORY_ALL.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetInventoryLastOwner</key>
  <map>
@@ -7803,7 +8038,6 @@
   <key>arguments</key><array>
    <map><key>itemNameOrId</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns the id(key) of the last owner of inventory item with id "itemName_or_itemId" if that parameter is a valid key or with that name if not.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetInventoryName</key>
  <map>
@@ -7811,7 +8045,6 @@
   <key>arguments</key><array>
    <map><key>itemId</key><map><key>type</key><string>key</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns the name of an inventory item specified by its UUID.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetInventoryNames</key>
  <map>
@@ -7819,7 +8052,6 @@
   <key>arguments</key><array>
    <map><key>type</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns a list of items names within the prim inventory specified by the items type or INVENTORY_ALL.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetLastChangedEventKey</key>
  <map>
@@ -7867,49 +8099,11 @@
    <map><key>type</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
- <key>osGetLastChangedEventKey</key>
- <map>
-  <key>return</key><string>key</string>
-  <key>arguments</key><undef/>
- </map>
- <key>osGetLinkColor</key>
- <map>
-  <key>return</key><string>vector</string>
-  <key>arguments</key><array>
-   <map><key>linknum</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>face</key><map><key>type</key><string>integer</string></map></map>
-  </array>
- </map>
- <key>osGetLinkInventoryDesc</key>
- <map>
-  <key>return</key><string>string</string>
-  <key>arguments</key><array>
-   <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>itemNameorid</key><map><key>type</key><string>string</string></map></map>
-  </array>
- </map>
- <key>osGetLinkInventoryItemKey</key>
- <map>
-  <key>return</key><string>key</string>
-  <key>arguments</key><array>
-   <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>name</key><map><key>type</key><string>string</string></map></map>
-  </array>
- </map>
- <key>osGetLinkInventoryItemKeys</key>
+ <key>osGetLinkInventoryKeys</key>
  <map>
   <key>return</key><string>list</string>
   <key>arguments</key><array>
    <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>type</key><map><key>type</key><string>integer</string></map></map>
-  </array>
- </map>
- <key>osGetLinkInventoryKey</key>
- <map>
-  <key>return</key><string>key</string>
-  <key>arguments</key><array>
-   <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>name</key><map><key>type</key><string>string</string></map></map>
    <map><key>type</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
@@ -7920,7 +8114,6 @@
    <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
    <map><key>itemId</key><map><key>type</key><string>key</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns the name of an item within a linked prim inventory specified by the prim link number and the item UUID.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetLinkInventoryNames</key>
  <map>
@@ -7929,49 +8122,6 @@
    <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
    <map><key>type</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns a list of items names within a linked prim inventory specified by the prim link number and the items type or INVENTORY_ALL.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
- </map>
- <key>osGetLinkInventoryItemKeys</key>
- <map>
-  <key>return</key><string>list</string>
-  <key>arguments</key><array>
-   <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>type</key><map><key>type</key><string>integer</string></map></map>
-  </array>
-  <key>tooltip</key><string>Returns a list of the items IDs (keys) within a linked prim inventory specified by the prim link number and the items type or INVENTORY_ALL.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
- </map>
- <key>osRemoveLinkInventory</key>
- <map>
-  <key>arguments</key><array>
-   <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>name</key><map><key>type</key><string>integer</string></map></map>
-  </array>
-  <key>tooltip</key><string>Removes an item within a linked prim inventory specified by the prim link number and the item name.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
- </map>
- <key>osGiveLinkInventory</key>
- <map>
-  <key>arguments</key><array>
-   <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>destination</key><map><key>type</key><string>key</string></map></map>
-   <map><key>inventory</key><map><key>type</key><string>string</string></map></map>
-  </array>
-  <key>tooltip</key><string>Gives to an avatar, an item within a linked prim inventory specified by the prim link number and the item name.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 3 seconds.</string>
- </map>
- <key>osGiveLinkInventoryList</key>
- <map>
-  <key>arguments</key><array>
-   <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>destination</key><map><key>type</key><string>key</string></map></map>
-   <map><key>category</key><map><key>type</key><string>string</string></map></map>
-   <map><key>inventory</key><map><key>type</key><string>string</string></map></map>
-  </array>
-  <key>tooltip</key><string>Gives to an avatar, a group of items within a linked prim inventory specified by the prim link number and the items names list.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 3 seconds.</string>
- </map>
- <key>osGetLastChangedEventKey</key>
- <map>
-  <key>return</key><string>key</string>
-  <key>arguments</key><undef/>
-  <key>tooltip</key><string>\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetLinkNumber</key>
  <map>
@@ -7979,7 +8129,6 @@
   <key>arguments</key><array>
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns the link number of the prim or sitting avatar with name "name" on the link set or -1 if the name is not found. \n- Threat Level: None.\n- Permissions: Not Specified.\n- Sleep: Not Specified.</string>
  </map>
  <key>osGetLinkPrimitiveParams</key>
  <map>
@@ -7988,7 +8137,6 @@
    <map><key>linknumber</key><map><key>type</key><string>integer</string></map></map>
    <map><key>rules</key><map><key>type</key><string>list</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns the primitive parameters for the linkset prim or prims specified by linknumber.\n- Threat Level: High.\n- Permissions: Not Specified.\n- Sleep: Not Specified.</string>
  </map>
  <key>osGetLinkSitActiveRange</key>
  <map>
@@ -7996,7 +8144,6 @@
   <key>arguments</key><array>
    <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns the sit active range of the selected prim,\n- Threat Level: None.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetLinkStandTarget</key>
  <map>
@@ -8004,13 +8151,11 @@
   <key>arguments</key><array>
    <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns the stand target set on the prim see osSetLinkStandTarget.\n- Threat Level: None.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetMapTexture</key>
  <map>
   <key>return</key><string>key</string>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>Returns the UUID of the map texture of the current region.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetNotecard</key>
  <map>
@@ -8018,7 +8163,6 @@
   <key>arguments</key><array>
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Directly reads the entire contents of a notecard if it exists within the prim inventory, and dumps it into a string.\n- Threat Level: VeryHigh.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetNotecardLine</key>
  <map>
@@ -8027,13 +8171,11 @@
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
    <map><key>line</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Directly reads a line of text from the specified notecard, if it exists within the prim inventory, and returns the text as a string.\n- Threat Level: VeryHigh.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetNPCList</key>
  <map>
   <key>return</key><string>list</string>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>Returns a strided list of the UUID, position, and name of each NPC in the region.\n- Threat Level: None.\n- Permissions: osslParcelOG,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetNumberOfAttachments</key>
  <map>
@@ -8042,7 +8184,6 @@
    <map><key>avatar</key><map><key>type</key><string>key</string></map></map>
    <map><key>attachmentPoints</key><map><key>type</key><string>list</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns a strided list of the specified attachment points and the number of attachments on those points. \n- Threat Level: Moderate.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetNumberOfNotecardLines</key>
  <map>
@@ -8050,7 +8191,6 @@
   <key>arguments</key><array>
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>count how many lines a notecard has if the specified notecard exists within the prim inventory.\n- Threat Level: VeryHigh.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetParcelDetails</key>
  <map>
@@ -8059,7 +8199,6 @@
    <map><key>id</key><map><key>type</key><string>key</string></map></map>
    <map><key>param</key><map><key>type</key><string>list</string></map></map>
   </array>
-  <key>tooltip</key><string>This function is like llGetParcelDetails, but using parcel global id (parcelID) instead of position in region.\n- Threat Level: Not Checked.\n- Permissions: Not Specified.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetParcelDwell</key>
  <map>
@@ -8067,37 +8206,26 @@
   <key>arguments</key><array>
    <map><key>pos</key><map><key>type</key><string>vector</string></map></map>
   </array>
-  <key>tooltip</key><string>This function allows you to get parcel dwell. Alternatively you can also use PARCEL_DETAILS_DWELL with the function llGetParcelDetails.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetParcelID</key>
  <map>
   <key>return</key><string>key</string>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>This function returns the parcel global id (parcelID) of the parcel where host prim is.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetParcelIDs</key>
  <map>
   <key>return</key><string>list</string>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>This function returns a list of the parcel global ids of all parcels in region. \n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetPhysicsEngineName</key>
  <map>
   <key>return</key><string>string</string>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>This function returns a string containing the name and version number of the physics engine.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetPhysicsEngineType</key>
  <map>
   <key>return</key><string>string</string>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>This function returns a string containing the name of the Physics Engine. \n- Threat Level: High.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
- </map>
- <key>osGetPrimCount</key>
- <map>
-  <key>return</key><string>integer</string>
-  <key>arguments</key><undef/>
-  <key>tooltip</key><string>Returns the number of prims of the current linkset. \n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetPrimCount</key>
  <map>
@@ -8105,7 +8233,11 @@
   <key>arguments</key><array>
    <map><key>object_id</key><map><key>type</key><string>key</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns the number of prims of the linkset that includes a prim with UUID objectID. \n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
+ </map>
+ <key>osGetPrimCount</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><undef/>
  </map>
  <key>osGetPrimitiveParams</key>
  <map>
@@ -8114,13 +8246,11 @@
    <map><key>prim</key><map><key>type</key><string>key</string></map></map>
    <map><key>rules</key><map><key>type</key><string>list</string></map></map>
   </array>
-  <key>tooltip</key><string>Gets the parameters for the prim specified by primId according to rules. This function has the same behave as llGetPrimitiveParams except you can specify target prim anywhere in the scene.\n- Threat Level: None.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetPSTWallclock</key>
  <map>
   <key>return</key><string>float</string>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>Returns the current PST or PDT time in seconds since midnight.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetRegionMapTexture</key>
  <map>
@@ -8128,55 +8258,46 @@
   <key>arguments</key><array>
    <map><key>regionNameOrID</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Retrieves the key of the texture used to represent a region on the world map. regionNameOrID can be the region UUID or its name. If empty string, will return the current region map texture key.\n- Threat Level: High.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 1 seconds.</string>
  </map>
  <key>osGetRegionSize</key>
  <map>
   <key>return</key><string>vector</string>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>Returns the size of the region in meters. However, when called in a var/mega region it returns the size of the entire simulator.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetRegionStats</key>
  <map>
   <key>return</key><string>list</string>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>Returns a list of float values representing a number of region statistics (many of the values shown in the "Stats Bar" of LL-based clients).\n- Threat Level: Moderate.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetRezzingObject</key>
  <map>
   <key>return</key><string>key</string>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>Get the key of the object that rezzed this object. Will return NULL_KEY if rezzed by agent or otherwise unknown source. Should only be reliable inside the on_rez event.\n- Threat Level: None.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetScriptEngineName</key>
  <map>
   <key>return</key><string>string</string>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>Returns the name of the script engine which is currently enabled on the server.\n- Threat Level: High.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetSimulatorMemory</key>
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>Returns the memory in use by the simulator in Bits as signed 32-bit integer. This limits the returned value to a maximum of 2GB even if the actual amount of memory in use exceeds 2GB.\n- Threat Level: Moderate.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetSimulatorMemoryKB</key>
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>Returns the memory in use by the simulator in KiloBits.\n- Threat Level: Moderate.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetSimulatorVersion</key>
  <map>
   <key>return</key><string>string</string>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>Returns a string containing the current simulator version.\n- Threat Level: High.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetSitActiveRange</key>
  <map>
   <key>return</key><string>float</string>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>Returns the sit active range of the prim see: osSetSitActiveRange\n- Threat Level: None.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetSitTargetPos</key>
  <map>
@@ -8191,22 +8312,19 @@
  <key>osGetSittingAvatarsCount</key>
  <map>
   <key>return</key><string>integer</string>
-  <key>arguments</key><undef/>
-  <key>tooltip</key><string>Returns the number of sitting avatars on the current linkset.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
+  <key>arguments</key><array>
+   <map><key>object_id</key><map><key>type</key><string>key</string></map></map>
+  </array>
  </map>
  <key>osGetSittingAvatarsCount</key>
  <map>
   <key>return</key><string>integer</string>
-  <key>arguments</key><array>
-   <map><key>object_id</key><map><key>type</key><string>key</string></map></map>
-  </array>
-  <key>tooltip</key><string>Returns the number of sitting avatars on the linkset that includes a prim with UUID objectID.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
+  <key>arguments</key><undef/>
  </map>
  <key>osGetStandTarget</key>
  <map>
   <key>return</key><string>vector</string>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>Returns the stand target set on the prim see osSetStandTarget. If return is vector 0,0,0 the stand target is disabled. Default stand offset and login are used.\n- Threat Level: None.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetSunParam</key>
  <map>
@@ -8214,7 +8332,6 @@
   <key>arguments</key><array>
    <map><key>param</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>This function should not be used in 0.9.2.+. It did depend on Sun module, removed on 0.9.2.</string>
  </map>
  <key>osGetTerrainHeight</key>
  <map>
@@ -8223,7 +8340,6 @@
    <map><key>x</key><map><key>type</key><string>integer</string></map></map>
    <map><key>y</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns the terrain height in the specified x,y position.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGetWindParam</key>
  <map>
@@ -8232,7 +8348,6 @@
    <map><key>plugin</key><map><key>type</key><string>string</string></map></map>
    <map><key>param</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Gets the value of param property for plugin module.\n- Threat Level: VeryLow.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osGiveLinkInventory</key>
  <map>
@@ -8274,7 +8389,6 @@
   <key>arguments</key><array>
    <map><key>agentId</key><map><key>type</key><string>key</string></map></map>
   </array>
-  <key>tooltip</key><string>Invite the given user to the group the object is set to. Returns TRUE (1), if the invitation could be sent, (2) if user is already member of the group, otherwise FALSE (0).\n- Threat Level: VeryLow.\n- Permissions: osslParcelOG,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osIsNotValidNumber</key>
  <map>
@@ -8282,7 +8396,6 @@
   <key>arguments</key><array>
    <map><key>v</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns 0 (false) if v is a valid float, else returns 1 if it is a NaN, 2 if it is a Negative Infinity or 3 if it is a Positive Infinity.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osIsNpc</key>
  <map>
@@ -8290,7 +8403,6 @@
   <key>arguments</key><array>
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns NPC status on the provided key. TRUE (1) if the key is an NPC or FALSE (0).\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osIsUUID</key>
  <map>
@@ -8298,7 +8410,6 @@
   <key>arguments</key><array>
    <map><key>thing</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns 1 if the supplied string can be converted to key (uuid), returns 0 otherwise.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osKey2Name</key>
  <map>
@@ -8306,7 +8417,6 @@
   <key>arguments</key><array>
    <map><key>id</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns the avatar's name, based on their UUID.\n- Threat Level: Low.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osKickAvatar</key>
  <map>
@@ -8314,7 +8424,6 @@
    <map><key>agentId</key><map><key>type</key><string>key</string></map></map>
    <map><key>alert</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Kicks the selected avatar by UUID, closing its connection.\n- Threat Level: Severe.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osKickAvatar</key>
  <map>
@@ -8323,7 +8432,6 @@
    <map><key>SurName</key><map><key>type</key><string>string</string></map></map>
    <map><key>alert</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Kicks the selected avatar by First/Last Name, closing its connection.\n- Threat Level: Severe.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osLinkParticleSystem</key>
  <map>
@@ -8331,7 +8439,17 @@
    <map><key>linknumber</key><map><key>type</key><string>integer</string></map></map>
    <map><key>rules</key><map><key>type</key><string>list</string></map></map>
   </array>
-  <key>tooltip</key><string>Set the rules and start a Particle System in a linked prim.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
+ </map>
+ <key>osListFindListNext</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>src</key><map><key>type</key><string>list</string></map></map>
+   <map><key>test</key><map><key>type</key><string>list</string></map></map>
+   <map><key>start</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>end</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>instance</key><map><key>type</key><string>integer</string></map></map>
+  </array>
  </map>
  <key>osListSortInPlace</key>
  <map>
@@ -8340,7 +8458,6 @@
    <map><key>stride</key><map><key>type</key><string>integer</string></map></map>
    <map><key>ascending</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Identical to llListSort but does the sort on the original list, so using less memory.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osListSortInPlaceStrided</key>
  <map>
@@ -8350,25 +8467,21 @@
    <map><key>stride_index</key><map><key>type</key><string>integer</string></map></map>
    <map><key>ascending</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Identical to llListSortStrided but does the sort on the original list, so using less memory.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osLoadedCreationDate</key>
  <map>
   <key>return</key><string>string</string>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>Returns a string containing the date that a sim was first created.\n- Threat Level: Low.\n- Permissions: osslParcelOG,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osLoadedCreationID</key>
  <map>
   <key>return</key><string>string</string>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>Returns a string containing the UUID that a sim was originally created with.\n- Threat Level: Low.\n- Permissions: osslParcelOG,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osLoadedCreationTime</key>
  <map>
   <key>return</key><string>string</string>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>Returns a string containing the time that a sim was first created.\n- Threat Level: Low.\n- Permissions: osslParcelOG,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osLocalTeleportAgent</key>
  <map>
@@ -8379,7 +8492,6 @@
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
    <map><key>flags</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Teleports an avatar with uuid agentID to the specified newPosition within same region. It ignores region teleport settings like Telehub or landpoint\n- Threat Level: None.\n- Permissions: Not Specified.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osLoopSound</key>
  <map>
@@ -8388,7 +8500,6 @@
    <map><key>sound</key><map><key>type</key><string>string</string></map></map>
    <map><key>volume</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>Play the specified sound at the specified volume and loop it indefinitely. The sound parameter can be the UUID of a sound or the name of a sound that is in the inventory of the target prim.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osLoopSoundMaster</key>
  <map>
@@ -8397,7 +8508,6 @@
    <map><key>sound</key><map><key>type</key><string>string</string></map></map>
    <map><key>volume</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>Play the specified sound at the specified volume and loop it indefinitely. This sound will be set as a master sound. The playing of the sound in other prims using osLoopSoundSlave will be synchronized to this sound.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osLoopSoundSlave</key>
  <map>
@@ -8406,7 +8516,6 @@
    <map><key>sound</key><map><key>type</key><string>string</string></map></map>
    <map><key>volume</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>Play the specified sound at the specified volume and loop it indefinitely. This sound will be set as a slave sound. The playing of a slave sound will be synchronized to the playing of the same sound declared in another prim as the master sound.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osMakeNotecard</key>
  <map>
@@ -8414,7 +8523,6 @@
    <map><key>notecardName</key><map><key>type</key><string>string</string></map></map>
    <map><key>contents</key><map><key>type</key><string>list</string></map></map>
   </array>
-  <key>tooltip</key><string>Creates a notecard with text in the prim that contains the script. Contents can be either a list or a string.\n- Threat Level: High.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osMakeNotecard</key>
  <map>
@@ -8422,7 +8530,6 @@
    <map><key>notecardName</key><map><key>type</key><string>string</string></map></map>
    <map><key>contents</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Creates a notecard with text in the prim that contains the script. Contents can be either a list or a string.\n- Threat Level: High.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osMatchString</key>
  <map>
@@ -8432,7 +8539,6 @@
    <map><key>pattern</key><map><key>type</key><string>string</string></map></map>
    <map><key>start</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns a list containing the matches from the given string.\n- Threat Level: High.\n- Permissions: Not Specified.\n- Sleep: Not Specified.</string>
  </map>
  <key>osMax</key>
  <map>
@@ -8441,7 +8547,6 @@
    <map><key>a</key><map><key>type</key><string>float</string></map></map>
    <map><key>b</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns the larger of two numbers. Wraps to system Math.Max().\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osMessageAttachments</key>
  <map>
@@ -8451,7 +8556,6 @@
    <map><key>attachmentPoints</key><map><key>type</key><string>list</string></map></map>
    <map><key>flags</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Sends a specified message to the specified avatar's attachments on the specified attachment points. Behaves as osMessageObject, without the sending script needing to know the attachment keys in advance.\n- Threat Level: Moderate.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0.1 seconds.</string>
  </map>
  <key>osMessageObject</key>
  <map>
@@ -8459,7 +8563,6 @@
    <map><key>objectUUID</key><map><key>type</key><string>key</string></map></map>
    <map><key>message</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Sends a message to a prim identified by the given UUID, a script in the prim must implement the dataserver event handler. the dataserver event is passed the UUID of the calling prim and a string message. \n- Threat Level: Low.\n- Permissions: osslParcelOG,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osMin</key>
  <map>
@@ -8468,7 +8571,6 @@
    <map><key>a</key><map><key>type</key><string>float</string></map></map>
    <map><key>b</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns the smaller of two numbers. Wraps to the system Math.Min() function.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osMovePen</key>
  <map>
@@ -8478,7 +8580,6 @@
    <map><key>x</key><map><key>type</key><string>integer</string></map></map>
    <map><key>y</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Moves the pen's location to the coordinates specified by the x and y parameters, without drawing anything.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osNpcCreate</key>
  <map>
@@ -8489,7 +8590,6 @@
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Creates an NPC named firstname lastname at position from avatar appearance resource cloneFrom.\n- Threat Level: High.\n- Permissions: ${OSSL|osslNPC}.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osNpcCreate</key>
  <map>
@@ -8500,7 +8600,6 @@
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Creates an NPC named firstname lastname at position from avatar appearance resource cloneFrom.\n- Threat Level: High.\n- Permissions: ${OSSL|osslNPC}.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osNpcGetOwner</key>
  <map>
@@ -8508,7 +8607,6 @@
   <key>arguments</key><array>
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
   </array>
-  <key>tooltip</key><string>Gets the NPC's owner's UUID.\n- Threat Level: None.\n- Permissions: ${OSSL|osslNPC}.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osNpcGetPos</key>
  <map>
@@ -8516,7 +8614,6 @@
   <key>arguments</key><array>
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
   </array>
-  <key>tooltip</key><string>Return the current position of the NPC.\n- Threat Level: High.\n- Permissions: ${OSSL|osslNPC}.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osNpcGetRot</key>
  <map>
@@ -8524,7 +8621,6 @@
   <key>arguments</key><array>
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
   </array>
-  <key>tooltip</key><string>Gets the rotation of the avatar. Only the rotation around the Z plane in Euler rotation (horizontal rotation) has any meaning.\n- Threat Level: High.\n- Permissions: ${OSSL|osslNPC}.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osNpcLoadAppearance</key>
  <map>
@@ -8532,7 +8628,6 @@
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Load appearance from a notecard. This notecard must contain appearance data created with one of the save appearance functions.\n- Threat Level: High.\n- Permissions: ${OSSL|osslNPC}.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osNpcLookAt</key>
  <map>
@@ -8543,7 +8638,6 @@
    <map><key>objkey</key><map><key>type</key><string>key</string></map></map>
    <map><key>offset</key><map><key>type</key><string>vector</string></map></map>
   </array>
-  <key>tooltip</key><string>Sends a viewer lookat effect relative to that npc to all avatars in region.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osNpcMoveTo</key>
  <map>
@@ -8551,7 +8645,6 @@
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
   </array>
-  <key>tooltip</key><string>Moves npc to the position.\n- Threat Level: High.\n- Permissions: ${OSSL|osslNPC}.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osNpcMoveToTarget</key>
  <map>
@@ -8560,7 +8653,6 @@
    <map><key>target</key><map><key>type</key><string>vector</string></map></map>
    <map><key>options</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Move the NPC to a given target over time.\n- Threat Level: High.\n- Permissions: ${OSSL|osslNPC}.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osNpcPlayAnimation</key>
  <map>
@@ -8568,14 +8660,12 @@
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
    <map><key>animation</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Plays animation on the NPC identified by their key.\n- Threat Level: High.\n- Permissions: ${OSSL|osslNPC}.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osNpcRemove</key>
  <map>
   <key>arguments</key><array>
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
   </array>
-  <key>tooltip</key><string>Removes the NPC specified by key npc.\n- Threat Level: High.\n- Permissions: ${OSSL|osslNPC}.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osNpcSaveAppearance</key>
  <map>
@@ -8584,7 +8674,6 @@
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Save the NPC's current appearance to a notecard in the prim's inventory.\n- Threat Level: High.\n- Permissions: ${OSSL|osslNPC}.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osNpcSaveAppearance</key>
  <map>
@@ -8593,7 +8682,6 @@
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Save the NPC's current appearance including Huds to a notecard in the prim's inventory.\n- Threat Level: High.\n- Permissions: ${OSSL|osslNPC}.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osNpcSay</key>
  <map>
@@ -8601,7 +8689,6 @@
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
    <map><key>message</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Makes an npc says message on the given channel.\n- Threat Level: High.\n- Permissions: ${OSSL|osslNPC}.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osNpcSay</key>
  <map>
@@ -8609,7 +8696,6 @@
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
    <map><key>message</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>npc says message on the given channel.\n- Threat Level: High.\n- Permissions: ${OSSL|osslNPC}.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osNpcSayTo</key>
  <map>
@@ -8619,7 +8705,6 @@
    <map><key>channel</key><map><key>type</key><string>integer</string></map></map>
    <map><key>msg</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Makes an npc says message on the given channel to the specified target.\n- Threat Level: High.\n- Permissions: ${OSSL|osslNPC}.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osNpcSetProfileAbout</key>
  <map>
@@ -8627,7 +8712,6 @@
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
    <map><key>about</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Set about in created NPC's profile.\n- Threat Level: High.\n- Permissions: ${OSSL|osslNPC}.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osNpcSetProfileImage</key>
  <map>
@@ -8635,7 +8719,6 @@
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
    <map><key>image</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Set image (UUID or name of texture) in created NPC's profile. The texture must be included in prim's inventory.\n- Threat Level: Low.\n- Permissions: ${OSSL|osslNPC}.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osNpcSetRot</key>
  <map>
@@ -8643,7 +8726,6 @@
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
    <map><key>rot</key><map><key>type</key><string>rotation</string></map></map>
   </array>
-  <key>tooltip</key><string>Set the rotation of the avatar.\n- Threat Level: High.\n- Permissions: ${OSSL|osslNPC}.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osNpcShout</key>
  <map>
@@ -8652,7 +8734,6 @@
    <map><key>channel</key><map><key>type</key><string>integer</string></map></map>
    <map><key>message</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Makes an npc shouts a message on the given channel.\n- Threat Level: High.\n- Permissions: ${OSSL|osslNPC}.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osNpcSit</key>
  <map>
@@ -8661,14 +8742,12 @@
    <map><key>target</key><map><key>type</key><string>key</string></map></map>
    <map><key>options</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Makes an NPC sit on an object.\n- Threat Level: High.\n- Permissions: ${OSSL|osslNPC}.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osNpcStand</key>
  <map>
   <key>arguments</key><array>
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
   </array>
-  <key>tooltip</key><string>Makes a sitting NPC stand up.\n- Threat Level: High.\n- Permissions: ${OSSL|osslNPC}.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osNpcStopAnimation</key>
  <map>
@@ -8676,14 +8755,12 @@
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
    <map><key>animation</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Stops an animation that is being played by the NPC identified by their key.\n- Threat Level: High.\n- Permissions: ${OSSL|osslNPC}.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osNpcStopMoveToTarget</key>
  <map>
   <key>arguments</key><array>
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
   </array>
-  <key>tooltip</key><string>Stop a current move to a target.\n- Threat Level: High.\n- Permissions: ${OSSL|osslNPC}.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osNpcTouch</key>
  <map>
@@ -8692,7 +8769,6 @@
    <map><key>object_key</key><map><key>type</key><string>key</string></map></map>
    <map><key>link_num</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Makes an npc touch an object or a particular prim in a linkset.\n- Threat Level: High.\n- Permissions: ${OSSL|osslNPC}.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osNpcWhisper</key>
  <map>
@@ -8701,7 +8777,6 @@
    <map><key>channel</key><map><key>type</key><string>integer</string></map></map>
    <map><key>message</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Makes an npc whispers message on the given channel.\n- Threat Level: High.\n- Permissions: ${OSSL|osslNPC}.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osOldList2ListStrided</key>
  <map>
@@ -8712,15 +8787,6 @@
    <map><key>end</key><map><key>type</key><string>integer</string></map></map>
    <map><key>stride</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>\n- Threat Level: Not Specified.\n- Permissions: Not Specified.\n- Sleep: 0 seconds.</string>
- </map>
- <key>osOwnerSaveAppearance</key>
- <map>
-  <key>return</key><string>key</string>
-  <key>arguments</key><array>
-   <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
-  </array>
-  <key>tooltip</key><string>Save the owner's current appearance to a notecard in the prim's inventory.\n- Threat Level: High.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osOwnerSaveAppearance</key>
  <map>
@@ -8729,7 +8795,13 @@
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
    <map><key>includeHuds</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Save the owner's current appearance including Huds to a notecard in the prim's inventory.\n- Threat Level: High.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
+ </map>
+ <key>osOwnerSaveAppearance</key>
+ <map>
+  <key>return</key><string>key</string>
+  <key>arguments</key><array>
+   <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
+  </array>
  </map>
  <key>osParcelJoin</key>
  <map>
@@ -8737,7 +8809,6 @@
    <map><key>pos1</key><map><key>type</key><string>vector</string></map></map>
    <map><key>pos2</key><map><key>type</key><string>vector</string></map></map>
   </array>
-  <key>tooltip</key><string>Joins two adjacent parcels within the same region.\n- Threat Level: High.\n- Permissions: ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osParcelSetDetails</key>
  <map>
@@ -8745,7 +8816,6 @@
    <map><key>pos</key><map><key>type</key><string>vector</string></map></map>
    <map><key>rules</key><map><key>type</key><string>list</string></map></map>
   </array>
-  <key>tooltip</key><string>Deprecated - Use osSetParcelDetails instead.</string>
  </map>
  <key>osParcelSubdivide</key>
  <map>
@@ -8753,14 +8823,12 @@
    <map><key>pos1</key><map><key>type</key><string>vector</string></map></map>
    <map><key>pos2</key><map><key>type</key><string>vector</string></map></map>
   </array>
-  <key>tooltip</key><string>Subdivides a parcel into two adjacent parcels within the same region.\n- Threat Level: High.\n- Permissions: ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osParticleSystem</key>
  <map>
   <key>arguments</key><array>
    <map><key>rules</key><map><key>type</key><string>list</string></map></map>
   </array>
-  <key>tooltip</key><string>\n- Threat Level: Not Checked.\n- Permissions: Not Specified.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osPlaySound</key>
  <map>
@@ -8769,7 +8837,6 @@
    <map><key>sound</key><map><key>type</key><string>string</string></map></map>
    <map><key>volume</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>Play the specified sound once at the specified volume.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osPlaySoundSlave</key>
  <map>
@@ -8778,7 +8845,6 @@
    <map><key>sound</key><map><key>type</key><string>string</string></map></map>
    <map><key>volume</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>Play the specified sound at the specified volume and loop it indefinitely. The playing of a slave sound will be synchronized to the playing of the same sound declared in another prim as the master sound.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osPreloadSound</key>
  <map>
@@ -8786,7 +8852,6 @@
    <map><key>linknum</key><map><key>type</key><string>integer</string></map></map>
    <map><key>sound</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Preload the specified sound in viewers of nearby avatars.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osRegexIsMatch</key>
  <map>
@@ -8795,7 +8860,6 @@
    <map><key>input</key><map><key>type</key><string>string</string></map></map>
    <map><key>pattern</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns 1 if the input string matches the regular expression pattern. Wraps to Regex.IsMatch().\n- Threat Level: Low.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osRegionNotice</key>
  <map>
@@ -8810,7 +8874,6 @@
    <map><key>seconds</key><map><key>type</key><string>float</string></map></map>
    <map><key>msg</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Sends a region notice to the entire current region.\n- Threat Level: VeryHigh.\n- Permissions: ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osRegionNotice</key>
  <map>
@@ -8824,7 +8887,6 @@
    <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Sends a region notice to the specified avatar in the current region.\n- Threat Level: VeryHigh.\n- Permissions: ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osRegionRestart</key>
  <map>
@@ -8832,7 +8894,6 @@
   <key>arguments</key><array>
    <map><key>seconds</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>Restarts a region after a specified timeout.\n- Threat Level: High.\n- Permissions: ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osRemoveLinkInventory</key>
  <map>
@@ -8840,7 +8901,6 @@
    <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Send a warning messages to all users in the region and restart the region after a specified timeout.\n- Threat Level: High.\n- Permissions: ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osReplaceAgentEnvironment</key>
  <map>
@@ -8850,7 +8910,6 @@
    <map><key>transition</key><map><key>type</key><string>integer</string></map></map>
    <map><key>daycycle</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Forces a dayclycle on a agent. Will do nothing if the agent is using a viewer local environment.\n- Threat Level: Moderate.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osReplaceParcelEnvironment</key>
  <map>
@@ -8859,7 +8918,6 @@
    <map><key>transition</key><map><key>type</key><string>integer</string></map></map>
    <map><key>daycycle</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Replaces parcel daycycle.\n- Threat Level: Not Checked.\n- Permissions: Prim owner must have rights to change parcel and parcel environment and region must allow parcel environments.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osReplaceString</key>
  <map>
@@ -8871,7 +8929,6 @@
    <map><key>count</key><map><key>type</key><string>integer</string></map></map>
    <map><key>start</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>This function is for regular expression-based string replacement. The count parameter specifies the total number of replacements to make where -1 makes all possible replacements.\n- Threat Level: VeryLow.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osRequestSecureURL</key>
  <map>
@@ -8879,7 +8936,6 @@
   <key>arguments</key><array>
    <map><key>options</key><map><key>type</key><string>list</string></map></map>
   </array>
-  <key>tooltip</key><string>Requests one HTTPS:// url (opensim version 0.9 or over).\n- Threat Level: Moderate.\n- Permissions: Not Specified.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osRequestURL</key>
  <map>
@@ -8887,14 +8943,12 @@
   <key>arguments</key><array>
    <map><key>options</key><map><key>type</key><string>list</string></map></map>
   </array>
-  <key>tooltip</key><string>Requests one HTTP:// url (opensim version 0.9 or over).\n- Threat Level: Moderate.\n- Permissions: Not Specified.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osResetAllScripts</key>
  <map>
   <key>arguments</key><array>
    <map><key>AllLinkset</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Resets all the scripts on the same prim if AllLinkSet is FALSE( or 0) or on same linkset if AllLinkSet is TRUE ( or 1 ).\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osResetEnvironment</key>
  <map>
@@ -8903,7 +8957,6 @@
    <map><key>parcelOrRegion</key><map><key>type</key><string>integer</string></map></map>
    <map><key>transition</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Resets parcel or region environment.\n- Threat Level: Not Checked.\n- Permissions: Prim owner must have estate manager rights or parcel and parcel environment change rights.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osRound</key>
  <map>
@@ -8912,7 +8965,6 @@
    <map><key>value</key><map><key>type</key><string>float</string></map></map>
    <map><key>digits</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns the value rounded to the number with a number if decimal places set by digits.\n- Threat Level: Not Checked.\n- Permissions: Not Specified.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetContentType</key>
  <map>
@@ -8920,7 +8972,6 @@
    <map><key>id</key><map><key>type</key><string>key</string></map></map>
    <map><key>type</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Sets an arbitrary content return type for an llRequestUrl(). \n- Threat Level: Severe.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetDynamicTextureData</key>
  <map>
@@ -8932,7 +8983,6 @@
    <map><key>extraParams</key><map><key>type</key><string>string</string></map></map>
    <map><key>timer</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Renders a dynamically created texture on the prim containing the script and returns the UUID of the newly created texture.\n- Threat Level: VeryLow.\n- Permissions: osslParcelOG,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetDynamicTextureDataFace</key>
  <map>
@@ -8945,7 +8995,6 @@
    <map><key>timer</key><map><key>type</key><string>integer</string></map></map>
    <map><key>face</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Renders a dynamically created texture on the specified prim face and returns the UUID of the newly created texture.\n- Threat Level: VeryLow.\n- Permissions: osslParcelOG,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetDynamicTextureURL</key>
  <map>
@@ -8957,7 +9006,6 @@
    <map><key>extraParams</key><map><key>type</key><string>string</string></map></map>
    <map><key>timer</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Renders a web texture on the prim containing the script and returns the UUID of the newly created texture.\n- Threat Level: VeryHigh.\n- Permissions: ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetEstateSunSettings</key>
  <map>
@@ -8965,7 +9013,6 @@
    <map><key>sunFixed</key><map><key>type</key><string>integer</string></map></map>
    <map><key>sunHour</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>This function allow an estate owner or manager to change the sun settings for the entire estate.\n- Threat Level: Nuisance.\n- Permissions: ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetFontName</key>
  <map>
@@ -8974,7 +9021,6 @@
    <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
    <map><key>fontName</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Set the name of the font that will be used by osDrawText.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetFontSize</key>
  <map>
@@ -8983,7 +9029,6 @@
    <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
    <map><key>fontSize</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Sets the size of the font used by subsequent osDrawTextText() calls. The fontSize parameter represents the font height in points.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetHealRate</key>
  <map>
@@ -8991,7 +9036,6 @@
    <map><key>agentId</key><map><key>type</key><string>key</string></map></map>
    <map><key>health</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>Sets the automatic healing rate in % per second.\n- Threat Level: High.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetHealth</key>
  <map>
@@ -8999,7 +9043,6 @@
    <map><key>agentId</key><map><key>type</key><string>key</string></map></map>
    <map><key>health</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>Sets an avatars health by key to the specified float value. \n- Threat Level: High.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetInertia</key>
  <map>
@@ -9009,7 +9052,6 @@
    <map><key>principalInertiaScaled</key><map><key>type</key><string>vector</string></map></map>
    <map><key>rot</key><map><key>type</key><string>rotation</string></map></map>
   </array>
-  <key>tooltip</key><string>Only supported by ubOde for now!. Allows creators to set the major physics dynamic proprieties, replacing the values estimated from the linkset parts. Call osClearInertia to undo.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetInertiaAsBox</key>
  <map>
@@ -9019,7 +9061,6 @@
    <map><key>centerOfMass</key><map><key>type</key><string>vector</string></map></map>
    <map><key>rot</key><map><key>type</key><string>rotation</string></map></map>
   </array>
-  <key>tooltip</key><string>Only supported by ubOde for now!. Allows creators to set the link set total mass, center of mass and moment of inertia.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetInertiaAsCylinder</key>
  <map>
@@ -9030,7 +9071,6 @@
    <map><key>centerOfMass</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lslrot</key><map><key>type</key><string>rotation</string></map></map>
   </array>
-  <key>tooltip</key><string>Only supported by ubOde for now!. Allows creators to set the link set total mass, center of mass and moment of inertia. Moment of inertia will be the one of a cylinder of radius and length, placed at the center of mass and rotated by rot in the root prim local frame. Call osClearInertia to undo.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetInertiaAsSphere</key>
  <map>
@@ -9039,7 +9079,6 @@
    <map><key>radius</key><map><key>type</key><string>float</string></map></map>
    <map><key>centerOfMass</key><map><key>type</key><string>vector</string></map></map>
   </array>
-  <key>tooltip</key><string>Only supported by ubOde for now!. Allows creators to set the link set total mass, center of mass and moment of inertia. Moment of inertia will be the one of a sphere of radius radius, placed at the center of mass. Call osClearInertia to undo.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetLinkSitActiveRange</key>
  <map>
@@ -9047,7 +9086,6 @@
    <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
    <map><key>v</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>Sets a limit on how far a avatar can be to have a sit request accepted, or disable sits.\n- Threat Level: None.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetLinkStandTarget</key>
  <map>
@@ -9055,14 +9093,12 @@
    <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
    <map><key>v</key><map><key>type</key><string>vector</string></map></map>
   </array>
-  <key>tooltip</key><string>Sets a position, relative to prim local frame, where to place the feet of a standing avatar. The final position may not be exactly that.\n- Threat Level: None.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetOwnerSpeed</key>
  <map>
   <key>arguments</key><array>
    <map><key>SpeedModifier</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>Allows for users to speed themselves up. It multiplies the running, walking, rotating and flying of the avatar.\n- Threat Level: Moderate.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetParcelDetails</key>
  <map>
@@ -9070,28 +9106,24 @@
    <map><key>pos</key><map><key>type</key><string>vector</string></map></map>
    <map><key>rules</key><map><key>type</key><string>list</string></map></map>
   </array>
-  <key>tooltip</key><string>This function is the counterpart to llGetParcelDetails. Currently PARCEL_DETAILS_NAME, PARCEL_DETAILS_DESC, PARCEL_DETAILS_OWNER, PARCEL_DETAILS_GROUP, PARCEL_DETAILS_CLAIMDATE are implemented.\n- Threat Level: High or VeryHigh.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetParcelMediaURL</key>
  <map>
   <key>arguments</key><array>
    <map><key>url</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Sets the Media URL for the parcel the scripted object is in.\n- Threat Level: VeryLow.\n- Permissions: osslParcelOG,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetParcelMusicURL</key>
  <map>
   <key>arguments</key><array>
    <map><key>url</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Sets the Music URL for the parcel the scripted object is in.\n- Threat Level: VeryLow.\n- Permissions: osslParcelOG,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetParcelSIPAddress</key>
  <map>
   <key>arguments</key><array>
    <map><key>SIPAddress</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>\n- Threat Level: VeryLow.\n- Permissions: osslParcelOG,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetPenCap</key>
  <map>
@@ -9101,7 +9133,6 @@
    <map><key>direction</key><map><key>type</key><string>string</string></map></map>
    <map><key>type</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Sets the pen's start or/and end cap to either "diamond", "arrow", "round", or default "flat" shape. It can set them in the "end" or "start" of the line, or "both". Possible values are (case insensitive).\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetPenColor</key>
  <map>
@@ -9110,7 +9141,6 @@
    <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
    <map><key>color</key><map><key>type</key><string>vector</string></map></map>
   </array>
-  <key>tooltip</key><string>This sets the pen's drawing color to either the specified named .NET color named colors or to a 32-bit color value (formatted as eight hexadecimal digits in the format aarrggbb, representing the eight-bit alpha, red, green and blue channels).\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetPenColor</key>
  <map>
@@ -9119,7 +9149,6 @@
    <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
    <map><key>color</key><map><key>type</key><string>vector</string></map></map>
   </array>
-  <key>tooltip</key><string>This sets the pen's drawing color to either the specified named .NET color named colors or to a 32-bit color value (formatted as eight hexadecimal digits in the format aarrggbb, representing the eight-bit alpha, red, green and blue channels).\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetPenColor</key>
  <map>
@@ -9129,7 +9158,6 @@
    <map><key>color</key><map><key>type</key><string>vector</string></map></map>
    <map><key>alpha</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>This sets the pen's drawing color to either the specified named .NET color named colors or to a 32-bit color value (formatted as eight hexadecimal digits in the format aarrggbb, representing the eight-bit alpha, red, green and blue channels).\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetPenColour</key>
  <map>
@@ -9138,7 +9166,6 @@
    <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
    <map><key>colour</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Deprecated - Use osSetPenColor instead.</string>
  </map>
  <key>osSetPenSize</key>
  <map>
@@ -9147,14 +9174,12 @@
    <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
    <map><key>penSize</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Sets the pen size to a square of penSize pixels by penSize pixels. If penSize is an odd number, the pen will be exactly centered on the coordinates provided in the various drawing commands.\n- Threat Level: None.\n- Permissions: Not Specified.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetPrimFloatOnWater</key>
  <map>
   <key>arguments</key><array>
    <map><key>floatYN</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>This function does nothing useful...\n- Threat Level: VeryLow.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetPrimitiveParams</key>
  <map>
@@ -9162,30 +9187,6 @@
    <map><key>prim</key><map><key>type</key><string>key</string></map></map>
    <map><key>rules</key><map><key>type</key><string>list</string></map></map>
   </array>
-  <key>tooltip</key><string>This function has the same behave as llSetPrimitiveParams except you can specify target prim anywhere in the scene.\n- Threat Level: None.\n- Permissions: Always disabled by default.\n- Sleep: 0 seconds.</string>
- </map>
- <key>osSetProjectionParams</key>
- <map>
-  <key>arguments</key><array>
-   <map><key>linknumber</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>projection</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>texture</key><map><key>type</key><string>key</string></map></map>
-   <map><key>fov</key><map><key>type</key><string>float</string></map></map>
-   <map><key>focus</key><map><key>type</key><string>float</string></map></map>
-   <map><key>amb</key><map><key>type</key><string>float</string></map></map>
-  </array>
-  <key>tooltip</key><string>Sets a prim projector parameters, argument projection is TRUE(1) or FALSE(0). The prim can be any prim on the linkset.\n- Threat Level: Not Checked.\n- Permissions: Not Specified.\n- Sleep: 0 seconds.</string>
- </map>
- <key>osSetProjectionParams</key>
- <map>
-  <key>arguments</key><array>
-   <map><key>projection</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>texture</key><map><key>type</key><string>key</string></map></map>
-   <map><key>fov</key><map><key>type</key><string>float</string></map></map>
-   <map><key>focus</key><map><key>type</key><string>float</string></map></map>
-   <map><key>amb</key><map><key>type</key><string>float</string></map></map>
-  </array>
-  <key>tooltip</key><string>Sets the host prim projector parameters, argument projection is TRUE(1) or FALSE(0).\n- Threat Level: Not Checked.\n- Permissions: Not Specified.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetProjectionParams</key>
  <map>
@@ -9197,7 +9198,6 @@
    <map><key>focus</key><map><key>type</key><string>float</string></map></map>
    <map><key>amb</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>Sets a prim projector parameters, argument projection is TRUE(1) or FALSE(0). The prim can be any prim with giving UUID.\n- Threat Level: Not Checked.\n- Permissions: Not Specified.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetProjectionParams</key>
  <map>
@@ -9213,7 +9213,6 @@
  <key>osSetProjectionParams</key>
  <map>
   <key>arguments</key><array>
-   <map><key>linknumber</key><map><key>type</key><string>integer</string></map></map>
    <map><key>projection</key><map><key>type</key><string>integer</string></map></map>
    <map><key>texture</key><map><key>type</key><string>key</string></map></map>
    <map><key>fov</key><map><key>type</key><string>float</string></map></map>
@@ -9228,21 +9227,18 @@
    <map><key>sunFixed</key><map><key>type</key><string>integer</string></map></map>
    <map><key>sunHour</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>Sets the Sun parameters for the Region. This does nothing on 0.9.2.\n- Threat Level: Nuisance.\n- Permissions: Not Specified.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetRegionWaterHeight</key>
  <map>
   <key>arguments</key><array>
    <map><key>height</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>Sets the water height for the current region.\n- Threat Level: High.\n- Permissions: ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetSitActiveRange</key>
  <map>
   <key>arguments</key><array>
    <map><key>v</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>Sets a limit on how far a avatar can be to have a sit request accepted, or disable sits.\n- Threat Level: None.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetSoundRadius</key>
  <map>
@@ -9250,7 +9246,6 @@
    <map><key>linknum</key><map><key>type</key><string>integer</string></map></map>
    <map><key>radius</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>Establishes a hard cut-off radius for audibility of scripted sounds (both attached and triggered) in the specified prim of a linkset.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetSpeed</key>
  <map>
@@ -9258,14 +9253,12 @@
    <map><key>UUID</key><map><key>type</key><string>string</string></map></map>
    <map><key>SpeedModifier</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>Allows for users to speed themselves up. It multiplies the running, walking, rotating and flying of the avatar.\n- Threat Level: Moderate.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetStandTarget</key>
  <map>
   <key>arguments</key><array>
    <map><key>v</key><map><key>type</key><string>vector</string></map></map>
   </array>
-  <key>tooltip</key><string>Sets a position, relative to prim local frame, where to place the feet of a avatar on stand. The final position may not be exactly that.\n- Threat Level: None.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetSunParam</key>
  <map>
@@ -9273,7 +9266,6 @@
    <map><key>param</key><map><key>type</key><string>string</string></map></map>
    <map><key>value</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>This function does nothing on 0.9.2. It did depend on removed Sun module.\n- Threat Level: None.\n- Permissions: ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetTerrainHeight</key>
  <map>
@@ -9283,7 +9275,6 @@
    <map><key>y</key><map><key>type</key><string>integer</string></map></map>
    <map><key>val</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>Sets terrain height X and Y Values. Returns TRUE(1) if success, FALSE(0) if failed.\n- Threat Level: High.\n- Permissions: ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetTerrainTexture</key>
  <map>
@@ -9291,7 +9282,6 @@
    <map><key>level</key><map><key>type</key><string>integer</string></map></map>
    <map><key>texture</key><map><key>type</key><string>key</string></map></map>
   </array>
-  <key>tooltip</key><string>Set the terrain texture of the estate to the texture given as key. The level can be 0, 1, 2 or 3.\n- Threat Level: High.\n- Permissions: ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetTerrainTextureHeight</key>
  <map>
@@ -9300,7 +9290,6 @@
    <map><key>low</key><map><key>type</key><string>float</string></map></map>
    <map><key>high</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>Set the terrain texture height for the estate. The corner values are: 0 (Southwest), 1 (Southeast), 2 (Northwest), 3 (Northeast). The values low and high are float values for the altitude measured in meters.\n- Threat Level: High.\n- Permissions: ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSetWindParam</key>
  <map>
@@ -9309,7 +9298,6 @@
    <map><key>param</key><map><key>type</key><string>string</string></map></map>
    <map><key>value</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>Sets value of param property for wind plugin module.\n- Threat Level: VeryLow.\n- Permissions: osslParcelOG,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSHA256</key>
  <map>
@@ -9317,7 +9305,6 @@
   <key>arguments</key><array>
    <map><key>input</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Generate a hash value (string input). Returns a string containing the calculated string input as lowercase.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSlerp</key>
  <map>
@@ -9327,7 +9314,6 @@
    <map><key>b</key><map><key>type</key><string>rotation</string></map></map>
    <map><key>amount</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns a rotation that is the spherical interpolation of a and b, according to ratio that can be from 0.0 (result is a) to 1.0 (result is b).\n- Threat Level: None.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSlerp</key>
  <map>
@@ -9337,14 +9323,12 @@
    <map><key>b</key><map><key>type</key><string>vector</string></map></map>
    <map><key>amount</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns a rotation that is the spherical interpolation of a and b, according to ratio that can be from 0.0 (result is a) to 1.0 (result is b).\n- Threat Level: None.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osStopSound</key>
  <map>
   <key>arguments</key><array>
    <map><key>linknum</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Stop the sound playing in the specified prim or prims of a linkset.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osStringEndsWith</key>
  <map>
@@ -9354,17 +9338,6 @@
    <map><key>value</key><map><key>type</key><string>string</string></map></map>
    <map><key>ignorecase</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns 1 if the string in src ends with the characters in start. Case is ignored if ignore_case is 1 otherwise the case of the characters matters.\n- Threat Level: None.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
- </map>
- <key>osStringIndexOf</key>
- <map>
-  <key>return</key><string>integer</string>
-  <key>arguments</key><array>
-   <map><key>src</key><map><key>type</key><string>string</string></map></map>
-   <map><key>value</key><map><key>type</key><string>string</string></map></map>
-   <map><key>ignorecase</key><map><key>type</key><string>integer</string></map></map>
-  </array>
-  <key>tooltip</key><string>Reports the zero-based index of the first occurrence of string value withing string scr. returns -1 if not found. It can compare ignoring case with ignoreCase TRUE(1) or considering case if FALSE(0).\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osStringIndexOf</key>
  <map>
@@ -9376,7 +9349,15 @@
    <map><key>count</key><map><key>type</key><string>integer</string></map></map>
    <map><key>ignorecase</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Reports the zero-based index of the first occurrence of string value withing string scr. returns -1 if not found. It can compare ignoring case with ignoreCase TRUE(1) or considering case if FALSE(0).\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
+ </map>
+ <key>osStringIndexOf</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>src</key><map><key>type</key><string>string</string></map></map>
+   <map><key>value</key><map><key>type</key><string>string</string></map></map>
+   <map><key>ignorecase</key><map><key>type</key><string>integer</string></map></map>
+  </array>
  </map>
  <key>osStringLastIndexOf</key>
  <map>
@@ -9386,7 +9367,6 @@
    <map><key>value</key><map><key>type</key><string>string</string></map></map>
    <map><key>ignorecase</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Reports the zero-based index of the last occurrence of string value withing string scr. returns -1 if not found. It can compare ignoring case with ignoreCase TRUE(1) or considering case if FALSE(0).\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osStringLastIndexOf</key>
  <map>
@@ -9396,7 +9376,6 @@
    <map><key>value</key><map><key>type</key><string>string</string></map></map>
    <map><key>ignorecase</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Reports the zero-based index of the last occurrence of string value withing string scr. returns -1 if not found. It can compare ignoring case with ignoreCase TRUE(1) or considering case if FALSE(0).\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osStringRemove</key>
  <map>
@@ -9406,7 +9385,6 @@
    <map><key>start</key><map><key>type</key><string>integer</string></map></map>
    <map><key>count</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Removes sub string based on the src lenght index.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osStringReplace</key>
  <map>
@@ -9416,7 +9394,6 @@
    <map><key>oldvalue</key><map><key>type</key><string>string</string></map></map>
    <map><key>newvalue</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns a string in which all occurrences of the string oldvalue in string src are replaced by string newvalue.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osStringStartsWith</key>
  <map>
@@ -9426,7 +9403,6 @@
    <map><key>value</key><map><key>type</key><string>string</string></map></map>
    <map><key>ignorecase</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns 1 if the string in src starts with the characters in start. Case is ignored if ignore_case is 1 otherwise the case of the characters matters.\n- Threat Level: None.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osStringSubString</key>
  <map>
@@ -9435,7 +9411,6 @@
    <map><key>src</key><map><key>type</key><string>string</string></map></map>
    <map><key>start</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>\n- Threat Level: None.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osStringSubString</key>
  <map>
@@ -9444,7 +9419,6 @@
    <map><key>src</key><map><key>type</key><string>string</string></map></map>
    <map><key>start</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>\n- Threat Level: None.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osSunGetParam</key>
  <map>
@@ -9452,7 +9426,6 @@
   <key>arguments</key><array>
    <map><key>param</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Deprecated - Use osGetSunParam instead.</string>
  </map>
  <key>osSunSetParam</key>
  <map>
@@ -9460,16 +9433,15 @@
    <map><key>param</key><map><key>type</key><string>string</string></map></map>
    <map><key>value</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>Deprecated - Use osSetSunParam instead.</string>
  </map>
  <key>osTeleportAgent</key>
  <map>
   <key>arguments</key><array>
    <map><key>agent</key><map><key>type</key><string>string</string></map></map>
+   <map><key>regionName</key><map><key>type</key><string>string</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>
-  <key>tooltip</key><string>Teleports an agent to any addressable region, including hypergrid destinations.\n- Threat Level: Severe.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0.5 seconds.</string>
  </map>
  <key>osTeleportAgent</key>
  <map>
@@ -9480,17 +9452,14 @@
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>
-  <key>tooltip</key><string>Teleports an agent to a region in the local grid; the region coordinates are specified as region cells (not as global coordinates based on meters). \n- Threat Level: Severe.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0.5 seconds.</string>
  </map>
  <key>osTeleportAgent</key>
  <map>
   <key>arguments</key><array>
    <map><key>agent</key><map><key>type</key><string>string</string></map></map>
-   <map><key>regionName</key><map><key>type</key><string>string</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>
-  <key>tooltip</key><string>Teleports an agent within the current region. Since version 0.9.2.0 it can also teleport to a nearby region if position does point to one.\n- Threat Level: Severe.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0.5 seconds.</string>
  </map>
  <key>osTeleportObject</key>
  <map>
@@ -9501,14 +9470,6 @@
    <map><key>targetrotation</key><map><key>type</key><string>rotation</string></map></map>
    <map><key>flags</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Teleports an agent within the current region.\n- Threat Level: Severe.\n- Permissions: osslParcelO,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
- </map>
- <key>osTemperature2sRGB</key>
- <map>
-  <key>return</key><string>vector</string>
-  <key>arguments</key><array>
-   <map><key>dtemp</key><map><key>type</key><string>float</string></map></map>
-  </array>
  </map>
  <key>osTeleportOwner</key>
  <map>
@@ -9516,7 +9477,6 @@
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>
-  <key>tooltip</key><string>Teleports the owner of the object containing the script to the specified location within the current region.\n- Threat Level: None.\n- Permissions: osslParcelOG,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 5 seconds.</string>
  </map>
  <key>osTeleportOwner</key>
  <map>
@@ -9526,7 +9486,14 @@
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>
-  <key>tooltip</key><string>Teleports the owner of the object containing the script to the specified location in the local grid; the region coordinates are specified as region cells (not as global coordinates based on meters).\n- Threat Level: None.\n- Permissions: osslParcelOG,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 5 seconds.</string>
+ </map>
+ <key>osTeleportOwner</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>regionName</key><map><key>type</key><string>string</string></map></map>
+   <map><key>position</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
+  </array>
  </map>
  <key>osTemperature2sRGB</key>
  <map>
@@ -9534,12 +9501,11 @@
   <key>arguments</key><array>
    <map><key>dtemp</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>Teleports the owner of the object containing the script to the specified location in any addressable region, including hypergrid destinations.\n- Threat Level: None.\n- Permissions: osslParcelOG,ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 5 seconds.</string>
  </map>
  <key>osTerrainFlush</key>
  <map>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>Send terrain to all agents.\n- Threat Level: VeryLow.\n- Permissions: ESTATE_MANAGER,ESTATE_OWNER.\n- Sleep: 0 seconds.</string>
+  <key>tooltip</key><string>Send terrain to all agents</string>
  </map>
  <key>osTerrainGetHeight</key>
  <map>
@@ -9548,7 +9514,6 @@
    <map><key>x</key><map><key>type</key><string>integer</string></map></map>
    <map><key>y</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Deprecated - Use osGetTerrainHeight instead.</string>
  </map>
  <key>osTerrainSetHeight</key>
  <map>
@@ -9558,7 +9523,6 @@
    <map><key>y</key><map><key>type</key><string>integer</string></map></map>
    <map><key>val</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>Deprecated - Use osSetTerrainHeight instead.</string>
  </map>
  <key>osTriggerSound</key>
  <map>
@@ -9567,7 +9531,6 @@
    <map><key>sound</key><map><key>type</key><string>string</string></map></map>
    <map><key>volume</key><map><key>type</key><string>float</string></map></map>
   </array>
-  <key>tooltip</key><string>Start playing the specified sound in the viewers of nearby avatars once at the specified volume.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osUnixTimeToTimestamp</key>
  <map>
@@ -9575,7 +9538,6 @@
   <key>arguments</key><array>
    <map><key>time</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Allows an input Unix time to be converted to an llGetTimeStamp() format.\n- Threat Level: VeryLow.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osVecDistSquare</key>
  <map>
@@ -9584,7 +9546,6 @@
    <map><key>a</key><map><key>type</key><string>vector</string></map></map>
    <map><key>b</key><map><key>type</key><string>vector</string></map></map>
   </array>
-  <key>tooltip</key><string>returns the square of norm of vector, or distance vector, (a - b), when expensive square root math operation is not needed.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osVecMagSquare</key>
  <map>
@@ -9592,20 +9553,17 @@
   <key>arguments</key><array>
    <map><key>a</key><map><key>type</key><string>vector</string></map></map>
   </array>
-  <key>tooltip</key><string>returns the square of the magnitude of vector a. This saves a square root math operation that is relative slow, when is not needed.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osVolumeDetect</key>
  <map>
   <key>arguments</key><array>
    <map><key>detect</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>If script is on root prim, it is like llVolumeDetect(). On child prims, it will turn just that prim a detector.\n- Threat Level: Not Checked.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
  <key>osWindActiveModelPluginName</key>
  <map>
   <key>return</key><string>string</string>
   <key>arguments</key><undef/>
-  <key>tooltip</key><string>Gets active wind plugin name, specified by "wind_plugin" in OpenSim.ini ("SimpleRandomWind" or "ConfigurableWind").\n- Threat Level: None.\n- Permissions: Always allowed by default.\n- Sleep: 0 seconds.</string>
  </map>
 </map>
 </map></llsd>

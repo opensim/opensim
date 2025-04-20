@@ -5241,10 +5241,55 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llPassTouches(int pass)
         {
-            if (pass != 0)
-                m_host.PassTouches = true;
+            m_host.PassTouches = pass != 0;
+        }
+
+        public LSL_List llGetVisualParams(string id, LSL_List visualparams)
+        {
+            if (visualparams.Length < 1)
+                return new LSL_List();
+
+            if (UUID.TryParse(id, out UUID agentid))
+            {
+                ScenePresence agent = World.GetScenePresence(agentid);
+                if (agent is null)
+                    return new LSL_List();
+
+                LSL_List returns = new LSL_List();
+
+                for (int i = 0; i < visualparams.Length; i++)
+                {
+                    int val = visualparams[i].ToString() switch
+                    {
+                        "33" or "height" => agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_HEIGHT],
+                        "38" or "torso_length" => agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_TORSO_LENGTH],
+                        "80" or "male" => agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_MALE],
+                        "198" or "heel_height" => agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHOES_HEEL_HEIGHT],
+                        "503" or "platform_height" => agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHOES_PLATFORM_HEIGHT],
+                        "616" or "shoe_height" => agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHOES_SHOE_HEIGHT],
+                        "675" or "hand_size" => agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_HAND_SIZE],
+                        "682" or "head_size" => agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_HEAD_SIZE],
+                        "692" or  "leg_length" => agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_LEG_LENGTH],
+                        "693" or "arm_length" => agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_ARM_LENGTH],
+                        "756" or "neck_length" => agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_NECK_LENGTH],
+                        "814" or "waist_height" => agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.PANTS_WAIST_HEIGHT],
+                        "842" or "hip_length" => agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_HIP_LENGTH],
+                        "11001" or "hover" => agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_HOVER],
+                        _ => 9999,
+                    };
+                    if (val == 9999)
+                        returns.Add(LSL_String.Empty);
             else
-                m_host.PassTouches = false;
+                    {
+                        float fval = MathF.Round(val * 0.0039215686f, 6); //(1/255)
+                        returns.Add(fval.ToString());
+                    }
+                }
+
+                if (returns.Length > 0)
+                    return returns;
+            }
+            return new LSL_List();
         }
 
         public LSL_Key llRequestAgentData(string id, int data)
@@ -5400,6 +5445,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetDamage(double damage)
         {
             m_host.ParentGroup.Damage = (float)damage;
+        }
+
+        public LSL_Float llGetHealth(LSL_String key)
+        {
+            if (UUID.TryParse(key, out UUID agent))
+            {
+                ScenePresence user = World.GetScenePresence(agent);
+                if (user is not null)
+                    return user.Health;
+            }
+            return new LSL_Float(-1.0);
         }
 
         public void llTeleportAgentHome(string agent)
@@ -6644,23 +6700,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// The index number of the point in src where test was found if it was found.
         /// Otherwise returns -1
         /// </returns>
-        public LSL_Integer llListFindList(LSL_List src, LSL_List test)
+        public LSL_Integer llListFindList(LSL_List lsrc, LSL_List ltest)
         {
-            if (src.Length == 0)
+            int srclen = lsrc.Length;
+            int testlen = ltest.Length;
+            if (srclen == 0)
                 return -1;
-            if (test.Length == 0)
+            if (testlen == 0)
                 return 0;
-            if (test.Length > src.Length)
+            if (testlen > srclen)
                 return -1;
 
+            object[] src = lsrc.Data;
+            object[] test = ltest.Data;
+
             object test0 = test[0];
-            for (int i = 0; i <= src.Length - test.Length; i++)
+            for (int i = 0; i <= srclen - testlen; i++)
             {
                 if (LSL_List.ListFind_areEqual(test0, src[i]))
                 {
                     int k = i + 1;
                     int j = 1;
-                    while(j < test.Length)
+                    while(j < testlen)
                     {
                         if (!LSL_List.ListFind_areEqual(test[j], src[k]))
                                 break;
@@ -6668,46 +6729,136 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         ++k;
                         }
 
-                        if (j == test.Length)
+                    if (j == testlen)
                         return i;
                     }
                 }
             return -1;
             }
 
-        public LSL_Integer llListFindStrided(LSL_List src, LSL_List test, LSL_Integer lstart, LSL_Integer lend, LSL_Integer lstride)
+        public LSL_Integer llListFindListNext(LSL_List lsrc, LSL_List ltest, LSL_Integer linstance)
         {
-            if (src.Length == 0)
+            int srclen = lsrc.Length;
+            int testlen = ltest.Length;
+            if (srclen == 0)
+                return testlen == 0 ? 0 : -1;
+
+            int instance = linstance.value;
+            if (testlen == 0)
+            {
+                if(instance >= 0)
+                    return instance < srclen ? instance : -1;
+
+                instance += srclen;
+                return instance >= 0 ? instance : -1;
+            }
+
+            if (testlen > srclen)
                 return -1;
-            if (test.Length == 0)
+
+            object[] src = lsrc.Data;
+            object[] test = ltest.Data;
+
+            object test0 = test[0];
+            int nmatchs = 0;
+
+            if(instance >= 0)
+            {
+                for (int i = 0; i <= srclen - testlen; i++)
+                {
+                    if (LSL_List.ListFind_areEqual(test0, src[i]))
+                    {
+                        int k = i + 1;
+                        int j = 1;
+                        while(j < testlen)
+                        {
+                            if (!LSL_List.ListFind_areEqual(test[j], src[k]))
+                                break;
+                            ++j;
+                            ++k;
+                        }
+
+                        if (j == testlen)
+                        {
+                            if(nmatchs == instance)
+                                return i;
+
+                            nmatchs++;
+                        }
+                     }
+                }
+            }
+            else
+            {
+                instance++;
+                instance = -instance;
+
+                for (int i = srclen - testlen; i >= 0 ; i--)
+                {
+                    if (LSL_List.ListFind_areEqual(test0, src[i]))
+                    {
+                        int k = i + 1;
+                        int j = 1;
+                        while(j < testlen)
+                        {
+                            if (!LSL_List.ListFind_areEqual(test[j], src[k]))
+                                break;
+                            ++j;
+                            ++k;
+                        }
+
+                        if (j == testlen)
+                        {
+                            if(nmatchs == instance)
+                                return i;
+
+                            nmatchs++;
+                        }
+                     }
+                }
+            }
+
+            return -1;
+        }
+
+        public LSL_Integer llListFindStrided(LSL_List lsrc, LSL_List ltest, LSL_Integer lstart, LSL_Integer lend, LSL_Integer lstride)
+        {
+            int srclen = lsrc.Length;
+            int testlen = ltest.Length;
+            if (srclen == 0)
+                return -1;
+            if (testlen == 0)
                 return 0;
-            if (test.Length > src.Length)
+            if (testlen > srclen)
                 return -1;
 
             int start = lstart.value;
             if (start < 0)
             {
-                start += src.Length;
+                start += srclen;
                 if (start < 0)
                     return -1;
             }
-            else if (start >= src.Length)
+            else if (start >= srclen)
                 return -1;
 
             int end = lend.value;
             if (end < 0)
             {
-                end += src.Length;
+                end += srclen;
                 if (end < 0)
                     return -1;
-                end -= test.Length - 1;
+                end -= testlen - 1;
             }
-            else if (end >= src.Length)
-                end = src.Length - test.Length;
+            else if (end >= srclen)
+                end = srclen - testlen;
 
             int stride = lstride.value;
             if (stride < 1)
                 stride = 1;
+
+            object[] src = lsrc.Data;
+            object[] test = ltest.Data;
 
             object test0 = test[0];
             for (int i = start; i <= end; i += stride)
@@ -6724,7 +6875,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         ++k;
                     }
 
-                    if (j == test.Length)
+                    if (j == testlen)
                         return i;
                 }
             }
@@ -13229,6 +13380,41 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return ScriptBaseClass.NULL_KEY;
         }
 
+        public LSL_Float llGetSimStats(LSL_Integer stat_type)
+        {
+            return stat_type.value switch
+            {
+                ScriptBaseClass.SIM_STAT_PCT_CHARS_STEPPED => 0,     // Not implemented
+                ScriptBaseClass.SIM_STAT_PHYSICS_FPS => World.StatsReporter.LastReportedSimStats[(int)StatsIndex.PhysicsFPS],
+                ScriptBaseClass.SIM_STAT_AGENT_UPDATES => World.StatsReporter.LastReportedSimStats[(int)StatsIndex.AgentUpdates],
+                ScriptBaseClass.SIM_STAT_FRAME_MS => World.StatsReporter.LastReportedSimStats[(int)StatsIndex.FrameMS],
+                ScriptBaseClass.SIM_STAT_NET_MS => World.StatsReporter.LastReportedSimStats[(int)StatsIndex.NetMS],
+                ScriptBaseClass.SIM_STAT_OTHER_MS => World.StatsReporter.LastReportedSimStats[(int)StatsIndex.OtherMS],
+                ScriptBaseClass.SIM_STAT_PHYSICS_MS => World.StatsReporter.LastReportedSimStats[(int)StatsIndex.PhysicsMS],
+                ScriptBaseClass.SIM_STAT_AGENT_MS => World.StatsReporter.LastReportedSimStats[(int)StatsIndex.AgentMS],
+                ScriptBaseClass.SIM_STAT_IMAGE_MS => World.StatsReporter.LastReportedSimStats[(int)StatsIndex.ImageMS],
+                ScriptBaseClass.SIM_STAT_SCRIPT_MS => World.StatsReporter.LastReportedSimStats[(int)StatsIndex.ScriptMS],
+                ScriptBaseClass.SIM_STAT_AGENT_COUNT => World.StatsReporter.LastReportedSimStats[(int)StatsIndex.Agents],
+                ScriptBaseClass.SIM_STAT_CHILD_AGENT_COUNT => World.StatsReporter.LastReportedSimStats[(int)StatsIndex.ChildAgents],
+                ScriptBaseClass.SIM_STAT_ACTIVE_SCRIPT_COUNT => World.StatsReporter.LastReportedSimStats[(int)StatsIndex.ActiveScripts],
+                ScriptBaseClass.SIM_STAT_PACKETS_IN => World.StatsReporter.LastReportedSimStats[(int)StatsIndex.InPacketsPerSecond],
+                ScriptBaseClass.SIM_STAT_PACKETS_OUT => World.StatsReporter.LastReportedSimStats[(int)StatsIndex.OutPacketsPerSecond],
+                ScriptBaseClass.SIM_STAT_ASSET_DOWNLOADS => 0,  // Not implemented
+                ScriptBaseClass.SIM_STAT_ASSET_UPLOADS  => 0,  // Not implemented
+                ScriptBaseClass.SIM_STAT_UNACKED_BYTES => World.StatsReporter.LastReportedSimStats[(int)StatsIndex.UnAckedBytes],
+                ScriptBaseClass.SIM_STAT_PHYSICS_STEP_MS => World.StatsReporter.LastReportedSimStats[(int)StatsIndex.SimPhysicsStepMs],
+                ScriptBaseClass.SIM_STAT_PHYSICS_SHAPE_MS => World.StatsReporter.LastReportedSimStats[(int)StatsIndex.SimPhysicsShapeMs],
+                ScriptBaseClass.SIM_STAT_PHYSICS_OTHER_MS => World.StatsReporter.LastReportedSimStats[(int)StatsIndex.SimPhysicsOtherMs],
+                ScriptBaseClass.SIM_STAT_SCRIPT_EPS => World.StatsReporter.LastReportedSimStats[(int)StatsIndex.ScriptEps],
+                ScriptBaseClass.SIM_STAT_SPARE_MS => World.StatsReporter.LastReportedSimStats[(int)StatsIndex.SimSpareMs],
+                ScriptBaseClass.SIM_STAT_SLEEP_MS => World.StatsReporter.LastReportedSimStats[(int)StatsIndex.SimSleepMs],
+                ScriptBaseClass.SIM_STAT_IO_PUMP_MS => World.StatsReporter.LastReportedSimStats[(int)StatsIndex.SimIoPumpTime],
+                ScriptBaseClass.SIM_STAT_SCRIPT_RUN_PCT => World.StatsReporter.LastReportedSimStats[(int)StatsIndex.SimPCTSscriptsRun],
+                ScriptBaseClass.SIM_STAT_AI_MS => World.StatsReporter.LastReportedSimStats[(int)StatsIndex.SimAIStepTimeMS],
+                _ => 0
+            };
+        }
+
         public LSL_Key llRequestSimulatorData(string simulator, int data)
         {
             try
@@ -13809,6 +13995,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             Math.DivRem((long)Math.Pow(a, b), c, out long tmp);
             ScriptSleep(m_sleepMsOnModPow);
             return (int)tmp;
+        }
+
+        public LSL_String llGetInventoryDesc(string name)
+        {
+            TaskInventoryItem item = m_host.Inventory.GetInventoryItem(name);
+            if (item is null)
+            {
+                Error("llGetInventoryDesc", "Item " + name + " not found");
+                return new LSL_String();
+            }
+
+            return new LSL_String(item.Description);
         }
 
         public LSL_Integer llGetInventoryType(string name)
@@ -17306,6 +17504,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     break;
                 case ScriptBaseClass.ESTATE_ACCESS_BANNED_AGENT_ADD:
                     if (!isAccount) return 0;
+                    if(World.Permissions.IsAdministrator(id)) return 0;
                     if (estate.IsBanned(id, World.GetUserFlags(id))) return 1;
                     EstateBan ban = new()
                     {
@@ -20947,6 +21146,167 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             */
         }
 
+        public LSL_String llComputeHash(LSL_String message, LSL_String algo)
+        {
+            switch (algo)
+            {
+                case "md5":
+                    using (MD5 md5 = MD5.Create())
+                    {
+                        byte[] hashedBytes = md5.ComputeHash(Encoding.UTF8.GetBytes(message));
+                        return Util.bytesToLowcaseHexString(hashedBytes);
+                    }
+                case "md5_sha1":
+                    using (MD5 md5 = MD5.Create())
+                    using (SHA1 sha1 = SHA1.Create())
+                    {
+                        byte[] inputBytes = Encoding.UTF8.GetBytes(message);
+                        byte[] md5Hash = md5.ComputeHash(inputBytes);
+                        byte[] sha1Hash = sha1.ComputeHash(inputBytes);
+
+                        byte[] combinedHash = new byte[md5Hash.Length + sha1Hash.Length];
+                        Buffer.BlockCopy(md5Hash, 0, combinedHash, 0, md5Hash.Length);
+                        Buffer.BlockCopy(sha1Hash, 0, combinedHash, md5Hash.Length, sha1Hash.Length);
+                        return BitConverter.ToString(combinedHash).Replace("-", "").ToLower();
+                    }
+                case "sha1":
+                    using (SHA1 sha1 = SHA1.Create())
+                    {
+                        byte[] hashedBytes = sha1.ComputeHash(Encoding.UTF8.GetBytes(message));
+                        return Util.bytesToLowcaseHexString(hashedBytes);
+                    }
+                case "sha224":
+                    using (SHA224 sha224 = SHA224.Create())
+                    {
+                        byte[] hashedBytes = sha224.ComputeHash(Encoding.UTF8.GetBytes(message));
+                        return Util.bytesToLowcaseHexString(hashedBytes);
+                    }
+                case "sha256":
+                    using (SHA256 sha1 = SHA256.Create())
+                    {
+                        byte[] hashedBytes = sha1.ComputeHash(Encoding.UTF8.GetBytes(message));
+                        return Util.bytesToLowcaseHexString(hashedBytes);
+                    }
+                case "sha384":
+                    using (SHA384 sha1 = SHA384.Create())
+                    {
+                        byte[] hashedBytes = sha1.ComputeHash(Encoding.UTF8.GetBytes(message));
+                        return Util.bytesToLowcaseHexString(hashedBytes);
+                    }
+                case "sha512":
+                    using (SHA512 sha1 = SHA512.Create())
+                    {
+                        byte[] hashedBytes = sha1.ComputeHash(Encoding.UTF8.GetBytes(message));
+                        return Util.bytesToLowcaseHexString(hashedBytes);
+                    }
+                default:
+                    break;
+            }
+            return new LSL_String();
+        }
+
+        static string HMAC_SHA224(string key, string message)
+        {
+            const int blockSize = 64;
+            byte[] keyBytes = Encoding.UTF8.GetBytes(key);
+
+            if (keyBytes.Length > blockSize)
+            {
+                using (SHA224 sha224 = SHA224.Create())
+                {
+                    byte[] hashedBytes = sha224.ComputeHash(keyBytes);
+                }
+            }
+
+            if (keyBytes.Length < blockSize)
+            {
+                byte[] tmp = new byte[blockSize];
+                Array.Copy(keyBytes, tmp, keyBytes.Length);
+                keyBytes = tmp;
+            }
+
+            byte[] o_key_pad = new byte[blockSize];
+            byte[] i_key_pad = new byte[blockSize];
+
+            for (int i = 0; i < blockSize; i++)
+            {
+                o_key_pad[i] = (byte)(keyBytes[i] ^ 0x5c);
+                i_key_pad[i] = (byte)(keyBytes[i] ^ 0x36);
+            }
+
+            byte[] messageBytes = Encoding.UTF8.GetBytes(message);
+
+            byte[] inner = new byte[i_key_pad.Length + messageBytes.Length];
+            Array.Copy(i_key_pad, 0, inner, 0, i_key_pad.Length);
+            Array.Copy(messageBytes, 0, inner, i_key_pad.Length, messageBytes.Length);
+
+            byte[] innerHash;
+
+            using (SHA224 sha224 = SHA224.Create())
+            {
+                innerHash = sha224.ComputeHash(inner);
+            }
+
+            byte[] outer = new byte[o_key_pad.Length + innerHash.Length];
+            Array.Copy(o_key_pad, 0, outer, 0, o_key_pad.Length);
+            Array.Copy(innerHash, 0, outer, o_key_pad.Length, innerHash.Length);
+
+            using (SHA224 sha224 = SHA224.Create())
+            {
+                return Util.bytesToLowcaseHexString(sha224.ComputeHash(outer));
+            }
+        }
+
+        public LSL_String llHMAC(LSL_String private_key, LSL_String message, LSL_String algo)
+        {
+            if (private_key.Length < 1 || message.Length < 1)
+                return new LSL_String();
+
+            try
+            {
+                HMAC hasher;
+                switch (algo)
+                {
+                    case "md5":
+                        hasher = new HMACMD5(Encoding.UTF8.GetBytes(private_key));
+                        break;
+                    case "sha1":
+                        hasher = new HMACSHA1(Encoding.UTF8.GetBytes(private_key));
+                        break;
+                    case "sha224":
+                        return HMAC_SHA224(private_key, message);
+
+                    case "sha256":
+                        hasher = new HMACSHA256(Encoding.UTF8.GetBytes(private_key));
+                        break;
+                    case "sha384":
+                        hasher = new HMACSHA384(Encoding.UTF8.GetBytes(private_key));
+                        break;
+                    case "sha512":
+                        hasher = new HMACSHA512(Encoding.UTF8.GetBytes(private_key));
+                        break;
+                    default:
+                        return new LSL_String();
+                }
+
+                byte[] hashBytes;
+                try
+                {
+                    hashBytes = hasher.ComputeHash(Encoding.UTF8.GetBytes(message));
+                }
+                catch
+                {
+                    return new LSL_String();
+                }
+                finally
+                {
+                    hasher.Dispose();
+                }
+                return new LSL_String(Util.bytesToLowcaseHexString(hashBytes));
+            }
+            catch { }
+            return new LSL_String();
+        }
     }
 
     public class NotecardCache
@@ -21024,5 +21384,130 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return line;
         }
 
+    }
+
+    // C# doesn't have a native way to do this so instead of adding a library this will do
+    public class SHA224 : HashAlgorithm, IDisposable
+    {
+        private byte[] stream;
+
+        public SHA224()
+        {
+            HashSizeValue = 224;
+        }
+
+        public override void Initialize()
+        {
+            stream = new byte[224];
+        }
+
+        public static new SHA224 Create()
+        {
+            return new SHA224();
+        }
+
+        public new void Dispose()
+        {
+            base.Dispose();
+        }
+
+        private static byte[] ComputeHashInternal(byte[] data)
+        {
+            uint[] K = {
+            0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+            0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+            0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+            0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+            0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+            0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+            0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+            0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+            };
+
+            uint[] H = {
+            0xc1059ed8, 0x367cd507, 0x3070dd17, 0xf70e5939,
+            0xffc00b31, 0x68581511, 0x64f98fa7, 0xbefa4fa4
+            };
+
+            ulong bitLength = (ulong)data.Length * 8;
+            int paddedLength = ((data.Length + 9 + 63) / 64) * 64;
+            byte[] padded = new byte[paddedLength];
+            Array.Copy(data, padded, data.Length);
+            padded[data.Length] = 0x80;
+
+            for (int i = 0; i < 8; i++)
+                padded[padded.Length - 8 + i] = (byte)((bitLength >> ((7 - i) * 8)) & 0xFF);
+
+            for (int chunk = 0; chunk < padded.Length / 64; chunk++)
+            {
+                uint[] W = new uint[64];
+
+                for (int i = 0; i < 16; i++)
+                {
+                    W[i] = (uint)(padded[chunk * 64 + i * 4] << 24) |
+                           (uint)(padded[chunk * 64 + i * 4 + 1] << 16) |
+                           (uint)(padded[chunk * 64 + i * 4 + 2] << 8) |
+                           (uint)(padded[chunk * 64 + i * 4 + 3]);
+                }
+
+                for (int i = 16; i < 64; i++)
+                {
+                    uint s0 = (W[i - 15] >> 7 | W[i - 15] << 25) ^ (W[i - 15] >> 18 | W[i - 15] << 14) ^ (W[i - 15] >> 3);
+                    uint s1 = (W[i - 2] >> 17 | W[i - 2] << 15) ^ (W[i - 2] >> 19 | W[i - 2] << 13) ^ (W[i - 2] >> 10);
+                    W[i] = W[i - 16] + s0 + W[i - 7] + s1;
+                }
+
+                uint a = H[0], b = H[1], c = H[2], d = H[3], e = H[4], f = H[5], g = H[6], h = H[7];
+
+                for (int i = 0; i < 64; i++)
+                {
+                    uint S1 = (e >> 6 | e << 26) ^ (e >> 11 | e << 21) ^ (e >> 25 | e << 7);
+                    uint ch = (e & f) ^ (~e & g);
+                    uint temp1 = h + S1 + ch + K[i] + W[i];
+                    uint S0 = (a >> 2 | a << 30) ^ (a >> 13 | a << 19) ^ (a >> 22 | a << 10);
+                    uint maj = (a & b) ^ (a & c) ^ (b & c);
+                    uint temp2 = S0 + maj;
+
+                    h = g;
+                    g = f;
+                    f = e;
+                    e = d + temp1;
+                    d = c;
+                    c = b;
+                    b = a;
+                    a = temp1 + temp2;
+                }
+
+                H[0] += a;
+                H[1] += b;
+                H[2] += c;
+                H[3] += d;
+                H[4] += e;
+                H[5] += f;
+                H[6] += g;
+                H[7] += h;
+            }
+
+            byte[] result = new byte[28];
+            for (int i = 0; i < 7; i++)
+            {
+                result[i * 4 + 0] = (byte)((H[i] >> 24) & 0xFF);
+                result[i * 4 + 1] = (byte)((H[i] >> 16) & 0xFF);
+                result[i * 4 + 2] = (byte)((H[i] >> 8) & 0xFF);
+                result[i * 4 + 3] = (byte)(H[i] & 0xFF);
+            }
+
+            return result;
+        }
+
+        protected override void HashCore(byte[] array, int ibStart, int cbSize)
+        {
+            stream = array;
+        }
+
+        protected override byte[] HashFinal()
+        {
+            return ComputeHashInternal(stream);
+        }
     }
 }
