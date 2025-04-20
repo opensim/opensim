@@ -492,8 +492,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 for (int indx = 0; indx < attachments.Count; ++indx)
                 {
                     InventoryItemBase attItem = attItems[indx];
-                    if (attItem is null || attItem.Owner.NotEqual(sp.UUID))
+                    if(attItem is null)
+                    {
+                        m_log.Error($"[ATTACHMENTS MODULE]: inventory item {items[indx]} not found, removing from {sp.Name} appearance");
+                        sp.Appearance.RemoveAttachment(attachments[indx].AttachPoint, items[indx]);
                         continue;
+                    }
+                    if (attItem.Owner.NotEqual(sp.UUID))
+                    {
+                        m_log.Error($"[ATTACHMENTS MODULE]: inventory item {items[indx]} has wrong owner, removing from {sp.Name} appearance");
+                        sp.Appearance.RemoveAttachment(attachments[indx].AttachPoint, items[indx]);
+                        continue;
+                    }
+
                     AvatarAttachment attach = attachments[indx];
                     uint attachmentPt = (uint)attach.AttachPoint;
 
