@@ -685,10 +685,6 @@ namespace OpenSim.Framework
                     int index = kvp.Value.FindIndex(delegate(AvatarAttachment a) { return a.ItemID.Equals(itemID); });
                     if (index >= 0)
                     {
-                        //m_log.DebugFormat(
-                        //    "[AVATAR APPEARANCE]: Detaching attachment {0}, index {1}, point {2}",
-                        //    m_attachments[kvp.Key][index].ItemID, index, m_attachments[kvp.Key][index].AttachPoint);
-
                         // Remove it from the list of attachments at that attach point
                         m_attachments[kvp.Key].RemoveAt(index);
 
