@@ -750,6 +750,9 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                     }
                     else
                     {
+                        if(Status == 0)
+                            Status = 499;
+
                         ResponseBody ??= string.Empty;
                         RequestModule.GotCompletedRequest(this);
                     }
