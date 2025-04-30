@@ -11692,23 +11692,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 for (int i = 0; i < blockCount; i++)
                 {
                     GroupMembersData m = members[indx++];
-                    string title;
-                    if(m.Title == null)
-                    {
-                        if(m.IsOwner)
-                            title = "Owner";
-                        else
-                            title = "Member";
-                    }
-                    else
-                        title = m.Title;
+
                     groupMembersReply.MemberData[i] = new GroupMembersReplyPacket.MemberDataBlock
                     {
                         AgentID = m.AgentID,
                         Contribution = m.Contribution,
                         OnlineStatus = Util.StringToBytes256(m.OnlineStatus),
                         AgentPowers = m.AgentPowers,
-                        Title = Util.StringToBytes256(title),
+                        Title = m.Title == null ? [] : Util.StringToBytes256(m.Title),
                         IsOwner = m.IsOwner
                     };
                 }
@@ -11738,22 +11729,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             int i = 0;
             foreach (GroupRolesData d in titles)
             {
-                string title;
-                if(d.Title == null)
-                {
-                    if("Owners".Equals(d.Name))
-                        title = "Owner";
-                    else
-                        title = "Member";
-                }
-                else
-                    title = d.Title;
-
                 groupRolesReply.RoleData[i] = new GroupRoleDataReplyPacket.RoleDataBlock
                 {
                     RoleID = d.RoleID,
                     Name = Util.StringToBytes256(d.Name),
-                    Title = Util.StringToBytes256(title),
+                    Title =  d.Title == null ? [] : Util.StringToBytes256(d.Title),
                     Description = Util.StringToBytes1024(d.Description),
                     Powers = d.Powers,
                     Members = (uint)d.Members

@@ -34,11 +34,11 @@ using System.IO;
 using System.Net;
 using System.Threading;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
-using Nini.Config;
 using log4net;
 
 using OpenSim.Framework;
@@ -2058,28 +2058,23 @@ namespace OpenSim.Region.ClientStack.Linden
                 return;
             }
 
-            OSDMap resp = new OSDMap();
-
-            bool fail = true;
-            IClientAPI client = null;
-            ScenePresence sp;
-            IGroupsModule m_GroupsModule;
+            OSDMap resp;
             UUID groupID = UUID.Zero;
 
             while(true)
             {
-                m_GroupsModule = m_Scene.RequestModuleInterface<IGroupsModule>();
+                IGroupsModule m_GroupsModule = m_Scene.RequestModuleInterface<IGroupsModule>();
                 if(m_GroupsModule == null)
                     break;
 
-                m_Scene.TryGetScenePresence(m_AgentID, out sp);
+                m_Scene.TryGetScenePresence(m_AgentID, out ScenePresence sp);
                 if(sp == null || sp.IsChildAgent || sp.IsDeleted)
                     break;
                 
                 if(sp.IsInTransit && !sp.IsInLocalTransit)
                     break;
 
-                client = sp.ControllingClient;
+                IClientAPI client = sp.ControllingClient;
 
                 OSDMap req;
                 try
@@ -2093,10 +2088,13 @@ namespace OpenSim.Region.ClientStack.Linden
                 }
 
                 OSD tmp;
-                if(!req.TryGetValue("group_id", out tmp) || !(tmp is OSDUUID))
+                if(!req.TryGetValue("group_id", out tmp) || tmp is not OSDUUID)
                     break;
 
                 groupID = tmp.AsUUID();
+                if(groupID.IsZero())
+                    groupID = sp.ControllingClient.ActiveGroupId;
+
                 if(groupID.IsZero())
                     break;
 
@@ -2110,60 +2108,52 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 int memberCount = members.Count;
 
-                Dictionary<string,int> titles = new Dictionary<string,int>();
-
-                ulong defaultPowers = 0;
-
+                Dictionary<string,int> titles = [];
+                Dictionary<ulong,int> powers = [];
 
                 // build titles array and index
                 roles.Sort(CompareRolesByMembersDesc);
 
                 int i = 0;
-                OSDArray osdtitles = new OSDArray();
+                OSDArray osdtitles = [];
                 foreach(GroupRolesData grd in roles)
                 {
+                    ref int powerentry = ref CollectionsMarshal.GetValueRefOrAddDefault(powers, grd.Powers, out bool _);
+                    powerentry++;
+
                     if(grd.Title == null)
-                        continue;
-
-                    if(i==0)
-                        defaultPowers = grd.Powers;
-
-                    if(!titles.ContainsKey(grd.Title))
+                    {
+                        if(!titles.ContainsKey(string.Empty))
+                        {
+                            titles[string.Empty] = i++;
+                            osdtitles.Add(new OSDString(string.Empty));
+                        }
+                    }
+                    else if(!titles.ContainsKey(grd.Title))
                     {
                         titles[grd.Title] = i++;
                         osdtitles.Add(new OSDString(grd.Title));
                     }
                 }
 
-                if(titles.Count == 0 && roles.Count > 0)
-                {
-                    i = 0;
-                    foreach(GroupRolesData grd in roles)
-                    {
-                        string fallbackTitle = grd.Name switch
-                        {
-                            "Owners" => "Owner",
-                            "Everyone" => "Member",
-                            _ => "Member"
-                        };
-
-                        if(i==0)
-                            defaultPowers = grd.Powers;
-
-                        if(!titles.ContainsKey(fallbackTitle))
-                        {
-                            titles[fallbackTitle] = i++;
-                            osdtitles.Add(new OSDString(fallbackTitle));
-                        }
-                    }
-                }
                 if(titles.Count == 0)
                     break;
 
-                OSDMap osdmembers = new();
+                ulong defaultPowers = 0;
+                int maxPowers = -1;
+                foreach(KeyValuePair<ulong,int> kvp in powers)
+                {
+                    if (kvp.Value > maxPowers)
+                    {
+                        defaultPowers = kvp.Key;
+                        maxPowers = kvp.Value;
+                    }
+                }
+
+                OSDMap osdmembers = [];
                 foreach(GroupMembersData gmd in members)
                 {
-                    OSDMap m = new OSDMap();
+                    OSDMap m = [];
                     if(gmd.OnlineStatus != null && gmd.OnlineStatus != "")
                         m["last_login"] = new OSDString(gmd.OnlineStatus);
                     if(gmd.AgentPowers != defaultPowers)
@@ -2173,7 +2163,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         if(titles.TryGetValue(gmd.Title, out int value) && value != 0)
                             m["title"] = new OSDInteger(value);
                     }
-                    else if(gmd.IsOwner && titles.TryGetValue("Owner", out int ovalue) && ovalue != 0)
+                    else if(titles.TryGetValue(string.Empty, out int ovalue) && ovalue != 0)
                         m["title"] = new OSDInteger(ovalue);
                     if(gmd.IsOwner)
                         m["owner"] = new OSDString("true");
@@ -2183,30 +2173,35 @@ namespace OpenSim.Region.ClientStack.Linden
                     osdmembers[(gmd.AgentID).ToString()] = m;
                 }
 
-                OSDMap osddefaults = new OSDMap();
-                osddefaults["default_powers"] = new OSDString(defaultPowers.ToString("X"));
+                OSDMap osddefaults = new()
+                {
+                    ["default_powers"] = new OSDString(defaultPowers.ToString("X"))
+                };
 
-                resp["group_id"] = new OSDUUID(groupID);
-                resp["agent_id"] = new OSDUUID(m_AgentID);
-                resp["member_count"] = new OSDInteger(memberCount);
-                resp["defaults"] = osddefaults;
-                resp["titles"] = osdtitles;
-                resp["members"] = osdmembers;
+                 resp = new OSDMap
+                {
+                    ["group_id"] = new OSDUUID(groupID),
+                    ["agent_id"] = new OSDUUID(m_AgentID),
+                    ["member_count"] = new OSDInteger(memberCount),
+                    ["defaults"] = osddefaults,
+                    ["titles"] = osdtitles,
+                    ["members"] = osdmembers
+                };
 
-                fail = false;
-                break;
+                httpResponse.RawBuffer = Util.UTF8NBGetbytes(OSDParser.SerializeLLSDXmlString(resp));
+                httpResponse.StatusCode = (int)HttpStatusCode.OK;
+                return;
             }
 
-            if(fail)
+            resp = new()
             {
-                resp["group_id"] = new OSDUUID(groupID);
-                resp["agent_id"] = new OSDUUID(m_AgentID);
-                resp["member_count"] = new OSDInteger(0);
-                resp["defaults"] = new OSDMap();
-                resp["titles"] = new OSDArray();
-                resp["members"] = new OSDMap();
-            }
-
+                ["group_id"] = new OSDUUID(groupID),
+                ["agent_id"] = new OSDUUID(m_AgentID),
+                ["member_count"] = new OSDInteger(0),
+                ["defaults"] = new OSDMap(),
+                ["titles"] = new OSDArray(),
+                ["members"] = new OSDMap()
+            };
             httpResponse.RawBuffer = Util.UTF8NBGetbytes(OSDParser.SerializeLLSDXmlString(resp));
             httpResponse.StatusCode = (int)HttpStatusCode.OK;
         }
