@@ -2111,7 +2111,6 @@ namespace OpenSim.Region.ClientStack.Linden
                 int memberCount = members.Count;
 
                 Dictionary<string,int> titles = new Dictionary<string,int>();
-                int i = 0;
 
                 ulong defaultPowers = 0;
 
@@ -2119,26 +2118,49 @@ namespace OpenSim.Region.ClientStack.Linden
                 // build titles array and index
                 roles.Sort(CompareRolesByMembersDesc);
 
+                int i = 0;
                 OSDArray osdtitles = new OSDArray();
                 foreach(GroupRolesData grd in roles)
                 {
                     if(grd.Title == null)
                         continue;
-                    string title = grd.Title;
+
                     if(i==0)
                         defaultPowers = grd.Powers;
 
-                    if(!titles.ContainsKey(title))
+                    if(!titles.ContainsKey(grd.Title))
                     {
-                        titles[title] = i++;
-                        osdtitles.Add(new OSDString(title));
+                        titles[grd.Title] = i++;
+                        osdtitles.Add(new OSDString(grd.Title));
                     }
                 }
 
+                if(titles.Count == 0 && roles.Count > 0)
+                {
+                    i = 0;
+                    foreach(GroupRolesData grd in roles)
+                    {
+                        string fallbackTitle = grd.Name switch
+                        {
+                            "Owners" => "Owner",
+                            "Everyone" => "Member",
+                            _ => "Member"
+                        };
+
+                        if(i==0)
+                            defaultPowers = grd.Powers;
+
+                        if(!titles.ContainsKey(fallbackTitle))
+                        {
+                            titles[fallbackTitle] = i++;
+                            osdtitles.Add(new OSDString(fallbackTitle));
+                        }
+                    }
+                }
                 if(titles.Count == 0)
                     break;
 
-                OSDMap osdmembers = new OSDMap();
+                OSDMap osdmembers = new();
                 foreach(GroupMembersData gmd in members)
                 {
                     OSDMap m = new OSDMap();
@@ -2146,8 +2168,13 @@ namespace OpenSim.Region.ClientStack.Linden
                         m["last_login"] = new OSDString(gmd.OnlineStatus);
                     if(gmd.AgentPowers != defaultPowers)
                         m["powers"] = new OSDString((gmd.AgentPowers).ToString("X"));
-                    if(gmd.Title != null && titles.ContainsKey(gmd.Title) && titles[gmd.Title] != 0)
-                        m["title"] = new OSDInteger(titles[gmd.Title]);
+                    if(gmd.Title != null)
+                    { 
+                        if(titles.TryGetValue(gmd.Title, out int value) && value != 0)
+                            m["title"] = new OSDInteger(value);
+                    }
+                    else if(gmd.IsOwner && titles.TryGetValue("Owner", out int ovalue) && ovalue != 0)
+                        m["title"] = new OSDInteger(ovalue);
                     if(gmd.IsOwner)
                         m["owner"] = new OSDString("true");
                     if(gmd.Contribution != 0)
