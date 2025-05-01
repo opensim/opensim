@@ -1,4 +1,4 @@
-78a7efc0-6d62-85ab-bdc0-b8a94e521ae0
+98972fa2-4c3f-8c44-f022-ed65eb6f1a6d
 <llsd><map><key>llsd-lsl-syntax-version</key><integer>2</integer>
 <key>controls</key>
 <map>
@@ -3867,7 +3867,7 @@
   <key>arguments</key><array>
    <map><key>val</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns absolute version as val (ie as postive value)</string>
+  <key>tooltip</key><string>Returns absolute version as val (ie as positive value)</string>
  </map>
  <key>llAcos</key>
  <map>
@@ -5349,6 +5349,7 @@
    <map><key>linknumber</key><map><key>type</key><string>integer</string></map></map>
    <map><key>sound</key><map><key>type</key><string>string</string></map></map>
    <map><key>volume</key><map><key>type</key><string>float</string></map></map>
+   <map><key>flags</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>llLinkPlaySound</key>
@@ -5357,7 +5358,6 @@
    <map><key>linknumber</key><map><key>type</key><string>integer</string></map></map>
    <map><key>sound</key><map><key>type</key><string>string</string></map></map>
    <map><key>volume</key><map><key>type</key><string>float</string></map></map>
-   <map><key>flags</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>llLinksetDataAvailable</key>
@@ -7146,6 +7146,7 @@
    <map><key>linknum</key><map><key>type</key><string>integer</string></map></map>
    <map><key>volume</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets the sound volume of a given link.</string>
  </map>
  <key>osAESDecrypt</key>
  <map>
@@ -7154,6 +7155,7 @@
    <map><key>secret</key><map><key>type</key><string>string</string></map></map>
    <map><key>encryptedText</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Decrypt an encrypted text using osAESEncrypt() and the same Key (secret) used in the encryption. Returns the decrypted text.</string>
  </map>
  <key>osAESDecryptFrom</key>
  <map>
@@ -7163,6 +7165,7 @@
    <map><key>encryptedText</key><map><key>type</key><string>string</string></map></map>
    <map><key>ivString</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Decrypt an encrypted text using osAESEncryptTo() and the same Key (secret) and Initialization Vector (ivString) used in the encryption. Returns the decrypted text.</string>
  </map>
  <key>osAESEncrypt</key>
  <map>
@@ -7171,6 +7174,7 @@
    <map><key>secret</key><map><key>type</key><string>string</string></map></map>
    <map><key>plainText</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Encrypt a plain text using AES-256-CBC Symmetric Algorithm Key (secret) and a random Initialization Vector (IV). Returns the Hex string of the IV bytes and the Hex string of the encrypted text bytes separated with (:).</string>
  </map>
  <key>osAESEncryptTo</key>
  <map>
@@ -7180,6 +7184,7 @@
    <map><key>plainText</key><map><key>type</key><string>string</string></map></map>
    <map><key>ivString</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Encrypt a plain text using AES-256-CBC Symmetric Algorithm Key (secret) and a custom Initialization Vector (ivString). Returns the Hex string of the IV bytes and the Hex string of the encrypted text bytes separated with (:).</string>
  </map>
  <key>osAgentSaveAppearance</key>
  <map>
@@ -7189,6 +7194,7 @@
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
    <map><key>includeHuds</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Save appearance of an avatar (with the choice to include Huds or no) to a notecard in the primitive inventory.</string>
  </map>
  <key>osAgentSaveAppearance</key>
  <map>
@@ -7197,6 +7203,7 @@
    <map><key>agentId</key><map><key>type</key><string>key</string></map></map>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Save appearance of an avatar to a notecard in the primitive inventory.</string>
  </map>
  <key>osAngleBetween</key>
  <map>
@@ -7205,6 +7212,7 @@
    <map><key>a</key><map><key>type</key><string>vector</string></map></map>
    <map><key>b</key><map><key>type</key><string>vector</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the angle between two vectors.</string>
  </map>
  <key>osApproxEquals</key>
  <map>
@@ -7214,6 +7222,35 @@
    <map><key>rb</key><map><key>type</key><string>rotation</string></map></map>
    <map><key>margin</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns an integer whether two rotations are within a given margin equal.</string>
+ </map>
+ <key>osApproxEquals</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>a</key><map><key>type</key><string>float</string></map></map>
+   <map><key>b</key><map><key>type</key><string>float</string></map></map>
+  </array>
+  <key>tooltip</key><string>Returns an integer whether two float values are within floating point precision equal.</string>
+ </map>
+ <key>osApproxEquals</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>va</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>vb</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>margin</key><map><key>type</key><string>float</string></map></map>
+  </array>
+  <key>tooltip</key><string>Returns an integer whether two vectors are within a given margin equal.</string>
+ </map>
+ <key>osApproxEquals</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>va</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>vb</key><map><key>type</key><string>vector</string></map></map>
+  </array>
+  <key>tooltip</key><string>Returns an integer whether two vectors are within floating point precision equal.</string>
  </map>
  <key>osApproxEquals</key>
  <map>
@@ -7222,31 +7259,7 @@
    <map><key>ra</key><map><key>type</key><string>rotation</string></map></map>
    <map><key>rb</key><map><key>type</key><string>rotation</string></map></map>
   </array>
- </map>
- <key>osApproxEquals</key>
- <map>
-  <key>return</key><string>integer</string>
-  <key>arguments</key><array>
-   <map><key>va</key><map><key>type</key><string>vector</string></map></map>
-   <map><key>vb</key><map><key>type</key><string>vector</string></map></map>
-  </array>
- </map>
- <key>osApproxEquals</key>
- <map>
-  <key>return</key><string>integer</string>
-  <key>arguments</key><array>
-   <map><key>va</key><map><key>type</key><string>vector</string></map></map>
-   <map><key>vb</key><map><key>type</key><string>vector</string></map></map>
-   <map><key>margin</key><map><key>type</key><string>float</string></map></map>
-  </array>
- </map>
- <key>osApproxEquals</key>
- <map>
-  <key>return</key><string>integer</string>
-  <key>arguments</key><array>
-   <map><key>a</key><map><key>type</key><string>float</string></map></map>
-   <map><key>b</key><map><key>type</key><string>float</string></map></map>
-  </array>
+  <key>tooltip</key><string>Returns an integer whether two rotations are within floating point precision equal.</string>
  </map>
  <key>osApproxEquals</key>
  <map>
@@ -7256,6 +7269,7 @@
    <map><key>b</key><map><key>type</key><string>float</string></map></map>
    <map><key>margin</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns an integer whether two float values are within a given margin equal.</string>
  </map>
  <key>osAvatarName2Key</key>
  <map>
@@ -7264,6 +7278,7 @@
    <map><key>firstname</key><map><key>type</key><string>string</string></map></map>
    <map><key>lastname</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the avatar key, based on their first and last name.</string>
  </map>
  <key>osAvatarPlayAnimation</key>
  <map>
@@ -7271,6 +7286,7 @@
    <map><key>avatarId</key><map><key>type</key><string>key</string></map></map>
    <map><key>animation</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Forcefully plays a given animation for a given avatar bypassing animation permissions.</string>
  </map>
  <key>osAvatarStopAnimation</key>
  <map>
@@ -7278,6 +7294,15 @@
    <map><key>avatarId</key><map><key>type</key><string>key</string></map></map>
    <map><key>animation</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Forcefully stops a given animation for a given avatar bypassing animation permissions.</string>
+ </map>
+ <key>osAvatarType</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>avkey</key><map><key>type</key><string>key</string></map></map>
+  </array>
+  <key>tooltip</key><string>Returns the type of a given avatar (key).</string>
  </map>
  <key>osAvatarType</key>
  <map>
@@ -7286,13 +7311,7 @@
    <map><key>sFirstName</key><map><key>type</key><string>string</string></map></map>
    <map><key>sLastName</key><map><key>type</key><string>string</string></map></map>
   </array>
- </map>
- <key>osAvatarType</key>
- <map>
-  <key>return</key><string>integer</string>
-  <key>arguments</key><array>
-   <map><key>avkey</key><map><key>type</key><string>key</string></map></map>
-  </array>
+  <key>tooltip</key><string>Returns the type of a given avatar (name).</string>
  </map>
  <key>osCauseDamage</key>
  <map>
@@ -7300,6 +7319,7 @@
    <map><key>avatar</key><map><key>type</key><string>key</string></map></map>
    <map><key>damage</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Subtracts health from a given avatar by a given amount.</string>
  </map>
  <key>osCauseHealing</key>
  <map>
@@ -7307,6 +7327,7 @@
    <map><key>agentId</key><map><key>type</key><string>key</string></map></map>
    <map><key>healing</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Heals a given avatar by a given amount.</string>
  </map>
  <key>osCheckODE</key>
  <map>
@@ -7316,11 +7337,13 @@
  <key>osClearInertia</key>
  <map>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Unsets the inertia data of the object containing the script.</string>
  </map>
  <key>osClearObjectAnimations</key>
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Removes the object animations and returns the count of removed animations.</string>
  </map>
  <key>osCollisionSound</key>
  <map>
@@ -7328,6 +7351,7 @@
    <map><key>impact_sound</key><map><key>type</key><string>string</string></map></map>
    <map><key>impact_volume</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets a given collision sound and volume to the object containing the script.</string>
  </map>
  <key>osConsoleCommand</key>
  <map>
@@ -7335,6 +7359,7 @@
   <key>arguments</key><array>
    <map><key>Command</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Execute a console command.</string>
  </map>
  <key>osDetectedCountry</key>
  <map>
@@ -7342,12 +7367,14 @@
   <key>arguments</key><array>
    <map><key>number</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Detected params return of triggered user event of their set country.</string>
  </map>
  <key>osDie</key>
  <map>
   <key>arguments</key><array>
    <map><key>objectUUID</key><map><key>type</key><string>key</string></map></map>
   </array>
+  <key>tooltip</key><string>Similar to llDie, but works on a given object UUID.</string>
  </map>
  <key>osDrawEllipse</key>
  <map>
@@ -7357,6 +7384,7 @@
    <map><key>width</key><map><key>type</key><string>integer</string></map></map>
    <map><key>height</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Appends an ellipse drawing command to the string provided in drawList and returns the result.\nThe ellipse is drawn with the current pen size and color on the x,y point pairs that comes from LSL list.</string>
  </map>
  <key>osDrawFilledEllipse</key>
  <map>
@@ -7366,6 +7394,7 @@
    <map><key>width</key><map><key>type</key><string>integer</string></map></map>
    <map><key>height</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Appends a filled ellipse drawing command to the string provided in drawList and returns the result.\nThe ellipse is drawn with the current pen size and color on the x,y point pairs that comes from LSL list.</string>
  </map>
  <key>osDrawFilledPolygon</key>
  <map>
@@ -7375,6 +7404,7 @@
    <map><key>x</key><map><key>type</key><string>list</string></map></map>
    <map><key>y</key><map><key>type</key><string>list</string></map></map>
   </array>
+  <key>tooltip</key><string>Appends a filled polygon drawing command to the string provided in drawList and returns the result.\nThe polygon is drawn with the current pen size and color on the x,y point pairs that comes from LSL list.</string>
  </map>
  <key>osDrawFilledRectangle</key>
  <map>
@@ -7384,6 +7414,7 @@
    <map><key>width</key><map><key>type</key><string>integer</string></map></map>
    <map><key>height</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Appends a filled rectangle drawing command to the string provided in drawList and returns the result.\nThe rectangle is drawn with the current pen size and color on the x,y point pairs that comes from LSL list.</string>
  </map>
  <key>osDrawImage</key>
  <map>
@@ -7392,8 +7423,9 @@
    <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
    <map><key>width</key><map><key>type</key><string>integer</string></map></map>
    <map><key>height</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>imageUrl</key><map><key>type</key><string>string</string></map></map>
+   <map><key>image</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Draw a given image from URL or asset uuid with given width and height at the current draw position.</string>
  </map>
  <key>osDrawLine</key>
  <map>
@@ -7405,6 +7437,7 @@
    <map><key>endX</key><map><key>type</key><string>integer</string></map></map>
    <map><key>endY</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Draws a line from a starting coordinate (pixels x y) to a target position.</string>
  </map>
  <key>osDrawLine</key>
  <map>
@@ -7414,6 +7447,7 @@
    <map><key>endX</key><map><key>type</key><string>integer</string></map></map>
    <map><key>endY</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Draws a line from the current drawing position to a target position (pixels x y).</string>
  </map>
  <key>osDrawPolygon</key>
  <map>
@@ -7423,6 +7457,7 @@
    <map><key>x</key><map><key>type</key><string>list</string></map></map>
    <map><key>y</key><map><key>type</key><string>list</string></map></map>
   </array>
+  <key>tooltip</key><string>Appends a polygon drawing command to the string provided in drawList and returns the result.\nThe polygon is drawn with the current pen size and color on the x,y point pairs that comes from LSL list.</string>
  </map>
  <key>osDrawRectangle</key>
  <map>
@@ -7432,6 +7467,7 @@
    <map><key>width</key><map><key>type</key><string>integer</string></map></map>
    <map><key>height</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Appends a rectangle drawing command to the string provided in drawList and returns the result.\nThe rectangle is drawn with the current pen size and color on the x,y point pairs that comes from LSL list.</string>
  </map>
  <key>osDrawResetTransform</key>
  <map>
@@ -7439,6 +7475,7 @@
   <key>arguments</key><array>
    <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Reset all transforms.</string>
  </map>
  <key>osDrawRotationTransform</key>
  <map>
@@ -7447,6 +7484,7 @@
    <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
    <map><key>x</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Appends a rotation transform drawing command to the string provided in drawList and returns the result.</string>
  </map>
  <key>osDrawScaleTransform</key>
  <map>
@@ -7456,6 +7494,7 @@
    <map><key>x</key><map><key>type</key><string>float</string></map></map>
    <map><key>y</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Appends a scale transform drawing command to the string provided in drawList and returns the result.</string>
  </map>
  <key>osDrawText</key>
  <map>
@@ -7464,6 +7503,7 @@
    <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
    <map><key>text</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Draws a given string as text at the current drawing position. Text extends right and downwards.</string>
  </map>
  <key>osDrawTranslationTransform</key>
  <map>
@@ -7473,17 +7513,12 @@
    <map><key>x</key><map><key>type</key><string>float</string></map></map>
    <map><key>y</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Appends a translation transform drawing command to the string provided in drawList and returns the result.</string>
  </map>
  <key>osDropAttachment</key>
  <map>
   <key>arguments</key><undef/>
- </map>
- <key>osDropAttachmentAt</key>
- <map>
-  <key>arguments</key><array>
-   <map><key>pos</key><map><key>type</key><string>vector</string></map></map>
-   <map><key>rot</key><map><key>type</key><string>rotation</string></map></map>
-  </array>
+  <key>tooltip</key><string>Attempts to drop the attachment the script is in to the ground.</string>
  </map>
  <key>osEjectFromGroup</key>
  <map>
@@ -7491,12 +7526,14 @@
   <key>arguments</key><array>
    <map><key>agentId</key><map><key>type</key><string>key</string></map></map>
   </array>
+  <key>tooltip</key><string>Removes a given avatar from the group the object belongs to.</string>
  </map>
  <key>osForceAttachToAvatar</key>
  <map>
   <key>arguments</key><array>
    <map><key>attachment</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Forcefully attaches the object containing this script to the object owner bypassing attach permissions.</string>
  </map>
  <key>osForceAttachToAvatarFromInventory</key>
  <map>
@@ -7504,6 +7541,7 @@
    <map><key>itemName</key><map><key>type</key><string>string</string></map></map>
    <map><key>attachment</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Forcefully attaches an object from the inventory of the object containing this script to the object owner bypassing attach permissions.</string>
  </map>
  <key>osForceAttachToOtherAvatarFromInventory</key>
  <map>
@@ -7512,16 +7550,19 @@
    <map><key>itemName</key><map><key>type</key><string>string</string></map></map>
    <map><key>attachmentPoint</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Forcefully attaches an object from the inventory of the object containing this script to a given attachment point of a given avatar bypassing attach permissions.</string>
  </map>
  <key>osForceBreakAllLinks</key>
  <map>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Break all links of a linkset bypassing object owner permissions.</string>
  </map>
  <key>osForceBreakLink</key>
  <map>
   <key>arguments</key><array>
    <map><key>linknum</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Break a link of a linkset bypassing object owner permissions.</string>
  </map>
  <key>osForceCreateLink</key>
  <map>
@@ -7529,14 +7570,17 @@
    <map><key>target</key><map><key>type</key><string>string</string></map></map>
    <map><key>parent</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Add a link to a linkset bypassing object owner permissions.</string>
  </map>
  <key>osForceDetachFromAvatar</key>
  <map>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Forcefully detach the object containing this script from the avatar it is attached to bypassing attach permissions.</string>
  </map>
  <key>osForceDropAttachment</key>
  <map>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Attempts to drop the attachment the script is in to the ground bypassing script permissions.</string>
  </map>
  <key>osForceDropAttachmentAt</key>
  <map>
@@ -7544,6 +7588,22 @@
    <map><key>pos</key><map><key>type</key><string>vector</string></map></map>
    <map><key>rot</key><map><key>type</key><string>rotation</string></map></map>
   </array>
+  <key>tooltip</key><string>Attempts to drop the attachment the script is in to a given position on the ground bypassing script permissions.</string>
+ </map>
+ <key>osForceDropAttachmentAt</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>pos</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>rot</key><map><key>type</key><string>rotation</string></map></map>
+  </array>
+  <key>tooltip</key><string>Attempts to drop the attachment the script is in to a given position on the ground bypassing script permissions.</string>
+ </map>
+ <key>osForceOtherSit</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>avatar</key><map><key>type</key><string>string</string></map></map>
+  </array>
+  <key>tooltip</key><string>Forces a given avatar to sit bypassing permissions.</string>
  </map>
  <key>osForceOtherSit</key>
  <map>
@@ -7551,12 +7611,7 @@
    <map><key>avatar</key><map><key>type</key><string>string</string></map></map>
    <map><key>target</key><map><key>type</key><string>string</string></map></map>
   </array>
- </map>
- <key>osForceOtherSit</key>
- <map>
-  <key>arguments</key><array>
-   <map><key>avatar</key><map><key>type</key><string>string</string></map></map>
-  </array>
+  <key>tooltip</key><string>Forces a given avatar to sit on a given target (object UUID) bypassing permissions.</string>
  </map>
  <key>osFormatString</key>
  <map>
@@ -7565,6 +7620,7 @@
    <map><key>str</key><map><key>type</key><string>string</string></map></map>
    <map><key>strings</key><map><key>type</key><string>list</string></map></map>
   </array>
+  <key>tooltip</key><string>Fills a given strings placeholders {%d} with the entries of the given list.</string>
  </map>
  <key>osGetAgentCountry</key>
  <map>
@@ -7572,6 +7628,7 @@
   <key>arguments</key><array>
    <map><key>agentId</key><map><key>type</key><string>key</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the country of a user.</string>
  </map>
  <key>osGetAgentIP</key>
  <map>
@@ -7579,16 +7636,19 @@
   <key>arguments</key><array>
    <map><key>agent</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the IP address of a given avatar.</string>
  </map>
  <key>osGetAgents</key>
  <map>
   <key>return</key><string>list</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns a list of avatars in the current region.</string>
  </map>
  <key>osGetApparentRegionTime</key>
  <map>
   <key>return</key><string>float</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns the virtual seconds since environment midnight.</string>
  </map>
  <key>osGetApparentRegionTimeString</key>
  <map>
@@ -7596,11 +7656,13 @@
   <key>arguments</key><array>
    <map><key>format24</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the virtual second since environment midnight as timestamp.</string>
  </map>
  <key>osGetApparentTime</key>
  <map>
   <key>return</key><string>float</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns the virtual seconds since environment midnight.</string>
  </map>
  <key>osGetApparentTimeString</key>
  <map>
@@ -7608,6 +7670,7 @@
   <key>arguments</key><array>
    <map><key>format24</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the virtual second since environment midnight as timestamp.</string>
  </map>
  <key>osGetAvatarHomeURI</key>
  <map>
@@ -7615,16 +7678,19 @@
   <key>arguments</key><array>
    <map><key>uuid</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Tries to determine the home grid URI of an avatar.</string>
  </map>
  <key>osGetAvatarList</key>
  <map>
   <key>return</key><string>list</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns a strided list (key, position, name) of all the avatars in the region.</string>
  </map>
  <key>osGetCurrentSunHour</key>
  <map>
   <key>return</key><string>float</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns the current region sun hour as float (24 hour clock).</string>
  </map>
  <key>osGetDrawStringSize</key>
  <map>
@@ -7635,13 +7701,15 @@
    <map><key>fontName</key><map><key>type</key><string>string</string></map></map>
    <map><key>fontSize</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns a vector containing the horizontal and vertical dimensions in pixels of the specified text, if drawn in the specified font and at the specified point size. The horizontal extent is returned in the .x component of the vector, and the vertical extent is returned in .y. The .z component is not used.</string>
  </map>
  <key>osGetGender</key>
  <map>
-  <key>return</key><string>key</string>
+  <key>return</key><string>string</string>
   <key>arguments</key><array>
    <map><key>rawAvatarId</key><map><key>type</key><string>key</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the gender of a given avatar as string.</string>
  </map>
  <key>osGetGridCustom</key>
  <map>
@@ -7649,31 +7717,37 @@
   <key>arguments</key><array>
    <map><key>key</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns custom grid information based on input key.</string>
  </map>
  <key>osGetGridGatekeeperURI</key>
  <map>
   <key>return</key><string>string</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns the gatekeeper URI of the current grid.</string>
  </map>
  <key>osGetGridHomeURI</key>
  <map>
   <key>return</key><string>string</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns the home URI of the current grid.</string>
  </map>
  <key>osGetGridLoginURI</key>
  <map>
   <key>return</key><string>string</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns the login URI of the current grid.</string>
  </map>
  <key>osGetGridName</key>
  <map>
   <key>return</key><string>string</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns the grid name of the current grid.</string>
  </map>
  <key>osGetGridNick</key>
  <map>
   <key>return</key><string>string</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns the grid nick of the current grid.</string>
  </map>
  <key>osGetHealRate</key>
  <map>
@@ -7681,6 +7755,7 @@
   <key>arguments</key><array>
    <map><key>agentId</key><map><key>type</key><string>key</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the rate of healing for a given avatar.</string>
  </map>
  <key>osGetHealth</key>
  <map>
@@ -7688,11 +7763,13 @@
   <key>arguments</key><array>
    <map><key>agentId</key><map><key>type</key><string>key</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the current health of a given avatar.</string>
  </map>
  <key>osGetInertiaData</key>
  <map>
   <key>return</key><string>list</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns a list of the inertia data of the object containing the script.</string>
  </map>
  <key>osGetInventoryDesc</key>
  <map>
@@ -7700,6 +7777,7 @@
   <key>arguments</key><array>
    <map><key>itemNameOrId</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the description of a given inventory item key or name in the object containing the script.</string>
  </map>
  <key>osGetInventoryItemKey</key>
  <map>
@@ -7707,6 +7785,7 @@
   <key>arguments</key><array>
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the key of a given inventory item of the object containing the script. Not the asset UUID.</string>
  </map>
  <key>osGetInventoryItemKeys</key>
  <map>
@@ -7714,6 +7793,7 @@
   <key>arguments</key><array>
    <map><key>type</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns a list of inventory item keys filtered by type in the object containing the script.</string>
  </map>
  <key>osGetInventoryLastOwner</key>
  <map>
@@ -7721,6 +7801,7 @@
   <key>arguments</key><array>
    <map><key>itemNameOrId</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the last owner (key) of a given inventory item (name or key) of the object containing the script.</string>
  </map>
  <key>osGetInventoryName</key>
  <map>
@@ -7728,6 +7809,7 @@
   <key>arguments</key><array>
    <map><key>itemId</key><map><key>type</key><string>key</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the name of a given inventory item key in the object containing the script.</string>
  </map>
  <key>osGetInventoryNames</key>
  <map>
@@ -7735,11 +7817,13 @@
   <key>arguments</key><array>
    <map><key>type</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns a list of inventory names filtered by type in the object containing the script.</string>
  </map>
  <key>osGetLastChangedEventKey</key>
  <map>
   <key>return</key><string>key</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns the key of the last event setting detected params.</string>
  </map>
  <key>osGetLinkColor</key>
  <map>
@@ -7748,6 +7832,7 @@
    <map><key>linknum</key><map><key>type</key><string>integer</string></map></map>
    <map><key>face</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the color vector of a given link and face.</string>
  </map>
  <key>osGetLinkInventoryDesc</key>
  <map>
@@ -7756,6 +7841,7 @@
    <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
    <map><key>itemNameorid</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the description of a given inventory item key or name in a given link.</string>
  </map>
  <key>osGetLinkInventoryItemKey</key>
  <map>
@@ -7764,6 +7850,7 @@
    <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the asset UUID of a given inventory item of a given link.</string>
  </map>
  <key>osGetLinkInventoryItemKeys</key>
  <map>
@@ -7772,6 +7859,7 @@
    <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
    <map><key>type</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns a list of inventory item keys filtered by type in a given link.</string>
  </map>
  <key>osGetLinkInventoryKey</key>
  <map>
@@ -7781,6 +7869,7 @@
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
    <map><key>type</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the asset UUID of a given inventory item filtered by type in a given link.</string>
  </map>
  <key>osGetLinkInventoryKeys</key>
  <map>
@@ -7789,6 +7878,7 @@
    <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
    <map><key>type</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns a list of asset UUIDs of inventory items filtered by type in a given link.</string>
  </map>
  <key>osGetLinkInventoryName</key>
  <map>
@@ -7797,6 +7887,7 @@
    <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
    <map><key>itemId</key><map><key>type</key><string>key</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the name of a given inventory item key in a given link.</string>
  </map>
  <key>osGetLinkInventoryNames</key>
  <map>
@@ -7805,6 +7896,7 @@
    <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
    <map><key>type</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns a list of inventory names filtered by type in a given link.</string>
  </map>
  <key>osGetLinkNumber</key>
  <map>
@@ -7812,6 +7904,7 @@
   <key>arguments</key><array>
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Return the link number of a given primitive in the linkset by name.</string>
  </map>
  <key>osGetLinkPrimitiveParams</key>
  <map>
@@ -7820,6 +7913,7 @@
    <map><key>linknumber</key><map><key>type</key><string>integer</string></map></map>
    <map><key>rules</key><map><key>type</key><string>list</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns a list of the primitive parameters given its link number.</string>
  </map>
  <key>osGetLinkSitActiveRange</key>
  <map>
@@ -7827,6 +7921,7 @@
   <key>arguments</key><array>
    <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the max distance for allowing avatars to sit on a given link.</string>
  </map>
  <key>osGetLinkStandTarget</key>
  <map>
@@ -7834,11 +7929,13 @@
   <key>arguments</key><array>
    <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the stand offset of a given link.</string>
  </map>
  <key>osGetMapTexture</key>
  <map>
   <key>return</key><string>key</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns the asset UUID of the texture representing the region map tile of the current region.</string>
  </map>
  <key>osGetNotecard</key>
  <map>
@@ -7846,6 +7943,7 @@
   <key>arguments</key><array>
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Directly returns the entire contents of a given notecard as a string.</string>
  </map>
  <key>osGetNotecardLine</key>
  <map>
@@ -7854,11 +7952,13 @@
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
    <map><key>line</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Directly returns a given line of a notecard in the primitive inventory.</string>
  </map>
  <key>osGetNPCList</key>
  <map>
   <key>return</key><string>list</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns a strided list (key, position, name) of all NPCs in the region.</string>
  </map>
  <key>osGetNumberOfAttachments</key>
  <map>
@@ -7867,6 +7967,7 @@
    <map><key>avatar</key><map><key>type</key><string>key</string></map></map>
    <map><key>attachmentPoints</key><map><key>type</key><string>list</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the number of attachments attached to a list of attachment points of a given avatar.</string>
  </map>
  <key>osGetNumberOfNotecardLines</key>
  <map>
@@ -7874,6 +7975,7 @@
   <key>arguments</key><array>
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the number of lines of a given notecard.</string>
  </map>
  <key>osGetParcelDetails</key>
  <map>
@@ -7889,26 +7991,31 @@
   <key>arguments</key><array>
    <map><key>pos</key><map><key>type</key><string>vector</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the number of visitors to the region since start.</string>
  </map>
  <key>osGetParcelID</key>
  <map>
   <key>return</key><string>key</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns the parcel id of the current parcel.</string>
  </map>
  <key>osGetParcelIDs</key>
  <map>
   <key>return</key><string>list</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns a list of parcel ids of the current region.</string>
  </map>
  <key>osGetPhysicsEngineName</key>
  <map>
   <key>return</key><string>string</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns the name of the currently enabled physics engine.</string>
  </map>
  <key>osGetPhysicsEngineType</key>
  <map>
   <key>return</key><string>string</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns the type of the currently enabled physics engine.</string>
  </map>
  <key>osGetPrimCount</key>
  <map>
@@ -7916,11 +8023,13 @@
   <key>arguments</key><array>
    <map><key>object_id</key><map><key>type</key><string>key</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the number of links in a given object (key).</string>
  </map>
  <key>osGetPrimCount</key>
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns the number of links in the object containing the script.</string>
  </map>
  <key>osGetPrimitiveParams</key>
  <map>
@@ -7929,11 +8038,13 @@
    <map><key>prim</key><map><key>type</key><string>key</string></map></map>
    <map><key>rules</key><map><key>type</key><string>list</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns a list of primitive params of a given primitive (object UUID).</string>
  </map>
  <key>osGetPSTWallclock</key>
  <map>
   <key>return</key><string>float</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns the seconds since midnight of the PST time zone.</string>
  </map>
  <key>osGetRegionMapTexture</key>
  <map>
@@ -7941,56 +8052,67 @@
   <key>arguments</key><array>
    <map><key>regionNameOrID</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the asset UUID of the texture representing the region map tile of a given region name or UUID.</string>
  </map>
  <key>osGetRegionSize</key>
  <map>
   <key>return</key><string>vector</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns the x and y size of the region as vector. z is unused.</string>
  </map>
  <key>osGetRegionStats</key>
  <map>
   <key>return</key><string>list</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns a list of statistics regarding the region and simulator from the stats reporter module.</string>
  </map>
  <key>osGetRezzingObject</key>
  <map>
   <key>return</key><string>key</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns the key of the object that rezzed the object the script is in.</string>
  </map>
  <key>osGetScriptEngineName</key>
  <map>
   <key>return</key><string>string</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns the name of the active script engine.</string>
  </map>
  <key>osGetSimulatorMemory</key>
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns the current memory usage of the simulator in bytes.</string>
  </map>
  <key>osGetSimulatorMemoryKB</key>
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns the current memory usage of the simulator in kilobytes.</string>
  </map>
  <key>osGetSimulatorVersion</key>
  <map>
   <key>return</key><string>string</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns the version information of the current simulator.</string>
  </map>
  <key>osGetSitActiveRange</key>
  <map>
   <key>return</key><string>float</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns the max distance for allowing avatars to sit on the object containing the script.</string>
  </map>
  <key>osGetSitTargetPos</key>
  <map>
   <key>return</key><string>vector</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns the position of the sit target of the object containing the script.</string>
  </map>
  <key>osGetSitTargetRot</key>
  <map>
   <key>return</key><string>rotation</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns the rotation of the sit target of the object containing the script.</string>
  </map>
  <key>osGetSittingAvatarsCount</key>
  <map>
@@ -7998,16 +8120,19 @@
   <key>arguments</key><array>
    <map><key>object_id</key><map><key>type</key><string>key</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the number of avatars seated on a given object (key).</string>
  </map>
  <key>osGetSittingAvatarsCount</key>
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns the number of avatars seated on the object containing the script.</string>
  </map>
  <key>osGetStandTarget</key>
  <map>
   <key>return</key><string>vector</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns the stand offset of the object containing the script.</string>
  </map>
  <key>osGetSunParam</key>
  <map>
@@ -8015,6 +8140,7 @@
   <key>arguments</key><array>
    <map><key>param</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns parameters about the skybox.</string>
  </map>
  <key>osGetTerrainHeight</key>
  <map>
@@ -8023,6 +8149,7 @@
    <map><key>x</key><map><key>type</key><string>integer</string></map></map>
    <map><key>y</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the height of terrain at a given x and y coordinate (meters).</string>
  </map>
  <key>osGetWindParam</key>
  <map>
@@ -8031,6 +8158,7 @@
    <map><key>plugin</key><map><key>type</key><string>string</string></map></map>
    <map><key>param</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Get a parameter from a given wind plugin.</string>
  </map>
  <key>osGiveLinkInventory</key>
  <map>
@@ -8039,15 +8167,17 @@
    <map><key>destination</key><map><key>type</key><string>key</string></map></map>
    <map><key>inventory</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Send a given inventory item (name) from a given link to a destination object or avatar (key).</string>
  </map>
  <key>osGiveLinkInventoryList</key>
  <map>
   <key>arguments</key><array>
    <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
    <map><key>destination</key><map><key>type</key><string>key</string></map></map>
-   <map><key>category</key><map><key>type</key><string>string</string></map></map>
+   <map><key>folderName</key><map><key>type</key><string>string</string></map></map>
    <map><key>inventory</key><map><key>type</key><string>list</string></map></map>
   </array>
+  <key>tooltip</key><string>Send a list of inventory items (key) in a given link to a given destination avatar (key) creating a new named folder.</string>
  </map>
  <key>osInviteToGroup</key>
  <map>
@@ -8055,6 +8185,7 @@
   <key>arguments</key><array>
    <map><key>agentId</key><map><key>type</key><string>key</string></map></map>
   </array>
+  <key>tooltip</key><string>Sends a group invite to a given avatar for the group the object belongs to.</string>
  </map>
  <key>osIsNotValidNumber</key>
  <map>
@@ -8062,6 +8193,7 @@
   <key>arguments</key><array>
    <map><key>v</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns an integer whether a given number is out of bounds or NaN.</string>
  </map>
  <key>osIsNpc</key>
  <map>
@@ -8069,6 +8201,7 @@
   <key>arguments</key><array>
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns an integer whether a given key is an NPC or avatar.</string>
  </map>
  <key>osIsUUID</key>
  <map>
@@ -8076,6 +8209,7 @@
   <key>arguments</key><array>
    <map><key>thing</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns an integer whether a given string is a UUID or not.</string>
  </map>
  <key>osKey2Name</key>
  <map>
@@ -8083,6 +8217,7 @@
   <key>arguments</key><array>
    <map><key>id</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the avatar name given their key.</string>
  </map>
  <key>osKickAvatar</key>
  <map>
@@ -8090,6 +8225,7 @@
    <map><key>agentId</key><map><key>type</key><string>key</string></map></map>
    <map><key>alert</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Disconnects an avatar from the simulator by first and last name or avatar key.</string>
  </map>
  <key>osKickAvatar</key>
  <map>
@@ -8098,6 +8234,7 @@
    <map><key>SurName</key><map><key>type</key><string>string</string></map></map>
    <map><key>alert</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Disconnects an avatar from the simulator by first and last name or avatar key.</string>
  </map>
  <key>osLinkParticleSystem</key>
  <map>
@@ -8105,6 +8242,19 @@
    <map><key>linknumber</key><map><key>type</key><string>integer</string></map></map>
    <map><key>rules</key><map><key>type</key><string>list</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets the particle system rules of a given link.</string>
+ </map>
+ <key>osListenRegex</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>channelID</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>name</key><map><key>type</key><string>string</string></map></map>
+   <map><key>ID</key><map><key>type</key><string>string</string></map></map>
+   <map><key>msg</key><map><key>type</key><string>string</string></map></map>
+   <map><key>regexBitfield</key><map><key>type</key><string>integer</string></map></map>
+  </array>
+  <key>tooltip</key><string>Creates a listener that parses matches for name and message through regex.</string>
  </map>
  <key>osListFindListNext</key>
  <map>
@@ -8116,6 +8266,7 @@
    <map><key>end</key><map><key>type</key><string>integer</string></map></map>
    <map><key>instance</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the nth index of the sublist constrained with start and end count.</string>
  </map>
  <key>osListSortInPlace</key>
  <map>
@@ -8124,6 +8275,7 @@
    <map><key>stride</key><map><key>type</key><string>integer</string></map></map>
    <map><key>ascending</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Sorts a given list in place.</string>
  </map>
  <key>osListSortInPlaceStrided</key>
  <map>
@@ -8133,21 +8285,25 @@
    <map><key>stride_index</key><map><key>type</key><string>integer</string></map></map>
    <map><key>ascending</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Sorts a given strided list in place.</string>
  </map>
  <key>osLoadedCreationDate</key>
  <map>
   <key>return</key><string>string</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns the creation date of the loaded region scene data.</string>
  </map>
  <key>osLoadedCreationID</key>
  <map>
   <key>return</key><string>string</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns the original region UUID of the loaded region scene data.</string>
  </map>
  <key>osLoadedCreationTime</key>
  <map>
   <key>return</key><string>string</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns the creation time of the loaded region scene data.</string>
  </map>
  <key>osLocalTeleportAgent</key>
  <map>
@@ -8158,6 +8314,7 @@
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
    <map><key>flags</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Teleport a given avatar (key) to a given position and rotation as look at vector with a velocity vector and teleport flags.</string>
  </map>
  <key>osLoopSound</key>
  <map>
@@ -8166,6 +8323,7 @@
    <map><key>sound</key><map><key>type</key><string>string</string></map></map>
    <map><key>volume</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets a looping sound and volume of a given link.</string>
  </map>
  <key>osLoopSoundMaster</key>
  <map>
@@ -8174,6 +8332,7 @@
    <map><key>sound</key><map><key>type</key><string>string</string></map></map>
    <map><key>volume</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets a looping sound and volume of a given link as master.</string>
  </map>
  <key>osLoopSoundSlave</key>
  <map>
@@ -8182,13 +8341,7 @@
    <map><key>sound</key><map><key>type</key><string>string</string></map></map>
    <map><key>volume</key><map><key>type</key><string>float</string></map></map>
   </array>
- </map>
- <key>osMakeNotecard</key>
- <map>
-  <key>arguments</key><array>
-   <map><key>notecardName</key><map><key>type</key><string>string</string></map></map>
-   <map><key>contents</key><map><key>type</key><string>list</string></map></map>
-  </array>
+  <key>tooltip</key><string>Sets a looping sound and volume of a given link as slave.</string>
  </map>
  <key>osMakeNotecard</key>
  <map>
@@ -8196,6 +8349,15 @@
    <map><key>notecardName</key><map><key>type</key><string>string</string></map></map>
    <map><key>contents</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Creates a new notecard in the primitive inventory with given contents.</string>
+ </map>
+ <key>osMakeNotecard</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>notecardName</key><map><key>type</key><string>string</string></map></map>
+   <map><key>contents</key><map><key>type</key><string>list</string></map></map>
+  </array>
+  <key>tooltip</key><string>Creates a new notecard in the primitive inventory with given contents.</string>
  </map>
  <key>osMatchString</key>
  <map>
@@ -8205,6 +8367,7 @@
    <map><key>pattern</key><map><key>type</key><string>string</string></map></map>
    <map><key>start</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns a list of matches from a given string from a given start.</string>
  </map>
  <key>osMax</key>
  <map>
@@ -8213,6 +8376,7 @@
    <map><key>a</key><map><key>type</key><string>float</string></map></map>
    <map><key>b</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the larger of two given numbers.</string>
  </map>
  <key>osMessageAttachments</key>
  <map>
@@ -8222,6 +8386,7 @@
    <map><key>attachmentPoints</key><map><key>type</key><string>list</string></map></map>
    <map><key>flags</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Sends a message as dataserver event to a given attachment based on the avatar key and attachment point. Can be constrained further with options.</string>
  </map>
  <key>osMessageObject</key>
  <map>
@@ -8229,6 +8394,7 @@
    <map><key>objectUUID</key><map><key>type</key><string>key</string></map></map>
    <map><key>message</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Directly send a message as dataserver event to a given object by its key.</string>
  </map>
  <key>osMin</key>
  <map>
@@ -8237,6 +8403,7 @@
    <map><key>a</key><map><key>type</key><string>float</string></map></map>
    <map><key>b</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the smaller of two given numbers.</string>
  </map>
  <key>osMovePen</key>
  <map>
@@ -8246,6 +8413,18 @@
    <map><key>x</key><map><key>type</key><string>integer</string></map></map>
    <map><key>y</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Move the drawing position to a given coordinate (pixels x y).</string>
+ </map>
+ <key>osNpcCreate</key>
+ <map>
+  <key>return</key><string>key</string>
+  <key>arguments</key><array>
+   <map><key>user</key><map><key>type</key><string>string</string></map></map>
+   <map><key>name</key><map><key>type</key><string>string</string></map></map>
+   <map><key>position</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
+  </array>
+  <key>tooltip</key><string>Creates a new NPC with a given name at a given position using a supplied notecard for appearance.</string>
  </map>
  <key>osNpcCreate</key>
  <map>
@@ -8257,16 +8436,7 @@
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
    <map><key>options</key><map><key>type</key><string>integer</string></map></map>
   </array>
- </map>
- <key>osNpcCreate</key>
- <map>
-  <key>return</key><string>key</string>
-  <key>arguments</key><array>
-   <map><key>user</key><map><key>type</key><string>string</string></map></map>
-   <map><key>name</key><map><key>type</key><string>string</string></map></map>
-   <map><key>position</key><map><key>type</key><string>vector</string></map></map>
-   <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
-  </array>
+  <key>tooltip</key><string>Creates a new NPC with a given name at a given position using a supplied notecard for appearance and additional options.</string>
  </map>
  <key>osNpcGetOwner</key>
  <map>
@@ -8274,6 +8444,7 @@
   <key>arguments</key><array>
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the owner key of a given NPC. NULL_KEY if the NPC is unowned.</string>
  </map>
  <key>osNpcGetPos</key>
  <map>
@@ -8281,6 +8452,7 @@
   <key>arguments</key><array>
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the position of a given NPC (key).</string>
  </map>
  <key>osNpcGetRot</key>
  <map>
@@ -8288,6 +8460,7 @@
   <key>arguments</key><array>
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the current rotation of a given NPC (key).</string>
  </map>
  <key>osNpcLoadAppearance</key>
  <map>
@@ -8295,6 +8468,7 @@
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Loads a given appearance notecard to a given NPC (key).</string>
  </map>
  <key>osNpcLookAt</key>
  <map>
@@ -8305,6 +8479,7 @@
    <map><key>objkey</key><map><key>type</key><string>key</string></map></map>
    <map><key>offset</key><map><key>type</key><string>vector</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets the look at direction of a NPC to a given object (key) and offset.</string>
  </map>
  <key>osNpcMoveTo</key>
  <map>
@@ -8312,6 +8487,7 @@
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
   </array>
+  <key>tooltip</key><string>Moves a given NPC (key) to a position.</string>
  </map>
  <key>osNpcMoveToTarget</key>
  <map>
@@ -8320,6 +8496,7 @@
    <map><key>target</key><map><key>type</key><string>vector</string></map></map>
    <map><key>options</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets a target for a given NPC (key) to move towards.</string>
  </map>
  <key>osNpcPlayAnimation</key>
  <map>
@@ -8327,12 +8504,14 @@
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
    <map><key>animation</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Instructs a given NPC (key) to play a given animation (name) from the inventory of the object containing the script.</string>
  </map>
  <key>osNpcRemove</key>
  <map>
   <key>arguments</key><array>
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
   </array>
+  <key>tooltip</key><string>Removes a given NPC (key).</string>
  </map>
  <key>osNpcSaveAppearance</key>
  <map>
@@ -8342,6 +8521,7 @@
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
    <map><key>includeHuds</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Creates a new notecard with a given name from a given NPC (key) with the option to include HUDs.</string>
  </map>
  <key>osNpcSaveAppearance</key>
  <map>
@@ -8350,13 +8530,7 @@
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
   </array>
- </map>
- <key>osNpcSay</key>
- <map>
-  <key>arguments</key><array>
-   <map><key>npc</key><map><key>type</key><string>key</string></map></map>
-   <map><key>message</key><map><key>type</key><string>string</string></map></map>
-  </array>
+  <key>tooltip</key><string>Creates a new notecard with a given name from a given NPC (key).</string>
  </map>
  <key>osNpcSay</key>
  <map>
@@ -8365,6 +8539,15 @@
    <map><key>channel</key><map><key>type</key><string>integer</string></map></map>
    <map><key>message</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Instructs a given NPC (key) to say a given message on a given channel.</string>
+ </map>
+ <key>osNpcSay</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>npc</key><map><key>type</key><string>key</string></map></map>
+   <map><key>message</key><map><key>type</key><string>string</string></map></map>
+  </array>
+  <key>tooltip</key><string>Instructs a given NPC (key) to say a given message.</string>
  </map>
  <key>osNpcSayTo</key>
  <map>
@@ -8374,6 +8557,7 @@
    <map><key>channel</key><map><key>type</key><string>integer</string></map></map>
    <map><key>msg</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Instructs a given NPC (key) to say to a given avatar (key) a given message on a given channel.</string>
  </map>
  <key>osNpcSetProfileAbout</key>
  <map>
@@ -8381,6 +8565,7 @@
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
    <map><key>about</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets a given NPC (key) profile about text to a given string.</string>
  </map>
  <key>osNpcSetProfileImage</key>
  <map>
@@ -8388,6 +8573,7 @@
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
    <map><key>image</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets a given NPC (key) profile image to a given image (asset UUID).</string>
  </map>
  <key>osNpcSetRot</key>
  <map>
@@ -8395,6 +8581,7 @@
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
    <map><key>rot</key><map><key>type</key><string>rotation</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets the rotation of a given NPC (key).</string>
  </map>
  <key>osNpcShout</key>
  <map>
@@ -8403,6 +8590,7 @@
    <map><key>channel</key><map><key>type</key><string>integer</string></map></map>
    <map><key>message</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Instructs a given NPC (key) to shout a given message on a given channel.</string>
  </map>
  <key>osNpcSit</key>
  <map>
@@ -8411,12 +8599,14 @@
    <map><key>target</key><map><key>type</key><string>key</string></map></map>
    <map><key>options</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Instructs a given NPC (key) to sit on a given object (UUID).</string>
  </map>
  <key>osNpcStand</key>
  <map>
   <key>arguments</key><array>
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
   </array>
+  <key>tooltip</key><string>Instructs a given NPC (key) to stand up.</string>
  </map>
  <key>osNpcStopAnimation</key>
  <map>
@@ -8424,12 +8614,14 @@
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
    <map><key>animation</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Instructs a given NPC (key) to stop playing a given animation (name).</string>
  </map>
  <key>osNpcStopMoveToTarget</key>
  <map>
   <key>arguments</key><array>
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
   </array>
+  <key>tooltip</key><string>Removes the target a given NPC (key) is moving towards.</string>
  </map>
  <key>osNpcTouch</key>
  <map>
@@ -8438,6 +8630,7 @@
    <map><key>object_key</key><map><key>type</key><string>key</string></map></map>
    <map><key>link_num</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Instructs a given NPC (key) to touch a given object (UUID) and link.</string>
  </map>
  <key>osNpcWhisper</key>
  <map>
@@ -8446,6 +8639,7 @@
    <map><key>channel</key><map><key>type</key><string>integer</string></map></map>
    <map><key>message</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Instructs a given NPC (key) to whisper a given message on a given channel.</string>
  </map>
  <key>osOldList2ListStrided</key>
  <map>
@@ -8456,6 +8650,7 @@
    <map><key>end</key><map><key>type</key><string>integer</string></map></map>
    <map><key>stride</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns a strided list of a given list.</string>
  </map>
  <key>osOwnerSaveAppearance</key>
  <map>
@@ -8464,6 +8659,7 @@
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
    <map><key>includeHuds</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Save appearance of object owner (with the choice to include Huds or no) to a notecard in the primitive inventory.</string>
  </map>
  <key>osOwnerSaveAppearance</key>
  <map>
@@ -8471,6 +8667,7 @@
   <key>arguments</key><array>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Save appearance of object owner to a notecard in the primitive inventory.</string>
  </map>
  <key>osParcelJoin</key>
  <map>
@@ -8478,6 +8675,7 @@
    <map><key>pos1</key><map><key>type</key><string>vector</string></map></map>
    <map><key>pos2</key><map><key>type</key><string>vector</string></map></map>
   </array>
+  <key>tooltip</key><string>Joins a parcel with another based on positions within both parcels as vectors.</string>
  </map>
  <key>osParcelSetDetails</key>
  <map>
@@ -8485,6 +8683,7 @@
    <map><key>pos</key><map><key>type</key><string>vector</string></map></map>
    <map><key>rules</key><map><key>type</key><string>list</string></map></map>
   </array>
+  <key>tooltip</key><string>DEPRECATED. Use osSetParcelDetails instead.</string>
  </map>
  <key>osParcelSubdivide</key>
  <map>
@@ -8492,12 +8691,14 @@
    <map><key>pos1</key><map><key>type</key><string>vector</string></map></map>
    <map><key>pos2</key><map><key>type</key><string>vector</string></map></map>
   </array>
+  <key>tooltip</key><string>Subdivides a parcel as rectangle given a start and end position as vector.</string>
  </map>
  <key>osParticleSystem</key>
  <map>
   <key>arguments</key><array>
    <map><key>rules</key><map><key>type</key><string>list</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets the particle system rules of the object containing the script.</string>
  </map>
  <key>osPlaySound</key>
  <map>
@@ -8506,6 +8707,7 @@
    <map><key>sound</key><map><key>type</key><string>string</string></map></map>
    <map><key>volume</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets a sound and volume of a given link.</string>
  </map>
  <key>osPlaySoundSlave</key>
  <map>
@@ -8514,6 +8716,7 @@
    <map><key>sound</key><map><key>type</key><string>string</string></map></map>
    <map><key>volume</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets a sound and volume of a given link as slave.</string>
  </map>
  <key>osPreloadSound</key>
  <map>
@@ -8521,6 +8724,7 @@
    <map><key>linknum</key><map><key>type</key><string>integer</string></map></map>
    <map><key>sound</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets a sound to preload for a given link.</string>
  </map>
  <key>osRegexIsMatch</key>
  <map>
@@ -8529,6 +8733,7 @@
    <map><key>input</key><map><key>type</key><string>string</string></map></map>
    <map><key>pattern</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns an integer whether the input string matches a regex pattern.</string>
  </map>
  <key>osRegionNotice</key>
  <map>
@@ -8536,12 +8741,22 @@
    <map><key>agentID</key><map><key>type</key><string>key</string></map></map>
    <map><key>msg</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Send a notice message to a given avatar in the region.</string>
  </map>
  <key>osRegionNotice</key>
  <map>
   <key>arguments</key><array>
    <map><key>msg</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Send a notice message to all avatars in the region.</string>
+ </map>
+ <key>osRegionRestart</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>seconds</key><map><key>type</key><string>float</string></map></map>
+  </array>
+  <key>tooltip</key><string>Schedule a region restart seconds in the future.</string>
  </map>
  <key>osRegionRestart</key>
  <map>
@@ -8550,13 +8765,7 @@
    <map><key>seconds</key><map><key>type</key><string>float</string></map></map>
    <map><key>msg</key><map><key>type</key><string>string</string></map></map>
   </array>
- </map>
- <key>osRegionRestart</key>
- <map>
-  <key>return</key><string>integer</string>
-  <key>arguments</key><array>
-   <map><key>seconds</key><map><key>type</key><string>float</string></map></map>
-  </array>
+  <key>tooltip</key><string>Schedule a region restart with broadcast message seconds in the future.</string>
  </map>
  <key>osRemoveLinkInventory</key>
  <map>
@@ -8564,6 +8773,7 @@
    <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Removes a inventory item by name in a given link.</string>
  </map>
  <key>osReplaceAgentEnvironment</key>
  <map>
@@ -8573,6 +8783,7 @@
    <map><key>transition</key><map><key>type</key><string>integer</string></map></map>
    <map><key>daycycle</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets the environment of a given avatar (key) to a given settings item (asset UUID) with transition time.</string>
  </map>
  <key>osReplaceParcelEnvironment</key>
  <map>
@@ -8581,6 +8792,21 @@
    <map><key>transition</key><map><key>type</key><string>integer</string></map></map>
    <map><key>daycycle</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets the environment of the current parcel to a given settings item (asset UUID) with transition time.</string>
+ </map>
+ <key>osReplaceRegionEnvironment</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>transition</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>daycycle</key><map><key>type</key><string>string</string></map></map>
+   <map><key>daylen</key><map><key>type</key><string>float</string></map></map>
+   <map><key>dayoffset</key><map><key>type</key><string>float</string></map></map>
+   <map><key>altitude1</key><map><key>type</key><string>float</string></map></map>
+   <map><key>altitude2</key><map><key>type</key><string>float</string></map></map>
+   <map><key>altitude3</key><map><key>type</key><string>float</string></map></map>
+  </array>
+  <key>tooltip</key><string>Alters the region environment base parameters of a given settings item (asset UUID) with transition time.</string>
  </map>
  <key>osReplaceString</key>
  <map>
@@ -8592,6 +8818,7 @@
    <map><key>count</key><map><key>type</key><string>integer</string></map></map>
    <map><key>start</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns a string with replaced substrings given a match pattern from a given start for a given number of matches.</string>
  </map>
  <key>osRequestSecureURL</key>
  <map>
@@ -8599,6 +8826,7 @@
   <key>arguments</key><array>
    <map><key>options</key><map><key>type</key><string>list</string></map></map>
   </array>
+  <key>tooltip</key><string>Request a new secure URL and directly return the assigned key.</string>
  </map>
  <key>osRequestURL</key>
  <map>
@@ -8606,12 +8834,14 @@
   <key>arguments</key><array>
    <map><key>options</key><map><key>type</key><string>list</string></map></map>
   </array>
+  <key>tooltip</key><string>Request a new URL and directly return the assigned key.</string>
  </map>
  <key>osResetAllScripts</key>
  <map>
   <key>arguments</key><array>
    <map><key>AllLinkset</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Resets all scripts in the inventory of a link, the entire linkset or itself.</string>
  </map>
  <key>osResetEnvironment</key>
  <map>
@@ -8620,6 +8850,7 @@
    <map><key>parcelOrRegion</key><map><key>type</key><string>integer</string></map></map>
    <map><key>transition</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Resets either the parcel or region environment to their default values.</string>
  </map>
  <key>osRound</key>
  <map>
@@ -8628,6 +8859,16 @@
    <map><key>value</key><map><key>type</key><string>float</string></map></map>
    <map><key>digits</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Rounds a given value to a specified amount of digits.</string>
+ </map>
+ <key>osSendAlertModal</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>agentKey</key><map><key>type</key><string>string</string></map></map>
+   <map><key>alert</key><map><key>type</key><string>string</string></map></map>
+   <map><key>type</key><map><key>type</key><string>integer</string></map></map>
+  </array>
+  <key>tooltip</key><string>Sends a blocking modal or notification modal with a given message to a given avatar.</string>
  </map>
  <key>osSetContentType</key>
  <map>
@@ -8635,6 +8876,7 @@
    <map><key>id</key><map><key>type</key><string>key</string></map></map>
    <map><key>type</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets the response type of a HTTP request or response</string>
  </map>
  <key>osSetDynamicTextureData</key>
  <map>
@@ -8646,6 +8888,7 @@
    <map><key>extraParams</key><map><key>type</key><string>string</string></map></map>
    <map><key>timer</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Generate a dynamic texture from a given draw string, returns the texture UUID, applies to all faces.</string>
  </map>
  <key>osSetDynamicTextureDataFace</key>
  <map>
@@ -8658,6 +8901,7 @@
    <map><key>timer</key><map><key>type</key><string>integer</string></map></map>
    <map><key>face</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Generate a dynamic texture from a given draw string, returns the texture UUID, applies to a given face.</string>
  </map>
  <key>osSetDynamicTextureURL</key>
  <map>
@@ -8669,6 +8913,7 @@
    <map><key>extraParams</key><map><key>type</key><string>string</string></map></map>
    <map><key>timer</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Generate a dynamic texture from a given URL, returns the texture UUID, applies to all faces.</string>
  </map>
  <key>osSetEstateSunSettings</key>
  <map>
@@ -8676,6 +8921,7 @@
    <map><key>sunFixed</key><map><key>type</key><string>integer</string></map></map>
    <map><key>sunHour</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Set sun type (fixed, daycycle) and time offset for the estate sun.</string>
  </map>
  <key>osSetFontName</key>
  <map>
@@ -8684,6 +8930,7 @@
    <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
    <map><key>fontName</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Set the name of the font that will be used by osDrawText.\n- Threat Level: Not Checked.</string>
  </map>
  <key>osSetFontSize</key>
  <map>
@@ -8692,6 +8939,7 @@
    <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
    <map><key>fontSize</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets the size of the font used by subsequent osDrawTextText() calls. The fontSize parameter represents the font height in points.</string>
  </map>
  <key>osSetHealRate</key>
  <map>
@@ -8699,6 +8947,7 @@
    <map><key>agentId</key><map><key>type</key><string>key</string></map></map>
    <map><key>health</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets the rate of healing for a given avatar to a given amount.</string>
  </map>
  <key>osSetHealth</key>
  <map>
@@ -8706,6 +8955,7 @@
    <map><key>agentId</key><map><key>type</key><string>key</string></map></map>
    <map><key>health</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets the health of a given avatar to a given amount.</string>
  </map>
  <key>osSetInertia</key>
  <map>
@@ -8715,6 +8965,7 @@
    <map><key>principalInertiaScaled</key><map><key>type</key><string>vector</string></map></map>
    <map><key>rot</key><map><key>type</key><string>rotation</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets the inertia data for the object containing the script.</string>
  </map>
  <key>osSetInertiaAsBox</key>
  <map>
@@ -8724,6 +8975,7 @@
    <map><key>centerOfMass</key><map><key>type</key><string>vector</string></map></map>
    <map><key>rot</key><map><key>type</key><string>rotation</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets the inertia data for the object containing the script based on a box shape bounding box calculation.</string>
  </map>
  <key>osSetInertiaAsCylinder</key>
  <map>
@@ -8734,6 +8986,7 @@
    <map><key>centerOfMass</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lslrot</key><map><key>type</key><string>rotation</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets the inertia data for the object containing the script based on a cylindrical bounding box calculation.</string>
  </map>
  <key>osSetInertiaAsSphere</key>
  <map>
@@ -8742,6 +8995,7 @@
    <map><key>radius</key><map><key>type</key><string>float</string></map></map>
    <map><key>centerOfMass</key><map><key>type</key><string>vector</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets the inertia data for the object containing the script based on a spherical bounding box calculation.</string>
  </map>
  <key>osSetLinkSitActiveRange</key>
  <map>
@@ -8749,6 +9003,7 @@
    <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
    <map><key>v</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets the max distance for allowing avatars to sit on a given link..</string>
  </map>
  <key>osSetLinkStandTarget</key>
  <map>
@@ -8756,12 +9011,14 @@
    <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
    <map><key>v</key><map><key>type</key><string>vector</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets the stand offset from the position of a given link.</string>
  </map>
  <key>osSetOwnerSpeed</key>
  <map>
   <key>arguments</key><array>
    <map><key>SpeedModifier</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets a modifier for the movement speed of the object owner.</string>
  </map>
  <key>osSetParcelDetails</key>
  <map>
@@ -8769,24 +9026,28 @@
    <map><key>pos</key><map><key>type</key><string>vector</string></map></map>
    <map><key>rules</key><map><key>type</key><string>list</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets PARCEl_FLAGS for a parcel given a vector inside the parcel.</string>
  </map>
  <key>osSetParcelMediaURL</key>
  <map>
   <key>arguments</key><array>
    <map><key>url</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets the current parcel media URL.</string>
  </map>
  <key>osSetParcelMusicURL</key>
  <map>
   <key>arguments</key><array>
    <map><key>url</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets the current parcel music URL.</string>
  </map>
  <key>osSetParcelSIPAddress</key>
  <map>
   <key>arguments</key><array>
    <map><key>SIPAddress</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets the voice module SIP address to a given address.</string>
  </map>
  <key>osSetPenCap</key>
  <map>
@@ -8796,22 +9057,7 @@
    <map><key>direction</key><map><key>type</key><string>string</string></map></map>
    <map><key>type</key><map><key>type</key><string>string</string></map></map>
   </array>
- </map>
- <key>osSetPenColor</key>
- <map>
-  <key>return</key><string>string</string>
-  <key>arguments</key><array>
-   <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
-   <map><key>color</key><map><key>type</key><string>string</string></map></map>
-  </array>
- </map>
- <key>osSetPenColor</key>
- <map>
-  <key>return</key><string>string</string>
-  <key>arguments</key><array>
-   <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
-   <map><key>color</key><map><key>type</key><string>vector</string></map></map>
-  </array>
+  <key>tooltip</key><string>Sets the start, end or both caps to either "diamond", "arrow", "round", or default "flat" shape.</string>
  </map>
  <key>osSetPenColor</key>
  <map>
@@ -8821,6 +9067,25 @@
    <map><key>color</key><map><key>type</key><string>vector</string></map></map>
    <map><key>alpha</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>This sets the drawing color to either a named .NET color, a 32-bit color value (formatted as eight hexadecimal digits in the format aarrggbb, representing the eight-bit alpha, red, green and blue channels) or a LSL vector color and alpha float value.</string>
+ </map>
+ <key>osSetPenColor</key>
+ <map>
+  <key>return</key><string>string</string>
+  <key>arguments</key><array>
+   <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
+   <map><key>color</key><map><key>type</key><string>string</string></map></map>
+  </array>
+  <key>tooltip</key><string>This sets the drawing color to either a named .NET color, a 32-bit color value (formatted as eight hexadecimal digits in the format aarrggbb, representing the eight-bit alpha, red, green and blue channels) or a LSL vector color and alpha float value.</string>
+ </map>
+ <key>osSetPenColor</key>
+ <map>
+  <key>return</key><string>string</string>
+  <key>arguments</key><array>
+   <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
+   <map><key>color</key><map><key>type</key><string>vector</string></map></map>
+  </array>
+  <key>tooltip</key><string>This sets the drawing color to either a named .NET color, a 32-bit color value (formatted as eight hexadecimal digits in the format aarrggbb, representing the eight-bit alpha, red, green and blue channels) or a LSL vector color and alpha float value.</string>
  </map>
  <key>osSetPenColour</key>
  <map>
@@ -8829,6 +9094,7 @@
    <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
    <map><key>colour</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>DEPRECATED. Use osSetPenColor instead.</string>
  </map>
  <key>osSetPenSize</key>
  <map>
@@ -8837,12 +9103,14 @@
    <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
    <map><key>penSize</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets the pen size to a square of penSize pixels by penSize pixels. If penSize is an odd number, the pen will be exactly centered on the coordinates provided in the various drawing commands.</string>
  </map>
  <key>osSetPrimFloatOnWater</key>
  <map>
   <key>arguments</key><array>
    <map><key>floatYN</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets whether the object should float on water.</string>
  </map>
  <key>osSetPrimitiveParams</key>
  <map>
@@ -8850,6 +9118,18 @@
    <map><key>prim</key><map><key>type</key><string>key</string></map></map>
    <map><key>rules</key><map><key>type</key><string>list</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets primitive params of a given primitive (object UUID).</string>
+ </map>
+ <key>osSetProjectionParams</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>projection</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>texture</key><map><key>type</key><string>key</string></map></map>
+   <map><key>fov</key><map><key>type</key><string>float</string></map></map>
+   <map><key>focus</key><map><key>type</key><string>float</string></map></map>
+   <map><key>amb</key><map><key>type</key><string>float</string></map></map>
+  </array>
+  <key>tooltip</key><string>Sets the light projection parameters of the object containing the script.</string>
  </map>
  <key>osSetProjectionParams</key>
  <map>
@@ -8861,6 +9141,7 @@
    <map><key>focus</key><map><key>type</key><string>float</string></map></map>
    <map><key>amb</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets the light projection parameters of a given primitive (object UUID).</string>
  </map>
  <key>osSetProjectionParams</key>
  <map>
@@ -8872,16 +9153,7 @@
    <map><key>focus</key><map><key>type</key><string>float</string></map></map>
    <map><key>amb</key><map><key>type</key><string>float</string></map></map>
   </array>
- </map>
- <key>osSetProjectionParams</key>
- <map>
-  <key>arguments</key><array>
-   <map><key>projection</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>texture</key><map><key>type</key><string>key</string></map></map>
-   <map><key>fov</key><map><key>type</key><string>float</string></map></map>
-   <map><key>focus</key><map><key>type</key><string>float</string></map></map>
-   <map><key>amb</key><map><key>type</key><string>float</string></map></map>
-  </array>
+  <key>tooltip</key><string>Sets the light projection parameters of a given link.</string>
  </map>
  <key>osSetRegionSunSettings</key>
  <map>
@@ -8890,18 +9162,21 @@
    <map><key>sunFixed</key><map><key>type</key><string>integer</string></map></map>
    <map><key>sunHour</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Set whether to use estate sun, sun type (fixed, daycycle) and time offset for the region.</string>
  </map>
  <key>osSetRegionWaterHeight</key>
  <map>
   <key>arguments</key><array>
    <map><key>height</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Set the water height of the region.</string>
  </map>
  <key>osSetSitActiveRange</key>
  <map>
   <key>arguments</key><array>
    <map><key>v</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets the max distance for allowing avatars to sit on the object containing the script.</string>
  </map>
  <key>osSetSoundRadius</key>
  <map>
@@ -8909,6 +9184,7 @@
    <map><key>linknum</key><map><key>type</key><string>integer</string></map></map>
    <map><key>radius</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets the sound radius for a given link.</string>
  </map>
  <key>osSetSpeed</key>
  <map>
@@ -8916,12 +9192,14 @@
    <map><key>UUID</key><map><key>type</key><string>string</string></map></map>
    <map><key>SpeedModifier</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets a modifier for the movement speed of a given avatar.</string>
  </map>
  <key>osSetStandTarget</key>
  <map>
   <key>arguments</key><array>
    <map><key>v</key><map><key>type</key><string>vector</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets the stand offset from the position of the object containing the script.</string>
  </map>
  <key>osSetSunParam</key>
  <map>
@@ -8929,6 +9207,7 @@
    <map><key>param</key><map><key>type</key><string>string</string></map></map>
    <map><key>value</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Not implemented.</string>
  </map>
  <key>osSetTerrainHeight</key>
  <map>
@@ -8938,6 +9217,7 @@
    <map><key>y</key><map><key>type</key><string>integer</string></map></map>
    <map><key>val</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Set the terrain height at a given x and y coordinate (meters).</string>
  </map>
  <key>osSetTerrainTexture</key>
  <map>
@@ -8945,6 +9225,7 @@
    <map><key>level</key><map><key>type</key><string>integer</string></map></map>
    <map><key>texture</key><map><key>type</key><string>key</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets the terrain texture for a given level.</string>
  </map>
  <key>osSetTerrainTextureHeight</key>
  <map>
@@ -8953,6 +9234,7 @@
    <map><key>low</key><map><key>type</key><string>float</string></map></map>
    <map><key>high</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets the texture low and high values for a given region corner.</string>
  </map>
  <key>osSetWindParam</key>
  <map>
@@ -8961,6 +9243,7 @@
    <map><key>param</key><map><key>type</key><string>string</string></map></map>
    <map><key>value</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Set a parameter in a given wind plugin.</string>
  </map>
  <key>osSHA256</key>
  <map>
@@ -8968,15 +9251,7 @@
   <key>arguments</key><array>
    <map><key>input</key><map><key>type</key><string>string</string></map></map>
   </array>
- </map>
- <key>osSlerp</key>
- <map>
-  <key>return</key><string>rotation</string>
-  <key>arguments</key><array>
-   <map><key>a</key><map><key>type</key><string>rotation</string></map></map>
-   <map><key>b</key><map><key>type</key><string>rotation</string></map></map>
-   <map><key>amount</key><map><key>type</key><string>float</string></map></map>
-  </array>
+  <key>tooltip</key><string>Returns the SHA256 representation of the input string.</string>
  </map>
  <key>osSlerp</key>
  <map>
@@ -8986,12 +9261,24 @@
    <map><key>b</key><map><key>type</key><string>vector</string></map></map>
    <map><key>amount</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns a spherical interpolation of two vectors shifted by amount.</string>
+ </map>
+ <key>osSlerp</key>
+ <map>
+  <key>return</key><string>rotation</string>
+  <key>arguments</key><array>
+   <map><key>a</key><map><key>type</key><string>rotation</string></map></map>
+   <map><key>b</key><map><key>type</key><string>rotation</string></map></map>
+   <map><key>amount</key><map><key>type</key><string>float</string></map></map>
+  </array>
+  <key>tooltip</key><string>Returns a spherical interpolation of two rotations shifted by amount.</string>
  </map>
  <key>osStopSound</key>
  <map>
   <key>arguments</key><array>
    <map><key>linknum</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Stops the sound for a given link.</string>
  </map>
  <key>osStringEndsWith</key>
  <map>
@@ -9001,6 +9288,17 @@
    <map><key>value</key><map><key>type</key><string>string</string></map></map>
    <map><key>ignorecase</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns an integer whether a string ends with another string.</string>
+ </map>
+ <key>osStringIndexOf</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>src</key><map><key>type</key><string>string</string></map></map>
+   <map><key>value</key><map><key>type</key><string>string</string></map></map>
+   <map><key>ignorecase</key><map><key>type</key><string>integer</string></map></map>
+  </array>
+  <key>tooltip</key><string>Returns the index of a substring of a given string.</string>
  </map>
  <key>osStringIndexOf</key>
  <map>
@@ -9012,15 +9310,7 @@
    <map><key>count</key><map><key>type</key><string>integer</string></map></map>
    <map><key>ignorecase</key><map><key>type</key><string>integer</string></map></map>
   </array>
- </map>
- <key>osStringIndexOf</key>
- <map>
-  <key>return</key><string>integer</string>
-  <key>arguments</key><array>
-   <map><key>src</key><map><key>type</key><string>string</string></map></map>
-   <map><key>value</key><map><key>type</key><string>string</string></map></map>
-   <map><key>ignorecase</key><map><key>type</key><string>integer</string></map></map>
-  </array>
+  <key>tooltip</key><string>Returns the index of a substring of given string starting from an index and match count.</string>
  </map>
  <key>osStringLastIndexOf</key>
  <map>
@@ -9030,6 +9320,7 @@
    <map><key>value</key><map><key>type</key><string>string</string></map></map>
    <map><key>ignorecase</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the index of the last substring of a given string.</string>
  </map>
  <key>osStringLastIndexOf</key>
  <map>
@@ -9041,6 +9332,7 @@
    <map><key>count</key><map><key>type</key><string>integer</string></map></map>
    <map><key>ignorecase</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the index of the last substring of a given string starting from an index and match count.</string>
  </map>
  <key>osStringRemove</key>
  <map>
@@ -9050,6 +9342,7 @@
    <map><key>start</key><map><key>type</key><string>integer</string></map></map>
    <map><key>count</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the remainder of a given string with characters from start index and count removed.</string>
  </map>
  <key>osStringReplace</key>
  <map>
@@ -9059,6 +9352,7 @@
    <map><key>oldvalue</key><map><key>type</key><string>string</string></map></map>
    <map><key>newvalue</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns a string with a substring replaced with another string.</string>
  </map>
  <key>osStringStartsWith</key>
  <map>
@@ -9068,14 +9362,7 @@
    <map><key>value</key><map><key>type</key><string>string</string></map></map>
    <map><key>ignorecase</key><map><key>type</key><string>integer</string></map></map>
   </array>
- </map>
- <key>osStringSubString</key>
- <map>
-  <key>return</key><string>string</string>
-  <key>arguments</key><array>
-   <map><key>src</key><map><key>type</key><string>string</string></map></map>
-   <map><key>start</key><map><key>type</key><string>integer</string></map></map>
-  </array>
+  <key>tooltip</key><string>Returns an integer whether a string starts with another string.</string>
  </map>
  <key>osStringSubString</key>
  <map>
@@ -9085,6 +9372,16 @@
    <map><key>start</key><map><key>type</key><string>integer</string></map></map>
    <map><key>length</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns a substring from start index and length.</string>
+ </map>
+ <key>osStringSubString</key>
+ <map>
+  <key>return</key><string>string</string>
+  <key>arguments</key><array>
+   <map><key>src</key><map><key>type</key><string>string</string></map></map>
+   <map><key>start</key><map><key>type</key><string>integer</string></map></map>
+  </array>
+  <key>tooltip</key><string>Returns the remainder of a string from start index.</string>
  </map>
  <key>osSunGetParam</key>
  <map>
@@ -9092,6 +9389,7 @@
   <key>arguments</key><array>
    <map><key>param</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>DEPRECATED. Use osGetSunParam instead.</string>
  </map>
  <key>osSunSetParam</key>
  <map>
@@ -9099,15 +9397,7 @@
    <map><key>param</key><map><key>type</key><string>string</string></map></map>
    <map><key>value</key><map><key>type</key><string>float</string></map></map>
   </array>
- </map>
- <key>osTeleportAgent</key>
- <map>
-  <key>arguments</key><array>
-   <map><key>agent</key><map><key>type</key><string>string</string></map></map>
-   <map><key>regionName</key><map><key>type</key><string>string</string></map></map>
-   <map><key>position</key><map><key>type</key><string>vector</string></map></map>
-   <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
-  </array>
+  <key>tooltip</key><string>DEPRECATED. Use osSetSunParam instead.</string>
  </map>
  <key>osTeleportAgent</key>
  <map>
@@ -9118,6 +9408,7 @@
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>
+  <key>tooltip</key><string>Teleport a given avatar (key) to a given region by grid position and local position and rotation as look at vector.</string>
  </map>
  <key>osTeleportAgent</key>
  <map>
@@ -9126,6 +9417,17 @@
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>
+  <key>tooltip</key><string>Teleport a given avatar (key) to a given position and rotation as look at vector.</string>
+ </map>
+ <key>osTeleportAgent</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>agent</key><map><key>type</key><string>string</string></map></map>
+   <map><key>regionName</key><map><key>type</key><string>string</string></map></map>
+   <map><key>position</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
+  </array>
+  <key>tooltip</key><string>Teleport a given avatar (key) to a given region by name and local position and rotatation as look at vector.</string>
  </map>
  <key>osTeleportObject</key>
  <map>
@@ -9136,13 +9438,7 @@
    <map><key>targetrotation</key><map><key>type</key><string>rotation</string></map></map>
    <map><key>flags</key><map><key>type</key><string>integer</string></map></map>
   </array>
- </map>
- <key>osTeleportOwner</key>
- <map>
-  <key>arguments</key><array>
-   <map><key>position</key><map><key>type</key><string>vector</string></map></map>
-   <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
-  </array>
+  <key>tooltip</key><string>Teleport a given primitive (object UUID) to a given position and rotation.</string>
  </map>
  <key>osTeleportOwner</key>
  <map>
@@ -9152,6 +9448,15 @@
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>
+  <key>tooltip</key><string>Teleport the object owner to a given region by grid position and local position and rotation as look at vector.</string>
+ </map>
+ <key>osTeleportOwner</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>position</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
+  </array>
+  <key>tooltip</key><string>Teleport the object owner to a given position and rotation as look at vector.</string>
  </map>
  <key>osTeleportOwner</key>
  <map>
@@ -9160,6 +9465,7 @@
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>
+  <key>tooltip</key><string>Teleport the object owner to a given region by name and local position and rotation as look at vector.</string>
  </map>
  <key>osTemperature2sRGB</key>
  <map>
@@ -9167,6 +9473,7 @@
   <key>arguments</key><array>
    <map><key>dtemp</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the color vector of a given color temperature.</string>
  </map>
  <key>osTerrainFlush</key>
  <map>
@@ -9180,6 +9487,7 @@
    <map><key>x</key><map><key>type</key><string>integer</string></map></map>
    <map><key>y</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>DEPRECATED. Use osGetTerrainHeight instead.</string>
  </map>
  <key>osTerrainSetHeight</key>
  <map>
@@ -9189,6 +9497,7 @@
    <map><key>y</key><map><key>type</key><string>integer</string></map></map>
    <map><key>val</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>DEPRECATED. Use osSetTerrainHeight instead.</string>
  </map>
  <key>osTriggerSound</key>
  <map>
@@ -9197,6 +9506,18 @@
    <map><key>sound</key><map><key>type</key><string>string</string></map></map>
    <map><key>volume</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Trigger a given preloaded sound with volume for a given link.</string>
+ </map>
+ <key>osTriggerSoundLimited</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>linknum</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>sound</key><map><key>type</key><string>string</string></map></map>
+   <map><key>volume</key><map><key>type</key><string>float</string></map></map>
+   <map><key>top_north_east</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>bottom_south_west</key><map><key>type</key><string>vector</string></map></map>
+  </array>
+  <key>tooltip</key><string>Trigger a given preloaded sound with volume and axis-aligned bounding box for a given link.</string>
  </map>
  <key>osUnixTimeToTimestamp</key>
  <map>
@@ -9204,6 +9525,7 @@
   <key>arguments</key><array>
    <map><key>time</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the timestamp string for a given unix epoch (seconds).</string>
  </map>
  <key>osVecDistSquare</key>
  <map>
@@ -9212,6 +9534,7 @@
    <map><key>a</key><map><key>type</key><string>vector</string></map></map>
    <map><key>b</key><map><key>type</key><string>vector</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the difference of two squared vectors.</string>
  </map>
  <key>osVecMagSquare</key>
  <map>
@@ -9219,17 +9542,20 @@
   <key>arguments</key><array>
    <map><key>a</key><map><key>type</key><string>vector</string></map></map>
   </array>
+  <key>tooltip</key><string>Returns the squared values of a vector multiplied with each other.</string>
  </map>
  <key>osVolumeDetect</key>
  <map>
   <key>arguments</key><array>
    <map><key>detect</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Sets or unsets volume detection for the object containing the script.</string>
  </map>
  <key>osWindActiveModelPluginName</key>
  <map>
   <key>return</key><string>string</string>
   <key>arguments</key><undef/>
+  <key>tooltip</key><string>Returns the name of the currently enabled wind plugin.</string>
  </map>
 </map>
 </map></llsd>
