@@ -882,7 +882,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void osListSortInPlace(LSL_List src, LSL_Integer stride, LSL_Integer ascending);
         //ApiDesc Sorts a given strided list in place.
               void osListSortInPlaceStrided(LSL_List src, LSL_Integer stride, LSL_Integer stride_index, LSL_Integer ascending);
-          LSL_List osGetParcelDetails(LSL_Key id, LSL_List param);
+        //ApiDesc Returns a list with the requested parcel details.
+          LSL_List osGetParcelDetails(LSL_Key id, LSL_List details);
         //ApiDesc Returns a list of parcel ids of the current region.
           LSL_List osGetParcelIDs();
         //ApiDesc Returns the parcel id of the current parcel.
