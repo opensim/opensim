@@ -27,10 +27,6 @@
 
 #pragma warning disable IDE1006
 
-using System;
-using System.Collections;
-using OpenSim.Region.ScriptEngine.Interfaces;
-
 using key = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
 using rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
 using vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
@@ -535,8 +531,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
                int osGetSimulatorMemory();
         //ApiDesc Returns the current memory usage of the simulator in kilobytes.
                int osGetSimulatorMemoryKB();
-        //ApiDesc Sends a blocking modal or notification modal with a given message to a given avatar.
-              void osSendAlertModal(String agentKey, String alert, int type);
         //ApiDesc Disconnects an avatar from the simulator by first and last name or avatar key.
               void osKickAvatar(string FirstName, string SurName, string alert);
         //ApiDesc Disconnects an avatar from the simulator by first and last name or avatar key.
@@ -647,14 +641,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         /// </summary>
         /// <param name="pos"></param>
         /// <param name="rot"></param>
-        //ApiDesc Attempts to drop the attachment the script is in to a given position on the ground bypassing script permissions.
-              void osForceDropAttachmentAt(vector pos, rotation rot);
+        /// <returns></returns>
+        //ApiDesc Attempts to drop the attachment the script is in to a given position on the ground.
+        void osDropAttachmentAt(vector pos, rotation rot);
 
         /// <summary>
-        /// Attempts to drop an attachment at the specified coordinates while bypassing the script permissions
+        /// Attempts to drop an attachment at the specified coordinates.
         /// </summary>
         /// <param name="pos"></param>
         /// <param name="rot"></param>
+        /// <returns></returns>
         //ApiDesc Attempts to drop the attachment the script is in to a given position on the ground bypassing script permissions.
               void osForceDropAttachmentAt(vector pos, rotation rot);
 
@@ -742,7 +738,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         //ApiDesc Trigger a given preloaded sound with volume for a given link.
               void osTriggerSound(LSL_Integer linknum, LSL_String sound, LSL_Float volume);
         //ApiDesc Trigger a given preloaded sound with volume and axis-aligned bounding box for a given link.
-              void osTriggerSoundLimited(LSL_Integer linknum, LSL_String sound, LSL_Float volume, vector top_north_east, vector bottom_south_west)
+              void osTriggerSoundLimited(LSL_Integer linknum, LSL_String sound, LSL_Float volume, vector top_north_east, vector bottom_south_west);
 
         //ApiDesc Detected params return of triggered user event of their set country.
         LSL_String osDetectedCountry(LSL_Integer number);
