@@ -643,7 +643,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         /// <param name="rot"></param>
         /// <returns></returns>
         //ApiDesc Attempts to drop the attachment the script is in to a given position on the ground.
-        void osDropAttachmentAt(vector pos, rotation rot);
+              void osDropAttachmentAt(vector pos, rotation rot);
 
         /// <summary>
         /// Attempts to drop an attachment at the specified coordinates.
