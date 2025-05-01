@@ -1,4 +1,4 @@
-98972fa2-4c3f-8c44-f022-ed65eb6f1a6d
+3c5411df-387f-39c3-345f-4e1b7c7e7c45
 <llsd><map><key>llsd-lsl-syntax-version</key><integer>2</integer>
 <key>controls</key>
 <map>
@@ -7218,39 +7218,20 @@
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
+   <map><key>va</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>vb</key><map><key>type</key><string>vector</string></map></map>
+  </array>
+  <key>tooltip</key><string>Returns an integer whether two vectors are within floating point precision equal.</string>
+ </map>
+ <key>osApproxEquals</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
    <map><key>ra</key><map><key>type</key><string>rotation</string></map></map>
    <map><key>rb</key><map><key>type</key><string>rotation</string></map></map>
    <map><key>margin</key><map><key>type</key><string>float</string></map></map>
   </array>
   <key>tooltip</key><string>Returns an integer whether two rotations are within a given margin equal.</string>
- </map>
- <key>osApproxEquals</key>
- <map>
-  <key>return</key><string>integer</string>
-  <key>arguments</key><array>
-   <map><key>a</key><map><key>type</key><string>float</string></map></map>
-   <map><key>b</key><map><key>type</key><string>float</string></map></map>
-  </array>
-  <key>tooltip</key><string>Returns an integer whether two float values are within floating point precision equal.</string>
- </map>
- <key>osApproxEquals</key>
- <map>
-  <key>return</key><string>integer</string>
-  <key>arguments</key><array>
-   <map><key>va</key><map><key>type</key><string>vector</string></map></map>
-   <map><key>vb</key><map><key>type</key><string>vector</string></map></map>
-   <map><key>margin</key><map><key>type</key><string>float</string></map></map>
-  </array>
-  <key>tooltip</key><string>Returns an integer whether two vectors are within a given margin equal.</string>
- </map>
- <key>osApproxEquals</key>
- <map>
-  <key>return</key><string>integer</string>
-  <key>arguments</key><array>
-   <map><key>va</key><map><key>type</key><string>vector</string></map></map>
-   <map><key>vb</key><map><key>type</key><string>vector</string></map></map>
-  </array>
-  <key>tooltip</key><string>Returns an integer whether two vectors are within floating point precision equal.</string>
  </map>
  <key>osApproxEquals</key>
  <map>
@@ -7267,9 +7248,28 @@
   <key>arguments</key><array>
    <map><key>a</key><map><key>type</key><string>float</string></map></map>
    <map><key>b</key><map><key>type</key><string>float</string></map></map>
+  </array>
+  <key>tooltip</key><string>Returns an integer whether two float values are within floating point precision equal.</string>
+ </map>
+ <key>osApproxEquals</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>a</key><map><key>type</key><string>float</string></map></map>
+   <map><key>b</key><map><key>type</key><string>float</string></map></map>
    <map><key>margin</key><map><key>type</key><string>float</string></map></map>
   </array>
   <key>tooltip</key><string>Returns an integer whether two float values are within a given margin equal.</string>
+ </map>
+ <key>osApproxEquals</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>va</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>vb</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>margin</key><map><key>type</key><string>float</string></map></map>
+  </array>
+  <key>tooltip</key><string>Returns an integer whether two vectors are within a given margin equal.</string>
  </map>
  <key>osAvatarName2Key</key>
  <map>
@@ -7300,18 +7300,18 @@
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
-   <map><key>avkey</key><map><key>type</key><string>key</string></map></map>
+   <map><key>sFirstName</key><map><key>type</key><string>string</string></map></map>
+   <map><key>sLastName</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns the type of a given avatar (key).</string>
+  <key>tooltip</key><string>Returns the type of a given avatar (name).</string>
  </map>
  <key>osAvatarType</key>
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
-   <map><key>sFirstName</key><map><key>type</key><string>string</string></map></map>
-   <map><key>sLastName</key><map><key>type</key><string>string</string></map></map>
+   <map><key>avkey</key><map><key>type</key><string>key</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns the type of a given avatar (name).</string>
+  <key>tooltip</key><string>Returns the type of a given avatar (key).</string>
  </map>
  <key>osCauseDamage</key>
  <map>
@@ -7520,6 +7520,14 @@
   <key>arguments</key><undef/>
   <key>tooltip</key><string>Attempts to drop the attachment the script is in to the ground.</string>
  </map>
+ <key>osDropAttachmentAt</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>pos</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>rot</key><map><key>type</key><string>rotation</string></map></map>
+  </array>
+  <key>tooltip</key><string>Attempts to drop the attachment the script is in to a given position on the ground.</string>
+ </map>
  <key>osEjectFromGroup</key>
  <map>
   <key>return</key><string>integer</string>
@@ -7581,14 +7589,6 @@
  <map>
   <key>arguments</key><undef/>
   <key>tooltip</key><string>Attempts to drop the attachment the script is in to the ground bypassing script permissions.</string>
- </map>
- <key>osForceDropAttachmentAt</key>
- <map>
-  <key>arguments</key><array>
-   <map><key>pos</key><map><key>type</key><string>vector</string></map></map>
-   <map><key>rot</key><map><key>type</key><string>rotation</string></map></map>
-  </array>
-  <key>tooltip</key><string>Attempts to drop the attachment the script is in to a given position on the ground bypassing script permissions.</string>
  </map>
  <key>osForceDropAttachmentAt</key>
  <map>
@@ -8347,7 +8347,7 @@
  <map>
   <key>arguments</key><array>
    <map><key>notecardName</key><map><key>type</key><string>string</string></map></map>
-   <map><key>contents</key><map><key>type</key><string>string</string></map></map>
+   <map><key>contents</key><map><key>type</key><string>list</string></map></map>
   </array>
   <key>tooltip</key><string>Creates a new notecard in the primitive inventory with given contents.</string>
  </map>
@@ -8355,7 +8355,7 @@
  <map>
   <key>arguments</key><array>
    <map><key>notecardName</key><map><key>type</key><string>string</string></map></map>
-   <map><key>contents</key><map><key>type</key><string>list</string></map></map>
+   <map><key>contents</key><map><key>type</key><string>string</string></map></map>
   </array>
   <key>tooltip</key><string>Creates a new notecard in the primitive inventory with given contents.</string>
  </map>
@@ -8536,18 +8536,18 @@
  <map>
   <key>arguments</key><array>
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
-   <map><key>channel</key><map><key>type</key><string>integer</string></map></map>
    <map><key>message</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Instructs a given NPC (key) to say a given message on a given channel.</string>
+  <key>tooltip</key><string>Instructs a given NPC (key) to say a given message.</string>
  </map>
  <key>osNpcSay</key>
  <map>
   <key>arguments</key><array>
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
+   <map><key>channel</key><map><key>type</key><string>integer</string></map></map>
    <map><key>message</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Instructs a given NPC (key) to say a given message.</string>
+  <key>tooltip</key><string>Instructs a given NPC (key) to say a given message on a given channel.</string>
  </map>
  <key>osNpcSayTo</key>
  <map>
@@ -8755,17 +8755,17 @@
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
    <map><key>seconds</key><map><key>type</key><string>float</string></map></map>
+   <map><key>msg</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Schedule a region restart seconds in the future.</string>
+  <key>tooltip</key><string>Schedule a region restart with broadcast message seconds in the future.</string>
  </map>
  <key>osRegionRestart</key>
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
    <map><key>seconds</key><map><key>type</key><string>float</string></map></map>
-   <map><key>msg</key><map><key>type</key><string>string</string></map></map>
   </array>
-  <key>tooltip</key><string>Schedule a region restart with broadcast message seconds in the future.</string>
+  <key>tooltip</key><string>Schedule a region restart seconds in the future.</string>
  </map>
  <key>osRemoveLinkInventory</key>
  <map>
@@ -8860,15 +8860,6 @@
    <map><key>digits</key><map><key>type</key><string>integer</string></map></map>
   </array>
   <key>tooltip</key><string>Rounds a given value to a specified amount of digits.</string>
- </map>
- <key>osSendAlertModal</key>
- <map>
-  <key>arguments</key><array>
-   <map><key>agentKey</key><map><key>type</key><string>string</string></map></map>
-   <map><key>alert</key><map><key>type</key><string>string</string></map></map>
-   <map><key>type</key><map><key>type</key><string>integer</string></map></map>
-  </array>
-  <key>tooltip</key><string>Sends a blocking modal or notification modal with a given message to a given avatar.</string>
  </map>
  <key>osSetContentType</key>
  <map>
@@ -9064,16 +9055,6 @@
   <key>return</key><string>string</string>
   <key>arguments</key><array>
    <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
-   <map><key>color</key><map><key>type</key><string>vector</string></map></map>
-   <map><key>alpha</key><map><key>type</key><string>float</string></map></map>
-  </array>
-  <key>tooltip</key><string>This sets the drawing color to either a named .NET color, a 32-bit color value (formatted as eight hexadecimal digits in the format aarrggbb, representing the eight-bit alpha, red, green and blue channels) or a LSL vector color and alpha float value.</string>
- </map>
- <key>osSetPenColor</key>
- <map>
-  <key>return</key><string>string</string>
-  <key>arguments</key><array>
-   <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
    <map><key>color</key><map><key>type</key><string>string</string></map></map>
   </array>
   <key>tooltip</key><string>This sets the drawing color to either a named .NET color, a 32-bit color value (formatted as eight hexadecimal digits in the format aarrggbb, representing the eight-bit alpha, red, green and blue channels) or a LSL vector color and alpha float value.</string>
@@ -9084,6 +9065,16 @@
   <key>arguments</key><array>
    <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
    <map><key>color</key><map><key>type</key><string>vector</string></map></map>
+  </array>
+  <key>tooltip</key><string>This sets the drawing color to either a named .NET color, a 32-bit color value (formatted as eight hexadecimal digits in the format aarrggbb, representing the eight-bit alpha, red, green and blue channels) or a LSL vector color and alpha float value.</string>
+ </map>
+ <key>osSetPenColor</key>
+ <map>
+  <key>return</key><string>string</string>
+  <key>arguments</key><array>
+   <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
+   <map><key>color</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>alpha</key><map><key>type</key><string>float</string></map></map>
   </array>
   <key>tooltip</key><string>This sets the drawing color to either a named .NET color, a 32-bit color value (formatted as eight hexadecimal digits in the format aarrggbb, representing the eight-bit alpha, red, green and blue channels) or a LSL vector color and alpha float value.</string>
  </map>
@@ -9123,17 +9114,6 @@
  <key>osSetProjectionParams</key>
  <map>
   <key>arguments</key><array>
-   <map><key>projection</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>texture</key><map><key>type</key><string>key</string></map></map>
-   <map><key>fov</key><map><key>type</key><string>float</string></map></map>
-   <map><key>focus</key><map><key>type</key><string>float</string></map></map>
-   <map><key>amb</key><map><key>type</key><string>float</string></map></map>
-  </array>
-  <key>tooltip</key><string>Sets the light projection parameters of the object containing the script.</string>
- </map>
- <key>osSetProjectionParams</key>
- <map>
-  <key>arguments</key><array>
    <map><key>prim</key><map><key>type</key><string>key</string></map></map>
    <map><key>projection</key><map><key>type</key><string>integer</string></map></map>
    <map><key>texture</key><map><key>type</key><string>key</string></map></map>
@@ -9154,6 +9134,17 @@
    <map><key>amb</key><map><key>type</key><string>float</string></map></map>
   </array>
   <key>tooltip</key><string>Sets the light projection parameters of a given link.</string>
+ </map>
+ <key>osSetProjectionParams</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>projection</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>texture</key><map><key>type</key><string>key</string></map></map>
+   <map><key>fov</key><map><key>type</key><string>float</string></map></map>
+   <map><key>focus</key><map><key>type</key><string>float</string></map></map>
+   <map><key>amb</key><map><key>type</key><string>float</string></map></map>
+  </array>
+  <key>tooltip</key><string>Sets the light projection parameters of the object containing the script.</string>
  </map>
  <key>osSetRegionSunSettings</key>
  <map>
@@ -9296,9 +9287,11 @@
   <key>arguments</key><array>
    <map><key>src</key><map><key>type</key><string>string</string></map></map>
    <map><key>value</key><map><key>type</key><string>string</string></map></map>
+   <map><key>start</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>count</key><map><key>type</key><string>integer</string></map></map>
    <map><key>ignorecase</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns the index of a substring of a given string.</string>
+  <key>tooltip</key><string>Returns the index of a substring of given string starting from an index and match count.</string>
  </map>
  <key>osStringIndexOf</key>
  <map>
@@ -9306,11 +9299,9 @@
   <key>arguments</key><array>
    <map><key>src</key><map><key>type</key><string>string</string></map></map>
    <map><key>value</key><map><key>type</key><string>string</string></map></map>
-   <map><key>start</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>count</key><map><key>type</key><string>integer</string></map></map>
    <map><key>ignorecase</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns the index of a substring of given string starting from an index and match count.</string>
+  <key>tooltip</key><string>Returns the index of a substring of a given string.</string>
  </map>
  <key>osStringLastIndexOf</key>
  <map>
@@ -9370,9 +9361,8 @@
   <key>arguments</key><array>
    <map><key>src</key><map><key>type</key><string>string</string></map></map>
    <map><key>start</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>length</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns a substring from start index and length.</string>
+  <key>tooltip</key><string>Returns the remainder of a string from start index.</string>
  </map>
  <key>osStringSubString</key>
  <map>
@@ -9380,8 +9370,9 @@
   <key>arguments</key><array>
    <map><key>src</key><map><key>type</key><string>string</string></map></map>
    <map><key>start</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>length</key><map><key>type</key><string>integer</string></map></map>
   </array>
-  <key>tooltip</key><string>Returns the remainder of a string from start index.</string>
+  <key>tooltip</key><string>Returns a substring from start index and length.</string>
  </map>
  <key>osSunGetParam</key>
  <map>
@@ -9403,6 +9394,16 @@
  <map>
   <key>arguments</key><array>
    <map><key>agent</key><map><key>type</key><string>string</string></map></map>
+   <map><key>regionName</key><map><key>type</key><string>string</string></map></map>
+   <map><key>position</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
+  </array>
+  <key>tooltip</key><string>Teleport a given avatar (key) to a given region by name and local position and rotatation as look at vector.</string>
+ </map>
+ <key>osTeleportAgent</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>agent</key><map><key>type</key><string>string</string></map></map>
    <map><key>regionX</key><map><key>type</key><string>integer</string></map></map>
    <map><key>regionY</key><map><key>type</key><string>integer</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
@@ -9419,16 +9420,6 @@
   </array>
   <key>tooltip</key><string>Teleport a given avatar (key) to a given position and rotation as look at vector.</string>
  </map>
- <key>osTeleportAgent</key>
- <map>
-  <key>arguments</key><array>
-   <map><key>agent</key><map><key>type</key><string>string</string></map></map>
-   <map><key>regionName</key><map><key>type</key><string>string</string></map></map>
-   <map><key>position</key><map><key>type</key><string>vector</string></map></map>
-   <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
-  </array>
-  <key>tooltip</key><string>Teleport a given avatar (key) to a given region by name and local position and rotatation as look at vector.</string>
- </map>
  <key>osTeleportObject</key>
  <map>
   <key>return</key><string>integer</string>
@@ -9443,20 +9434,20 @@
  <key>osTeleportOwner</key>
  <map>
   <key>arguments</key><array>
+   <map><key>position</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
+  </array>
+  <key>tooltip</key><string>Teleport the object owner to a given position and rotation as look at vector.</string>
+ </map>
+ <key>osTeleportOwner</key>
+ <map>
+  <key>arguments</key><array>
    <map><key>regionX</key><map><key>type</key><string>integer</string></map></map>
    <map><key>regionY</key><map><key>type</key><string>integer</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>
   <key>tooltip</key><string>Teleport the object owner to a given region by grid position and local position and rotation as look at vector.</string>
- </map>
- <key>osTeleportOwner</key>
- <map>
-  <key>arguments</key><array>
-   <map><key>position</key><map><key>type</key><string>vector</string></map></map>
-   <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
-  </array>
-  <key>tooltip</key><string>Teleport the object owner to a given position and rotation as look at vector.</string>
  </map>
  <key>osTeleportOwner</key>
  <map>
