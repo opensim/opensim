@@ -43,7 +43,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
     {
         void state(string newState);
 
-                   //ApiDesc Returns absolute version as val (ie as postive value)
+                   //ApiDesc Returns absolute version as val (ie as positive value)
        LSL_Integer llAbs(LSL_Integer val);
                    //ApiDesc Returns cosine of val (val in radians)
          LSL_Float llAcos(LSL_Float val);

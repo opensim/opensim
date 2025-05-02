@@ -5755,7 +5755,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        public void osGiveLinkInventoryList(LSL_Integer linkNumber, LSL_Key destination, LSL_String category, LSL_List inventory)
+        public void osGiveLinkInventoryList(LSL_Integer linkNumber, LSL_Key destination, LSL_String folderName, LSL_List inventory)
         {
             if (inventory.Length == 0)
                 return;
@@ -5818,7 +5818,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
 
-            UUID folderID = m_ScriptEngine.World.MoveTaskInventoryItems(destID, category, part, itemList, false);
+            UUID folderID = m_ScriptEngine.World.MoveTaskInventoryItems(destID, folderName, part, itemList, false);
 
             if (folderID.IsZero())
             {
@@ -5841,7 +5841,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 GridInstantMessage msg = new(World, m_host.OwnerID, m_host.Name, destID,
                         (byte)InstantMessageDialog.TaskInventoryOffered,
-                        m_host.OwnerID.Equals(m_host.GroupID), string.Format("'{0}'", category), folderID, false, pos,bucket, false);
+                        m_host.OwnerID.Equals(m_host.GroupID), string.Format("'{0}'", folderName), folderID, false, pos,bucket, false);
 
                 m_TransferModule.SendInstantMessage(msg, delegate(bool success) {});
             }
