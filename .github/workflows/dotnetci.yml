@@ -2,9 +2,9 @@ name: dotnet package
 
 on:
   push:
-    branches: [ hotfix/0.9.3.9208 ]
+    branches: [ master, develop ]
   pull_request:
-    branches: [ hotfix/0.9.3.9208 ]
+    branches: [ master, develop ]
 
 jobs:
   build:
