@@ -22,3 +22,6 @@
 *.ogg binary
 *.dll binary
 *.exe binary
+*.so  binary
+*.dylib binary
+*.anim binary

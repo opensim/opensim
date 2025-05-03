@@ -1819,5 +1819,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osTemperature2sRGB(dtemp);
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_Integer osListFindListNext(LSL_List src, LSL_List test, LSL_Integer start, LSL_Integer end, LSL_Integer instance)
+        {
+            return m_OSSL_Functions.osListFindListNext(src, test, start, end, instance);
+        }
     }
 }

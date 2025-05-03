@@ -102,6 +102,9 @@ namespace OpenSim.Server.Handlers.Grid
                     case "get_region_by_name":
                         return GetRegionByName(request);
 
+                    case "get_localregion_by_name":
+                        return GetLocalRegionByName(request);
+
                     case "get_regions_by_name":
                         return GetRegionsByName(request);
 
@@ -327,21 +330,40 @@ namespace OpenSim.Server.Handlers.Grid
         byte[] GetRegionByName(Dictionary<string, object> request)
         {
             UUID scopeID = UUID.Zero;
-            if (request.ContainsKey("SCOPEID"))
-                UUID.TryParse(request["SCOPEID"].ToString(), out scopeID);
-            else
-                m_log.WarnFormat("[GRID HANDLER]: no scopeID in request to get region by name");
+            if (!request.TryGetValue("SCOPEID", out object scpo) || scpo is not string scps || !UUID.TryParse(scps, out scopeID))
+                m_log.WarnFormat("[GRID HANDLER]: no or invalid scopeID in request to get region by name");
 
-            string regionName = string.Empty;
-            if (request.ContainsKey("NAME"))
-                regionName = request["NAME"].ToString();
+            GridRegion rinfo = null;
+            if (request.TryGetValue("NAME", out object nameo) && nameo is string regionName)
+                rinfo = m_GridService.GetRegionByName(scopeID, regionName);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no name in request to get region by name");
 
-            GridRegion rinfo = m_GridService.GetRegionByName(scopeID, regionName);
-            //m_log.DebugFormat("[GRID HANDLER]: neighbours for region {0}: {1}", regionID, rinfos.Count);
+            Dictionary<string, object> result = [];
+            if (rinfo == null)
+                result["result"] = "null";
+            else
+                result["result"] = rinfo.ToKeyValuePairs();
 
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+
+            //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
+        }
+
+        byte[] GetLocalRegionByName(Dictionary<string, object> request)
+        {
+            UUID scopeID = UUID.Zero;
+            if (!request.TryGetValue("SCOPEID", out object scpo) || scpo is not string scps || !UUID.TryParse(scps, out scopeID))
+                m_log.WarnFormat("[GRID HANDLER]: no or invalid scopeID in request to get region by name");
+
+            GridRegion rinfo = null;
+            if (request.TryGetValue("NAME", out object nameo) && nameo is string regionName)
+                rinfo = m_GridService.GetLocalRegionByName(scopeID, regionName);
+            else
+                m_log.WarnFormat("[GRID HANDLER]: no name in request to get region by name");
+
+            Dictionary<string, object> result = [];
             if (rinfo == null)
                 result["result"] = "null";
             else

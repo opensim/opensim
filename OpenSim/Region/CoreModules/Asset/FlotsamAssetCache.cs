@@ -215,6 +215,7 @@ namespace OpenSim.Region.CoreModules.Asset
 
                     MainConsole.Instance.Commands.AddCommand("Assets", true, "fcache status", "fcache status", "Display cache status", HandleConsoleCommand);
                     MainConsole.Instance.Commands.AddCommand("Assets", true, "fcache clear",  "fcache clear [file] [memory]", "Remove all assets in the cache.  If file or memory is specified then only this cache is cleared.", HandleConsoleCommand);
+                    MainConsole.Instance.Commands.AddCommand("Assets", true, "fcache clearnegatives",  "fcache clearnegatives", "Remove cache of assets previously not found in services.", HandleConsoleCommand);
                     MainConsole.Instance.Commands.AddCommand("Assets", true, "fcache assets", "fcache assets", "Attempt a deep scan and cache of all assets in all scenes", HandleConsoleCommand);
                     MainConsole.Instance.Commands.AddCommand("Assets", true, "fcache expire", "fcache expire <datetime(mm/dd/YYYY)>", "Purge cached assets older than the specified date/time", HandleConsoleCommand);
                     if (!string.IsNullOrWhiteSpace(m_assetLoader))
@@ -1438,7 +1439,19 @@ namespace OpenSim.Region.CoreModules.Asset
                                 con.Output("File cache not enabled.");
                             }
                         }
+                        if(m_negativeCacheEnabled)
+                            m_negativeCache.Clear();
+                        break;
 
+                    case "clearnegatives":
+                        if(m_negativeCacheEnabled)
+                        {
+                            int nsz = m_negativeCache.Count;
+                            m_negativeCache.Clear();
+                            con.Output($"Flotsam cache of negatives cleared ({nsz} entries)");
+                        }
+                        else
+                            con.Output("Flotsam cache of negatives not enabled");
                         break;
 
                     case "assets":

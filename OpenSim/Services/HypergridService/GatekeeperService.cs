@@ -245,7 +245,7 @@ namespace OpenSim.Services.HypergridService
                 else
                 {
                     reason = "Grid setup problem. Try specifying a particular region here.";
-                    m_log.DebugFormat("[GATEKEEPER SERVICE]: Unable to send information. Please specify a default region for this grid!");
+                    m_log.Debug("[GATEKEEPER SERVICE]: Unable to send information. Please specify a default region for this grid!");
                     return false;
                 }
             }
@@ -254,6 +254,7 @@ namespace OpenSim.Services.HypergridService
                 region = m_GridService.GetLocalRegionByName(m_ScopeID, regionName);
                 if (region is null)
                 {
+                    m_log.DebugFormat($"[GATEKEEPER SERVICE]: LinkLocalRegion could not find local region {regionName}");
                     reason = "Region not found";
                     return false;
                 }

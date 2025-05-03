@@ -26,7 +26,6 @@
  */
 
 using System;
-using System.IO;
 using System.Reflection;
 using OpenMetaverse;
 using log4net;
@@ -135,19 +134,17 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         public bool AddInventoryItem(UUID agentID, uint localID, InventoryItemBase item, UUID copyItemID, bool withModRights = true)
         {
-//            m_log.DebugFormat(
-//                "[PRIM INVENTORY]: Adding inventory item {0} from {1} to part with local ID {2}",
-//                item.Name, remoteClient.Name, localID);
+            //m_log.DebugFormat(
+            //    "[PRIM INVENTORY]: Adding inventory item {0} from {1} to part with local ID {2}",
+            //       item.Name, remoteClient.Name, localID);
 
             UUID newItemId = copyItemID.IsZero() ? item.ID : copyItemID;
 
             SceneObjectPart part = GetPart(localID);
             if (part is null)
             {
-                m_log.ErrorFormat(
-                    "[PRIM INVENTORY]: " +
-                    "Couldn't find prim local ID {0} in group {1}, {2} to add inventory item ID {3}",
-                    localID, Name, UUID, newItemId);
+                m_log.Error(
+                    $"[PRIM INVENTORY]: Couldn't find prim local ID {localID} in group {Name}, {UUID} to add inventory item ID {newItemId}");
                 return false;
             }
 
@@ -156,6 +153,7 @@ namespace OpenSim.Region.Framework.Scenes
                 ItemID = newItemId,
                 AssetID = item.AssetID,
                 Name = item.Name,
+                //CreationDate = (uint)Util.UnixTimeSinceEpoch(),
                 Description = item.Description,
                 OwnerID = part.OwnerID, // Transfer ownership
                 CreatorID = item.CreatorIdAsUuid,
@@ -193,8 +191,7 @@ namespace OpenSim.Region.Framework.Scenes
             // TODO: These are pending addition of those fields to TaskInventoryItem
             // taskItem.SalePrice = item.SalePrice;
             // taskItem.SaleType = item.SaleType;
-            taskItem.CreationDate = (uint)item.CreationDate;
-                
+
             bool addFromAllowedDrop;
             if(withModRights)
                 addFromAllowedDrop = false;

@@ -393,16 +393,18 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
             if (!isColliding && currentControlState != motionControlStates.jumping)
             {
-                float fallVelocity = actor.Velocity.Z;
-                // if stable on Hover assume falling
-                if(actor.PIDHoverActive && fallVelocity < 0.05f)
+                
+                if(actor.PIDHoverActive)
                 {
-                    Falling = true;
-                    currentControlState = motionControlStates.falling;
-                    m_lastFallVelocity = fallVelocity;
-                    return "FALLDOWN";
+                    m_animTickFall = 0;
+                    m_animTickJump = 0;
+                    Falling = false;
+                    currentControlState = motionControlStates.flying;
+                    m_lastFallVelocity = 0f;
+                    return "HOVER";
                 }
 
+                float fallVelocity = actor.Velocity.Z;
                 if (fallVelocity < -2.5f)
                     Falling = true;
 

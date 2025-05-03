@@ -71,7 +71,6 @@ namespace OpenSim.Region.ClientStack.LindenCaps
             lock (m_scenes)
                 m_scenes.Remove(scene);
             scene.EventManager.OnRegisterCaps -= RegisterCaps;
-            scene = null;
         }
 
         public void RegionLoaded(Scene scene)
@@ -79,8 +78,7 @@ namespace OpenSim.Region.ClientStack.LindenCaps
             scene.EventManager.OnRegisterCaps += RegisterCaps;
 
             ISimulatorFeaturesModule simFeatures = scene.RequestModuleInterface<ISimulatorFeaturesModule>();
-            if(simFeatures != null)
-                simFeatures.AddFeature("AvatarHoverHeightEnabled",OSD.FromBoolean(true));
+            simFeatures?.AddFeature("AvatarHoverHeightEnabled",OSD.FromBoolean(true));
 
         }
 

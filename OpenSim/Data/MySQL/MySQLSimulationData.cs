@@ -171,7 +171,7 @@ namespace OpenSim.Data.MySQL
                                     "PhysicsShapeType, Density, GravityModifier, " +
                                     "Friction, Restitution, Vehicle, PhysInertia, DynAttrs, " +
                                     "RotationAxisLocks, sopanims, sitactrange, pseudocrc, " +
-                                    "linksetdata, AllowUnsit, ScriptedSitOnly" +
+                                    "linksetdata, AllowUnsit, ScriptedSitOnly, StartStr " +
                                     ") values (" + "?UUID, " +
                                     "?CreationDate, ?Name, ?Text, " +
                                     "?Description, ?SitName, ?TouchName, " +
@@ -207,7 +207,7 @@ namespace OpenSim.Data.MySQL
                                     "?PhysicsShapeType, ?Density, ?GravityModifier, " +
                                     "?Friction, ?Restitution, ?Vehicle, ?PhysInertia, ?DynAttrs," +
                                     "?RotationAxisLocks, ?sopanims, ?sitactrange, ?pseudocrc, " +
-                                    "?linksetdata, ?AllowUnsit, ?ScriptedSitOnly)";
+                                    "?linksetdata, ?AllowUnsit, ?ScriptedSitOnly, ?StartStr)";
 
                             FillPrimCommand(cmd, prim, obj.UUID, regionUUID);
 
@@ -355,7 +355,14 @@ namespace OpenSim.Data.MySQL
                                 {
                                     //create linkset and extract its data stored on root
                                     SceneObjectGroup newSog = new SceneObjectGroup(prim);
-                                    if(objects.TryAdd(prim.UUID, newSog) is false)
+                                    if(objects.TryAdd(prim.UUID, newSog))
+                                    {
+                                        if(reader["StartStr"] is not DBNull)
+                                        {
+                                            newSog.RezStringParameter = (string)reader["StartStr"];
+                                        }
+                                    }
+                                    else
                                         m_log.Warn($"[REGION DB]: duplicated SOG with root prim \"{prim.Name}\" {prim.UUID} in region {regionID}");
                                 }
 
@@ -1638,6 +1645,11 @@ namespace OpenSim.Data.MySQL
                 cmd.Parameters.AddWithValue("ScriptedSitOnly", 1);
             else
                 cmd.Parameters.AddWithValue("ScriptedSitOnly", 0);
+            
+            if (prim.IsRoot)
+                cmd.Parameters.AddWithValue("StartStr", prim.ParentGroup.RezStringParameter);
+            else
+                cmd.Parameters.AddWithValue("StartStr", null);               
         }
 
         /// <summary>

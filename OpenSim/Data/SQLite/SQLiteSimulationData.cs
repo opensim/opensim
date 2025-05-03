@@ -654,6 +654,10 @@ namespace OpenSim.Data.SQLite
 
                             SceneObjectGroup group = new SceneObjectGroup(prim);
 
+                            if(primRow["StartStr"] is not  DBNull)
+                            {
+                                group.RezStringParameter = (string)primRow["StartStr"];
+                            }
                             createdObjects.Add(group.UUID, group);
                             retvals.Add(group);
                             LoadItems(prim);
@@ -1240,6 +1244,7 @@ namespace OpenSim.Data.SQLite
             createCol(prims, "sopanims", typeof(byte[]));
 
             createCol(prims, "linksetdata", typeof(string));
+            createCol(prims, "StartStr", typeof(string));
 
             // Add in contraints
             prims.PrimaryKey = new DataColumn[] { prims.Columns["UUID"] };
@@ -2215,6 +2220,11 @@ namespace OpenSim.Data.SQLite
                 row["linksetdata"] = prim.SerializeLinksetData();
             else
                 row["linksetdata"] = null;
+
+            if (prim.IsRoot)
+                row["StartStr"] = prim.ParentGroup.RezStringParameter;
+            else
+                row["StartStr"] = null;
         }
 
         /// <summary>

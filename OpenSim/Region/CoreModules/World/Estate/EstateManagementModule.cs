@@ -506,7 +506,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             }
 
             if (map.TryGetValue("prim_bonus", out tmp) && tmp is not null)
-                es.ObjectBonus = tmp.AsInteger();
+                es.ObjectBonus = tmp.AsReal();
 
             if (map.TryGetValue("sim_access", out tmp) && tmp is not null)
             {
@@ -972,8 +972,12 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
                 if ((estateAccessType & 64) != 0) // Ban add
                 {
-
-                    if(thisSettings.EstateBansCount() >= (int)Constants.EstateAccessLimits.EstateBans)
+                    bool userIsAdmin = Scene.Permissions.IsAdministrator(user);
+                    if(userIsAdmin)
+                    {
+                        remote_client.SendAlertMessage("Cannot ban a Administrator");
+                    }
+                    else if(thisSettings.EstateBansCount() >= (int)Constants.EstateAccessLimits.EstateBans)
                     {
                         if(!sentBansFull)
                         {

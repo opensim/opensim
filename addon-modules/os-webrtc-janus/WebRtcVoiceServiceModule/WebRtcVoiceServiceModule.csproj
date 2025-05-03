@@ -1,0 +1,49 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Version>2.1.1</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Nini" >
+      <Name>Nini</Name>
+      <HintPath>../../../bin/Nini.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverse" >
+      <Name>OpenMetaverse</Name>
+      <HintPath>../../../bin/OpenMetaverse.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverse.StructuredData" >
+      <Name>OpenMetaverse.StructuredData</Name>
+      <HintPath>../../../bin/OpenMetaverse.StructuredData.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverseTypes" >
+      <Name>OpenMetaverseTypes</Name>
+      <HintPath>../../../bin/OpenMetaverseTypes.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../../OpenSim/Data/OpenSim.Data.csproj" />
+    <ProjectReference Include="../../../OpenSim/Framework/OpenSim.Framework.csproj" />
+    <ProjectReference Include="../../../OpenSim/Framework/Console/OpenSim.Framework.Console.csproj" />
+    <ProjectReference Include="../../../OpenSim/Framework/Servers/HttpServer/OpenSim.Framework.Servers.HttpServer.csproj" />
+    <ProjectReference Include="../../../OpenSim/Server/Base/OpenSim.Server.Base.csproj" />
+    <ProjectReference Include="../../../OpenSim/Services/Base/OpenSim.Services.Base.csproj" />
+    <ProjectReference Include="../../../OpenSim/Services/Connectors/OpenSim.Services.Connectors.csproj" />
+    <ProjectReference Include="../../../OpenSim/Services/Interfaces/OpenSim.Services.Interfaces.csproj" />
+    <ProjectReference Include="../WebRtcVoice/WebRtcVoice.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="log4net" Version="2.0.15" />
+    <PackageReference Include="Mono.Addins" Version="1.4.1" />
+    <PackageReference Include="Mono.Addins.CecilReflector" Version="1.4.1" />
+  </ItemGroup>
+
+</Project>

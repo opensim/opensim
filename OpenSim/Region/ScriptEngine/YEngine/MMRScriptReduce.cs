@@ -3092,7 +3092,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             tokenStmtSwitch.testRVal = ParseRValParen(ref token);
             if(tokenStmtSwitch.testRVal == null)
                 return null;
-            if(!(token is TokenKwBrcOpen))
+            if(token is not TokenKwBrcOpen)
             {
                 ErrorMsg(token, "expecting open brace");
                 token = SkipPastSemi(token);
@@ -3101,7 +3101,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             token = token.nextToken;
             TokenSwitchCase tokenSwitchCase = null;
             bool haveComplained = false;
-            while(!(token is TokenKwBrcClose))
+            while(token is not TokenEnd && token is not TokenKwBrcClose)
             {
                 if(token is TokenKwCase)
                 {
@@ -3178,11 +3178,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
                 else if(!haveComplained)
                 {
-                    ErrorMsg(token, "expecting case or default label");
+                    ErrorMsg(token, "expecting switch case or default");
                     token = SkipPastSemi(token);
                     haveComplained = true;
                 }
             }
+            if(tokenSwitchCase is null)
+                    ErrorMsg(token, "expecting switch case or default");
+
             token = token.nextToken;
             return tokenStmtSwitch;
         }
@@ -4329,7 +4332,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             int braceLevel = 0;
 
-            while(!(token is TokenEnd))
+            while(token is not TokenEnd)
             {
                 if((token is TokenKwSemi) && (braceLevel == 0))
                 {

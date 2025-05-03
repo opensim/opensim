@@ -98,11 +98,30 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
             else if (m_accessValue == AccessFlags.DisallowForeigners)
                 disallowForeigners = true;
             
-            UUID userID = new UUID(user);
+            if(!UUID.TryParse(user, out UUID userID ))
+            {
+                message = "Invalid UUID";
+                return false;
+            }
+
+            if (m_Scene.Permissions.IsAdministrator(userID))
+            {
+                message = "Authorized";
+                return true;
+            }
 
             if (disallowResidents == true)
             {
-                if (!(m_Scene.Permissions.IsGod(userID) == true || m_Scene.Permissions.IsAdministrator(userID) == true))
+                if (!m_UserManagement.IsLocalGridUser(userID))
+                {
+                    message = "No foreign users allowed in this region";
+                    return false;
+                }
+            }
+
+            if ((m_accessValue & AccessFlags.DisallowResidents) != 0)
+            {
+                if(!m_Scene.Permissions.IsEstateManager(userID))
                 {
                     message = "Only Admins and Managers allowed in this region";
                     return false;

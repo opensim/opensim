@@ -78,14 +78,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             inst.Die();
         }
 
-        public void SetLSLTimer(double time)
+        public void SetLSLTimerMS(double timeMS)
         {
-            m_timer = time;
+            m_timer = 0.001 * timeMS;
         }
 
-        public double getLSLTimer()
+        public double getLSLTimerMS()
         {
-            return(m_timer);
+            return m_timer * 1000.0;
         }
 
         /**

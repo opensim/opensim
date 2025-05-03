@@ -161,13 +161,6 @@ namespace OpenSim.Region.Framework.Scenes
         }
         private bool m_scripts_enabled;
 
-        public bool ClampNegativeZ
-        {
-            get { return m_clampNegativeZ; }
-        }
-
-        private readonly bool m_clampNegativeZ = false;
-
         /// <summary>
         /// Used to prevent simultaneous calls to code that adds and removes agents.
         /// </summary>
@@ -904,7 +897,12 @@ namespace OpenSim.Region.Framework.Scenes
             RegionInfo.RegionSettings = rs;
 
             if (estateDataService is not null)
-                RegionInfo.EstateSettings = estateDataService.LoadEstateSettings(RegionInfo.RegionID, false);
+            {
+                EstateSettings es = estateDataService.LoadEstateSettings(RegionInfo.RegionID, false);
+                if (es == null)
+                    m_log.Error($"[SCENE]: Region {Name} failed to load estate settings. Using defaults");
+                RegionInfo.EstateSettings = es;
+            }
 
             SceneGridInfo = new GridInfo(config, RegionInfo.ServerURI);
 
@@ -1021,8 +1019,6 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     m_clampPrimSize = true;
                 }
-
-                m_clampNegativeZ = startupConfig.GetBoolean("ClampNegativeZ", m_clampNegativeZ);
 
                 m_useTrashOnDelete = startupConfig.GetBoolean("UseTrashOnDelete",m_useTrashOnDelete);
                 m_trustBinaries = startupConfig.GetBoolean("TrustBinaries", m_trustBinaries);
@@ -1718,7 +1714,7 @@ namespace OpenSim.Region.Framework.Scenes
                     terrainMS = (float)(nowMS - lastMS);
                     lastMS = nowMS;
 
-                    if (PhysicsEnabled && Frame % m_update_physics == 0)
+                    if (m_physicsEnabled && Frame % m_update_physics == 0)
                         m_sceneGraph.UpdatePreparePhysics();
 
                     nowMS = Util.GetTimeStampMS();
@@ -1755,9 +1751,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                     // Perform the main physics update.  This will do the actual work of moving objects and avatars according to their
                     // velocity
-                    if (Frame % m_update_physics == 0)
+                    if (m_physicsEnabled && Frame % m_update_physics == 0)
                     {
-                        if (PhysicsEnabled)
                             physicsFPS = m_sceneGraph.UpdatePhysics(FrameTime);
                     }
 
@@ -2407,7 +2402,7 @@ namespace OpenSim.Region.Framework.Scenes
             Vector3 dir = RayEnd - RayStart;
 
             float wheight = (float)RegionInfo.RegionSettings.WaterHeight;
-            Vector3 wpos = Vector3.Zero;
+            Vector3 wpos = new(0.0f, 0.0f, Constants.MinSimulationHeight);
             // Check for water surface intersection from above
             if ((RayStart.Z > wheight) && (RayEnd.Z < wheight))
             {
@@ -2583,9 +2578,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (Permissions.CanRezObject(1, ownerID, pos))
             {
-                // rez ON the ground, not IN the ground
-                // pos.Z += 0.25F; The rez point should now be correct so that its not in the ground
-
                 AddNewPrim(ownerID, groupID, pos, rot, shape, addFlags);
             }
             else
@@ -5844,7 +5836,10 @@ Environment.Exit(1);
             if (estateDataService is not null)
             {
                 bool parcelEnvOvr = RegionInfo.EstateSettings.AllowEnvironmentOverride;
-                RegionInfo.EstateSettings = estateDataService.LoadEstateSettings(RegionInfo.RegionID, false);
+                EstateSettings es = estateDataService.LoadEstateSettings(RegionInfo.RegionID, false);
+                if (es == null)
+                    m_log.Error($"[SCENE]: Region {RegionInfo.RegionName} failed to reload estate settings. Using defaults");
+                RegionInfo.EstateSettings = es;
                 if(parcelEnvOvr && !RegionInfo.EstateSettings.AllowEnvironmentOverride)
                     ClearAllParcelEnvironments();
             }

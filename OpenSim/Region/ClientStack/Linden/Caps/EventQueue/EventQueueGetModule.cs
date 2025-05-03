@@ -199,9 +199,7 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             lock (queues)
             {
-                if (queues.TryGetValue(agentId, out  Queue<byte[]> queue))
-                    return queue;
-                return null;
+                return queues.TryGetValue(agentId, out Queue<byte[]> queue) ? queue : null;
             }
         }
 
@@ -231,36 +229,6 @@ namespace OpenSim.Region.ClientStack.Linden
             }
             return true;
         }
-
-        //legacy
-        /*
-        public bool Enqueue(string ev, UUID avatarID)
-        {
-            //m_log.DebugFormat("[EVENTQUEUE]: Enqueuing event for {0} in region {1}", avatarID, m_scene.RegionInfo.RegionName);
-            try
-            {
-                Queue<byte[]> queue = GetQueue(avatarID);
-                if (queue != null)
-                {
-                    byte[] evData = Util.UTF8NBGetbytes(ev);
-                    lock (queue)
-                        queue.Enqueue(evData);
-                }
-                else
-                {
-                    m_log.WarnFormat(
-                            "[EVENTQUEUE]: (Enqueue) No queue found for agent {0} in region {1}",
-                            avatarID,  m_scene.Name);
-                }
-            }
-            catch (NullReferenceException e)
-            {
-                m_log.Error("[EVENTQUEUE] Caught exception: " + e);
-                return false;
-            }
-            return true;
-        }
-        */
 
         public bool Enqueue(byte[] evData, UUID avatarID)
         {

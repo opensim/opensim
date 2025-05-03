@@ -173,7 +173,7 @@ namespace OpenSim.Framework
         public TaskInventoryItem()
         {
             ScriptRunning = true;
-            CreationDate = (uint)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
+            CreationDate = (uint)Util.UnixTimeSinceEpoch();
         }
     }
 }

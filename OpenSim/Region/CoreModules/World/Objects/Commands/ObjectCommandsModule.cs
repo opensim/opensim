@@ -826,7 +826,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                         SceneObjectPart rootPart = g.RootPart;
                         bool delete = false;
 
-                        if (rootPart.GroupPosition.Z < 0.0 || rootPart.GroupPosition.Z > 10000.0)
+                        if (rootPart.GroupPosition.Z < Constants.MinSimulationHeight || rootPart.GroupPosition.Z > Constants.MaxSimulationHeight)
                         {
                             delete = true;
                         }

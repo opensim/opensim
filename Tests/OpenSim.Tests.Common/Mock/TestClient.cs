@@ -1421,5 +1421,10 @@ namespace OpenSim.Tests.Common
         {
             throw new NotImplementedException();
         }
+
+        public void SendPickInfoReply(UUID pickID, UUID creatorID, bool topPick, UUID parcelID, string name, string desc, UUID snapshotID, string user, string originalName, string simName, Vector3d posGlobal, int sortOrder, bool enabled)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

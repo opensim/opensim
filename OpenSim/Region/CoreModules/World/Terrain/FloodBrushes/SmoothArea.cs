@@ -45,11 +45,12 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FloodBrushes
                 sy = 4;
 
             strength *= 0.002f;
+            if(strength < 1e-4f)
+                return;
             if(strength > 1.0f)
                 strength = 1.0f;
 
-            float[,] tweak = new float[endX - startX + 1, endY - startY + 1];
-
+            float OneMinusstrength = 1.0f - strength;
             for (int x = startX, i = 0; x <= endX; x++, i++)
             {
                 for (int y = startY, j = 0; y <= endY; y++, j++)
@@ -64,7 +65,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FloodBrushes
                     {
                         if (n >= 0 && n < map.Width)
                         {
-                            for (int l = y - sy; l < y + sy; ++l)
+                            for (int l = y - sy; l <= y + sy; ++l)
                             {
                                 if (l >= 0 && l < map.Height)
                                 {
@@ -74,20 +75,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FloodBrushes
                             }
                         }
                     }
-
-                    tweak[i, j] = average / avgsteps;
-                }
-            }
-
-            for (int x = startX, i = 0; x <= endX; x++, i++)
-            {
-                for (int y = startY, j = 0; y <= endY; y++, j++)
-                {
-                    float ty = tweak[i, j];
-                    if (ty == 0.0)
-                        continue;
-
-                    map[x, y] = (1.0f - strength) * map[x, y] + strength * ty;
+                    map[x, y] = OneMinusstrength * map[x, y] + strength * average / avgsteps;
                 }
             }
         }

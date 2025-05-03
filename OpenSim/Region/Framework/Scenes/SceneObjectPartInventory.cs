@@ -28,17 +28,13 @@
 using System;
 using System.Text;
 using System.Xml;
-using System.IO;
 using System.Collections.Generic;
 using System.Collections;
 using System.Reflection;
-using System.Threading;
 using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.Framework.Scenes.Scripting;
-using OpenSim.Region.Framework.Scenes.Serialization;
 using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.Framework.Scenes
@@ -51,7 +47,7 @@ namespace OpenSim.Region.Framework.Scenes
         private byte[] m_inventoryFileNameBytes = Array.Empty<byte>();
         private string m_inventoryFileName = "";
         private uint m_inventoryFileNameSerial = 0;
-        private bool m_inventoryPrivileged = false;
+        private int m_inventoryPrivileged = 0;
         private object m_inventoryFileLock = new object();
 
         private Dictionary<UUID, ArrayList> m_scriptErrors = new Dictionary<UUID, ArrayList>();
@@ -1222,6 +1218,72 @@ namespace OpenSim.Region.Framework.Scenes
             return true;
         }
 
+        public SceneObjectGroup GetSingleRezReadySceneObject(TaskInventoryItem item, UUID NewOwner, UUID NewGroup)
+        {
+            AssetBase rezAsset = m_part.ParentGroup.Scene.AssetService.Get(item.AssetID.ToString());
+            if (rezAsset is null)
+            {
+                m_log.Warn($"[PRIM INVENTORY]: Could not find asset {item.AssetID} for inventory item {item.Name} in {m_part.Name}");
+                return null;
+            }
+
+            SceneObjectGroup group  = m_part.ParentGroup.Scene.GetSingleObjectToRez(rezAsset.Data);
+            if (group == null)
+                return null;
+
+            group.ResetIDs();
+
+            SceneObjectPart rootPart = group.RootPart;
+
+            rootPart.Name = item.Name;
+            rootPart.Description = item.Description;
+
+            group.SetGroup(NewGroup, null);
+            SceneObjectPart[] partList = group.Parts;
+
+            bool slamThings = (item.CurrentPermissions & (uint)PermissionMask.Slam) != 0 || (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0;
+            if (slamThings || rootPart.OwnerID.NotEqual(NewOwner))
+            {
+                if (m_part.ParentGroup.Scene.Permissions.PropagatePermissions())
+                {
+                    foreach (SceneObjectPart part in partList)
+                    {
+                        if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteEveryone) != 0)
+                            part.EveryoneMask = item.EveryonePermissions;
+                        if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteNextOwner) != 0)
+                            part.NextOwnerMask = item.NextPermissions;
+                        if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteGroup) != 0)
+                            part.GroupMask = item.GroupPermissions;
+                    }
+
+                    group.ApplyNextOwnerPermissions();
+                }
+            }
+
+            foreach (SceneObjectPart part in partList)
+            {
+                if (part.OwnerID.NotEqual(NewOwner))
+                {
+                    if(part.GroupID.NotEqual(part.OwnerID))
+                        part.LastOwnerID = part.OwnerID;
+                    part.OwnerID = NewOwner;
+                    part.Inventory.ChangeInventoryOwner(NewOwner);
+                }
+
+                if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteEveryone) != 0)
+                    part.EveryoneMask = item.EveryonePermissions;
+                if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteNextOwner) != 0)
+                    part.NextOwnerMask = item.NextPermissions;
+                if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteGroup) != 0)
+                    part.GroupMask = item.GroupPermissions;
+            }
+
+            rootPart.TrimPermissions();
+            group.InvalidateDeepEffectivePerms();
+
+            return group;
+        }
+
         /// <summary>
         /// Update an existing inventory item.
         /// </summary>
@@ -1388,11 +1450,22 @@ namespace OpenSim.Region.Framework.Scenes
                 if (m_inventoryFileData.Length < 2)
                     changed = true;
 
-                bool includeAssets = false;
-                if (m_part.ParentGroup.Scene.Permissions.CanEditObjectInventory(m_part.UUID, client.AgentId))
+                int privilegedmask = 0;
+                bool includeAssets;
+                bool isVGod = client.SceneAgent is ScenePresence sp && sp.IsViewerUIGod;
+                if (isVGod)
+                {
+                    privilegedmask = 3;
                     includeAssets = true;
+                }
+                else
+                {
+                    includeAssets = m_part.ParentGroup.Scene.Permissions.CanEditObjectInventory(m_part.UUID, client.AgentId);
+                    if(includeAssets)
+                        privilegedmask = 1;
+                }
 
-                if (m_inventoryPrivileged != includeAssets)
+                if(m_inventoryPrivileged != privilegedmask)
                     changed = true;
 
                 if (!changed)
@@ -1404,55 +1477,69 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
                 }
 
-                m_inventoryPrivileged = includeAssets;
+                m_inventoryPrivileged = privilegedmask;
 
-                InventoryStringBuilder invString = new InventoryStringBuilder(m_part.UUID, UUID.Zero);
+                InventoryStringBuilder invString = new(m_part.UUID, UUID.Zero);
 
                 m_items.LockItemsForRead(true);
 
                 foreach (TaskInventoryItem item in m_items.Values)
                 {
-                    UUID ownerID = item.OwnerID;
-                    UUID groupID = item.GroupID;
-                    uint everyoneMask = item.EveryonePermissions;
-                    uint baseMask = item.BasePermissions;
-                    uint ownerMask = item.CurrentPermissions;
-                    uint groupMask = item.GroupPermissions;
-
                     invString.AddItemStart();
                     invString.AddNameValueLine("item_id", item.ItemID.ToString());
                     invString.AddNameValueLine("parent_id", m_part.UUID.ToString());
 
                     invString.AddPermissionsStart();
 
-                    invString.AddNameValueLine("base_mask", Utils.UIntToHexString(baseMask));
-                    invString.AddNameValueLine("owner_mask", Utils.UIntToHexString(ownerMask));
-                    invString.AddNameValueLine("group_mask", Utils.UIntToHexString(groupMask));
-                    invString.AddNameValueLine("everyone_mask", Utils.UIntToHexString(everyoneMask));
+                    invString.AddNameValueLine("base_mask", Utils.UIntToHexString(item.BasePermissions));
+                    invString.AddNameValueLine("owner_mask", Utils.UIntToHexString(item.CurrentPermissions));
+                    invString.AddNameValueLine("group_mask", Utils.UIntToHexString(item.GroupPermissions));
+                    invString.AddNameValueLine("everyone_mask", Utils.UIntToHexString(item.EveryonePermissions));
                     invString.AddNameValueLine("next_owner_mask", Utils.UIntToHexString(item.NextPermissions));
 
                     invString.AddNameValueLine("creator_id", item.CreatorID.ToString());
 
                     invString.AddNameValueLine("last_owner_id", item.LastOwnerID.ToString());
 
-                    invString.AddNameValueLine("group_id",groupID.ToString());
-                    if(!groupID.IsZero() && ownerID.Equals(groupID))
+                    invString.AddNameValueLine("group_id", item.GroupID.ToString());
+                    if(item.GroupID.IsNotZero() && item.OwnerID.Equals(item.GroupID))
                     {
                         invString.AddNameValueLine("owner_id", UUID.ZeroString);
                         invString.AddNameValueLine("group_owned","1");
                     }
                     else
                     {
-                        invString.AddNameValueLine("owner_id", ownerID.ToString());
+                        invString.AddNameValueLine("owner_id", item.OwnerID.ToString());
                         invString.AddNameValueLine("group_owned","0");
                     }
 
                     invString.AddSectionEnd();
 
                     if (includeAssets)
-                        invString.AddNameValueLine("asset_id", item.AssetID.ToString());
+                    {
+                        if(isVGod)
+                            invString.AddNameValueLine("asset_id", item.AssetID.ToString());
+                        else
+                        {
+                            bool allow = item.InvType switch 
+                            {
+                                //(int)InventoryType.Sound => (item.CurrentPermissions & (uint)PermissionMask.Modify) != 0,
+                                (int)InventoryType.Notecard => (item.CurrentPermissions & (uint)(PermissionMask.Modify | PermissionMask.Copy)) != 0,
+                                (int)InventoryType.LSL => (item.CurrentPermissions & (uint)(PermissionMask.Modify | PermissionMask.Copy)) == 
+                                        (uint)(PermissionMask.Modify | PermissionMask.Copy),
+                                //(int)InventoryType.Animation => (item.CurrentPermissions & (uint)PermissionMask.Modify) != 0,
+                                //(int)InventoryType.Gesture => (item.CurrentPermissions & (uint)PermissionMask.Modify) != 0,
+                                (int)InventoryType.Settings => (item.CurrentPermissions & (uint)(PermissionMask.Modify | PermissionMask.Copy)) == 
+                                        (uint)(PermissionMask.Modify | PermissionMask.Copy),
+                                (int)InventoryType.Material => (item.CurrentPermissions & (uint)(PermissionMask.Modify | PermissionMask.Copy)) == 
+                                        (uint)(PermissionMask.Modify | PermissionMask.Copy),
+                                _ => true
+                            };
+                            invString.AddNameValueLine("asset_id", allow ? item.AssetID.ToString() : UUID.ZeroString);
+                        }
+                    }
                     else
-                        invString.AddNameValueLine("asset_id", UUID.Zero.ToString());
+                        invString.AddNameValueLine("asset_id", UUID.ZeroString);
                     invString.AddNameValueLine("type", Utils.AssetTypeToString((AssetType)item.Type));
                     invString.AddNameValueLine("inv_type", Utils.InventoryTypeToString((InventoryType)item.InvType));
                     invString.AddNameValueLine("flags", Utils.UIntToHexString(item.Flags));
@@ -1478,7 +1565,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_inventoryFileName = "inventory_" + UUID.Random().ToString() + ".tmp";
                     m_inventoryFileNameBytes = Util.StringToBytes256(m_inventoryFileName);
                     xferManager.AddNewFile(m_inventoryFileName, m_inventoryFileData);
-                    client.SendTaskInventory(m_part.UUID, (short)m_inventoryFileNameSerial,m_inventoryFileNameBytes);
+                    client.SendTaskInventory(m_part.UUID, (short)m_inventoryFileNameSerial, m_inventoryFileNameBytes);
                     return;
                 }
 
@@ -1492,13 +1579,13 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="datastore"></param>
         public void ProcessInventoryBackup(ISimulationDataService datastore)
         {
-// Removed this because linking will cause an immediate delete of the new
-// child prim from the database and the subsequent storing of the prim sees
-// the inventory of it as unchanged and doesn't store it at all. The overhead
-// of storing prim inventory needlessly is much less than the aggravation
-// of prim inventory loss.
-//            if (HasInventoryChanged)
-//            {
+                // Removed this because linking will cause an immediate delete of the new
+                // child prim from the database and the subsequent storing of the prim sees
+                // the inventory of it as unchanged and doesn't store it at all. The overhead
+                // of storing prim inventory needlessly is much less than the aggravation
+                // of prim inventory loss.
+                //if (HasInventoryChanged)
+                //    {
                 m_items.LockItemsForRead(true);
                 ICollection<TaskInventoryItem> itemsvalues = m_items.Values;
                 HasInventoryChanged = false;
@@ -1508,7 +1595,7 @@ namespace OpenSim.Region.Framework.Scenes
                     datastore.StorePrimInventory(m_part.UUID, itemsvalues);
                 }
                 catch {}
-//            }
+                //    }
         }
 
         public class InventoryStringBuilder
@@ -1554,13 +1641,13 @@ namespace OpenSim.Region.Framework.Scenes
                 BuildString.Append(addLine);
             }
 
-            public void AddNameValueLine(string name, string value)
+            public void AddNameValueLine(ReadOnlySpan<char> name, ReadOnlySpan<char> value)
             {
                 BuildString.Append("\t\t");
                 BuildString.Append(name);
-                BuildString.Append("\t");
+                BuildString.Append('\t');
                 BuildString.Append(value);
-                BuildString.Append("\n");
+                BuildString.Append('\n');
             }
 
             public String GetString()

@@ -65,7 +65,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </returns>
         public int CreateScriptInstances()
         {
-            m_log.InfoFormat("[SCENE]: Initializing script instances in {0}", RegionInfo.RegionName);
+            m_log.Info($"[SCENE]: Initializing script instances in {RegionInfo.RegionName}");
 
             int scriptsValidForStarting = 0;
 
@@ -79,9 +79,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            m_log.InfoFormat(
-                "[SCENE]: Initialized {0} script instances in {1}",
-                scriptsValidForStarting, RegionInfo.RegionName);
+            m_log.Info($"[SCENE]: Initialized {scriptsValidForStarting} script instances in {RegionInfo.RegionName}");
 
             return scriptsValidForStarting;
         }
@@ -111,14 +109,10 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (AddInventoryItem(item))
                 return true;
-            else
-            {
-                m_log.WarnFormat(
-                    "[AGENT INVENTORY]: Unable to add item {1} to agent {2} inventory", item.Name, AgentId);
 
+            m_log.Warn($"[AGENT INVENTORY]: Unable to add item {item.Name} to agent {AgentId} inventory");
                 return false;
             }
-        }
 
         public bool AddInventoryItem(InventoryItemBase item)
         {
@@ -147,9 +141,8 @@ namespace OpenSim.Region.Framework.Scenes
                 f = InventoryService.GetFolderForType(item.Owner, (FolderType)item.AssetType);
             if (f is not null)
             {
-                m_log.DebugFormat(
-                    "[AGENT INVENTORY]: Found folder {0} type {1} for item {2}",
-                    f.Name, (AssetType)f.Type, item.Name);
+                m_log.Debug(
+                    $"[AGENT INVENTORY]: Found folder {f.Name} type {(AssetType)f.Type} for item {item.Name}");
 
                 item.Folder = f.ID;
             }
@@ -162,9 +155,8 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-                    m_log.WarnFormat(
-                        "[AGENT INVENTORY]: Could not find root folder for {0} when trying to add item {1} with no parent folder specified",
-                        item.Owner, item.Name);
+                    m_log.Warn(
+                        $"[AGENT INVENTORY]: Could not find root folder for {item.Owner} when trying to add item {item.Name} with no parent folder specified");
                     return false;
                 }
             }
@@ -185,9 +177,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
-                m_log.WarnFormat(
-                    "[AGENT INVENTORY]: Agent {0} could not add item {1} {2}",
-                    item.Owner, item.Name, item.ID);
+                m_log.Warn($"[AGENT INVENTORY]: Agent {item.Owner} could not add item {item.Name} {item.ID}");
 
                 return false;
             }
@@ -200,8 +190,8 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 IClientAPI cli = sp.ControllingClient;
                 InventoryFolderBase parent = InventoryService.GetFolder(f.Owner, f.ParentID);
-                cli.SendRemoveInventoryItems(new UUID[] { item.ID });
-                cli.SendBulkUpdateInventory(Array.Empty<InventoryFolderBase>(), new InventoryItemBase[] { item });
+                cli.SendRemoveInventoryItems([item.ID]);
+                cli.SendBulkUpdateInventory(Array.Empty<InventoryFolderBase>(), [item]);
                 string message = "The item was placed in folder " + f.Name;
                 if (parent is not null)
                     message += " under " + parent.Name;
@@ -1277,9 +1267,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
-                m_log.ErrorFormat(
-                    "ScenePresence for agent uuid {0} unexpectedly not found in HandleLinkInventoryItem",
-                    remoteClient.AgentId);
+                m_log.Error($"[HandleLinkInventoryItem] ScenePresence for agent {remoteClient.AgentId} not found");
             }
         }
 
@@ -1667,11 +1655,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         public UUID MoveTaskInventoryItems(UUID destID, string category, SceneObjectPart host, List<UUID> items, bool sendUpdates = true)
         {
-
-            IClientAPI remoteClient = null;
-            if (TryGetScenePresence(destID, out ScenePresence avatar))
-                remoteClient = avatar.ControllingClient;
-
             SceneObjectPart destPart = GetSceneObjectPart(destID);
             if (destPart is not null) // Move into a prim
             {
@@ -1681,6 +1664,12 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             // move to a avatar inventory
+            IClientAPI remoteClient;
+            if (TryGetScenePresence(destID, out ScenePresence avatar))
+                remoteClient = avatar.ControllingClient;
+            else
+                return UUID.Zero;
+
             if(remoteClient is null)
                 return UUID.Zero;
 
@@ -2610,6 +2599,31 @@ namespace OpenSim.Region.Framework.Scenes
             return true;
         }
 
+        public SceneObjectGroup GetSingleObjectToRez(byte[] assetData)
+        {
+            string xmlData = string.Empty;
+            try
+            {
+                xmlData = ExternalRepresentationUtils.SanitizeXml(Utils.BytesToString(assetData));
+                using XmlTextReader wrappedReader = new(xmlData, XmlNodeType.Element, null);
+                using XmlReader reader = XmlReader.Create(wrappedReader, Util.SharedXmlReaderSettings);
+                reader.Read();
+
+                if (!"CoalescedObject".Equals(reader.Name))
+                {
+                    SceneObjectGroup g = SceneObjectSerializer.FromOriginalXmlFormat(reader);
+                    return g;
+                }
+            }
+            catch (Exception e)
+            {
+                m_log.Error("[AGENT INVENTORY]: single object xml deserialization failed" + e.Message);
+                Util.LogFailedXML("[AGENT INVENTORY]:", xmlData);
+            }
+
+            return null;
+        }
+
         /// <summary>
         /// Event Handler Rez an object into a scene
         /// Calls the non-void event handler
@@ -2801,6 +2815,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 group.RezzerID = rezzerID;
+                group.RezStringParameter = null;
 
                 if (rezSelected)
                 {
@@ -2831,6 +2846,65 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             return objlist;
+        }
+
+        public SceneObjectGroup ScriptRezObject(SceneObjectPart sourcePart, TaskInventoryItem item,
+                UUID newSOGID,
+                Vector3 pos, Quaternion? rot, Vector3 vel, int param, bool atRoot)
+        {
+            if (item is null)
+                return null;
+
+            if(TryGetSceneObjectGroup(newSOGID, out _))
+                return null;
+
+            SceneObjectGroup sog = sourcePart.Inventory.GetSingleRezReadySceneObject(item, sourcePart.OwnerID, sourcePart.GroupID);
+            if(sog is null)
+                return null;
+
+            int totalPrims  = sog.PrimCount;
+
+            if (!Permissions.CanRezObject(totalPrims, sourcePart.OwnerID, pos))
+                return null;
+
+            if (!Permissions.BypassPermissions())
+            {
+                if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
+                    sourcePart.Inventory.RemoveInventoryItem(item.ItemID);
+            }
+
+            //  position adjust
+            if (totalPrims > 1) // nothing to do on a single prim
+            {
+                // current object position is root position
+                if(!atRoot)
+                {
+                    Quaternion orot = rot ?? sog.RootPart.GetWorldRotation();
+                    // possible should be bbox, but geometric center looks better
+                    Vector3 off = sog.GetGeometricCenter();
+                    off *= orot;
+                    pos -= off;
+                }
+            }
+
+            if (sog.IsAttachment == false && sog.RootPart.Shape.State != 0)
+            {
+                sog.RootPart.AttachedPos = sog.AbsolutePosition;
+                sog.RootPart.Shape.LastAttachPoint = (byte)sog.AttachmentPoint;
+            }
+
+            sog.RezzerID = sourcePart.UUID;
+
+            AddNewSceneObject(sog, true, pos, rot, vel);
+
+            // We can only call this after adding the scene object, since the scene object references the scene
+            // to find out if scripts should be activated at all.
+            sog.InvalidateEffectivePerms();
+            sog.CreateScriptInstances(param, true, DefaultScriptEngine, 3);
+
+            sog.ScheduleGroupForUpdate(PrimUpdateFlags.FullUpdatewithAnimMatOvr);
+
+            return sog;
         }
 
         public virtual bool returnObjects(SceneObjectGroup[] returnobjects,
@@ -2897,7 +2971,6 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     sog.SetOwnerId(ownerID);
                     sog.SetGroup(groupID, remoteClient);
-                    sog.ScheduleGroupForFullUpdate();
 
                     SceneObjectPart[] partList = sog.Parts;
 
@@ -2906,6 +2979,8 @@ namespace OpenSim.Region.Framework.Scenes
                         child.Inventory.ChangeInventoryOwner(ownerID);
                         child.TriggerScriptChangedEvent(Changed.OWNER);
                     }
+
+                    sog.ScheduleGroupForFullUpdate();
                 }
                 else // The object deeded to the group
                 {

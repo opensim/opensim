@@ -44,9 +44,7 @@ namespace OpenSim.Services.GridService
 {
     public class GridService : GridServiceBase, IGridService
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private string LogHeader = "[GRID SERVICE]";
 
         private bool m_DeleteOnUnregister = true;
@@ -599,7 +597,7 @@ namespace OpenSim.Services.GridService
                 if (!uri.ResolveDNS())
                     return null;
                 if(!m_HypergridLinker.IsLocalGrid(uri.HostUrl))
-                return null;
+                    return null;
             }
 
             if (uri.HasRegionName)

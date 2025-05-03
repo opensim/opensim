@@ -32,10 +32,14 @@ namespace OpenSim.Framework
     public class Constants
     {
         public const int MaxAgentAttachments = 38;
+        public const int MaxAgentAnimatedObjectAttachments = 3;
         public const int MaxAgentGroups = 60;
 
         public const int MaxEstateAccessIds = 500;
         public const int MaxEstateManagers = 20;
+
+
+        public const int MaxProfilePicks = 20;
 
         // 'RegionSize' is the legacy region size.
         // DO NOT USE THIS FOR ANY NEW CODE. Use Scene.RegionInfo.RegionSize[XYZ] as a region might not
@@ -58,6 +62,8 @@ namespace OpenSim.Framework
         public const float MaxTerrainHeightmap = 4000f;
         public const float MinWaterHeight = 0;
         public const float MaxWaterHeight = 8000f;
+
+        public const float DefaultLandingBorderBuffer = 5.0f;
 
         public const int MaxTextureResolution = 2048;
 

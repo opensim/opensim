@@ -454,6 +454,7 @@ namespace OpenSim.Region.Framework.Scenes
         public bool m_dupeInProgress = false;
         internal Dictionary<UUID, string> m_savedScriptState;
 
+        public string RezStringParameter = null;
         public UUID MonitoringObject { get; set; }
 
         #region Properties
@@ -3066,13 +3067,9 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (linknum < 2)
             {
-                return linknum switch
-                {
-                    <0 => null,
-                    // old code and sl do ignore linknum = 0 on linksets with more than one prim
-                    0 => m_parts.Count > 1 ? null : RootPart,
-                    _ => RootPart
-                };
+                // unlike SL 0 or 1 will mean root
+                // one reason is that we do not consider siting avatars on root linknumber
+                return linknum < 0 ? null : RootPart;
             }
 
             Span<SceneObjectPart> parts = m_parts.GetArray().AsSpan();
