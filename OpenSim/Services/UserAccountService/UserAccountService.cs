@@ -154,9 +154,9 @@ namespace OpenSim.Services.UserAccountService
         public UserAccount GetUserAccount(UUID scopeID, string firstName,
                 string lastName)
         {
-//            m_log.DebugFormat(
-//                "[USER ACCOUNT SERVICE]: Retrieving account by username for {0} {1}, scope {2}",
-//                firstName, lastName, scopeID);
+        //m_log.DebugFormat(
+        //    "[USER ACCOUNT SERVICE]: Retrieving account by username for {0} {1}, scope {2}",
+        //        firstName, lastName, scopeID);
 
             UserAccountData[] d;
 
@@ -286,7 +286,7 @@ namespace OpenSim.Services.UserAccountService
 
             List<UserAccount> lret = new(ret.Length);
             for(int i = 0; i < ret.Length; i++)
-                lret[i] = MakeUserAccount(ret[i]);
+                lret.Add(MakeUserAccount(ret[i]));
             return lret;
         }
 
@@ -596,83 +596,81 @@ namespace OpenSim.Services.UserAccountService
             firstName = firstName.Trim();
             lastName = lastName.Trim();
             UserAccount account = GetUserAccount(UUID.Zero, firstName, lastName);
-            if (account == null)
+
+            if (account is not null)
             {
-                account = new UserAccount(UUID.Zero, principalID, firstName, lastName, email);
-                if (account.ServiceURLs == null || account.ServiceURLs.Count == 0)
+                m_log.Error($"[USER ACCOUNT SERVICE]: A user with the name {firstName} {lastName} already exists!");
+                return null;
+            }
+
+            account = new UserAccount(UUID.Zero, principalID, firstName, lastName, email);
+            if (account.ServiceURLs == null || account.ServiceURLs.Count == 0)
+            {
+                account.ServiceURLs = new Dictionary<string, object>
                 {
-                    account.ServiceURLs = new Dictionary<string, object>();
-                    account.ServiceURLs["HomeURI"] = string.Empty;
-                    account.ServiceURLs["InventoryServerURI"] = string.Empty;
-                    account.ServiceURLs["AssetServerURI"] = string.Empty;
-                }
+                    ["HomeURI"] = string.Empty,
+                    ["InventoryServerURI"] = string.Empty,
+                    ["AssetServerURI"] = string.Empty
+                };
+            }
 
-                if (StoreUserAccount(account))
-                {
-                    bool success;
-                    if (m_AuthenticationService != null)
-                    {
-                        success = m_AuthenticationService.SetPassword(account.PrincipalID, password);
-                        if (!success)
-                            m_log.WarnFormat("[USER ACCOUNT SERVICE]: Unable to set password for account {0} {1}.",
-                                firstName, lastName);
-                    }
+            if (!StoreUserAccount(account))
+            {
+                m_log.Error($"[USER ACCOUNT SERVICE]: Account creation failed for account {firstName} {lastName}");
+                return null;
+            }
 
-                    GridRegion home = null;
-                    if (m_GridService != null)
-                    {
-                        List<GridRegion> defaultRegions = m_GridService.GetDefaultRegions(UUID.Zero);
-                        if (defaultRegions != null && defaultRegions.Count >= 1)
-                            home = defaultRegions[0];
+            bool success;
+            if (m_AuthenticationService != null)
+            {
+                success = m_AuthenticationService.SetPassword(account.PrincipalID, password);
+                if (!success)
+                    m_log.Warn($"[USER ACCOUNT SERVICE]: Unable to set password for account {firstName} {lastName}");
+            }
 
-                        if (m_GridUserService != null && home != null)
-                            m_GridUserService.SetHome(account.PrincipalID.ToString(), home.RegionID, new Vector3(128, 128, 0), new Vector3(0, 1, 0));
-                        else
-                            m_log.WarnFormat("[USER ACCOUNT SERVICE]: Unable to set home for account {0} {1}.",
-                               firstName, lastName);
-                    }
-                    else
-                    {
-                        m_log.WarnFormat("[USER ACCOUNT SERVICE]: Unable to retrieve home region for account {0} {1}.",
-                           firstName, lastName);
-                    }
+            GridRegion home = null;
+            if (m_GridService != null)
+            {
+                List<GridRegion> defaultRegions = m_GridService.GetDefaultRegions(UUID.Zero);
+                if (defaultRegions != null && defaultRegions.Count >= 1)
+                    home = defaultRegions[0];
 
-                    if (m_InventoryService != null)
-                    {
-                        success = m_InventoryService.CreateUserInventory(account.PrincipalID);
-                        if (!success)
-                        {
-                            m_log.WarnFormat("[USER ACCOUNT SERVICE]: Unable to create inventory for account {0} {1}.",
-                                firstName, lastName);
-                        }
-                        else
-                        {
-                            m_log.DebugFormat(
-                                "[USER ACCOUNT SERVICE]: Created user inventory for {0} {1}", firstName, lastName);
-                        }
-
-                        if (m_CreateDefaultAvatarEntries)
-                        {
-                            if (String.IsNullOrEmpty(model))
-                                CreateDefaultAppearanceEntries(account.PrincipalID);
-                            else
-                                EstablishAppearance(account.PrincipalID, model);
-                        }
-                    }
-
-                    m_log.InfoFormat(
-                        "[USER ACCOUNT SERVICE]: Account {0} {1} {2} created successfully",
-                        firstName, lastName, account.PrincipalID);
-                }
+                if (home != null)
+                    m_GridUserService.SetHome(account.PrincipalID.ToString(), home.RegionID, new Vector3(128, 128, 0), new Vector3(0, 1, 0));
                 else
-                {
-                    m_log.ErrorFormat("[USER ACCOUNT SERVICE]: Account creation failed for account {0} {1}", firstName, lastName);
-                }
+                    m_log.Warn($"[USER ACCOUNT SERVICE]: Unable to set home for account {firstName} {lastName}");
             }
             else
             {
-                m_log.ErrorFormat("[USER ACCOUNT SERVICE]: A user with the name {0} {1} already exists!", firstName, lastName);
+                m_log.Warn(
+                    $"[USER ACCOUNT SERVICE]: Unable to retrieve default home region for account {firstName} {lastName}");
             }
+
+            if (m_InventoryService != null)
+            {
+                success = m_InventoryService.CreateUserInventory(account.PrincipalID);
+                if (!success)
+                {
+                    m_log.Warn(
+                        $"[USER ACCOUNT SERVICE]: Unable to create inventory for account {firstName} {lastName}");
+                }
+                else
+                {
+                    m_log.Debug(
+                        $"[USER ACCOUNT SERVICE]: Created user inventory for {firstName} {lastName}");
+                }
+
+                if (m_CreateDefaultAvatarEntries)
+                {
+                    if (string.IsNullOrEmpty(model))
+                        CreateDefaultAppearanceEntries(account.PrincipalID);
+                    else
+                        EstablishAppearance(account.PrincipalID, model);
+                }
+            }
+
+            m_log.Info(
+                $"[USER ACCOUNT SERVICE]: Account {firstName} {lastName} {account.PrincipalID} created successfully");
 
             return account;
         }
