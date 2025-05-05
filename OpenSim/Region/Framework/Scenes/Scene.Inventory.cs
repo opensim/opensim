@@ -1768,9 +1768,7 @@ namespace OpenSim.Region.Framework.Scenes
             UUID itemID = itemInfo.ItemID;
             if (itemID.IsZero())
             {
-                m_log.ErrorFormat(
-                            "[PRIM INVENTORY]: UpdateTaskInventory called with item ID Zero on update for {1}!",
-                            remoteClient.Name);
+                m_log.Error($"[PRIM INVENTORY]: UpdateTaskInventory called with item ID Zero on update for {remoteClient.Name}");
                 return;
             }
 
@@ -1778,11 +1776,9 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectPart part = GetSceneObjectPart(primLocalID);
             if(part is null)
             {
-                m_log.WarnFormat(
-                    "[PRIM INVENTORY]: " +
-                    "Update with item {0} requested of prim {1} for {2} but this prim does not exist",
-                    itemID, primLocalID, remoteClient.Name);
-                    return;
+                m_log.Warn(
+                    $"[PRIM INVENTORY]: Update prim {primLocalID} with item {itemID} by {remoteClient.Name} but prim not found");
+                return;
             }
 
             TaskInventoryItem currentItem = part.Inventory.GetInventoryItem(itemID);
@@ -1797,29 +1793,27 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if(item is null)
                 {
-                    m_log.ErrorFormat(
-                            "[PRIM INVENTORY]: Could not find inventory item {0} to update for {1}!",
-                            itemID, remoteClient.Name);
+                    m_log.Error(
+                            $"[PRIM INVENTORY]: Could not find inventory item {itemID} to update for {remoteClient.Name}");
                     return;
                 }
 
                 if (!Permissions.CanDropInObjectInv(item, remoteClient, part))
                     return;
 
-                UUID copyID = UUID.Random();
                 bool modrights = Permissions.CanEditObject(part.ParentGroup, remoteClient);
-                part.ParentGroup.AddInventoryItem(remoteClient.AgentId, primLocalID, item, copyID, modrights);
-                m_log.InfoFormat(
-                    "[PRIM INVENTORY]: Update with item {0} requested of prim {1} for {2}",
-                    item.Name, primLocalID, remoteClient.Name);
+                part.ParentGroup.AddInventoryItem(remoteClient.AgentId, primLocalID, item, UUID.Random(), modrights);
+                m_log.Info(
+                    $"[PRIM INVENTORY]: Update prim {primLocalID} with item {item.Name} requested by {remoteClient.Name}");
+
+                IInventoryAccessModule invAccess = RequestModuleInterface<IInventoryAccessModule>();
+                invAccess?.FetchRemoteHGItemAssets(remoteClient.AgentId, item);
+
                 part.SendPropertiesToClient(remoteClient);
                 if (!Permissions.BypassPermissions())
                 {
                     if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
-                    {
-                        List<UUID> uuids = new() { itemID };
-                        RemoveInventoryItem(remoteClient, uuids);
-                    }
+                        RemoveInventoryItem(remoteClient, [itemID]);
                 }
             }
             else // Updating existing item with new perms etc

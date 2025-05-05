@@ -96,8 +96,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         m_RestrictInventoryAccessAbroad = thisModuleConfig.GetBoolean("RestrictInventoryAccessAbroad", true);
                         m_CheckSeparateAssets = thisModuleConfig.GetBoolean("CheckSeparateAssets", false);
                         m_LocalAssetsURL = thisModuleConfig.GetString("RegionHGAssetServerURI", string.Empty);
-                        m_LocalAssetsURL = m_LocalAssetsURL.Trim(new char[] { '/' });
-
+                        m_LocalAssetsURL = m_LocalAssetsURL.Trim('/');
                     }
                     else
                         m_log.Warn("[HG INVENTORY ACCESS MODULE]: HGInventoryAccessModule configs not found");
@@ -318,6 +317,12 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             if (item is null || item.AssetID.IsZero())
                 return null;
 
+            if(item.AssetType == (int)AssetType.Link || item.AssetType == (int)AssetType.LinkFolder)
+            {
+                m_log.Error("[HGScene]: request to rez a asset inventory link");
+                return null;
+            }
+
             if (attachment && (item.Flags & (uint)InventoryItemFlags.ObjectHasMultipleItems) != 0)
             {
                 if (remoteClient is not null && remoteClient.IsActive)
@@ -325,8 +330,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 return null;
             }
 
-            string userAssetServer;
-            if (IsForeignUser(remoteClient.AgentId, out userAssetServer))
+            if (IsForeignUser(remoteClient.AgentId, out string userAssetServer))
             {
                 m_assMapper.Get(item.AssetID, remoteClient.AgentId, userAssetServer);
             }
@@ -337,6 +341,20 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             return sog;
 
+        }
+
+        public override void FetchRemoteHGItemAssets(UUID OwnerID, InventoryItemBase item)
+        {
+            if(item is null || item.AssetID.IsZero())
+                return;
+            if(item.AssetType == (int)AssetType.Link || item.AssetType == (int)AssetType.LinkFolder)
+            {
+                m_log.Error("[HGScene]: request to fetch a asset inventory link");
+                return;
+            }
+
+            if (IsForeignUser(OwnerID, out string userAssetServer))
+                m_assMapper.Get(item.AssetID, OwnerID, userAssetServer);
         }
 
         public override void TransferInventoryAssets(InventoryItemBase item, UUID sender, UUID receiver)
@@ -355,7 +373,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             // If both users have the same asset server, no need to transfer the asset
             if (senderAssetServer.Equals(receiverAssetServer))
             {
-                m_log.DebugFormat("[HGScene]: Asset transfer between foreign users, but they have the same server. No transfer.");
+                m_log.Debug("[HGScene]: Asset transfer between foreign users, but they have the same server. No transfer.");
                 return;
             }
 
@@ -376,19 +394,16 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 {
                     if (!UserManagementModule.IsLocalGridUser(userID))
                     { // foreign
-                        if (m_Scene.TryGetScenePresence(userID, out ScenePresence sp))
-                        {
-                            AgentCircuitData aCircuit = m_Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
-                            if (aCircuit != null && aCircuit.ServiceURLs != null && aCircuit.ServiceURLs.ContainsKey("AssetServerURI"))
-                            {
-                                assetServerURL = aCircuit.ServiceURLs["AssetServerURI"].ToString();
-                                assetServerURL = assetServerURL.Trim(new char[] { '/' });
-                            }
-                        }
-                        else
+                        AgentCircuitData aCircuit = m_Scene.AuthenticateHandler.GetAgentCircuitData(userID);
+                        if (aCircuit != null && aCircuit.ServiceURLs != null &&
+                                aCircuit.ServiceURLs.TryGetValue("AssetServerURI", out object oassetServerURL) &&
+                                oassetServerURL is string stmp)
+                            assetServerURL = stmp.Trim('/');
+
+                        if(assetServerURL.Length == 0)
                         {
                             assetServerURL = UserManagementModule.GetUserServerURL(userID, "AssetServerURI");
-                            assetServerURL = assetServerURL.Trim(new char[] { '/' });
+                            assetServerURL = assetServerURL.Trim('/');
                         }
                         return true;
                     }
@@ -397,7 +412,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 {
                     if (IsLocalInventoryAssetsUser(userID, out assetServerURL))
                     {
-                        m_log.DebugFormat("[HGScene]: user {0} has local assets {1}", userID, assetServerURL);
+                        m_log.Debug($"[HGScene]: user {userID} has local assets {assetServerURL}");
                         return false;
                     }
                     else
@@ -416,10 +431,11 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             if (assetsURL.Length == 0)
             {
                 AgentCircuitData agent = m_Scene.AuthenticateHandler.GetAgentCircuitData(uuid);
-                if (agent != null)
+                if (agent != null && agent.ServiceURLs != null &&
+                        agent.ServiceURLs.TryGetValue("AssetServerURI", out object oassetServerURL) &&
+                        oassetServerURL is string stmp)
                 {
-                    assetsURL = agent.ServiceURLs["AssetServerURI"].ToString();
-                    assetsURL = assetsURL.Trim(new char[] { '/' });
+                    assetsURL = stmp.Trim('/');
                 }
             }
             return m_LocalAssetsURL.Equals(assetsURL);
