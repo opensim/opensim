@@ -4136,20 +4136,31 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <param name="legacy"></param>
         /// <returns></returns>
 
-        public void osSetTerrainTextures(LSL_List textures, LSL_Integer types)
+        private static readonly int[] PBRAndTextureTypes = [(int)AssetType.Texture, (int)AssetType.Material];
+        public void osSetTerrainTextures(LSL_List textures, LSL_Integer ltypes)
         {
-            if(textures.Length != 4)
-                return;
-
-            IEstateModule estate = World.RequestModuleInterface<IEstateModule>();
-            if(estate == null)
+            IEstateModule estateModule = World.RequestModuleInterface<IEstateModule>();
+            if (estateModule == null)
                 return;
 
             if (!World.Permissions.IsGod(m_host.OwnerID))
                 CheckThreatLevel(ThreatLevel.High, "osSetTerrainTexture");
 
+            if(textures.Length != 4)
+            {
+                OSSLShoutError($"osSetTerrainTextures first argument is a list of keys or names that must have 4 elements");
+                return;
+            }
+
+            int types = ltypes.value;
+            if( types < 0 || types > 2)
+            {
+                OSSLShoutError($"osSetTerrainTextures second argument must be >=0 and <= 2");
+                return;
+            }
+
             List<UUID> ids = new(4);
-            int changes = 0;
+            bool hasChanges = false;
             for(int i = 0; i < textures.Length; i++)
             {
                 string u = textures.GetStrictLSLStringItem(i);
@@ -4159,24 +4170,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     if (!UUID.TryParse(u, out UUID id))
                     {
-                        TaskInventoryItem item = m_host.Inventory.GetInventoryItem(u);
-                        if (item != null && (item.Type == (int)AssetType.Texture || item.Type == (int)AssetType.Material))
-                            id = item.AssetID;
-                        else
+                        TaskInventoryItem item = types == 1 ? 
+                            m_host.Inventory.GetInventoryItem(u, PBRAndTextureTypes) : 
+                            m_host.Inventory.GetInventoryItem(u,(int)AssetType.Texture);
+                        if (item == null)
                         {
-                            OSSLShoutError($"Invalid key in osSetTerrainTextures texture {i}");
+                            OSSLShoutError($"Invalid key or asset type in osSetTerrainTextures texture {i}");
                             return;
                         }
+                        id = item.AssetID;
                     }
                     ids.Add(id);
-                    if(changes == 0 && id.IsNotZero())
-                        changes++;
+                    if(!hasChanges && id.IsNotZero())
+                        hasChanges = true;
                 }
             }
-            if(changes == 0)
-                return;
 
-            estate.SetEstateTerrainTextures(ids, types.value);
+            if(hasChanges)
+                estateModule.SetEstateTerrainTextures(ids, types);
         }
 
         /// <summary>
