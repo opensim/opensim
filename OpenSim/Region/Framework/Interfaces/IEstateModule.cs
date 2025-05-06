@@ -29,6 +29,7 @@ using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Services.Interfaces;
+using System.Collections.Generic;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
@@ -63,6 +64,7 @@ namespace OpenSim.Region.Framework.Interfaces
         void TriggerRegionInfoChange();
 
         void setEstateTerrainBaseTexture(int level, UUID texture);
+        void SetEstateTerrainTextures(List<UUID> textureIDs, int types);
         void setEstateTerrainTextureHeights(int corner, float lowValue, float highValue);
 
         /// <summary>

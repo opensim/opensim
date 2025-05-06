@@ -4106,7 +4106,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         }
 
         /// <summary>
-        /// Sets terrain texture
+        /// Sets terrain texture for legacy viewers and map
         /// </summary>
         /// <param name="level"></param>
         /// <param name="texture"></param>
@@ -4115,16 +4115,68 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             if (level < 0 || level > 3)
                 return;
+            IEstateModule estate = World.RequestModuleInterface<IEstateModule>();
+            if(estate == null)
+                return;
             if (!UUID.TryParse(texture, out UUID textureID))
                 return;
 
-            CheckThreatLevel(ThreatLevel.High, "osSetTerrainTexture");
+            if (!World.Permissions.IsGod(m_host.OwnerID))
+                CheckThreatLevel(ThreatLevel.High, "osSetTerrainTexture");
 
-            if (World.Permissions.IsGod(m_host.OwnerID))
+            estate.setEstateTerrainBaseTexture(level, textureID);
+        }
+
+        /// Sets terrain texture for legacy viewers and map
+        /// if types is 0, sets textures for older viewers and map
+        /// if types is 1 sets materials or textures for new viewers
+        /// if types is 2 sets textures for both kinds
+        /// </summary>
+        /// <param name="textures"></param>
+        /// <param name="legacy"></param>
+        /// <returns></returns>
+
+        public void osSetTerrainTextures(LSL_List textures, LSL_Integer types)
+        {
+            if(textures.Length != 4)
+                return;
+
+            IEstateModule estate = World.RequestModuleInterface<IEstateModule>();
+            if(estate == null)
+                return;
+
+            if (!World.Permissions.IsGod(m_host.OwnerID))
+                CheckThreatLevel(ThreatLevel.High, "osSetTerrainTexture");
+
+            List<UUID> ids = new(4);
+            int changes = 0;
+            for(int i = 0; i < textures.Length; i++)
             {
-                IEstateModule estate = World.RequestModuleInterface<IEstateModule>();
-                estate?.setEstateTerrainBaseTexture(level, textureID);
+                string u = textures.GetStrictLSLStringItem(i);
+                if(string.IsNullOrEmpty(u))
+                    ids.Add(UUID.Zero);
+                else
+                {
+                    if (!UUID.TryParse(u, out UUID id))
+                    {
+                        TaskInventoryItem item = m_host.Inventory.GetInventoryItem(u);
+                        if (item != null && (item.Type == (int)AssetType.Texture || item.Type == (int)AssetType.Material))
+                            id = item.AssetID;
+                        else
+                        {
+                            OSSLShoutError($"Invalid key in osSetTerrainTextures texture {i}");
+                            return;
+                        }
+                    }
+                    ids.Add(id);
+                    if(changes == 0 && id.IsNotZero())
+                        changes++;
+                }
             }
+            if(changes == 0)
+                return;
+
+            estate.SetEstateTerrainTextures(ids, types.value);
         }
 
         /// <summary>

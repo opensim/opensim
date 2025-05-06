@@ -581,6 +581,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
         //ApiDesc Sets the terrain texture for a given level.
               void osSetTerrainTexture(int level, LSL_Key texture);
+        //ApiDesc Sets terrain textures for legacy viewers it types == 0 or 2, textures for new viewers it types == 1 or 2 or PBR materials if types == 1
+             void osSetTerrainTextures(LSL_List textures, LSL_Integer types);
         //ApiDesc Sets the texture low and high values for a given region corner.
               void osSetTerrainTextureHeight(int corner, double low, double high);
 

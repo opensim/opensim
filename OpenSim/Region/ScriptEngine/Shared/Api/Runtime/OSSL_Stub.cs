@@ -1105,6 +1105,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void osSetTerrainTextures(LSL_List textures, LSL_Integer types)
+        {
+            m_OSSL_Functions.osSetTerrainTextures(textures, types);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void osSetTerrainTextureHeight(int corner, double low, double high)
         {
             m_OSSL_Functions.osSetTerrainTextureHeight(corner, low, high);
