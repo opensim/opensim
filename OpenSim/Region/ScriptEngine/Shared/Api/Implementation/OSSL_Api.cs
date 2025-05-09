@@ -6811,7 +6811,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             object[] data = src.Data;
             if(data == null)
-                return LSL_Integer.Zero;
+                return LSL_Float.Zero;
             if (index >= 0 && index < data.Length)
             { 
                 object o = data[index];
