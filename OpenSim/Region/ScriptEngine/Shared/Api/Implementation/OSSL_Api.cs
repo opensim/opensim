@@ -6807,5 +6807,84 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             return -1;
         }
+        public LSL_Float osListAsFloat(LSL_List src, int index)
+        {
+            object[] data = src.Data;
+            if(data == null)
+                return LSL_Integer.Zero;
+            if (index >= 0 && index < data.Length)
+            { 
+                object o = data[index];
+                if(o is LSL_Float d)
+                    return d;
+                if(o is double nd)
+                    return nd;
+            }
+            return LSL_Float.Zero;
+        }
+
+        public LSL_Integer osListAsInteger(LSL_List src, int index)
+        {
+            object[] data = src.Data;
+            if(data == null)
+                return LSL_Integer.Zero;
+            if (index >= 0 && index < data.Length)
+            { 
+                object o = data[index];
+                if(o is LSL_Integer i)
+                    return i;
+                if(o is int ni)
+                    return ni;
+            }
+            return LSL_Integer.Zero;
+        }
+
+        public LSL_String osListAsString(LSL_List src, int index)
+        {
+            object[] data = src.Data;
+            if(data == null)
+                return LSL_String.Empty;
+            if (index >= 0 && index < data.Length)
+            { 
+                object o = data[index];
+                if(o is LSL_String s)
+                    return s;
+                if(o is string ns)
+                    return ns;
+            }
+            return LSL_String.Empty;
+        }
+
+        public LSL_Vector osListAsVector(LSL_List src, int index)
+        {
+            object[] data = src.Data;
+            if(data == null)
+                return LSL_Vector.Zero;
+            if (index >= 0 && index < data.Length)
+            { 
+                object o = data[index];
+                if(o is LSL_Vector v)
+                    return v;
+                if(o is Vector3 ov)
+                    return ov;
+            }
+            return LSL_Vector.Zero;
+        }
+
+        public LSL_Rotation osListAsRotation(LSL_List src, int index)
+        {
+            object[] data = src.Data;
+            if(data == null)
+                return LSL_Rotation.Identity;
+            if (index >= 0 && index < data.Length)
+            { 
+                object o = data[index];
+                if(o is LSL_Rotation r)
+                    return r;
+                if(o is Quaternion q)
+                    return q;
+            }
+            return LSL_Rotation.Identity;
+        }
     }
 }

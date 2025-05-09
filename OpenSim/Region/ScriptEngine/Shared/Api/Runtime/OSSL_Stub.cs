@@ -1831,5 +1831,35 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osListFindListNext(src, test, start, end, instance);
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_String osListAsString(LSL_List src, int index)
+        {
+            return m_OSSL_Functions.osListAsString(src, index);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_Integer osListAsInteger(LSL_List src, int index)
+        {
+            return m_OSSL_Functions.osListAsInteger(src, index);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_Float osListAsFloat(LSL_List src, int index)
+        {
+            return m_OSSL_Functions.osListAsFloat(src, index);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public vector osListAsVector(LSL_List src, int index)
+        {
+            return m_OSSL_Functions.osListAsVector(src, index);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public rotation osListAsRotation(LSL_List src, int index)
+        {
+            return m_OSSL_Functions.osListAsRotation(src, index);
+        }
     }
 }
