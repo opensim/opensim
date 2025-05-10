@@ -28,6 +28,7 @@
 
 using System;
 using System.IO;
+using System.IO.Compression;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
@@ -35,30 +36,22 @@ using System.Text;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 
-using OpenSim.Framework;
-using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Framework.Capabilities;
-
-using System.IO.Compression;
-
-using OSDArray = OpenMetaverse.StructuredData.OSDArray;
-using OSDMap = OpenMetaverse.StructuredData.OSDMap;
 
 using Nini.Config;
 using log4net;
 using System.Reflection;
 
+using OSDArray = OpenMetaverse.StructuredData.OSDArray;
+using OSDMap = OpenMetaverse.StructuredData.OSDMap;
+
+
 namespace OpenSim.Region.ClientStack.Linden
 {
-    public struct ModelPrimLimits
-    {
-
-    }
-
     public class ModelCost
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         // upload fee defaults
         // fees are normalized to 1.0
@@ -167,7 +160,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             if (ObjectLinkedPartsMax != 0 && numberInstances > ObjectLinkedPartsMax)
             {
-                error = "Model would have more than " + ObjectLinkedPartsMax.ToString() + " linked prims";
+                error = $"Model would have more than {ObjectLinkedPartsMax} linked prims";
                 return false;
             }
 
@@ -186,7 +179,7 @@ namespace OpenSim.Region.ClientStack.Linden
             // textures cost
             if (resources.texture_list != null && resources.texture_list.Array.Count > 0)
             {
-                float textures_cost = (float)(resources.texture_list.Array.Count * basicCost);
+                float textures_cost = resources.texture_list.Array.Count * basicCost;
                 textures_cost *= ModelTextureCostFactor;
 
                 itmp = (int)(textures_cost + 0.5f); // round
@@ -202,7 +195,7 @@ namespace OpenSim.Region.ClientStack.Linden
             bool curskeleton;
             bool curAvatarPhys;
 
-            List<ameshCostParam> meshsCosts = new List<ameshCostParam>();
+            List<ameshCostParam> meshsCosts = [];
 
             if (resources.mesh_list != null && resources.mesh_list.Array.Count > 0)
             {
@@ -256,14 +249,14 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 if (scale.X < PrimScaleMin || scale.Y < PrimScaleMin || scale.Z < PrimScaleMin)
                 {
-                    m_log.WarnFormat("[MESHUPLOADER]: Mesh {0} below min scale", inst["mesh_name"].ToString());
+                    //m_log.WarnFormat("[MESHUPLOADER]: Mesh {0} below min scale", inst["mesh_name"].ToString());
                     skipedSmall.Add(inst["mesh_name"].ToString());
                     continue;
                 }
 
                 if (scale.X > NonPhysicalPrimScaleMax || scale.Y > NonPhysicalPrimScaleMax || scale.Z > NonPhysicalPrimScaleMax)
                 {
-                    error = "Model contains parts with sides larger than " + NonPhysicalPrimScaleMax.ToString() + "m. Please ajust scale";
+                    error = $"Model contains parts with sides larger than {NonPhysicalPrimScaleMax}m. Please ajust scale";
                     return false;
                 }
 
@@ -305,32 +298,38 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 if (skipedSmall.Count > numberInstances / 2)
                 {
-                    error = "Model contains too many prims smaller than " + PrimScaleMin.ToString() +
-                        "m minimum allowed size. Please check scaling";
+                    error = $"Model contains too many prims smaller than {PrimScaleMin}m minimum allowed size. Please check scaling";
                     return false;
                 }
                 else
                 {
-                    warning += skipedSmall.Count.ToString() + " of the requested " + numberInstances.ToString() +
-                        " model prims will not upload because they are smaller than " + PrimScaleMin.ToString() +
-                        "m minimum allowed size. Please check scaling of: ";
+                    StringBuilder sb = new(256);
+                    sb.Append(skipedSmall.Count);
+                    sb.Append(" of the requested ");
+                    sb.Append(numberInstances);
+                    sb.Append(" model prims will not upload because they are smaller than ");
+                    sb.Append(PrimScaleMin);
+                    sb.Append("m minimum allowed size. Please check scaling of: ");
 
                     // The modal has a limited size, so need to cut somewhere
                     int i = 0;
-                    int t = skipedSmall[i].Length;
+                    int t = skipedSmall[i].Length + 1;
                     while (t < 119)
                     {
-                        warning += skipedSmall[i].ToString() + " ";
+                        sb.Append(skipedSmall[i]);
+                        sb.Append(' ');
                         i++;
-                        t += skipedSmall[i].Length + 1;
-                        if (t > 118)
-                        {
-                            warning += "...";
+                        if(i >= skipedSmall.Count)
                             break;
-                        }
+                        t += skipedSmall[i].Length + 1;
                     }
-                    if (i == 0 && t > 118)
-                        warning += string.Concat(skipedSmall[0].AsSpan(0, 117), "...");
+                    if (t >= 119 && i < skipedSmall.Count)
+                    {
+                        int c = t - skipedSmall[i].Length + 1;
+                        sb.Append(skipedSmall[i].AsSpan(0, 117 - c));
+                        sb.Append("...");
+                    }
+                    warning += sb.ToString();
                 }
             }
 
