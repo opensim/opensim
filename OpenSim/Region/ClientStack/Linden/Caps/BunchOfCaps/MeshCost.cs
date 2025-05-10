@@ -46,6 +46,8 @@ using OSDArray = OpenMetaverse.StructuredData.OSDArray;
 using OSDMap = OpenMetaverse.StructuredData.OSDMap;
 
 using Nini.Config;
+using log4net;
+using System.Reflection;
 
 namespace OpenSim.Region.ClientStack.Linden
 {
@@ -56,6 +58,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
     public class ModelCost
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         // upload fee defaults
         // fees are normalized to 1.0
@@ -156,7 +159,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 resources.instance_list == null ||
                 resources.instance_list.Array.Count == 0)
             {
-                error = "missing model information.";
+                error = "Missing model information.";
                 return false;
             }
 
@@ -220,7 +223,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     {
                         if (avatarSkeleton)
                         {
-                            error = "model can only contain a avatar skeleton";
+                            error = "Model can only contain a avatar skeleton";
                             return false;
                         }
                         avatarSkeleton = true;
@@ -236,7 +239,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
 
             int mesh;
-            int skipedSmall = 0;
+            List<string> skipedSmall = [];
             for (int i = 0; i < numberInstances; i++)
             {
                 Hashtable inst = (Hashtable)resources.instance_list.Array[i];
@@ -253,7 +256,8 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 if (scale.X < PrimScaleMin || scale.Y < PrimScaleMin || scale.Z < PrimScaleMin)
                 {
-                    skipedSmall++;
+                    m_log.WarnFormat("[MESHUPLOADER]: Mesh {0} below min scale", inst["mesh_name"].ToString());
+                    skipedSmall.Add(inst["mesh_name"].ToString());
                     continue;
                 }
 
@@ -269,7 +273,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
                     if (mesh >= numberMeshs)
                     {
-                        error = "Incoerent model information.";
+                        error = "Incoherent model information.";
                         return false;
                     }
 
@@ -297,18 +301,37 @@ namespace OpenSim.Region.ClientStack.Linden
                 meshsfee += primCreationCost;
             }
 
-            if (skipedSmall > 0)
+            if (skipedSmall.Count > 0)
             {
-                if (skipedSmall > numberInstances / 2)
+                if (skipedSmall.Count > numberInstances / 2)
                 {
                     error = "Model contains too many prims smaller than " + PrimScaleMin.ToString() +
-                        "m minimum allowed size. Please check scalling";
+                        "m minimum allowed size. Please check scaling";
                     return false;
                 }
                 else
-                    warning += skipedSmall.ToString() + " of the requested " +numberInstances.ToString() +
+                {
+                    warning += skipedSmall.Count.ToString() + " of the requested " + numberInstances.ToString() +
                         " model prims will not upload because they are smaller than " + PrimScaleMin.ToString() +
-                        "m minimum allowed size. Please check scalling ";
+                        "m minimum allowed size. Please check scaling of: ";
+
+                    // The modal has a limited size, so need to cut somewhere
+                    int i = 0;
+                    int t = skipedSmall[i].Length;
+                    while (t < 119)
+                    {
+                        warning += skipedSmall[i].ToString() + " ";
+                        i++;
+                        t += skipedSmall[i].Length + 1;
+                        if (t > 118)
+                        {
+                            warning += "...";
+                            break;
+                        }
+                    }
+                    if (i == 0 && t > 118)
+                        warning += string.Concat(skipedSmall[0].AsSpan(0, 117), "...");
+                }
             }
 
             if (meshcostdata.physics_cost <= meshcostdata.model_streaming_cost)
