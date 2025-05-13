@@ -154,8 +154,19 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         continue;
                     }
 
+                    if(asset.FullID.IsZero())
+                    {
+                        if(!UUID.TryParse(thiskey, out UUID id))
+                        {
+                            m_log.InfoFormat($"[ARCHIVER]: cannot save asset '{asset.Name}' because it has Zero");
+                            m_notFoundAssetUuids.Add(kvp.Key);
+                            continue;
+                        }
+                        asset.FullID = id;
+                    }
+
                     sbyte assetType = kvp.Value;
-                    if (asset != null && assetType == (sbyte)AssetType.Unknown)
+                    if (assetType == (sbyte)AssetType.Unknown)
                     {
                         m_log.InfoFormat("[ARCHIVER]: Rewriting broken asset type for {0} to {1}", thiskey, SLUtil.AssetTypeFromCode(assetType));
                         asset.Type = assetType;
