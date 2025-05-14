@@ -366,7 +366,7 @@ namespace OpenSim.Services.Connectors
                 newID = null;
             }
 
-            if (string.IsNullOrEmpty(newID) || newID == stringUUIDZero)
+            if (string.IsNullOrEmpty(newID) || newID.Equals(UUID.ZeroString))
             {
                 return string.Empty;
             }
