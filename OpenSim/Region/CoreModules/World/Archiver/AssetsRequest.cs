@@ -156,9 +156,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                     if(asset.FullID.IsZero())
                     {
-                        if(!UUID.TryParse(thiskey, out UUID id))
+                        if(!UUID.TryParse(thiskey, out UUID id) || id.IsZero())
                         {
-                            m_log.InfoFormat($"[ARCHIVER]: cannot save asset '{asset.Name}' because it has Zero");
+                            m_log.InfoFormat($"[ARCHIVER]: cannot save asset {kvp.Key} because it has Invalid UUID");
                             m_notFoundAssetUuids.Add(kvp.Key);
                             continue;
                         }
