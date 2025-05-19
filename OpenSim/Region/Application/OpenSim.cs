@@ -302,7 +302,7 @@ namespace OpenSim
                                             + "--force-assets will load the OAR and try to upload the assets it contains.\n"
                                             + "       it will REPLACE those assets on local region cache\n"
                                             + "       it will also try to upload them to service, but that only work if they are not present"
-                                            + "       Avoid using this except for some recovery atempts"
+                                            + "       Avoid using this except for some recovery attempts"
                                             + "--default-user will use this user for any objects with an owner whose UUID is not found in the grid.\n"
                                             + "--no-objects suppresses the addition of any objects (good for loading only the terrain).\n"
                                             + "--rotation specified rotation to be applied to the oar. Specified in degrees.\n"
