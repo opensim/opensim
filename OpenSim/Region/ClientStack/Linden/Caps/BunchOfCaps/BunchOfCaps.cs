@@ -855,6 +855,8 @@ namespace OpenSim.Region.ClientStack.Linden
 
                     int skipedMeshs = 0;
                     float primScaleMin = m_ModelCost.PrimScaleMin;
+                    
+                    OSD tmp;
                     // build prims from instances
                     for (int i = 0; i < instance_list.Count; i++)
                     {
@@ -870,34 +872,33 @@ namespace OpenSim.Region.ClientStack.Linden
                         }
 
                         OSDArray face_list = (OSDArray)inner_instance_list["face_list"];
-
+                        
                         PrimitiveBaseShape pbs = null;
-                        if (inner_instance_list.ContainsKey("mesh")) // seems to happen always but ...
+                        if (inner_instance_list.TryGetValue("mesh", out tmp)) // seems to happen always but ...
                         {
-                            int meshindx = inner_instance_list["mesh"].AsInteger();
-                            if (meshAssets.Count > meshindx)
+                            int meshindx = tmp.AsInteger();
+                            if (meshindx >= 0 && meshAssets.Count > meshindx)
                             {
                                 if(meshesSides != null && meshesSides.Length > meshindx)
-                                    pbs = PrimitiveBaseShape.CreateMesh(meshesSides[i], meshAssets[meshindx]);
+                                    pbs = PrimitiveBaseShape.CreateMesh(meshesSides[meshindx], meshAssets[meshindx]);
                                 else
                                     pbs = PrimitiveBaseShape.CreateMesh(face_list.Count, meshAssets[meshindx]);
                             }
                         }
-                        if(pbs == null) // fallback
-                            pbs = PrimitiveBaseShape.CreateBox();
 
-                        Primitive.TextureEntry textureEntry
-                            = new Primitive.TextureEntry(Primitive.TextureEntry.WHITE_TEXTURE);
+                        pbs ??= PrimitiveBaseShape.CreateBox(); //fallback
+
+                        Primitive.TextureEntry textureEntry = new(Primitive.TextureEntry.WHITE_TEXTURE);
 
                         for (uint face = 0; face < face_list.Count; face++)
                         {
                             OSDMap faceMap = (OSDMap)face_list[(int)face];
 
                             Primitive.TextureEntryFace f = textureEntry.CreateFace(face); //clone the default
-                            if (faceMap.ContainsKey("fullbright"))
-                                f.Fullbright = faceMap["fullbright"].AsBoolean();
-                            if (faceMap.ContainsKey("diffuse_color"))
-                                f.RGBA = faceMap["diffuse_color"].AsColor4();
+                            if (faceMap.TryGetValue("fullbright", out tmp))
+                                f.Fullbright = tmp.AsBoolean();
+                            if (faceMap.TryGetValue("diffuse_color", out tmp))
+                                f.RGBA = tmp.AsColor4();
 
                             int textureNum = faceMap["image"].AsInteger();
                             float imagerot = faceMap["imagerot"].AsInteger();

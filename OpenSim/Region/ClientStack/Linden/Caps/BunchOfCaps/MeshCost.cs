@@ -264,7 +264,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 {
                     mesh = (int)inst["mesh"];
 
-                    if (mesh >= numberMeshs)
+                    if (mesh < 0 || mesh >= numberMeshs)
                     {
                         error = "Incoherent model information.";
                         return false;
