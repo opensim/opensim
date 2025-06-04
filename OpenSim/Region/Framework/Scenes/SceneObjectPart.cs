@@ -5308,9 +5308,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public Color4 GetTextColor()
         {
-            // note that Alpha is inverted for lludp
             Color color = m_color;
-            return new Color4(color.R, color.G, color.B, (byte)(0xFF - color.A));
+            return new Color4(color.R, color.G, color.B, m_color.A);
         }
 
         public float GetTextAlpha()

@@ -52,6 +52,7 @@ using Caps = OpenSim.Framework.Capabilities.Caps;
 using PermissionMask = OpenSim.Framework.PermissionMask;
 using RegionFlags = OpenMetaverse.RegionFlags;
 using System.Linq;
+using System.Drawing;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
@@ -7544,8 +7545,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 zc.AddShortLimitedUTF8(osUTF8PartText);
 
                 //textcolor
-                byte[] tc = part.GetTextColor().GetBytes(false);
-                zc.AddBytes(tc, 4);
+                Color c = part.Color;
+                zc.AddByte(c.R);
+                zc.AddByte(c.G);
+                zc.AddByte(c.B);
+                zc.AddByte((byte)(0xff - c.A));
             }
 
             //media url
@@ -7965,7 +7969,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             else
                 BlockLengh += extraParamBytes.Length;
 
-            byte[] hoverTextColor = null;
             osUTF8 osUTF8PartText = part.osUTF8Text;
             if (osUTF8PartText != null && osUTF8PartText.Length > 0)
             {
@@ -7973,8 +7976,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 BlockLengh += osUTF8PartText.Length;
                 if (osUTF8PartText[^1] != 0)
                     ++BlockLengh;
-                hoverTextColor = part.GetTextColor().GetBytes(false);
-                BlockLengh += hoverTextColor.Length;
+                BlockLengh += 4;
                 hastext = true;
             }
 
@@ -8102,7 +8104,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 zc.AddBytes(osUTF8PartText.GetArray(), osUTF8PartText.Length);
                 if (osUTF8PartText[^1] != 0)
                     zc.AddZeros(1);
-                zc.AddBytes(hoverTextColor, hoverTextColor.Length);
+
+                Color c = part.Color;
+                zc.AddByte(c.R);
+                zc.AddByte(c.G);
+                zc.AddByte(c.B);
+                zc.AddByte((byte)(0xff - c.A));
             }
             if (hasmediaurl)
             {

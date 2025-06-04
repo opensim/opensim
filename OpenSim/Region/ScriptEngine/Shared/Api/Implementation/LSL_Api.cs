@@ -12070,7 +12070,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         res.Add(new LSL_Vector(textColor.R,
                                                textColor.G,
                                                textColor.B));
-                        res.Add(new LSL_Float(part.GetTextAlpha()));
+                        res.Add(new LSL_Float(textColor.A));
                         break;
 
                     case ScriptBaseClass.PRIM_NAME:
