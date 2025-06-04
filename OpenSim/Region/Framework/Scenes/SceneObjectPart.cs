@@ -5309,7 +5309,7 @@ namespace OpenSim.Region.Framework.Scenes
         public Color4 GetTextColor()
         {
             Color color = m_color;
-            return new Color4(color.R, color.G, color.B, m_color.A);
+            return new Color4(color.R, color.G, color.B, color.A);
         }
 
         public float GetTextAlpha()
