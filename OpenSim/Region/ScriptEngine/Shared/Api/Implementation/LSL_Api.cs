@@ -12070,7 +12070,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         res.Add(new LSL_Vector(textColor.R,
                                                textColor.G,
                                                textColor.B));
-                        res.Add(new LSL_Float(textColor.A));
+                        res.Add(new LSL_Float(part.GetTextAlpha()));
                         break;
 
                     case ScriptBaseClass.PRIM_NAME:
@@ -15415,7 +15415,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             ret.Add(new LSL_Vector(textColor.R, textColor.G, textColor.B));
                             break;
                         case ScriptBaseClass.OBJECT_TEXT_ALPHA:
-                            ret.Add(new LSL_Float(obj.GetTextColor().A));
+                            ret.Add(new LSL_Float(obj.GetTextAlpha()));
                             break;
                         default:
                             // Invalid or unhandled constant.
