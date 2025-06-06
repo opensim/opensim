@@ -315,8 +315,6 @@ namespace OpenSim.Region.Framework.Scenes
             if (scriptEngines.Length == 0) // No engine at all
                 return;
 
-            bool running;
-
             m_items.LockItemsForRead(true);
 
             foreach (TaskInventoryItem item in m_scripts.Values)
@@ -324,7 +322,7 @@ namespace OpenSim.Region.Framework.Scenes
                 //running = false;
                 foreach (IScriptModule e in scriptEngines)
                 {
-                    if (e.HasScript(item.ItemID, out running))
+                    if (e.HasScript(item.ItemID, out bool running))
                     {
                         item.ScriptRunning = running;
                         break;

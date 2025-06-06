@@ -1025,34 +1025,50 @@ namespace OpenSim.Region.Framework.Scenes
         /// </value>
         public Color Color
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return m_color; }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set { m_color = value; }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int TextColorArgb()
+        {
+            return m_color.ToArgb();
         }
 
         public osUTF8 osUTF8Text;
         public string Text
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return osUTF8Text == null ? string.Empty : osUTF8Text.ToString(); }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set { osUTF8Text = string.IsNullOrEmpty(value) ? null : new osUTF8(value, 254); }
         }
 
         public osUTF8 osUTF8SitName;
         public string SitName
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return osUTF8SitName == null ? string.Empty : osUTF8SitName.ToString(); }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set { osUTF8SitName = string.IsNullOrEmpty(value) ? null : new osUTF8(value, 36); }
         }
 
         public osUTF8 osUTF8TouchName;
         public string TouchName
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return osUTF8TouchName == null ? string.Empty : osUTF8TouchName.ToString(); }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set { osUTF8TouchName = string.IsNullOrEmpty(value) ? null : new osUTF8(value, 36); }
         }
 
         public int LinkNum
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return m_linkNum; }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
 //                if (ParentGroup != null)

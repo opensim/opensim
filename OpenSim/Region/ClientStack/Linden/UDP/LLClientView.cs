@@ -52,7 +52,6 @@ using Caps = OpenSim.Framework.Capabilities.Caps;
 using PermissionMask = OpenSim.Framework.PermissionMask;
 using RegionFlags = OpenMetaverse.RegionFlags;
 using System.Linq;
-using System.Drawing;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
@@ -7545,11 +7544,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 zc.AddShortLimitedUTF8(osUTF8PartText);
 
                 //textcolor
-                Color c = part.Color;
-                zc.AddByte(c.R);
-                zc.AddByte(c.G);
-                zc.AddByte(c.B);
-                zc.AddByte((byte)(0xff - c.A));
+                zc.AddColorArgb(part.TextColorArgb());
             }
 
             //media url
@@ -8105,11 +8100,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (osUTF8PartText[^1] != 0)
                     zc.AddZeros(1);
 
-                Color c = part.Color;
-                zc.AddByte(c.R);
-                zc.AddByte(c.G);
-                zc.AddByte(c.B);
-                zc.AddByte((byte)(0xff - c.A));
+                zc.AddColorArgb(part.TextColorArgb());
             }
             if (hasmediaurl)
             {

@@ -1806,7 +1806,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                 migrateInReader = mir;
                 migrateInObjects = new Dictionary<int, object>();
-                ehArgs = (object[])RecvObjValue();
+                ehArgs = (object[])RecvObjValue() ?? [];
                 doGblInit = mir.ReadBoolean();
                 stateCode = mir.ReadInt32();
                 eventCode = (ScriptEventCode)mir.ReadInt32();
@@ -1824,7 +1824,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     XMRStackFrame thisSF = new XMRStackFrame();
                     thisSF.funcName = funcName;
                     thisSF.callNo = mir.ReadInt32();
-                    thisSF.objArray = (object[])RecvObjValue();
+                    thisSF.objArray = (object[])RecvObjValue() ?? [];
                     if(lastSF == null)
                         stackFrames = thisSF;
                     else
@@ -1870,7 +1870,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 case Ser.LSLLIST:
                 {
                     this.migrateInObjects.Add(ident, null);    // placeholder
-                    object[] data = (object[])RecvObjValue();  // read data, maybe using another index
+                    object[] data = (object[])RecvObjValue() ?? [];  // read data, maybe using another index
                     LSL_List list = new LSL_List(data);        // make LSL-level list
                     this.migrateInObjects[ident] = list;        // fill in slot
                     return list;
@@ -1899,8 +1899,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 {
                     Type eletype = String2SysType(mir.ReadString());
                     int length = mir.ReadInt32();
+                    if(length == 0)
+                    {
+                        migrateInObjects.Add(ident, null);
+                        return null;
+                    }
+
                     Array array = Array.CreateInstance(eletype, length);
-                    this.migrateInObjects.Add(ident, array);
+                    migrateInObjects.Add(ident, array);
                     for(int i = 0; i < length; i++)
                         array.SetValue(RecvObjValue(), i);
                     return array;
