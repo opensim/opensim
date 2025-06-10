@@ -315,8 +315,6 @@ namespace OpenSim.Region.Framework.Scenes
             if (scriptEngines.Length == 0) // No engine at all
                 return;
 
-            bool running;
-
             m_items.LockItemsForRead(true);
 
             foreach (TaskInventoryItem item in m_scripts.Values)
@@ -324,7 +322,7 @@ namespace OpenSim.Region.Framework.Scenes
                 //running = false;
                 foreach (IScriptModule e in scriptEngines)
                 {
-                    if (e.HasScript(item.ItemID, out running))
+                    if (e.HasScript(item.ItemID, out bool running))
                     {
                         item.ScriptRunning = running;
                         break;
@@ -1075,12 +1073,12 @@ namespace OpenSim.Region.Framework.Scenes
             return item;
         }
 
-        public TaskInventoryItem GetInventoryItem(string name)
+        public TaskInventoryItem GetInventoryItem(ReadOnlySpan<char> name)
         {
             m_items.LockItemsForRead(true);
             foreach (TaskInventoryItem item in m_items.Values)
             {
-                if (item.Name == name)
+                if (name.Equals(item.Name, StringComparison.Ordinal))
                 {
                     m_items.LockItemsForRead(false);
                     return item;
@@ -1091,12 +1089,12 @@ namespace OpenSim.Region.Framework.Scenes
             return null;
         }
 
-        public TaskInventoryItem GetInventoryItem(string name, int type)
+        public TaskInventoryItem GetInventoryItem(ReadOnlySpan<char> name, int type)
         {
             m_items.LockItemsForRead(true);
             foreach (TaskInventoryItem item in m_items.Values)
             {
-                if (item.Type == type && item.Name == name)
+                if (item.Type == type && name.Equals(item.Name, StringComparison.Ordinal))
                 {
                     m_items.LockItemsForRead(false);
                     return item;
@@ -1107,15 +1105,41 @@ namespace OpenSim.Region.Framework.Scenes
             return null;
         }
 
-        public List<TaskInventoryItem> GetInventoryItems(string name)
+        public TaskInventoryItem GetInventoryItem(ReadOnlySpan<char> name, ReadOnlySpan<int> types)
         {
-            List<TaskInventoryItem> items = new List<TaskInventoryItem>();
+            if(types.Length == 0)
+                return null;
+            m_items.LockItemsForRead(true);
+            foreach (TaskInventoryItem item in m_items.Values)
+            {
+                if (name.Equals(item.Name, StringComparison.Ordinal))
+                {
+                    int type = item.Type;
+                    int i = 0;
+                    do
+                    {
+                        if(type == types[i])
+                        {
+                            m_items.LockItemsForRead(false);
+                            return item;
+                        }
+                        i++;
+                    }while(i < types.Length);
+                }
+            }
+            m_items.LockItemsForRead(false);
+
+            return null;
+        }
+        public List<TaskInventoryItem> GetInventoryItems(ReadOnlySpan<char> name)
+        {
+            List<TaskInventoryItem> items = [];
 
             m_items.LockItemsForRead(true);
 
             foreach (TaskInventoryItem item in m_items.Values)
             {
-                if (item.Name == name)
+                if (name.Equals(item.Name, StringComparison.Ordinal))
                     items.Add(item);
             }
 

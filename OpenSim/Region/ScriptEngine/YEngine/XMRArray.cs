@@ -60,10 +60,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private XMRInstAbstract inst;                         // script instance debited with heap use
         private int heapUse;                                  // current heap use debit amount
 
-        public static TokenTypeSDTypeDelegate countDelegate = new TokenTypeSDTypeDelegate(new TokenTypeInt(null), new TokenType[0]);
-        public static TokenTypeSDTypeDelegate clearDelegate = new TokenTypeSDTypeDelegate(new TokenTypeVoid(null), new TokenType[0]);
-        public static TokenTypeSDTypeDelegate indexDelegate = new TokenTypeSDTypeDelegate(new TokenTypeObject(null), new TokenType[] { new TokenTypeInt(null) });
-        public static TokenTypeSDTypeDelegate valueDelegate = new TokenTypeSDTypeDelegate(new TokenTypeObject(null), new TokenType[] { new TokenTypeInt(null) });
+        public static TokenTypeSDTypeDelegate countDelegate = new TokenTypeSDTypeDelegate(new TokenTypeInt(null), []);
+        public static TokenTypeSDTypeDelegate clearDelegate = new TokenTypeSDTypeDelegate(new TokenTypeVoid(null), []);
+        public static TokenTypeSDTypeDelegate indexDelegate = new TokenTypeSDTypeDelegate(new TokenTypeObject(null), [new TokenTypeInt(null)]);
+        public static TokenTypeSDTypeDelegate valueDelegate = new TokenTypeSDTypeDelegate(new TokenTypeObject(null), [new TokenTypeInt(null)]);
 
         public XMR_Array(XMRInstAbstract inst)
         {

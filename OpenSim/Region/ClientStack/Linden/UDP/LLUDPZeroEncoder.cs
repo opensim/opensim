@@ -29,6 +29,7 @@ using System;
 using System.Runtime.CompilerServices;
 using OpenSim.Framework;
 using OpenMetaverse;
+using System.Runtime.InteropServices;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
@@ -88,10 +89,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public unsafe void AddZeros(int len)
         {
             zerocount += len;
+            ref byte dst = ref MemoryMarshal.GetArrayDataReference(m_dest);
             while (zerocount > 0xff)
             {
-                m_dest[pos++] = 0x00;
-                m_dest[pos++] = 0xff;
+                Unsafe.Add(ref dst, pos) = 0x00;
+                pos++;
+                Unsafe.Add(ref dst, pos) = 0xff;
+                pos++;
                 zerocount -= 256;
             }
         }
@@ -101,24 +105,31 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             if (zerocount > 0)
             {
-                m_dest[pos++] = 0x00;
-                m_dest[pos++] = (byte)zerocount;
+                ref byte dst = ref MemoryMarshal.GetArrayDataReference(m_dest);
+                Unsafe.Add(ref dst, pos) = 0x00;
+                pos++;
+                Unsafe.Add(ref dst, pos) = (byte)zerocount;
+                pos++;
             }
             return pos;
         }
 
         public unsafe void AddBytes(byte[] src, int srclen)
         {
+            ref byte dst = ref MemoryMarshal.GetArrayDataReference(m_dest);
             for (int i = 0; i < srclen; ++i)
             {
-                if (src[i] == 0x00)
+                byte b = src[i];
+                if (b == 0x00)
                 {
                     if (zerocount != 0xff)
                         zerocount++;
                     else
                     {
-                        m_dest[pos++] = 0x00;
-                        m_dest[pos++] = 0xff;
+                        Unsafe.Add(ref dst, pos) = 0x00;
+                        pos++;
+                        Unsafe.Add(ref dst, pos) = 0xff;
+                        pos++;
                         zerocount = 1;
                     }
                 }
@@ -126,18 +137,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     if (zerocount != 0)
                     {
-                        m_dest[pos++] = 0x00;
-                        m_dest[pos++] = (byte)zerocount;
+                        Unsafe.Add(ref dst, pos) = 0x00;
+                        pos++;
+                        Unsafe.Add(ref dst, pos) = (byte)zerocount;
+                        pos++;
                         zerocount = 0;
                     }
-
-                    m_dest[pos++] = src[i];
+                    Unsafe.Add(ref dst, pos) = b;
+                    pos++;
                 }
             }
         }
 
         public unsafe void AddBytes(byte* src, int srclen)
         {
+            ref byte dst = ref MemoryMarshal.GetArrayDataReference(m_dest);
             for (int i = 0; i < srclen; ++i)
             {
                 if (src[i] == 0x00)
@@ -146,8 +160,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         zerocount++;
                     else
                     {
-                        m_dest[pos++] = 0x00;
-                        m_dest[pos++] = 0xff;
+                        Unsafe.Add(ref dst, pos) = 0x00;
+                        pos++;
+                        Unsafe.Add(ref dst, pos) = 0xff;
+                        pos++;
                         zerocount = 1;
                     }
                 }
@@ -155,17 +171,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     if (zerocount != 0)
                     {
-                        m_dest[pos++] = 0x00;
-                        m_dest[pos++] = (byte)zerocount;
+                        Unsafe.Add(ref dst, pos) = 0x00;
+                        pos++;
+                        Unsafe.Add(ref dst, pos) = (byte)zerocount;
+                        pos++;
                         zerocount = 0;
                     }
-
-                    m_dest[pos++] = src[i];
+                    Unsafe.Add(ref dst, pos) = src[i];
+                    pos++;
                 }
             }
         }
 
-        public unsafe void AddByte(byte v)
+        public void AddByte(byte v)
         {
             if (v == 0x00)
             {
@@ -173,21 +191,27 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     zerocount++;
                 else
                 {
-                    m_dest[pos++] = 0x00;
-                    m_dest[pos++] = 0xff;
+                    ref byte dst = ref MemoryMarshal.GetArrayDataReference(m_dest);
+                    Unsafe.Add(ref dst, pos) = 0x00;
+                    pos++;
+                    Unsafe.Add(ref dst, pos) = 0xff;
+                    pos++;
                     zerocount = 1;
                 }
             }
             else
             {
+                ref byte dst = ref MemoryMarshal.GetArrayDataReference(m_dest);
                 if (zerocount != 0)
                 {
-                    m_dest[pos++] = 0x00;
-                    m_dest[pos++] = (byte)zerocount;
+                    Unsafe.Add(ref dst, pos) = 0x00;
+                    pos++;
+                    Unsafe.Add(ref dst, pos) = (byte)zerocount;
+                    pos++;
                     zerocount = 0;
                 }
-
-                m_dest[pos++] = v;
+                Unsafe.Add(ref dst, pos) = v;
+                pos++;
             }
         }
 
@@ -332,6 +356,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddBytes(b, 16);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void AddColorArgb(int argb)
+        {
+            uint ua = (uint)argb ^ 0xff000000;
+            if(ua == 0)
+            {
+                AddZeros(4);
+            }
+            else
+            {
+                AddByte((byte)(ua >> 16));
+                AddByte((byte)(ua >> 8));
+                AddByte((byte)ua);
+                AddByte((byte)(ua >> 24));
+            }
+
+        }
         // maxlen <= 255 and includes null termination byte
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe void AddShortString(string str, int maxlen)

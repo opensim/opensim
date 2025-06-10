@@ -104,7 +104,17 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
                 return true;
             }
 
-            UUID userID = new UUID(user);
+            if(!UUID.TryParse(user, out UUID userID ))
+            {
+                message = "Invalid UUID";
+                return false;
+            }
+
+            if (m_Scene.Permissions.IsAdministrator(userID))
+            {
+                message = "Authorized";
+                return true;
+            }
 
             if ((m_accessValue & AccessFlags.DisallowForeigners) != 0)
             {
@@ -117,7 +127,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
 
             if ((m_accessValue & AccessFlags.DisallowResidents) != 0)
             {
-                if (!(m_Scene.Permissions.IsGod(userID) || m_Scene.Permissions.IsAdministrator(userID)))
+                if(!m_Scene.Permissions.IsEstateManager(userID))
                 {
                     message = "Only Admins and Managers allowed in this region";
                     return false;

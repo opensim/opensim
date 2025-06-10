@@ -45,22 +45,37 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FloodBrushes
         /// </summary>
         /// <param name="map">the current heightmap</param>
         /// <param name="fillArea">array indicating which sections of the map are to be reverted</param>
-        /// <param name="strength">unused</param>
+        /// <param name="strength"></param>
         public void FloodEffect(ITerrainChannel map, bool[,] fillArea, float height, float strength,
             int startX, int endX, int startY, int endY)
         {
-            int x, y;
             strength *= 2f;
-            if (strength > 1.0f)
-                strength = 1.0f;
-
-            for (x = startX; x <= endX; x++)
+            if (strength >= .999f)
             {
-                for (y = startY; y <= endY; y++)
+                for (int x = startX; x <= endX; x++)
+                {
+                    for (int y = startY; y <= endY; y++)
+                    {
+                        if (fillArea[x, y])
+                        {
+                            map[x, y] = m_revertmap[x, y];
+                        }
+                    }
+                }
+                return;
+            }
+
+            if(strength < 1e-4f)
+                return;
+
+            float OneMinusstrength = 1.0f - strength;
+            for (int x = startX; x <= endX; x++)
+            {
+                for (int y = startY; y <= endY; y++)
                 {
                     if (fillArea[x, y])
                     {
-                        map[x, y] = map[x, y] * (1.0f - strength) + m_revertmap[x, y] * strength;
+                        map[x, y] = map[x, y] * OneMinusstrength + m_revertmap[x, y] * strength;
                     }
                 }
             }

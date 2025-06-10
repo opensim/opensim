@@ -1131,6 +1131,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             return group;
         }
 
+        public virtual void FetchRemoteHGItemAssets(UUID OwnerID, InventoryItemBase item)
+        {
+        }
+
         /// <summary>
         /// Do pre-rez processing when the object comes from an item.
         /// </summary>

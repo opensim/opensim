@@ -604,6 +604,10 @@
     ; optional web page for profiles
     ;[AGENT_NAME] will be converted to Firstname.LastName by viewers
     ; web_profile_url = http://webprofilesurl:ItsPort?name=[AGENT_NAME]
+    
+    ; http REST handler /get_grid_stats may output some grid statistics This can be turned off here
+    ;DisableStatsEndpoint = true
+
 
 [Messaging]
     ; OfflineIM

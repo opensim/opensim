@@ -4106,7 +4106,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         }
 
         /// <summary>
-        /// Sets terrain texture
+        /// Sets terrain texture for legacy viewers and map
         /// </summary>
         /// <param name="level"></param>
         /// <param name="texture"></param>
@@ -4115,16 +4115,79 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             if (level < 0 || level > 3)
                 return;
+            IEstateModule estate = World.RequestModuleInterface<IEstateModule>();
+            if(estate == null)
+                return;
             if (!UUID.TryParse(texture, out UUID textureID))
                 return;
 
-            CheckThreatLevel(ThreatLevel.High, "osSetTerrainTexture");
+            if (!World.Permissions.IsGod(m_host.OwnerID))
+                CheckThreatLevel(ThreatLevel.High, "osSetTerrainTexture");
 
-            if (World.Permissions.IsGod(m_host.OwnerID))
+            estate.setEstateTerrainBaseTexture(level, textureID);
+        }
+
+        /// Sets terrain texture for legacy viewers and map
+        /// if types is 0, sets textures for older viewers and map
+        /// if types is 1 sets materials or textures for new viewers
+        /// if types is 2 sets textures for both kinds
+        /// </summary>
+        /// <param name="textures"></param>
+        /// <param name="legacy"></param>
+        /// <returns></returns>
+
+        private static readonly int[] PBRAndTextureTypes = [(int)AssetType.Texture, (int)AssetType.Material];
+        public void osSetTerrainTextures(LSL_List textures, LSL_Integer ltypes)
+        {
+            IEstateModule estateModule = World.RequestModuleInterface<IEstateModule>();
+            if (estateModule == null)
+                return;
+
+            if (!World.Permissions.IsGod(m_host.OwnerID))
+                CheckThreatLevel(ThreatLevel.High, "osSetTerrainTexture");
+
+            if(textures.Length != 4)
             {
-                IEstateModule estate = World.RequestModuleInterface<IEstateModule>();
-                estate?.setEstateTerrainBaseTexture(level, textureID);
+                OSSLShoutError($"osSetTerrainTextures first argument is a list of keys or names that must have 4 elements");
+                return;
             }
+
+            int types = ltypes.value;
+            if( types < 0 || types > 2)
+            {
+                OSSLShoutError($"osSetTerrainTextures second argument must be >=0 and <= 2");
+                return;
+            }
+
+            List<UUID> ids = new(4);
+            bool hasChanges = false;
+            for(int i = 0; i < textures.Length; i++)
+            {
+                string u = textures.GetStrictLSLStringItem(i);
+                if(string.IsNullOrEmpty(u))
+                    ids.Add(UUID.Zero);
+                else
+                {
+                    if (!UUID.TryParse(u, out UUID id))
+                    {
+                        TaskInventoryItem item = types == 1 ? 
+                            m_host.Inventory.GetInventoryItem(u, PBRAndTextureTypes) : 
+                            m_host.Inventory.GetInventoryItem(u,(int)AssetType.Texture);
+                        if (item == null)
+                        {
+                            OSSLShoutError($"Invalid key or asset type in osSetTerrainTextures texture {i}");
+                            return;
+                        }
+                        id = item.AssetID;
+                    }
+                    ids.Add(id);
+                    if(!hasChanges && id.IsNotZero())
+                        hasChanges = true;
+                }
+            }
+
+            if(hasChanges)
+                estateModule.SetEstateTerrainTextures(ids, types);
         }
 
         /// <summary>
@@ -5755,7 +5818,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        public void osGiveLinkInventoryList(LSL_Integer linkNumber, LSL_Key destination, LSL_String category, LSL_List inventory)
+        public void osGiveLinkInventoryList(LSL_Integer linkNumber, LSL_Key destination, LSL_String folderName, LSL_List inventory)
         {
             if (inventory.Length == 0)
                 return;
@@ -5818,7 +5881,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
 
-            UUID folderID = m_ScriptEngine.World.MoveTaskInventoryItems(destID, category, part, itemList, false);
+            UUID folderID = m_ScriptEngine.World.MoveTaskInventoryItems(destID, folderName, part, itemList, false);
 
             if (folderID.IsZero())
             {
@@ -5841,7 +5904,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 GridInstantMessage msg = new(World, m_host.OwnerID, m_host.Name, destID,
                         (byte)InstantMessageDialog.TaskInventoryOffered,
-                        m_host.OwnerID.Equals(m_host.GroupID), string.Format("'{0}'", category), folderID, false, pos,bucket, false);
+                        m_host.OwnerID.Equals(m_host.GroupID), string.Format("'{0}'", folderName), folderID, false, pos,bucket, false);
 
                 m_TransferModule.SendInstantMessage(msg, delegate(bool success) {});
             }
@@ -6638,6 +6701,190 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             green = 1.261989f * MathF.Pow(temp, -0.251708f) + 0.200836f;
             green = Math.Clamp(green, 0, 1.0f);
             return new LSL_Vector(red, green, 1.0f);
+        }
+
+        public LSL_Integer osListFindListNext(LSL_List lsrc, LSL_List ltest, LSL_Integer lstart, LSL_Integer lend, LSL_Integer linstance)
+        {
+            int srclen = lsrc.Length;
+            int testlen = ltest.Length;
+            if (srclen == 0)
+                return testlen == 0 ? 0 : -1;
+
+            int instance = linstance.value;
+            if (testlen == 0)
+            {
+                if(instance >= 0)
+                    return instance < srclen ? instance : -1;
+
+                instance += srclen;
+                return instance >= 0 ? instance : -1;
+            }
+
+            if (testlen > srclen)
+                return -1;
+
+
+            int start = lstart.value;
+            if (start < 0)
+            {
+                start += srclen;
+                if (start < 0)
+                    return -1;
+            }
+            else if (start >= srclen)
+                return -1;
+
+            int end = lend.value;
+            if (end < 0)
+            {
+                end += srclen;
+                if (end < 0)
+                    return -1;
+                end -= testlen - 1;
+            }
+            else if (end > srclen - testlen)
+                end = srclen - testlen;
+
+            object[] src = lsrc.Data;
+            object[] test = ltest.Data;
+
+            object test0 = test[0];
+            int nmatchs = 0;
+
+            if(instance >= 0)
+            {
+                for (int i = start; i <= end; i++)
+                {
+                    if (LSL_List.ListFind_areEqual(test0, src[i]))
+                    {
+                        int k = i + 1;
+                        int j = 1;
+                        while(j < testlen)
+                        {
+                            if (!LSL_List.ListFind_areEqual(test[j], src[k]))
+                                break;
+                            ++j;
+                            ++k;
+                        }
+
+                        if (j == testlen)
+                        {
+                            if(nmatchs == instance)
+                                return i;
+
+                            nmatchs++;
+                        }
+                     }
+                }
+            }
+            else
+            {
+                instance++;
+                instance = -instance;
+                for (int i = end; i >= start; i--)
+                {
+                    if (LSL_List.ListFind_areEqual(test0, src[i]))
+                    {
+                        int k = i + 1;
+                        int j = 1;
+                        while(j < testlen)
+                        {
+                            if (!LSL_List.ListFind_areEqual(test[j], src[k]))
+                                break;
+                            ++j;
+                            ++k;
+                        }
+
+                        if (j == testlen)
+                        {
+                            if(nmatchs == instance)
+                                return i;
+
+                            nmatchs++;
+                        }
+                     }
+                }
+            }
+            return -1;
+        }
+        public LSL_Float osListAsFloat(LSL_List src, int index)
+        {
+            object[] data = src.Data;
+            if(data == null)
+                return LSL_Float.Zero;
+            if (index >= 0 && index < data.Length)
+            { 
+                object o = data[index];
+                if(o is LSL_Float d)
+                    return d;
+                if(o is double nd)
+                    return nd;
+            }
+            return LSL_Float.Zero;
+        }
+
+        public LSL_Integer osListAsInteger(LSL_List src, int index)
+        {
+            object[] data = src.Data;
+            if(data == null)
+                return LSL_Integer.Zero;
+            if (index >= 0 && index < data.Length)
+            { 
+                object o = data[index];
+                if(o is LSL_Integer i)
+                    return i;
+                if(o is int ni)
+                    return ni;
+            }
+            return LSL_Integer.Zero;
+        }
+
+        public LSL_String osListAsString(LSL_List src, int index)
+        {
+            object[] data = src.Data;
+            if(data == null)
+                return LSL_String.Empty;
+            if (index >= 0 && index < data.Length)
+            { 
+                object o = data[index];
+                if(o is LSL_String s)
+                    return s;
+                if(o is string ns)
+                    return ns;
+            }
+            return LSL_String.Empty;
+        }
+
+        public LSL_Vector osListAsVector(LSL_List src, int index)
+        {
+            object[] data = src.Data;
+            if(data == null)
+                return LSL_Vector.Zero;
+            if (index >= 0 && index < data.Length)
+            { 
+                object o = data[index];
+                if(o is LSL_Vector v)
+                    return v;
+                if(o is Vector3 ov)
+                    return ov;
+            }
+            return LSL_Vector.Zero;
+        }
+
+        public LSL_Rotation osListAsRotation(LSL_List src, int index)
+        {
+            object[] data = src.Data;
+            if(data == null)
+                return LSL_Rotation.Identity;
+            if (index >= 0 && index < data.Length)
+            { 
+                object o = data[index];
+                if(o is LSL_Rotation r)
+                    return r;
+                if(o is Quaternion q)
+                    return q;
+            }
+            return LSL_Rotation.Identity;
         }
     }
 }

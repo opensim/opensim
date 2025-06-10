@@ -929,6 +929,57 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             remoteClient.SendAvatarPicksReply(targetId, picks);
         }
 
+        public Dictionary<UUID, string> GetPicks(UUID targetId)
+        { 
+            Dictionary<UUID, string> picks = new();
+
+            UserProfileCacheEntry uce = null;
+            lock(m_profilesCache)
+            {
+                if(m_profilesCache.TryGetValue(targetId, out uce) && uce is not null)
+                {
+                    if(uce.picksList is not null)
+                        return uce.picksList;
+                }
+            }
+
+            GetUserProfileServerURI(targetId, out string serverURI);
+            if(string.IsNullOrWhiteSpace(serverURI))
+                return picks;
+
+            OSDMap parameters= new()
+            {
+                {"creatorId", OSD.FromUUID(targetId)}
+            };
+            OSD osdtmp = parameters;
+            if(!rpc.JsonRpcRequest(ref osdtmp, "avatarpicksrequest", serverURI, UUID.Random().ToString()))
+                return picks;
+
+            parameters = (OSDMap)osdtmp;
+            if(!parameters.TryGetValue("result", out osdtmp) || osdtmp is not OSDArray)
+                return picks;
+
+            OSDArray list = (OSDArray)osdtmp;
+            foreach(OSD map in list)
+            {
+                OSDMap m = (OSDMap)map;
+                UUID cid = m["pickuuid"].AsUUID();
+                string name = m["name"].AsString();
+                picks[cid] = name;
+            }
+
+            lock(m_profilesCache)
+            {
+                if(!m_profilesCache.TryGetValue(targetId, out uce) || uce is null)
+                    uce = new UserProfileCacheEntry();
+                uce.picksList = picks;
+
+                m_profilesCache.AddOrUpdate(targetId, uce, PROFILECACHEEXPIRE);
+            }
+
+            return picks;
+        }
+
         /// <summary>
         /// Handles the pick info request.
         /// </summary>
@@ -946,13 +997,10 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             if (sender is not IClientAPI)
                 return;
 
-            UserProfilePick pick = new();
             if(!UUID.TryParse(args [0], out UUID targetID))
                 return;
 
-            pick.CreatorId = targetID;
-
-            if(!UUID.TryParse (args [1], out pick.PickId))
+            if(!UUID.TryParse (args [1], out UUID PickId))
                 return;
 
             IClientAPI remoteClient = (IClientAPI)sender;
@@ -961,13 +1009,12 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             {
                 if(m_profilesCache.TryGetValue(targetID, out uce) && uce is not null)
                 {
-                    if(uce.picks is not null && uce.picks.ContainsKey(pick.PickId))
+                    if(uce.picks is not null && uce.picks.TryGetValue(PickId, out UserProfilePick cpick))
                     {
-                        pick = uce.picks[pick.PickId];
-                        if(Vector3.TryParse(pick.GlobalPos, out Vector3 gPos))
-                            remoteClient.SendPickInfoReply(pick.PickId,pick.CreatorId,pick.TopPick,pick.ParcelId,pick.Name,
-                                           pick.Desc,pick.SnapshotId,pick.ParcelName,pick.OriginalName,pick.SimName,
-                                           gPos,pick.SortOrder,pick.Enabled);
+                        if(Vector3d.TryParse(cpick.GlobalPos, out Vector3d gPos))
+                            remoteClient.SendPickInfoReply(cpick.PickId,cpick.CreatorId,cpick.TopPick,cpick.ParcelId,cpick.Name,
+                                           cpick.Desc,cpick.SnapshotId,cpick.ParcelName,cpick.OriginalName,cpick.SimName,
+                                           gPos,cpick.SortOrder,cpick.Enabled);
                         return;
                     }
                 }
@@ -975,9 +1022,13 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 
             bool foreign =  GetUserProfileServerURI (targetID, out string serverURI);
             if(string.IsNullOrWhiteSpace(serverURI))
-            {
                 return;
-            }
+
+            UserProfilePick pick = new()
+            {
+                PickId = PickId,
+                CreatorId = targetID
+            };
 
             object Pick = (object)pick;
             if (!rpc.JsonRpcRequest (ref Pick, "pickinforequest", serverURI, UUID.Random ().ToString ())) {
@@ -988,7 +1039,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             if(foreign)
                 cacheForeignImage(targetID, pick.SnapshotId);
 
-            if(!Vector3.TryParse(pick.GlobalPos, out Vector3 globalPos))
+            if(!Vector3d.TryParse(pick.GlobalPos, out Vector3d globalPos))
                 return;
 
             if (m_thisGridInfo.IsLocalGrid(pick.Gatekeeper, true) == 0)
@@ -1047,6 +1098,79 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                                            globalPos,pick.SortOrder,pick.Enabled);
         }
 
+        public UserProfilePick GetPick(UUID targetID, UUID PickId)
+        {
+            lock(m_profilesCache)
+            {
+                if(m_profilesCache.TryGetValue(targetID, out UserProfileCacheEntry uce) && uce is not null)
+                {
+                    if(uce.picks is not null && uce.picks.TryGetValue(PickId, out UserProfilePick cpick))
+                        return cpick;
+                }
+            }
+
+            UserProfilePick pick = new()
+            {
+                PickId = PickId,
+                CreatorId = targetID
+            };
+
+            bool foreign =  GetUserProfileServerURI (targetID, out string serverURI);
+            if(string.IsNullOrWhiteSpace(serverURI))
+                return null;
+
+            object Pick = (object)pick;
+            if (!rpc.JsonRpcRequest (ref Pick, "pickinforequest", serverURI, UUID.Random ().ToString ())) {
+                return null;
+            }
+
+            pick = (UserProfilePick)Pick;
+            if(foreign)
+                cacheForeignImage(targetID, pick.SnapshotId);
+
+            if(!Vector3d.TryParse(pick.GlobalPos, out Vector3d globalPos))
+                return null;
+
+            if (m_thisGridInfo.IsLocalGrid(pick.Gatekeeper, true) == 0)
+            {
+                // Setup the illusion
+                string region = string.Format("{0} {1}",pick.Gatekeeper,pick.SimName);
+                GridRegion target = Scene.GridService.GetRegionByName(Scene.RegionInfo.ScopeID, region);
+
+                if(target is null)
+                {
+                    // This is a unreachable region
+                }
+                else
+                {
+                    // we have a proxy on map
+                    if (Util.ParseFakeParcelID(pick.ParcelId, out ulong _, out uint oriX, out uint oriY))
+                    {
+                        pick.ParcelId = Util.BuildFakeParcelID(target.RegionHandle, oriX, oriY);
+                        globalPos.X = target.RegionLocX + oriX;
+                        globalPos.Y = target.RegionLocY + oriY;
+                        pick.GlobalPos = globalPos.ToString();
+                    }
+                    else
+                    {
+                        // this is a fail on large regions
+                        uint gtmp = (uint)globalPos.X >> 8;
+                        globalPos.X -= (gtmp << 8);
+
+                        gtmp = (uint)globalPos.Y >> 8;
+                        globalPos.Y -= (gtmp << 8);
+
+                        pick.ParcelId = Util.BuildFakeParcelID(target.RegionHandle, (uint)globalPos.X, (uint)globalPos.Y);
+
+                        globalPos.X += target.RegionLocX;
+                        globalPos.Y += target.RegionLocY;
+                        pick.GlobalPos = globalPos.ToString();
+                    }
+                }
+            }
+            return pick;
+        }
+
         /// <summary>
         /// Updates the userpicks
         /// </summary>
@@ -1081,73 +1205,108 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         {
             //m_log.DebugFormat("[PROFILES]: Start PickInfoUpdate Name: {0} PickId: {1} SnapshotId: {2}", name, pickID.ToString(), snapshotID.ToString());
 
-            UserProfilePick pick = new();
             GetUserProfileServerURI(remoteClient.AgentId, out string serverURI);
             if(string.IsNullOrWhiteSpace(serverURI))
                 return;
 
             ScenePresence p = FindPresence(remoteClient.AgentId);
+            if(p is null)
+                return;
 
-            Vector3 avaPos = p.AbsolutePosition;
-            // Getting the global position for the Avatar
-            Vector3 posGlobal = new(remoteClient.Scene.RegionInfo.WorldLocX + avaPos.X,
-                                    remoteClient.Scene.RegionInfo.WorldLocY + avaPos.Y,
-                                    avaPos.Z);
+            if(remoteClient.AgentId.NotEqual(creatorID) && !p.IsViewerUIGod)
+                return;
 
-            string  landParcelName  = "My Parcel";
+            UserProfilePick pick = null;
+            Dictionary<UUID, string> curpicks = GetPicks(creatorID);
+            if(!curpicks.ContainsKey(pickID))
+            { 
+                if(curpicks is not null && curpicks.Count >= Constants.MaxProfilePicks)
+                {
+                    remoteClient.SendAvatarPicksReply(remoteClient.AgentId, curpicks);
+                    return;
+                }
+            }
+            else
+                pick = GetPick(creatorID, pickID);
 
-            // to locate parcels we use a fake id that encodes the region handle
-            // since we do not have a global locator
-            // this fails on HG
-            UUID  landParcelID = Util.BuildFakeParcelID(remoteClient.Scene.RegionInfo.RegionHandle, (uint)avaPos.X, (uint)avaPos.Y);
-            ILandObject land = p.Scene.LandChannel.GetLandObject(avaPos.X, avaPos.Y);
+            Vector3d posGlobal;
 
-            if (land is not null)
+            if(pick is null)
             {
-                // If land found, use parcel uuid from here because the value from SP will be blank if the avatar hasnt moved
-                landParcelName  = land.LandData.Name;
+                Vector3 avaPos = p.AbsolutePosition;
+                // Getting the global position for the Avatar
+                posGlobal = new(remoteClient.Scene.RegionInfo.WorldLocX + avaPos.X,
+                                        remoteClient.Scene.RegionInfo.WorldLocY + avaPos.Y,
+                                        avaPos.Z);
+
+                string  landParcelName  = "My Parcel";
+
+                // to locate parcels we use a fake id that encodes the region handle
+                // since we do not have a global locator
+                // this fails on HG
+                UUID  landParcelID = Util.BuildFakeParcelID(remoteClient.Scene.RegionInfo.RegionHandle, (uint)avaPos.X, (uint)avaPos.Y);
+                ILandObject land = p.Scene.LandChannel.GetLandObject(avaPos.X, avaPos.Y);
+
+                if (land is not null)
+                {
+                    // If land found, use parcel uuid from here because the value from SP will be blank if the avatar hasnt moved
+                    landParcelName  = land.LandData.Name;
+                }
+                else
+                {
+                    m_log.WarnFormat(
+                        "[PROFILES]: PickInfoUpdate found no parcel info at {0},{1} in {2}",
+                        avaPos.X, avaPos.Y, p.Scene.Name);
+                }
+
+                pick = new()
+                {
+                    PickId = pickID,
+                    CreatorId = creatorID,
+                    TopPick = topPick,
+                    Name = name,
+                    Desc = desc,
+                    ParcelId = landParcelID,
+                    SnapshotId = snapshotID,
+                    ParcelName = landParcelName,
+                    SimName = remoteClient.Scene.RegionInfo.RegionName,
+                    Gatekeeper = m_thisGridInfo.GateKeeperURLNoEndSlash,
+                    GlobalPos = posGlobal.ToString(),
+                    SortOrder = sortOrder,
+                    Enabled = enabled
+                };
             }
             else
             {
-                m_log.WarnFormat(
-                    "[PROFILES]: PickInfoUpdate found no parcel info at {0},{1} in {2}",
-                    avaPos.X, avaPos.Y, p.Scene.Name);
+                    pick.TopPick = topPick;
+                    pick.Name = name;
+                    pick.Desc = desc;
+                    pick.SnapshotId = snapshotID;
+                    pick.SortOrder = sortOrder;
+                    pick.Enabled = enabled;
             }
-
-            pick.PickId = pickID;
-            pick.CreatorId = creatorID;
-            pick.TopPick = topPick;
-            pick.Name = name;
-            pick.Desc = desc;
-            pick.ParcelId = landParcelID;
-            pick.SnapshotId = snapshotID;
-            pick.ParcelName = landParcelName;
-            pick.SimName = remoteClient.Scene.RegionInfo.RegionName;
-            pick.Gatekeeper = m_thisGridInfo.GateKeeperURLNoEndSlash;
-            pick.GlobalPos = posGlobal.ToString();
-            pick.SortOrder = sortOrder;
-            pick.Enabled = enabled;
 
             object Pick = (object)pick;
             if(!rpc.JsonRpcRequest(ref Pick, "picks_update", serverURI, UUID.Random().ToString()))
             {
-                remoteClient.SendAgentAlertMessage(
-                        "Error updating pick", false);
+                remoteClient.SendAgentAlertMessage("Error updating pick", false);
                 return;
             }
 
             UserProfileCacheEntry uce = null;
             lock(m_profilesCache)
             {
-                if(!m_profilesCache.TryGetValue(remoteClient.AgentId, out uce) || uce is null)
+                if(!m_profilesCache.TryGetValue(creatorID, out uce) || uce is null)
                     uce = new UserProfileCacheEntry();
                 uce.picks ??= new Dictionary<UUID, UserProfilePick>();
                 uce.picksList ??= new Dictionary<UUID, string>();
                 uce.picks[pick.PickId] = pick;
                 uce.picksList[pick.PickId] = pick.Name;
-                m_profilesCache.AddOrUpdate(remoteClient.AgentId, uce, PROFILECACHEEXPIRE);
+                m_profilesCache.AddOrUpdate(creatorID, uce, PROFILECACHEEXPIRE);
             }
-            remoteClient.SendAvatarPicksReply(remoteClient.AgentId, uce.picksList);
+
+            _ = Vector3d.TryParse(pick.GlobalPos, out posGlobal);
+            remoteClient.SendAvatarPicksReply(creatorID, uce.picksList);
             remoteClient.SendPickInfoReply(pick.PickId,pick.CreatorId,pick.TopPick,pick.ParcelId,pick.Name,
                                            pick.Desc,pick.SnapshotId,pick.ParcelName,pick.OriginalName,pick.SimName,
                                            posGlobal,pick.SortOrder,pick.Enabled);

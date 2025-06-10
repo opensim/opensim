@@ -150,12 +150,23 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                     if(asset == null)
                     {
-                        m_notFoundAssetUuids.Add(new UUID(thiskey));
+                        m_notFoundAssetUuids.Add(kvp.Key);
                         continue;
                     }
 
+                    if(asset.FullID.IsZero())
+                    {
+                        if(!UUID.TryParse(thiskey, out UUID id) || id.IsZero())
+                        {
+                            m_log.InfoFormat($"[ARCHIVER]: cannot save asset {kvp.Key} because it has Invalid UUID");
+                            m_notFoundAssetUuids.Add(kvp.Key);
+                            continue;
+                        }
+                        asset.FullID = id;
+                    }
+
                     sbyte assetType = kvp.Value;
-                    if (asset != null && assetType == (sbyte)AssetType.Unknown)
+                    if (assetType == (sbyte)AssetType.Unknown)
                     {
                         m_log.InfoFormat("[ARCHIVER]: Rewriting broken asset type for {0} to {1}", thiskey, SLUtil.AssetTypeFromCode(assetType));
                         asset.Type = assetType;

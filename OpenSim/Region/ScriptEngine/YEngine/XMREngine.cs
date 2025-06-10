@@ -1583,10 +1583,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             if (TryGetInstance(itemID, out XMRInstance instance))
             {
-                running = true;
-                return false;
+                running = instance.Running;
+                return true;
             }
-            running = true;
+            running = false;
             return false;
         }
 

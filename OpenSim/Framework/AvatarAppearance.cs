@@ -685,10 +685,6 @@ namespace OpenSim.Framework
                     int index = kvp.Value.FindIndex(delegate(AvatarAttachment a) { return a.ItemID.Equals(itemID); });
                     if (index >= 0)
                     {
-                        //m_log.DebugFormat(
-                        //    "[AVATAR APPEARANCE]: Detaching attachment {0}, index {1}, point {2}",
-                        //    m_attachments[kvp.Key][index].ItemID, index, m_attachments[kvp.Key][index].AttachPoint);
-
                         // Remove it from the list of attachments at that attach point
                         m_attachments[kvp.Key].RemoveAt(index);
 
@@ -700,7 +696,29 @@ namespace OpenSim.Framework
                     }
                 }
             }
+            return false;
+        }
 
+        public bool RemoveAttachment(int attachPoint, UUID itemID)
+        {
+            lock (m_attachments)
+            {
+                if(m_attachments.TryGetValue(attachPoint, out List<AvatarAttachment> lst) && lst is not null)
+                {
+                    int index = lst.FindIndex(delegate(AvatarAttachment a) { return a.ItemID.Equals(itemID); });
+                    if (index >= 0)
+                    {
+                        // Remove it from the list of attachments at that attach point
+                        lst.RemoveAt(index);
+
+                        // And remove the list if there are no more attachments here
+                        if (lst.Count == 0)
+                            m_attachments.Remove(attachPoint);
+
+                        return true;
+                    }
+                }
+            }
             return false;
         }
 

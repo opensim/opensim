@@ -415,11 +415,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
                 newFolderName = InventoryArchiveUtils.UnescapeArchivePath(newFolderName);
                 UUID newFolderId = UUID.Random();
+                short foldertype = destFolder is not null && destFolder.Type == (short)FolderType.MyOutfits ? (short)FolderType.Outfit : (short)FolderType.None;
 
-                destFolder
-                    = new InventoryFolderBase(
+                destFolder = new InventoryFolderBase(
                         newFolderId, newFolderName, m_userInfo.PrincipalID,
-                        (short)FolderType.None, destFolder.ID, 1);
+                        foldertype, destFolder.ID, 1);
                 m_InventoryService.AddFolder(destFolder);
 
                 // Record that we have now created this folder

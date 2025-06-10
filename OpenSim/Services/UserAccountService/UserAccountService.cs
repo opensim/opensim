@@ -29,13 +29,13 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Text;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Data;
 using OpenSim.Framework;
 using OpenSim.Services.Interfaces;
-using OpenSim.Framework.Console;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using PermissionMask = OpenSim.Framework.PermissionMask;
 
@@ -66,23 +66,23 @@ namespace OpenSim.Services.UserAccountService
 
             string gridServiceDll = userConfig.GetString("GridService", string.Empty);
             if (gridServiceDll != string.Empty)
-                m_GridService = LoadPlugin<IGridService>(gridServiceDll, new Object[] { config });
+                m_GridService = LoadPlugin<IGridService>(gridServiceDll, [config]);
 
             string authServiceDll = userConfig.GetString("AuthenticationService", string.Empty);
             if (authServiceDll != string.Empty)
-                m_AuthenticationService = LoadPlugin<IAuthenticationService>(authServiceDll, new Object[] { config });
+                m_AuthenticationService = LoadPlugin<IAuthenticationService>(authServiceDll, [config]);
 
             string presenceServiceDll = userConfig.GetString("GridUserService", string.Empty);
             if (presenceServiceDll != string.Empty)
-                m_GridUserService = LoadPlugin<IGridUserService>(presenceServiceDll, new Object[] { config });
+                m_GridUserService = LoadPlugin<IGridUserService>(presenceServiceDll, [config]);
 
             string invServiceDll = userConfig.GetString("InventoryService", string.Empty);
             if (invServiceDll != string.Empty)
-                m_InventoryService = LoadPlugin<IInventoryService>(invServiceDll, new Object[] { config });
+                m_InventoryService = LoadPlugin<IInventoryService>(invServiceDll, [config]);
 
             string avatarServiceDll = userConfig.GetString("AvatarService", string.Empty);
             if (avatarServiceDll != string.Empty)
-                m_AvatarService = LoadPlugin<IAvatarService>(avatarServiceDll, new Object[] { config });
+                m_AvatarService = LoadPlugin<IAvatarService>(avatarServiceDll, [config]);
 
             m_CreateDefaultAvatarEntries = userConfig.GetBoolean("CreateDefaultAvatarEntries", false);
 
@@ -94,17 +94,21 @@ namespace OpenSim.Services.UserAccountService
                 UserAccount ggod = GetUserAccount(UUID.Zero, Constants.servicesGodAgentID);
                 if(ggod == null)
                 {
-                    UserAccountData d = new UserAccountData();
-                    d.FirstName = "GRID";
-                    d.LastName = "SERVICES";
-                    d.PrincipalID = Constants.servicesGodAgentID;
-                    d.ScopeID = UUID.Zero;
-                    d.Data = new Dictionary<string, string>();
-                    d.Data["Email"] = string.Empty;
-                    d.Data["Created"] = Util.UnixTimeSinceEpoch().ToString();
-                    d.Data["UserLevel"] = "240";
-                    d.Data["UserFlags"] = "0";
-                    d.Data["ServiceURLs"] = string.Empty;
+                    UserAccountData d = new()
+                    {
+                        FirstName = "GRID",
+                        LastName = "SERVICES",
+                        PrincipalID = Constants.servicesGodAgentID,
+                        ScopeID = UUID.Zero,
+                        Data = new Dictionary<string, string>()
+                        { 
+                            ["Email"] = string.Empty,
+                            ["Created"] = Util.UnixTimeSinceEpoch().ToString(),
+                            ["UserLevel"] = "240",
+                            ["UserFlags"] = "0",
+                            ["ServiceURLs"] = string.Empty
+                        }
+                    };
 
                     m_Database.Store(d);
                 }
@@ -150,29 +154,29 @@ namespace OpenSim.Services.UserAccountService
         public UserAccount GetUserAccount(UUID scopeID, string firstName,
                 string lastName)
         {
-//            m_log.DebugFormat(
-//                "[USER ACCOUNT SERVICE]: Retrieving account by username for {0} {1}, scope {2}",
-//                firstName, lastName, scopeID);
+        //m_log.DebugFormat(
+        //    "[USER ACCOUNT SERVICE]: Retrieving account by username for {0} {1}, scope {2}",
+        //        firstName, lastName, scopeID);
 
             UserAccountData[] d;
 
-            if (!scopeID.IsZero())
+            if (scopeID.IsNotZero())
             {
                 d = m_Database.Get(
-                        new string[] { "ScopeID", "FirstName", "LastName" },
-                        new string[] { scopeID.ToString(), firstName, lastName });
+                        ["ScopeID", "FirstName", "LastName"],
+                        [scopeID.ToString(), firstName, lastName]);
                 if (d.Length < 1)
                 {
                     d = m_Database.Get(
-                            new string[] { "ScopeID", "FirstName", "LastName" },
-                            new string[] { UUID.Zero.ToString(), firstName, lastName });
+                            ["ScopeID", "FirstName", "LastName"],
+                            [UUID.Zero.ToString(), firstName, lastName]);
                 }
             }
             else
             {
                 d = m_Database.Get(
-                        new string[] { "FirstName", "LastName" },
-                        new string[] { firstName, lastName });
+                        ["FirstName", "LastName"],
+                        [firstName, lastName]);
             }
 
             if (d.Length < 1)
@@ -183,50 +187,46 @@ namespace OpenSim.Services.UserAccountService
 
         private UserAccount MakeUserAccount(UserAccountData d)
         {
-            UserAccount u = new UserAccount();
-            u.FirstName = d.FirstName;
-            u.LastName = d.LastName;
-            u.PrincipalID = d.PrincipalID;
-            u.ScopeID = d.ScopeID;
-            if (d.Data.ContainsKey("Email") && d.Data["Email"] != null)
-                u.Email = d.Data["Email"].ToString();
+            UserAccount u = new()
+            {
+                FirstName = d.FirstName,
+                LastName = d.LastName,
+                PrincipalID = d.PrincipalID,
+                ScopeID = d.ScopeID
+            };
+            if (d.Data.TryGetValue("Email", out string value) && value != null)
+                u.Email = value;
             else
                 u.Email = string.Empty;
             u.Created = Convert.ToInt32(d.Data["Created"].ToString());
-            if (d.Data.ContainsKey("UserTitle") && d.Data["UserTitle"] != null)
-                u.UserTitle = d.Data["UserTitle"].ToString();
+            if (d.Data.TryGetValue("UserTitle", out string valueut) && valueut != null)
+                u.UserTitle = valueut;
             else
                 u.UserTitle = string.Empty;
-            if (d.Data.ContainsKey("UserLevel") && d.Data["UserLevel"] != null)
-                Int32.TryParse(d.Data["UserLevel"], out u.UserLevel);
-            if (d.Data.ContainsKey("UserFlags") && d.Data["UserFlags"] != null)
-                Int32.TryParse(d.Data["UserFlags"], out u.UserFlags);
-            if (d.Data.ContainsKey("UserCountry") && d.Data["UserCountry"] != null)
-                u.UserCountry = d.Data["UserCountry"].ToString();
+            if (d.Data.TryGetValue("UserLevel", out string valueul) && valueul != null)
+                Int32.TryParse(valueul, out u.UserLevel);
+            if (d.Data.TryGetValue("UserFlags", out string valueuf) && valueuf != null)
+                Int32.TryParse(valueuf, out u.UserFlags);
+            if (d.Data.TryGetValue("UserCountry", out string valueuc) && valueuc != null)
+                u.UserCountry = valueuc;
             else
                 u.UserCountry = string.Empty;
 
-            if (d.Data.ContainsKey("ServiceURLs") && d.Data["ServiceURLs"] != null)
+            u.ServiceURLs = new Dictionary<string, object>();
+            if (d.Data.TryGetValue("ServiceURLs", out string ServiceURLsvalue) && !string.IsNullOrEmpty(ServiceURLsvalue))
             {
-                string[] URLs = d.Data["ServiceURLs"].ToString().Split(new char[] { ' ' });
-                u.ServiceURLs = new Dictionary<string, object>();
-
+                string[] URLs = ServiceURLsvalue.Split(' ');
                 foreach (string url in URLs)
                 {
-                    string[] parts = url.Split(new char[] { '=' });
+                    string[] parts = url.Split('=');
 
                     if (parts.Length != 2)
                         continue;
 
-                    string name = System.Web.HttpUtility.UrlDecode(parts[0]);
-                    string val = System.Web.HttpUtility.UrlDecode(parts[1]);
-
-                    u.ServiceURLs[name] = val;
+                    u.ServiceURLs[System.Web.HttpUtility.UrlDecode(parts[0])] =
+                        System.Web.HttpUtility.UrlDecode(parts[1]);
                 }
             }
-            else
-                u.ServiceURLs = new Dictionary<string, object>();
-
             return u;
         }
 
@@ -234,23 +234,17 @@ namespace OpenSim.Services.UserAccountService
         {
             UserAccountData[] d;
 
-            if (!scopeID.IsZero())
+            if (scopeID.IsNotZero())
             {
-                d = m_Database.Get(
-                        new string[] { "ScopeID", "Email" },
-                        new string[] { scopeID.ToString(), email });
+                d = m_Database.Get(["ScopeID", "Email"], [scopeID.ToString(), email]);
                 if (d.Length < 1)
                 {
-                    d = m_Database.Get(
-                            new string[] { "ScopeID", "Email" },
-                            new string[] { UUID.Zero.ToString(), email });
+                    d = m_Database.Get(["ScopeID", "Email"], [UUID.ZeroString, email]);
                 }
             }
             else
             {
-                d = m_Database.Get(
-                        new string[] { "Email" },
-                        new string[] { email });
+                d = m_Database.Get(["Email"], [email]);
             }
 
             if (d.Length < 1)
@@ -263,23 +257,17 @@ namespace OpenSim.Services.UserAccountService
         {
             UserAccountData[] d;
 
-            if (!scopeID.IsZero())
+            if (scopeID.IsNotZero())
             {
-                d = m_Database.Get(
-                        new string[] { "ScopeID", "PrincipalID" },
-                        new string[] { scopeID.ToString(), principalID.ToString() });
+                d = m_Database.Get(["ScopeID", "PrincipalID"], [ scopeID.ToString(), principalID.ToString()]);
                 if (d.Length < 1)
                 {
-                    d = m_Database.Get(
-                            new string[] { "ScopeID", "PrincipalID" },
-                            new string[] { UUID.Zero.ToString(), principalID.ToString() });
+                    d = m_Database.Get(["ScopeID", "PrincipalID"], [UUID.Zero.ToString(), principalID.ToString()]);
                 }
             }
             else
             {
-                d = m_Database.Get(
-                        new string[] { "PrincipalID" },
-                        new string[] { principalID.ToString() });
+                d = m_Database.Get(["PrincipalID"], [principalID.ToString()]);
             }
 
             if (d.Length < 1)
@@ -294,8 +282,12 @@ namespace OpenSim.Services.UserAccountService
         {
             UserAccountData[] ret = m_Database.GetUsersWhere(scopeID, "PrincipalID in ('" + String.Join("', '", IDs) + "')");
             if(ret == null || ret.Length == 0)
-                return new List<UserAccount>();
-            return new List<UserAccount>(ret.Select((x) => MakeUserAccount(x)));
+                return [];
+
+            List<UserAccount> lret = new(ret.Length);
+            for(int i = 0; i < ret.Length; i++)
+                lret.Add(MakeUserAccount(ret[i]));
+            return lret;
         }
 
         public void InvalidateCache(UUID userID)
@@ -304,35 +296,45 @@ namespace OpenSim.Services.UserAccountService
 
         public bool StoreUserAccount(UserAccount data)
         {
-//            m_log.DebugFormat(
-//                "[USER ACCOUNT SERVICE]: Storing user account for {0} {1} {2}, scope {3}",
-//                data.FirstName, data.LastName, data.PrincipalID, data.ScopeID);
+            //            m_log.DebugFormat(
+            //                "[USER ACCOUNT SERVICE]: Storing user account for {0} {1} {2}, scope {3}",
+            //                data.FirstName, data.LastName, data.PrincipalID, data.ScopeID);
 
-            UserAccountData d = new UserAccountData();
-
-            d.FirstName = data.FirstName;
-            d.LastName = data.LastName;
-            d.PrincipalID = data.PrincipalID;
-            d.ScopeID = data.ScopeID;
-            d.Data = new Dictionary<string, string>();
-            d.Data["Email"] = data.Email;
-            d.Data["Created"] = data.Created.ToString();
-            d.Data["UserLevel"] = data.UserLevel.ToString();
-            d.Data["UserFlags"] = data.UserFlags.ToString();
+            UserAccountData d = new()
+            {
+                FirstName = data.FirstName,
+                LastName = data.LastName,
+                PrincipalID = data.PrincipalID,
+                ScopeID = data.ScopeID,
+                Data = new Dictionary<string, string>
+                {
+                    ["Email"] = data.Email,
+                    ["Created"] = data.Created.ToString(),
+                    ["UserLevel"] = data.UserLevel.ToString(),
+                    ["UserFlags"] = data.UserFlags.ToString()
+                }
+            };
             if (!string.IsNullOrEmpty(data.UserTitle))
                 d.Data["UserTitle"] = data.UserTitle;
             if (!string.IsNullOrEmpty(data.UserCountry))
                 d.Data["UserCountry"] = data.UserCountry;
-            List<string> parts = new List<string>();
 
-            foreach (KeyValuePair<string, object> kvp in data.ServiceURLs)
-            {
-                string key = System.Web.HttpUtility.UrlEncode(kvp.Key);
-                string val = System.Web.HttpUtility.UrlEncode(kvp.Value.ToString());
-                parts.Add(key + "=" + val);
+            if(data.ServiceURLs.Count > 0)
+            { 
+                StringBuilder sb = new();
+                int i = 1;
+                foreach (KeyValuePair<string, object> kvp in data.ServiceURLs)
+                {
+                    sb.Append(System.Web.HttpUtility.UrlEncode(kvp.Key));
+                    sb.Append('=');
+                    sb.Append(System.Web.HttpUtility.UrlEncode(kvp.Value.ToString()));
+                    if(i++ < data.ServiceURLs.Count)
+                        sb.Append(' ');
+                }
+                d.Data["ServiceURLs"] = sb.ToString();
             }
-
-            d.Data["ServiceURLs"] = string.Join(" ", parts.ToArray());
+            else
+                d.Data["ServiceURLs"] = string.Empty;
 
             return m_Database.Store(d);
         }
@@ -342,9 +344,9 @@ namespace OpenSim.Services.UserAccountService
             UserAccountData[] d = m_Database.GetUsers(scopeID, query.Trim());
 
             if (d == null)
-                return new List<UserAccount>();
+                return [];
 
-            List<UserAccount> ret = new List<UserAccount>();
+            List<UserAccount> ret = [];
 
             foreach (UserAccountData data in d)
                 ret.Add(MakeUserAccount(data));
@@ -357,9 +359,9 @@ namespace OpenSim.Services.UserAccountService
             UserAccountData[] d = m_Database.GetUsersWhere(scopeID, where);
 
             if (d == null)
-                return new List<UserAccount>();
+                return [];
 
-            List<UserAccount> ret = new List<UserAccount>();
+            List<UserAccount> ret = [];
 
             foreach (UserAccountData data in d)
                 ret.Add(MakeUserAccount(data));
@@ -594,83 +596,81 @@ namespace OpenSim.Services.UserAccountService
             firstName = firstName.Trim();
             lastName = lastName.Trim();
             UserAccount account = GetUserAccount(UUID.Zero, firstName, lastName);
-            if (null == account)
+
+            if (account is not null)
             {
-                account = new UserAccount(UUID.Zero, principalID, firstName, lastName, email);
-                if (account.ServiceURLs == null || (account.ServiceURLs != null && account.ServiceURLs.Count == 0))
+                m_log.Error($"[USER ACCOUNT SERVICE]: A user with the name {firstName} {lastName} already exists!");
+                return null;
+            }
+
+            account = new UserAccount(UUID.Zero, principalID, firstName, lastName, email);
+            if (account.ServiceURLs == null || account.ServiceURLs.Count == 0)
+            {
+                account.ServiceURLs = new Dictionary<string, object>
                 {
-                    account.ServiceURLs = new Dictionary<string, object>();
-                    account.ServiceURLs["HomeURI"] = string.Empty;
-                    account.ServiceURLs["InventoryServerURI"] = string.Empty;
-                    account.ServiceURLs["AssetServerURI"] = string.Empty;
-                }
+                    ["HomeURI"] = string.Empty,
+                    ["InventoryServerURI"] = string.Empty,
+                    ["AssetServerURI"] = string.Empty
+                };
+            }
 
-                if (StoreUserAccount(account))
-                {
-                    bool success;
-                    if (m_AuthenticationService != null)
-                    {
-                        success = m_AuthenticationService.SetPassword(account.PrincipalID, password);
-                        if (!success)
-                            m_log.WarnFormat("[USER ACCOUNT SERVICE]: Unable to set password for account {0} {1}.",
-                                firstName, lastName);
-                    }
+            if (!StoreUserAccount(account))
+            {
+                m_log.Error($"[USER ACCOUNT SERVICE]: Account creation failed for account {firstName} {lastName}");
+                return null;
+            }
 
-                    GridRegion home = null;
-                    if (m_GridService != null)
-                    {
-                        List<GridRegion> defaultRegions = m_GridService.GetDefaultRegions(UUID.Zero);
-                        if (defaultRegions != null && defaultRegions.Count >= 1)
-                            home = defaultRegions[0];
+            bool success;
+            if (m_AuthenticationService != null)
+            {
+                success = m_AuthenticationService.SetPassword(account.PrincipalID, password);
+                if (!success)
+                    m_log.Warn($"[USER ACCOUNT SERVICE]: Unable to set password for account {firstName} {lastName}");
+            }
 
-                        if (m_GridUserService != null && home != null)
-                            m_GridUserService.SetHome(account.PrincipalID.ToString(), home.RegionID, new Vector3(128, 128, 0), new Vector3(0, 1, 0));
-                        else
-                            m_log.WarnFormat("[USER ACCOUNT SERVICE]: Unable to set home for account {0} {1}.",
-                               firstName, lastName);
-                    }
-                    else
-                    {
-                        m_log.WarnFormat("[USER ACCOUNT SERVICE]: Unable to retrieve home region for account {0} {1}.",
-                           firstName, lastName);
-                    }
+            GridRegion home = null;
+            if (m_GridService != null)
+            {
+                List<GridRegion> defaultRegions = m_GridService.GetDefaultRegions(UUID.Zero);
+                if (defaultRegions != null && defaultRegions.Count >= 1)
+                    home = defaultRegions[0];
 
-                    if (m_InventoryService != null)
-                    {
-                        success = m_InventoryService.CreateUserInventory(account.PrincipalID);
-                        if (!success)
-                        {
-                            m_log.WarnFormat("[USER ACCOUNT SERVICE]: Unable to create inventory for account {0} {1}.",
-                                firstName, lastName);
-                        }
-                        else
-                        {
-                            m_log.DebugFormat(
-                                "[USER ACCOUNT SERVICE]: Created user inventory for {0} {1}", firstName, lastName);
-                        }
-
-                        if (m_CreateDefaultAvatarEntries)
-                        {
-                            if (String.IsNullOrEmpty(model))
-                                CreateDefaultAppearanceEntries(account.PrincipalID);
-                            else
-                                EstablishAppearance(account.PrincipalID, model);
-                        }
-                    }
-
-                    m_log.InfoFormat(
-                        "[USER ACCOUNT SERVICE]: Account {0} {1} {2} created successfully",
-                        firstName, lastName, account.PrincipalID);
-                }
+                if (home != null)
+                    m_GridUserService.SetHome(account.PrincipalID.ToString(), home.RegionID, new Vector3(128, 128, 0), new Vector3(0, 1, 0));
                 else
-                {
-                    m_log.ErrorFormat("[USER ACCOUNT SERVICE]: Account creation failed for account {0} {1}", firstName, lastName);
-                }
+                    m_log.Warn($"[USER ACCOUNT SERVICE]: Unable to set home for account {firstName} {lastName}");
             }
             else
             {
-                m_log.ErrorFormat("[USER ACCOUNT SERVICE]: A user with the name {0} {1} already exists!", firstName, lastName);
+                m_log.Warn(
+                    $"[USER ACCOUNT SERVICE]: Unable to retrieve default home region for account {firstName} {lastName}");
             }
+
+            if (m_InventoryService != null)
+            {
+                success = m_InventoryService.CreateUserInventory(account.PrincipalID);
+                if (!success)
+                {
+                    m_log.Warn(
+                        $"[USER ACCOUNT SERVICE]: Unable to create inventory for account {firstName} {lastName}");
+                }
+                else
+                {
+                    m_log.Debug(
+                        $"[USER ACCOUNT SERVICE]: Created user inventory for {firstName} {lastName}");
+                }
+
+                if (m_CreateDefaultAvatarEntries)
+                {
+                    if (string.IsNullOrEmpty(model))
+                        CreateDefaultAppearanceEntries(account.PrincipalID);
+                    else
+                        EstablishAppearance(account.PrincipalID, model);
+                }
+            }
+
+            m_log.Info(
+                $"[USER ACCOUNT SERVICE]: Account {firstName} {lastName} {account.PrincipalID} created successfully");
 
             return account;
         }

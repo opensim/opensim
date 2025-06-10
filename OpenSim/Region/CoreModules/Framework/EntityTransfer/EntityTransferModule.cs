@@ -497,7 +497,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 sp.Name, position, m_sceneName);
 
             // Teleport within the same region
-            if (!m_scene.PositionIsInCurrentRegion(position) || position.Z < 0)
+            if (!m_scene.PositionIsInCurrentRegion(position))
             {
                 Vector3 emergencyPos = new(128, 128, 128);
 
@@ -520,6 +520,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             {
                 position.Z = posZLimit;
             }
+
+            if(position.Z < Constants.MinSimulationHeight)
+                position.Z = Constants.MinSimulationHeight;
+            else if(position.Z > Constants.MaxSimulationHeight)
+                position.Z = Constants.MaxSimulationHeight;
+
 /*
             if(!sp.CheckLocalTPLandingPoint(ref position))
             {
@@ -2763,11 +2769,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             // If the user is banned, we won't let any of their objects
             // enter. Period.
-            if (m_sceneRegionInfo.EstateSettings.IsBanned(so.OwnerID))
+            if (!m_scene.Permissions.IsAdministrator(so.OwnerID) && m_sceneRegionInfo.EstateSettings.IsBanned(so.OwnerID))
             {
-                m_log.DebugFormat(
-                    "[ENTITY TRANSFER MODULE]: Denied {0} {1} into {2} of banned owner {3}",
-                        so.Name, so.UUID, m_sceneName, so.OwnerID);
+                m_log.Debug(
+                    $"[ENTITY TRANSFER MODULE]: Denied {so.Name} {so.UUID} into { m_sceneName} of banned owner {so.OwnerID}");
                 return false;
             }
 
@@ -2775,9 +2780,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             {
                 if(m_scene.GetScenePresence(so.OwnerID) == null)
                 {
-                    m_log.DebugFormat(
-                    "[ENTITY TRANSFER MODULE]: Denied attachment {0}({1}) owner {2} not in region {3}",
-                        so.Name, so.UUID, so.OwnerID, m_sceneName);
+                    m_log.Debug(
+                        $"[ENTITY TRANSFER MODULE]: Denied attachment {so.Name}({so.UUID}) owner {so.OwnerID} not in region {m_sceneName}");
                     return false;
                 }
             }

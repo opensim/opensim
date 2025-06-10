@@ -269,12 +269,8 @@
     ; script opensim-ode-sh starts opensim setting that limit. You may need to increase it even more on large regions
     ; edit the line ulimit -s 262144, and change this last value
 
-    ;# {DefaultScriptEngine} {} {Default script engine} {XEngine} XEngine
-    ;; Default script engine to use (Xengine if all commented)
-    ; DefaultScriptEngine = "XEngine"
-
-    ;; new alternative engine
-    ;; see section [YEngine] below
+    ;# {DefaultScriptEngine} {} {Default script engine} {YEngine}
+    ;; Default script engine to use. Currently, we only have YEngine
     ; DefaultScriptEngine = "YEngine"
     
     ;# {HttpProxy} {} {Proxy URL for llHTTPRequest and dynamic texture loading} {} http://proxy.com:8080
@@ -1047,118 +1043,6 @@
     ;; Default is ./bin/ScriptEngines
     ; ScriptEnginesPath = "ScriptEngines"
 
-
-[XEngine]
-    ;# {Enabled} {} {Enable the XEngine scripting engine?} {true false} false
-    ;; Enable this engine in this OpenSim instance
-    ; Enabled = false
-
-    ;; How many threads to keep alive even if nothing is happening
-    ; MinThreads = 2
-
-    ;; How many threads to start at maximum load
-    ; MaxThreads = 100
-
-    ;; Time a thread must be idle (in seconds) before it dies
-    ; IdleTimeout = 60
-
-    ;; llSetTimerEvent minimum value. Default 0.5s, 0.05s whould be more resonable
-    ; MinTimerInterval = 0.5
-
-    ;# {Priority} {Enabled:true} {Priority for script engine threads?} {Lowest BelowNormal Normal AboveNormal Highest} BelowNormal
-    ;; Thread priority ("Lowest", "BelowNormal", "Normal", "AboveNormal",
-    ;; "Highest")
-    ; Priority = "BelowNormal"
-
-    ;; Maximum number of events to queue for a script (excluding timers)
-    ; MaxScriptEventQueue = 300
-
-    ;; Stack size per script engine thread in bytes.
-    ;; If you are experiencing StackOverflowExceptions you may want to increase this (e.g. double it).
-    ;; The trade-off may be increased memory usage by the script engine.
-    ; ThreadStackSize = 262144
-
-    ;; Set this to true to load each script into a separate
-    ;; AppDomain.
-    ;;
-    ;; Setting this to false will load all script assemblies into the
-    ;; current AppDomain, which will significantly improve script loading times.
-    ;; It will also reduce initial per-script memory overhead.
-    ;;
-    ;; However, setting this to false will also prevent script DLLs from being unloaded from memory if the script is deleted.
-    ;; This may cause an OutOfMemory problem over time when avatars with scripted attachments move in and out of the region.
-    ;; at this time some mono versions seem to have problems with the true option
-    ;; so default is now false until a fix is found, to simply life of less technical skilled users.
-    ;; this should only be a issue if regions stay alive for a long time with lots of scripts added or edited.
-    AppDomainLoading = false
-
-    ;; Controls whether scripts are stopped by aborting their threads externally (abort) or by co-operative checks from the compiled script (co-op)
-    ;; co-op will be more stable but this option is currently experimental.
-    ;; If moving from co-op to abort, existing script DLLs will need to be recompiled.
-    ;; This currently can only be done manually, either by setting DeleteScriptsOnStartup = true for one run
-    ;; or by deleting the script DLL* files in bin/ScriptEngines/<region-id>/
-    ;; One can move from co-op back to abort without recompilation, but reverting back to co-op again will need script recompile
-    ;; Current valid values are "abort" and "co-op"
-    ; ScriptStopStrategy = co-op
-
-
-    ;# {DeleteScriptsOnStartup} {} {Delete previously compiled script DLLs on startup?} {true false} true
-    ;; Controls whether previously compiled scripts DLLs are deleted on sim restart. If you set this to false
-    ;; then startup will be considerably faster since scripts won't need to be recompiled. However, then it becomes your responsibility to delete the
-    ;; compiled scripts if you're recompiling OpenSim from source code and internal interfaces used
-    ;; by scripts have changed.
-    ; DeleteScriptsOnStartup = true
-
-    ;# {CompactMemOnLoad} {} {compacts memory on each script load at startup?} {true false} false
-    ;; forces calls to memory garbage collector before loading each script DLL during region startup.
-    ;; Peak memory usage is reduced and region starts with a more compacted memory allocation.
-    ;; But this costs a lot of time, so region load will take a lot longer.
-    ;; it is more usefull if there are no previously compiled scripts DLLs (as with DeleteScriptsOnStartup = true)
-    ;CompactMemOnLoad = false
-
-    ;; Compile debug info (line numbers) into the script assemblies
-    ; CompileWithDebugInformation = true
-
-    ; ==== Settings for MOD and OSSL functions have been moved to the [OSSL] section
-
-    ;# {EventLimit} {} {Amount of time a script can spend in an event handler} {} 30
-    ;; Time a script can spend in an event handler before it is interrupted
-    ; EventLimit = 30
-
-    ;# {KillTimedOutScripts} {} {Kill script in case of event time overruns?} {true false} false
-    ;; If a script overruns it's event limit, kill the script?
-    ; KillTimedOutScripts = false
-
-    ;# {ScriptDelayFactor} {} {Multiplier for scripting delays} {} 1.0
-    ;; Sets the multiplier for the scripting delays
-    ; ScriptDelayFactor = 1.0
-
-    ;# {ScriptDistanceLimitFactor} {} {Multiplier for 10.0m distance limits?} {}
-    ;; The factor the 10 m distances limits are multiplied by
-    ; ScriptDistanceLimitFactor = 1.0
-
-    ;# {NotecardLineReadCharsMax} {} {Maximum length of notecard line?} {} 255
-    ;; Maximum length of notecard line read
-    ;; Increasing this to large values potentially opens
-    ;; up the system to malicious scripters
-    ; NotecardLineReadCharsMax = 255
-
-    ;# {SensorMaxRange} {} {Sensor range} {} 96.0
-    ;; Sensor settings
-    ; SensorMaxRange = 96.0
-    ;# {SensorMaxResults} {} {Max sensor results returned?} {}
-    ; SensorMaxResults = 16
-
-    ;# {DisableUndergroundMovement} {} {Disable underground movement of prims} {true false} true
-    ;; Disable underground movement of prims (default true); set to
-    ;; false to allow script controlled underground positioning of
-    ;; prims
-    ; DisableUndergroundMovement = true
-
-    ;# {ScriptEnginesPath} {} {Path to script assemblies} {} ScriptEngines
-    ;; Path to script engine assemblies
-    ;; Default is ./bin/ScriptEngines
-    ; ScriptEnginesPath = "ScriptEngines"
 
 [OSSL]
     ;# {Include-osslDefaultEnable} {} {Include file for enabling and permissions for OSSL functions} {}

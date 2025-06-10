@@ -61,18 +61,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private XMRInstAbstract instance;
         public int arraysHeapUse;
 
-        public static readonly XMR_Array[] noArrays = new XMR_Array[0];
-        public static readonly char[] noChars = new char[0];
-        public static readonly double[] noFloats = new double[0];
-        public static readonly int[] noIntegers = new int[0];
-        public static readonly LSL_List[] noLists = new LSL_List[0];
-        public static readonly object[] noObjects = new object[0];
-        public static readonly LSL_Rotation[] noRotations = new LSL_Rotation[0];
-        public static readonly string[] noStrings = new string[0];
-        public static readonly LSL_Vector[] noVectors = new LSL_Vector[0];
-        public static readonly XMRSDTypeClObj[] noSDTClObjs = new XMRSDTypeClObj[0];
-        public static readonly Delegate[][] noSDTIntfObjs = new Delegate[0][];
-
         public XMRInstArrays(XMRInstAbstract inst)
         {
             instance = inst;
@@ -126,17 +114,17 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             arraysHeapUse = instance.UpdateArraysHeapUse(arraysHeapUse, newuse);
 
-            iarArrays = (ars.iasArrays > 0) ? new XMR_Array[ars.iasArrays] : noArrays;
-            iarChars = (ars.iasChars > 0) ? new char[ars.iasChars] : noChars;
-            iarFloats = (ars.iasFloats > 0) ? new double[ars.iasFloats] : noFloats;
-            iarIntegers = (ars.iasIntegers > 0) ? new int[ars.iasIntegers] : noIntegers;
-            iarLists = (ars.iasLists > 0) ? new LSL_List[ars.iasLists] : noLists;
-            iarObjects = (ars.iasObjects > 0) ? new object[ars.iasObjects] : noObjects;
-            iarRotations = (ars.iasRotations > 0) ? new LSL_Rotation[ars.iasRotations] : noRotations;
-            iarStrings = (ars.iasStrings > 0) ? new string[ars.iasStrings] : noStrings;
-            iarVectors = (ars.iasVectors > 0) ? new LSL_Vector[ars.iasVectors] : noVectors;
-            iarSDTClObjs = (ars.iasSDTClObjs > 0) ? new XMRSDTypeClObj[ars.iasSDTClObjs] : noSDTClObjs;
-            iarSDTIntfObjs = (ars.iasSDTIntfObjs > 0) ? new Delegate[ars.iasSDTIntfObjs][] : noSDTIntfObjs;
+            iarArrays = (ars.iasArrays > 0) ? new XMR_Array[ars.iasArrays] : [];
+            iarChars = (ars.iasChars > 0) ? new char[ars.iasChars] : [];
+            iarFloats = (ars.iasFloats > 0) ? new double[ars.iasFloats] : [];
+            iarIntegers = (ars.iasIntegers > 0) ? new int[ars.iasIntegers] : [];
+            iarLists = (ars.iasLists > 0) ? new LSL_List[ars.iasLists] : [];
+            iarObjects = (ars.iasObjects > 0) ? new object[ars.iasObjects] : [];
+            iarRotations = (ars.iasRotations > 0) ? new LSL_Rotation[ars.iasRotations] : [];
+            iarStrings = (ars.iasStrings > 0) ? new string[ars.iasStrings] : [];
+            iarVectors = (ars.iasVectors > 0) ? new LSL_Vector[ars.iasVectors] : [];
+            iarSDTClObjs = (ars.iasSDTClObjs > 0) ? new XMRSDTypeClObj[ars.iasSDTClObjs] : [];
+            iarSDTIntfObjs = (ars.iasSDTIntfObjs > 0) ? new Delegate[ars.iasSDTIntfObjs][] : [];
         }
 
         /**
@@ -199,9 +187,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             ClearOldArrays();
 
-            iarArrays = (XMR_Array[])recver();
-            if(iarArrays is null)
-                iarArrays = noArrays;
+            iarArrays = (XMR_Array[])recver() ?? [];
 
             int newheapuse = arraysHeapUse;
 
@@ -212,7 +198,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 iarChars = chrs;
             }
             else
-                iarChars = noChars;
+                iarChars = [];
 
             double[] flts = (double[])recver();
             if (flts is not null)
@@ -221,7 +207,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 iarFloats = flts;
             }
             else
-                iarFloats = noFloats;
+                iarFloats = [];
 
             int[] ints = (int[])recver();
             if (ints is not null)
@@ -230,20 +216,20 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 iarIntegers = ints;
             }
             else
-                iarIntegers = noIntegers;
+                iarIntegers = [];
 
             LSL_List[] liss = (LSL_List[])recver();
             if (liss is not null)
             {
                 foreach (LSL_List lis in liss)
                 {
-                    if(!(lis is null))
+                    if(lis is not null)
                         newheapuse += lis.Size;
                 }
                 iarLists = liss;
             }
             else
-                iarLists = noLists;
+                iarLists = [];
 
             object[] objs = (object[])recver();
             if (objs is not null)
@@ -253,7 +239,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 iarObjects = objs;
             }
             else
-                iarObjects = noObjects;
+                iarObjects = [];
 
             LSL_Rotation[] rots = (LSL_Rotation[])recver();
             if (rots is not null)
@@ -262,7 +248,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 iarRotations = rots;
             }
             else
-                iarRotations = noRotations;
+                iarRotations = [];
 
             string[] strs = (string[])recver();
             if (strs is not null)
@@ -272,7 +258,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 iarStrings = strs;
             }
             else
-                iarStrings = noStrings;
+                iarStrings = [];
 
             LSL_Vector[] vecs = (LSL_Vector[])recver();
             if (vecs != null)
@@ -281,11 +267,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 iarVectors = vecs;
             }
             else
-                iarVectors = noVectors;
+                iarVectors = [];
 
-            iarSDTClObjs = (XMRSDTypeClObj[])recver();
-            if(iarSDTClObjs is null)
-                iarSDTClObjs = noSDTClObjs;
+            iarSDTClObjs = (XMRSDTypeClObj[])recver() ?? [];
 
             Delegate[][] dels = (Delegate[][])recver();
             if(dels is not null)
@@ -294,7 +278,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 iarSDTIntfObjs = dels;
             }
             else
-                iarSDTIntfObjs = noSDTIntfObjs;
+                iarSDTIntfObjs = [];
 
             // update script heap usage, throwing an exception before finalizing changes
             arraysHeapUse = instance.UpdateArraysHeapUse(arraysHeapUse, newheapuse);
@@ -1822,7 +1806,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                 migrateInReader = mir;
                 migrateInObjects = new Dictionary<int, object>();
-                ehArgs = (object[])RecvObjValue();
+                ehArgs = (object[])RecvObjValue() ?? [];
                 doGblInit = mir.ReadBoolean();
                 stateCode = mir.ReadInt32();
                 eventCode = (ScriptEventCode)mir.ReadInt32();
@@ -1840,7 +1824,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     XMRStackFrame thisSF = new XMRStackFrame();
                     thisSF.funcName = funcName;
                     thisSF.callNo = mir.ReadInt32();
-                    thisSF.objArray = (object[])RecvObjValue();
+                    thisSF.objArray = (object[])RecvObjValue() ?? [];
                     if(lastSF == null)
                         stackFrames = thisSF;
                     else
@@ -1886,7 +1870,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 case Ser.LSLLIST:
                 {
                     this.migrateInObjects.Add(ident, null);    // placeholder
-                    object[] data = (object[])RecvObjValue();  // read data, maybe using another index
+                    object[] data = (object[])RecvObjValue() ?? [];  // read data, maybe using another index
                     LSL_List list = new LSL_List(data);        // make LSL-level list
                     this.migrateInObjects[ident] = list;        // fill in slot
                     return list;
@@ -1915,8 +1899,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 {
                     Type eletype = String2SysType(mir.ReadString());
                     int length = mir.ReadInt32();
+                    if(length == 0)
+                    {
+                        migrateInObjects.Add(ident, null);
+                        return null;
+                    }
+
                     Array array = Array.CreateInstance(eletype, length);
-                    this.migrateInObjects.Add(ident, array);
+                    migrateInObjects.Add(ident, array);
                     for(int i = 0; i < length; i++)
                         array.SetValue(RecvObjValue(), i);
                     return array;

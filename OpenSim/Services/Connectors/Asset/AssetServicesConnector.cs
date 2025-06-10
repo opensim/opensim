@@ -318,20 +318,18 @@ namespace OpenSim.Services.Connectors
             return exist;
         }
 
-        string stringUUIDZero = UUID.Zero.ToString();
-
         public virtual string Store(AssetBase asset)
         {
             // Have to assign the asset ID here. This isn't likely to
             // trigger since current callers don't pass emtpy IDs
             // We need the asset ID to route the request to the proper
             // cluster member, so we can't have the server assign one.
-            if (asset.ID.Length == 0 || asset.ID == stringUUIDZero)
+            if (asset.ID.Length == 0 || asset.ID == UUID.ZeroString)
             {
                 if (asset.FullID.IsZero())
                 {
                     asset.FullID = UUID.Random();
-                    m_log.WarnFormat("[Assets] Zero ID: {0}", asset.Name);
+                    m_log.Warn($"[Assets] Zero ID: {asset.Name}");
                 }
                 asset.ID = asset.FullID.ToString();
             }
@@ -341,7 +339,7 @@ namespace OpenSim.Services.Connectors
                     asset.FullID = uuid;
                 else
                 {
-                    m_log.WarnFormat("[Assets] Zero IDs: {0}",asset.Name);
+                    m_log.Warn($"[Assets] Invalid UUID on ID: {asset.ID}");
                     asset.FullID = UUID.Random();
                     asset.ID = asset.FullID.ToString();
                 }
@@ -358,7 +356,7 @@ namespace OpenSim.Services.Connectors
 
             string uri = m_ServerURI + "/assets/";
 
-            string newID = null;
+            string newID;
             try
             {
                 newID = SynchronousRestObjectRequester.MakeRequest<AssetBase, string>("POST", uri, asset, 10000, m_Auth);
@@ -368,7 +366,7 @@ namespace OpenSim.Services.Connectors
                 newID = null;
             }
 
-            if (string.IsNullOrEmpty(newID) || newID == stringUUIDZero)
+            if (string.IsNullOrEmpty(newID) || newID.Equals(UUID.ZeroString))
             {
                 return string.Empty;
             }

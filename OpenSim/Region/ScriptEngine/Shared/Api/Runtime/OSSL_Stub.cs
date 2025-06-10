@@ -1105,6 +1105,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void osSetTerrainTextures(LSL_List textures, LSL_Integer types)
+        {
+            m_OSSL_Functions.osSetTerrainTextures(textures, types);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void osSetTerrainTextureHeight(int corner, double low, double high)
         {
             m_OSSL_Functions.osSetTerrainTextureHeight(corner, low, high);
@@ -1818,6 +1824,42 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public vector osTemperature2sRBG(LSL_Float dtemp)
         {
             return m_OSSL_Functions.osTemperature2sRGB(dtemp);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_Integer osListFindListNext(LSL_List src, LSL_List test, LSL_Integer start, LSL_Integer end, LSL_Integer instance)
+        {
+            return m_OSSL_Functions.osListFindListNext(src, test, start, end, instance);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_String osListAsString(LSL_List src, int index)
+        {
+            return m_OSSL_Functions.osListAsString(src, index);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_Integer osListAsInteger(LSL_List src, int index)
+        {
+            return m_OSSL_Functions.osListAsInteger(src, index);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_Float osListAsFloat(LSL_List src, int index)
+        {
+            return m_OSSL_Functions.osListAsFloat(src, index);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public vector osListAsVector(LSL_List src, int index)
+        {
+            return m_OSSL_Functions.osListAsVector(src, index);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public rotation osListAsRotation(LSL_List src, int index)
+        {
+            return m_OSSL_Functions.osListAsRotation(src, index);
         }
     }
 }

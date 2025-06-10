@@ -32,6 +32,7 @@ using System.Security.Permissions;
 using log4net;
 using OpenSim.Framework;
 using OpenMetaverse;
+using System.Runtime.CompilerServices;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -45,12 +46,14 @@ namespace OpenSim.Region.Framework.Scenes
         protected Scene m_scene;
         public Scene Scene
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return m_scene; }
         }
 
         protected UUID m_uuid;
         public virtual UUID UUID
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return m_uuid; }
             set { m_uuid = value; }
         }
@@ -61,6 +64,7 @@ namespace OpenSim.Region.Framework.Scenes
         public osUTF8 osUTF8Name;
         public virtual string Name
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return osUTF8Name == null ? string.Empty : osUTF8Name.ToString(); }
             set { osUTF8Name = value == null? null : new osUTF8(value); }
         }
@@ -71,6 +75,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected uint m_localId;
         public virtual uint LocalId
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 return m_localId;
@@ -93,6 +98,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected Vector3 m_pos;
         public virtual Vector3 AbsolutePosition
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 return m_pos;
@@ -109,6 +115,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected Vector3 m_velocity;
         public virtual Vector3 Velocity
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return m_velocity; }
             set { m_velocity = value; }
         }

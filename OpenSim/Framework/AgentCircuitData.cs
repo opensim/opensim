@@ -145,7 +145,7 @@ namespace OpenSim.Framework
                 }
                 else // New style version contains no spaces, just version number
                 {
-                    return $"{Channel}  {m_viewerInternal}";
+                    return $"{Channel} {m_viewerInternal}";
                 }
             }
         }

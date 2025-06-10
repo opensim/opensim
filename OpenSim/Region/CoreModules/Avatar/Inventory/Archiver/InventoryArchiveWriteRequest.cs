@@ -56,6 +56,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// Determine whether this archive will save assets.  Default is true.
         /// </summary>
         public bool SaveAssets { get; set; }
+        public bool SkipBadAssets { get; set; }
+
 
         /// <summary>
         /// Determines which items will be included in the archive, according to their permissions.
@@ -67,6 +69,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// Counter for inventory items saved to archive for passing to compltion event
         /// </summary>
         public int CountItems { get; set; }
+
+        public int CountBadAssetSkipItems { get; set; }
 
         /// <summary>
         /// Counter for inventory items skipped due to permission filter option for passing to compltion event
@@ -136,6 +140,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             m_assetGatherer = new UuidGatherer(m_scene.AssetService);
 
             SaveAssets = true;
+            SkipBadAssets = false;
             FilterContent = null;
         }
 
@@ -201,27 +206,32 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 return;
             }
 
-            if (options.ContainsKey("verbose"))
-                m_log.InfoFormat(
-                    "[INVENTORY ARCHIVER]: Saving item {0} {1} (asset UUID {2})",
-                    inventoryItem.ID, inventoryItem.Name, inventoryItem.AssetID);
-
-            string filename = path + CreateArchiveItemName(inventoryItem);
 
             // Record the creator of this item for user record purposes (which might go away soon)
             m_userUuids[inventoryItem.CreatorIdAsUuid] = 1;
 
-            string serialization = UserInventoryItemSerializer.Serialize(inventoryItem, options, userAccountService);
-            m_archiveWriter.WriteFile(filename, serialization);
-
             AssetType itemAssetType = (AssetType)inventoryItem.AssetType;
 
-            // Count inventory items (different to asset count)
-            CountItems++;
-            
             // Don't chase down link asset items as they actually point to their target item IDs rather than an asset
             if (SaveAssets && itemAssetType != AssetType.Link && itemAssetType != AssetType.LinkFolder)
             {
+                if(SkipBadAssets)
+                {
+                    AssetBase asset = m_scene.AssetService.Get(inventoryItem.AssetID.ToString());
+                    if(asset is null)
+                    {
+                        m_log.Error($"[INVENTORY ARCHIVER] missing asset {inventoryItem.AssetID} on item { inventoryItem.Name} ({inventoryItem.ID}) type {inventoryItem.InvType}({itemAssetType})");
+                        CountBadAssetSkipItems++;
+                        return;
+                    }
+                    if(asset.Data is null || asset.Data.Length == 0)
+                    {
+                        m_log.Error($"[INVENTORY ARCHIVER] empty asset {inventoryItem.AssetID} on item { inventoryItem.Name} ({inventoryItem.ID}) type {inventoryItem.InvType}({itemAssetType})");
+                        CountBadAssetSkipItems++;
+                        return;
+                    }
+                }
+
                 int curErrorCntr = m_assetGatherer.ErrorCount;
                 int possible = m_assetGatherer.possibleNotAssetCount;
                 m_assetGatherer.AddForInspection(inventoryItem.AssetID);
@@ -234,7 +244,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     string spath;
                     int indx = path.IndexOf("__");
                     if(indx > 0)
-                         spath = path.Substring(0,indx);
+                            spath = path.Substring(0,indx);
                     else
                         spath = path;
 
@@ -251,6 +261,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     }
                 }
             }
+
+            if (options.ContainsKey("verbose"))
+                m_log.Info(
+                    $"[INVENTORY ARCHIVER]: Saving item {inventoryItem.ID} {inventoryItem.Name} (asset UUID {inventoryItem.AssetID})");
+            string filename = path + CreateArchiveItemName(inventoryItem);
+            string serialization = UserInventoryItemSerializer.Serialize(inventoryItem, options, userAccountService);
+            m_archiveWriter.WriteFile(filename, serialization);
+            // Count inventory items (different to asset count)
+            CountItems++;
         }
 
         /// <summary>
@@ -341,6 +360,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         {
             if (options.ContainsKey("noassets") && (bool)options["noassets"])
                 SaveAssets = false;
+
+            if (options.ContainsKey("skipbadassets") && (bool)options["skipbadassets"])
+            { 
+                SaveAssets = true;
+                SkipBadAssets = true;
+            }
 
             // Set Permission filter if flag is set
             if (options.ContainsKey("checkPermissions"))

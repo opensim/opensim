@@ -259,11 +259,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 }
             }
 
+            UuidGatherer assetGatherer = new UuidGatherer(scene.AssetService, assetUuids, failedIDs, uncertainAssetsUUIDs);
+            int prevAssets = assetUuids.Count;
+
             if (SaveAssets)
             {
-                UuidGatherer assetGatherer = new UuidGatherer(scene.AssetService, assetUuids, failedIDs, uncertainAssetsUUIDs);
-                int prevAssets = assetUuids.Count;
-
                 foreach (SceneObjectGroup sceneObject in sceneObjects)
                 {
                     int curErrorCntr = assetGatherer.ErrorCount;
@@ -321,16 +321,18 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 assetUuids[regionSettings.TerrainTexture4] = (sbyte)AssetType.Texture;
 
             if (regionSettings.TerrainPBR1 != RegionSettings.DEFAULT_TERRAIN_PBR_1)
-                assetUuids[regionSettings.TerrainPBR1] = (sbyte)AssetType.Texture; // it can be both tex or material
+                assetGatherer.AddForInspection(regionSettings.TerrainPBR1);
 
             if (regionSettings.TerrainPBR2 != RegionSettings.DEFAULT_TERRAIN_PBR_2)
-                assetUuids[regionSettings.TerrainPBR2] = (sbyte)AssetType.Texture;
+                assetGatherer.AddForInspection(regionSettings.TerrainPBR2);
 
             if (regionSettings.TerrainPBR3 != RegionSettings.DEFAULT_TERRAIN_PBR_3)
-                assetUuids[regionSettings.TerrainPBR3] = (sbyte)AssetType.Texture;
+                assetGatherer.AddForInspection(regionSettings.TerrainPBR3);
 
             if (regionSettings.TerrainPBR4 != RegionSettings.DEFAULT_TERRAIN_PBR_4)
-                assetUuids[regionSettings.TerrainPBR4] = (sbyte)AssetType.Texture;
+                assetGatherer.AddForInspection(regionSettings.TerrainPBR4);
+
+            assetGatherer.GatherAll();
 
             if (scene.RegionEnvironment != null)
                 scene.RegionEnvironment.GatherAssets(assetUuids);
@@ -340,6 +342,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             {
                 if(lo.LandData != null && lo.LandData.Environment != null)
                     lo.LandData.Environment.GatherAssets(assetUuids);
+                if(lo.LandData.MediaID.IsNotZero())
+                    assetUuids[lo.LandData.MediaID] = (sbyte)AssetType.Texture;
             }
 
             Save(scene, sceneObjects, regionDir);

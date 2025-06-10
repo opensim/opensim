@@ -996,13 +996,15 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             }
             else
             {
-                userdata = new UserData();
-                userdata.Id = uuid;
-                userdata.FirstName = "Unknown";
-                userdata.LastName = uuid.ToString();
-                userdata.HomeURL = string.Empty;
-                userdata.IsUnknownUser = true;
-                userdata.HasGridUserTried = false;
+                userdata = new UserData
+                {
+                    Id = uuid,
+                    FirstName = "Unknown",
+                    LastName = uuid.ToString(),
+                    HomeURL = string.Empty,
+                    IsUnknownUser = true,
+                    HasGridUserTried = false
+                };
             }
 
             if (!userdata.HasGridUserTried)
