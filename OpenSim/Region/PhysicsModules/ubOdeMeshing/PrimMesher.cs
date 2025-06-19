@@ -27,225 +27,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.IO;
-using System.Xml.XPath;
+
+using OpenMetaverse;
+
 
 namespace PrimMesher
 {
-    public struct Quat
-    {
-        /// <summary>X value</summary>
-        public float X;
-        /// <summary>Y value</summary>
-        public float Y;
-        /// <summary>Z value</summary>
-        public float Z;
-        /// <summary>W value</summary>
-        public float W;
-
-        public enum MainAxis : int
-        {
-            X = 0,
-            Y = 1,
-            Z = 2
-        }
-
-        public Quat(float x, float y, float z, float w)
-        {
-            X = x;
-            Y = y;
-            Z = z;
-            W = w;
-        }
-
-        public Quat(MainAxis BaseAxis, float angle)
-        {
-            switch (BaseAxis)
-            {
-                case MainAxis.X:
-                    W = MathF.Cos(0.5f * angle);
-                    X = MathF.Sqrt(1.0f - W * W);
-                    Y = 0;
-                    Z = 0;
-                    break;
-                case MainAxis.Y:
-                    W = MathF.Cos(0.5f * angle);
-                    Y = MathF.Sqrt(1.0f - W * W);
-                    X = 0;
-                    Z = 0;
-                    break;
-                case MainAxis.Z:
-                    W = MathF.Cos(0.5f * angle);
-                    Z = MathF.Sqrt(1.0f - W * W);
-                    X = 0;
-                    Y = 0;
-                    break;
-                default: //error
-                    X = 0;
-                    Y = 0;
-                    Z = 0;
-                    W = 1;
-                    break;
-            }
-        }
-
-        public float Length()
-        {
-            return MathF.Sqrt(X * X + Y * Y + Z * Z + W * W);
-        }
-
-        public Quat Normalize()
-        {
-            const float MAG_THRESHOLD = 0.0000001f;
-            float mag = (X * X + Y * Y + Z * Z + W * W);
-
-            // Catch very small rounding errors when normalizing
-            if (mag > MAG_THRESHOLD)
-            {
-                float oomag = 1f / MathF.Sqrt(mag);
-                X *= oomag;
-                Y *= oomag;
-                Z *= oomag;
-                W *= oomag;
-            }
-            else
-            {
-                X = 0f;
-                Y = 0f;
-                Z = 0f;
-                W = 1f;
-            }
-
-            return this;
-        }
-
-        public static Quat operator *(Quat q1, Quat q2)
-        {
-            float x = q1.W * q2.X + q1.X * q2.W + q1.Y * q2.Z - q1.Z * q2.Y;
-            float y = q1.W * q2.Y - q1.X * q2.Z + q1.Y * q2.W + q1.Z * q2.X;
-            float z = q1.W * q2.Z + q1.X * q2.Y - q1.Y * q2.X + q1.Z * q2.W;
-            float w = q1.W * q2.W - q1.X * q2.X - q1.Y * q2.Y - q1.Z * q2.Z;
-            return new Quat(x, y, z, w);
-        }
-
-        public override string ToString()
-        {
-            return "< X: " + X.ToString() + ", Y: " + Y.ToString() + ", Z: " + Z.ToString() + ", W: " + W.ToString() + ">";
-        }
-    }
-
-    public struct Coord
-    {
-        public float X;
-        public float Y;
-        public float Z;
-
-        public Coord(float x, float y, float z)
-        {
-            X = x;
-            Y = y;
-            Z = z;
-        }
-
-        public float Length()
-        {
-            return MathF.Sqrt(X * X + Y * Y + Z * Z);
-        }
-
-        public Coord Invert()
-        {
-            X = -X;
-            Y = -Y;
-            Z = -Z;
-
-            return this;
-        }
-
-        public Coord Normalize()
-        {
-            const float MAG_THRESHOLD = 0.0000001f;
-            float mag = Length();
-
-            // Catch very small rounding errors when normalizing
-            if (mag > MAG_THRESHOLD)
-            {
-                float oomag = 1.0f / mag;
-                X *= oomag;
-                Y *= oomag;
-                Z *= oomag;
-            }
-            else
-            {
-                X = 0.0f;
-                Y = 0.0f;
-                Z = 0.0f;
-            }
-
-            return this;
-        }
-
-        public override string ToString()
-        {
-            return "<"+X.ToString() + "," + Y.ToString() + "," + Z.ToString()+ ">";
-        }
-
-        public static Coord Cross(Coord c1, Coord c2)
-        {
-            return new Coord(
-                c1.Y * c2.Z - c2.Y * c1.Z,
-                c1.Z * c2.X - c2.Z * c1.X,
-                c1.X * c2.Y - c2.X * c1.Y
-                );
-        }
-
-        public static Coord operator +(Coord v, Coord a)
-        {
-            return new Coord(v.X + a.X, v.Y + a.Y, v.Z + a.Z);
-        }
-
-        public static Coord operator *(Coord v, Coord m)
-        {
-            return new Coord(v.X * m.X, v.Y * m.Y, v.Z * m.Z);
-        }
-
-        public static Coord operator *(Coord v, Quat q)
-        {
-            float x = q.X;
-            float y = q.Y;
-            float x2 = x + x;
-            float z = q.Z;
-            float y2 = y + y;
-            float w = q.W;
-            float z2 = z + z;
-
-            float zz2 = z * z2;
-
-            float xx2 = x * x2;
-            float xy2 = x * y2;
-            float xz2 = x * z2;
-            z = v.Z;
-
-            float yy2 = y * y2;
-            float yz2 = y * z2;
-            x = v.X;
-
-            float wx2 = w * x2;
-            float wy2 = w * y2;
-            float wz2 = w * z2;
-            y = v.Y;
-
-            return new Coord(
-                x * (1.0f - yy2 - zz2) + y * (xy2 - wz2) + z * (xz2 + wy2),
-                x * (xy2 + wz2) + y * (1.0f - xx2 - zz2) + z * (yz2 - wx2),
-                x * (xz2 - wy2) + y * (yz2 + wx2) + z * (1.0f - xx2 - yy2));
-        }
-    }
-
     public struct Face
     {
-        public int primFace;
-
         // vertices
         public int v1;
         public int v2;
@@ -253,8 +43,6 @@ namespace PrimMesher
 
         public Face(int _v1, int _v2, int _v3)
         {
-            primFace = 0;
-
             v1 = _v1;
             v2 = _v2;
             v3 = _v3;
@@ -273,6 +61,12 @@ namespace PrimMesher
             X = x; // cos
             Y = y; // sin
         }
+        internal Angle(float _angle)
+        {
+            angle = _angle; // 1 is 2pi
+            X = MathF.Cos(angle); // cos
+            Y = MathF.Sin(angle); // sin
+        }
     }
 
     internal class AngleList
@@ -281,76 +75,76 @@ namespace PrimMesher
 
         private static readonly Angle[] angles3 =
         {
-            new Angle(0.0f, 1.0f, 0.0f),
-            new Angle(0.33333333333333333f, -0.5f, 0.86602540378443871f),
-            new Angle(0.66666666666666667f, -0.5f, -0.86602540378443837f),
-            new Angle(1.0f, 1.0f, 0.0f)
+            new(0.0f, 1.0f, 0.0f),
+            new(0.33333333333333333f, -0.5f, 0.86602540378443871f),
+            new(0.66666666666666667f, -0.5f, -0.86602540378443837f),
+            new(1.0f, 1.0f, 0.0f)
         };
 
         private static readonly Angle[] angles4 =
         {
-            new Angle(0.0f, 1.0f, 0.0f),
-            new Angle(0.25f, 0.0f, 1.0f),
-            new Angle(0.5f, -1.0f, 0.0f),
-            new Angle(0.75f, 0.0f, -1.0f),
-            new Angle(1.0f, 1.0f, 0.0f)
+            new(0.0f, 1.0f, 0.0f),
+            new(0.25f, 0.0f, 1.0f),
+            new(0.5f, -1.0f, 0.0f),
+            new(0.75f, 0.0f, -1.0f),
+            new(1.0f, 1.0f, 0.0f)
         };
 
         private static readonly Angle[] angles6 =
         {
-            new Angle(0.0f, 1.0f, 0.0f),
-            new Angle(0.16666666666666667f, 0.5f, 0.8660254037844386f),
-            new Angle(0.33333333333333333f, -0.5f, 0.86602540378443871f),
-            new Angle(0.5f, -1.0f, 0.0f),
-            new Angle(0.66666666666666667f, -0.5f, -0.86602540378443837f),
-            new Angle(0.83333333333333326f, 0.5f, -0.86602540378443904f),
-            new Angle(1.0f, 1.0f, 0.0f)
+            new(0.0f, 1.0f, 0.0f),
+            new(0.16666666666666667f, 0.5f, 0.8660254037844386f),
+            new(0.33333333333333333f, -0.5f, 0.86602540378443871f),
+            new(0.5f, -1.0f, 0.0f),
+            new(0.66666666666666667f, -0.5f, -0.86602540378443837f),
+            new(0.83333333333333326f, 0.5f, -0.86602540378443904f),
+            new(1.0f, 1.0f, 0.0f)
         };
 
         private static readonly Angle[] angles12 =
         {
-            new Angle(0.0f, 1.0f, 0.0f),
-            new Angle(0.083333333333333329f, 0.86602540378443871f, 0.5f),
-            new Angle(0.16666666666666667f, 0.5f, 0.8660254037844386f),
-            new Angle(0.25f, 0.0f, 1.0f),
-            new Angle(0.33333333333333333f, -0.5f, 0.86602540378443871f),
-            new Angle(0.41666666666666663f, -0.86602540378443849f, 0.5f),
-            new Angle(0.5f, -1.0f, 0.0f),
-            new Angle(0.58333333333333326f, -0.86602540378443882f, -0.5f),
-            new Angle(0.66666666666666667f, -0.5f, -0.86602540378443837f),
-            new Angle(0.75f, 0.0f, -1.0f),
-            new Angle(0.83333333333333326f, 0.5f, -0.86602540378443904f),
-            new Angle(0.91666666666666663f, 0.86602540378443837f, -0.5f),
-            new Angle(1.0f, 1.0f, 0.0f)
+            new(0.0f, 1.0f, 0.0f),
+            new(0.083333333333333329f, 0.86602540378443871f, 0.5f),
+            new(0.16666666666666667f, 0.5f, 0.8660254037844386f),
+            new(0.25f, 0.0f, 1.0f),
+            new(0.33333333333333333f, -0.5f, 0.86602540378443871f),
+            new(0.41666666666666663f, -0.86602540378443849f, 0.5f),
+            new(0.5f, -1.0f, 0.0f),
+            new(0.58333333333333326f, -0.86602540378443882f, -0.5f),
+            new(0.66666666666666667f, -0.5f, -0.86602540378443837f),
+            new(0.75f, 0.0f, -1.0f),
+            new(0.83333333333333326f, 0.5f, -0.86602540378443904f),
+            new(0.91666666666666663f, 0.86602540378443837f, -0.5f),
+            new(1.0f, 1.0f, 0.0f)
         };
 
         private static readonly Angle[] angles24 =
         {
-            new Angle(0.0f, 1.0f, 0.0f),
-            new Angle(0.041666666666666664f, 0.96592582628906831f, 0.25881904510252074f),
-            new Angle(0.083333333333333329f, 0.86602540378443871f, 0.5f),
-            new Angle(0.125f, 0.70710678118654757f, 0.70710678118654746f),
-            new Angle(0.16666666666666667f, 0.5f, 0.8660254037844386f),
-            new Angle(0.20833333333333331f, 0.25881904510252096f, 0.9659258262890682f),
-            new Angle(0.25f, 0.0f, 1.0f),
-            new Angle(0.29166666666666663f, -0.25881904510252063f, 0.96592582628906831f),
-            new Angle(0.33333333333333333f, -0.5f, 0.86602540378443871f),
-            new Angle(0.375f, -0.70710678118654746f, 0.70710678118654757f),
-            new Angle(0.41666666666666663f, -0.86602540378443849f, 0.5f),
-            new Angle(0.45833333333333331f, -0.9659258262890682f, 0.25881904510252102f),
-            new Angle(0.5f, -1.0f, 0.0f),
-            new Angle(0.54166666666666663f, -0.96592582628906842f, -0.25881904510252035f),
-            new Angle(0.58333333333333326f, -0.86602540378443882f, -0.5f),
-            new Angle(0.62499999999999989f, -0.70710678118654791f, -0.70710678118654713f),
-            new Angle(0.66666666666666667f, -0.5f, -0.86602540378443837f),
-            new Angle(0.70833333333333326f, -0.25881904510252152f, -0.96592582628906809f),
-            new Angle(0.75f, 0.0f, -1.0f),
-            new Angle(0.79166666666666663f, 0.2588190451025203f, -0.96592582628906842f),
-            new Angle(0.83333333333333326f, 0.5f, -0.86602540378443904f),
-            new Angle(0.875f, 0.70710678118654735f, -0.70710678118654768f),
-            new Angle(0.91666666666666663f, 0.86602540378443837f, -0.5f),
-            new Angle(0.95833333333333326f, 0.96592582628906809f, -0.25881904510252157f),
-            new Angle(1.0f, 1.0f, 0.0f)
+            new(0.0f, 1.0f, 0.0f),
+            new(0.041666666666666664f, 0.96592582628906831f, 0.25881904510252074f),
+            new(0.083333333333333329f, 0.86602540378443871f, 0.5f),
+            new(0.125f, 0.70710678118654757f, 0.70710678118654746f),
+            new(0.16666666666666667f, 0.5f, 0.8660254037844386f),
+            new(0.20833333333333331f, 0.25881904510252096f, 0.9659258262890682f),
+            new(0.25f, 0.0f, 1.0f),
+            new(0.29166666666666663f, -0.25881904510252063f, 0.96592582628906831f),
+            new(0.33333333333333333f, -0.5f, 0.86602540378443871f),
+            new(0.375f, -0.70710678118654746f, 0.70710678118654757f),
+            new(0.41666666666666663f, -0.86602540378443849f, 0.5f),
+            new(0.45833333333333331f, -0.9659258262890682f, 0.25881904510252102f),
+            new(0.5f, -1.0f, 0.0f),
+            new(0.54166666666666663f, -0.96592582628906842f, -0.25881904510252035f),
+            new(0.58333333333333326f, -0.86602540378443882f, -0.5f),
+            new(0.62499999999999989f, -0.70710678118654791f, -0.70710678118654713f),
+            new(0.66666666666666667f, -0.5f, -0.86602540378443837f),
+            new(0.70833333333333326f, -0.25881904510252152f, -0.96592582628906809f),
+            new(0.75f, 0.0f, -1.0f),
+            new(0.79166666666666663f, 0.2588190451025203f, -0.96592582628906842f),
+            new(0.83333333333333326f, 0.5f, -0.86602540378443904f),
+            new(0.875f, 0.70710678118654735f, -0.70710678118654768f),
+            new(0.91666666666666663f, 0.86602540378443837f, -0.5f),
+            new(0.95833333333333326f, 0.96592582628906809f, -0.25881904510252157f),
+            new(1.0f, 1.0f, 0.0f)
         };
 
         private static Angle interpolatePoints(float newPoint, Angle p1, Angle p2)
@@ -447,10 +241,7 @@ namespace PrimMesher
 
                 while (angle <= stopAngleTest)
                 {
-                    Angle newAngle;
-                    newAngle.angle = angle;
-                    newAngle.X = MathF.Cos(angle);
-                    newAngle.Y = MathF.Sin(angle);
+                    Angle newAngle = new(angle);
                     angles.Add(newAngle);
                     step += 1;
                     angle = (float)(stepSize * step);
@@ -458,22 +249,16 @@ namespace PrimMesher
 
                 if (startAngle > angles[0].angle)
                 {
-                    Angle newAngle;
                     intersection(angles[0].X, angles[0].Y, angles[1].X, angles[1].Y, 0.0f, 0.0f, MathF.Cos(startAngle), MathF.Sin(startAngle));
-                    newAngle.angle = startAngle;
-                    newAngle.X = iX;
-                    newAngle.Y = iY;
+                    Angle newAngle = new(startAngle, iX, iY);
                     angles[0] = newAngle;
                 }
 
                 int index = angles.Count - 1;
                 if (stopAngle < angles[index].angle)
                 {
-                    Angle newAngle;
                     intersection(angles[index - 1].X, angles[index - 1].Y, angles[index].X, angles[index].Y, 0.0f, 0.0f, MathF.Cos(stopAngle), MathF.Sin(stopAngle));
-                    newAngle.angle = stopAngle;
-                    newAngle.X = iX;
-                    newAngle.Y = iY;
+                    Angle newAngle = new(stopAngle, iX, iY);
                     angles[index] = newAngle;
                 }
             }
@@ -489,7 +274,7 @@ namespace PrimMesher
 
         public string errorMessage = null;
 
-        public List<Coord> coords;
+        public List<Vector3> coords;
         public List<Face> faces;
 
         // use these for making individual meshes for each prim face
@@ -507,18 +292,30 @@ namespace PrimMesher
 
         public Profile()
         {
-            coords = new List<Coord>();
-            faces = new List<Face>();
+            coords = [];
+            faces = [];
+        }
+
+        public Profile(List<Vector3> _coords)
+        {
+            coords = _coords;
+            faces = [];
+        }
+
+        public Profile(List<Vector3> _coords, List<Face> _faces)
+        {
+            coords = _coords;
+            faces = _faces;
         }
 
         public Profile(int sides, float profileStart, float profileEnd, float hollow, int hollowSides, bool hasProfileCut, bool createFaces)
         {
             const float halfSqr2 = 0.7071067811866f;
 
-            coords = new List<Coord>();
+            coords = new List<Vector3>();
             faces = new List<Face>();
 
-            List<Coord> hollowCoords = new();
+            List<Vector3> hollowCoords = new();
 
             bool hasHollow = (hollow > 0.0f);
 
@@ -548,7 +345,7 @@ namespace PrimMesher
             numOuterVerts = angles.angles.Count;
 
             Angle angle;
-            Coord newVert = new();
+            Vector3 newVert = new();
 
             // flag to create as few triangles as possible for 3 or 4 side profile
             bool simpleFace = (sides < 5 && !hasHollow && !hasProfileCut);
@@ -583,8 +380,7 @@ namespace PrimMesher
             }
             else if (!simpleFace)
             {
-                Coord center = new(0.0f, 0.0f, 0.0f);
-                this.coords.Add(center);
+                coords.Add(Vector3.Zero);
             }
 
             int numAngles = angles.angles.Count;
@@ -809,12 +605,9 @@ namespace PrimMesher
 
         public Profile Copy(bool needFaces)
         {
-            Profile copy = new();
-
-            copy.coords.AddRange(coords);
-
-            if (needFaces)
-                copy.faces.AddRange(faces);
+            Profile copy = needFaces ?
+                new(new List<Vector3>(coords), new List<Face>(faces)) :
+                new(new List<Vector3>(coords));
 
             copy.numOuterVerts = numOuterVerts;
             copy.numHollowVerts = numHollowVerts;
@@ -822,28 +615,21 @@ namespace PrimMesher
             return copy;
         }
 
-        public void AddPos(Coord v)
+        public void AddPos(Vector3 v)
         {
-            this.AddPos(v.X, v.Y, v.Z);
+            for (int i = 0; i < coords.Count; i++)
+            { 
+                coords[i].Add(v);
+            }
         }
 
         public void AddPos(float x, float y, float z)
         {
-            int i;
-            int numVerts = coords.Count;
-            Coord vert;
-
-            for (i = 0; i < numVerts; i++)
-            {
-                vert = coords[i];
-                vert.X += x;
-                vert.Y += y;
-                vert.Z += z;
-                coords[i] = vert;
-            }
+            Vector3 v = new(x,y,z);
+            AddPos(v);
         }
 
-        public void AddRot(Quat q)
+        public void AddRot(Quaternion q)
         {
             int i;
             int numVerts = coords.Count;
@@ -854,11 +640,8 @@ namespace PrimMesher
 
         public void Scale(float x, float y)
         {
-            int i;
-            int numVerts = coords.Count;
-            Coord vert;
-
-            for (i = 0; i < numVerts; i++)
+            Vector3 vert;
+            for (int i = 0; i < coords.Count; i++)
             {
                 vert = coords[i];
                 vert.X *= x;
@@ -877,15 +660,13 @@ namespace PrimMesher
         /// </summary>
         public void FlipNormals()
         {
-            int numFaces = faces.Count;
-            if(numFaces == 0)
+            if(coords.Count == 0)
                 return;
 
-            int i;
             Face tmpFace;
             int tmp;
 
-            for (i = 0; i < numFaces; i++)
+            for (int i = 0; i < faces.Count; i++)
             {
                 tmpFace = faces[i];
                 tmp = tmpFace.v3;
@@ -897,13 +678,11 @@ namespace PrimMesher
 
         public void AddValue2FaceVertexIndices(int num)
         {
-            int numFaces = faces.Count;
-            if(numFaces == 0)
+            if(faces.Count == 0)
                 return;
 
             Face tmpFace;
-
-            for (int i = 0; i < numFaces; i++)
+            for (int i = 0; i < faces.Count; i++)
             {
                 tmpFace = faces[i];
                 tmpFace.v1 += num;
@@ -932,8 +711,8 @@ namespace PrimMesher
 
     public struct PathNode
     {
-        public Coord position;
-        public Quat rotation;
+        public Vector3 position;
+        public Quaternion rotation;
         public float xScale;
         public float yScale;
         public float percentOfPath;
@@ -1019,8 +798,8 @@ namespace PrimMesher
 
                     float twist = twistBegin + twistTotal * percentOfPath;
 
-                    newNode.rotation = new Quat(Quat.MainAxis.Z, twist);
-                    newNode.position = new Coord(xOffset, yOffset, zOffset);
+                    newNode.rotation = new Quaternion(Quaternion.MainAxis.Z, twist);
+                    newNode.position = new Vector3(xOffset, yOffset, zOffset);
                     newNode.percentOfPath = percentOfPath;
 
                     pathNodes.Add(newNode);
@@ -1116,16 +895,16 @@ namespace PrimMesher
 
                     float zOffset = MathF.Sin(angle + topShearY) * (0.5f - yPathScale) * radiusScale;
 
-                    newNode.position = new Coord(xOffset, yOffset, zOffset);
+                    newNode.position = new Vector3(xOffset, yOffset, zOffset);
 
                     // now orient the rotation of the profile layer relative to it's position on the path
                     // adding taperY to the angle used to generate the quat appears to approximate the viewer
 
-                    newNode.rotation = new Quat(Quat.MainAxis.X, angle + topShearY);
+                    newNode.rotation = new Quaternion(Quaternion.MainAxis.X, angle + topShearY);
 
                     // next apply twist rotation to the profile layer
                     if (twistTotal != 0.0f || twistBegin != 0.0f)
-                        newNode.rotation *= new Quat(Quat.MainAxis.Z, twist);
+                        newNode.rotation *= new Quaternion(Quaternion.MainAxis.Z, twist);
 
                     newNode.percentOfPath = percentOfPath;
 
@@ -1151,8 +930,7 @@ namespace PrimMesher
     public class PrimMesh
     {
         public string errorMessage = "";
-        public List<Coord> coords;
-//        public List<Coord> normals;
+        public List<Vector3> coords;
         public List<Face> faces;
 
         private int sides = 4;
@@ -1238,7 +1016,7 @@ namespace PrimMesher
         /// <param name="sphereMode"></param>
         public PrimMesh(int _sides, float _profileStart, float _profileEnd, float _hollow, int _hollowSides)
         {
-            coords = new List<Coord>();
+            coords = new List<Vector3>();
             faces = new List<Face>();
 
             sides = _sides;
@@ -1272,7 +1050,7 @@ namespace PrimMesher
         {
             bool needEndFaces;
 
-            coords = new List<Coord>();
+            coords = new List<Vector3>();
             faces = new List<Face>();
 
             int steps = 1;
@@ -1366,7 +1144,7 @@ namespace PrimMesher
 
             if (initialProfileRot != 0.0f)
             {
-                profile.AddRot(new Quat(Quat.MainAxis.Z, initialProfileRot));
+                profile.AddRot(new Quaternion(Quaternion.MainAxis.Z, initialProfileRot));
             }
 
             Path path = new()
@@ -1515,19 +1293,19 @@ namespace PrimMesher
         // more cleanup will be done at Meshmerizer.cs
         }
 
-        private static Coord SurfaceNormal(Coord c1, Coord c2, Coord c3)
+        private static Vector3 SurfaceNormal(Vector3 c1, Vector3 c2, Vector3 c3)
         {
-            Coord edge1 = new(c2.X - c1.X, c2.Y - c1.Y, c2.Z - c1.Z);
-            Coord edge2 = new(c3.X - c1.X, c3.Y - c1.Y, c3.Z - c1.Z);
+            Vector3 edge1 = new(c2.X - c1.X, c2.Y - c1.Y, c2.Z - c1.Z);
+            Vector3 edge2 = new(c3.X - c1.X, c3.Y - c1.Y, c3.Z - c1.Z);
 
-            Coord normal = Coord.Cross(edge1, edge2);
+            Vector3 normal = Vector3.Cross(edge1, edge2);
 
             normal.Normalize();
 
             return normal;
         }
 
-        private Coord SurfaceNormal(Face face)
+        private Vector3 SurfaceNormal(Face face)
         {
             return SurfaceNormal(coords[face.v1], coords[face.v2], coords[face.v3]);
         }
@@ -1537,7 +1315,7 @@ namespace PrimMesher
         /// </summary>
         /// <param name="faceIndex"></param>
         /// <returns></returns>
-        public Coord SurfaceNormal(int faceIndex)
+        public Vector3 SurfaceNormal(int faceIndex)
         {
             int numFaces = faces.Count;
             if (faceIndex < 0 || faceIndex >= numFaces)
@@ -1574,7 +1352,7 @@ namespace PrimMesher
                 numPrimFaces = numPrimFaces,
                 errorMessage = errorMessage,
 
-                coords = new List<Coord>(coords),
+                coords = new List<Vector3>(coords),
                 faces = new List<Face>(faces)
             };
 
@@ -1591,7 +1369,7 @@ namespace PrimMesher
         {
             int i;
             int numVerts = coords.Count;
-            Coord vert;
+            Vector3 vert;
 
             for (i = 0; i < numVerts; i++)
             {
@@ -1607,7 +1385,7 @@ namespace PrimMesher
         /// Rotates the mesh
         /// </summary>
         /// <param name="q"></param>
-        public void AddRot(Quat q)
+        public void AddRot(Quaternion q)
         {
             int i;
             int numVerts = coords.Count;
@@ -1628,7 +1406,7 @@ namespace PrimMesher
             int numVerts = this.coords.Count;
             //Coord vert;
 
-            Coord m = new(x, y, z);
+            Vector3 m = new(x, y, z);
             for (i = 0; i < numVerts; i++)
                 coords[i] *= m;
         }

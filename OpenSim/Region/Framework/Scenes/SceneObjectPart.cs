@@ -917,11 +917,10 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 // If this is a root of a linkset, the real rotation is what the physics engine thinks.
                 // If not a root prim, the offset rotation is computed by SOG and is relative to the root.
-                if (_parentID == 0 && (Shape.PCode != 9 || Shape.State == 0))
+                PhysicsActor actor = PhysActor;
+                if (actor != null && _parentID == 0 && (Shape.PCode != 9 || Shape.State == 0))
                 { 
-                    PhysicsActor actor = PhysActor;
-                    if(PhysActor != null)
-                        m_rotationOffset = actor.Orientation;
+                    m_rotationOffset = actor.Orientation;
                 }
                 return m_rotationOffset;
             }
