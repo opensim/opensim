@@ -703,7 +703,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
         private static bool GenerateCoordsAndFacesFromPrimSculptData(
             string primName, PrimitiveBaseShape primShape, float lod, out List<Vector3> coords, out List<Face> faces)
         {
-            coords = new List<Coord>();
+            coords = new List<Vector3>();
             faces = new List<Face>();
             PrimMesher.SculptMesh sculptMesh;
             Image idata;

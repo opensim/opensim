@@ -38,7 +38,7 @@ namespace PrimMesher
 
     public class SculptMesh
     {
-        public List<Coord> coords;
+        public List<Vector3> coords;
         public List<Face> faces;
 
         public enum SculptType { sphere = 1, torus = 2, plane = 3, cylinder = 4 };

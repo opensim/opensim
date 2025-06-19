@@ -133,12 +133,12 @@ namespace PrimMesher
                 bm.Dispose();
         }
 
-        public List<List<Coord>> ToRows(bool mirror)
+        public List<List<Vector3>> ToRows(bool mirror)
         {
             int numRows = height;
             int numCols = width;
 
-            List<List<Coord>> rows = new List<List<Coord>>(numRows);
+            List<List<Vector3>> rows = new List<List<Vector3>>(numRows);
 
             float pixScale = 1.0f / 255;
 
