@@ -482,7 +482,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             if (screenFactor < 0)
                 return;
 
-            int p2 = (int)(MathF.Log2(screenFactor) * 0.25 - 1);
+            int p2 = (int)(MathF.Log2(screenFactor) * 0.25f - 1);
 
             if (p2 < 0)
                 p2 = 0;
@@ -496,7 +496,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
             if (m_renderMeshes)
             {
-                if (omvPrim.Sculpt is not null && !omvPrim.Sculpt.SculptTexture.IsZero())
+                if (omvPrim.Sculpt is not null && omvPrim.Sculpt.SculptTexture.IsNotZero())
                 {
                     // Try fetchinng the asset
                     AssetBase sculptAsset = m_scene.AssetService.Get(omvPrim.Sculpt.SculptTexture.ToString());
@@ -505,8 +505,9 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                         // Is it a mesh?
                         if (omvPrim.Sculpt.Type == SculptType.Mesh)
                         {
-                            AssetMesh meshAsset = new AssetMesh(omvPrim.Sculpt.SculptTexture, sculptAsset.Data);
-                            FacetedMesh.TryDecodeFromAsset(omvPrim, meshAsset, lod, out renderMesh);
+                            //AssetMesh meshAsset = new AssetMesh(omvPrim.Sculpt.SculptTexture, sculptAsset.Data);
+                            //FacetedMesh.TryDecodeFromAsset(omvPrim, meshAsset, lod, out renderMesh);
+                            FacetedMesh.TryDecodeFromBytes(sculptAsset.Data, lod, out renderMesh, true);
                         }
                         else // It's sculptie
                         {
