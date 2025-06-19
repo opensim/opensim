@@ -1508,7 +1508,7 @@ namespace OpenSim.Framework
                 return null;
 
             if (RenderMaterials.overrides is null || RenderMaterials.overrides.Length == 0)
-                return new byte[] { 0 };  // store so outdated viewer caches can be updated
+                return [0];  // store so outdated viewer caches can be updated
 
             int nentries = 0;
             for (int i = 0; i < RenderMaterials.overrides.Length; i++)
@@ -1517,7 +1517,7 @@ namespace OpenSim.Framework
                     nentries++;
             }
             if(nentries == 0)
-                return new byte[] { 0 };
+                return [0];
 
             osUTF8 sb = OSUTF8Cached.Acquire();
             sb.Append((byte)nentries);

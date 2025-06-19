@@ -231,27 +231,20 @@ namespace OpenSim.Data.MySQL
                             asset.Description, asset.ID, asset.Description.Length, assetDescription.Length);
                     }
 
+                    byte[] data;
                     if (m_enableCompression)
                     {
-                        MemoryStream outputStream = new MemoryStream();
-
-                        using (GZipStream compressionStream = new GZipStream(outputStream, CompressionMode.Compress, false))
-                        {
-//                            Console.WriteLine(WebUtil.CopyTo(new MemoryStream(asset.Data), compressionStream, int.MaxValue));
-                            // We have to close the compression stream in order to make sure it writes everything out to the underlying memory output stream.
-                            compressionStream.Close();
-                            byte[] compressedData = outputStream.ToArray();
-                            asset.Data = compressedData;
-                        }
+                        using MemoryStream inMs = new(asset.Data);
+                        using MemoryStream outputStream = new();
+                        using GZipStream compressionStream = new(outputStream, CompressionMode.Compress);
+                        inMs.CopyTo(compressionStream);
+                        compressionStream.Flush();
+                        data = outputStream.ToArray();
                     }
+                    else
+                        data = asset.Data;
 
-                    byte[] hash;
-                    using (HashAlgorithm hasher = SHA256.Create())
-                        hash = hasher.ComputeHash(asset.Data);
-
-//                        m_log.DebugFormat(
-//                            "[XASSET DB]: Compressed data size for {0} {1}, hash {2} is {3}",
-//                            asset.ID, asset.Name, hash, compressedData.Length);
+                    byte[] hash = SHA256.HashData(data);
 
                     try
                     {
@@ -297,7 +290,7 @@ namespace OpenSim.Data.MySQL
                                     dbcon))
                             {
                                 cmd.Parameters.AddWithValue("?Hash", hash);
-                                cmd.Parameters.AddWithValue("?Data", asset.Data);
+                                cmd.Parameters.AddWithValue("?Data", data);
                                 cmd.ExecuteNonQuery();
                             }
                         }

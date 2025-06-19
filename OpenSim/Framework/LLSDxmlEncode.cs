@@ -794,8 +794,8 @@ namespace OpenSim.Framework
 
         public static byte[] ulongToByteArray(ulong uLongValue)
         {
-            return new byte[8]
-            {
+            return
+            [
                 (byte)(uLongValue >> 56),
                 (byte)(uLongValue >> 48),
                 (byte)(uLongValue >> 40),
@@ -804,18 +804,18 @@ namespace OpenSim.Framework
                 (byte)(uLongValue >> 16),
                 (byte)(uLongValue >> 8),
                 (byte)uLongValue
-            };
+            ];
         }
 
         public static byte[] uintToByteArray(uint value)
         {
-            return new byte[4]
-            {
+            return
+            [
                 (byte)(value >> 24),
                 (byte)(value >> 16),
                 (byte)(value >> 8),
                 (byte)value
-            };
+            ];
         }
 
         static readonly char[] base64Chars = {'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O',

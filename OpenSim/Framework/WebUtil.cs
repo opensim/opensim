@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Specialized;
 using System.Globalization;
@@ -804,18 +805,18 @@ namespace OpenSim.Framework
         /// </remarks>
         public static int CopyStream(this Stream copyFrom, Stream copyTo, int maximumBytesToCopy)
         {
-            byte[] buffer = new byte[4096];
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(8196);
             int readBytes;
             int totalCopiedBytes = 0;
 
-            while ((readBytes = copyFrom.Read(buffer, 0, Math.Min(4096, maximumBytesToCopy))) > 0)
+            while ((readBytes = copyFrom.Read(buffer, 0, Math.Min(8196, maximumBytesToCopy))) > 0)
             {
                 int writeBytes = Math.Min(maximumBytesToCopy, readBytes);
                 copyTo.Write(buffer, 0, writeBytes);
                 totalCopiedBytes += writeBytes;
                 maximumBytesToCopy -= writeBytes;
             }
-
+            ArrayPool<byte>.Shared.Return(buffer);
             return totalCopiedBytes;
         }
 

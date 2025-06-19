@@ -448,12 +448,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                     using (MemoryStream inMs = new(primShape.SculptData, physOffset + 2 , physSize - 2)) // skip first 2 bytes in header
                     {
                         using DeflateStream decompressionStream = new(inMs, CompressionMode.Decompress);
-                        byte[] readBuffer = ArrayPool<byte>.Shared.Rent(8192);
-                        int readLen = 0;
-
-                        while ((readLen = decompressionStream.Read(readBuffer, 0, readBuffer.Length)) > 0)
-                            outMs.Write(readBuffer, 0, readLen);
-                        ArrayPool<byte>.Shared.Return(readBuffer);
+                        decompressionStream.CopyTo(outMs);
                     }
                     outMs.Seek(0, SeekOrigin.Begin);
                     decodedMeshOsd = OSDParser.DeserializeLLSDBinary(outMs);

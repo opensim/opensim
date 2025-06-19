@@ -630,37 +630,34 @@ namespace OpenSim.Framework
             Array ret = null;
             try
             {
-                using (MemoryStream inp = new MemoryStream((2 * sizeof(Int32)) + (SizeX * SizeY * sizeof(float))))
+                using (MemoryStream inp = new MemoryStream((2 * sizeof(int)) + (SizeX * SizeY * sizeof(float))))
                 {
                     using (BinaryWriter bw = new BinaryWriter(inp))
                     {
-                        bw.Write((Int32)SizeX);
-                        bw.Write((Int32)SizeY);
+                        bw.Write(SizeX);
+                        bw.Write(SizeY);
                         for (int yy = 0; yy < SizeY; yy++)
                             for (int xx = 0; xx < SizeX; xx++)
                             {
-                                //bw.Write((float)m_heightmap[xx, yy]);
                                 bw.Write(MathF.Round(m_heightmap[xx, yy], 3, MidpointRounding.AwayFromZero));
                             }
 
                         bw.Flush();
                         inp.Seek(0, SeekOrigin.Begin);
 
-                        using (MemoryStream outputStream = new MemoryStream())
-                        {
-                            using (GZipStream compressionStream = new GZipStream(outputStream, CompressionMode.Compress))
-                            {
-                                inp.CopyStream(compressionStream, int.MaxValue);
-                                compressionStream.Close();
-                                ret = outputStream.ToArray();
-                            }
-                        }
+                        using MemoryStream outputStream = new MemoryStream();
+                        using GZipStream compressionStream = new(outputStream, CompressionMode.Compress);
+                        inp.CopyTo(compressionStream);
+                        compressionStream.Flush();
+                        ret = outputStream.ToArray();
                     }
                 }
+                m_log.Debug($"{LogHeader} V2DGzip {ret.Length} bytes");
             }
-            catch {}
-
-            m_log.DebugFormat("{0} V2DGzip {1} bytes", LogHeader, ret.Length);
+            catch (Exception ex)
+            {
+                m_log.Error($"{LogHeader} V2DGzip error: {ex.Message}");
+            }
             return ret;
         }
 
@@ -787,7 +784,6 @@ namespace OpenSim.Framework
                     {
                         using (GZipStream decompressionStream = new GZipStream(inputStream, CompressionMode.Decompress))
                         {
-                            decompressionStream.Flush();
                             decompressionStream.CopyTo(outputStream);
                         }
                     }

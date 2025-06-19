@@ -324,7 +324,7 @@ namespace OpenSim.Data.MySQL
                                 metadata.CreatorID = dbReader["CreatorID"].ToString();
 
                                 // Current SHA1s are not stored/computed.
-                                metadata.SHA1 = new byte[] { };
+                                metadata.SHA1 = Array.Empty<byte>();
 
                                 retList.Add(metadata);
                             }

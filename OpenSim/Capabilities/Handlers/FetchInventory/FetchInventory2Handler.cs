@@ -27,7 +27,6 @@
 
 using System.Net;
 using System.Reflection;
-using System.Text;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;

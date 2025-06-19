@@ -1649,7 +1649,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         public void MakeChildAgent(ulong newRegionHandle)
         {
-            m_updateAgentReceivedAfterTransferEvent.Reset();
+            m_updateAgentReceivedAfterTransferEvent?.Reset();
             m_haveGroupInformation = false;
             m_gotCrossUpdate = false;
             m_crossingFlags = 0;
@@ -1659,6 +1659,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_log.DebugFormat("[SCENE PRESENCE]: Making {0} a child agent in {1} from root region {2}",
                 Name, Scene.RegionInfo.RegionName, newRegionHandle);
+
+            if(disposed)
+                return;
 
             // Reset the m_originRegionID as it has dual use as a flag to signal that the UpdateAgent() call orignating
             // from the source simulator has completed on a V2 teleport.

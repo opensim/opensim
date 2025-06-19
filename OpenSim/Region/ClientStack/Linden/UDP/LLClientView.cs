@@ -8533,7 +8533,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 )
                 return true;
 
-            float qdelta = MathF.Abs(x.BodyRotation.Dot(m_thisAgentUpdateArgs.BodyRotation));
+            float qdelta = MathF.Abs(x.BodyRotation.Dot(ref m_thisAgentUpdateArgs.BodyRotation));
             return qdelta < QDELTABody; // significant if body rotation above(below cos) threshold
         }
 
