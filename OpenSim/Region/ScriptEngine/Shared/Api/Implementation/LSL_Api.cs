@@ -15935,10 +15935,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         private ContactResult[] ObjectIntersection(Vector3 rayStart, Vector3 rayEnd, bool includePhysical, bool includeNonPhysical, bool includePhantom)
         {
-            Ray ray = new(rayStart, Vector3.Normalize(rayEnd - rayStart));
-            List<ContactResult> contacts = new();
-
             Vector3 ab = rayEnd - rayStart;
+            Ray ray = new(rayStart, Vector3.Normalize(ref ab));
+            List<ContactResult> contacts = new();
 
             World.ForEachSOG(delegate(SceneObjectGroup group)
             {
@@ -15997,7 +15996,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (d2 > 0)
                     return;
 
-                ray = new Ray(rayStart, Vector3.Normalize(rayEnd - rayStart));
+                ray = new Ray(rayStart, Vector3.Normalize(ref ab));
                 EntityIntersection intersection = group.TestIntersection(ray, true, false);
                 // Miss.
                 if (!intersection.HitTF)
@@ -16995,7 +16994,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 // Transform hit and normal to region coordinate system
                 Vector3 posHit = rayTrans.PositionPart + (posHitProj * rayTrans.ScalePart) * rayTrans.RotationPart;
-                Vector3 normal = Vector3.Normalize((normalProj * rayTrans.ScalePart) * rayTrans.RotationPart);
+
+                Vector3 normal = (normalProj * rayTrans.ScalePart) * rayTrans.RotationPart;
+                normal.Normalize();
 
                 // Remove duplicate hits at triangle intersections
                 float distance = Vector3.Distance(rayTrans.Position1Ray, posHit);
