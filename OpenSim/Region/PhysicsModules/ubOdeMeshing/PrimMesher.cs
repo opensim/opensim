@@ -618,9 +618,7 @@ namespace PrimMesher
         public void AddPos(Vector3 v)
         {
             for (int i = 0; i < coords.Count; i++)
-            { 
-                coords[i].Add(v);
-            }
+                coords[i] += v;
         }
 
         public void AddPos(float x, float y, float z)
@@ -1295,11 +1293,10 @@ namespace PrimMesher
 
         private static Vector3 SurfaceNormal(Vector3 c1, Vector3 c2, Vector3 c3)
         {
-            Vector3 edge1 = new(c2.X - c1.X, c2.Y - c1.Y, c2.Z - c1.Z);
-            Vector3 edge2 = new(c3.X - c1.X, c3.Y - c1.Y, c3.Z - c1.Z);
+            Vector3 edge1 = c2 - c1;
+            Vector3 edge2 = c3 - c1;
 
             Vector3 normal = Vector3.Cross(edge1, edge2);
-
             normal.Normalize();
 
             return normal;
@@ -1317,8 +1314,7 @@ namespace PrimMesher
         /// <returns></returns>
         public Vector3 SurfaceNormal(int faceIndex)
         {
-            int numFaces = faces.Count;
-            if (faceIndex < 0 || faceIndex >= numFaces)
+            if (faceIndex < 0 || faceIndex >= faces.Count)
                 throw new Exception("faceIndex out of range");
 
             return SurfaceNormal(faces[faceIndex]);
@@ -1367,11 +1363,8 @@ namespace PrimMesher
         /// <param name="z"></param>
         public void AddPos(float x, float y, float z)
         {
-            int i;
-            int numVerts = coords.Count;
             Vector3 vert;
-
-            for (i = 0; i < numVerts; i++)
+            for (int i = 0; i < coords.Count; i++)
             {
                 vert = coords[i];
                 vert.X += x;
@@ -1387,10 +1380,7 @@ namespace PrimMesher
         /// <param name="q"></param>
         public void AddRot(Quaternion q)
         {
-            int i;
-            int numVerts = coords.Count;
-
-            for (i = 0; i < numVerts; i++)
+            for (int i = 0; i < coords.Count; i++)
                 coords[i] *= q;
         }
 
@@ -1402,12 +1392,8 @@ namespace PrimMesher
         /// <param name="z"></param>
         public void Scale(float x, float y, float z)
         {
-            int i;
-            int numVerts = this.coords.Count;
-            //Coord vert;
-
             Vector3 m = new(x, y, z);
-            for (i = 0; i < numVerts; i++)
+            for (int i = 0; i < coords.Count; i++)
                 coords[i] *= m;
         }
 
