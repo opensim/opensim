@@ -354,7 +354,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         {
             get
             {
-                OMV.Vector3 characterOrientedVelocity = RawVelocity * OMV.Quaternion.Inverse(OMV.Quaternion.Normalize(RawOrientation));
+                OMV.Vector3 characterOrientedVelocity = RawVelocity * OMV.Quaternion.Inverse(RawOrientation);
                 return characterOrientedVelocity.X;
             }
         }
@@ -363,7 +363,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         {
             get
             {
-                OMV.Vector3 characterOrientedVelocity = TargetVelocity * OMV.Quaternion.Inverse(OMV.Quaternion.Normalize(RawOrientation));
+                OMV.Vector3 characterOrientedVelocity = TargetVelocity * OMV.Quaternion.Inverse(RawOrientation);
                 return characterOrientedVelocity.X;
             }
         }

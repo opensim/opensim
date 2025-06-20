@@ -4771,7 +4771,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             CopyFrom(cAgentData);
-            m_updateAgentReceivedAfterTransferEvent.Set();
+            m_updateAgentReceivedAfterTransferEvent?.Set();
         }
 
         private static Vector3 marker = new(-1f, -1f, -1f);
