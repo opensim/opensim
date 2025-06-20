@@ -356,10 +356,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 // Bullet presumes an object's origin (relative <0,0,0>) is its center-of-mass
                 OMV.Vector3 centerOfMassW = ComputeLinksetCenterOfMass();
 	
-                OMV.Quaternion invRootOrientation = OMV.Quaternion.Normalize(OMV.Quaternion.Inverse(LinksetRoot.RawOrientation));
                 OMV.Vector3 origRootPosition = LinksetRoot.RawPosition;
                 OMV.Quaternion invRootOrientation = OMV.Quaternion.Inverse(LinksetRoot.RawOrientation);
-                invRootOrientation.Normalize();
 	
                 // 'centerDisplacementV' is the vehicle relative distance from the simulator root position to the center-of-mass
                 OMV.Vector3 centerDisplacementV = (centerOfMassW - LinksetRoot.RawPosition) * invRootOrientation;
