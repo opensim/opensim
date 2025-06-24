@@ -267,6 +267,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                 CreateAllPrims(renderer);
 
             renderer.Render();
+
             Bitmap bitmap = renderer.Scene.getImage();
 
             renderer.Scene.destroy();
@@ -511,14 +512,13 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                         }
                         else // It's sculptie
                         {
-                            if (m_imgDecoder is not null)
+                            //Image sculpt = m_imgDecoder.DecodeToImage(sculptAsset.Data);
+                            Image sculpt = J2kImage.FromBytes(sculptAsset.Data, null, true, 12);
+                            if (sculpt is not null)
                             {
-                                Image sculpt = m_imgDecoder.DecodeToImage(sculptAsset.Data);
-                                if (sculpt is not null)
-                                {
-                                    renderMesh = m_primMesher.GenerateFacetedSculptMesh(omvPrim, (Bitmap)sculpt, lod);
-                                    sculpt.Dispose();
-                                }
+                                renderMesh = m_primMesher.GenerateFacetedSculptMesh(omvPrim, (Bitmap)sculpt, lod);
+                                //sculpt.Save("lixo12-"+prim.UUID.ToString()+".png",ImageFormat.Png);
+                                sculpt.Dispose();
                             }
                         }
                     }
@@ -751,8 +751,12 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             {
                 try
                 {
-                    using (Bitmap img = (Bitmap)m_imgDecoder.DecodeToImage(asset.Data))
+                    //using (Bitmap img = (Bitmap)m_imgDecoder.DecodeToImage(asset.Data))
+                    using (Bitmap img = (Bitmap)J2kImage.FromBytes(asset.Data,null, false, 16))
+                    {
+                        //img.Save("lixo"+id.ToString()+".png",ImageFormat.Png);
                         ret = new warp_Texture(img, 8); // reduce textures size to 256 * 256
+                    }
                 }
                 catch (Exception e)
                 {
@@ -820,8 +824,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
             try
             {
-                using (MemoryStream stream = new MemoryStream(j2kData))
-                using (Bitmap bitmap = (Bitmap)J2kImage.FromStream(stream))
+                using (Bitmap bitmap = (Bitmap)J2kImage.FromBytes(j2kData))
                 {
                     width = bitmap.Width;
                     height = bitmap.Height;

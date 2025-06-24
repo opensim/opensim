@@ -180,18 +180,20 @@ namespace PrimMesher
             if (stopAngle <= startAngle)
                 throw new Exception("stopAngle not greater than startAngle");
 
-            if ((sides == 3 || sides == 4 || sides == 6 || sides == 12 || sides == 24))
-            {
-                startAngle *= twoPiInv;
-                stopAngle *= twoPiInv;
                 Angle[] sourceAngles = sides switch
                 {
                     3 => angles3,
                     4 => angles4,
                     6 => angles6,
                     12 => angles12,
-                    _ => angles24,
+                24 => angles24,
+                _ => null
                 };
+
+            if (sourceAngles != null)
+            {
+                startAngle *= twoPiInv;
+                stopAngle *= twoPiInv;
                 int startAngleIndex = (int)(startAngle * sides);
                 int endAngleIndex = sourceAngles.Length - 1;
 
@@ -202,7 +204,7 @@ namespace PrimMesher
                     if (endAngleIndex == startAngleIndex)
                         endAngleIndex++;
 
-                    for (int angleIndex = startAngleIndex; angleIndex < endAngleIndex + 1; angleIndex++)
+                    for (int angleIndex = startAngleIndex; angleIndex <= endAngleIndex; angleIndex++)
                     {
                         angles.Add(sourceAngles[angleIndex]);
                     }

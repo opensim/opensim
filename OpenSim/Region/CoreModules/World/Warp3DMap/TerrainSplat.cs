@@ -35,6 +35,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Services.Interfaces;
+using CSJ2K;
 
 namespace OpenSim.Region.CoreModules.World.Warp3DMap
 {
@@ -144,7 +145,8 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                             {
                                 try
                                 {
-                                    detailTexture[i] = (Bitmap)decoder.DecodeToImage(asset.Data);
+                                    detailTexture[i] = (Bitmap)J2kImage.FromBytes(asset.Data, null, false, 8);
+                                    //detailTexture[i] = (Bitmap)decoder.DecodeToImage(asset.Data);
                                 }
                                 catch(Exception ex)
                                 {
