@@ -552,11 +552,10 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
                 Color4 faceColor = teFace.RGBA;
                 if (faceColor.A == 0)
-                {
-                    if(InvPrimMagicTexture.Equals(teFace.TextureID))
-                        break;
                     continue;
-                }
+
+                if (faceColor.A == 1.0f && InvPrimMagicTexture.Equals(teFace.TextureID))
+                        break;
 
                 warp_Material faceMaterial;
                 if (m_texturePrims)
