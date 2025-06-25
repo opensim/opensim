@@ -466,6 +466,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             tv *= 2f;
         }
 
+        private static readonly UUID InvPrimMagicTexture = new UUID("e97cf410-8e61-7005-ec06-629eba4cd1fb");
         private void CreatePrim(WarpRenderer renderer, SceneObjectPart prim)
         {
             if ((PCode)prim.Shape.PCode != PCode.Prim)
@@ -548,9 +549,14 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             for (int i = 0; i < renderMesh.Faces.Count; i++)
             {
                 Primitive.TextureEntryFace teFace = te.GetFace((uint)i);
+
                 Color4 faceColor = teFace.RGBA;
                 if (faceColor.A == 0)
+                {
+                    if(InvPrimMagicTexture.Equals(teFace.TextureID))
+                        break;
                     continue;
+                }
 
                 warp_Material faceMaterial;
                 if (m_texturePrims)
