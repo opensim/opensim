@@ -78,6 +78,7 @@ namespace OpenSim
 
             AppContext.SetSwitch("System.Drawing.EnableUnixSupport", true);
 
+            /*
             // pre load System.Drawing.Common.dll for the platform
             // this will fail if a newer version is present on GAC, bin folder, etc, since LoadFrom only accepts the path, if it cannot find it elsewhere
             string targetdll = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),"lib",
@@ -91,7 +92,7 @@ namespace OpenSim
                 m_log.Error("Failed to load System.Drawing.Common.dll for current platform" + e.Message);
                 throw;
             }
-
+            */
             string targetdll = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
                         "System.Drawing.Common.dll");
             string src = targetdll + (Util.IsWindows() ? ".win" : ".linux");
