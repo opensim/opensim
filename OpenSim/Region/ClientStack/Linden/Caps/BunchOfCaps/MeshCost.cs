@@ -588,17 +588,10 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 using (MemoryStream outMs = new MemoryStream())
                 {
-                    using (MemoryStream inMs = new MemoryStream(data, offset, size))
+                    using (MemoryStream inMs = new MemoryStream(data, offset + 2, size - 2))
                     {
-                        using (DeflateStream decompressionStream = new DeflateStream(inMs, CompressionMode.Decompress))
-                        {
-                            byte[] readBuffer = new byte[2048];
-                            inMs.Read(readBuffer, 0, 2); // skip first 2 bytes in header
-                            int readLen = 0;
-
-                            while ((readLen = decompressionStream.Read(readBuffer, 0, readBuffer.Length)) > 0)
-                                outMs.Write(readBuffer, 0, readLen);
-                        }
+                        using DeflateStream decompressionStream = new DeflateStream(inMs, CompressionMode.Decompress);
+                        decompressionStream.CopyTo(outMs);
                     }
                     outMs.Seek(0, SeekOrigin.Begin);
                     decodedMeshOsd = OSDParser.DeserializeLLSDBinary(outMs);
@@ -619,7 +612,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 if (subMeshOsd is OSDMap)
                 {
                     OSDMap subtmpmap = (OSDMap)subMeshOsd;
-                    if (subtmpmap.ContainsKey("NoGeometry") && ((OSDBoolean)subtmpmap["NoGeometry"]))
+                    if (subtmpmap.ContainsKey("NoGeometry"))
                         continue;
 
                     if (!subtmpmap.ContainsKey("Position"))
