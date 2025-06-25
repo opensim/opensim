@@ -63,7 +63,7 @@ namespace OpenSim.Framework.Servers
         protected DateTime m_startuptime;
         protected string m_startupDirectory = Environment.CurrentDirectory;
 
-        protected string m_pidFile = String.Empty;
+        protected string m_pidFile = string.Empty;
 
         protected ServerStatsCollector m_serverStatsCollector;
 
@@ -90,7 +90,7 @@ namespace OpenSim.Framework.Servers
 
                 using (FileStream fs = File.Create(path))
                 {
-                    Byte[] buf = Encoding.ASCII.GetBytes(pidstring);
+                    byte[] buf = Encoding.ASCII.GetBytes(pidstring);
                     fs.Write(buf, 0, buf.Length);
                 }
 
@@ -116,8 +116,7 @@ namespace OpenSim.Framework.Servers
                 {
                     m_log.Error($"[SERVER BASE]: Error whilst removing {m_pidFile}", e);
                 }
-
-                m_pidFile = String.Empty;
+                m_pidFile = string.Empty;
             }
         }
 

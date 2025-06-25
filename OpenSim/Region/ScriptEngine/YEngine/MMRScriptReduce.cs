@@ -4207,7 +4207,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             TokenList values = null;
             while(true)
             {
-
                 // open brace means start a (sub-)list
                 if(token is TokenKwBrcOpen)
                 {

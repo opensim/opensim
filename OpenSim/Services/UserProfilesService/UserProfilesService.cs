@@ -69,7 +69,6 @@ namespace OpenSim.Services.ProfilesService
         public OSD AvatarClassifiedsRequest(UUID creatorId)
         {
             OSDArray records = ProfilesData.GetClassifiedRecords(creatorId);
-
             return records;
         }
 
@@ -104,7 +103,6 @@ namespace OpenSim.Services.ProfilesService
         public OSD AvatarPicksRequest(UUID creatorId)
         {
             OSDArray records = ProfilesData.GetAvatarPicks(creatorId);
-
             return records;
         }
 

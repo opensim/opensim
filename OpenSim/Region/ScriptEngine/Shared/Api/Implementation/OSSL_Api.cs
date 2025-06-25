@@ -529,7 +529,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 if ((m_item.CurrentPermissions & (uint)PermissionMask.Modify) != 0)
                     return $"{function} permission denied. Script creator is not prim owner";
-
             }
 
             return string.Empty;
@@ -3175,7 +3174,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
 
                 ScenePresence sp = World.GetScenePresence(npcId);
-
                 if (sp is not null)
                     sp.Rotation = rotation;
             }
@@ -5672,7 +5670,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     == (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify))
                     ret.Add(inv.Value.ItemID.ToString());
             }
-
             m_host.TaskInventory.LockItemsForRead(false);
             return ret;
         }
@@ -5735,7 +5732,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void osRemoveLinkInventory(LSL_Integer linkNumber, LSL_String name)
         {
-
             SceneObjectPart part = GetSingleLinkPart(linkNumber);
             if(part == null)
                 return;
@@ -5780,7 +5776,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if(!World.TryGetScenePresence(destId, out ScenePresence _))
                 {
                     UserAccount account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, destId);
-
                     if (account == null)
                     {
                         GridUserInfo info = World.GridUserService.GetGridUserInfo(destId.ToString());
@@ -5982,7 +5977,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_UrlModule?.ScriptRemoved(me);
 
             m_ScriptEngine.ApiResetScript(me);
-
         }
 
         public LSL_Integer osIsNotValidNumber(LSL_Float v)
@@ -6186,7 +6180,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             bool changed = false;
             if (!string.IsNullOrEmpty(daycycle) && (daycycle != ScriptBaseClass.NULL_KEY))
             {
-
                 UUID envID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, daycycle);
                 if (envID.IsZero())
                     return -4;

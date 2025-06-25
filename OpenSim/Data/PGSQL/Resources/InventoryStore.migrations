@@ -139,7 +139,7 @@ CREATE TABLE Tmp_inventoryitems
 
 
 	 INSERT INTO Tmp_inventoryitems ("inventoryID", "assetID", "assetType", "parentFolderID", "avatarID", "inventoryName", "inventoryDescription", "inventoryNextPermissions", "inventoryCurrentPermissions", "invType", "creatorID", "inventoryBasePermissions", "inventoryEveryOnePermissions", "salePrice", "SaleType", "creationDate", "groupID", "groupOwned", "flags", "inventoryGroupPermissions")
-		SELECT cast("inventoryID" as uuid), cast("assetID" as uuid), "assetType", cast("parentFolderID" as uuid), cast("avatarID" as uuid), "inventoryName", "inventoryDescription", "inventoryNextPermissions", "inventoryCurrentPermissions", "invType", cast("creatorID" as uuid), "inventoryBasePermissions", "inventoryEveryOnePermissions", "salePrice", "SaleType", "creationDate", cast("groupID" as uuid), "groupOwned", "flags", "inventoryGroupPermissions" 
+		SELECT cast("inventoryID" as uuid), cast("assetID" as uuid), "assetType", cast("parentFolderID" as uuid), cast("avatarID" as uuid), "inventoryName", "inventoryDescription", "inventoryNextPermissions", "inventoryCurrentPermissions", "invType", cast("creatorID" as uuid), "inventoryBasePermissions", "inventoryEveryOnePermissions", "salePrice", "saleType", "creationDate", cast("groupID" as uuid), "groupOwned", "flags", "inventoryGroupPermissions" 
 		FROM inventoryitems ;
 
 DROP TABLE inventoryitems;

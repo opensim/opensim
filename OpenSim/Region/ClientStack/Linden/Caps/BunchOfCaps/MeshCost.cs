@@ -98,7 +98,6 @@ namespace OpenSim.Region.ClientStack.Linden
         public float PhysicalPrimScaleMax = 10f;
         public int ObjectLinkedPartsMax = 512;
 
-
         public ModelCost(Scene scene)
         {
             PrimScaleMin = scene.m_minNonphys;
@@ -152,7 +151,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 resources.instance_list == null ||
                 resources.instance_list.Array.Count == 0)
             {
-                error = "Missing model information.";
+                error = "missing model information.";
                 return false;
             }
 
@@ -216,7 +215,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     {
                         if (avatarSkeleton)
                         {
-                            error = "Model can only contain a avatar skeleton";
+                            error = "model can only contain a avatar skeleton";
                             return false;
                         }
                         avatarSkeleton = true;

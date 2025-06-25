@@ -88,8 +88,8 @@ namespace OpenSim.OfflineIM
 
             Dictionary<string, object> sendData = new Dictionary<string, object>();
             sendData["PrincipalID"] = principalID;
-            Dictionary<string, object> ret = MakeRequest("GET", sendData);
 
+            Dictionary<string, object> ret = MakeRequest("GET", sendData);
             if (ret == null)
                 return ims;
 
@@ -118,14 +118,12 @@ namespace OpenSim.OfflineIM
                     }
                 }
             }
-
             return ims;
         }
 
         public bool StoreMessage(GridInstantMessage im, out string reason)
         {
             Dictionary<string, object> sendData = OfflineIMDataUtils.GridInstantMessage(im);
-
             Dictionary<string, object> ret = MakeRequest("STORE", sendData);
 
             if (ret == null)

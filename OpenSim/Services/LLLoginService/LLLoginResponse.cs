@@ -382,7 +382,6 @@ namespace OpenSim.Services.LLLoginService
                         y,
                         pinfo.HomePosition.X, pinfo.HomePosition.Y, pinfo.HomePosition.Z,
                         pinfo.HomeLookAt.X, pinfo.HomeLookAt.Y, pinfo.HomeLookAt.Z);
-
         }
 
         private void FillOutRegionData(GridRegion destination)

@@ -1135,7 +1135,7 @@ namespace OpenSim.Region.Framework.Scenes
             IConfig restartConfig = config.Configs["RestartModule"];
             if (restartConfig is not null)
             {
-                string markerPath = restartConfig.GetString("MarkerPath", String.Empty);
+                string markerPath = restartConfig.GetString("MarkerPath", string.Empty);
                 if (!string.IsNullOrEmpty(markerPath))
                 {
                     string path = Path.Combine(markerPath, RegionInfo.RegionID.ToString() + ".started");
@@ -1814,7 +1814,7 @@ namespace OpenSim.Region.Framework.Scenes
                             IConfig restartConfig = m_config.Configs["RestartModule"];
                             if (restartConfig is not null)
                             {
-                                string markerPath = restartConfig.GetString("MarkerPath", String.Empty);
+                                string markerPath = restartConfig.GetString("MarkerPath", string.Empty);
 
                                 if (!string.IsNullOrEmpty(markerPath))
                                 {
@@ -4385,7 +4385,6 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because: {4}",
                                      agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName, reason);
-
                     return false;
                 }
             }

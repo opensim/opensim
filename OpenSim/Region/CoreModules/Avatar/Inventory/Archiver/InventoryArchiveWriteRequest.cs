@@ -206,7 +206,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 return;
             }
 
-
             // Record the creator of this item for user record purposes (which might go away soon)
             m_userUuids[inventoryItem.CreatorIdAsUuid] = 1;
 

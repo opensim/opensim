@@ -316,7 +316,6 @@ namespace OpenSim.Framework
                 return;
 
             OSD otmp;
-
             if (map.TryGetValue("day_cycle", out otmp) && otmp is OSDMap)
             {
                 Cycle = new DayCycle();

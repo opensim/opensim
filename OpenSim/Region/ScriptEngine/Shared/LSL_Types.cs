@@ -602,7 +602,6 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 }
                 else
                 {
-
                     double invLength = 1.0 / Math.Sqrt(lengthsq);
                     x *= invLength;
                     y *= invLength;
@@ -909,7 +908,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     return new LSL_Types.LSLFloat(io);
                 if (o is float fo)
                     return new LSL_Types.LSLFloat(fo);
-                if (o is Double dov)
+                if (o is double dov)
                     return new LSL_Types.LSLFloat(dov);
                 if (o is LSL_Types.LSLString lso)
                     return new LSL_Types.LSLFloat(lso.m_string);
@@ -1007,7 +1006,6 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     typeof(LSL_Types.LSLString).Name,
                     o is not null ? o.GetType().Name : "null"));
             }
-
 
             public LSL_Types.LSLInteger GetLSLIntegerItem(int itemIndex)
             {
@@ -1300,7 +1298,6 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public list GetSublist(int start, int end)
             {
-
                 object[] ret;
 
                 // Take care of neg start or end's
@@ -1324,7 +1321,6 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
                 if (start <= end)
                 {
-
                     // Start sublist beyond length
                     // Also deals with start AND end still negative
                     if (start >= Data.Length || end < 0)
@@ -1339,7 +1335,6 @@ namespace OpenSim.Region.ScriptEngine.Shared
                         start = 0;
 
                     ret = new object[end - start + 1];
-
                     Array.Copy(Data, start, ret, 0, end - start + 1);
 
                     return new list(ret);
@@ -1350,9 +1345,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
                 else
                 {
-
                     list result;
-
                     // If end is negative, then prefix list is empty
                     if (end < 0)
                     {
@@ -1967,9 +1960,9 @@ namespace OpenSim.Region.ScriptEngine.Shared
             public string ToCSV()
             {
                 if (m_data is null || m_data.Length == 0)
-                    return String.Empty;
+                    return string.Empty;
 
-                Object o = m_data[0];
+                object o = m_data[0];
                 int len = m_data.Length;
                 if (len == 1)
                     return o.ToString();
@@ -1987,7 +1980,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
             private string ToSoup()
             {
                 if (m_data is null || m_data.Length == 0)
-                    return String.Empty;
+                    return string.Empty;
 
                 StringBuilder sb = osStringBuilderCache.Acquire();
                 foreach (object o in m_data)
@@ -2420,7 +2413,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 }
             }
 
-            static public implicit operator String(LSLString s)
+            static public implicit operator string(LSLString s)
             {
                 return s.m_string;
             }
@@ -2658,7 +2651,6 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     value = 0;
                 }
             }
-
             #endregion
 
             #region Operators
@@ -3140,7 +3132,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public override string ToString()
             {
-                return String.Format(Culture.FormatProvider, "{0:0.000000}", this.value);
+                return string.Format(Culture.FormatProvider, "{0:0.000000}", this.value);
             }
 
             public override bool Equals(Object o)
@@ -3154,7 +3146,6 @@ namespace OpenSim.Region.ScriptEngine.Shared
             {
                 return value.GetHashCode();
             }
-
 
             #endregion
         }

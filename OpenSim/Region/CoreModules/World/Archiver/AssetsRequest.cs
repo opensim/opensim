@@ -137,7 +137,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             foreach (KeyValuePair<UUID, sbyte> kvp in m_uuids)
             {
-
                 string thiskey = kvp.Key.ToString();
                 try
                 {

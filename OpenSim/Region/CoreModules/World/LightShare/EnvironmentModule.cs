@@ -93,7 +93,6 @@ namespace OpenSim.Region.CoreModules.World.LightShare
 
             Enabled = true;
 
-
             m_log.InfoFormat("[{0}]: Module is enabled.", Name);
         }
 
@@ -777,7 +776,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                     Name, m_scene.Name, e.Message, e.StackTrace);
 
                 success = false;
-                fail_reason = String.Format("Environment Set for region {0} has failed, settings not saved.", m_scene.Name);
+                fail_reason = string.Format("Environment Set for region {0} has failed, settings not saved.", m_scene.Name);
             }
 
             Error:

@@ -28,7 +28,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-
 using OpenMetaverse;
 
 
@@ -180,15 +179,15 @@ namespace PrimMesher
             if (stopAngle <= startAngle)
                 throw new Exception("stopAngle not greater than startAngle");
 
-                Angle[] sourceAngles = sides switch
-                {
-                    3 => angles3,
-                    4 => angles4,
-                    6 => angles6,
-                    12 => angles12,
+            Angle[] sourceAngles = sides switch
+            {
+                3 => angles3,
+                4 => angles4,
+                6 => angles6,
+                12 => angles12,
                 24 => angles24,
                 _ => null
-                };
+            };
 
             if (sourceAngles != null)
             {

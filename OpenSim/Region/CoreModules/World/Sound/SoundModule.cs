@@ -222,7 +222,6 @@ namespace OpenSim.Region.CoreModules.World.Sound
                     return;
                 if (!ssp.ParcelAllowThisAvatarSounds)
                     return;
-
                 radius = MaxDistance;
             }
             else
@@ -236,7 +235,6 @@ namespace OpenSim.Region.CoreModules.World.Sound
 
                     if (!ssp.ParcelAllowThisAvatarSounds)
                         return;
-
                 }
 
                 radius = (float)part.SoundRadius;

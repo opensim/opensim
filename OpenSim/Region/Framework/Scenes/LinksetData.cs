@@ -431,6 +431,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+
         /// <summary>
         /// ResetLinksetData - clear the list and update the accounting.
         /// </summary>
@@ -524,6 +525,7 @@ namespace OpenSim.Region.Framework.Scenes
             catch { }
             ms.SetLength(0);
         }
+
         public static LinksetData FromBin(byte[] data)
         {
             if (data.Length < 8)

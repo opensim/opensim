@@ -280,7 +280,7 @@ namespace OpenSim.Services.UserAccountService
 
         public List<UserAccount> GetUserAccounts(UUID scopeID, List<string> IDs)
         {
-            UserAccountData[] ret = m_Database.GetUsersWhere(scopeID, "PrincipalID in ('" + String.Join("', '", IDs) + "')");
+            UserAccountData[] ret = m_Database.GetUsersWhere(scopeID, "PrincipalID in ('" + string.Join("', '", IDs) + "')");
             if(ret == null || ret.Length == 0)
                 return [];
 

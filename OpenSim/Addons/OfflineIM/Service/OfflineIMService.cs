@@ -163,6 +163,5 @@ namespace OpenSim.OfflineIM
             m_Database.Delete("PrincipalID", userID.ToString());
             m_Database.Delete("FromID", userID.ToString());
         }
-
     }
 }

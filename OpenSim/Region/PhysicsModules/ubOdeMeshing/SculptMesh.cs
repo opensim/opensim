@@ -35,7 +35,6 @@ using OpenMetaverse;
 
 namespace PrimMesher
 {
-
     public class SculptMesh
     {
         public List<Vector3> coords;

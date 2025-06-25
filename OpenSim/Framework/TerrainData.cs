@@ -78,7 +78,6 @@ namespace OpenSim.Framework
         private readonly int m_mapStride;
         private readonly int m_mapPatchsStride;
 
-
         // legacy CompressionFactor
         public float CompressionFactor { get; private set; }
 
@@ -469,7 +468,6 @@ namespace OpenSim.Framework
                 for (int jj = 0; jj < SizeY; jj++)
                 {
                     m_heightmap[ii, jj] = (float)pTerrain[ii, jj];
-
                 }
             }
             // m_log.DebugFormat("{0} new by doubles. sizeX={1}, sizeY={2}, sizeZ={3}", LogHeader, SizeX, SizeY, SizeZ);

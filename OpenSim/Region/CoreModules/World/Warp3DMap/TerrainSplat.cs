@@ -172,7 +172,6 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                                     detailTexture[i].Save(stream, ImageFormat.Png);
                                     data = stream.ToArray();
                                 }
-
                                 // Cache a PNG copy of this terrain texture
                                 AssetBase newAsset = new AssetBase
                                 {
@@ -278,7 +277,6 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                     mapColorsBlue[t] = DEFAULT_TERRAIN_COLOR[t].B;
                 }
             }
-
             #region Layer Map
 
             float xFactor = terrain.Width / twidth;

@@ -2322,7 +2322,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             land.LandData.AuthBuyerID = UUID.Zero;
             land.LandData.Category = ParcelCategory.None;
             land.LandData.ClaimDate = Util.UnixTimeSinceEpoch();
-            land.LandData.Description = String.Empty;
+            land.LandData.Description = string.Empty;
             land.LandData.Dwell = 0;
             land.LandData.Flags = (uint)ParcelFlags.AllowFly | (uint)ParcelFlags.AllowLandmark |
                                 (uint)ParcelFlags.AllowAPrimitiveEntry |
@@ -2337,9 +2337,9 @@ namespace OpenSim.Region.CoreModules.World.Land
             land.LandData.MediaID = UUID.Zero;
             land.LandData.MediaLoop = false;
             land.LandData.MediaType = "none/none";
-            land.LandData.MediaURL = String.Empty;
+            land.LandData.MediaURL = string.Empty;
             land.LandData.MediaWidth = 0;
-            land.LandData.MusicURL = String.Empty;
+            land.LandData.MusicURL = string.Empty;
             land.LandData.ObscureMedia = false;
             land.LandData.ObscureMusic = false;
             land.LandData.OtherCleanTime = 0;
@@ -2376,11 +2376,11 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         private void ClientOnSimWideDeletes(IClientAPI client, UUID agentID, int flags, UUID targetID)
         {
-            if(!((Scene)client.Scene).TryGetScenePresence(client.AgentId, out ScenePresence SP))
+            if(!((Scene)client.Scene).TryGetScenePresence(client.AgentId, out ScenePresence sp))
                 return;
 
             List<SceneObjectGroup> returns = new();
-            if (SP.GodController.UserLevel != 0)
+            if (sp.GodController.UserLevel != 0)
             {
                 if (flags == 0) //All parcels, scripted or not
                 {

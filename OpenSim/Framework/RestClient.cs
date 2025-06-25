@@ -402,6 +402,5 @@ namespace OpenSim.Framework
                 client?.Dispose();
             }
         }
-
     }
 }

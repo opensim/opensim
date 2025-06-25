@@ -39,8 +39,8 @@ namespace OpenSim.Services.HypergridService
         public UserAgentServiceBase(IConfigSource config)
             : base(config)
         {
-            string dllName = String.Empty;
-            string connString = String.Empty;
+            string dllName = string.Empty;
+            string connString = string.Empty;
             string realm = "hg_traveling_data";
 
             //
@@ -50,9 +50,9 @@ namespace OpenSim.Services.HypergridService
             if (dbConfig is not null)
             {
                 if (dllName.Length == 0)
-                    dllName = dbConfig.GetString("StorageProvider", String.Empty);
+                    dllName = dbConfig.GetString("StorageProvider", string.Empty);
                 if (connString.Length == 0)
-                    connString = dbConfig.GetString("ConnectionString", String.Empty);
+                    connString = dbConfig.GetString("ConnectionString", string.Empty);
             }
 
             //

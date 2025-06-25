@@ -100,7 +100,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                             bool foreign = GetUserProfileServerURI(req.agent, out string serverURI);
                             bool ok  = serverURI.Length > 0;
 
-                            Byte[] membershipType = new Byte[1];
+                            byte[] membershipType = new byte[1];
                             string born = string.Empty;
                             uint flags = 0x00;
 
@@ -729,6 +729,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 remoteClient.SendAgentAlertMessage("Error fetching classifieds", false);
                 return;
             }
+
             parameters = (OSDMap)osdtmp;
             OSDArray list = (OSDArray)parameters["result"];
             bool exists = list.Cast<OSDMap>().Where(map => map.ContainsKey("classifieduuid"))
@@ -1809,7 +1810,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         /// </returns>
         bool GetProfileData(ref UserProfileProperties properties, bool foreign, string serverURI, out string message)
         {
-            if (String.IsNullOrEmpty(serverURI))
+            if (string.IsNullOrEmpty(serverURI))
             {
                 message = "User profile service unknown at this time";
                 return false;
@@ -1887,7 +1888,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             {
                 // Is Foreign
                 string home_url = UserManagementModule.GetUserServerURL(userID, "HomeURI", out bool recentFailedWeb);
-                if (recentFailedWeb || String.IsNullOrEmpty(home_url))
+                if (recentFailedWeb || string.IsNullOrEmpty(home_url))
                     return false;
 
                 UserAgentServiceConnector uConn = new(home_url);
@@ -1995,6 +1996,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 Services.Interfaces.PresenceInfo[] pi = Scene.PresenceService?.GetAgents(new string[] { agent.ToString() });
                 return pi is not null && pi.Length > 0;
             }
+
             return false;
          }
    

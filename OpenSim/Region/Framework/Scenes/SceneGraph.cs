@@ -1303,6 +1303,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_scenePartsLock.ExitReadLock();
             }
         }
+
         /// <summary>
         /// Get a part contained in this scene.
         /// </summary>
@@ -2229,7 +2230,6 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             if (!m_scenePartsByID.ContainsKey(part.UUID))
                             {
-
                                 if (part.GetPrimType() == PrimType.SCULPT)
                                     m_numMesh++;
                                 else

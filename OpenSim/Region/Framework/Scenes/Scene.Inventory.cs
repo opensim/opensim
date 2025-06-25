@@ -92,7 +92,6 @@ namespace OpenSim.Region.Framework.Scenes
             //m_log.InfoFormat("[SCENE]: Starting scripts in {0}, please wait.", RegionInfo.RegionName);
 
             IScriptModule[] engines = RequestModuleInterfaces<IScriptModule>();
-
             foreach (IScriptModule engine in engines)
                 engine.StartProcessing();
         }
@@ -1175,7 +1174,6 @@ namespace OpenSim.Region.Framework.Scenes
             // special AnimationSet case
             if (item.InvType == (int)CustomInventoryType.AnimationSet)
                 AnimationSet.enforceItemPermitions(item,true);
-
             if (AddInventoryItem(item))
             {
                 remoteClient.SendInventoryItemCreateUpdate(item, callbackID);
@@ -2972,7 +2970,6 @@ namespace OpenSim.Region.Framework.Scenes
                     // and on ALL contents of ALL prims, he may loose rights, making the object useless
                     sog.ApplyNextOwnerPermissions();
                     sog.InvalidateEffectivePerms();
-
                     sog.ScheduleGroupForFullUpdate();
 
                     SceneObjectPart[] partList = sog.Parts;

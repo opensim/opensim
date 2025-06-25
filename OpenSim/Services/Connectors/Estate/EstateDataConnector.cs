@@ -45,7 +45,7 @@ namespace OpenSim.Services.Connectors
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private string m_ServerURI = String.Empty;
+        private string m_ServerURI = string.Empty;
         private ExpiringCache<string, List<EstateSettings>> m_EstateCache = new ExpiringCache<string, List<EstateSettings>>();
         private const int EXPIRATION = 5 * 60; // 5 minutes in secs
 
@@ -80,7 +80,7 @@ namespace OpenSim.Services.Connectors
         {
             string uri = m_ServerURI + "/estates";
             string reply = MakeRequest("GET", uri, string.Empty);
-            if (String.IsNullOrEmpty(reply))
+            if (string.IsNullOrEmpty(reply))
                 return [];
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
@@ -153,7 +153,7 @@ namespace OpenSim.Services.Connectors
             string uri = m_ServerURI + "/estates/regions/?eid=" + estateID.ToString();
 
             string reply = MakeRequest("GET", uri, string.Empty);
-            if (String.IsNullOrEmpty(reply))
+            if (string.IsNullOrEmpty(reply))
                 return [];
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
@@ -179,7 +179,7 @@ namespace OpenSim.Services.Connectors
             // /estates/estate/?region=uuid&create=[t|f]
             string uri = m_ServerURI + $"/estates/estate/?region={regionID}&create={create}";
             string reply = MakeRequest("GET", uri, string.Empty);
-            if (String.IsNullOrEmpty(reply))
+            if (string.IsNullOrEmpty(reply))
                 return null;
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
@@ -202,7 +202,7 @@ namespace OpenSim.Services.Connectors
             string uri = m_ServerURI + $"/estates/estate/?eid={estateID}";
 
             string reply = MakeRequest("GET", uri, string.Empty);
-            if (String.IsNullOrEmpty(reply))
+            if (string.IsNullOrEmpty(reply))
                 return null;
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
@@ -257,7 +257,7 @@ namespace OpenSim.Services.Connectors
             string reqString = ServerUtils.BuildQueryString(sendData);
 
             string reply = MakeRequest("POST", uri, reqString);
-            if (String.IsNullOrEmpty(reply))
+            if (string.IsNullOrEmpty(reply))
                 return false;
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);

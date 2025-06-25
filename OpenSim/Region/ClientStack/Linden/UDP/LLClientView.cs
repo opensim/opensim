@@ -414,7 +414,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public int viewHeight { get; set; } = 480;
         public int viewWidth { get; set; } = 640;
 
-
         public UUID AgentId { get { return m_agentId; } }
         public UUID ScopeId { get { return m_scopeId; } }
         public ISceneAgent SceneAgent { get; set; }
@@ -875,7 +874,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 //0xff, 0xff, 0, 148 // ID 148 (low frequency bigendian)
                 0xff, 0xff, 0, 1, 148 // ID 148 (low frequency bigendian) zero encoded
                 };
-
 
         public void SendRegionHandshake()
         {
@@ -3196,8 +3194,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(viewertime, ThrottleOutPacketType.Task);
         }
 
-
-
         public void SendViewerEffect(ViewerEffectPacket.EffectBlock[] effectBlocks)
         {
             ViewerEffectPacket packet = (ViewerEffectPacket)PacketPool.Instance.GetPacket(PacketType.ViewerEffect);
@@ -3410,7 +3406,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             eq.Enqueue(BuildEvent("ObjectPhysicsProperties", llsdBody),m_agentId);
             */
         }
-
 
         public void SendPartPhysicsProprieties(ISceneEntity entity)
         {
@@ -8057,7 +8052,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     pathScaleY = 150;
             }
 
-
             // first is primFlags
             zc.AddUInt((uint)primflags);
 
@@ -9317,7 +9311,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         avSetStartLocationRequestPacket.StartLocationData.LocationPos.Y = avatar.AbsolutePosition.Y;
                     }
                 }
-
             }
             c.OnSetStartLocationRequest?.Invoke(c, 0, avSetStartLocationRequestPacket.StartLocationData.LocationPos,
                                                 avSetStartLocationRequestPacket.StartLocationData.LocationLookAt,
@@ -9562,7 +9555,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             bool IsPhantom = (data[48] != 0) ? true : false;
                             handlerUpdatePrimFlags(flags.AgentData.ObjectLocalID, UsePhysics, IsTemporary, IsPhantom, this);
                 */
-        bool UsePhysics = flags.AgentData.UsePhysics;
+            bool UsePhysics = flags.AgentData.UsePhysics;
             bool IsPhantom = flags.AgentData.IsPhantom;
             bool IsTemporary = flags.AgentData.IsTemporary;
             ObjectFlagUpdatePacket.ExtraPhysicsBlock[] blocks = flags.ExtraPhysics;
@@ -11202,7 +11195,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private static void HandleGetScriptRunning(LLClientView c, Packet Pack)
         {
             GetScriptRunningPacket scriptRunning = (GetScriptRunningPacket)Pack;
-
             c.OnGetScriptRunning?.Invoke(c, scriptRunning.Script.ObjectID, scriptRunning.Script.ItemID);
         }
 

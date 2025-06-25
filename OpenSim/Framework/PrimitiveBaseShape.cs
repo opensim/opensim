@@ -320,9 +320,7 @@ namespace OpenSim.Framework
             get
             {
                 PrimitiveBaseShape boxShape = CreateBox();
-
                 boxShape.SetScale(0.5f);
-
                 return boxShape;
             }
         }
@@ -1541,6 +1539,7 @@ namespace OpenSim.Framework
 
             if (data is null || data.Length < 1)
                 return;
+
             int nentries = data[0];
             if (nentries > 128)
                 return;

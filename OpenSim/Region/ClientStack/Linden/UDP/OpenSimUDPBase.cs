@@ -82,7 +82,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public CancellationTokenSource InboundCancellationSource = new();
 
-
         /// <summary>Returns true if the server is currently sending outbound packets, otherwise false</summary>
         /// <remarks>If IsRunningOut = false, then any request to send a packet is simply dropped.</remarks>
         internal bool m_IsRunningOutbound;
@@ -199,7 +198,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_log.DebugFormat("[UDPBASE]: Starting inbound UDP loop");
 
                 const int SIO_UDP_CONNRESET = -1744830452;
-
 
                 m_udpSocket = new Socket( AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 

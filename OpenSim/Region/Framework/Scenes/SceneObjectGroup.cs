@@ -1829,7 +1829,6 @@ namespace OpenSim.Region.Framework.Scenes
                 Vector3 offset = Vector3.Zero;
 
                 SceneObjectPart[] parts = m_parts.GetArray();
-
                 for (int i = 0; i < parts.Length; i++)
                 {
                     SceneObjectPart p = parts[i];

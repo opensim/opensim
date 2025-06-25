@@ -669,8 +669,6 @@ namespace OpenSim.Data.SQLite
                             createdObjects.Add(group.UUID, group);
                             retvals.Add(group);
                             LoadItems(prim);
-
-
                         }
                     }
                     catch (Exception e)
@@ -1301,8 +1299,8 @@ namespace OpenSim.Data.SQLite
             createCol(shapes, "LastAttachPoint", typeof(Int32));
             // text TODO: this isn't right, but I'm not sure the right
             // way to specify this as a blob atm
-            createCol(shapes, "Texture", typeof(Byte[]));
-            createCol(shapes, "ExtraParams", typeof(Byte[]));
+            createCol(shapes, "Texture", typeof(byte[]));
+            createCol(shapes, "ExtraParams", typeof(byte[]));
             createCol(shapes, "Media", typeof(String));
             createCol(shapes, "MatOvrd", typeof(byte[]));
             shapes.PrimaryKey = new DataColumn[] { shapes.Columns["UUID"] };

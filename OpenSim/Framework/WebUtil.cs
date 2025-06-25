@@ -533,7 +533,6 @@ namespace OpenSim.Framework
         {
             int reqnum = RequestNumber++;
             string method = (data is not null && data["RequestMethod"] is not null) ? data["RequestMethod"] : "unknown";
-
             if (DebugLevel >= 3)
                 m_log.Debug($"[LOGHTTP]: HTTP OUT {reqnum} ServiceForm '{method}' to {url}");
 
@@ -1150,7 +1149,7 @@ namespace OpenSim.Framework
             HttpResponseMessage responseMessage = null;
             HttpRequestMessage request = null;
             HttpClient client = null;
-            string respstring = String.Empty;
+            string respstring = string.Empty;
             int sendlen = 0;
             int rcvlen = 0;
             try

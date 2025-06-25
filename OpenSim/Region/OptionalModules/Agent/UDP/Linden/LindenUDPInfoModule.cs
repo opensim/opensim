@@ -388,7 +388,6 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                         {
                             if (client is IStatsCollector collector)
                             {
-
                                 bool isChild = client.SceneAgent.IsChildAgent;
                                 if (isChild && !showChildren)
                                     return;

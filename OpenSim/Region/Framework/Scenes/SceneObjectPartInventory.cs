@@ -1131,6 +1131,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             return null;
         }
+
         public List<TaskInventoryItem> GetInventoryItems(ReadOnlySpan<char> name)
         {
             List<TaskInventoryItem> items = [];
@@ -1497,7 +1498,6 @@ namespace OpenSim.Region.Framework.Scenes
                     xferManager.AddNewFile(m_inventoryFileName, m_inventoryFileData);
                     client.SendTaskInventory(m_part.UUID, (short)m_inventoryFileNameSerial,
                             m_inventoryFileNameBytes);
-
                     return;
                 }
 

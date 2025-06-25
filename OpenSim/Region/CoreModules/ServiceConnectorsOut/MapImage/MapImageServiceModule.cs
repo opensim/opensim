@@ -210,7 +210,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
                 return;
             }
 
-
             // mapTile.Save(   // DEBUG DEBUG
             //     String.Format("maptiles/raw-{0}-{1}-{2}.jpg", regionName, scene.RegionInfo.RegionLocX, scene.RegionInfo.RegionLocY),
             //     ImageFormat.Jpeg);

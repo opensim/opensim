@@ -334,7 +334,6 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                     // We override that here
                     if (originalLinkNum != 0)
                         part.LinkNum = originalLinkNum;
-
                 }
 
                 XmlNodeList keymotion = doc.GetElementsByTagName("KeyframeMotion");
@@ -841,7 +840,6 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         private static void ProcessVehicle(SceneObjectPart obj, XmlReader reader)
         {
             SOPVehicle vehicle = SOPVehicle.FromXml2(reader);
-
             if (vehicle == null)
             {
                 obj.VehicleParams = null;

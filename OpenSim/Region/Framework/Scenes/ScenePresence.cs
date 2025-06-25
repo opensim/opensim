@@ -532,7 +532,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         private readonly object m_originRegionIDAccessLock = new();
 
-
         private AutoResetEvent m_updateAgentReceivedAfterTransferEvent = new(false);
 
         /// <summary>
@@ -1713,6 +1712,7 @@ namespace OpenSim.Region.Framework.Scenes
                         SendKillTo(p);
                     }
                 });
+
             m_scene.AuthenticateHandler.UpdateAgentChildStatus(ControllingClient.CircuitCode, true);
 
             m_scene.EventManager.TriggerOnMakeChildAgent(this);
@@ -3287,7 +3287,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void SendSitResponse(UUID targetID, Vector3 offset, Quaternion sitOrientation)
         {
-
             SceneObjectPart part = FindNextAvailableSitTarget(targetID);
             if (part == null)
                 return;
@@ -3646,10 +3645,9 @@ namespace OpenSim.Region.Framework.Scenes
                 m_AngularVelocity = Vector3.Zero;
                 Velocity = Vector3.Zero;
 
-
                 SendAvatarDataToAllAgents();
 
-                if (String.IsNullOrEmpty(part.SitAnimation))
+                if (string.IsNullOrEmpty(part.SitAnimation))
                     sitAnimation = "SIT";
                 else
                     sitAnimation = part.SitAnimation;
