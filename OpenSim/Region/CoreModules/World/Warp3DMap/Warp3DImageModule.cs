@@ -395,6 +395,16 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                 regionInfo.TerrainTexture3,
                 regionInfo.TerrainTexture4,
             };
+            if (regionInfo.TerrainPBR1 != null)
+            {
+                textureIDs = new UUID[4]
+                {
+                    regionInfo.TerrainPBR1,
+                    regionInfo.TerrainPBR2,
+                    regionInfo.TerrainPBR3,
+                    regionInfo.TerrainPBR4,
+                };
+            }
 
             float[] startHeights = new float[4]
             {
