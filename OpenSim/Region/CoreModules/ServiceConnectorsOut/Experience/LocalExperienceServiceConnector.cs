@@ -148,9 +148,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Experience
             return m_service.GetAgentExperiences(agent_id);
         }
 
-        public ExperienceInfo UpdateExpereienceInfo(ExperienceInfo info)
+        public ExperienceInfo UpdateExperienceInfo(ExperienceInfo info)
         {
-            return m_service.UpdateExpereienceInfo(info);
+            return m_service.UpdateExperienceInfo(info);
         }
 
         public ExperienceInfo[] FindExperiencesByName(string search)

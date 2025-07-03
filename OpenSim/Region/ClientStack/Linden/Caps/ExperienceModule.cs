@@ -414,7 +414,7 @@ namespace OpenSim.Region.ClientStack.LindenCaps
 
         public ExperienceInfo UpdateExperienceInfo(ExperienceInfo info)
         {
-            ExperienceInfo updated = m_ExperienceService.UpdateExpereienceInfo(info);
+            ExperienceInfo updated = m_ExperienceService.UpdateExperienceInfo(info);
             if(updated != null)
             {
                 m_ExperienceInfoCache.AddOrUpdate(updated.public_id, updated, CacheTimeout);

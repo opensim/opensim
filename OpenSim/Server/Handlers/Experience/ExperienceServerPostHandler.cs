@@ -288,7 +288,7 @@ namespace OpenSim.Server.Handlers.Experience
             {
                 ExperienceInfo info = new ExperienceInfo(request);
 
-                var updated = m_service.UpdateExpereienceInfo(info);
+                var updated = m_service.UpdateExperienceInfo(info);
                 if(updated != null)
                 {
                     result = updated.ToDictionary();

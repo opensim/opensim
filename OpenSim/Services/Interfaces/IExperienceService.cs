@@ -98,7 +98,7 @@ namespace OpenSim.Services.Interfaces
         bool UpdateExperiencePermissions(UUID agent_id, UUID experience, ExperiencePermission perm);
         ExperienceInfo[] GetExperienceInfos(UUID[] experiences);
         UUID[] GetAgentExperiences(UUID agent_id);
-        ExperienceInfo UpdateExpereienceInfo(ExperienceInfo info);
+        ExperienceInfo UpdateExperienceInfo(ExperienceInfo info);
         ExperienceInfo[] FindExperiencesByName(string search);
         UUID[] GetGroupExperiences(UUID group_id);
         UUID[] GetExperiencesForGroups(UUID[] groups);
