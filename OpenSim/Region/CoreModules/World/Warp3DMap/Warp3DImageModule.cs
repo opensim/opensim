@@ -267,6 +267,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                 CreateAllPrims(renderer);
 
             renderer.Render();
+
             Bitmap bitmap = renderer.Scene.getImage();
 
             renderer.Scene.destroy();
@@ -465,6 +466,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             tv *= 2f;
         }
 
+        private static readonly UUID InvPrimMagicTexture = new UUID("e97cf410-8e61-7005-ec06-629eba4cd1fb");
         private void CreatePrim(WarpRenderer renderer, SceneObjectPart prim)
         {
             if ((PCode)prim.Shape.PCode != PCode.Prim)
@@ -482,7 +484,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             if (screenFactor < 0)
                 return;
 
-            int p2 = (int)(MathF.Log2(screenFactor) * 0.25 - 1);
+            int p2 = (int)(MathF.Log2(screenFactor) * 0.25f - 1);
 
             if (p2 < 0)
                 p2 = 0;
@@ -496,7 +498,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
             if (m_renderMeshes)
             {
-                if (omvPrim.Sculpt is not null && !omvPrim.Sculpt.SculptTexture.IsZero())
+                if (omvPrim.Sculpt is not null && omvPrim.Sculpt.SculptTexture.IsNotZero())
                 {
                     // Try fetchinng the asset
                     AssetBase sculptAsset = m_scene.AssetService.Get(omvPrim.Sculpt.SculptTexture.ToString());
@@ -505,22 +507,22 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                         // Is it a mesh?
                         if (omvPrim.Sculpt.Type == SculptType.Mesh)
                         {
-                            AssetMesh meshAsset = new AssetMesh(omvPrim.Sculpt.SculptTexture, sculptAsset.Data);
-                            FacetedMesh.TryDecodeFromAsset(omvPrim, meshAsset, lod, out renderMesh);
+                            //AssetMesh meshAsset = new AssetMesh(omvPrim.Sculpt.SculptTexture, sculptAsset.Data);
+                            //FacetedMesh.TryDecodeFromAsset(omvPrim, meshAsset, lod, out renderMesh);
+                            FacetedMesh.TryDecodeFromBytes(sculptAsset.Data, lod, out renderMesh, true);
                         }
                         else // It's sculptie
                         {
-                            if (m_imgDecoder is not null)
-                            {
-                                Image sculpt = m_imgDecoder.DecodeToImage(sculptAsset.Data);
+                            //Image sculpt = m_imgDecoder.DecodeToImage(sculptAsset.Data);
+                            Image sculpt = J2kImage.FromBytes(sculptAsset.Data, null, true, 12);
                                 if (sculpt is not null)
                                 {
                                     renderMesh = m_primMesher.GenerateFacetedSculptMesh(omvPrim, (Bitmap)sculpt, lod);
+                                //sculpt.Save("lixo12-"+prim.UUID.ToString()+".png",ImageFormat.Png);
                                     sculpt.Dispose();
                                 }
                             }
                         }
-                    }
                     else
                     {
                         m_log.WarnFormat("[Warp3D] failed to get mesh or sculpt asset {0} of prim {1} at {2}",
@@ -547,9 +549,13 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             for (int i = 0; i < renderMesh.Faces.Count; i++)
             {
                 Primitive.TextureEntryFace teFace = te.GetFace((uint)i);
+
                 Color4 faceColor = teFace.RGBA;
                 if (faceColor.A == 0)
                     continue;
+
+                if (faceColor.A == 1.0f && InvPrimMagicTexture.Equals(teFace.TextureID))
+                        break;
 
                 warp_Material faceMaterial;
                 if (m_texturePrims)
@@ -750,8 +756,12 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             {
                 try
                 {
-                    using (Bitmap img = (Bitmap)m_imgDecoder.DecodeToImage(asset.Data))
+                    //using (Bitmap img = (Bitmap)m_imgDecoder.DecodeToImage(asset.Data))
+                    using (Bitmap img = (Bitmap)J2kImage.FromBytes(asset.Data,null, false, 16))
+                    {
+                        //img.Save("lixo"+id.ToString()+".png",ImageFormat.Png);
                         ret = new warp_Texture(img, 8); // reduce textures size to 256 * 256
+                }
                 }
                 catch (Exception e)
                 {
@@ -819,8 +829,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
             try
             {
-                using (MemoryStream stream = new MemoryStream(j2kData))
-                using (Bitmap bitmap = (Bitmap)J2kImage.FromStream(stream))
+                using (Bitmap bitmap = (Bitmap)J2kImage.FromBytes(j2kData))
                 {
                     width = bitmap.Width;
                     height = bitmap.Height;

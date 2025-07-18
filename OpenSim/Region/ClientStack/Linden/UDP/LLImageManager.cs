@@ -144,30 +144,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             UpdateImageInQueue(imgrequest);
 
                             imgrequest.RunUpdate();
-
-//                        J2KImage imgrequest2 = new J2KImage(this);
-//                        imgrequest2.J2KDecoder = m_j2kDecodeModule;
-//                        imgrequest2.AssetService = m_assetCache;
-//                        imgrequest2.AgentID = m_client.AgentId;
-//                        imgrequest2.InventoryAccessModule = m_client.Scene.RequestModuleInterface<IInventoryAccessModule>();
-//                        imgrequest2.DiscardLevel = newRequest.DiscardLevel;
-//                        imgrequest2.StartPacket = Math.Max(1, newRequest.PacketNumber);
-//                        imgrequest2.Priority = newRequest.Priority;
-//                        imgrequest2.TextureID = newRequest.RequestedAssetID;
-//                        imgrequest2.Priority = newRequest.Priority;
-//
-//                        //Add this download to the priority queue
-//                        AddImageToQueue(imgrequest2);
-//
-//                        imgrequest2.RunUpdate();
-
                         }
-//                        else
-//                        {
-//                            m_log.DebugFormat(
-//                                "[LL IMAGE MANAGER]: Ignoring duplicate of existing request for {0} (sequence {1}) from {2} as its request sequence {3} is not greater",
-//                                newRequest.RequestedAssetID, imgrequest.LastSequence, m_client.Name, newRequest.requestSequence);
-//                        }
                     }
                 }
                 else

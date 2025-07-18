@@ -363,11 +363,7 @@ namespace OpenSim.Services.FSAssetService
 
         string GetSHA256Hash(byte[] data)
         {
-            byte[] hash;
-            using (SHA256 sha = SHA256.Create())
-                hash = sha.ComputeHash(data);
-
-            return BitConverter.ToString(hash).Replace("-", String.Empty);
+            return Util.SHA256Hash(data);
         }
 
         public string HashToPath(string hash)

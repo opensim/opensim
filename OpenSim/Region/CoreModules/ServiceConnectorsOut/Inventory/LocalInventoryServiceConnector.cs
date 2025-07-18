@@ -92,7 +92,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                         return;
                     }
 
-                    string serviceDll = inventoryConfig.GetString("LocalServiceModule", String.Empty);
+                    string serviceDll = inventoryConfig.GetString("LocalServiceModule", string.Empty);
 
                     if (serviceDll.Length == 0)
                     {
@@ -198,7 +198,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             }
 
             return invColl;
-
         }
 
         public List<InventoryItemBase> GetFolderItems(UUID userID, UUID folderID)

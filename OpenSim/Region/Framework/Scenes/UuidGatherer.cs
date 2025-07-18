@@ -947,7 +947,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
             if (ed < 0)
                 return -1;
-
             h = data.SubUTF8(st, ed - st);
             h.SelfTrim();
             ++ed;
@@ -1014,7 +1013,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             return false;
         }
-
 
         // bad ugly
         private static readonly byte[] UUIDB = osUTF8.GetASCIIBytes("UUID");

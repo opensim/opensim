@@ -70,6 +70,7 @@ namespace OpenSim.Capabilities.Handlers
 
             List<LLSDFetchInventoryDescendents> folders;
             List<UUID> bad_folders = new();
+
             try
             {
                 OSDArray foldersrequested = null;

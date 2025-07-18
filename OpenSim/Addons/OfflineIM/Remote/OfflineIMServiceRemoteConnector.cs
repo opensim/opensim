@@ -88,8 +88,8 @@ namespace OpenSim.OfflineIM
 
             Dictionary<string, object> sendData = new Dictionary<string, object>();
             sendData["PrincipalID"] = principalID;
-            Dictionary<string, object> ret = MakeRequest("GET", sendData);
 
+            Dictionary<string, object> ret = MakeRequest("GET", sendData);
             if (ret == null)
                 return ims;
 
@@ -104,8 +104,8 @@ namespace OpenSim.OfflineIM
                         m_log.Debug($"[OfflineIM.V2.RemoteConnector]: GetMessages for {principalID} failed: {rso}");
                     else
                         m_log.Debug($"[OfflineIM.V2.RemoteConnector]: GetMessages for {principalID} failed: Unknown error");
-                return ims;
-            }
+                    return ims;
+                }
             }
             else if(resultobj is Dictionary<string, object> resultdic)
             {
@@ -114,18 +114,16 @@ namespace OpenSim.OfflineIM
                     if (v is Dictionary<string, object> vdic)
                     {
                         GridInstantMessage m = OfflineIMDataUtils.GridInstantMessage(vdic);
-                ims.Add(m);
-            }
+                        ims.Add(m);
+                    }
                 }
             }
-
             return ims;
         }
 
         public bool StoreMessage(GridInstantMessage im, out string reason)
         {
             Dictionary<string, object> sendData = OfflineIMDataUtils.GridInstantMessage(im);
-
             Dictionary<string, object> ret = MakeRequest("STORE", sendData);
 
             if (ret == null)
@@ -134,7 +132,7 @@ namespace OpenSim.OfflineIM
                 return false;
             }
 
-            if (ret.TryGetValue("RESULT", out object o))
+            if(ret.TryGetValue("RESULT", out object o))
             {
                 string result = o.ToString();
                 if (result == "NULL" || result.Equals("false", StringComparison.InvariantCultureIgnoreCase))

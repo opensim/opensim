@@ -945,7 +945,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         {
             get
             {
-                return VehicleVelocity * Quaternion.Inverse(Quaternion.Normalize(VehicleFrameOrientation));
+                return VehicleVelocity * Quaternion.Inverse(VehicleFrameOrientation);
             }
         }
 
@@ -1502,9 +1502,11 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                             Quaternion justZOrientation = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, currentEulerW.Z);
 
                             // Create the axis that is perpendicular to the up vector and the rotated up vector.
-                            Vector3 differenceAxisW = Vector3.Cross(Vector3.UnitZ * justZOrientation, Vector3.UnitZ * VehicleFrameOrientation);
+                            Vector3 UnitZInFrame = Vector3.UnitZ * VehicleFrameOrientation;
+                            Vector3 differenceAxisW = Vector3.Cross(Vector3.UnitZ * justZOrientation, UnitZInFrame);
                             // Compute the angle between those to vectors.
-                            double differenceAngle = Math.Acos((double)Vector3.Dot(Vector3.UnitZ, Vector3.Normalize(Vector3.UnitZ * VehicleFrameOrientation)));
+                            UnitZInFrame.Normalize();
+                            double differenceAngle = Math.Acos((double)Vector3.Dot(Vector3.UnitZ, UnitZInFrame));
                             // 'differenceAngle' is the angle to rotate and 'differenceAxis' is the plane to rotate in to get the vehicle vertical
 
                             // Reduce the change by the time period it is to change in. Timestep is handled when velocity is applied.
@@ -1537,7 +1539,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                             Vector3 origRotVelW = VehicleRotationalVelocity;        // DEBUG DEBUG
 
                             // Take a vector pointing up and convert it from world to vehicle relative coords.
-                            Vector3 verticalError = Vector3.Normalize(Vector3.UnitZ * VehicleFrameOrientation);
+                            Vector3 verticalError = Vector3.UnitZ * VehicleFrameOrientation;
+                            verticalError.Normalize();
 
                             // If vertical attraction correction is needed, the vector that was pointing up (UnitZ)
                             //    is now:

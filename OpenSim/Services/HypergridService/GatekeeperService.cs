@@ -365,7 +365,7 @@ namespace OpenSim.Services.HypergridService
                 }
             }
 
-            if (!String.IsNullOrWhiteSpace(m_DeniedMacs))
+            if (!string.IsNullOrWhiteSpace(m_DeniedMacs))
             {
                 //m_log.InfoFormat("[GATEKEEPER SERVICE]: Checking users Mac {0} against list of denied macs {1} ...", curMac, m_DeniedMacs);
                 if (m_DeniedMacs.Contains(curMac, StringComparison.InvariantCultureIgnoreCase))

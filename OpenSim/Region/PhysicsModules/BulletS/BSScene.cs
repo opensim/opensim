@@ -1000,7 +1000,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 if (BSParam.UseBulletRaycast)
                 {
                     Vector3 posFrom = position;
-                    Vector3 posTo = Vector3.Normalize(direction) * length + position;
+                    direction.Normalize();
+                    Vector3 posTo = direction * length + position;
 
                     TaintedObject(DetailLogZero, "BSScene.RaycastWorld1", delegate ()
                     {
@@ -1080,7 +1081,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 lock (PhysicsEngineLock)
                 {
                     Vector3 posFrom = position;
-                    Vector3 posTo = Vector3.Normalize(direction) * length + position;
+                    direction.Normalize();
+                    Vector3 posTo = direction * length + position;
                     DetailLog("{0},RaycastWorld,RayTest2,from={1},to={2}",
                                 DetailLogZero, posFrom, posTo);
                     RaycastHit hitInfo = PE.RayTest2(World, posFrom, posTo, collisionFilter, collisionMask);

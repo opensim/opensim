@@ -27,18 +27,17 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.IO;
 
 using System.Drawing;
-using System.Drawing.Imaging;
+
+using OpenMetaverse;
 
 namespace PrimMesher
 {
-
     public class SculptMesh
     {
-        public List<Coord> coords;
+        public List<Vector3> coords;
         public List<Face> faces;
 
         public enum SculptType { sphere = 1, torus = 2, plane = 3, cylinder = 4 };
@@ -51,14 +50,14 @@ namespace PrimMesher
 
             SculptMap smap = new SculptMap(sculptBitmap, lod);
 
-            List<List<Coord>> rows = smap.ToRows(mirror);
+            List<List<Vector3>> rows = smap.ToRows(mirror);
 
             _SculptMesh(rows, sculptType, invert);
         }
 
-        private void _SculptMesh(List<List<Coord>> rows, SculptType sculptType, bool invert)
+        private void _SculptMesh(List<List<Vector3>> rows, SculptType sculptType, bool invert)
         {
-            coords = new List<Coord>();
+            coords = new List<Vector3>();
             faces = new List<Face>();
 
             sculptType = (SculptType)(((int)sculptType) & 0x07);
@@ -85,16 +84,16 @@ namespace PrimMesher
                 }
             }
 
-            Coord topPole = rows[0][width / 2];
-            Coord bottomPole = rows[rows.Count - 1][width / 2];
+            Vector3 topPole = rows[0][width / 2];
+            Vector3 bottomPole = rows[rows.Count - 1][width / 2];
 
             if (sculptType == SculptType.sphere)
             {
                 if (rows.Count % 2 == 0)
                 {
                     int count = rows[0].Count;
-                    List<Coord> topPoleRow = new List<Coord>(count);
-                    List<Coord> bottomPoleRow = new List<Coord>(count);
+                    List<Vector3> topPoleRow = new List<Vector3>(count);
+                    List<Vector3> bottomPoleRow = new List<Vector3>(count);
 
                     for (int i = 0; i < count; i++)
                     {
@@ -108,8 +107,8 @@ namespace PrimMesher
                 {
                     int count = rows[0].Count;
 
-                    List<Coord> topPoleRow = rows[0];
-                    List<Coord> bottomPoleRow = rows[rows.Count - 1];
+                    List<Vector3> topPoleRow = rows[0];
+                    List<Vector3> bottomPoleRow = rows[rows.Count - 1];
 
                     for (int i = 0; i < count; i++)
                     {
@@ -183,7 +182,7 @@ namespace PrimMesher
 
         public SculptMesh(SculptMesh sm)
         {
-            coords = new List<Coord>(sm.coords);
+            coords = new List<Vector3>(sm.coords);
             faces = new List<Face>(sm.faces);
         }
 
@@ -192,7 +191,7 @@ namespace PrimMesher
             int i;
             int numVerts = this.coords.Count;
 
-            Coord m = new Coord(x, y, z);
+            Vector3 m = new Vector3(x, y, z);
             for (i = 0; i < numVerts; i++)
                 this.coords[i] *= m;
         }

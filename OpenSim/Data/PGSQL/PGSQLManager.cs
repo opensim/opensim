@@ -174,7 +174,7 @@ namespace OpenSim.Data.PGSQL
             {
                 return (bool)value;
             }
-            if (valueType == typeof(Byte[]))
+            if (valueType == typeof(byte[]))
             {
                 return value;
             }

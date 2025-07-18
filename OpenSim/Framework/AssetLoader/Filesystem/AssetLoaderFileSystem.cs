@@ -78,9 +78,8 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
             if (fInfo.Exists)
             {
                 FileStream fStream = new FileStream(path, FileMode.Open, FileAccess.Read);
-                byte[] idata = new byte[numBytes];
                 BinaryReader br = new BinaryReader(fStream);
-                idata = br.ReadBytes((int)numBytes);
+                byte[] idata = br.ReadBytes((int)numBytes);
                 br.Close();
                 fStream.Close();
                 info.Data = idata;

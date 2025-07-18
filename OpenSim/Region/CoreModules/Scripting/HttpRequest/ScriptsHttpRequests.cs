@@ -191,6 +191,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                             MaxConnectionsPerServer = maxThreads < 10 ? maxThreads : 10,
                             PooledConnectionLifetime = TimeSpan.FromMinutes(3)
                         };
+
                         //shhnc.SslOptions.ClientCertificates = null,
                         shh.SslOptions.EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13;
                         shh.SslOptions.CertificateRevocationCheckMode = X509RevocationMode.NoCheck;
@@ -579,7 +580,6 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
         public int MaxRedirects { get; set; } = 10;
 
         public string OutboundBody;
-
         public string ResponseBody;
         public Dictionary<string, string> Headers;
         public int Status;

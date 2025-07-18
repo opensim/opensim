@@ -184,6 +184,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 if (m_ExportSupported)
                     extrasMap["ExportSupported"] = true;
+
                 m_features["OpenSimExtras"] = extrasMap;
             }
         }
@@ -434,7 +435,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         while ((s = sr.ReadLine()) is not null)
                         {
                             s = s.Trim(trimc);
-                            if (String.IsNullOrEmpty(s) || s.StartsWith("<!--"))
+                            if (string.IsNullOrEmpty(s) || s.StartsWith("<!--"))
                                 continue;
                             sb.Append(s);
                         }

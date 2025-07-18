@@ -581,6 +581,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
         //ApiDesc Sets the terrain texture for a given level.
               void osSetTerrainTexture(int level, LSL_Key texture);
+        //ApiDesc Sets terrain textures for legacy viewers it types == 0 or 2, textures for new viewers it types == 1 or 2 or PBR materials if types == 1
+             void osSetTerrainTextures(LSL_List textures, LSL_Integer types);
         //ApiDesc Sets the texture low and high values for a given region corner.
               void osSetTerrainTextureHeight(int corner, double low, double high);
 
@@ -922,5 +924,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
              /// <returns>a integer with index of match point or -1</returns>
         //ApiDesc Returns the nth index of the sublist constrained with start and end count.
        LSL_Integer osListFindListNext(LSL_List src, LSL_List test, LSL_Integer start, LSL_Integer end, LSL_Integer instance);
+        //ApiDesc Returns a string that is at index(>=0) in src or empty string if that is not a string
+        LSL_String osListAsString(LSL_List src, int index);
+        //ApiDesc Returns a integer that is at index(>=0) in src or 0 if that is not a integer
+       LSL_Integer osListAsInteger(LSL_List src, int index);
+        //ApiDesc Returns a float that is at index(>=0) in src or 0 if that is not a float
+         LSL_Float osListAsFloat(LSL_List src, int index);
+        //ApiDesc Returns a vector that is at index(>=0) in src or Zero vector if that is not a vector
+            vector osListAsVector(LSL_List src, int index);
+        //ApiDesc Returns a rotation that is at index(>=0) in src or zero rotation if that is not a vector
+      LSL_Rotation osListAsRotation(LSL_List src, int index);
     }
 }

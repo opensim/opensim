@@ -56,7 +56,7 @@ namespace OpenSim.Services.Base
 
             dllName = pathRoot + parts[0];
 
-            string className = String.Empty;
+            string className = string.Empty;
 
             if (parts.Length > 1)
                 className = parts[1];

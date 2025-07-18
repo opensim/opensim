@@ -175,7 +175,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                         newSenseRepeaters.Add(ts);
                     }
                 }
-
                 SenseRepeaters = newSenseRepeaters;
             }
         }

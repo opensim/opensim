@@ -126,7 +126,7 @@ namespace OpenSim
 
             // Configure Log4Net
             configSource.AddSwitch("Startup", "logconfig");
-            string logConfigFile = configSource.Configs["Startup"].GetString("logconfig", String.Empty);
+            string logConfigFile = configSource.Configs["Startup"].GetString("logconfig", string.Empty);
             if (!string.IsNullOrEmpty(logConfigFile))
             {
                 XmlConfigurator.Configure(new System.IO.FileInfo(logConfigFile));
@@ -385,7 +385,7 @@ namespace OpenSim
 
             string msg = $"\r\nAPPLICATION EXCEPTION DETECTED: {e}\r\n\r\n";
 
-            Exception ex = (Exception) e.ExceptionObject;
+            Exception ex = (Exception)e.ExceptionObject;
 
             msg += $"Exception: {ex}\r\n";
             if (ex.InnerException != null)

@@ -75,8 +75,9 @@ namespace pCampBot
 
         private void MyTurnToward(Vector3 target)
         {
-            Quaternion between = Vector3.RotationBetween(Vector3.UnitX, Vector3.Normalize(target - Bot.Client.Self.SimPosition));
-            Quaternion rot = between ;
+            Vector3 localtarget = target - Bot.Client.Self.SimPosition;
+            localtarget.Normalize();
+            Quaternion rot = Vector3.RotationBetween(Vector3.UnitX, localtarget);
 
             Bot.Client.Self.Movement.BodyRotation = rot;
             Bot.Client.Self.Movement.HeadRotation = rot;

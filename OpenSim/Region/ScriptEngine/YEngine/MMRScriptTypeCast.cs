@@ -46,7 +46,6 @@ using LSL_Vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 
 namespace OpenSim.Region.ScriptEngine.Yengine
 {
-
     public class TypeCast
     {
         private delegate void CastDelegate(IScriptCodeGen scg, Token errorAt);

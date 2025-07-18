@@ -44,20 +44,19 @@ namespace OpenSim.Framework
             // The point is an absolute position, so we need the relative
             // location to the spawn point
             Vector3 offset = point - pos;
-            Distance = Vector3.Mag(offset);
+            Distance = offset.Length();
 
             // Next we need to rotate this vector into the spawn point's
             // coordinate system
             rot.W = -rot.W;
             offset *= rot;
-
-            Vector3 dir = Vector3.Normalize(offset);
+            offset.Normalize();
 
             // Get the bearing (yaw)
-            Yaw = MathF.Atan2(dir.Y, dir.X);
+            Yaw = MathF.Atan2(offset.Y, offset.X);
 
             // Get the elevation (pitch)
-            Pitch = -MathF.Atan2(dir.Z, MathF.Sqrt(dir.X * dir.X + dir.Y * dir.Y));
+            Pitch = -MathF.Atan2(offset.Z, MathF.Sqrt(offset.X * offset.X + offset.Y * offset.Y));
         }
 
         public Vector3 GetLocation(Vector3 pos, Quaternion rot)
@@ -65,8 +64,8 @@ namespace OpenSim.Framework
             Quaternion y = Quaternion.CreateFromEulers(0, 0, Yaw);
             Quaternion p = Quaternion.CreateFromEulers(0, Pitch, 0);
 
-            Vector3 dir = new Vector3(1, 0, 0) * p * y;
-            Vector3 offset = dir * (float)Distance;
+            Vector3 dir = Vector3.UnitX * p * y;
+            Vector3 offset = dir * Distance;
 
             offset *= rot;
 

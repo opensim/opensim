@@ -42,7 +42,7 @@ namespace OpenSim.Services.Connectors
     public class GridServicesConnector : BaseServiceConnector, IGridService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private string m_ServerURI = String.Empty;
+        private string m_ServerURI = string.Empty;
         private string m_ServerGridURI = string.Empty;
 
         public GridServicesConnector()
@@ -788,7 +788,7 @@ namespace OpenSim.Services.Connectors
 
             return [];
         }
-        #endregion
 
+        #endregion
     }
 }

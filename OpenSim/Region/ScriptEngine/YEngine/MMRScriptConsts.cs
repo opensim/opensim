@@ -39,10 +39,8 @@ using LSL_Vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 
 namespace OpenSim.Region.ScriptEngine.Yengine
 {
-
     public class ScriptConst
     {
-
         public static Dictionary<string, ScriptConst> scriptConstants = Init();
 
         /**
@@ -225,7 +223,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 CompValu z = new CompValuFloat(new TokenTypeFloat(null), v.z);
                 cv = new CompValuVec(new TokenTypeVec(null), x, y, z);
             }
-
             else if (value is OpenMetaverse.Quaternion or)
             {
                 CompValu x = new CompValuFloat(new TokenTypeFloat(null), or.X);

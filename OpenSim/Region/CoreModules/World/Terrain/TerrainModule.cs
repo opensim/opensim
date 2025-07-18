@@ -1052,12 +1052,18 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             bool changesLimited = false;
             float minDelta = (float)m_scene.RegionInfo.RegionSettings.TerrainLowerLimit;
             float maxDelta = (float)m_scene.RegionInfo.RegionSettings.TerrainRaiseLimit;
+            float endx = xStart + Constants.TerrainPatchSize;
+            if (endx > terrData.SizeX)
+                endx = terrData.SizeX;
+            float endy = yStart + Constants.TerrainPatchSize;
+            if (endy > terrData.SizeY)
+                endy = terrData.SizeY;
 
             // loop through the height map for this patch and compare it against
             // the baked map
-            for (int x = xStart; x < xStart + Constants.TerrainPatchSize; x++)
+            for (int x = xStart; x < endx; x++)
             {
-                for(int y = yStart; y < yStart + Constants.TerrainPatchSize; y++)
+                for(int y = yStart; y < endy; y++)
                 {
                     float requestedHeight = terrData[x, y];
                     float bakedHeight = (float)m_baked[x, y];

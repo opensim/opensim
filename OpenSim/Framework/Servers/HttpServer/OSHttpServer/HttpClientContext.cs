@@ -219,6 +219,7 @@ namespace OSHttpServer
         /// </remarks>
         public virtual void Cleanup()
         {
+
             if (StreamPassedOff)
                 return;
 

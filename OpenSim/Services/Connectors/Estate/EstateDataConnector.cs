@@ -45,7 +45,7 @@ namespace OpenSim.Services.Connectors
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private string m_ServerURI = String.Empty;
+        private string m_ServerURI = string.Empty;
         private ExpiringCache<string, List<EstateSettings>> m_EstateCache = new ExpiringCache<string, List<EstateSettings>>();
         private const int EXPIRATION = 5 * 60; // 5 minutes in secs
 
@@ -80,7 +80,7 @@ namespace OpenSim.Services.Connectors
         {
             string uri = m_ServerURI + "/estates";
             string reply = MakeRequest("GET", uri, string.Empty);
-            if (String.IsNullOrEmpty(reply))
+            if (string.IsNullOrEmpty(reply))
                 return [];
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
@@ -153,7 +153,7 @@ namespace OpenSim.Services.Connectors
             string uri = m_ServerURI + "/estates/regions/?eid=" + estateID.ToString();
 
             string reply = MakeRequest("GET", uri, string.Empty);
-            if (String.IsNullOrEmpty(reply))
+            if (string.IsNullOrEmpty(reply))
                 return [];
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
@@ -184,17 +184,9 @@ namespace OpenSim.Services.Connectors
             // assumes thats a fatal error.  BTW We should never ever call Enviroinment.Exit from a supporting
             // module or a library like this.  So its gonna go.
             string reply = MakeRequest("GET", uri, string.Empty);
-
-            if (reply is null)
+            if (string.IsNullOrEmpty(reply))
             {
                 m_log.DebugFormat("[ESTATE CONNECTOR] connection to remote estates service failed");
-                //m_log.DebugFormat("[ESTATE CONNECTOR] simulator needs to terminate");
-                //Environment.Exit(-1);
-                return null;
-            }
-
-            if (String.IsNullOrEmpty(reply))
-            {
                 return null;
             }
 
@@ -220,7 +212,7 @@ namespace OpenSim.Services.Connectors
             string uri = m_ServerURI + $"/estates/estate/?eid={estateID}";
 
             string reply = MakeRequest("GET", uri, string.Empty);
-            if (String.IsNullOrEmpty(reply))
+            if (string.IsNullOrEmpty(reply))
                 return null;
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
@@ -275,7 +267,7 @@ namespace OpenSim.Services.Connectors
             string reqString = ServerUtils.BuildQueryString(sendData);
 
             string reply = MakeRequest("POST", uri, reqString);
-            if (String.IsNullOrEmpty(reply))
+            if (string.IsNullOrEmpty(reply))
                 return false;
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);

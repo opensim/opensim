@@ -341,6 +341,7 @@ namespace OpenSim.Data.MySQL
                             while (reader.Read())
                             {
                                 SceneObjectPart prim = BuildPrim(reader);
+
                                 if (reader["Shape"] is DBNull)
                                     prim.Shape = PrimitiveBaseShape.Default;
                                 else

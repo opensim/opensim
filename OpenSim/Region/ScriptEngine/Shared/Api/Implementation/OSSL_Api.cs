@@ -529,7 +529,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 if ((m_item.CurrentPermissions & (uint)PermissionMask.Modify) != 0)
                     return $"{function} permission denied. Script creator is not prim owner";
-
             }
 
             return string.Empty;
@@ -3175,7 +3174,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
 
                 ScenePresence sp = World.GetScenePresence(npcId);
-
                 if (sp is not null)
                     sp.Rotation = rotation;
             }
@@ -4106,7 +4104,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         }
 
         /// <summary>
-        /// Sets terrain texture
+        /// Sets terrain texture for legacy viewers and map
         /// </summary>
         /// <param name="level"></param>
         /// <param name="texture"></param>
@@ -4115,16 +4113,79 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             if (level < 0 || level > 3)
                 return;
+            IEstateModule estate = World.RequestModuleInterface<IEstateModule>();
+            if(estate == null)
+                return;
             if (!UUID.TryParse(texture, out UUID textureID))
                 return;
 
-            CheckThreatLevel(ThreatLevel.High, "osSetTerrainTexture");
+            if (!World.Permissions.IsGod(m_host.OwnerID))
+                CheckThreatLevel(ThreatLevel.High, "osSetTerrainTexture");
 
-            if (World.Permissions.IsGod(m_host.OwnerID))
+            estate.setEstateTerrainBaseTexture(level, textureID);
+        }
+
+        /// Sets terrain texture for legacy viewers and map
+        /// if types is 0, sets textures for older viewers and map
+        /// if types is 1 sets materials or textures for new viewers
+        /// if types is 2 sets textures for both kinds
+        /// </summary>
+        /// <param name="textures"></param>
+        /// <param name="legacy"></param>
+        /// <returns></returns>
+
+        private static readonly int[] PBRAndTextureTypes = [(int)AssetType.Texture, (int)AssetType.Material];
+        public void osSetTerrainTextures(LSL_List textures, LSL_Integer ltypes)
+        {
+            IEstateModule estateModule = World.RequestModuleInterface<IEstateModule>();
+            if (estateModule == null)
+                return;
+
+            if (!World.Permissions.IsGod(m_host.OwnerID))
+                CheckThreatLevel(ThreatLevel.High, "osSetTerrainTexture");
+
+            if(textures.Length != 4)
             {
-                IEstateModule estate = World.RequestModuleInterface<IEstateModule>();
-                estate?.setEstateTerrainBaseTexture(level, textureID);
+                OSSLShoutError($"osSetTerrainTextures first argument is a list of keys or names that must have 4 elements");
+                return;
             }
+
+            int types = ltypes.value;
+            if( types < 0 || types > 2)
+            {
+                OSSLShoutError($"osSetTerrainTextures second argument must be >=0 and <= 2");
+                return;
+            }
+
+            List<UUID> ids = new(4);
+            bool hasChanges = false;
+            for(int i = 0; i < textures.Length; i++)
+            {
+                string u = textures.GetStrictLSLStringItem(i);
+                if(string.IsNullOrEmpty(u))
+                    ids.Add(UUID.Zero);
+                else
+                {
+                    if (!UUID.TryParse(u, out UUID id))
+                    {
+                        TaskInventoryItem item = types == 1 ? 
+                            m_host.Inventory.GetInventoryItem(u, PBRAndTextureTypes) : 
+                            m_host.Inventory.GetInventoryItem(u,(int)AssetType.Texture);
+                        if (item == null)
+                        {
+                            OSSLShoutError($"Invalid key or asset type in osSetTerrainTextures texture {i}");
+                            return;
+                        }
+                        id = item.AssetID;
+                    }
+                    ids.Add(id);
+                    if(!hasChanges && id.IsNotZero())
+                        hasChanges = true;
+                }
+            }
+
+            if(hasChanges)
+                estateModule.SetEstateTerrainTextures(ids, types);
         }
 
         /// <summary>
@@ -5609,7 +5670,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     == (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify))
                     ret.Add(inv.Value.ItemID.ToString());
             }
-
             m_host.TaskInventory.LockItemsForRead(false);
             return ret;
         }
@@ -5672,7 +5732,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void osRemoveLinkInventory(LSL_Integer linkNumber, LSL_String name)
         {
-
             SceneObjectPart part = GetSingleLinkPart(linkNumber);
             if(part == null)
                 return;
@@ -5717,7 +5776,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if(!World.TryGetScenePresence(destId, out ScenePresence _))
                 {
                     UserAccount account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, destId);
-
                     if (account == null)
                     {
                         GridUserInfo info = World.GridUserService.GetGridUserInfo(destId.ToString());
@@ -5919,7 +5977,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_UrlModule?.ScriptRemoved(me);
 
             m_ScriptEngine.ApiResetScript(me);
-
         }
 
         public LSL_Integer osIsNotValidNumber(LSL_Float v)
@@ -6123,7 +6180,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             bool changed = false;
             if (!string.IsNullOrEmpty(daycycle) && (daycycle != ScriptBaseClass.NULL_KEY))
             {
-
                 UUID envID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, daycycle);
                 if (envID.IsZero())
                     return -4;
@@ -6743,6 +6799,85 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
             }
             return -1;
+        }
+        public LSL_Float osListAsFloat(LSL_List src, int index)
+        {
+            object[] data = src.Data;
+            if(data == null)
+                return LSL_Float.Zero;
+            if (index >= 0 && index < data.Length)
+            { 
+                object o = data[index];
+                if(o is LSL_Float d)
+                    return d;
+                if(o is double nd)
+                    return nd;
+            }
+            return LSL_Float.Zero;
+        }
+
+        public LSL_Integer osListAsInteger(LSL_List src, int index)
+        {
+            object[] data = src.Data;
+            if(data == null)
+                return LSL_Integer.Zero;
+            if (index >= 0 && index < data.Length)
+            { 
+                object o = data[index];
+                if(o is LSL_Integer i)
+                    return i;
+                if(o is int ni)
+                    return ni;
+            }
+            return LSL_Integer.Zero;
+        }
+
+        public LSL_String osListAsString(LSL_List src, int index)
+        {
+            object[] data = src.Data;
+            if(data == null)
+                return LSL_String.Empty;
+            if (index >= 0 && index < data.Length)
+            { 
+                object o = data[index];
+                if(o is LSL_String s)
+                    return s;
+                if(o is string ns)
+                    return ns;
+            }
+            return LSL_String.Empty;
+        }
+
+        public LSL_Vector osListAsVector(LSL_List src, int index)
+        {
+            object[] data = src.Data;
+            if(data == null)
+                return LSL_Vector.Zero;
+            if (index >= 0 && index < data.Length)
+            { 
+                object o = data[index];
+                if(o is LSL_Vector v)
+                    return v;
+                if(o is Vector3 ov)
+                    return ov;
+            }
+            return LSL_Vector.Zero;
+        }
+
+        public LSL_Rotation osListAsRotation(LSL_List src, int index)
+        {
+            object[] data = src.Data;
+            if(data == null)
+                return LSL_Rotation.Identity;
+            if (index >= 0 && index < data.Length)
+            { 
+                object o = data[index];
+                if(o is LSL_Rotation r)
+                    return r;
+                if(o is Quaternion q)
+                    return q;
+            }
+            return LSL_Rotation.Identity;
         }
     }
 }

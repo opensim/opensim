@@ -31,6 +31,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+
 using OpenSim.Region.ScriptEngine.Shared;
 
 using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
@@ -43,7 +44,6 @@ using LSL_Vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 
 namespace OpenSim.Region.ScriptEngine.Yengine
 {
-
     /**
      * @brief This class is used to catalog the code emit routines based on a key string
      *        The key string has the two types (eg, "integer", "rotation") and the operator (eg, "*", "!=")

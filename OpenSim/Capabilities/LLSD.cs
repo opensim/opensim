@@ -115,7 +115,7 @@ namespace OpenSim.Framework.Capabilities
             {
                 writer.Formatting = Formatting.None;
 
-                writer.WriteStartElement(String.Empty, "llsd", String.Empty);
+                writer.WriteStartElement(string.Empty, "llsd", string.Empty);
                 LLSDWriteOne(writer, obj);
                 writer.WriteEndElement();
                 writer.Flush();
@@ -132,32 +132,32 @@ namespace OpenSim.Framework.Capabilities
         {
             if (obj == null)
             {
-                writer.WriteStartElement(String.Empty, "undef", String.Empty);
+                writer.WriteStartElement(string.Empty, "undef", string.Empty);
                 writer.WriteEndElement();
                 return;
             }
 
             if (obj is string s)
             {
-                writer.WriteStartElement(String.Empty, "string", String.Empty);
+                writer.WriteStartElement(string.Empty, "string", string.Empty);
                 writer.WriteString(s);
                 writer.WriteEndElement();
             }
             else if (obj is int)
             {
-                writer.WriteStartElement(String.Empty, "integer", String.Empty);
+                writer.WriteStartElement(string.Empty, "integer", string.Empty);
                 writer.WriteString(obj.ToString());
                 writer.WriteEndElement();
             }
             else if (obj is double || obj is float)
             {
-                writer.WriteStartElement(String.Empty, "real", String.Empty);
+                writer.WriteStartElement(string.Empty, "real", string.Empty);
                 writer.WriteString(obj.ToString());
                 writer.WriteEndElement();
             }
             else if (obj is bool b)
             {
-                writer.WriteStartElement(String.Empty, "boolean", String.Empty);
+                writer.WriteStartElement(string.Empty, "boolean", string.Empty);
                 writer.WriteString(b ? "1" : "0");
                 writer.WriteEndElement();
             }
@@ -167,7 +167,7 @@ namespace OpenSim.Framework.Capabilities
             }
             else if (obj is UUID u)
             {
-                writer.WriteStartElement(String.Empty, "uuid", String.Empty);
+                writer.WriteStartElement(string.Empty, "uuid", string.Empty);
                 writer.WriteString(u.ToString());
                 writer.WriteEndElement();
             }
@@ -185,10 +185,10 @@ namespace OpenSim.Framework.Capabilities
             }
             else if (obj is Dictionary<string,object> dict)
             {
-                writer.WriteStartElement(String.Empty, "map", String.Empty);
+                writer.WriteStartElement(string.Empty, "map", string.Empty);
                 foreach (KeyValuePair<string,object> kvp in dict)
                 {
-                    writer.WriteStartElement(String.Empty, "key", String.Empty);
+                    writer.WriteStartElement(string.Empty, "key", string.Empty);
                     writer.WriteString(kvp.Key);
                     writer.WriteEndElement();
                     LLSDWriteOne(writer, kvp.Value);
@@ -197,7 +197,7 @@ namespace OpenSim.Framework.Capabilities
             }
             else if (obj is ArrayList a)
             {
-                writer.WriteStartElement(String.Empty, "array", String.Empty);
+                writer.WriteStartElement(string.Empty, "array", string.Empty);
                 foreach (object item in a)
                 {
                     LLSDWriteOne(writer, item);

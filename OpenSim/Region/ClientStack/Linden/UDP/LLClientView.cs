@@ -417,7 +417,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public int viewHeight { get; set; } = 480;
         public int viewWidth { get; set; } = 640;
 
-
         public UUID AgentId { get { return m_agentId; } }
         public UUID ScopeId { get { return m_scopeId; } }
         public ISceneAgent SceneAgent { get; set; }
@@ -878,7 +877,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 //0xff, 0xff, 0, 148 // ID 148 (low frequency bigendian)
                 0xff, 0xff, 0, 1, 148 // ID 148 (low frequency bigendian) zero encoded
                 };
-
 
         public void SendRegionHandshake()
         {
@@ -3285,8 +3283,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(viewertime, ThrottleOutPacketType.Task);
         }
 
-
-
         public void SendViewerEffect(ViewerEffectPacket.EffectBlock[] effectBlocks)
         {
             ViewerEffectPacket packet = (ViewerEffectPacket)PacketPool.Instance.GetPacket(PacketType.ViewerEffect);
@@ -3499,7 +3495,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             eq.Enqueue(BuildEvent("ObjectPhysicsProperties", llsdBody),m_agentId);
             */
         }
-
 
         public void SendPartPhysicsProprieties(ISceneEntity entity)
         {
@@ -7677,8 +7672,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 zc.AddShortLimitedUTF8(osUTF8PartText);
 
                 //textcolor
-                byte[] tc = part.GetTextColor().GetBytes(false);
-                zc.AddBytes(tc, 4);
+                zc.AddColorArgb(part.TextColorArgb());
             }
 
             //media url
@@ -8098,7 +8092,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             else
                 BlockLengh += extraParamBytes.Length;
 
-            byte[] hoverTextColor = null;
             osUTF8 osUTF8PartText = part.osUTF8Text;
             if (osUTF8PartText != null && osUTF8PartText.Length > 0)
             {
@@ -8106,8 +8099,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 BlockLengh += osUTF8PartText.Length;
                 if (osUTF8PartText[^1] != 0)
                     ++BlockLengh;
-                hoverTextColor = part.GetTextColor().GetBytes(false);
-                BlockLengh += hoverTextColor.Length;
+                BlockLengh += 4;
                 hastext = true;
             }
 
@@ -8193,7 +8185,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     pathScaleY = 150;
             }
 
-
             // first is primFlags
             zc.AddUInt((uint)primflags);
 
@@ -8235,7 +8226,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 zc.AddBytes(osUTF8PartText.GetArray(), osUTF8PartText.Length);
                 if (osUTF8PartText[^1] != 0)
                     zc.AddZeros(1);
-                zc.AddBytes(hoverTextColor, hoverTextColor.Length);
+
+                zc.AddColorArgb(part.TextColorArgb());
             }
             if (hasmediaurl)
             {
@@ -8668,7 +8660,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 )
                 return true;
 
-            float qdelta = MathF.Abs(x.BodyRotation.Dot(m_thisAgentUpdateArgs.BodyRotation));
+            float qdelta = MathF.Abs(x.BodyRotation.Dot(ref m_thisAgentUpdateArgs.BodyRotation));
             return qdelta < QDELTABody; // significant if body rotation above(below cos) threshold
         }
 
@@ -9452,7 +9444,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         avSetStartLocationRequestPacket.StartLocationData.LocationPos.Y = avatar.AbsolutePosition.Y;
                     }
                 }
-
             }
             c.OnSetStartLocationRequest?.Invoke(c, 0, avSetStartLocationRequestPacket.StartLocationData.LocationPos,
                                                 avSetStartLocationRequestPacket.StartLocationData.LocationLookAt,
@@ -11346,7 +11337,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private static void HandleGetScriptRunning(LLClientView c, Packet Pack)
         {
             GetScriptRunningPacket scriptRunning = (GetScriptRunningPacket)Pack;
-
             c.OnGetScriptRunning?.Invoke(c, scriptRunning.Script.ObjectID, scriptRunning.Script.ItemID);
         }
 

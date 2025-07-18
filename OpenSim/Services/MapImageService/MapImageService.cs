@@ -118,7 +118,7 @@ namespace OpenSim.Services.MapImageService
 
         public bool RemoveMapTile(int x, int y, UUID scopeID, out string reason)
         {
-            reason = String.Empty;
+            reason = string.Empty;
             string fileName = GetFileName(1, x, y, scopeID);
 
             lock (m_Sync)
@@ -212,13 +212,13 @@ namespace OpenSim.Services.MapImageService
                     return File.ReadAllBytes(fullName);
                 }
             }
+
             catch
             {
                 format = ".jpg";
                 return m_WaterJPEGBytes is null ? Array.Empty<byte>() : m_WaterJPEGBytes;
             }
         }
-
         #endregion
 
         private string GetFileName(int zoomLevel, int x, int y, UUID scopeID)
@@ -366,7 +366,7 @@ namespace OpenSim.Services.MapImageService
                 }
             }
             bm.UnlockBits(srcData);
-        }
+         }
 
         private void ImageCopyResampled(Bitmap output, Bitmap input, int destX, int destY)
         {

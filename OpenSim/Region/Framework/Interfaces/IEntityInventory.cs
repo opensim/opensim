@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using System.Collections;
 using OpenMetaverse;
@@ -216,8 +217,10 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <returns>
         /// The inventory item.  Null if no such item was found.
         /// </returns>
-        TaskInventoryItem GetInventoryItem(string name);
-        TaskInventoryItem GetInventoryItem(string name, int assetType);
+        TaskInventoryItem GetInventoryItem(ReadOnlySpan<char> name);
+        TaskInventoryItem GetInventoryItem(ReadOnlySpan<char> name, int assetType);
+
+        TaskInventoryItem GetInventoryItem(ReadOnlySpan<char> name, ReadOnlySpan<int> assetTypes);
 
         /// <summary>
         /// Get inventory items by name.
@@ -227,7 +230,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// A list of inventory items with that name.
         /// If no inventory item has that name then an empty list is returned.
         /// </returns>
-        List<TaskInventoryItem> GetInventoryItems(string name);
+        List<TaskInventoryItem> GetInventoryItems(ReadOnlySpan<char> name);
 
         /// <summary>
         /// Get inventory items by type.

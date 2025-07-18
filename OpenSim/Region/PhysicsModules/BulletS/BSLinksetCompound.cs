@@ -356,8 +356,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 // Bullet presumes an object's origin (relative <0,0,0>) is its center-of-mass
                 OMV.Vector3 centerOfMassW = ComputeLinksetCenterOfMass();
 	
-                OMV.Quaternion invRootOrientation = OMV.Quaternion.Normalize(OMV.Quaternion.Inverse(LinksetRoot.RawOrientation));
                 OMV.Vector3 origRootPosition = LinksetRoot.RawPosition;
+                OMV.Quaternion invRootOrientation = OMV.Quaternion.Inverse(LinksetRoot.RawOrientation);
 	
                 // 'centerDisplacementV' is the vehicle relative distance from the simulator root position to the center-of-mass
                 OMV.Vector3 centerDisplacementV = (centerOfMassW - LinksetRoot.RawPosition) * invRootOrientation;
@@ -396,7 +396,9 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 	
                     // Offset the child shape from the center-of-mass and rotate it to root relative.
                     OMV.Vector3 offsetPos = (cPrim.RawPosition - origRootPosition) * invRootOrientation - centerDisplacementV;
-                    OMV.Quaternion offsetRot = OMV.Quaternion.Normalize(cPrim.RawOrientation) * invRootOrientation;
+                    OMV.Quaternion offsetRot = cPrim.RawOrientation;
+                    offsetRot.Normalize();
+                    offsetRot *= invRootOrientation;
 	
                     // Add the child shape to the compound shape being built
                     if (childShape.physShapeInfo.HasPhysicalShape)

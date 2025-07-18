@@ -666,7 +666,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         [DebuggerNonUserCode]
         public void llResetScript()
         {
-
             // We need to tell the URL module, if we hav one, to release
             // the allocated URLs
             m_UrlModule?.ScriptRemoved(m_item.ItemID);
@@ -1401,7 +1400,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (gr is not null)
                         return gr.GroupName;
                 }
-                return String.Empty;
+                return string.Empty;
             }
 
             return SensedObject.Name;
@@ -1767,7 +1766,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llSetContentType(LSL_Key reqid, LSL_Integer type)
         {
-
             if (m_UrlModule == null)
                 return;
 
@@ -2315,7 +2313,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llScaleTexture(double u, double v, int face)
         {
-
             ScaleTexture(m_host, u, v, face);
             ScriptSleep(m_sleepMsOnScaleTexture);
         }
@@ -2619,7 +2616,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llSetRot(LSL_Rotation rot)
         {
-
             // try to let this work as in SL...
             if (m_host.ParentID == 0 || (m_host.ParentGroup != null && m_host == m_host.ParentGroup.RootPart))
             {
@@ -3095,7 +3091,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </summary>
         public LSL_String llGetSubString(string src, int start, int end)
         {
-
             // Normalize indices (if negative).
             // After normlaization they may still be
             // negative, but that is now relative to
@@ -4032,7 +4027,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Float llGetMass()
         {
-
             if (m_host.ParentGroup.IsAttachment)
             {
                 ScenePresence attachedAvatar = World.GetScenePresence(m_host.ParentGroup.AttachedAvatar);
@@ -4516,7 +4510,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
             }
         }
-
         public void llStopAnimation(string anim)
         {
             bool is_experience = CheckExperiencePermissions();
@@ -5096,7 +5089,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
      
         public LSL_String llGetLinkName(int linknum)
         {
-
             ISceneEntity entity = GetLinkEntity(m_host, linknum);
             return (entity is null) ? ScriptBaseClass.NULL_KEY : entity.Name;
         }
@@ -5248,7 +5240,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             if (visualparams.Length < 1)
                 return new LSL_List();
-
             if (UUID.TryParse(id, out UUID agentid))
             {
                 ScenePresence agent = World.GetScenePresence(agentid);
@@ -5256,7 +5247,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return new LSL_List();
 
                 LSL_List returns = new LSL_List();
-
                 for (int i = 0; i < visualparams.Length; i++)
                 {
                     int val = visualparams[i].ToString() switch
@@ -5285,7 +5275,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         returns.Add(fval.ToString());
                     }
                 }
-
                 if (returns.Length > 0)
                     return returns;
             }
@@ -5404,7 +5393,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 Error("llRequestAgentData","Invalid UUID passed to llRequestAgentData.");
             }
-            return String.Empty;
+            return string.Empty;
         }
 
         //bad if lm is HG
@@ -5412,7 +5401,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             void act(string eventID)
             {
-                string reply = String.Empty;
+                string reply = string.Empty;
                 foreach (TaskInventoryItem item in m_host.Inventory.GetInventoryItems())
                 {
                     if (item.Type == 3 && item.Name == name)
@@ -5827,7 +5816,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     float scaling_factor = 1f;
                     scaling_factor *= distance_attenuation;
                     applied_linear_impulse *= scaling_factor;
-
                 }
 
                 if (pusheeIsAvatar)
@@ -5862,8 +5850,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_String llGetScriptName()
         {
-
-            return m_item.Name ?? String.Empty;
+            return m_item.Name ?? string.Empty;
         }
 
         public LSL_Integer llGetLinkNumberOfSides(int link)
@@ -5883,7 +5870,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Integer llGetNumberOfSides()
         {
-
             return m_host.GetNumberOfSides();
         }
 
@@ -5897,7 +5883,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         // q = cos(a/2) + i (x * sin(a/2)) + j (y * sin(a/2)) + k (z * sin(a/2))
         public LSL_Rotation llAxisAngle2Rot(LSL_Vector axis, double angle)
         {
-
             double x, y, z, s, t;
 
             s = Math.Cos(angle * 0.5);
@@ -5917,7 +5902,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <param name='rot'></param>
         public LSL_Vector llRot2Axis(LSL_Rotation rot)
         {
-
             rot.Normalize();
 
             double s = Math.Sqrt(1 - rot.s * rot.s);
@@ -5934,7 +5918,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         // Returns the angle of a quaternion (see llRot2Axis for the axis)
         public LSL_Float llRot2Angle(LSL_Rotation rot)
         {
-
             rot.Normalize();
 
             double angle = 2 * Math.Acos(rot.s);
@@ -5957,7 +5940,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         // jcochran 5/jan/2012
         public LSL_Float llAngleBetween(LSL_Rotation a, LSL_Rotation b)
         {
-
             double aa = (a.x * a.x + a.y * a.y + a.z * a.z + a.s * a.s);
             double bb = (b.x * b.x + b.y * b.y + b.z * b.z + b.s * b.s);
             double aa_bb = aa * bb;
@@ -5970,7 +5952,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Key llGetInventoryKey(string name)
         {
-
             TaskInventoryItem item = m_host.Inventory.GetInventoryItem(name);
             if (item is null)
                 return ScriptBaseClass.NULL_KEY;
@@ -6212,7 +6193,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if(item is LSL_Vector vec)
                 return vec;
-
             if (item is LSL_String lsv)
                 return new LSL_Vector(lsv);
             if (item is string sv) // xengine sees string
@@ -6281,7 +6261,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return 7;
             return 0;
         }
-
 
         /// <summary>
         /// Process the supplied list and return the
@@ -6422,8 +6401,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return result;
         }
 
-
-
         public LSL_List llList2ListStrided(LSL_List src, int start, int end, int stride)
         {
             if (start < 0)
@@ -6499,6 +6476,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (end < 0)
                     end = 0;
             }
+
             if (start > end)
             {
                 start = 0;
@@ -6511,8 +6489,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (end >= src.Length)
                     end = src.Length - 1;
                 }
+
             if (stride < 1)
                 stride = 1;
+
             if (stride_index < 0)
                 {
                 stride_index += stride;
@@ -6521,6 +6501,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else if (stride_index >= stride)
                 return new LSL_List();
+
             int size;
             if (stride > 1)
                     {
@@ -6530,6 +6511,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     sst *= stride;
                     if (sst != start)
                         start = sst + stride;
+
                     if (start > end)
                         return new LSL_List();
                 }
@@ -6542,6 +6524,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
                 size = end - start + 1;
+
             object[] res = new object[size];
             int j = 0;
             for (int i = start; i <= end; i += stride, j++)
@@ -6690,6 +6673,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         }
 
+
+
         /// <summary>
         /// Returns the index of the first occurrence of test
         /// in src.
@@ -6817,7 +6802,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                      }
                 }
             }
-
             return -1;
         }
 
@@ -7222,7 +7206,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Key llName2Key(LSL_String name)
         {
-
             if(string.IsNullOrWhiteSpace(name))
                 return ScriptBaseClass.NULL_KEY;
 
@@ -7249,7 +7232,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Key llRequestUserKey(LSL_String username)
         {
-
             if (string.IsNullOrWhiteSpace(username))
                 return ScriptBaseClass.NULL_KEY;
 
@@ -7362,7 +7344,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         private static void SetTextureAnim(SceneObjectPart part, int mode, int face, int sizex, int sizey, double start, double length, double rate)
         {
-
             //ALL_SIDES
             if (face == ScriptBaseClass.ALL_SIDES)
                 face = 255;
@@ -7623,7 +7604,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_List llGetAttachedList(LSL_Key id)
         {
-
             if(!UUID.TryParse(id, out UUID avID) || avID.IsZero())
                 return new LSL_List("NOT_FOUND");
 
@@ -9145,7 +9125,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llSetPrimitiveParams(LSL_List rules)
         {
-
             SetLinkPrimParams(ScriptBaseClass.LINK_THIS, rules, "llSetPrimitiveParams");
 
             ScriptSleep(m_sleepMsOnSetPrimitiveParams);
@@ -9153,7 +9132,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llSetLinkPrimitiveParams(int linknumber, LSL_List rules)
         {
-
             SetLinkPrimParams(linknumber, rules, "llSetLinkPrimitiveParams");
 
             ScriptSleep(m_sleepMsOnSetLinkPrimitiveParams);
@@ -9161,7 +9139,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llSetLinkPrimitiveParamsFast(int linknumber, LSL_List rules)
         {
-
             SetLinkPrimParams(linknumber, rules, "llSetLinkPrimitiveParamsFast");
         }
 
@@ -13061,7 +13038,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             int          i, j;
             string       d;
 
-
             /*
              * Convert separator and spacer lists to C# strings.
              * Also filter out null strings so we don't hang.
@@ -13345,7 +13321,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (item is null)
             {
                 Error("llGetInventoryCreator", $"Can't find item '{itemName}'");
-                return String.Empty;
+                return string.Empty;
             }
 
             return item.CreatorID.ToString();
@@ -13353,7 +13329,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_String llGetInventoryAcquireTime(string itemName)
         {
-
             TaskInventoryItem item = m_host.Inventory.GetInventoryItem(itemName);
             if (item is null)
             {
@@ -13577,7 +13552,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_List llListReplaceList(LSL_List dest, LSL_List src, int start, int end)
         {
             LSL_List pref;
-
 
             // Note that although we have normalized, both
             // indices could still be negative.
@@ -13958,7 +13932,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             //PARCEL_MEDIA_COMMAND_LOOP_SET    float loop      Use this to get or set the parcel's media loop duration. (1.19.1 RC0 or later)
             for (int i = 0; i < aList.Data.Length; i++)
             {
-
                 if (aList.Data[i] != null)
                 {
                     switch ((ParcelMediaCommandEnum) Convert.ToInt32(aList.Data[i].ToString()))
@@ -14011,7 +13984,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Integer llGetInventoryType(string name)
         {
-
             TaskInventoryItem item = m_host.Inventory.GetInventoryItem(name);
             return item is null ? -1 : item.Type;
         }
@@ -14895,7 +14867,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return reqID.IsZero() ? string.Empty : reqID.ToString();
         }
 
-
         public void llHTTPResponse(LSL_Key id, int status, string body)
         {
             // Partial implementation: support for parameter flags needed
@@ -14998,7 +14969,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Integer llGetObjectPrimCount(LSL_Key object_id)
         {
-
             if(!UUID.TryParse(object_id, out UUID id) || id.IsZero())
                 return 0;
 
@@ -15396,7 +15366,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             break;
                         case ScriptBaseClass.OBJECT_ROT:
                             Quaternion rot;
-
                             if (obj.ParentGroup.IsAttachment)
                             {
                                 ScenePresence sp = World.GetScenePresence(obj.ParentGroup.AttachedAvatar);
@@ -15613,7 +15582,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             ret.Add(new LSL_Vector(textColor.R, textColor.G, textColor.B));
                             break;
                         case ScriptBaseClass.OBJECT_TEXT_ALPHA:
-                            ret.Add(new LSL_Float(obj.GetTextColor().A));
+                            ret.Add(new LSL_Float(obj.GetTextAlpha()));
                             break;
                         default:
                             // Invalid or unhandled constant.
@@ -16041,9 +16010,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             void act(string eventID)
             {
                 string name = String.Empty;
-
                 var dnm = World.RequestModuleInterface<IDisplayNameModule>();
-
                 if (dnm is not null)
                 {
                     name = dnm.GetDisplayName(key);
@@ -16056,6 +16023,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         name = account.FirstName + " " + account.LastName;
                     }
                 }
+                
                 m_AsyncCommands.DataserverPlugin.DataserverReply(eventID, name);
             }
 
@@ -16129,10 +16097,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         private ContactResult[] ObjectIntersection(Vector3 rayStart, Vector3 rayEnd, bool includePhysical, bool includeNonPhysical, bool includePhantom)
         {
-            Ray ray = new(rayStart, Vector3.Normalize(rayEnd - rayStart));
-            List<ContactResult> contacts = new();
-
             Vector3 ab = rayEnd - rayStart;
+            Ray ray = new(rayStart, Vector3.Normalize(ref ab));
+            List<ContactResult> contacts = new();
 
             World.ForEachSOG(delegate(SceneObjectGroup group)
             {
@@ -16191,7 +16158,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (d2 > 0)
                     return;
 
-                ray = new Ray(rayStart, Vector3.Normalize(rayEnd - rayStart));
+                ray = new Ray(rayStart, Vector3.Normalize(ref ab));
                 EntityIntersection intersection = group.TestIntersection(ray, true, false);
                 // Miss.
                 if (!intersection.HitTF)
@@ -17189,7 +17156,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 // Transform hit and normal to region coordinate system
                 Vector3 posHit = rayTrans.PositionPart + (posHitProj * rayTrans.ScalePart) * rayTrans.RotationPart;
-                Vector3 normal = Vector3.Normalize((normalProj * rayTrans.ScalePart) * rayTrans.RotationPart);
+
+                Vector3 normal = (normalProj * rayTrans.ScalePart) * rayTrans.RotationPart;
+                normal.Normalize();
 
                 // Remove duplicate hits at triangle intersections
                 float distance = Vector3.Distance(rayTrans.Position1Ray, posHit);
@@ -17578,7 +17547,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llGodLikeRezObject(string inventory, LSL_Vector pos)
         {
-
             if (!World.Permissions.IsGod(m_host.OwnerID))
                 NotImplemented("llGodLikeRezObject");
 
@@ -18295,7 +18263,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return LSL_String.Empty;
             }
 
-            string state = String.Empty;
+            string state = string.Empty;
 
             foreach (KeyValuePair<string, string> kvp in MovementAnimationsForLSL)
             {

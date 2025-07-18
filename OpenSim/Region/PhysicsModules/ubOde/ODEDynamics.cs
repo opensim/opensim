@@ -982,7 +982,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                     broll /= m_bankingTimescale;
 
-
                     tmpV = Vector3.UnitZRotated(irotq);
                     tmpV *= broll;
 

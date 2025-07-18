@@ -532,7 +532,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         private readonly object m_originRegionIDAccessLock = new();
 
-
         private AutoResetEvent m_updateAgentReceivedAfterTransferEvent = new(false);
 
         /// <summary>
@@ -1649,7 +1648,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         public void MakeChildAgent(ulong newRegionHandle)
         {
-            m_updateAgentReceivedAfterTransferEvent.Reset();
+            m_updateAgentReceivedAfterTransferEvent?.Reset();
             m_haveGroupInformation = false;
             m_gotCrossUpdate = false;
             m_crossingFlags = 0;
@@ -1659,6 +1658,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_log.DebugFormat("[SCENE PRESENCE]: Making {0} a child agent in {1} from root region {2}",
                 Name, Scene.RegionInfo.RegionName, newRegionHandle);
+
+            if(disposed)
+                return;
 
             // Reset the m_originRegionID as it has dual use as a flag to signal that the UpdateAgent() call orignating
             // from the source simulator has completed on a V2 teleport.
@@ -1710,6 +1712,7 @@ namespace OpenSim.Region.Framework.Scenes
                         SendKillTo(p);
                     }
                 });
+
             m_scene.AuthenticateHandler.UpdateAgentChildStatus(ControllingClient.CircuitCode, true);
 
             m_scene.EventManager.TriggerOnMakeChildAgent(this);
@@ -3296,7 +3299,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void SendSitResponse(UUID targetID, Vector3 offset, Quaternion sitOrientation)
         {
-
             SceneObjectPart part = FindNextAvailableSitTarget(targetID);
             if (part == null)
                 return;
@@ -3696,10 +3698,9 @@ namespace OpenSim.Region.Framework.Scenes
                 m_AngularVelocity = Vector3.Zero;
                 Velocity = Vector3.Zero;
 
-
                 SendAvatarDataToAllAgents();
 
-                if (String.IsNullOrEmpty(part.SitAnimation))
+                if (string.IsNullOrEmpty(part.SitAnimation))
                     sitAnimation = "SIT";
                 else
                     sitAnimation = part.SitAnimation;
@@ -4821,7 +4822,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             CopyFrom(cAgentData);
-            m_updateAgentReceivedAfterTransferEvent.Set();
+            m_updateAgentReceivedAfterTransferEvent?.Set();
         }
 
         private static Vector3 marker = new(-1f, -1f, -1f);

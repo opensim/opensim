@@ -1122,12 +1122,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             XMRInstance instance = GetInstance(itemID);
             if(instance == null)
-                return String.Empty;
+                return string.Empty;
 
             TraceCalls("[YEngine]: YEngine.GetXMLState({0})", itemID.ToString());
 
             if(!instance.m_HasRun)
-                return String.Empty;
+                return string.Empty;
 
             XmlDocument doc = new();
 
@@ -1221,7 +1221,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool PostScriptEvent(UUID itemID, string name, Object[] p)
+        public bool PostScriptEvent(UUID itemID, string name, object[] p)
         {
             if(!m_Enabled)
                 return false;
@@ -1232,7 +1232,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool PostObjectEvent(UUID itemID, string name, Object[] p)
+        public bool PostObjectEvent(UUID itemID, string name, object[] p)
         {
             if(!m_Enabled)
                 return false;
@@ -1583,10 +1583,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             if (TryGetInstance(itemID, out XMRInstance instance))
             {
-                running = true;
-                return false;
+                running = instance.Running;
+                return true;
             }
-            running = true;
+            running = false;
             return false;
         }
 

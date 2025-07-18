@@ -27,10 +27,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 using System.Drawing;
 using System.Drawing.Imaging;
+
+using OpenMetaverse;
 
 namespace PrimMesher
 {
@@ -132,12 +133,12 @@ namespace PrimMesher
                 bm.Dispose();
         }
 
-        public List<List<Coord>> ToRows(bool mirror)
+        public List<List<Vector3>> ToRows(bool mirror)
         {
             int numRows = height;
             int numCols = width;
 
-            List<List<Coord>> rows = new List<List<Coord>>(numRows);
+            List<List<Vector3>> rows = new List<List<Vector3>>(numRows);
 
             float pixScale = 1.0f / 255;
 
@@ -146,14 +147,14 @@ namespace PrimMesher
 
             for (rowNdx = 0; rowNdx < numRows; rowNdx++)
             {
-                List<Coord> row = new List<Coord>(numCols);
+                List<Vector3> row = new List<Vector3>(numCols);
                 for (colNdx = 0; colNdx < numCols; colNdx++)
                 {
 
                     if (mirror)
-                        row.Add(new Coord(-((float)redBytes[smNdx] * pixScale - 0.5f), ((float)greenBytes[smNdx] * pixScale - 0.5f), (float)blueBytes[smNdx] * pixScale - 0.5f));
+                        row.Add(new Vector3(-((float)redBytes[smNdx] * pixScale - 0.5f), ((float)greenBytes[smNdx] * pixScale - 0.5f), (float)blueBytes[smNdx] * pixScale - 0.5f));
                     else
-                        row.Add(new Coord((float)redBytes[smNdx] * pixScale - 0.5f, (float)greenBytes[smNdx] * pixScale - 0.5f, (float)blueBytes[smNdx] * pixScale - 0.5f));
+                        row.Add(new Vector3((float)redBytes[smNdx] * pixScale - 0.5f, (float)greenBytes[smNdx] * pixScale - 0.5f, (float)blueBytes[smNdx] * pixScale - 0.5f));
 
                     ++smNdx;
                 }

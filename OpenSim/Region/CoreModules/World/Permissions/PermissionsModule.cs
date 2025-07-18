@@ -122,6 +122,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 return m_friendsModule;
             }
         }
+
         private IGroupsModule m_groupsModule;
         private IGroupsModule GroupsModule
         {

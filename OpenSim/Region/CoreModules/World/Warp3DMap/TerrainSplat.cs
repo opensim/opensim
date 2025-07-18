@@ -35,6 +35,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Services.Interfaces;
+using CSJ2K;
 
 namespace OpenSim.Region.CoreModules.World.Warp3DMap
 {
@@ -144,7 +145,8 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                             {
                                 try
                                 {
-                                    detailTexture[i] = (Bitmap)decoder.DecodeToImage(asset.Data);
+                                    detailTexture[i] = (Bitmap)J2kImage.FromBytes(asset.Data, null, false, 8);
+                                    //detailTexture[i] = (Bitmap)decoder.DecodeToImage(asset.Data);
                                 }
                                 catch(Exception ex)
                                 {
@@ -170,7 +172,6 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                                     detailTexture[i].Save(stream, ImageFormat.Png);
                                     data = stream.ToArray();
                                 }
-
                                 // Cache a PNG copy of this terrain texture
                                 AssetBase newAsset = new AssetBase
                                 {
@@ -276,7 +277,6 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                     mapColorsBlue[t] = DEFAULT_TERRAIN_COLOR[t].B;
                 }
             }
-
             #region Layer Map
 
             float xFactor = terrain.Width / twidth;

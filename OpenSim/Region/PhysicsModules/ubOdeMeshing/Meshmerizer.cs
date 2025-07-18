@@ -45,6 +45,7 @@ using System.Reflection;
 using System.IO;
 
 using Mono.Addins;
+using System.Buffers;
 
 namespace OpenSim.Region.PhysicsModule.ubODEMeshing
 {
@@ -172,7 +173,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
         /// <param name="size">Size of entire object</param>
         /// <param name="coords"></param>
         /// <param name="faces"></param>
-        private unsafe void  AddSubMesh(OSDMap subMeshData, List<Coord> coords, List<Face> faces)
+        private unsafe void  AddSubMesh(OSDMap subMeshData, List<Vector3> coords, List<Face> faces)
         {
             // Console.WriteLine("subMeshMap for {0} - {1}", primName, Util.GetFormattedXml((OSD)subMeshMap));
 
@@ -220,7 +221,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                     ushort uZ = Utils.BytesToUInt16(ptr);
                     ptr += 2;
 
-                    coords.Add(new Coord(
+                    coords.Add(new Vector3(
                             uX * posRange.X + posMin.X,
                             uY * posRange.Y + posMin.Y,
                             uZ * posRange.Z + posMin.Z)
@@ -260,7 +261,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
 //                "[MESH]: Creating physics proxy for {0}, shape {1}",
 //                primName, (OpenMetaverse.SculptType)primShape.SculptType);
 
-            List<Coord> coords;
+            List<Vector3> coords;
             List<Face> faces;
             bool needsConvexProcessing = convex;
 
@@ -323,7 +324,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
 
             if(needsConvexProcessing)
             {
-                 if(CreateBoundingHull(coords, out List<Coord> convexcoords, out List<Face> convexfaces) && convexcoords != null && convexfaces != null)
+                 if(CreateBoundingHull(coords, out List<Vector3> convexcoords, out List<Face> convexfaces) && convexcoords != null && convexfaces != null)
                 {
                     coords.Clear();
                     coords = convexcoords;
@@ -370,7 +371,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
         /// <param name="faces">Faces are added to this list by the method.</param>
         /// <returns>true if coords and faces were successfully generated, false if not</returns>
         private unsafe bool GenerateCoordsAndFacesFromPrimMeshData(
-            string primName, PrimitiveBaseShape primShape, out List<Coord> coords, out List<Face> faces, bool convex)
+            string primName, PrimitiveBaseShape primShape, out List<Vector3> coords, out List<Face> faces, bool convex)
         {
 //            m_log.DebugFormat("[MESH]: experimental mesh proxy generation for {0}", primName);
 
@@ -380,8 +381,8 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
             // SL does the oposite
             bool usemesh = false;
 
-            coords = new List<Coord>();
-            faces = new List<Face>();
+            coords = [];
+            faces = [];
 
             if (primShape.SculptData == null || primShape.SculptData.Length <= 0)
             {
@@ -444,17 +445,10 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
             {
                 using (MemoryStream outMs = new(4 * physSize))
                 {
-                    using (MemoryStream inMs = new(primShape.SculptData, physOffset, physSize))
+                    using (MemoryStream inMs = new(primShape.SculptData, physOffset + 2 , physSize - 2)) // skip first 2 bytes in header
                     {
-                        using (DeflateStream decompressionStream = new(inMs, CompressionMode.Decompress))
-                        {
-                            byte[] readBuffer = new byte[8192];
-                            inMs.Read(readBuffer, 0, 2); // skip first 2 bytes in header
-                            int readLen = 0;
-
-                            while ((readLen = decompressionStream.Read(readBuffer, 0, readBuffer.Length)) > 0)
-                                outMs.Write(readBuffer, 0, readLen);
-                        }
+                        using DeflateStream decompressionStream = new(inMs, CompressionMode.Decompress);
+                        decompressionStream.CopyTo(outMs);
                     }
                     outMs.Seek(0, SeekOrigin.Begin);
                     decodedMeshOsd = OSDParser.DeserializeLLSDBinary(outMs);
@@ -484,13 +478,11 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
             {
                 byte[] data;
 
-                List<float3> vs = new();
+                List<float3> vs = [];
                 PHullResult hullr = new();
                 float3 f3;
-                Vector3 range;
-                Vector3 min;
 
-                const float invMaxU16 = 1.0f / 65535f;
+                const float invMaxU16 = 1.0f / ushort.MaxValue;
                 int t1;
                 int t2;
                 int t3;
@@ -498,14 +490,10 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                 int nverts;
                 int nindexs;
 
-                if (cmap.ContainsKey("Max"))
-                    range = cmap["Max"].AsVector3();
-                else
+                if (!cmap.TryGetVector3("Max", out Vector3 range))
                     range = new Vector3(0.5f, 0.5f, 0.5f);
 
-                if (cmap.ContainsKey("Min"))
-                    min = cmap["Min"].AsVector3();
-                else
+                if (!cmap.TryGetVector3("Min", out Vector3 min))
                     min = new Vector3(-0.5f, -0.5f, -0.5f);
 
                 range -= min;
@@ -516,7 +504,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                     // if mesh data not present and not convex then we need convex decomposition data
                     if (cmap.ContainsKey("HullList") && cmap.ContainsKey("Positions"))
                     {
-                        List<int> hsizes = new();
+                        List<int> hsizes = [];
                         int totalpoints = 0;
                         data = cmap["HullList"].AsBinary();
                         for (i = 0; i < data.Length; i++)
@@ -553,12 +541,11 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                                             t2 = Utils.BytesToUInt16(ptr); ptr += 2;
                                             t3 = Utils.BytesToUInt16(ptr); ptr += 2;
 
-                                            coords.Add(new Coord(
+                                            coords.Add(new Vector3(
                                                             t1 * range.X + min.X,
                                                             t2 * range.Y + min.Y,
                                                             t3 * range.Z + min.Z)
                                                         );
-                                                
                                         }
 
                                         faces.Add(new Face(vertsoffset, vertsoffset + 1, vertsoffset + 2));
@@ -595,7 +582,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                                     }
 
                                     for (i = 0; i < vs.Count; i++)
-                                        coords.Add(new Coord(vs[i].x, vs[i].y, vs[i].z));
+                                        coords.Add(new Vector3(vs[i].x, vs[i].y, vs[i].z));
 
                                     for (i = 0; i < indices.Count; i += 3)
                                     {
@@ -657,7 +644,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                     if (nverts < 4)
                     {
                         for (i = 0; i < vs.Count; i++)
-                            coords.Add(new Coord(vs[i].x, vs[i].y, vs[i].z));
+                            coords.Add(new Vector3(vs[i].x, vs[i].y, vs[i].z));
 
                         faces.Add(new Face(0, 1, 2));
 
@@ -674,7 +661,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                         return false;
 
                     for (i = 0; i < vs.Count; i++)
-                        coords.Add(new Coord(vs[i].x, vs[i].y, vs[i].z));
+                        coords.Add(new Vector3(vs[i].x, vs[i].y, vs[i].z));
 
                     for (i = 0; i < indices.Count; i += 3)
                     {
@@ -709,9 +696,9 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
         /// <param name="faces">Faces are added to this list by the method.</param>
         /// <returns>true if coords and faces were successfully generated, false if not</returns>
         private static bool GenerateCoordsAndFacesFromPrimSculptData(
-            string primName, PrimitiveBaseShape primShape, float lod, out List<Coord> coords, out List<Face> faces)
+            string primName, PrimitiveBaseShape primShape, float lod, out List<Vector3> coords, out List<Face> faces)
         {
-            coords = new List<Coord>();
+            coords = new List<Vector3>();
             faces = new List<Face>();
             PrimMesher.SculptMesh sculptMesh;
             Image idata;
@@ -784,10 +771,10 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
         /// <returns>true if coords and faces were successfully generated, false if not</returns>
         private bool GenerateCoordsAndFacesFromPrimShapeData(
                 string primName, PrimitiveBaseShape primShape, float lod, bool convex,
-                out List<Coord> coords, out List<Face> faces)
+                out List<Vector3> coords, out List<Face> faces)
         {
             PrimMesh primMesh;
-            coords = new List<Coord>();
+            coords = new List<Vector3>();
             faces = new List<Face>();
 
             float pathShearX = primShape.PathShearX < 128 ? (float)primShape.PathShearX * 0.01f : (float)(primShape.PathShearX - 256) * 0.01f;
@@ -1286,7 +1273,6 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                     {
                         using(FileStream stream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
                         {
-//                            BinaryFormatter bformatter = new BinaryFormatter();
                             mesh = Mesh.FromStream(stream,key);
                         }
 
@@ -1501,7 +1487,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
             }
         }
 
-        public static bool CreateBoundingHull(List<Coord> inputVertices, out List<Coord> convexcoords, out List<Face> newfaces)
+        public static bool CreateBoundingHull(List<Vector3> inputVertices, out List<Vector3> convexcoords, out List<Face> newfaces)
         {
             convexcoords = null;
             newfaces = null;
@@ -1537,13 +1523,13 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                 if(nindx % 3 != 0)
                     return false;
 
-                convexcoords = new List<Coord>(nverts);
-                Coord c;
+                convexcoords = new List<Vector3>(nverts);
+                Vector3 c;
                 vs = result.OutputVertices;
 
                 for(i = 0 ; i < nverts; i++)
                 {
-                    c = new Coord(vs[i].x, vs[i].y, vs[i].z);
+                    c = new Vector3(vs[i].x, vs[i].y, vs[i].z);
                     convexcoords.Add(c);
                 }
 

@@ -515,7 +515,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
             return null;
         }
 
-        private readonly string stringUUIDZero = UUID.Zero.ToString();
         public string Store(AssetBase asset)
         {
             string id;
@@ -527,7 +526,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
                 id = StoreForeign(asset);
                 if (m_Cache != null)
                 {
-                    if (!string.IsNullOrEmpty(id) && !id.Equals(stringUUIDZero))
+                    if (!string.IsNullOrEmpty(id) && !id.Equals(UUID.ZeroString))
                         m_Cache.Cache(asset);
                 }
                 return id;

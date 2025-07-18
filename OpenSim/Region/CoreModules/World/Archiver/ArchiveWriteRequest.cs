@@ -147,8 +147,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             if (options.ContainsKey("all") && (bool)options["all"])
                 MultiRegionFormat = true;
 
+
             if (options.ContainsKey("noassets") && (bool)options["noassets"])
                 SaveAssets = false;
+
 
             if (options.TryGetValue("checkPermissions", out Object temp))
                 FilterContent = (string)temp;

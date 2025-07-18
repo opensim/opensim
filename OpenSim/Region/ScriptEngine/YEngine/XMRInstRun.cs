@@ -395,6 +395,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     m_InstEHEvent++;
                     e = StartEventHandler(evc, evt.Params);
                 }
+
                 //m_RunOnePhase = "done running";
                 m_CPUTime +=  Util.GetTimeStampMS() - m_SliceStart;
 

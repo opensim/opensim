@@ -119,7 +119,7 @@ namespace OpenSim.Framework
                 // Copy the temporary stream to the network stream
                 formDataStream.Seek(0, SeekOrigin.Begin);
                 using (Stream requestStream = request.GetRequestStream())
-                    formDataStream.CopyStream(requestStream, (int)formDataStream.Length);
+                    formDataStream.CopyTo(requestStream, (int)formDataStream.Length);
             }
 
             #endregion Stream Writing
