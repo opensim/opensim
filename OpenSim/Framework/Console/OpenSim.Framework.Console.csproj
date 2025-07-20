@@ -7,7 +7,7 @@
     <Copyright>Copyright (c) OpenSimulator.org Developers</Copyright>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="log4net" Version="2.0.15" />
+    <PackageReference Include="log4net" Version="3.1.0" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Nini">

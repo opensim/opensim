@@ -104,9 +104,9 @@
 	<Compile Remove="UserAlias\UserAliasServiceConnector.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="log4net" Version="2.0.15" />
-    <PackageReference Include="NUnit" Version="2.7.1" />
+    <PackageReference Include="log4net" Version="3.1.0" />
+    <PackageReference Include="NUnit" Version="4.3.2" />
     <PackageReference Include="NUnitTestAdapter" Version="2.3.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
   </ItemGroup>
 </Project>

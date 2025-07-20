@@ -105,6 +105,6 @@
     <Compile Remove="Api\Runtime\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="log4net" Version="2.0.15" />
+    <PackageReference Include="log4net" Version="3.1.0" />
   </ItemGroup>
 </Project>

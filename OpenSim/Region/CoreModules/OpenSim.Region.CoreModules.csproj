@@ -94,12 +94,12 @@
 
   <ItemGroup>
     <PackageReference Include="Ionic.Zlib.Core" Version="1.0.0" />
-    <PackageReference Include="log4net" Version="2.0.15" />
-    <PackageReference Include="MailKit" Version="4.7.1.1" />
-    <PackageReference Include="MimeKit" Version="4.7.1" />
+    <PackageReference Include="log4net" Version="3.1.0" />
+    <PackageReference Include="MailKit" Version="4.13.0" />
+    <PackageReference Include="MimeKit" Version="4.13.0" />
     <PackageReference Include="Mono.Addins" Version="1.4.1" />
     <PackageReference Include="Mono.Addins.CecilReflector" Version="1.4.1" />
-    <PackageReference Include="MySqlConnector" Version="2.2.6" />
-    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
+    <PackageReference Include="MySqlConnector" Version="2.4.0" />
+    <PackageReference Include="System.Drawing.Common" Version="9.0.7" />
   </ItemGroup>
 </Project>
