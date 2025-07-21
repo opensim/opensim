@@ -50,7 +50,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Events
 
-        public event restart OnRestart;
+        public event Restart OnRestart;
 
         #endregion
 

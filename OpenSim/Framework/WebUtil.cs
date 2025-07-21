@@ -124,8 +124,9 @@ namespace OpenSim.Framework
                 PooledConnectionIdleTimeout = TimeSpan.FromSeconds(31),
                 PooledConnectionLifetime = TimeSpan.FromMinutes(3)
             };
+            
             //shh.SslOptions.ClientCertificates = null,
-            shh.SslOptions.EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13;
+            shh.SslOptions.EnabledSslProtocols = SslProtocols.None;     // Use system default
             if (NoVerifyCertChain)
             {
                 shh.SslOptions.CertificateRevocationCheckMode = X509RevocationMode.NoCheck;
@@ -190,8 +191,9 @@ namespace OpenSim.Framework
                 PooledConnectionIdleTimeout = TimeSpan.FromSeconds(31),
                 PooledConnectionLifetime = TimeSpan.FromMinutes(3)
             };
+            
             //shh.SslOptions.ClientCertificates = null,
-            shh.SslOptions.EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13;
+            shh.SslOptions.EnabledSslProtocols = SslProtocols.None;     // Use system default
             if (NoVerifyCertChain)
             {
                 shh.SslOptions.CertificateRevocationCheckMode = X509RevocationMode.NoCheck;

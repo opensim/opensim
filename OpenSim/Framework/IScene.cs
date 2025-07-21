@@ -31,7 +31,7 @@ using Nini.Config;
 
 namespace OpenSim.Framework
 {
-    public delegate void restart(RegionInfo thisRegion);
+    public delegate void Restart(RegionInfo thisRegion);
 
     public enum RegionStatus : int
     {
@@ -83,7 +83,7 @@ namespace OpenSim.Framework
 
         bool AllowScriptCrossings { get; }
 
-        event restart OnRestart;
+        event Restart OnRestart;
 
         /// <summary>
         /// Add a new agent with an attached client.  All agents except initial login clients will starts off as a child agent
