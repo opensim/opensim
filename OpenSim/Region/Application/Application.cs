@@ -77,23 +77,8 @@ namespace OpenSim
             Culture.SetDefaultCurrentCulture();
 
             AppContext.SetSwitch("System.Drawing.EnableUnixSupport", true);
-
-            /*
-            // pre load System.Drawing.Common.dll for the platform
-            // this will fail if a newer version is present on GAC, bin folder, etc, since LoadFrom only accepts the path, if it cannot find it elsewhere
-            string targetdll = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),"lib",
-                        (Util.IsWindows() ? "win" : "linux"), "System.Drawing.Common.dll");
-            try
-            {
-                Assembly asmb =  Assembly.LoadFrom(targetdll);
-            }
-            catch (Exception e)
-            {
-                m_log.Error("Failed to load System.Drawing.Common.dll for current platform" + e.Message);
-                throw;
-            }
-            */
-            string targetdll = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
+            
+            var targetdll = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
                         "System.Drawing.Common.dll");
             string src = targetdll + (Util.IsWindows() ? ".win" : ".linux");
             try
@@ -111,6 +96,18 @@ namespace OpenSim
             catch (Exception e)
             {
                 m_log.Error("Failed to copy System.Drawing.Common.dll for current platform" + e.Message);
+                throw;
+            }
+
+            // pre load System.Drawing.Common.dll for the platform
+            // this will fail if a newer version is present on GAC, bin folder, etc, since LoadFrom only accepts the path, if it cannot find it elsewhere
+            try
+            {
+                Assembly asmb = Assembly.LoadFrom(targetdll);
+            }
+            catch (Exception e)
+            {
+                m_log.Error("Failed to load System.Drawing.Common.dll for current platform" + e.Message);
                 throw;
             }
 
