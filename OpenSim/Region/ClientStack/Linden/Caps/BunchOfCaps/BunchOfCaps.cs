@@ -895,36 +895,31 @@ namespace OpenSim.Region.ClientStack.Linden
                             OSDMap faceMap = (OSDMap)face_list[(int)face];
 
                             Primitive.TextureEntryFace f = textureEntry.CreateFace(face); //clone the default
-                            if (faceMap.TryGetValue("fullbright", out tmp))
-                                f.Fullbright = tmp.AsBoolean();
-                            if (faceMap.TryGetValue("diffuse_color", out tmp))
-                                f.RGBA = tmp.AsColor4();
 
-                            int textureNum = faceMap["image"].AsInteger();
-                            float imagerot = faceMap["imagerot"].AsInteger();
-                            float offsets = (float)faceMap["offsets"].AsReal();
-                            float offsett = (float)faceMap["offsett"].AsReal();
-                            float scales = (float)faceMap["scales"].AsReal();
-                            float scalet = (float)faceMap["scalet"].AsReal();
+                            if (faceMap.TryGetBool("fullbright", out bool fullbright))
+                                f.Fullbright = fullbright;
 
-                            if (imagerot != 0)
+                            if (faceMap.TryGetColor4("diffuse_color", out Color4 rgba))
+                                f.RGBA = rgba;
+
+                            if(faceMap.TryGetInt("image", out int textureNum) && textureNum >= 0 && textureNum < textures.Count)
+                                f.TextureID = textures[textureNum];
+
+                            if(faceMap.TryGetFloat("imagerot", out float imagerot) && imagerot != 0)
                                 f.Rotation = imagerot;
 
-                            if (offsets != 0)
+                            if(faceMap.TryGetFloat("offsets", out float offsets) && offsets != 0)
                                 f.OffsetU = offsets;
 
-                            if (offsett != 0)
+                            if(faceMap.TryGetFloat("offsett", out float offsett) && offsett != 0)
                                 f.OffsetV = offsett;
 
-                            if (scales != 0)
+                            if(faceMap.TryGetFloat("scales", out float scales) && scales != 0)
                                 f.RepeatU = scales;
 
-                            if (scalet != 0)
+                            if(faceMap.TryGetFloat("scalet", out float scalet) && scalet != 0)
                                 f.RepeatV = scalet;
 
-                            if (textures.Count > textureNum)
-                                f.TextureID = textures[textureNum];
- 
                             textureEntry.FaceTextures[face] = f;
                         }
 
