@@ -923,14 +923,7 @@ namespace OpenSim.Region.ClientStack.Linden
                             textureEntry.FaceTextures[face] = f;
                         }
 
-                        if(face_list.Count > 0)
-                        {
-                            int last = face_list.Count - 1;
-                            // we do need a better te compacting code
-                            textureEntry.DefaultTexture = textureEntry.FaceTextures[last];
-                            textureEntry.FaceTextures[last] = null;
-                            pbs.TextureEntry = textureEntry.GetBytes(last);
-                        }
+                        pbs.TextureEntry = textureEntry.GetBytes(face_list.Count);
 
                         Vector3 position = inner_instance_list["position"].AsVector3();
                         Quaternion rotation = inner_instance_list["rotation"].AsQuaternion();
