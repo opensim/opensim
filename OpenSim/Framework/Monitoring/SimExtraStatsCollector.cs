@@ -182,7 +182,7 @@ namespace OpenSim.Framework.Monitoring
                 // running
                 foreach (ProcessThread currentThread in p.Threads)
                 {
-                    if (currentThread != null && currentThread.ThreadState == ThreadState.Running)
+                    if (currentThread != null && currentThread.ThreadState == System.Diagnostics.ThreadState.Running)
                         numberThreadsRunning++;
                 }
             }

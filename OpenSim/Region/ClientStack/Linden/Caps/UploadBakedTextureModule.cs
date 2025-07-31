@@ -160,7 +160,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private UUID m_agentID = UUID.Zero;
         private IPAddress m_remoteAddress;
         private IAssetCache m_assetCache;
-        private Timer m_timeout;
+        private System.Timers.Timer m_timeout;
 
         public BakedTextureUploader(string path, IHttpServer httpServer, UUID agentID, IAssetCache cache, IPAddress remoteAddress)
         {
@@ -169,7 +169,7 @@ namespace OpenSim.Region.ClientStack.Linden
             m_agentID = agentID;
             m_remoteAddress = remoteAddress;
             m_assetCache = cache;
-            m_timeout = new Timer();
+            m_timeout = new System.Timers.Timer();
             m_timeout.Elapsed += Timeout;
             m_timeout.AutoReset = false;
             m_timeout.Interval = 30000;

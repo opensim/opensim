@@ -1,0 +1,62 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyTitle>OpenSim.Data.MySQL</AssemblyTitle>
+    <Company>http://opensimulator.org</Company>
+    <Product>OpenSim.Data.MySQL</Product>
+    <Copyright>Copyright (c) OpenSimulator.org Developers 2007-2009</Copyright>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="OpenMetaverse">
+      <HintPath>..\..\..\bin\OpenMetaverse.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverse.StructuredData">
+      <HintPath>..\..\..\bin\OpenMetaverse.StructuredData.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverseTypes">
+      <HintPath>..\..\..\bin\OpenMetaverseTypes.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\OpenSim.Data.csproj" />
+    <ProjectReference Include="..\..\Framework\OpenSim.Framework.csproj" />
+    <ProjectReference Include="..\..\Framework\Console\OpenSim.Framework.Console.csproj" />
+    <ProjectReference Include="..\..\Region\Framework\OpenSim.Region.Framework.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\AgentPrefs.migrations" />
+    <EmbeddedResource Include="Resources\AssetStore.migrations" />
+    <EmbeddedResource Include="Resources\AuthStore.migrations" />
+    <EmbeddedResource Include="Resources\Avatar.migrations" />
+    <EmbeddedResource Include="Resources\EstateStore.migrations" />
+    <EmbeddedResource Include="Resources\FriendsStore.migrations" />
+    <EmbeddedResource Include="Resources\Experience.migrations" />
+    <EmbeddedResource Include="Resources\FSAssetStore.migrations" />
+    <EmbeddedResource Include="Resources\GridStore.migrations" />
+    <EmbeddedResource Include="Resources\GridUserStore.migrations" />
+    <EmbeddedResource Include="Resources\HGTravelStore.migrations" />
+    <EmbeddedResource Include="Resources\IM_Store.migrations" />
+    <EmbeddedResource Include="Resources\InventoryStore.migrations" />
+    <EmbeddedResource Include="Resources\LogStore.migrations" />
+    <EmbeddedResource Include="Resources\MuteListStore.migrations" />
+    <EmbeddedResource Include="Resources\os_groups_Store.migrations" />
+    <EmbeddedResource Include="Resources\Presence.migrations" />
+    <EmbeddedResource Include="Resources\RegionStore.migrations" />
+	  <EmbeddedResource Include="Resources\UserAlias.migrations" />
+    <EmbeddedResource Include="Resources\UserAccount.migrations" />
+    <EmbeddedResource Include="Resources\UserProfiles.migrations" />
+    <EmbeddedResource Include="Resources\XAssetStore.migrations" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="log4net" Version="3.1.0" />
+    <PackageReference Include="Mono.Addins" Version="1.4.1" />
+    <PackageReference Include="Mono.Addins.CecilReflector" Version="1.4.1" />
+    <PackageReference Include="MySqlConnector" Version="2.4.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+</Project>

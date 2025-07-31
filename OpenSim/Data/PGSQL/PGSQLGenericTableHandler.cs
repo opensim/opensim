@@ -35,6 +35,7 @@ using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using System.Text;
 using Npgsql;
+using NpgsqlTypes;
 
 namespace OpenSim.Data.PGSQL
 {
@@ -59,8 +60,8 @@ namespace OpenSim.Data.PGSQL
             get { return GetType().Assembly; }
         }
 
-        public PGSQLGenericTableHandler(string connectionString,
-                string realm, string storeName)
+        public PGSQLGenericTableHandler(
+            string connectionString, string realm, string storeName)
             : base(connectionString)
         {
             m_Realm = realm;

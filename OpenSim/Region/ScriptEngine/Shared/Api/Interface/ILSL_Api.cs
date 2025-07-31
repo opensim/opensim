@@ -483,55 +483,71 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_String llJsonSetValue(LSL_String json, LSL_List specifiers, LSL_String value);
         LSL_String llJsonValueType(LSL_String json, LSL_List specifiers);
 
-        LSL_Integer llGetDayLength();
-        LSL_Integer llGetRegionDayLength();
-        LSL_Integer llGetDayOffset();
-        LSL_Integer llGetRegionDayOffset();
-        LSL_Vector llGetSunDirection();
-        LSL_Vector llGetRegionSunDirection();
-        LSL_Vector llGetMoonDirection();
-        LSL_Vector llGetRegionMoonDirection();
-        LSL_Rotation llGetSunRotation();
-        LSL_Rotation llGetRegionSunRotation();
-        LSL_Rotation llGetMoonRotation();
-        LSL_Rotation llGetRegionMoonRotation();
+      LSL_Integer llGetDayLength();
+      LSL_Integer llGetRegionDayLength();
+      LSL_Integer llGetDayOffset();
+      LSL_Integer llGetRegionDayOffset();
+      LSL_Vector llGetSunDirection();
+      LSL_Vector llGetRegionSunDirection();
+      LSL_Vector llGetMoonDirection();
+      LSL_Vector llGetRegionMoonDirection();
+      LSL_Rotation llGetSunRotation();
+      LSL_Rotation llGetRegionSunRotation();
+      LSL_Rotation llGetMoonRotation();
+      LSL_Rotation llGetRegionMoonRotation();
 
-         LSL_String llChar(LSL_Integer unicode);
-        LSL_Integer llOrd(LSL_String s, LSL_Integer index);
-        LSL_Integer llHash(LSL_String s);
-         LSL_String llReplaceSubString(LSL_String src, LSL_String pattern, LSL_String replacement, int count);
+      LSL_String llChar(LSL_Integer unicode);
+      LSL_Integer llOrd(LSL_String s, LSL_Integer index);
+      LSL_Integer llHash(LSL_String s);
+      LSL_String llReplaceSubString(LSL_String src, LSL_String pattern, LSL_String replacement, int count);
 
-               void llLinkAdjustSoundVolume(LSL_Integer linknumber, LSL_Float volume);
-               void llLinkStopSound(LSL_Integer linknumber);
-               void llLinkSetSoundQueueing(int linknumber, int queue);
-               void llLinkPlaySound(LSL_Integer linknumber, string sound, double volume);
-               void llLinkPlaySound(LSL_Integer linknumber, string sound, double volume, LSL_Integer flags);
-               void llLinkSetSoundRadius(int linknumber, double radius);
+      void llLinkAdjustSoundVolume(LSL_Integer linknumber, LSL_Float volume);
+      void llLinkStopSound(LSL_Integer linknumber);
+      void llLinkSetSoundQueueing(int linknumber, int queue);
+      void llLinkPlaySound(LSL_Integer linknumber, string sound, double volume);
+      void llLinkPlaySound(LSL_Integer linknumber, string sound, double volume, LSL_Integer flags);
+      void llLinkSetSoundRadius(int linknumber, double radius);
 
-         LSL_Vector llLinear2sRGB(LSL_Vector src);
-         LSL_Vector llsRGB2Linear(LSL_Vector src);
-        LSL_Integer llLinksetDataAvailable();
-        LSL_Integer llLinksetDataCountFound(LSL_String pattern);
-        LSL_Integer llLinksetDataCountKeys();
-        LSL_Integer llLinksetDataDelete(LSL_String name);
-           LSL_List llLinksetDataDeleteFound(LSL_String pattern, LSL_String pass);
-        LSL_Integer llLinksetDataDeleteProtected(LSL_String name, LSL_String pass);
-           LSL_List llLinksetDataFindKeys(LSL_String pattern, LSL_Integer start, LSL_Integer count);
-           LSL_List llLinksetDataListKeys(LSL_Integer start, LSL_Integer count);
-         LSL_String llLinksetDataRead(LSL_String name);
-         LSL_String llLinksetDataReadProtected(LSL_String name, LSL_String pass);
-               void llLinksetDataReset();
-        LSL_Integer llLinksetDataWrite(LSL_String name, LSL_String value);
-        LSL_Integer llLinksetDataWriteProtected(LSL_String name, LSL_String value, LSL_String pass);
+      LSL_Vector llLinear2sRGB(LSL_Vector src);
+      LSL_Vector llsRGB2Linear(LSL_Vector src);
 
-        LSL_Integer llIsFriend(LSL_Key agent_id);
-        LSL_Integer llDerezObject(LSL_Key objectUUID, LSL_Integer flag);
+      void llLinksetDataReset();
+      LSL_Integer llLinksetDataAvailable();
+      LSL_Integer llLinksetDataCountKeys();
+      LSL_Integer llLinksetDataCountFound(LSL_String pattern);
+      LSL_List llLinksetDataFindKeys(LSL_String pattern, LSL_Integer start, LSL_Integer count);
+      LSL_List llLinksetDataListKeys(LSL_Integer start, LSL_Integer count);
+      LSL_String llLinksetDataRead(LSL_String name);
+      LSL_String llLinksetDataReadProtected(LSL_String name, LSL_String pass);     
+      LSL_Integer llLinksetDataWrite(LSL_String name, LSL_String value);
+      LSL_Integer llLinksetDataWriteProtected(LSL_String name, LSL_String value, LSL_String pass);
+      LSL_Integer llLinksetDataDelete(LSL_String name);
+      LSL_List llLinksetDataDeleteFound(LSL_String pattern, LSL_String pass);
+      LSL_Integer llLinksetDataDeleteProtected(LSL_String name, LSL_String pass);
 
-            LSL_Key llRezObjectWithParams(string inventory, LSL_List lparam);
-         LSL_String llGetStartString();
-        LSL_Integer llGetLinkSitFlags(LSL_Integer linknum);
-               void llSetLinkSitFlags(LSL_Integer linknum, LSL_Integer flags);
-         LSL_String llHMAC(LSL_String private_key, LSL_String message, LSL_String algo);
-         LSL_String llComputeHash(LSL_String message, LSL_String algo);
+      LSL_Integer llIsFriend(LSL_Key agent_id);
+
+      void llRequestExperiencePermissions(string agent_id, string unused);
+      LSL_Integer llAgentInExperience(string agent_id);
+      LSL_List llGetExperienceDetails(string experience_key);
+      LSL_String llGetExperienceErrorMessage(LSL_Integer error);
+      LSL_Integer llSitOnLink(string agent_id, LSL_Integer link);
+      LSL_Key llCreateKeyValue(string key, string value);
+      LSL_Key llDeleteKeyValue(string key);
+      LSL_Key llReadKeyValue(string key);
+      LSL_Key llUpdateKeyValue(string key, string value, LSL_Integer check, string original);
+      LSL_Key llKeyCountKeyValue();
+      LSL_Key llKeysKeyValue(LSL_Integer first, LSL_Integer count);
+      LSL_Key llDataSizeKeyValue();
+      LSL_Integer llSetAgentEnvironment(LSL_Key agent_id, LSL_Float transition, LSL_List param_list);
+      LSL_Integer llReplaceAgentEnvironment(LSL_Key agent_id, LSL_Float transition, LSL_String environment);
+
+      LSL_Integer llDerezObject(LSL_Key objectUUID, LSL_Integer flag);
+      LSL_Key llRezObjectWithParams(string inventory, LSL_List lparam);
+      LSL_String llGetStartString();
+      LSL_Integer llGetLinkSitFlags(LSL_Integer linknum);
+      void llSetLinkSitFlags(LSL_Integer linknum, LSL_Integer flags);
+      LSL_String llHMAC(LSL_String private_key, LSL_String message, LSL_String algo);
+      LSL_String llComputeHash(LSL_String message, LSL_String algo);
     }
 }

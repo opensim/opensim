@@ -39,9 +39,9 @@ namespace OpenSim.Framework
     /// </summary>
     public class PluginConstraintViolatedException : Exception
     {
-        public PluginConstraintViolatedException () : base() {}
-        public PluginConstraintViolatedException (string msg) : base(msg) {}
-        public PluginConstraintViolatedException (string msg, Exception e) : base(msg, e) {}
+        public PluginConstraintViolatedException() : base() { }
+        public PluginConstraintViolatedException(string msg) : base(msg) { }
+        public PluginConstraintViolatedException(string msg, Exception e) : base(msg, e) { }
     }
 
     /// <summary>
@@ -66,7 +66,7 @@ namespace OpenSim.Framework
     /// <summary>
     /// Generic Plugin Loader
     /// </summary>
-    public class PluginLoader <T> : IDisposable where T : IPlugin
+    public class PluginLoader<T> : IDisposable where T : IPlugin
     {
         private const int max_loadable_plugins = 10000;
 
@@ -74,11 +74,11 @@ namespace OpenSim.Framework
         private List<string> extpoints = new List<string>();
         private PluginInitialiserBase initialiser;
 
-        private Dictionary<string,IPluginConstraint> constraints
-            = new Dictionary<string,IPluginConstraint>();
+        private Dictionary<string, IPluginConstraint> constraints
+            = new Dictionary<string, IPluginConstraint>();
 
-        private Dictionary<string,IPluginFilter> filters
-            = new Dictionary<string,IPluginFilter>();
+        private Dictionary<string, IPluginFilter> filters
+            = new Dictionary<string, IPluginFilter>();
 
         private static readonly ILog log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -96,25 +96,25 @@ namespace OpenSim.Framework
 
         public T Plugin
         {
-            get { return (loaded.Count == 1)? loaded [0] : default (T); }
+            get { return (loaded.Count == 1) ? loaded[0] : default(T); }
         }
 
         public PluginLoader()
         {
             Initialiser = new PluginInitialiserBase();
-            initialise_plugin_dir_(".");
+            initialise_plugin_dir(".");
         }
 
         public PluginLoader(PluginInitialiserBase init)
         {
             Initialiser = init;
-            initialise_plugin_dir_(".");
+            initialise_plugin_dir(".");
         }
 
         public PluginLoader(PluginInitialiserBase init, string dir)
         {
             Initialiser = init;
-            initialise_plugin_dir_(dir);
+            initialise_plugin_dir(dir);
         }
 
         public void Add(string extpoint)
@@ -197,55 +197,53 @@ namespace OpenSim.Framework
         /// </summary>
         public void Dispose()
         {
-            AddinManager.AddinLoadError -= on_addinloaderror_;
-            AddinManager.AddinLoaded -= on_addinloaded_;
+            AddinManager.ExtensionChanged -= OnExtensionChanged;
+            AddinManager.AddinUnloaded -= OnUnload;
+            AddinManager.AddinLoadError -= OnLoaderError;
+            AddinManager.AddinLoaded -= OnLoad;
         }
 
-        private void initialise_plugin_dir_(string dir)
+        private void initialise_plugin_dir(string dir)
         {
             if (AddinManager.IsInitialized == true)
                 return;
 
             log.Info("[PLUGINS]: Initializing addin manager");
 
-            AddinManager.AddinLoadError += on_addinloaderror_;
-            AddinManager.AddinLoaded += on_addinloaded_;
-
-            //suppress_console_output_(true);
             AddinManager.Initialize(dir);
+
+            AddinManager.AddinLoadError += OnLoaderError;
+            AddinManager.AddinLoaded += OnLoad;
+            AddinManager.AddinUnloaded += OnUnload;
+            AddinManager.ExtensionChanged += OnExtensionChanged;
+
             AddinManager.Registry.Update(null);
-            //suppress_console_output_(false);
         }
 
-        private void on_addinloaded_(object sender, AddinEventArgs args)
+        private void OnLoad(object sender, AddinEventArgs args)
         {
-            log.Info ("[PLUGINS]: Plugin Loaded: " + args.AddinId);
+            log.Info("[PLUGINS]: Plugin Loaded: " + args.AddinId);
         }
 
-        private void on_addinloaderror_(object sender, AddinErrorEventArgs args)
+        private void OnUnload(object sender, AddinEventArgs args)
+        {
+            log.Info ("[PLUGINS]: Plugin Unloaded: " + args.AddinId);
+        }
+
+        private void OnLoaderError(object sender, AddinErrorEventArgs args)
         {
             if (args.Exception == null)
-                log.Error ("[PLUGINS]: Plugin Error: "
+                log.Error("[PLUGINS]: Plugin Error: "
                         + args.Message);
             else
-                log.Error ("[PLUGINS]: Plugin Error: "
+                log.Error("[PLUGINS]: Plugin Error: "
                         + args.Exception.Message + "\n"
                         + args.Exception.StackTrace);
         }
-
-        private static TextWriter prev_console_;
-        public void suppress_console_output_(bool save)
+        
+        private void OnExtensionChanged(object sender, ExtensionEventArgs args)
         {
-            if (save)
-            {
-                prev_console_ = System.Console.Out;
-                System.Console.SetOut(new StreamWriter(Stream.Null));
-            }
-            else
-            {
-                if (prev_console_ != null)
-                    System.Console.SetOut(prev_console_);
-            }
+            log.Info ("[PLUGINS]: Extension Changed: " + args.Path);
         }
     }
 
@@ -315,7 +313,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public bool Apply (string extpoint)
+        public bool Apply(string extpoint)
         {
             int count = AddinManager.GetExtensionNodes(extpoint).Count;
 
@@ -355,7 +353,7 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="plugin"></param>
         /// <returns>true if the plugin's name matched one of the filters, false otherwise.</returns>
-        public bool Apply (PluginExtensionNode plugin)
+        public bool Apply(PluginExtensionNode plugin)
         {
             for (int i = 0; i < m_filters.Length; i++)
             {
@@ -397,7 +395,7 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="plugin">PluginExtensionNode instance to check whether it passes the filter.</param>
         /// <returns>true if the plugin's ID matches one of the filters, false otherwise.</returns>
-        public bool Apply (PluginExtensionNode plugin)
+        public bool Apply(PluginExtensionNode plugin)
         {
             for (int i = 0; i < m_filters.Length; i++)
             {

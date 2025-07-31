@@ -39,7 +39,7 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
 
-namespace OpenSim.Region.CoreModules.Hypergrid
+namespace OpenSim.Region.CoreModules.World.Land
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "HGWorldMapModule")]
     public class HGWorldMapModule : WorldMapModule

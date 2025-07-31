@@ -26,8 +26,8 @@
  */
 
 using System;
+using MySqlConnector;
 using OpenMetaverse;
-using MySql.Data.MySqlClient;
 
 namespace OpenSim.Data.MySQL
 {

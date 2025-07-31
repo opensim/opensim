@@ -32,7 +32,7 @@ using System.Reflection;
 using System.Data;
 using OpenMetaverse;
 using OpenSim.Framework;
-using MySql.Data.MySqlClient;
+using MySqlConnector;
 
 namespace OpenSim.Data.MySQL
 {
@@ -122,7 +122,7 @@ namespace OpenSim.Data.MySQL
 
         public bool Store(AuthenticationData data)
         {
-            data.Data.Remove("UUID");
+                data.Data.Remove("UUID");
 
             string[] fields = new List<string>(data.Data.Keys).ToArray();
 

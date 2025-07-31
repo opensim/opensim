@@ -45,7 +45,7 @@ namespace OpenSim.Server.Handlers.Asset
 {
     public class AssetServerPostHandler : BaseStreamHandler
     {
-        // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IAssetService m_AssetService;
 
@@ -76,6 +76,10 @@ namespace OpenSim.Server.Handlers.Asset
                 httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
                 return null;
             }
+
+            m_log.Info($"[AssetServerPost]: From {httpRequest.RemoteIPEndPoint} Asset {asset.ID}: " +
+                $"Name = {asset.Metadata.Name},Type = {(OpenMetaverse.AssetType)asset.Metadata.Type}, " +
+                $"CreatorID = {asset.Metadata.CreatorID}, Description = {asset.Metadata.Description}");
 
             string[] p = SplitParams(path);
             if (p.Length > 0)

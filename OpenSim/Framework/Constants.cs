@@ -102,7 +102,9 @@ namespace OpenSim.Framework
             AllowedAccess = MaxEstateAccessIds,
             AllowedGroups = 63,
             EstateBans = 500,
-            EstateManagers = MaxEstateManagers
+            EstateManagers = MaxEstateManagers,
+            AllowedExperiences = 8,
+            KeyExperiences = 8
         }
 
         [Flags]public enum TeleportFlags : uint

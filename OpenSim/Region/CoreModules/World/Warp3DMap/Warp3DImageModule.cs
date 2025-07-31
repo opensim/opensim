@@ -81,7 +81,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         private bool m_renderMeshes = false;    // true if to render meshes rather than just bounding boxes
 
         private const float m_cameraHeight = 4096f;
-        private float m_renderMinHeight = -100f;
+        private float m_renderMinHeight = 0f;
         private float m_renderMaxHeight = 4096f;
 
         private bool m_Enabled = false;
@@ -128,8 +128,8 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             else if (m_renderMaxHeight > m_cameraHeight - 10f)
                 m_renderMaxHeight = m_cameraHeight - 10f;
 
-            if (m_renderMinHeight < -100f)
-                m_renderMinHeight = -100f;
+            if (m_renderMinHeight < 0f)
+                m_renderMinHeight = 0f;
             else if (m_renderMinHeight > m_renderMaxHeight - 10f)
                 m_renderMinHeight = m_renderMaxHeight - 10f;
         }
@@ -515,14 +515,14 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                         {
                             //Image sculpt = m_imgDecoder.DecodeToImage(sculptAsset.Data);
                             Image sculpt = J2kImage.FromBytes(sculptAsset.Data, null, true, 12);
-                            if (sculpt is not null)
-                            {
-                                renderMesh = m_primMesher.GenerateFacetedSculptMesh(omvPrim, (Bitmap)sculpt, lod);
+                                if (sculpt is not null)
+                                {
+                                    renderMesh = m_primMesher.GenerateFacetedSculptMesh(omvPrim, (Bitmap)sculpt, lod);
                                 //sculpt.Save("lixo12-"+prim.UUID.ToString()+".png",ImageFormat.Png);
-                                sculpt.Dispose();
+                                    sculpt.Dispose();
+                                }
                             }
                         }
-                    }
                     else
                     {
                         m_log.WarnFormat("[Warp3D] failed to get mesh or sculpt asset {0} of prim {1} at {2}",
@@ -761,7 +761,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                     {
                         //img.Save("lixo"+id.ToString()+".png",ImageFormat.Png);
                         ret = new warp_Texture(img, 8); // reduce textures size to 256 * 256
-                    }
+                }
                 }
                 catch (Exception e)
                 {

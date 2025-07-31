@@ -92,5 +92,7 @@ namespace OpenSim.Framework
         void AddUser(UUID uuid, string firstName, string lastName, string homeURL);
         bool RemoveUser(UUID uuid);
         bool IsLocalGridUser(UUID uuid);
+
+        bool SetDisplayName(UUID agentID, string displayName);
     }
 }

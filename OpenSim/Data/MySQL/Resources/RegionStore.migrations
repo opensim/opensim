@@ -555,9 +555,9 @@ BEGIN;
 ALTER TABLE `primshapes` ADD COLUMN `MatOvrd` blob default NULL;
 COMMIT;
 
-:VERSION 65         #----- add linkset data binary storage column
+:VERSION 65         #----- add linkset data storage column
 BEGIN;
-ALTER TABLE `prims` ADD COLUMN `lnkstBinData` blob default NULL;
+ALTER TABLE `prims` ADD COLUMN `linksetdata` MEDIUMTEXT default NULL;
 COMMIT;
 
 :VERSION 66         #----- add PBR Terrain storage column
@@ -568,7 +568,13 @@ ALTER TABLE `regionsettings` ADD COLUMN `TerrainPBR3` varchar(36) NOT NULL DEFAU
 ALTER TABLE `regionsettings` ADD COLUMN `TerrainPBR4` varchar(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000';
 COMMIT;
 
-:VERSION 67         #----- add rez start string param column
+:VERSION 67         #----- Add allow unsit and scripted sit only
+BEGIN;
+ALTER TABLE `prims`
+	ADD COLUMN `AllowUnsit` TINYINT(3) NULL DEFAULT '1',
+	ADD COLUMN `ScriptedSitOnly` TINYINT(3) NULL DEFAULT '0';
+
+:VERSION 68         #----- add rez start string param column
 BEGIN;
 ALTER TABLE `prims` ADD COLUMN `StartStr` text default NULL;
 COMMIT;

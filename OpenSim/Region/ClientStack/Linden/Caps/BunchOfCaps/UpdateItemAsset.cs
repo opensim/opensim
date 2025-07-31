@@ -159,6 +159,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 UUID itemID = UUID.Zero;
                 UUID objectID = UUID.Zero;
                 bool is_script_running = false;
+                UUID experience_key = UUID.Zero;
                 OSD tmp;
                 try
                 {
@@ -168,6 +169,8 @@ namespace OpenSim.Region.ClientStack.Linden
                         objectID = tmp;
                     if (map.TryGetValue("is_script_running", out tmp))
                         is_script_running = tmp;
+                    if (map.TryGetValue("experience", out tmp))
+                        experience_key = tmp;
                 }
                 catch { }
 
@@ -215,7 +218,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 uploadResponse.uploader = uploaderURL;
                 uploadResponse.state = "upload";
 
-                TaskInventoryScriptUpdater uploader = new TaskInventoryScriptUpdater(itemID, objectID, is_script_running,
+                TaskInventoryScriptUpdater uploader = new TaskInventoryScriptUpdater(itemID, objectID, is_script_running, experience_key,
                         uploaderPath, m_HostCapsObj.HttpListener, httpRequest.RemoteIPEndPoint.Address, m_dumpAssetsToFile);
                 uploader.OnUpLoad += TaskScriptUpdated;
 
@@ -243,11 +246,11 @@ namespace OpenSim.Region.ClientStack.Linden
         /// <param name="primID">Prim containing item to update</param>
         /// <param name="isScriptRunning">Signals whether the script to update is currently running</param>
         /// <param name="data">New asset data</param>
-        public void TaskScriptUpdated(UUID itemID, UUID primID, bool isScriptRunning, byte[] data, ref ArrayList errors)
+        public void TaskScriptUpdated(UUID itemID, UUID primID, bool isScriptRunning, UUID experience, byte[] data, ref ArrayList errors)
         {
             if (TaskScriptUpdatedCall != null)
             {
-                ArrayList e = TaskScriptUpdatedCall(m_HostCapsObj.AgentID, itemID, primID, isScriptRunning, data);
+                ArrayList e = TaskScriptUpdatedCall(m_HostCapsObj.AgentID, itemID, primID, isScriptRunning, experience, data);
                 foreach (Object item in e)
                     errors.Add(item);
             }
@@ -353,10 +356,11 @@ namespace OpenSim.Region.ClientStack.Linden
             private UUID m_inventoryItemID;
             private UUID m_primID;
             private bool m_isScriptRunning;
+            private UUID m_experienceKey;
             private bool m_dumpAssetToFile;
             public IPAddress m_remoteAddress;
 
-            public TaskInventoryScriptUpdater(UUID inventoryItemID, UUID primID, bool isScriptRunning,
+            public TaskInventoryScriptUpdater(UUID inventoryItemID, UUID primID, bool isScriptRunning, UUID experience_id,
                                                 string path, IHttpServer httpServer, IPAddress address,
                                                 bool dumpAssetToFile) : base(httpServer, path)
             {
@@ -364,6 +368,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_inventoryItemID = inventoryItemID;
                 m_primID = primID;
                 m_isScriptRunning = isScriptRunning;
+                m_experienceKey = experience_id;
                 m_remoteAddress = address;
                 Start(30000);
             }
@@ -405,7 +410,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     LLSDTaskScriptUploadComplete uploadComplete = new LLSDTaskScriptUploadComplete();
 
                     ArrayList errors = new ArrayList();
-                    OnUpLoad?.Invoke(m_inventoryItemID, m_primID, m_isScriptRunning, data, ref errors);
+                    OnUpLoad?.Invoke(m_inventoryItemID, m_primID, m_isScriptRunning, m_experienceKey, data, ref errors);
 
                     uploadComplete.new_asset = m_inventoryItemID;
                     uploadComplete.compiled = errors.Count > 0 ? false : true;

@@ -41,7 +41,7 @@ using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Framework.Servers;
 using OpenMetaverse.StructuredData; // LitJson is hidden on this
 
-[assembly:AddinRoot("Robust", OpenSim.VersionInfo.VersionNumber)]
+[assembly:AddinRoot("Robust", OpenSim.VersionInfo.AssemblyVersionNumber)]
 namespace OpenSim.Server.Base
 {
     [TypeExtensionPoint(Path="/Robust/Connector", Name="RobustConnector")]
@@ -194,7 +194,7 @@ namespace OpenSim.Server.Base
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public static byte[] SerializeResult(XmlSerializer xs, object data)
+        public static  byte[] SerializeResult(XmlSerializer xs, object data)
         {
             using (MemoryStream ms = new MemoryStream())
             using (XmlTextWriter xw = new XmlTextWriter(ms, Util.UTF8))
@@ -216,7 +216,7 @@ namespace OpenSim.Server.Base
         /// <param name="dllName"></param>
         /// <param name="args">The arguments which control which constructor is invoked on the plugin</param>
         /// <returns></returns>
-        public static T LoadPlugin<T>(string dllName, Object[] args) where T : class
+        public static T LoadPlugin<T> (string dllName, Object[] args) where T:class
         {
             // This is good to debug configuration problems
             //if (dllName.Length == 0)
@@ -225,19 +225,19 @@ namespace OpenSim.Server.Base
             string className = String.Empty;
 
             // The path for a dynamic plugin will contain ":" on Windows
-            string[] parts = dllName.Split(new char[] { ':' });
+            string[] parts = dllName.Split (new char[] {':'});
 
             if (parts.Length < 3)
             {
                 // Linux. There will be ':' but the one we're looking for
-                dllName = parts[0];
+                dllName = parts [0];
                 if (parts.Length > 1)
                     className = parts[1];
             }
             else
             {
                 // This is Windows - we must replace the ":" in the path
-                dllName = String.Format("{0}:{1}", parts[0], parts[1]);
+                dllName = String.Format ("{0}:{1}", parts [0], parts [1]);
                 if (parts.Length > 2)
                     className = parts[2];
             }
@@ -245,10 +245,10 @@ namespace OpenSim.Server.Base
             // Handle extra string arguments in a more generic way
             if (dllName.Contains("@"))
             {
-                string[] dllNameParts = dllName.Split(new char[] { '@' });
+                string[] dllNameParts = dllName.Split(new char[] {'@'});
                 dllName = dllNameParts[dllNameParts.Length - 1];
                 List<Object> argList = new List<Object>(args);
-                for (int i = 0; i < dllNameParts.Length - 1; ++i)
+                for (int i = 0 ; i < dllNameParts.Length - 1 ; ++i)
                     argList.Add(dllNameParts[i]);
 
                 args = argList.ToArray();
@@ -264,7 +264,7 @@ namespace OpenSim.Server.Base
         /// <param name="className"></param>
         /// <param name="args">The arguments which control which constructor is invoked on the plugin</param>
         /// <returns></returns>
-        public static T LoadPlugin<T>(string dllName, string className, Object[] args) where T : class
+        public static T LoadPlugin<T>(string dllName, string className, Object[] args) where T:class
         {
             string interfaceName = typeof(T).ToString();
 
@@ -327,7 +327,7 @@ namespace OpenSim.Server.Base
 
         public static Dictionary<string, object> ParseQueryString(string query)
         {
-            string[] terms = query.Split(new char[] { '&' });
+            string[] terms = query.Split(new char[] {'&'});
 
             int nterms = terms.Length;
             if (nterms == 0)
@@ -336,14 +336,14 @@ namespace OpenSim.Server.Base
             Dictionary<string, object> result = new Dictionary<string, object>(nterms);
             string name;
 
-            for (int i = 0; i < nterms; ++i)
+            for(int i = 0; i < nterms; ++i)
             {
-                string[] elems = terms[i].Split(new char[] { '=' });
+                string[] elems = terms[i].Split(new char[] {'='});
 
                 if (elems.Length == 0)
                     continue;
 
-                if (String.IsNullOrWhiteSpace(elems[0]))
+                if(String.IsNullOrWhiteSpace(elems[0]))
                     continue;
 
                 name = System.Web.HttpUtility.UrlDecode(elems[0]);
@@ -351,7 +351,7 @@ namespace OpenSim.Server.Base
                 if (name.EndsWith("[]"))
                 {
                     name = name.Substring(0, name.Length - 2);
-                    if (String.IsNullOrWhiteSpace(name))
+                    if(String.IsNullOrWhiteSpace(name))
                         continue;
                     if (result.ContainsKey(name))
                     {
@@ -410,16 +410,16 @@ namespace OpenSim.Server.Base
                         sb.Append(System.Web.HttpUtility.UrlEncode(l[i]));
                     }
                 }
-                else if (kvp.Value is Dictionary<string, object>)
+                else if(kvp.Value is Dictionary<string, object>)
                 {
                     // encode complex structures as JSON
                     string js;
                     try
                     {
-                        LitJson.JsonMapper.RegisterExporter<UUID>((uuid, writer) => writer.Write(uuid.ToString()));
+                        LitJson.JsonMapper.RegisterExporter<UUID>((uuid, writer) => writer.Write(uuid.ToString()) );
                         js = LitJson.JsonMapper.ToJson(kvp.Value);
                     }
-                    //catch(Exception e)
+ //                   catch(Exception e)
                     catch
                     {
                         continue;
@@ -435,7 +435,7 @@ namespace OpenSim.Server.Base
                     if (sb.Length != 0)
                         sb.Append('&');
                     sb.Append(System.Web.HttpUtility.UrlEncode(kvp.Key));
-
+ 
                     pvalue = kvp.Value.ToString();
                     if (!string.IsNullOrEmpty(pvalue))
                     {
@@ -457,7 +457,7 @@ namespace OpenSim.Server.Base
 
             doc.AppendChild(xmlnode);
 
-            XmlElement rootElement = doc.CreateElement("", "ServerResponse", "");
+            XmlElement rootElement = doc.CreateElement("", "ServerResponse","");
 
             doc.AppendChild(rootElement);
 
@@ -545,17 +545,17 @@ namespace OpenSim.Server.Base
         {
             if(!string.IsNullOrEmpty(data))
             {
-                try
-                {
-                    using XmlReader xr = XmlReader.Create(new StringReader(data), 
-                        ParseXmlStringResponseXmlReaderSettings, ParseXmlResponseXmlParserContext);
+            try
+            {
+                using XmlReader xr = XmlReader.Create(new StringReader(data), 
+                    ParseXmlStringResponseXmlReaderSettings, ParseXmlResponseXmlParserContext);
                     if (xr.ReadToFollowing("ServerResponse"))
-                        return ScanXmlResponse(xr);
+                    return ScanXmlResponse(xr);
                 }
-                catch (Exception e)
-                {
+            catch (Exception e)
+            {
                     m_log.Debug($"[serverUtils.ParseXmlResponse]: failed error: {e.Message}\n --string:\n{data}\n");
-                }
+            }
             }
             return [];
         }
@@ -574,7 +574,7 @@ namespace OpenSim.Server.Base
             using XmlReader xr = XmlReader.Create(src, 
                 ParseXmlStreamResponseXmlReaderSettings, ParseXmlResponseXmlParserContext);
             if (xr.ReadToFollowing("ServerResponse"))
-                return ScanXmlResponse(xr);
+                    return ScanXmlResponse(xr);
             return new Dictionary<string, object>();
         }
 
@@ -603,7 +603,7 @@ namespace OpenSim.Server.Base
             try
             {
                 IConfigSource cs;
-                using (XmlReader r = XmlReader.Create(url))
+                using( XmlReader r = XmlReader.Create(url))
                 {
                     cs = new XmlConfigSource(r);
                     source.Merge(cs);

@@ -406,11 +406,10 @@ ALTER TABLE `prims` ADD COLUMN `sopanims` blob default NULL;
 ALTER TABLE `primshapes` ADD COLUMN `MatOvrd` blob default NULL;
 COMMIT;
 
-:VERSION 41         #----- add linkset data binary storage column
+:VERSION 41         #----- add linkset data storage column
 BEGIN;
-ALTER TABLE `prims` ADD COLUMN `lnkstBinData` blob default NULL;
+ALTER TABLE `prims` ADD COLUMN `linksetdata` TEXT default NULL;
 COMMIT;
-
 
 :VERSION 42         #----- add pbr terrain storage
 BEGIN;

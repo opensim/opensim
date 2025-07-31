@@ -33,7 +33,7 @@ using System.Threading;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
-using Mono.Data.Sqlite;
+using System.Data.SQLite;
 
 namespace OpenSim.Data.SQLite
 {
@@ -69,7 +69,7 @@ namespace OpenSim.Data.SQLite
 
         public void DeleteOld()
         {
-            using (SqliteCommand cmd = new SqliteCommand())
+            using (SQLiteCommand cmd = new SQLiteCommand())
             {
                 cmd.CommandText = String.Format("delete from {0} where TMStamp < datetime('now', '-2 day') ", m_Realm);
 

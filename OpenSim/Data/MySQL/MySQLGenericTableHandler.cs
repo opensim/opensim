@@ -30,14 +30,14 @@ using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
 using System.Text;
-using MySql.Data.MySqlClient;
+using MySqlConnector;
 using OpenMetaverse;
 
 namespace OpenSim.Data.MySQL
 {
     public class MySQLGenericTableHandler<T> : MySqlFramework where T: class, new()
     {
-        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected Dictionary<string, FieldInfo> m_Fields = new Dictionary<string, FieldInfo>();
 
@@ -106,8 +106,7 @@ namespace OpenSim.Data.MySQL
             DataTable schemaTable = reader.GetSchemaTable();
             foreach (DataRow row in schemaTable.Rows)
             {
-                if (row["ColumnName"] != null &&
-                        (!m_Fields.ContainsKey(row["ColumnName"].ToString())))
+                if (row["ColumnName"] != null && (!m_Fields.ContainsKey(row["ColumnName"].ToString())))
                     columnNames.Add(row["ColumnName"].ToString());
             }
 
@@ -291,7 +290,7 @@ namespace OpenSim.Data.MySQL
 
         public virtual bool Store(T row)
         {
-            //m_log.DebugFormat("[MYSQL GENERIC TABLE HANDLER]: Store(T row) invoked");
+//            m_log.DebugFormat("[MYSQL GENERIC TABLE HANDLER]: Store(T row) invoked");
 
             using (MySqlCommand cmd = new MySqlCommand())
             {
@@ -345,9 +344,9 @@ namespace OpenSim.Data.MySQL
 
         public virtual bool Delete(string[] fields, string[] keys)
         {
-            //m_log.DebugFormat(
-            //      "[MYSQL GENERIC TABLE HANDLER]: Delete(string[] fields, string[] keys) invoked with {0}:{1}",
-            //    string.Join(",", fields), string.Join(",", keys));
+//            m_log.DebugFormat(
+//                "[MYSQL GENERIC TABLE HANDLER]: Delete(string[] fields, string[] keys) invoked with {0}:{1}",
+//                string.Join(",", fields), string.Join(",", keys));
 
             int flen = fields.Length;
             if (flen == 0 || flen != keys.Length)

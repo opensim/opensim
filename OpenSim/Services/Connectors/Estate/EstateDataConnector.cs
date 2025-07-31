@@ -178,9 +178,17 @@ namespace OpenSim.Services.Connectors
         {
             // /estates/estate/?region=uuid&create=[t|f]
             string uri = m_ServerURI + $"/estates/estate/?region={regionID}&create={create}";
+
+            //MakeRequest is bugged as its using the older deprecated WebRequest.  A call to the estate
+            // service here will return a 404 if the estate doesnt exist which is correct but the code
+            // assumes thats a fatal error.  BTW We should never ever call Enviroinment.Exit from a supporting
+            // module or a library like this.  So its gonna go.
             string reply = MakeRequest("GET", uri, string.Empty);
             if (string.IsNullOrEmpty(reply))
+            {
+                m_log.DebugFormat("[ESTATE CONNECTOR] connection to remote estates service failed");
                 return null;
+            }
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
 
@@ -191,7 +199,9 @@ namespace OpenSim.Services.Connectors
                 return es;
             }
             else
+            {
                 m_log.DebugFormat("[ESTATE CONNECTOR]: LoadEstateSettings(regionID) from {0} received null or zero response", uri);
+            }
 
             return null;
         }

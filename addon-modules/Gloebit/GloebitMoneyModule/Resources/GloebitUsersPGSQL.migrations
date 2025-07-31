@@ -1,0 +1,42 @@
+:VERSION 1         # -------------------------------
+
+begin;
+
+CREATE TABLE GloebitUsers (
+  "PrincipalID" char(36) NOT NULL,
+  "GloebitID" char(36) NOT NULL,
+  "GloebitToken" char(36) NOT NULL,
+  "Status" integer NOT NULL,
+  PRIMARY KEY ("PrincipalID")
+);
+
+commit;
+
+
+:VERSION 2         # -------------------------------
+
+begin;
+
+ALTER TABLE GloebitUsers DROP COLUMN IF EXISTS "Status";
+
+commit;
+
+
+:VERSION 3         # -------------------------------
+
+BEGIN TRANSACTION;
+
+DROP TABLE IF EXISTS GloebitUsers;
+
+CREATE TABLE IF NOT EXISTS GloebitUsers (
+    "AppKey"        CHAR(36) NOT NULL,
+    "PrincipalID"   CHAR(36) NOT NULL,
+    "GloebitID"     VARCHAR(36) NOT NULL,
+    "GloebitToken"  VARCHAR(36) NOT NULL,
+    "LastSessionID" CHAR(36) NOT NULL,
+    CONSTRAINT pk_gu_ak_pid PRIMARY KEY ("AppKey", "PrincipalID")
+);
+
+CREATE INDEX ix_gu_pid ON GloebitUsers ("PrincipalID");
+
+COMMIT;

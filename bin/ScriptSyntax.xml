@@ -320,6 +320,31 @@
   </array>
   <key>tooltip</key><string>Triggered by llTransferMoney() function</string>
  </map>
+ <key>linkset_data</key><map>
+  <key>arguments</key><array>
+  <map>
+    <key>action</key>
+    <map>
+      <key>type</key>
+      <string>integer</string>
+    </map>
+  </map>
+  <map>
+    <key>name</key>
+    <map>
+      <key>type</key>
+      <string>string</string>
+    </map>
+  </map>
+  <map>
+    <key>value</key>
+    <map>
+      <key>type</key>
+      <string>string</string>
+    </map>
+  </map>
+  </array>
+ </map>
 </map>
 <key>constants</key>
 <map>
@@ -3858,6 +3883,76 @@
   <key>type</key><string>vector</string>
   <key>value</key><string>&gt;0.0,0.0,0.0&lt;</string>
  </map>
+ <key>LINKSETDATA_OK</key>
+ <map>
+  <key>type</key>
+  <string>integer</string>
+  <key>value</key>
+  <string>0</string>
+ </map>
+ <key>LINKSETDATA_EMEMORY</key>
+ <map>
+  <key>type</key>
+  <string>integer</string>
+  <key>value</key>
+  <string>1</string>
+ </map>
+ <key>LINKSETDATA_ENOKEY</key>
+ <map>
+  <key>type</key>
+  <string>integer</string>
+  <key>value</key>
+  <string>2</string>
+ </map>
+ <key>LINKSETDATA_EPROTECTED</key>
+ <map>
+  <key>type</key>
+  <string>integer</string>
+  <key>value</key>
+  <string>3</string>
+ </map>
+ <key>LINKSETDATA_NOTFOUND</key>
+ <map>
+  <key>type</key>
+  <string>integer</string>
+  <key>value</key>
+  <string>4</string>
+ </map>
+ <key>LINKSETDATA_NOUPDATE</key>
+ <map>
+  <key>type</key>
+  <string>integer</string>
+  <key>value</key>
+  <string>5</string>
+ </map>
+ <key>LINKSETDATA_RESET</key>
+ <map>
+  <key>type</key>
+  <string>integer</string>
+  <key>value</key>
+  <string>0</string>
+ </map>
+ <key>LINKSETDATA_UPDATE</key>
+ <map>
+  <key>type</key>
+  <string>integer</string>
+  <key>value</key>
+  <string>1</string>
+ </map>
+ <key>LINKSETDATA_DELETE</key>
+ <map>
+  <key>type</key>
+  <string>integer</string>
+  <key>value</key>
+  <string>2</string>
+ </map>
+ <key>LINKSETDATA_MULTIDELETE</key>
+ <map>
+  <key>type</key>
+  <string>integer</string>
+  <key>value</key>
+  <string>3</string>
+ </map>
 </map>
 <key>functions</key>
 <map>
@@ -5451,6 +5546,231 @@
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
    <map><key>value</key><map><key>type</key><string>string</string></map></map>
    <map><key>pass</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
+ <key>llLinksetDataWrite</key>
+ <map>
+  <key>return</key>
+  <string>integer</string>
+  <key>arguments</key>
+  <array>
+    <map>
+      <key>name</key>
+      <map>
+        <key>type</key>
+        <string>string</string>
+      </map>
+    </map>
+    <map>
+      <key>value</key>
+      <map>
+        <key>type</key>
+        <string>string</string>
+      </map>
+    </map>
+  </array>
+ </map>
+ <key>llLinksetDataWriteProtected</key>
+ <map>
+  <key>return</key>
+  <string>integer</string>
+  <key>arguments</key>
+  <array>
+    <map>
+      <key>name</key>
+      <map>
+        <key>type</key>
+        <string>string</string>
+      </map>
+    </map>
+    <map>
+      <key>value</key>
+      <map>
+        <key>type</key>
+        <string>string</string>
+      </map>
+    </map>
+    <map>
+      <key>pass</key>
+      <map>
+        <key>type</key>
+        <string>string</string>
+      </map>
+    </map>
+  </array>
+ </map>
+ <key>llLinksetDataRead</key>
+ <map>
+  <key>return</key>
+  <string>string</string>
+  <key>arguments</key>
+  <array>
+    <map>
+      <key>name</key>
+      <map>
+        <key>type</key>
+        <string>string</string>
+      </map>
+    </map>
+  </array>
+ </map>
+ <key>llLinksetDataReadProtected</key>
+ <map>
+  <key>return</key>
+  <string>string</string>
+  <key>arguments</key>
+  <array>
+    <map>
+      <key>name</key>
+      <map>
+        <key>type</key>
+        <string>string</string>
+      </map>
+    </map>
+    <map>
+      <key>pass</key>
+      <map>
+        <key>type</key>
+        <string>string</string>
+      </map>
+    </map>
+  </array>
+ </map>
+ <key>llLinksetDataDelete</key>
+ <map>
+  <key>arguments</key>
+  <array>
+    <map>
+      <key>name</key>
+      <map>
+        <key>type</key>
+        <string>string</string>
+      </map>
+    </map>
+  </array>
+ </map>
+ <key>llLinksetDataDeleteProtected</key>
+ <map>
+  <key>arguments</key>
+  <array>
+    <map>
+      <key>name</key>
+      <map>
+        <key>type</key>
+        <string>string</string>
+      </map>
+    </map>
+    <map>
+      <key>pass</key>
+      <map>
+        <key>type</key>
+        <string>string</string>
+      </map>
+    </map>
+  </array>
+ </map>
+ <key>llLinksetDataDeleteFound</key>
+ <map>
+  <key>return</key>
+  <string>integer</string>
+  <key>arguments</key>
+  <array>
+    <map>
+      <key>pattern</key>
+      <map>
+        <key>type</key>
+        <string>string</string>
+      </map>
+    </map>
+    <map>
+      <key>pass</key>
+      <map>
+        <key>type</key>
+        <string>string</string>
+      </map>
+    </map>
+  </array>
+ </map>
+ <key>llLinksetDataReset</key>
+ <map>
+  <key>arguments</key><undef/>
+ </map>
+ <key>llLinksetDataAvailable</key>
+ <map>
+  <key>return</key>
+  <string>integer</string>
+  <key>arguments</key><undef/>
+ </map>
+ <key>llLinksetDataCountKeys</key>
+ <map>
+  <key>return</key>
+  <string>integer</string>
+  <key>arguments</key><undef/>
+ </map>
+ <key>llLinksetDataCountFound</key>
+ <map>
+  <key>return</key>
+  <string>integer</string>
+  <key>arguments</key>
+  <array>
+    <map>
+      <key>pattern</key>
+      <map>
+        <key>type</key>
+        <string>string</string>
+      </map>
+    </map>
+  </array>
+ </map>
+ <key>llLinksetDataListKeys</key>
+ <map>
+  <key>return</key>
+  <string>list</string>
+  <key>arguments</key>
+  <array>
+    <map>
+      <key>first</key>
+      <map>
+        <key>type</key>
+        <string>integer</string>
+      </map>
+    </map>
+    <map>
+      <key>count</key>
+      <map>
+        <key>type</key>
+        <string>integer</string>
+      </map>
+    </map>
+  </array>
+ </map>
+ <key>llLinksetDataFindKeys</key>
+ <map>
+  <key>return</key>
+  <string>list</string>
+  <key>arguments</key>
+  <array>
+    <map>
+      <key>regex</key>
+      <map>
+        <key>type</key>
+        <string>string</string>
+      </map>
+    </map>
+    <map>
+      <key>first</key>
+      <map>
+        <key>type</key>
+        <string>integer</string>
+      </map>
+    </map>
+    <map>
+      <key>count</key>
+      <map>
+        <key>type</key>
+        <string>integer</string>
+      </map>
+    </map>
   </array>
  </map>
  <key>llLinkSetSoundQueueing</key>
@@ -7300,8 +7620,7 @@
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
-   <map><key>sFirstName</key><map><key>type</key><string>string</string></map></map>
-   <map><key>sLastName</key><map><key>type</key><string>string</string></map></map>
+   <map><key>avkey</key><map><key>type</key><string>key</string></map></map>
   </array>
   <key>tooltip</key><string>Returns the type of a given avatar (name).</string>
  </map>
@@ -7432,8 +7751,6 @@
   <key>return</key><string>string</string>
   <key>arguments</key><array>
    <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
-   <map><key>startX</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>startY</key><map><key>type</key><string>integer</string></map></map>
    <map><key>endX</key><map><key>type</key><string>integer</string></map></map>
    <map><key>endY</key><map><key>type</key><string>integer</string></map></map>
   </array>
@@ -8179,6 +8496,23 @@
   </array>
   <key>tooltip</key><string>Send a list of inventory items (key) in a given link to a given destination avatar (key) creating a new named folder.</string>
  </map>
+ <key>osGiveLinkInventory</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>destination</key><map><key>type</key><string>key</string></map></map>
+   <map><key>inventory</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
+ <key>osGiveLinkInventoryList</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>destination</key><map><key>type</key><string>key</string></map></map>
+   <map><key>category</key><map><key>type</key><string>string</string></map></map>
+   <map><key>inventory</key><map><key>type</key><string>list</string></map></map>
+  </array>
+ </map>
  <key>osInviteToGroup</key>
  <map>
   <key>return</key><string>integer</string>
@@ -8434,7 +8768,6 @@
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
-   <map><key>options</key><map><key>type</key><string>integer</string></map></map>
   </array>
   <key>tooltip</key><string>Creates a new NPC with a given name at a given position using a supplied notecard for appearance and additional options.</string>
  </map>
@@ -8519,7 +8852,6 @@
   <key>arguments</key><array>
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
-   <map><key>includeHuds</key><map><key>type</key><string>integer</string></map></map>
   </array>
   <key>tooltip</key><string>Creates a new notecard with a given name from a given NPC (key) with the option to include HUDs.</string>
  </map>
@@ -8544,7 +8876,6 @@
  <map>
   <key>arguments</key><array>
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
-   <map><key>channel</key><map><key>type</key><string>integer</string></map></map>
    <map><key>message</key><map><key>type</key><string>string</string></map></map>
   </array>
   <key>tooltip</key><string>Instructs a given NPC (key) to say a given message on a given channel.</string>
@@ -8758,6 +9089,19 @@
    <map><key>msg</key><map><key>type</key><string>string</string></map></map>
   </array>
   <key>tooltip</key><string>Schedule a region restart with broadcast message seconds in the future.</string>
+ </map>
+ <key>osRegionNotice</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>msg</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
+ <key>osRemoveLinkInventory</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>linkNumber</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>name</key><map><key>type</key><string>string</string></map></map>
+  </array>
  </map>
  <key>osRegionRestart</key>
  <map>
@@ -9055,7 +9399,7 @@
   <key>return</key><string>string</string>
   <key>arguments</key><array>
    <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
-   <map><key>color</key><map><key>type</key><string>string</string></map></map>
+   <map><key>color</key><map><key>type</key><string>vector</string></map></map>
   </array>
   <key>tooltip</key><string>This sets the drawing color to either a named .NET color, a 32-bit color value (formatted as eight hexadecimal digits in the format aarrggbb, representing the eight-bit alpha, red, green and blue channels) or a LSL vector color and alpha float value.</string>
  </map>
@@ -9319,8 +9663,6 @@
   <key>arguments</key><array>
    <map><key>src</key><map><key>type</key><string>string</string></map></map>
    <map><key>value</key><map><key>type</key><string>string</string></map></map>
-   <map><key>start</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>count</key><map><key>type</key><string>integer</string></map></map>
    <map><key>ignorecase</key><map><key>type</key><string>integer</string></map></map>
   </array>
   <key>tooltip</key><string>Returns the index of the last substring of a given string starting from an index and match count.</string>
@@ -9370,7 +9712,6 @@
   <key>arguments</key><array>
    <map><key>src</key><map><key>type</key><string>string</string></map></map>
    <map><key>start</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>length</key><map><key>type</key><string>integer</string></map></map>
   </array>
   <key>tooltip</key><string>Returns a substring from start index and length.</string>
  </map>

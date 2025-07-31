@@ -39,6 +39,7 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Data;
 using Npgsql;
+using NpgsqlTypes;
 
 namespace OpenSim.Data.PGSQL
 {
@@ -158,11 +159,7 @@ namespace OpenSim.Data.PGSQL
                             }
 
                             grp = new SceneObjectGroup(sceneObjectPart);
-                            if (reader["lnkstBinData"] is not DBNull)
-                            {
-                                byte[] data = (byte[])reader["lnkstBinData"];
-                                grp.LinksetData = LinksetData.FromBin(data);
-                            }
+
                             if(reader["StartStr"] is not  DBNull)
                             {
                                 grp.RezStringParameter = (string)reader["StartStr"];
@@ -356,9 +353,8 @@ namespace OpenSim.Data.PGSQL
             ""ClickAction"" = :ClickAction, ""Material"" = :Material, ""CollisionSound"" = :CollisionSound, ""CollisionSoundVolume"" = :CollisionSoundVolume, ""PassTouches"" = :PassTouches,
             ""LinkNumber"" = :LinkNumber, ""MediaURL"" = :MediaURL, ""DynAttrs"" = :DynAttrs, ""Vehicle"" = :Vehicle,
             ""PhysInertia"" = :PhysInertia, ""standtargetx"" =:standtargetx, ""standtargety"" =:standtargety, ""standtargetz"" =:standtargetz,
-            ""sitactrange"" =:sitactrange, ""pseudocrc"" = :pseudocrc, ""sopanims"" = :sopanims, ""lnkstBinData"" = :lnkstBinData, ""StartStr"" = :StartStr 
-
-        WHERE ""UUID"" = :UUID ;
+            ""sitactrange"" =:sitactrange, ""pseudocrc"" = :pseudocrc, ""sopanims"" = :sopanims, ""linksetdata"" =:linksetdata, ""StartStr"" = :StartStr 
+            WHERE ""UUID"" = :UUID ;
 
         INSERT INTO
             prims (
@@ -372,7 +368,7 @@ namespace OpenSim.Data.PGSQL
             ""ForceMouselook"", ""ScriptAccessPin"", ""AllowedDrop"", ""DieAtEdge"", ""SalePrice"", ""SaleType"", ""ColorR"", ""ColorG"", ""ColorB"", ""ColorA"",
             ""ParticleSystem"", ""ClickAction"", ""Material"", ""CollisionSound"", ""CollisionSoundVolume"", ""PassTouches"", ""LinkNumber"", ""MediaURL"", ""DynAttrs"",
             ""PhysicsShapeType"", ""Density"", ""GravityModifier"", ""Friction"", ""Restitution"", ""PassCollisions"", ""RotationAxisLocks"", ""RezzerID"" , ""Vehicle"", ""PhysInertia"",
-            ""standtargetx"", ""standtargety"", ""standtargetz"", ""sitactrange"", ""pseudocrc"",""sopanims"",""lnkstBinData"", ""StartStr""
+            ""standtargetx"", ""standtargety"", ""standtargetz"", ""sitactrange"", ""pseudocrc"", ""sopanims"", ""linksetdata"", ""StartStr""
             ) Select
             :UUID, :CreationDate, :Name, :Text, :Description, :SitName, :TouchName, :ObjectFlags, :OwnerMask, :NextOwnerMask, :GroupMask,
             :EveryoneMask, :BaseMask, :PositionX, :PositionY, :PositionZ, :GroupPositionX, :GroupPositionY, :GroupPositionZ, :VelocityX,
@@ -384,7 +380,7 @@ namespace OpenSim.Data.PGSQL
             :ForceMouselook, :ScriptAccessPin, :AllowedDrop, :DieAtEdge, :SalePrice, :SaleType, :ColorR, :ColorG, :ColorB, :ColorA,
             :ParticleSystem, :ClickAction, :Material, :CollisionSound, :CollisionSoundVolume, :PassTouches, :LinkNumber, :MediaURL, :DynAttrs,
             :PhysicsShapeType, :Density, :GravityModifier, :Friction, :Restitution, :PassCollisions, :RotationAxisLocks, :RezzerID, :Vehicle, :PhysInertia,
-            :standtargetx, :standtargety, :standtargetz,:sitactrange, :pseudocrc, :sopanims, :lnkstBinData, :StartStr
+            :standtargetx, :standtargety, :standtargetz,:sitactrange, :pseudocrc, :sopanims, :LinksetData, :StartStr
             where not EXISTS (SELECT ""UUID"" FROM prims WHERE ""UUID"" = :UUID);
         ";
 
@@ -1407,6 +1403,15 @@ namespace OpenSim.Data.PGSQL
                 prim.Animations = null;
             }
 
+            if (primRow["LinksetData"] is DBNull)
+            {
+                prim.LinksetData = null;
+            }
+            else
+            {
+                prim.LinksetData = LinksetData.DeserializeLinksetData(((string)primRow["linksetdata"]));
+            }
+
             return prim;
         }
 
@@ -1882,10 +1887,10 @@ namespace OpenSim.Data.PGSQL
             else
                 parameters.Add(_Database.CreateParameterNullBytea("sopanims"));
 
-            if (prim.IsRoot && prim.ParentGroup.LinksetData is not null)
-                parameters.Add(_Database.CreateParameter("lnkstBinData", prim.ParentGroup.LinksetData.ToBin()));
+            if (prim.LinksetData is not null)
+                parameters.Add(_Database.CreateParameter("linksetdata", prim.SerializeLinksetData()));
             else
-                parameters.Add(_Database.CreateParameterNullBytea("lnkstBinData"));
+                parameters.Add(_Database.CreateParameter("linksetdata", null));
 
             if(prim.IsRoot)
                 parameters.Add(_Database.CreateParameter("StartStr", prim.ParentGroup.RezStringParameter));
@@ -1939,12 +1944,12 @@ namespace OpenSim.Data.PGSQL
             if (s.TextureEntry is null)
                 parameters.Add(_Database.CreateParameterNullBytea("Texture"));
             else
-                parameters.Add(_Database.CreateParameter("Texture", s.TextureEntry));
+            parameters.Add(_Database.CreateParameter("Texture", s.TextureEntry));
 
             if (s.ExtraParams is null)
                 parameters.Add(_Database.CreateParameterNullBytea("ExtraParams"));
             else
-                parameters.Add(_Database.CreateParameter("ExtraParams", s.ExtraParams));
+            parameters.Add(_Database.CreateParameter("ExtraParams", s.ExtraParams));
 
             parameters.Add(_Database.CreateParameter("State", s.State));
 
@@ -1961,7 +1966,7 @@ namespace OpenSim.Data.PGSQL
             if(matovrdata is null)
                 parameters.Add(_Database.CreateParameterNullBytea("MatOvrd"));
             else
-                parameters.Add(_Database.CreateParameter("MatOvrd", matovrdata));
+            parameters.Add(_Database.CreateParameter("MatOvrd", matovrdata));
 
             return parameters.ToArray();
         }

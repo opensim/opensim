@@ -81,3 +81,17 @@ BEGIN;
 ALTER TABLE `estate_settings`
     ADD COLUMN `AllowEnviromentOverride` tinyint(4) NOT NULL DEFAULT '0';
 COMMIT;
+
+:VERSION 37
+CREATE TABLE IF NOT EXISTS `estate_allowed_experiences` (
+  `EstateID` int(10) unsigned NOT NULL,
+  `uuid` char(36) NOT NULL,
+  KEY `EstateID` (`EstateID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `estate_key_experiences` (
+  `EstateID` int(10) unsigned NOT NULL,
+  `uuid` char(36) NOT NULL,
+  KEY `EstateID` (`EstateID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+COMMIT;

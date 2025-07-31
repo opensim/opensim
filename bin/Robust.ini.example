@@ -120,6 +120,8 @@
     FriendsServiceConnector = "${Const|PrivatePort}/OpenSim.Server.Handlers.dll:FriendsServiceConnector"
     MapAddServiceConnector = "${Const|PrivatePort}/OpenSim.Server.Handlers.dll:MapAddServiceConnector"
     MapGetServiceConnector = "${Const|PublicPort}/OpenSim.Server.Handlers.dll:MapGetServiceConnector"
+    ;; Uncomment this if you want experience tools to work
+    ; ExperienceServiceConnector = "${Const|PrivatePort}/OpenSim.Server.Handlers.dll:ExperienceServiceConnector"
     ;; Uncomment this if you want offline IM to work
     ; OfflineIMServiceConnector = "${Const|PrivatePort}/OpenSim.Addons.OfflineIM.dll:OfflineIMServiceRobustConnector"
     ;; Uncomment this if you want Groups V2 to work
@@ -604,7 +606,7 @@
     ; optional web page for profiles
     ;[AGENT_NAME] will be converted to Firstname.LastName by viewers
     ; web_profile_url = http://webprofilesurl:ItsPort?name=[AGENT_NAME]
-    
+
     ; http REST handler /get_grid_stats may output some grid statistics This can be turned off here
     ;DisableStatsEndpoint = true
 
@@ -638,3 +640,10 @@
 
 [MuteListService]
 	LocalServiceModule = "OpenSim.Services.MuteListService.dll:MuteListService"
+
+    
+[ExperienceService]
+    LocalServiceModule = "OpenSim.Services.ExperienceService.dll:ExperienceService"
+    ;; ConnectionString = "Data Source=localhost;Database=robust;User ID=robust;Password=*****;Old Guids=true;CharSet=utf8mb4;"
+
+    UserAccountService = "OpenSim.Services.UserAccountService.dll:UserAccountService"

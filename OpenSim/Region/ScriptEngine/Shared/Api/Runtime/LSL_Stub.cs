@@ -2757,6 +2757,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void llLinksetDataReset()
+        {
+            m_LSL_Functions.llLinksetDataReset();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public LSL_Integer llLinksetDataAvailable()
         {
             return m_LSL_Functions.llLinksetDataAvailable();
@@ -2766,6 +2772,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public LSL_Integer llLinksetDataCountKeys()
         {
             return m_LSL_Functions.llLinksetDataCountKeys();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_Integer llLinksetDataCountFound(LSL_String pattern)
+        {
+            return m_LSL_Functions.llLinksetDataCountFound(pattern);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_List llLinksetDataFindKeys(LSL_String pattern, LSL_Integer start, LSL_Integer count)
+        {
+            return m_LSL_Functions.llLinksetDataFindKeys(pattern, start, count);
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_List llLinksetDataListKeys(LSL_Integer start, LSL_Integer count)
+        {
+            return m_LSL_Functions.llLinksetDataListKeys(start, count);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -2781,24 +2805,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public LSL_Integer llLinksetDataDelete(LSL_String name)
-        {
-            return m_LSL_Functions.llLinksetDataDelete(name);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public LSL_Integer llLinksetDataDeleteProtected(LSL_String name, LSL_String pass)
-        {
-            return m_LSL_Functions.llLinksetDataDeleteProtected(name, pass);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void llLinksetDataReset()
-        {
-            m_LSL_Functions.llLinksetDataReset();
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public LSL_Integer llLinksetDataWrite(LSL_String name, LSL_String value)
         {
             return m_LSL_Functions.llLinksetDataWrite(name, value);
@@ -2811,27 +2817,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_Integer llLinksetDataDelete(LSL_String name)
+        {
+            return m_LSL_Functions.llLinksetDataDelete(name);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public LSL_List llLinksetDataDeleteFound(LSL_String pattern, LSL_String pass)
         {
             return m_LSL_Functions.llLinksetDataDeleteFound(pattern, pass);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public LSL_Integer llLinksetDataCountFound(LSL_String pattern)
+        public LSL_Integer llLinksetDataDeleteProtected(LSL_String name, LSL_String pass)
         {
-            return m_LSL_Functions.llLinksetDataCountFound(pattern);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public LSL_List llLinksetDataListKeys(LSL_Integer start, LSL_Integer count)
-        {
-            return m_LSL_Functions.llLinksetDataListKeys(start, count);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public LSL_List llLinksetDataFindKeys(LSL_String pattern, LSL_Integer start, LSL_Integer count)
-        {
-            return m_LSL_Functions.llLinksetDataFindKeys(pattern, start, count);
+            return m_LSL_Functions.llLinksetDataDeleteProtected(name, pass);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

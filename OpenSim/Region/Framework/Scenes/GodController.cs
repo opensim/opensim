@@ -88,7 +88,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // The owner of a region is a god in his region only.
                 m_regionOwnerIsGod =
                     Util.GetConfigVarFromSections<bool>(config,
-                    "region_owner_is_god", sections, true);
+                    "region_owner_is_god", sections, false);
 
                 // Region managers are gods in the regions they manage.
                 m_regionManagerIsGod =
@@ -243,7 +243,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (s.TryGetValue("ViewerUiIsGod", out OSD tmp))
                     newstate = tmp.AsBoolean();
                 m_lastLevelToViewer = newstate && m_viewergodlevel < 200 ? 200 : m_viewergodlevel;
-            }
+            }       
             UpdateGodLevels(newstate);
         }
 

@@ -1,0 +1,6 @@
+@OpenSim.Services.AISv3_HostAddress = http://localhost:5126
+
+GET {{OpenSim.Services.AISv3_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -145,12 +145,6 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 sceneObject.RootPart.KeyframeMotion = KeyframeMotion.FromData(sceneObject, Convert.FromBase64String(innerkeytxt));
             }
 
-            if (reader.Name == "lnkstdt" && reader.NodeType == XmlNodeType.Element)
-            {
-                string innerlnkstdttxt = reader.ReadElementContentAsString();
-                sceneObject.LinksetData = LinksetData.FromXML(innerlnkstdttxt.AsSpan());
-            }
-
             if (reader.Name == "StartStr" && reader.NodeType == XmlNodeType.Element)
             {
                 sceneObject.RezStringParameter = reader.ReadElementContentAsString();
@@ -231,8 +225,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         public static void ToOriginalXmlFormat(
             SceneObjectGroup sceneObject, XmlTextWriter writer, bool doScriptStates, bool noRootElement)
         {
-            //m_log.DebugFormat("[SERIALIZER]: Starting serialization of {0}", sceneObject.Name);
-            //int time = System.Environment.TickCount;
+//            m_log.DebugFormat("[SERIALIZER]: Starting serialization of {0}", sceneObject.Name);
+//            int time = System.Environment.TickCount;
 
             if (!noRootElement)
                 writer.WriteStartElement(string.Empty, "SceneObjectGroup", string.Empty);
@@ -268,15 +262,13 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             if(sceneObject.RezStringParameter is not null)
                 writer.WriteElementString("StartStr", sceneObject.RezStringParameter);
 
-            sceneObject.LinksetData?.ToXML(writer);
-
             if (doScriptStates)
                 sceneObject.SaveScriptedState(writer);
 
             if (!noRootElement)
                 writer.WriteEndElement(); // SceneObjectGroup
 
-            //m_log.DebugFormat("[SERIALIZER]: Finished serialization of SOG {0}, {1}ms", sceneObject.Name, System.Environment.TickCount - time);
+//            m_log.DebugFormat("[SERIALIZER]: Finished serialization of SOG {0}, {1}ms", sceneObject.Name, System.Environment.TickCount - time);
         }
 
         protected static void ToXmlFormat(SceneObjectPart part, XmlTextWriter writer)
@@ -340,10 +332,6 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 if (keymotion.Count > 0)
                     sceneObject.RootPart.KeyframeMotion = KeyframeMotion.FromData(sceneObject, Convert.FromBase64String(keymotion[0].InnerText));
 
-                XmlNodeList keylinksetdata = doc.GetElementsByTagName("lnkstdt");
-                if (keylinksetdata.Count > 0)
-                    sceneObject.LinksetData = LinksetData.FromXML(keylinksetdata[0].InnerText.AsSpan());
-
                 XmlNodeList StartStr = doc.GetElementsByTagName("StartStr");
                 if (StartStr.Count > 0)
                     sceneObject.RezStringParameter = StartStr[0].InnerText;
@@ -351,7 +339,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 // Script state may, or may not, exist. Not having any, is NOT
                 // ever a problem.
                 sceneObject.LoadScriptState(doc);
-                //sceneObject.AggregatePerms();
+//                sceneObject.AggregatePerms();
                 return sceneObject;
             }
             catch (Exception e)
@@ -537,7 +525,10 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             {"SOPAnims", ProcessSOPAnims },
 
-            {"SitActRange", ProcessSitActRange }
+            {"SitActRange", ProcessSitActRange },
+            {"LinksetData", ProcessLinksetData },
+            {"AllowUnsit", ProcessAllowUnsit },
+            {"ScriptedSitOnly", ProcessScriptedSitOnly }
         }.ToFrozenDictionary();
 
         private static readonly FrozenDictionary<string, Action<TaskInventoryItem, XmlReader>> m_TaskInventoryXmlProcessors = new Dictionary<string, Action<TaskInventoryItem, XmlReader>>()
@@ -837,6 +828,31 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             obj.SitActiveRange = reader.ReadElementContentAsFloat("SitActRange", string.Empty);
         }
 
+        private static void ProcessAllowUnsit(SceneObjectPart obj, XmlReader reader)
+        {
+            obj.AllowUnsit = Util.ReadBoolean(reader);
+        }
+
+        private static void ProcessScriptedSitOnly(SceneObjectPart obj, XmlReader reader)
+        {
+            obj.ScriptedSitOnly = Util.ReadBoolean(reader);
+        }
+
+        private static void ProcessLinksetData(SceneObjectPart obj, XmlReader reader)
+        {
+            try
+            {
+                string data = reader.ReadElementContentAsString();
+                obj.DeserializeLinksetData(data);
+            }
+            catch 
+            {
+                m_log.DebugFormat(
+                   "[SceneObjectSerializer]: Exception while processing linksetdata for object part {0} {1}.",
+                   obj.Name, obj.UUID);
+            }
+        }
+
         private static void ProcessVehicle(SceneObjectPart obj, XmlReader reader)
         {
             SOPVehicle vehicle = SOPVehicle.FromXml2(reader);
@@ -876,14 +892,14 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             try
             {
                 string datastr = reader.ReadElementContentAsString();
-                if (string.IsNullOrEmpty(datastr))
+                if(string.IsNullOrEmpty(datastr))
                     return;
 
                 byte[] pdata = Convert.FromBase64String(datastr);
                 obj.DeSerializeAnimations(pdata);
                 return;
             }
-            catch { }
+            catch {}
 
             m_log.DebugFormat(
                     "[SceneObjectSerializer]: Parsing ProcessSOPAnims for object part {0} {1} encountered errors",
@@ -1532,8 +1548,6 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             if(sog.RezStringParameter is not null)
                 writer.WriteElementString("StartStr", sog.RezStringParameter);
 
-            sog.LinksetData?.ToXML(writer);
-
             writer.WriteEndElement();
         }
 
@@ -1690,6 +1704,14 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             }
             if(Math.Abs(sop.SitActiveRange) > 1e-5)
                 writer.WriteElementString("SitActRange", sop.SitActiveRange.ToString(Culture.FormatProvider));
+
+            var lsd = sop.SerializeLinksetData();
+            if (string.IsNullOrWhiteSpace(lsd) is false)
+                writer.WriteElementString("LinksetData", lsd);  
+
+            writer.WriteElementString("AllowUnsit", sop.AllowUnsit.ToString().ToLower());
+            writer.WriteElementString("ScriptedSitOnly", sop.ScriptedSitOnly.ToString().ToLower());
+
             writer.WriteEndElement();
         }
 

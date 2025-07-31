@@ -46,5 +46,10 @@ namespace OpenSim.Framework.Capabilities
         /// State of the upload.  So far have only even seen this set to "complete"
         /// </summary>
         public string state;
+
+        /// <summary>
+        /// What experience key should be used with this script
+        /// </summary>
+        public UUID experience = UUID.Zero;
     }
 }

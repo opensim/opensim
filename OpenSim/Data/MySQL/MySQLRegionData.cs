@@ -26,14 +26,12 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
-using MySql.Data.MySqlClient;
+using MySqlConnector;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Data;
 using RegionFlags = OpenSim.Framework.RegionFlags;
 
 namespace OpenSim.Data.MySQL
@@ -76,7 +74,7 @@ namespace OpenSim.Data.MySQL
             {
                 cmd.Parameters.AddWithValue("?regionName", regionName);
                 if (scopeID.IsNotZero())
-                    cmd.Parameters.AddWithValue("?scopeID", scopeID.ToString());
+                cmd.Parameters.AddWithValue("?scopeID", scopeID.ToString());
 
                 return RunCommand(cmd);
             }
@@ -92,7 +90,7 @@ namespace OpenSim.Data.MySQL
             {
                 cmd.Parameters.AddWithValue("?regionName", regionName);
                 if (scopeID.IsNotZero())
-                    cmd.Parameters.AddWithValue("?scopeID", scopeID.ToString());
+                cmd.Parameters.AddWithValue("?scopeID", scopeID.ToString());
 
                 List<RegionData> ret = RunCommand(cmd);
                 if (ret.Count == 0)
@@ -122,7 +120,7 @@ namespace OpenSim.Data.MySQL
                 cmd.Parameters.AddWithValue("?endX", endX.ToString());
                 cmd.Parameters.AddWithValue("?endY", endY.ToString());
                 if (scopeID.IsNotZero())
-                    cmd.Parameters.AddWithValue("?scopeID", scopeID.ToString());
+                cmd.Parameters.AddWithValue("?scopeID", scopeID.ToString());
 
                 ret = RunCommand(cmd);
             }
@@ -291,15 +289,15 @@ namespace OpenSim.Data.MySQL
 
         public bool Store(RegionData data)
         {
-            data.Data.Remove("uuid");
-            data.Data.Remove("ScopeID");
-            data.Data.Remove("regionName");
-            data.Data.Remove("posX");
-            data.Data.Remove("posY");
-            data.Data.Remove("sizeX");
-            data.Data.Remove("sizeY");
-            data.Data.Remove("locX");
-            data.Data.Remove("locY");
+                data.Data.Remove("uuid");
+                data.Data.Remove("ScopeID");
+                data.Data.Remove("regionName");
+                data.Data.Remove("posX");
+                data.Data.Remove("posY");
+                data.Data.Remove("sizeX");
+                data.Data.Remove("sizeY");
+                data.Data.Remove("locX");
+                data.Data.Remove("locY");
 
             if (data.RegionName.Length > 128)
                 data.RegionName = data.RegionName.Substring(0, 128);

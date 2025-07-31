@@ -32,7 +32,7 @@ using System.Drawing;
 using System.Reflection;
 using System.Text;
 using log4net;
-using MySql.Data.MySqlClient;
+using MySqlConnector;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
@@ -171,7 +171,7 @@ namespace OpenSim.Data.MySQL
                                     "PhysicsShapeType, Density, GravityModifier, " +
                                     "Friction, Restitution, Vehicle, PhysInertia, DynAttrs, " +
                                     "RotationAxisLocks, sopanims, sitactrange, pseudocrc, " +
-                                    "lnkstBinData, StartStr" +
+                                    "linksetdata, AllowUnsit, ScriptedSitOnly, StartStr " +
                                     ") values (" + "?UUID, " +
                                     "?CreationDate, ?Name, ?Text, " +
                                     "?Description, ?SitName, ?TouchName, " +
@@ -205,9 +205,9 @@ namespace OpenSim.Data.MySQL
                                     "?LinkNumber, ?MediaURL, ?KeyframeMotion, ?AttachedPosX, " +
                                     "?AttachedPosY, ?AttachedPosZ, " +
                                     "?PhysicsShapeType, ?Density, ?GravityModifier, " +
-                                    "?Friction, ?Restitution, ?Vehicle, ?PhysInertia, ?DynAttrs, " +
+                                    "?Friction, ?Restitution, ?Vehicle, ?PhysInertia, ?DynAttrs," +
                                     "?RotationAxisLocks, ?sopanims, ?sitactrange, ?pseudocrc, " +
-                                    "?lnkstBinData, ?StartStr)";
+                                    "?linksetdata, ?AllowUnsit, ?ScriptedSitOnly, ?StartStr)";
 
                             FillPrimCommand(cmd, prim, obj.UUID, regionUUID);
 
@@ -250,7 +250,7 @@ namespace OpenSim.Data.MySQL
 
         public virtual void RemoveObject(UUID obj, UUID regionUUID)
         {
-            //m_log.DebugFormat("[REGION DB]: Deleting scene object {0} from {1} in database", obj, regionUUID);
+//            m_log.DebugFormat("[REGION DB]: Deleting scene object {0} from {1} in database", obj, regionUUID);
 
             List<string> uuids = new List<string>();
             lock (m_dbLock)
@@ -358,12 +358,7 @@ namespace OpenSim.Data.MySQL
                                     SceneObjectGroup newSog = new SceneObjectGroup(prim);
                                     if(objects.TryAdd(prim.UUID, newSog))
                                     {
-                                        if(reader["lnkstBinData"] is not  DBNull)
-                                        {
-                                            byte[] data = (byte[])reader["lnkstBinData"];
-                                            newSog.LinksetData = LinksetData.FromBin(data);
-                                        }
-                                        if(reader["StartStr"] is not  DBNull)
+                                        if(reader["StartStr"] is not DBNull)
                                         {
                                             newSog.RezStringParameter = (string)reader["StartStr"];
                                         }
@@ -1197,7 +1192,16 @@ namespace OpenSim.Data.MySQL
             int pseudocrc = (int)row["pseudocrc"];
             if(pseudocrc != 0)
                 prim.PseudoCRC = pseudocrc;
- 
+            
+            prim.LinksetData = null;
+            if (row["linksetdata"] is not DBNull)
+            {
+                prim.LinksetData = LinksetData.DeserializeLinksetData((string)row["linksetdata"]);
+            }
+
+            prim.AllowUnsit = ((sbyte)row["AllowUnsit"] != 0);
+            prim.ScriptedSitOnly = ((sbyte)row["ScriptedSitOnly"] != 0);
+
             return prim;
         }
 
@@ -1455,7 +1459,7 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("CreationDate", prim.CreationDate);
             cmd.Parameters.AddWithValue("Name", prim.Name);
             cmd.Parameters.AddWithValue("SceneGroupID", sceneGroupID.ToString());
-                // the UUID of the root part for this SceneObjectGroup
+            // the UUID of the root part for this SceneObjectGroup
             // various text fields
             cmd.Parameters.AddWithValue("Text", prim.Text);
             cmd.Parameters.AddWithValue("ColorR", prim.Color.R);
@@ -1529,7 +1533,7 @@ namespace OpenSim.Data.MySQL
             }
             else
             {
-                cmd.Parameters.AddWithValue("LoopedSound", UUID.ZeroString);
+                cmd.Parameters.AddWithValue("LoopedSound", UUID.Zero.ToString());
                 cmd.Parameters.AddWithValue("LoopedSoundGain", 0.0f);
             }
 
@@ -1616,7 +1620,7 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("Restitution", prim.Restitution);
             cmd.Parameters.AddWithValue("RotationAxisLocks", prim.RotationAxisLocks);
 
-            if (prim.Animations!= null)
+            if (prim.Animations != null)
                 cmd.Parameters.AddWithValue("sopanims", prim.SerializeAnimations());
             else
                 cmd.Parameters.AddWithValue("sopanims", null);
@@ -1624,15 +1628,29 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("sitactrange", prim.SitActiveRange);
             cmd.Parameters.AddWithValue("pseudocrc", prim.PseudoCRC);
 
-            if(prim.IsRoot && prim.ParentGroup.LinksetData is not null)
-                cmd.Parameters.AddWithValue("lnkstBinData", prim.ParentGroup.LinksetData.ToBin());
-            else
-                cmd.Parameters.AddWithValue("lnkstBinData", null);
+            if (prim.LinksetData is not null)
+            {
+                cmd.Parameters.AddWithValue("linksetdata", prim.SerializeLinksetData());
+            }
+            else 
+            {
+                cmd.Parameters.AddWithValue("linksetdata", null);
+            }
 
-            if(prim.IsRoot)
+            if (prim.AllowUnsit)
+                cmd.Parameters.AddWithValue("AllowUnsit", 1);
+            else
+                cmd.Parameters.AddWithValue("AllowUnsit", 0);
+
+            if (prim.ScriptedSitOnly)
+                cmd.Parameters.AddWithValue("ScriptedSitOnly", 1);
+            else
+                cmd.Parameters.AddWithValue("ScriptedSitOnly", 0);
+            
+            if (prim.IsRoot)
                 cmd.Parameters.AddWithValue("StartStr", prim.ParentGroup.RezStringParameter);
             else
-                cmd.Parameters.AddWithValue("StartStr", null);
+                cmd.Parameters.AddWithValue("StartStr", null);               
         }
 
         /// <summary>

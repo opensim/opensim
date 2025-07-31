@@ -59,11 +59,11 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             {
                 if (m_libraryRootFolder is null)
                 {
-                    ILibraryService lib = m_scene.RequestModuleInterface<ILibraryService>();
+                ILibraryService lib = m_scene.RequestModuleInterface<ILibraryService>();
                     if (lib is not null)
-                    {
-                        m_libraryRootFolder = lib.LibraryRootFolder;
-                    }
+                {
+                    m_libraryRootFolder = lib.LibraryRootFolder;
+                }
                 }
                 return m_libraryRootFolder;
             }
@@ -167,7 +167,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             m_forceGridAdminsOnly = Util.GetConfigVarFromSections<bool>(config, "force_grid_gods_only", sections, false);
             if(!m_forceGridAdminsOnly)
             {            
-                m_RegionOwnerIsAdmin = Util.GetConfigVarFromSections<bool>(config, "region_owner_is_god",sections, true);
+                m_RegionOwnerIsAdmin = Util.GetConfigVarFromSections<bool>(config, "region_owner_is_god",sections, false);
                 m_RegionManagerIsAdmin = Util.GetConfigVarFromSections<bool>(config, "region_manager_is_god",sections, false);
             }
             else
@@ -1052,7 +1052,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             
             if(IsAdministrator(userID))
                 return (uint)PermissionMask.AllEffective;
-            // ??
+            // ??           
             if (IsFriendWithPerms(userID, ti.OwnerID))
                 return ti.CurrentPermissions;
 
@@ -1078,7 +1078,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if(ti.OwnerID.Equals(sp.UUID))
                 return ti.CurrentPermissions;
  
-            // ??
+            // ??           
             if (IsFriendWithPerms(sp.UUID, ti.OwnerID))
                 return ti.CurrentPermissions;
 
@@ -2106,14 +2106,14 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 // readable only if it's really full perms
                 //
                 if ((assetRequestItem.CurrentPermissions &
-                /*
+/*
                         ((uint)PermissionMask.Modify |
                         (uint)PermissionMask.Copy |
                         (uint)PermissionMask.Transfer)) !=
                         ((uint)PermissionMask.Modify |
                         (uint)PermissionMask.Copy |
                         (uint)PermissionMask.Transfer))
-                */
+*/
                         (uint)(PermissionMask.Modify | PermissionMask.Copy)) !=
                         (uint)(PermissionMask.Modify | PermissionMask.Copy))
                     return false;
@@ -2141,14 +2141,14 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 // Require full perms
 
                 if ((itperms &
-                /*
+/*
                         ((uint)(PermissionMask.Modify |
                         (uint)PermissionMask.Copy |
                         (uint)PermissionMask.Transfer)) !=
                         ((uint)PermissionMask.Modify |
                         (uint)PermissionMask.Copy |
                         (uint)PermissionMask.Transfer))
-                */
+*/
                         (uint)(PermissionMask.Modify | PermissionMask.Copy)) !=
                         (uint)(PermissionMask.Modify | PermissionMask.Copy))
                     return false;
@@ -2548,9 +2548,9 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
         private bool CanCompileScript(UUID ownerUUID, int scriptType)
         {
-            //m_log.DebugFormat("check if {0} is allowed to compile {1}", ownerUUID, scriptType);
+             //m_log.DebugFormat("check if {0} is allowed to compile {1}", ownerUUID, scriptType);
             return scriptType switch
-            {
+                    {
                 0 => GrantLSL.Count == 0 || GrantLSL.ContainsKey(ownerUUID.ToString()),
                 1 => GrantCS.Count == 0 || GrantCS.ContainsKey(ownerUUID.ToString()),
                 2 => GrantVB.Count == 0 || GrantVB.ContainsKey(ownerUUID.ToString()),
@@ -2562,9 +2562,9 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
         private bool CanControlPrimMedia(UUID agentID, UUID primID, int face)
         {
-            //m_log.DebugFormat(
-            //    "[PERMISSONS]: Performing CanControlPrimMedia check with agentID {0}, primID {1}, face {2}",
-            //     agentID, primID, face);
+//            m_log.DebugFormat(
+//                "[PERMISSONS]: Performing CanControlPrimMedia check with agentID {0}, primID {1}, face {2}",
+//                agentID, primID, face);
 
             if (MoapModule is null)
                 return false;
@@ -2579,9 +2579,9 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (me is null)
                 return true;
 
-            //m_log.DebugFormat(
-            //    "[PERMISSIONS]: Checking CanControlPrimMedia for {0} on {1} face {2} with control permissions {3}",
-            //     agentID, primID, face, me.ControlPermissions);
+//            m_log.DebugFormat(
+//                "[PERMISSIONS]: Checking CanControlPrimMedia for {0} on {1} face {2} with control permissions {3}",
+//                agentID, primID, face, me.ControlPermissions);
 
             SceneObjectGroup sog = part.ParentGroup;
             if (sog is null)
@@ -2595,9 +2595,9 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
         private bool CanInteractWithPrimMedia(UUID agentID, UUID primID, int face)
         {
-            //m_log.DebugFormat(
-            //    "[PERMISSONS]: Performing CanInteractWithPrimMedia check with agentID {0}, primID {1}, face {2}",
-            //    agentID, primID, face);
+//            m_log.DebugFormat(
+//                "[PERMISSONS]: Performing CanInteractWithPrimMedia check with agentID {0}, primID {1}, face {2}",
+//                agentID, primID, face);
 
             if (MoapModule is null)
                 return false;
@@ -2612,17 +2612,17 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (me is null)
                 return true;
 
-            //m_log.DebugFormat(
-            //    "[PERMISSIONS]: Checking CanInteractWithPrimMedia for {0} on {1} face {2} with interact permissions {3}",
-            //    agentID, primID, face, me.InteractPermissions);
+//            m_log.DebugFormat(
+//                "[PERMISSIONS]: Checking CanInteractWithPrimMedia for {0} on {1} face {2} with interact permissions {3}",
+//                agentID, primID, face, me.InteractPermissions);
 
             return GenericPrimMediaPermission(part, agentID, me.InteractPermissions);
         }
 
         private bool GenericPrimMediaPermission(SceneObjectPart part, UUID agentID, MediaPermission perms)
         {
-            //if (IsAdministrator(agentID))
-            //   return true;
+//            if (IsAdministrator(agentID))
+//                return true;
 
             if ((perms & MediaPermission.Anyone) == MediaPermission.Anyone)
                 return true;

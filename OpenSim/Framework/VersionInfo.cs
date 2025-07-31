@@ -1,3 +1,9 @@
+﻿
+
+
+
+
+
 /*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
@@ -25,47 +31,28 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+ // THIS CS FILE IS AUTO GENERATED FROM A T4 TEMPLATE. MODIFY THE TEMPLATE, NOT THE CS FILE!
+
 namespace OpenSim
 {
     public class VersionInfo
     {
-        public const string VersionNumber = "0.9.3.1";
-        public const string AssemblyVersionNumber = "0.9.3.1";
-
-        public const Flavour VERSION_FLAVOUR = Flavour.Dev;
-
-        public enum Flavour
-        {
-            Unknown,
-            Dev,
-            RC1,
-            RC2,
-            RC3,
-            Release,
-            Post_Fixes,
-            Extended
-        }
+        public const string VersionNumber = "0.9.3";
+        public const string AssemblyVersionNumber = "0.9.3";
+        public const string Release = "9333";
 
         public static string Version
         {
-            get { return GetVersionString(VersionNumber, VERSION_FLAVOUR); }
+            get { return GetVersionString(VersionNumber, Release); }
         }
 
-        public static string GetVersionString(string versionNumber, Flavour flavour)
+        public static string GetVersionString(string versionNumber, string release)
         {
-            string versionString = $"OpenSim {versionNumber} Nessie {flavour}";
+            string versionString = $"OpenSim-NGC Tranquillity {versionNumber}.{release}";
             return versionString.PadRight(VERSIONINFO_VERSION_LENGTH);
         }
 
-        public const int VERSIONINFO_VERSION_LENGTH = 27;
-
-        /// <value>
-        /// This is the external interface version.  It is separate from the OpenSimulator project version.
-        ///
-        /// </value>
-        /// Commented because it's not used anymore, see below for new
-        /// versioning method.
-        //public readonly static int MajorInterfaceVersion = 8;
+        public const int VERSIONINFO_VERSION_LENGTH = 48;
 
         /// <summary>
         /// This rules versioning regarding teleports, and compatibility between simulators in that regard.

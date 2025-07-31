@@ -280,11 +280,16 @@ namespace OpenSim
                                           SavePrimsXml2);
 
             m_console.Commands.AddCommand("Archiving", false, "load oar",
-                                          "load oar [-m|--merge] [-s|--skip-assets]"
+                                          "load oar"
+                                             + " [-m|--merge]"
+                                             + " [-s|--skip-assets]"
                                              + " [--default-user \"User Name\"]"
-                                             + " [--merge-terrain] [--merge-parcels]"
+                                             + " [--merge-terrain]"
+                                             + " [--merge-parcels]"
                                              + " [--mergeReplaceObjects]"
                                              + " [--no-objects]"
+                                             + " [--no-defaultuser]"
+                                             + " [--lookup-aliases]"
                                              + " [--rotation degrees]"
                                              + " [--bounding-origin \"<x,y,z>\"]"
                                              + " [--bounding-size \"<x,y,z>\"]"
@@ -304,6 +309,9 @@ namespace OpenSim
                                             + "       it will also try to upload them to service, but that only work if they are not present"
                                             + "       Avoid using this except for some recovery attempts"
                                             + "--default-user will use this user for any objects with an owner whose UUID is not found in the grid.\n"
+                                            + "--no-defaultuser don't perform reassignment of creator/owner/lastowner to the region owner/default user\n"
+                                            + "       if no local user (or alias if enabled) is found.\n"
+                                            + "--lookup-aliases will lookup aliases for local users and update creator/owner/last owner information accordingly.\n"
                                             + "--no-objects suppresses the addition of any objects (good for loading only the terrain).\n"
                                             + "--rotation specified rotation to be applied to the oar. Specified in degrees.\n"
                                             + "--bounding-origin will only place objects that after displacement and rotation fall within the bounding cube who's position starts at <x,y,z>. Defaults to <0,0,0>.\n"

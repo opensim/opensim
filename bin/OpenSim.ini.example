@@ -59,10 +59,10 @@
     ; PrivatePort should closed at the firewall.
 
     ;# {PublicPort} {} {PublicPort} {8002 9000} "9000"
-    ; in case of a standalone this needs to match the parameter http_listener_port in section [Network] below
-    ; in that case the default is 9000
+	; in case of a standalone this needs to match the parameter http_listener_port in section [Network] below
+	; in that case the default is 9000
     PublicPort = "9000"
-    ; for a region on a grid, the grid services public port should be used, normal default is 8002
+	; for a region on a grid, the grid services public port should be used, normal default is 8002
     ;PublicPort = "8002"
 
     ; you can also have them on a diferent url / IP
@@ -305,7 +305,6 @@
     ;; default is false
     ; TelehubAllowLandmark = false
 
-
     ;; Let's Encrypt and others ".pem" certificates converter settings.
     ;; Enabling this feature will automatically convert the CA .pem certificates to
     ;; OpenSim compatible PKCS12 .p12 and .pfx certificates on every server startup.
@@ -329,7 +328,6 @@
     ;; Set the .p12 and .pfx password.
     ;# {outputCertPassword} {} {Set the .p12 and .pfx password} {} ""
     outputCertPassword = ""
-
 
     ;; SSL selfsigned certificate settings.
     ;; Enable selfsigned certificate creation for local and external use. When set to true, will create a folder SSL\ and 2 sub folders SSL\ssl\ and SSL\src\.
@@ -772,6 +770,7 @@
     Cap_GetMesh = "localhost"
     Cap_AvatarPickerSearch = "localhost"
     Cap_GetDisplayNames = "localhost"
+    Cap_SetDisplayName = "localhost"
 
 
 [SimulatorFeatures]
@@ -985,19 +984,26 @@
 [Economy]
     ; the economy module in use
     ; To use other modules you need to override this setting
+    ; EconomyModule  = BetaGridLikeMoneyModule, DTLNSLMoneyModule, Gloebit, None
     ; economymodule = BetaGridLikeMoneyModule
+    ; EconomyModule = DTLNSLMoneyModule
+    ; EconomyModule = Gloebit
 
+    ; Set this if you want HG vsitors to transact local currency
+    ; HGAvatarAs     = "hgavatar"
+
+    ; Generate Alerts on Region Entry
+    ; SendAlert      = false;
+    
     ; the url of the economy service.
     ; this must match the grid economy setting (also known as helperURI or CurrencyServer, etc)
-    ; economy = https://the.currency.machine.fdqn:port/folder/folder...
+    ; EconomyHelper = https://the.currency.machine.fdqn:port/folder/folder...
 
     ;# {SellEnabled} {} {Enable selling for 0?} {true false} true
     ; The default economy module only implements just enough to allow free actions (transfer of objects, etc).
     ; There is no intention to implement anything further in core OpenSimulator.
     ; This functionality has to be provided by third party modules.
-
-    ;; Enables selling things for $0.  Default is true.
-    ; SellEnabled = true
+    SellEnabled    = true
 
     ;# {PriceUpload} {} {Price for uploading?} {} 0
     ;; Money Unit fee to upload textures, animations etc.  Default is 0.
@@ -1006,6 +1012,23 @@
     ;# {PriceGroupCreate} {} {Fee for group creation} {} 0
     ;; Money Unit fee to create groups.  Default is 0.
     ; PriceGroupCreate = 0
+        
+    ; If you're using the DTL Money Module the following setting provide configuration
+    ; for the associated money server that manages money transactions grid-wide.
+    ;
+    ; CurrencyServer = "${Const|BaseURL}:8008/"
+    ; UserServer     = "${Const|BaseURL}:${Const|PublicPort}"
+
+    ;; CA
+    ; CheckServerCert = false
+    ; CACertFilename  = ""
+    ; CACertPassword  = ""
+
+    ;; Client Cert
+    ; CheckClientCert    = false
+    ; ClientCertFilename = ""
+    ; ClientCertPassword = ""    
+
 
 [YEngine]
     ;; implements non preemptive microthreading, so fixing problems like llSleep or long events handlers
@@ -1031,6 +1054,12 @@
     ;; Increasing this to large values potentially opens
     ;; up the system to malicious scripters
     ; NotecardLineReadCharsMax = 255
+    
+    ; llGetWallclock returns a float that is the time in seconds since midnight Pacific time (PST/PDT), truncated to whole seconds.
+    ; How you specify that time zone varies based on system type (Linux, Windows or Mac).  If this value is not set (the default)
+    ; we will return whatever the system time is.   You can define the timezone id for PST if you prefer that behaviour.
+    ; Normal default for Linux is "America/Los_Angeles" from the ICU database and for Windows is: "Pacific Standard Time"
+    ; GetWallclockTimeZone = "America/Los_Angeles"
 
     ;# {SensorMaxRange} {} {Sensor range} {} 96.0
     ;; Sensor settings
@@ -1048,7 +1077,6 @@
     ;# {Include-osslDefaultEnable} {} {Include file for enabling and permissions for OSSL functions} {}
     ;; If this INI file is not included, the OSSL functions are disabled.
     Include-osslDefaultEnable = "config-include/osslDefaultEnable.ini"
-
 
 [FreeSwitchVoice]
     ;; In order for this to work you need a functioning FreeSWITCH PBX set up.
@@ -1224,6 +1252,10 @@
 ;    Enabled = false
 ;    FullNames = "Test User, Foo Bar"
 ;    Surnames = "Kryztlsk"
+
+[Experience]
+    ;# {Enabled} {} {Use Experience Tools on this region} {true false} false
+    ; Enabled = true
 
 [Architecture]
     ;# {Include-Architecture} {} {Choose one of the following architectures} {config-include/Standalone.ini config-include/StandaloneHypergrid.ini config-include/Grid.ini config-include/GridHypergrid.ini} config-include/Standalone.ini

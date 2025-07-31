@@ -1255,9 +1255,9 @@ ALTER TABLE "public"."prims" ADD COLUMN "sopanims" bytea NULL;
 ALTER TABLE "public"."primshapes" ADD COLUMN "MatOvrd" bytea NULL;
 COMMIT;
 
-:VERSION 53         #----- add linkset data binary storage column
+:VERSION 53         #----- add linkset data storage column
 BEGIN;
-ALTER TABLE "public"."prims" ADD COLUMN "lnkstBinData" bytea NULL;
+ALTER TABLE "public".`prims` ADD COLUMN `linksetdata` varchar default NULL;
 COMMIT;
 
 :VERSION 54         #----- add pbr terrain storage

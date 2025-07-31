@@ -230,8 +230,6 @@ namespace OpenSim.Region.Framework.Scenes
         ///
         public int m_linksetPhysCapacity = 0;
 
-        public int m_LinkSetDataLimit = 32 * 1024;
-
         /// <summary>
         /// When placed outside the region's border, do we transfer the objects or
         /// do we keep simulating them here?
@@ -306,11 +304,13 @@ namespace OpenSim.Region.Framework.Scenes
         protected IAuthorizationService m_AuthorizationService;
         protected IInventoryService m_InventoryService;
         protected IGridService m_GridService;
+        protected IExperienceModule m_ExperienceModule;
         protected ILibraryService m_LibraryService;
         protected ISimulationService m_simulationService;
         protected IAuthenticationService m_AuthenticationService;
         protected IPresenceService m_PresenceService;
         protected IUserAccountService m_UserAccountService;
+        protected IUserAliasService m_UserAliasService;
         protected IAvatarService m_AvatarService;
         protected IGridUserService m_GridUserService;
         protected IAgentPreferencesService m_AgentPreferencesService;
@@ -628,6 +628,27 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public IExperienceModule ExperienceModule
+        {
+            get
+            {
+                m_ExperienceModule ??= RequestModuleInterface<IExperienceModule>();
+                return m_ExperienceModule;
+
+                //if (m_ExperienceModule == null)
+                //{
+                //    m_ExperienceModule = RequestModuleInterface<IExperienceModule>();
+
+                //    if (m_ExperienceModule == null)
+                //    {
+                //        throw new Exception("No IExperienceModule available. This could happen if the config_include folder doesn't exist or if the OpenSim.ini [Architecture] section isn't set.");
+                //    }
+                //}
+
+                //return m_ExperienceModule;
+            }
+        }
+
         public ILibraryService LibraryService
         {
             get
@@ -675,6 +696,15 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public IUserAliasService UserAliasService
+        {
+            get
+            {
+                if (m_UserAliasService == null)
+                    m_UserAliasService = RequestModuleInterface<IUserAliasService>();
+                return m_UserAliasService;
+            }
+        }
         public IAvatarService AvatarService
         {
             get
@@ -1079,7 +1109,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_update_temp_cleaning    = startupConfig.GetInt("UpdateTempCleaningEveryNSeconds",   m_update_temp_cleaning);
 
                 string[] possibleScriptConfigSections = new string[] { "YEngine", "Xengine", "Scripts" };
-                m_LinkSetDataLimit = Util.GetConfigVarFromSections<int>(config, "LinksetDataLimit", possibleScriptConfigSections, m_LinkSetDataLimit);
             }
 
             #endregion Region Config
@@ -1299,7 +1328,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected virtual void RegisterDefaultSceneEvents()
         {
-            //m_eventManager.OnSignificantClientMovement += HandleOnSignificantClientMovement;
+//            m_eventManager.OnSignificantClientMovement += HandleOnSignificantClientMovement;
         }
 
         public override string GetSimulatorVersion()
@@ -1724,7 +1753,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // velocity
                     if (m_physicsEnabled && Frame % m_update_physics == 0)
                     {
-                        physicsFPS = m_sceneGraph.UpdatePhysics(FrameTime);
+                            physicsFPS = m_sceneGraph.UpdatePhysics(FrameTime);
                     }
 
                     nowMS = Util.GetTimeStampMS();
@@ -1898,7 +1927,7 @@ namespace OpenSim.Region.Framework.Scenes
                 StatsReporter.AddFrameStats(TimeDilation, physicsFPS, agentMS,
                              physicsMS + physicsMS2, otherMS , sleepMS, frameMS, scriptTimeMS);
 
-                // Optionally warn if a frame takes double the amount of time that it should.
+          // Optionally warn if a frame takes double the amount of time that it should.
                 if (DebugUpdates
                     && Util.EnvironmentTickCountSubtract(
                         m_lastFrameTick, previousFrameTick) > (int)(FrameTime * 1000 * 2))
@@ -3042,7 +3071,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // We currently do this in Scene.MakeRootAgent() instead.
                     bool attached = false;
                     if (AttachmentsModule is not null)
-                        attached = AttachmentsModule.AttachObject(sp, grp, 0, false, false, true);
+                        attached = AttachmentsModule.AttachObject(sp, grp, 0, false, false, true, UUID.Zero);
 
                     if (attached)
                         RootPrim.RemFlag(PrimFlags.TemporaryOnRez);
@@ -3640,7 +3669,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // TODO: Raytrace better here
 
                 //EntityIntersection ei = m_sceneGraph.GetClosestIntersectingPrim(new Ray(AXOrigin, AXdirection));
-                Ray NewRay = new(RayStart, direction);
+                Ray NewRay = new(RayStart,direction);
 
                 // Ray Trace against target here
                 EntityIntersection ei = target2.TestIntersectionOBB(NewRay, Quaternion.Identity, frontFacesOnly, CopyCenters);
@@ -3812,7 +3841,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
 
                     // It's possible for child agents to have transactions if changes are being made cross-border.
-                    //   m_log.Debug("[Scene]RemoveAgentAssetTransactions");
+//                        m_log.Debug("[Scene]RemoveAgentAssetTransactions");
                     AgentTransactionsModule?.RemoveAgentAssetTransactions(agentID);
                     m_log.Debug("[Scene] The avatar has left the building");
                 }
@@ -3938,7 +3967,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             bool vialogin = (teleportFlags & (uint)(TPFlags.ViaLogin | TPFlags.ViaHGLogin)) != 0;
             bool viahome = (teleportFlags & (uint)TPFlags.ViaHome) != 0;
-            //bool godlike = ((teleportFlags & (uint)TPFlags.Godlike) != 0);
+//            bool godlike = ((teleportFlags & (uint)TPFlags.Godlike) != 0);
 
             reason = String.Empty;
 
@@ -3966,7 +3995,7 @@ namespace OpenSim.Region.Framework.Scenes
                 (source is null) ? "" : string.Format("From region {0} ({1}){2}", source.RegionName, source.RegionID, (source.RawServerURI is null) ? "" : " @ " + source.ServerURI)
             );
 
-            //m_log.DebugFormat("NewUserConnection stack {0}", Environment.StackTrace);
+//            m_log.DebugFormat("NewUserConnection stack {0}", Environment.StackTrace);
 
             if (!LoginsEnabled)
             {
@@ -4016,7 +4045,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.DebugFormat(
                     "[SCENE]: Access denied for {0} {1} using {2}",
                     acd.firstname, acd.lastname, curViewer);
-                reason = "Access denied, your viewer is banned";
+                reason = "Access denied, your viewer " +curViewer.Trim() +" is not allowed.";
                 return false;
             }
 
@@ -4044,15 +4073,15 @@ namespace OpenSim.Region.Framework.Scenes
                     // re-establishes the connection on a relogin.  This could wrongly set the DoNotCloseAfterTeleport
                     // flag when no teleport had taken place (and hence no close was going to come).
 
-                    //if (!acd.ChildrenCapSeeds.ContainsKey(RegionInfo.RegionHandle))
-                    //{
-                    //    m_log.DebugFormat(
-                    //        "[SCENE]: Setting DoNotCloseAfterTeleport for child scene presence {0} in {1} because source will attempt close.",
-                    //        sp.Name, Name);
+//                    if (!acd.ChildrenCapSeeds.ContainsKey(RegionInfo.RegionHandle))
+//                    {
+//                        m_log.DebugFormat(
+//                            "[SCENE]: Setting DoNotCloseAfterTeleport for child scene presence {0} in {1} because source will attempt close.",
+//                            sp.Name, Name);
 
-                    //    sp.DoNotCloseAfterTeleport = true;
-                    //}
-                    //else if (EntityTransferModule.IsInTransit(sp.UUID))
+//                        sp.DoNotCloseAfterTeleport = true;
+//                    }
+//                    else if (EntityTransferModule.IsInTransit(sp.UUID))
 
                     sp.LifecycleState = ScenePresenceState.Running;
 
@@ -5482,15 +5511,15 @@ Label_GroupsDone:
         #endregion
 
 
-        // Commented pending deletion since this method no longer appears to do anything at all
-        //        public bool NeedSceneCacheClear(UUID agentID)
-        //        {
-        //            IInventoryTransferModule inv = RequestModuleInterface<IInventoryTransferModule>();
+// Commented pending deletion since this method no longer appears to do anything at all
+//        public bool NeedSceneCacheClear(UUID agentID)
+//        {
+//            IInventoryTransferModule inv = RequestModuleInterface<IInventoryTransferModule>();
         //            if (inv is null)
-        //                return true;
-        //
-        //            return inv.NeedSceneCacheClear(agentID, this);
-        //        }
+//                return true;
+//
+//            return inv.NeedSceneCacheClear(agentID, this);
+//        }
 
         public void CleanTempObjects()
         {
@@ -6050,9 +6079,9 @@ Environment.Exit(1);
                 return true;
 
             // Permissions.IsAdministrator is the same as IsGod for now
-            //bool isAdmin = Permissions.IsAdministrator(agentID);
-            //if(isAdmin)
-            //   return true;
+//            bool isAdmin = Permissions.IsAdministrator(agentID);
+//            if(isAdmin)
+//                return true;
 
             // also honor estate managers access rights
             bool isManager = Permissions.IsEstateManager(agentID);

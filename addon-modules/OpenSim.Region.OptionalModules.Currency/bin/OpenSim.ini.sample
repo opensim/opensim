@@ -1,0 +1,51 @@
+[Economy]
+    ;; Enables selling.
+    SellEnabled = true
+
+    ;CurrencyServer = "" ;;  ex.) "https://opensim.net:8008/"  Default is ""
+    EconomyModule = DTLNSLMoneyModule
+	CurrencyServer = "${Const|BaseURL}:8008/"
+	UserServer = "${Const|BaseURL}:8002/"
+	
+	CheckServerCert = false
+	
+    ;; Money Unit fee to upload textures, animations etc.  Default is 0.
+    PriceUpload = 0
+
+    ;; Mesh upload factors
+    MeshModelUploadCostFactor = 1.0
+    MeshModelUploadTextureCostFactor = 1.0
+    MeshModelMinCostFactor = 1.0
+
+    ;; Money Unit fee to create groups.  Default is 0.
+    PriceGroupCreate = 0
+	
+	;; We don't really know what the rest of these values do.  These get sent to the client
+    ;; These taken from Agni at a Public Telehub.  Change at your own risk.
+    ObjectCount = 0
+    PriceEnergyUnit = 0
+    PriceObjectClaim = 0
+    PricePublicObjectDecay = 0
+    PricePublicObjectDelete = 0
+    PriceParcelClaim = 0
+    PriceParcelClaimFactor = 1
+
+    PriceRentLight = 0
+    TeleportMinPrice = 0
+    TeleportPriceExponent = 2
+    EnergyEfficiency = 1
+    PriceObjectRent = 0
+    PriceObjectScaleFactor = 10
+    PriceParcelRent = 0
+	
+	; Mesh upload settings, independent of economymodule
+	
+	; Create inventory entries for textures uploaded with a model
+	; default is false, ie, do not create
+	; MeshModelAllowTextureToInventory = true
+
+    ;; Avatar Class for HG Avatar
+    ;; {ForeignAvatar, HGAvatar, GuestAvatar, LocalAvatar} HGAvatar
+    ;; HG Avatar is assumed as a specified avatar class. Default is HGAvatar
+    ;; Processing for each avatar class is dependent on Money Server settings.
+    ;HGAvatarAs = "HGAvatar"    

@@ -51,6 +51,7 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
+using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
@@ -72,6 +73,7 @@ using PrimType = OpenSim.Region.Framework.Scenes.PrimType;
 using RegionFlags = OpenSim.Framework.RegionFlags;
 using RegionInfo = OpenSim.Framework.RegionInfo;
 using System.Runtime.CompilerServices;
+using OpenMetaverse.StructuredData;
 
 #pragma warning disable IDE1006
 
@@ -117,8 +119,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected float m_recoilScaleFactor = 0.0f;
         protected bool m_AllowGodFunctions;
 
+        protected string m_GetWallclockTimeZone = String.Empty;     // Defaults to UTC
         protected double m_timer = Util.GetTimeStamp();
+        
         protected bool m_waitingForScriptAnswer = false;
+        protected bool m_waitingForScriptExperienceAnswer = false;
         protected bool m_automaticLinkPermission = false;
         protected int m_notecardLineReadCharsMax = 255;
         protected int m_scriptConsoleChannel = 0;
@@ -132,6 +137,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected IEmailModule m_emailModule = null;
         protected IUserAccountService m_userAccountService = null;
         protected IMessageTransferModule m_TransferModule = null;
+        protected IEventQueue m_EventQueue = null;
 
         protected ExpiringCacheOS<UUID, PresenceInfo> m_PresenceInfoCache = new(10000);
         protected int EMAIL_PAUSE_TIME = 20;  // documented delay value for smtp.
@@ -253,7 +259,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected bool m_useMeshCacheInCastRay = true;
         protected static Dictionary<ulong, FacetedMesh> m_cachedMeshes = new();
 
-        //protected Timer m_ShoutSayTimer;
+//        protected Timer m_ShoutSayTimer;
         protected int m_SayShoutCount = 0;
         DateTime m_lastSayShoutCheck;
 
@@ -265,8 +271,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         private string m_lsl_shard = "OpenSim";
         private string m_lsl_user_agent = string.Empty;
-
-        private int m_linksetDataLimit = 32 * 1024;
 
         private static readonly Dictionary<string, string> MovementAnimationsForLSL = new(StringComparer.InvariantCultureIgnoreCase)
         {
@@ -388,6 +392,88 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             "referer", "trailer", "transfer-encoding", "via", "authorization"
         };
 
+        // Experience Stuff
+        bool CheckExperienceAccessAtPos(Vector3 pos, UUID experience)
+        {
+            if (World.ExperienceModule == null)
+                return false;
+
+            if (World.RegionInfo.EstateSettings.KeyExperiences.Contains(experience))
+                return true;
+
+            if (World.RegionInfo.EstateSettings.AllowedExperiences.Contains(experience))
+                return true;
+
+            var land = World.LandChannel.GetLandObject(pos);
+            int idx = land.LandData.ParcelAccessList.FindIndex(
+                            delegate (LandAccessEntry e)
+                            {
+                                // It's not actually an AgentID
+                                if (e.AgentID == experience && (uint)e.Flags == 8u /*AccessList.Allowed*/) // todo: replace with AccessList.Allowed
+                                    return true;
+                                return false;
+                            });
+
+            return idx != -1;
+        }
+
+        private void SendExperienceEvent(ExperienceEvent action)
+        {
+            ScenePresence presence = World.GetScenePresence(m_item.PermsGranter);
+            if (presence != null)
+            {
+                string parcel = World.LandChannel.GetLandObject(m_host.AbsolutePosition).LandData.Name;
+                bool worn = m_host.ParentGroup.AttachmentPoint != 0 && m_host.OwnerID == presence.UUID;
+                presence.ControllingClient.SendGenericMessageForExperience(m_item.ExperienceID, m_item.OwnerID, (int)action, m_host.Name, parcel, worn);
+            }
+        }
+
+        bool CheckExperiencePermissions()
+        {
+            int perms = m_item.PermsMask;
+            if (perms == 408628)
+            {
+                ScenePresence presence = World.GetScenePresence(m_item.PermsGranter);
+                if (presence != null && World.ExperienceModule != null)
+                {
+                    ExperienceInfo info = World.ExperienceModule.GetExperienceInfo(m_item.ExperienceID);
+                    if (info != null)
+                    {
+                        if ((info.properties & (int)(ExperienceFlags.Disabled | ExperienceFlags.Suspended)) == 0)
+                        {
+                            bool allowed_on_land = CheckExperienceAccessAtPos(m_host.AbsolutePosition, m_item.ExperienceID);
+                            bool agent_on_experience_land = CheckExperienceAccessAtPos(presence.AbsolutePosition, m_item.ExperienceID);
+
+                            if (allowed_on_land && agent_on_experience_land)
+                            {
+                                if (World.ExperienceModule.GetExperiencePermission(m_item.PermsGranter, m_item.ExperienceID) == ExperiencePermission.Allowed)
+                                    return true;
+                            }
+                        }
+                    }
+                }
+
+                m_item.PermsGranter = UUID.Zero;
+                m_item.PermsMask = 0;
+            }
+
+            return false;
+        }
+
+
+        // Todo: maybe put this in omv.dll
+        enum ExperienceEvent
+        {
+            TakeControls = 0x1,
+            Animation = 0x3,
+            Attach = 0x4,
+            TrackCamera = 0x9,
+            ControlCamera = 0xA,
+            Teleport = 0xB,
+            Permissions = 0xC,
+            Sit = 0x10
+        }
+
         public void Initialize(IScriptEngine scriptEngine, SceneObjectPart host, TaskInventoryItem item)
         {
             m_lastSayShoutCheck = DateTime.UtcNow;
@@ -404,6 +490,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_UrlModule = m_ScriptEngine.World.RequestModuleInterface<IUrlModule>();
             m_SoundModule = m_ScriptEngine.World.RequestModuleInterface<ISoundModule>();
             m_materialsModule = m_ScriptEngine.World.RequestModuleInterface<IMaterialsModule>();
+            m_EventQueue = m_ScriptEngine.World.RequestModuleInterface<IEventQueue>();
 
             m_emailModule = m_ScriptEngine.World.RequestModuleInterface<IEmailModule>();
             m_envModule = m_ScriptEngine.World.RequestModuleInterface< IEnvironmentModule>();
@@ -437,6 +524,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 m_automaticLinkPermission  = seConfig.GetBoolean("AutomaticLinkPermission", m_automaticLinkPermission);
                 m_notecardLineReadCharsMax = seConfig.GetInt("NotecardLineReadCharsMax", m_notecardLineReadCharsMax);
 
+                m_GetWallclockTimeZone = seConfig.GetString("GetWallclockTimeZone", m_GetWallclockTimeZone);
+
                 // Rezzing an object with a velocity can create recoil. This feature seems to have been
                 //    removed from recent versions of SL. The code computes recoil (vel*mass) and scales
                 //    it by this factor. May be zero to turn off recoil all together.
@@ -444,8 +533,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 m_AllowGodFunctions = seConfig.GetBoolean("AllowGodFunctions", false);
 
                 m_disable_underground_movement = seConfig.GetBoolean("DisableUndergroundMovement", true);
-
-                m_linksetDataLimit = seConfig.GetInt("LinksetDataLimit", m_linksetDataLimit);
             }
 
             if (m_notecardLineReadCharsMax > 65535)
@@ -690,7 +777,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         else
                         {
-                            ret.Add(avs[linkType - 1]);
+                            ret.Add(avs[linkType-1]);
                             return ret;
                         }
                     }
@@ -720,12 +807,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// null is returned.
         /// </param>
         public static ISceneEntity GetLinkEntity(SceneObjectPart part, int linknum)
-        {
-            if (linknum == ScriptBaseClass.LINK_THIS)
-               return part;
+            {
+                if (linknum == ScriptBaseClass.LINK_THIS)
+                    return part;
 
             if (linknum <= part.ParentGroup.PrimCount)
-                return part.ParentGroup.GetLinkNumPart(linknum);
+                    return part.ParentGroup.GetLinkNumPart(linknum);
 
             return part.ParentGroup.GetLinkSitingAvatar(linknum);
         }
@@ -751,12 +838,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 case ScriptBaseClass.LINK_ALL_OTHERS:
                     ret = new List<SceneObjectPart>(part.ParentGroup.Parts);
-                    ret.Remove(part);
+                        ret.Remove(part);
                     return ret;
 
                 case ScriptBaseClass.LINK_ALL_CHILDREN:
                     ret = new List<SceneObjectPart>(part.ParentGroup.Parts);
-                    ret.Remove(part.ParentGroup.RootPart);
+                        ret.Remove(part.ParentGroup.RootPart);
                     return ret;
 
                 case ScriptBaseClass.LINK_THIS:
@@ -789,12 +876,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 case ScriptBaseClass.LINK_ALL_OTHERS:
                     ret = new List<ISceneEntity>(part.ParentGroup.Parts);
-                    ret.Remove(part);
+                        ret.Remove(part);
                     return ret;
 
                 case ScriptBaseClass.LINK_ALL_CHILDREN:
                     ret = new List<ISceneEntity>(part.ParentGroup.Parts);
-                    ret.Remove(part.ParentGroup.RootPart);
+                        ret.Remove(part.ParentGroup.RootPart);
 
                     List<ScenePresence> avs = part.ParentGroup.GetSittingAvatars();
                     if(avs is not null && avs.Count > 0)
@@ -917,14 +1004,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Vector llRot2Euler(LSL_Rotation q1)
         {
-            double sqw = q1.s * q1.s;
-            double sqx = q1.x * q1.x;
-            double sqy = q1.z * q1.z;
-            double sqz = q1.y * q1.y;
+            double sqw = q1.s*q1.s;
+            double sqx = q1.x*q1.x;
+            double sqy = q1.z*q1.z;
+            double sqz = q1.y*q1.y;
             double norm = sqx + sqy + sqz + sqw; // if normalised is one, otherwise is correction factor
             double halfnorm = 0.49999 * norm;
 
-            double test = q1.x * q1.z + q1.y * q1.s;
+            double test = q1.x*q1.z + q1.y*q1.s;
             if (test > halfnorm) // singularity at north pole
             {
                 return new LSL_Vector(
@@ -1251,8 +1338,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (wComm is not null)
             { 
                 _ = UUID.TryParse(ID, out UUID keyID);
-                return wComm.Listen(m_item.ItemID, m_host.UUID, channelID, name, keyID, msg);
-            }
+            return wComm.Listen(m_item.ItemID, m_host.UUID, channelID, name, keyID, msg);
+        }
             return -1;
         }
 
@@ -1272,7 +1359,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             _ = UUID.TryParse(id, out UUID keyID);
             m_AsyncCommands.SensorRepeatPlugin.SenseOnce(m_host.LocalId, m_item.ItemID, name, keyID, type, range, arc, m_host);
-        }
+       }
 
         public void llSensorRepeat(string name, string id, int type, double range, double arc, double rate)
         {
@@ -1512,34 +1599,34 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     SceneObjectGroup group = m_host.ParentGroup;
                     if (group.RootPart.PhysActor is null || !group.RootPart.PhysActor.IsPhysical)
                     {
-                        bool allow = true;
-                        int maxprims = World.m_linksetPhysCapacity;
-                        bool checkShape = (maxprims > 0 && group.PrimCount > maxprims);
+                    bool allow = true;
+                    int maxprims = World.m_linksetPhysCapacity;
+                    bool checkShape = (maxprims > 0 && group.PrimCount > maxprims);
 
-                        foreach (SceneObjectPart part in group.Parts)
+                    foreach (SceneObjectPart part in group.Parts)
+                    {
+                        if (part.PhysicsShapeType == (byte)PhysicsShapeType.None)
+                            continue;
+
+                        if (checkShape)
                         {
-                            if (part.PhysicsShapeType == (byte)PhysicsShapeType.None)
-                                continue;
-
-                            if (checkShape)
-                            {
-                                if (--maxprims < 0)
-                                {
-                                    allow = false;
-                                    break;
-                                }
-                            }
-
-                            if (part.Scale.X > World.m_maxPhys || part.Scale.Y > World.m_maxPhys || part.Scale.Z > World.m_maxPhys)
+                            if (--maxprims < 0)
                             {
                                 allow = false;
                                 break;
                             }
                         }
 
-                        if (allow)
-                            m_host.ScriptSetPhysicsStatus(true);
+                            if (part.Scale.X > World.m_maxPhys || part.Scale.Y > World.m_maxPhys || part.Scale.Z > World.m_maxPhys)
+                            {
+                                allow = false;
+                                break;
+                            }
                     }
+
+                        if (allow)
+                    m_host.ScriptSetPhysicsStatus(true);
+                }
                 }
                 else
                 {
@@ -1689,36 +1776,36 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 case ScriptBaseClass.CONTENT_TYPE_HTML:
                 {
-                    // Make sure the content type is text/plain to start with
-                    m_UrlModule.HttpContentType(id, "text/plain");
+            // Make sure the content type is text/plain to start with
+            m_UrlModule.HttpContentType(id, "text/plain");
 
-                    // Is the object owner online and in the region
-                    ScenePresence agent = World.GetScenePresence(m_host.ParentGroup.OwnerID);
-                    if (agent == null || agent.IsChildAgent || agent.IsDeleted)
-                        return;  // Fail if the owner is not in the same region
+            // Is the object owner online and in the region
+            ScenePresence agent = World.GetScenePresence(m_host.ParentGroup.OwnerID);
+            if (agent == null || agent.IsChildAgent || agent.IsDeleted)
+                return;  // Fail if the owner is not in the same region
 
-                    // Is it the embeded browser?
-                    string userAgent = m_UrlModule.GetHttpHeader(id, "user-agent");
+            // Is it the embeded browser?
+            string userAgent = m_UrlModule.GetHttpHeader(id, "user-agent");
                     if(string.IsNullOrEmpty(userAgent) || userAgent.IndexOf("SecondLife") < 0)
-                        return; // Not the embedded browser
+                return; // Not the embedded browser
 
-                    // Use the IP address of the client and check against the request
-                    // seperate logins from the same IP will allow all of them to get non-text/plain as long
-                    // as the owner is in the region. Same as SL!
-                    string logonFromIPAddress = agent.ControllingClient.RemoteEndPoint.Address.ToString();
-                    if (string.IsNullOrEmpty(logonFromIPAddress))
-                        return;
+            // Use the IP address of the client and check against the request
+            // seperate logins from the same IP will allow all of them to get non-text/plain as long
+            // as the owner is in the region. Same as SL!
+            string logonFromIPAddress = agent.ControllingClient.RemoteEndPoint.Address.ToString();
+            if (string.IsNullOrEmpty(logonFromIPAddress))
+                return;
 
-                    string requestFromIPAddress = m_UrlModule.GetHttpHeader(id, "x-remote-ip");
-                    //m_log.Debug("IP from header='" + requestFromIPAddress + "' IP from endpoint='" + logonFromIPAddress + "'");
-                    if (requestFromIPAddress == null)
-                        return;
+            string requestFromIPAddress = m_UrlModule.GetHttpHeader(id, "x-remote-ip");
+            //m_log.Debug("IP from header='" + requestFromIPAddress + "' IP from endpoint='" + logonFromIPAddress + "'");
+            if (requestFromIPAddress == null)
+                return;
 
-                    requestFromIPAddress = requestFromIPAddress.Trim();
+            requestFromIPAddress = requestFromIPAddress.Trim();
 
-                    // If the request isnt from the same IP address then the request cannot be from the owner
-                    if (!requestFromIPAddress.Equals(logonFromIPAddress))
-                        return;
+            // If the request isnt from the same IP address then the request cannot be from the owner
+            if (!requestFromIPAddress.Equals(logonFromIPAddress))
+                return;
 
                     m_UrlModule.HttpContentType(id, "text/html");
                     break;
@@ -1776,7 +1863,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     if (tex.FaceTextures[i] is not null)
                         tex.FaceTextures[i].TexMapType = textype;
-                }
+                    }
                 tex.DefaultTexture.TexMapType = textype;
                 part.UpdateTextureEntry(tex);
                 return;
@@ -1804,7 +1891,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     if (tex.FaceTextures[i] is not null)
                         tex.FaceTextures[i].Glow = glow;
-                }
+                    }
                 tex.DefaultTexture.Glow = glow;
                 part.UpdateTextureEntry(tex);
                 return;
@@ -2358,17 +2445,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (face >= nsides)
                 return ScriptBaseClass.NULL_KEY;
 
-            Primitive.TextureEntryFace texface;
-            texface = tex.GetFace((uint)face);
+                Primitive.TextureEntryFace texface;
+                texface = tex.GetFace((uint)face);
 
-            lock (part.TaskInventory)
-            {
-                foreach (KeyValuePair<UUID, TaskInventoryItem> inv in part.TaskInventory)
+                lock (part.TaskInventory)
                 {
-                    if (inv.Value.AssetID.Equals(texface.TextureID))
+                    foreach (KeyValuePair<UUID, TaskInventoryItem> inv in part.TaskInventory)
+                    {
+                        if (inv.Value.AssetID.Equals(texface.TextureID))
                         return inv.Value.Name.ToString();
+                    }
                 }
-            }
 
             return texface.TextureID.ToString();
         }
@@ -2811,7 +2898,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Float llGetWallclock()
         {
-            return DateTime.Now.TimeOfDay.TotalSeconds;
+            DateTimeOffset dateTimeOffset = DateTimeOffset.Now;
+
+            if (string.IsNullOrEmpty(m_GetWallclockTimeZone) == false)
+            {
+                dateTimeOffset = 
+                    TimeZoneInfo.ConvertTimeBySystemTimeZoneId(
+                        DateTimeOffset.UtcNow, m_GetWallclockTimeZone);
+            }
+
+            return Math.Truncate(dateTimeOffset.DateTime.TimeOfDay.TotalSeconds);
         }
 
         public LSL_Float llGetTime()
@@ -3935,9 +4031,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 ScenePresence attachedAvatar = World.GetScenePresence(m_host.ParentGroup.AttachedAvatar);
                 return attachedAvatar is null ? 0 : attachedAvatar.GetMass();
-            }
-            else
-                return m_host.ParentGroup.GetMass();
+                }
+                else
+                    return m_host.ParentGroup.GetMass();
         }
 
         public LSL_Float llGetMassMKS()
@@ -3956,6 +4052,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llTakeControls(int controls, int accept, int pass_on)
         {
+            bool is_experience = CheckExperiencePermissions();
+
             if (!m_item.PermsGranter.IsZero())
             {
                 ScenePresence presence = World.GetScenePresence(m_item.PermsGranter);
@@ -3964,6 +4062,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_TAKE_CONTROLS) != 0)
                     {
+                        if (is_experience)
+                        {
+                            SendExperienceEvent(ExperienceEvent.TakeControls);
+                        }
+
                         presence.RegisterControlEventsToScript(controls, accept, pass_on, m_host.LocalId, m_item.ItemID);
                     }
                 }
@@ -3973,6 +4076,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llReleaseControls()
         {
+            bool is_experience = CheckExperiencePermissions();
 
             if (!m_item.PermsGranter.IsZero())
             {
@@ -4003,15 +4107,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// The attachment point (e.g. <see cref="OpenSim.Region.ScriptEngine.Shared.ScriptBase.ScriptBaseClass.ATTACH_CHEST">ATTACH_CHEST</see>)
         /// </param>
         /// <returns>true if the attach suceeded, false if it did not</returns>
-        public bool AttachToAvatar(int attachmentPoint)
+        public bool AttachToAvatar(int attachmentPoint, bool experience = false)
         {
             SceneObjectGroup grp = m_host.ParentGroup;
             ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
 
+            if (experience)
+            { // todo: im pretty sure the experience id should be getting saved here
+                SendExperienceEvent(ExperienceEvent.Attach);
+            }
+
             IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
 
             if (attachmentsModule != null)
-                return attachmentsModule.AttachObject(presence, grp, (uint)attachmentPoint, false, true, true);
+                return attachmentsModule.AttachObject(presence, grp, (uint)attachmentPoint, false, true, true, UUID.Zero);
             else
                 return false;
         }
@@ -4039,6 +4148,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llAttachToAvatar(LSL_Integer attachmentPoint)
         {
+            bool is_experience = CheckExperiencePermissions();
 
             if (m_item.PermsGranter != m_host.OwnerID)
                 return;
@@ -4048,7 +4158,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_ATTACH) != 0)
-                AttachToAvatar(attachmentPoint);
+                AttachToAvatar(attachmentPoint, is_experience);
         }
 
         public void llAttachToAvatarTemp(LSL_Integer attachmentPoint)
@@ -4056,6 +4166,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             IAttachmentsModule attachmentsModule = World.RequestModuleInterface<IAttachmentsModule>();
             if (attachmentsModule == null)
                 return;
+
+            bool is_experience = CheckExperiencePermissions();
 
             if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_ATTACH) == 0)
                 return;
@@ -4100,7 +4212,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 grp.RootPart.ScheduleFullUpdate();
             }
 
-            attachmentsModule.AttachObject(target, grp, (uint)attachmentPoint, false, false, true);
+            if (is_experience)
+            {
+                SendExperienceEvent(ExperienceEvent.Attach);
+            }
+
+            attachmentsModule.AttachObject(target, grp, (uint)attachmentPoint, false, false, true, is_experience ? m_item.ExperienceID : UUID.Zero);
         }
 
     public void llDetachFromAvatar()
@@ -4108,6 +4225,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (m_host.ParentGroup.AttachmentPoint == 0)
                 return;
+
+            bool is_experience = CheckExperiencePermissions();
 
             if (m_item.PermsGranter != m_host.OwnerID)
                 return;
@@ -4250,14 +4369,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 UserAccount account = null;
                 if (target == ScriptBaseClass.TARGETED_EMAIL_OBJECT_OWNER)
                 {
-                    if (parent.OwnerID.Equals(parent.GroupID))
+                    if(parent.OwnerID.Equals(parent.GroupID))
                         return;
                     account = m_userAccountService.GetUserAccount(RegionScopeID, parent.OwnerID);
                 }
                 else if (target == ScriptBaseClass.TARGETED_EMAIL_ROOT_CREATOR)
                 {
                     // non standard avoid creator spam
-                    if (m_item.CreatorID.Equals(parent.RootPart.CreatorID))
+                    if(m_item.CreatorID.Equals(parent.RootPart.CreatorID))
                         account = m_userAccountService.GetUserAccount(RegionScopeID, parent.RootPart.CreatorID);
                     else
                         return;
@@ -4366,6 +4485,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llStartAnimation(string anim)
         {
+            bool is_experience = CheckExperiencePermissions();
 
             if (m_item.PermsGranter.IsZero())
                 return;
@@ -4376,6 +4496,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 if (presence is not null)
                 {
+                    if (is_experience)
+                    {
+                        SendExperienceEvent(ExperienceEvent.Animation);
+                    }
+
                     // Do NOT try to parse UUID, animations cannot be triggered by ID
                     UUID animID = ScriptUtils.GetAssetIdFromItemName(m_host, anim, (int)AssetType.Animation);
                     if (animID.IsZero())
@@ -4387,6 +4512,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         }
         public void llStopAnimation(string anim)
         {
+            bool is_experience = CheckExperiencePermissions();
 
             if (m_item.PermsGranter.IsZero())
                 return;
@@ -4397,6 +4523,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 if (presence is not null)
                 {
+                    if (is_experience)
+                    {
+                        SendExperienceEvent(ExperienceEvent.Animation);
+                    }
+
                     UUID animID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, anim);
                     if (animID.IsNotZero())
                         presence.Animator.RemoveAnimation(animID, true);
@@ -4587,7 +4718,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
 
                 presence.ControllingClient.SendScriptQuestion(
-                    m_host.UUID, m_host.ParentGroup.RootPart.Name, ownerName, m_item.ItemID, perm);
+                    m_host.UUID, m_host.ParentGroup.RootPart.Name, ownerName, m_item.ItemID, perm, UUID.Zero);
 
                 return;
             }
@@ -4621,13 +4752,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Key llGetPermissionsKey()
         {
-
+            bool is_experience = CheckExperiencePermissions();
             return m_item.PermsGranter.ToString();
         }
 
         public LSL_Integer llGetPermissions()
         {
-
+            bool is_experience = CheckExperiencePermissions();
             int perms = m_item.PermsMask;
 
             if (m_automaticLinkPermission)
@@ -5034,45 +5165,45 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             ScenePresence presence = World.GetScenePresence(destId);
             if (presence is null)
-            {
-                UserAccount account = m_userAccountService.GetUserAccount(RegionScopeID, destId);
-                if (account is null)
                 {
-                    GridUserInfo info = World.GridUserService.GetGridUserInfo(destId.ToString());
-                    if(info is null || info.Online == false)
+                    UserAccount account = m_userAccountService.GetUserAccount(RegionScopeID, destId);
+                if (account is null)
                     {
-                        Error("llGiveInventory", "Can't find destination '" + destId.ToString() + "'");
-                        return;
+                        GridUserInfo info = World.GridUserService.GetGridUserInfo(destId.ToString());
+                    if(info is null || info.Online == false)
+                        {
+                            Error("llGiveInventory", "Can't find destination '" + destId.ToString() + "'");
+                            return;
+                        }
                     }
                 }
-            }
 
-            // destination is an avatar
+                // destination is an avatar
             InventoryItemBase agentItem = World.MoveTaskInventoryItem(destId, UUID.Zero, m_host, item.ItemID, out string message);
             if (agentItem is null)
-            {
-                llSay(0, message);
-                return;
-            }
+                {
+                    llSay(0, message);
+                    return;
+                }
 
-            byte[] bucket = new byte[1];
-            bucket[0] = (byte)item.Type;
+                byte[] bucket = new byte[1];
+                bucket[0] = (byte)item.Type;
 
             GridInstantMessage msg = new(World, m_host.OwnerID, m_host.Name, destId,
-                    (byte)InstantMessageDialog.TaskInventoryOffered,
-                    m_host.OwnerID.Equals(m_host.GroupID), "'"+item.Name+"'. ("+m_host.Name+" is located at "+
-                    m_regionName + " "+ m_host.AbsolutePosition.ToString() + ")",
-                    agentItem.ID, true, m_host.AbsolutePosition,
-                    bucket, true);
+                        (byte)InstantMessageDialog.TaskInventoryOffered,
+                        m_host.OwnerID.Equals(m_host.GroupID), "'"+item.Name+"'. ("+m_host.Name+" is located at "+
+                        m_regionName + " "+ m_host.AbsolutePosition.ToString() + ")",
+                        agentItem.ID, true, m_host.AbsolutePosition,
+                        bucket, true);
 
-            if (World.TryGetScenePresence(destId, out ScenePresence sp))
-                sp.ControllingClient.SendInstantMessage(msg);
-            else
-                m_TransferModule?.SendInstantMessage(msg, delegate(bool success) {});
+                if (World.TryGetScenePresence(destId, out ScenePresence sp))
+                    sp.ControllingClient.SendInstantMessage(msg);
+                else
+                    m_TransferModule?.SendInstantMessage(msg, delegate(bool success) {});
 
-            //This delay should only occur when giving inventory to avatars.
-            ScriptSleep(m_sleepMsOnGiveInventory);
-        }
+                //This delay should only occur when giving inventory to avatars.
+                ScriptSleep(m_sleepMsOnGiveInventory);
+            }
 
         [DebuggerNonUserCode]
         public void llRemoveInventory(string name)
@@ -5138,7 +5269,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     };
                     if (val == 9999)
                         returns.Add(LSL_String.Empty);
-                    else
+            else
                     {
                         float fval = MathF.Round(val * 0.0039215686f, 6); //(1/255)
                         returns.Add(fval.ToString());
@@ -5198,24 +5329,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     string reply = null;
                     switch(data)
-                    {
-                        case ScriptBaseClass.DATA_ONLINE:
-                            if (!m_PresenceInfoCache.TryGetValue(uuid, out PresenceInfo pinfo))
                             {
-                                PresenceInfo[] pinfos = World.PresenceService.GetAgents([uuid.ToString()]);
-                                if (pinfos != null && pinfos.Length > 0)
+                        case ScriptBaseClass.DATA_ONLINE:
+                                if (!m_PresenceInfoCache.TryGetValue(uuid, out PresenceInfo pinfo))
                                 {
-                                    foreach (PresenceInfo p in pinfos)
+                                PresenceInfo[] pinfos = World.PresenceService.GetAgents([uuid.ToString()]);
+                                    if (pinfos != null && pinfos.Length > 0)
                                     {
-                                        if (!p.RegionID.IsZero())
+                                        foreach (PresenceInfo p in pinfos)
                                         {
-                                            pinfo = p;
+                                            if (!p.RegionID.IsZero())
+                                            {
+                                                pinfo = p;
+                                            }
                                         }
                                     }
+                                    m_PresenceInfoCache.AddOrUpdate(uuid, pinfo, m_llRequestAgentDataCacheTimeout);
                                 }
-                                m_PresenceInfoCache.AddOrUpdate(uuid, pinfo, m_llRequestAgentDataCacheTimeout);
-                            }
-                            reply = pinfo == null ? "0" : "1";
+                                reply = pinfo == null ? "0" : "1";
                             break;
                         case ScriptBaseClass.DATA_NAME:
                             reply = udt.FirstName + " " + udt.LastName;
@@ -5230,14 +5361,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             {
                                 UserAccount account = m_userAccountService.GetUserAccount(RegionScopeID, uuid);
                                 if (account is not null)
-                                {
-                                    reply = data switch
-                                    { 
-                                        7 => account.UserLevel.ToString(),
+                    {
+                            reply = data switch
+                            {
+                                7 => account.UserLevel.ToString(),
                                         ScriptBaseClass.DATA_BORN => Util.ToDateTime(account.Created).ToString("yyyy-MM-dd"),
                                         _ => ((account.UserFlags >> 2) & 0x03).ToString()
-                                    };
-                                }
+                            };
+                        }
                             }
                             else
                             {
@@ -5249,7 +5380,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             break;
                     }
                     if(reply != null)
-                        m_AsyncCommands.DataserverPlugin.DataserverReply(eventID, reply);
+                    m_AsyncCommands.DataserverPlugin.DataserverReply(eventID, reply);
                 }
 
                 UUID tid = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId,
@@ -5350,14 +5481,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (presence == null || presence.IsDeleted || presence.IsChildAgent || presence.IsNPC || presence.IsSatOnObject || presence.IsInTransit)
                     return;
 
+                bool is_experience = CheckExperiencePermissions();
+
                 if (m_item.PermsGranter.Equals(agentId))
                 {
                     if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_TELEPORT) != 0)
                     {
+                        if(is_experience)
+                        {
+                            SendExperienceEvent(ExperienceEvent.Teleport);
+                        }
+
                         DoLLTeleport(presence, destination, targetPos, targetLookAt);
                         return;
                     }
                 }
+
+                // I think all of this is just opensim only stuff? Maybe it should be removed now?
 
                 // special opensim legacy extra permissions, possible to remove
                 // agent must be wearing the object
@@ -5383,14 +5523,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llTeleportAgentGlobalCoords(string agent, LSL_Vector global_coords, LSL_Vector targetPos, LSL_Vector targetLookAt)
         {
+            bool is_experience = CheckExperiencePermissions();
+
             // If attached using llAttachToAvatarTemp, cowardly refuse
             if (m_host.ParentGroup.AttachmentPoint != 0 && m_host.ParentGroup.FromItemID.IsZero())
                 return;
 
             if (UUID.TryParse(agent, out UUID agentId) && agentId.IsNotZero())
             {
-                // This function is owner only!
-                if (m_host.OwnerID.NotEqual(agentId))
+                // This function is owner only (unless part of an Experience)!
+                if (m_host.OwnerID.NotEqual(agentId) && !is_experience)
                     return;
 
                 ScenePresence presence = World.GetScenePresence(agentId);
@@ -5693,13 +5835,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 else
                 {
                     if (pusheeob is not null)
-                    {
+                        {
                         if (pusheeob.PhysActor is not null)
                             pusheeob.ApplyImpulse(applied_linear_impulse, local != 0);
+                        }
                     }
                 }
             }
-        }
 
         public void llPassCollisions(int pass)
         {
@@ -5872,8 +6014,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (face >= 0 && face < GetNumberOfSides(part))
                 return tex.GetFace((uint)face).Rotation;
 
-            return 0.0;
-        }
+                return 0.0;
+            }
 
         public LSL_Integer llSubStringIndex(string source, string pattern)
         {
@@ -5970,9 +6112,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 if(UUID.TryParse(lslk.m_string, out UUID _))
                     return Convert.ToDouble(new LSL_Integer(lslk.m_string).value);
-                // we can't do this because a string is also a LSL_Key for now :(
-                //else
-                //   return 0;
+// we can't do this because a string is also a LSL_Key for now :(
+//                else
+//                    return 0;
             }
 
             try
@@ -5989,7 +6131,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (m != Match.Empty)
                     {
                          if (Double.TryParse(m.Value, out double d))
-                            return d;
+                        return d;
                     }
                     return 0.0;
                 }
@@ -6149,7 +6291,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             int parens = 0;
             int start  = 0;
             int length = 0;
-            
+
             ReadOnlySpan<char> s = src.AsSpan();
             for (int i = 0; i < s.Length; i++)
             {
@@ -6267,7 +6409,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (start < 0)
                     start = 0;
             }
-            if (end < 0)
+            if (end   < 0)
             {
                 end += src.Length;
                 if (end < 0)
@@ -6339,20 +6481,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 start = 0;
                 end = src.Length - 1;
-            }
-            else
-            {
+                }
+                else
+                {
                 if (start >= src.Length)
                     return new LSL_List();
                 if (end >= src.Length)
                     end = src.Length - 1;
-            }
+                }
 
             if (stride < 1)
                 stride = 1;
 
             if (stride_index < 0)
-            {
+                {
                 stride_index += stride;
                 if (stride_index < 0)
                     return new LSL_List();
@@ -6362,7 +6504,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             int size;
             if (stride > 1)
-            {
+                    {
                 if (start > 0)
                 {
                     int sst = start / stride;
@@ -6567,17 +6709,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     while(j < testlen)
                     {
                         if (!LSL_List.ListFind_areEqual(test[j], src[k]))
-                            break;
+                                break;
                         ++j;
                         ++k;
-                    }
+                        }
 
                     if (j == testlen)
                         return i;
-                 }
-            }
+                    }
+                }
             return -1;
-        }
+            }
 
         public LSL_Integer llListFindListNext(LSL_List lsrc, LSL_List ltest, LSL_Integer linstance)
         {
@@ -7058,7 +7200,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 SceneObjectPart sop = World.GetSceneObjectPart(key);
                 if (sop is not null)
                     return sop.Name;
-            }
+                }
             return LSL_String.Empty;
         }
 
@@ -7147,7 +7289,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             }
                         }
 
-                        if (notfound)
+                        if(notfound)
                         {
                             try
                             {
@@ -7228,7 +7370,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_SoundModule?.TriggerSoundLimited(m_host.UUID,
                         ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound, AssetType.Sound), volume,
                         bottom_south_west, top_north_east);
-        }
+            }
 
         public void llEjectFromLand(LSL_Key pest)
         {
@@ -8253,16 +8395,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 int expires = (hours != 0) ? Util.UnixTimeSinceEpoch() + (int)(3600.0 * hours) : 0;
                 LandData land = parcel.LandData;
                 foreach(LandAccessEntry e in land.ParcelAccessList)
+                        {
+                            if (e.Flags == AccessList.Access && e.AgentID.Equals(key))
                 {
-                    if (e.Flags == AccessList.Access && e.AgentID.Equals(key))
-                    {
                         if (e.Expires != 0 && expires > e.Expires)
                         {
                             e.Expires = expires;
                             World.EventManager.TriggerLandObjectUpdated((uint)land.LocalID, parcel);
                         }
-                        return;
-                    }
+                    return;
+                }
                 }
 
                 LandAccessEntry entry = new()
@@ -8530,7 +8672,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llSHA256String(LSL_String input)
         {
             byte[] bytes;
-            // Create a SHA256   
+            // Create a SHA256
             using (SHA256 sha256Hash = SHA256.Create())
             {
                 // ComputeHash - returns byte array
@@ -8942,7 +9084,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if(base_type == ScriptBaseClass.PRIM_SCULPT_TYPE_MESH)
             {
                 if(!partIsMesh)
-                    return;
+                return;
 
                 bool animeshEnable = (type & ScriptBaseClass.PRIM_SCULPT_FLAG_ANIMESH) != 0;
                 if (animeshEnable != part.Shape.AnimeshEnabled)
@@ -10633,7 +10775,38 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 SitTarget(part, Vector3.Zero , Quaternion.Identity);
 
                             break;
+                        case ScriptBaseClass.PRIM_ALLOW_UNSIT:
+                            if (remain < 1)
+                                return new LSL_List();
+                            bool allow;
+                            try
+                            {
+                                allow = rules.GetLSLIntegerItem(idx++) == 1;
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_ALLOW_UNSIT: arg #{1} - parameter 2 must be an integer", rulesParsed, idx - idxStart - 1));
+                                return new LSL_List();
+                            }
 
+                            part.AllowUnsit = allow;
+                            break;
+                        case ScriptBaseClass.PRIM_SCRIPTED_SIT_ONLY:
+                            if (remain < 1)
+                                return new LSL_List();
+                            bool script_only;
+                            try
+                            {
+                                script_only = rules.GetLSLIntegerItem(idx++) == 1;
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_SCRIPTED_SIT_ONLY: arg #{1} - parameter 2 must be an integer", rulesParsed, idx - idxStart - 1));
+                                return new LSL_List();
+                            }
+
+                            part.ScriptedSitOnly = script_only;
+                            break;
                         case ScriptBaseClass.PRIM_ALPHA_MODE:
                             if (remain < 3)
                                 return new LSL_List();
@@ -13840,6 +14013,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Vector llGetCameraPos()
         {
+            bool is_experience = CheckExperiencePermissions();
 
             if (m_item.PermsGranter.IsZero())
                 return LSL_Vector.Zero;
@@ -13852,13 +14026,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             ScenePresence presence = World.GetScenePresence(m_item.PermsGranter);
             if (presence is not null)
+            {
+                if (is_experience)
+                {
+                    SendExperienceEvent(ExperienceEvent.TrackCamera);
+                }
+
                 return new LSL_Vector(presence.CameraPosition);
+            }
 
             return LSL_Vector.Zero;
         }
 
         public LSL_Rotation llGetCameraRot()
         {
+            bool is_experience = CheckExperiencePermissions();
+
             if (m_item.PermsGranter.IsZero())
                 return LSL_Rotation.Identity;
 
@@ -13871,6 +14054,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ScenePresence presence = World.GetScenePresence(m_item.PermsGranter);
             if (presence is not null)
             {
+                if (is_experience)
+                {
+                    SendExperienceEvent(ExperienceEvent.TrackCamera);
+                }
+
                 return new LSL_Rotation(presence.CameraRotation);
             }
 
@@ -13987,16 +14175,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 int expires = (hours != 0) ? Util.UnixTimeSinceEpoch() + (int)(3600.0 * hours) : 0;
                 LandData land = parcel.LandData;
                 foreach (LandAccessEntry e in land.ParcelAccessList)
+                        {
+                            if (e.Flags == AccessList.Ban && e.AgentID.Equals(key))
                 {
-                    if (e.Flags == AccessList.Ban && e.AgentID.Equals(key))
-                    {
                         if (e.Expires != 0 && e.Expires < expires)
                         {
                             e.Expires = expires;
                             World.EventManager.TriggerLandObjectUpdated((uint)land.LocalID, parcel);
                         }
-                        return;
-                    }
+                    return;
+                }
                 }
 
                 LandAccessEntry entry = new()
@@ -14024,10 +14212,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 LandData land = parcel.LandData;
                 for(int i = 0; i < land.ParcelAccessList.Count; ++i)
-                {
+                        {
                     LandAccessEntry e = land.ParcelAccessList[i];
-                    if (e.Flags == AccessList.Access && e.AgentID.Equals(key))
-                    {
+                            if (e.Flags == AccessList.Access && e.AgentID.Equals(key))
+                {
                         land.ParcelAccessList.RemoveAt(i);
                         World.EventManager.TriggerLandObjectUpdated((uint)land.LocalID, parcel);
                         break;
@@ -14047,10 +14235,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 LandData land = parcel.LandData;
                 for (int i = 0; i < land.ParcelAccessList.Count; ++i)
-                {
+                        {
                     LandAccessEntry e = land.ParcelAccessList[i];
-                    if (e.Flags == AccessList.Ban && e.AgentID.Equals(key))
-                    {
+                            if (e.Flags == AccessList.Ban && e.AgentID.Equals(key))
+                {
                         land.ParcelAccessList.RemoveAt(i);
                         World.EventManager.TriggerLandObjectUpdated((uint)land.LocalID, parcel);
                         break;
@@ -14062,6 +14250,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llSetCameraParams(LSL_List rules)
         {
+            bool is_experience = CheckExperiencePermissions();
 
             // the object we are in
             UUID objectID = m_host.ParentUUID;
@@ -14183,11 +14372,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     break;
                 }
             }
-            if (parameters.Count > 0) presence.ControllingClient.SendSetFollowCamProperties(objectID, parameters);
+
+            if (parameters.Count > 0)
+            {
+                if (is_experience)
+                {
+                    SendExperienceEvent(ExperienceEvent.ControlCamera);
+                }
+
+                presence.ControllingClient.SendSetFollowCamProperties(objectID, parameters);
+            }
         }
 
         public void llClearCameraParams()
         {
+            bool is_experience = CheckExperiencePermissions();
 
             // the object we are in
             UUID objectID = m_host.ParentUUID;
@@ -14573,12 +14772,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         if (noskip)
                         {
-                            string paramValue = parameters.Data[i + 1].ToString();
-                            if (paramName.Length + paramValue.Length > 253)
-                            {
-                                Error("llHTTPRequest", "name and value length exceds 253 characters for custom header at parameter " + i.ToString());
-                                return string.Empty;
-                            }
+                        string paramValue = parameters.Data[i + 1].ToString();
+                        if(paramName.Length + paramValue.Length > 253)
+                        {
+                            Error("llHTTPRequest", "name and value length exceds 253 characters for custom header at parameter " + i.ToString());
+                            return string.Empty;
+                        }
                             httpHeaders[paramName] = paramValue;
                             nCustomHeaders++;
                         }
@@ -14801,7 +15000,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return new LSL_List(0);
 
             return GetParcelDetails(parcel, param);
-        }
+            }
 
         public LSL_List GetParcelDetails(ILandObject parcel, LSL_List param)
         {
@@ -15770,7 +15969,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 else
                 {
                     UserAccount account = m_userAccountService.GetUserAccount(RegionScopeID, key);
-                    if (account != null)
+                    if(account != null)
                     {
                         name = account.FirstName + " " + account.LastName;
                     }
@@ -15790,6 +15989,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 ScenePresence presence = World.GetScenePresence(key);
                 if (presence != null)
                 {
+                    var dnm = World.RequestModuleInterface<IDisplayNameModule>();
+
+                    if(dnm is not null)
+                    {
+                        return dnm.GetDisplayName(key);
+                    }
+
                     return presence.Name;
                 }
             }
@@ -15801,26 +16007,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (!UUID.TryParse(id, out UUID key) || key.IsZero())
                 return string.Empty;
 
-            ScenePresence lpresence = World.GetScenePresence(key);
-            if (lpresence != null)
-            {
-                string lname = lpresence.Name;
-                string ftid = m_AsyncCommands.DataserverPlugin.RequestWithImediatePost(m_host.LocalId,
-                                                                   m_item.ItemID, lname);
-                return ftid;
-            }
-
             void act(string eventID)
             {
-                string name = string.Empty;
-                ScenePresence presence = World.GetScenePresence(key);
-                if (presence is not null)
+                string name = String.Empty;
+                var dnm = World.RequestModuleInterface<IDisplayNameModule>();
+                if (dnm is not null)
                 {
-                    name = presence.Name;
-                }
-                else if (World.TryGetSceneObjectPart(key, out SceneObjectPart sop))
-                {
-                    name = sop.Name;
+                    name = dnm.GetDisplayName(key);
                 }
                 else
                 {
@@ -15830,6 +16023,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         name = account.FirstName + " " + account.LastName;
                     }
                 }
+                
                 m_AsyncCommands.DataserverPlugin.DataserverReply(eventID, name);
             }
 
@@ -17482,7 +17676,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         return;
                     }
 
-                    bool result = money.ObjectGiveMoney(m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID,
+                    bool result = money.ObjectGiveMoney( m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID,
                                 toID, amount, txn, out string reason);
                     if (result)
                     {
@@ -17501,7 +17695,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             new LSL_String(replydata) },
                             Array.Empty<DetectParams>()));
                 }
-            }
+                }
 
             m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, act);
             return txn.ToString();
@@ -17874,7 +18068,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case ScriptBaseClass.PRIM_POINT_LIGHT:
                         res.Add(new LSL_Integer(0));
-                        res.Add(new LSL_Vector(0f, 0f, 0f));
+                        res.Add(new LSL_Vector(0f,0f,0f));
                         res.Add(new LSL_Float(0f)); // intensity
                         res.Add(new LSL_Float(0f));    // radius
                         res.Add(new LSL_Float(0f));   // falloff
@@ -17949,6 +18143,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llSetAnimationOverride(LSL_String animState, LSL_String anim)
         {
+            bool is_experience = CheckExperiencePermissions();
+
             if (m_item.PermsGranter.IsZero())
             {
                 llShout(ScriptBaseClass.DEBUG_CHANNEL, "No permission to override animations");
@@ -18004,6 +18200,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llResetAnimationOverride(LSL_String animState)
         {
+            bool is_experience = CheckExperiencePermissions();
+
             ScenePresence presence = World.GetScenePresence(m_item.PermsGranter);
             if (presence == null)
                 return;
@@ -18047,6 +18245,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_String llGetAnimationOverride(LSL_String animState)
         {
+            bool is_experience = CheckExperiencePermissions();
 
             ScenePresence presence = World.GetScenePresence(m_item.PermsGranter);
             if (presence is null)
@@ -18204,6 +18403,1470 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             float z = m_host.GetWorldPosition().Z;
             return m_envModule.GetRegionMoonRot(z);
+        }
+
+
+        public void llRequestExperiencePermissions(string agent, string unused)
+        {
+            UUID agentID;
+
+            if (!UUID.TryParse(agent, out agentID))
+                return;
+
+            if (agentID == UUID.Zero) // Releasing permissions
+            {
+                llReleaseControls();
+
+                m_item.PermsGranter = UUID.Zero;
+                m_item.PermsMask = 0;
+
+                return;
+            }
+
+            if (m_item.PermsGranter != agentID)
+                llReleaseControls();
+
+            if (World.ExperienceModule == null)
+            {
+                m_ScriptEngine.PostScriptEvent(m_item.ItemID, new EventParams(
+                        "experience_permissions_denied", new Object[] {
+                                new LSL_Key(agentID.ToString()),
+                                new LSL_Integer(ScriptBaseClass.XP_ERROR_EXPERIENCES_DISABLED)},
+                                        new DetectParams[0]));
+                return;
+            }
+
+            ScenePresence presence = World.GetScenePresence(agentID);
+
+            if (presence != null)
+            {
+                UUID experience_key = m_item.ExperienceID;
+                if (experience_key == UUID.Zero || World.ExperienceModule == null)
+                {
+                    m_ScriptEngine.PostScriptEvent(m_item.ItemID, new EventParams(
+                            "experience_permissions_denied", new Object[] {
+                                    new LSL_Key(agentID.ToString()),
+                                    new LSL_Integer(ScriptBaseClass.XP_ERROR_NO_EXPERIENCE)},
+                                            new DetectParams[0]));
+                    return;
+                }
+
+                ExperienceInfo experienceInfo = World.ExperienceModule.GetExperienceInfo(experience_key);
+
+                if ((experienceInfo.properties & (int)ExperienceFlags.Disabled) != 0)
+                {
+                    m_ScriptEngine.PostScriptEvent(m_item.ItemID, new EventParams(
+                            "experience_permissions_denied", new Object[] {
+                                    new LSL_Key(agentID.ToString()),
+                                    new LSL_Integer(ScriptBaseClass.XP_ERROR_EXPERIENCE_DISABLED)},
+                                            new DetectParams[0]));
+                    return;
+                }
+                else if ((experienceInfo.properties & (int)ExperienceFlags.Suspended) != 0)
+                {
+                    m_ScriptEngine.PostScriptEvent(m_item.ItemID, new EventParams(
+                            "experience_permissions_denied", new Object[] {
+                                    new LSL_Key(agentID.ToString()),
+                                    new LSL_Integer(ScriptBaseClass.XP_ERROR_EXPERIENCE_SUSPENDED)},
+                                            new DetectParams[0]));
+                    return;
+                }
+
+                bool agent_in_experience = CheckExperienceAccessAtPos(presence.AbsolutePosition, m_item.ExperienceID);
+                bool experience_allowed_here = CheckExperienceAccessAtPos(m_host.AbsolutePosition, m_item.ExperienceID);
+
+                if (!agent_in_experience || !experience_allowed_here)
+                {
+                    m_ScriptEngine.PostScriptEvent(m_item.ItemID, new EventParams(
+                            "experience_permissions_denied", new Object[] {
+                                    new LSL_Key(agentID.ToString()),
+                                    new LSL_Integer(ScriptBaseClass.XP_ERROR_NOT_PERMITTED_LAND)},
+                                            new DetectParams[0]));
+                    return;
+                }
+
+                ExperiencePermission experiencePermission = World.ExperienceModule.GetExperiencePermission(agentID, experience_key);
+                if (experiencePermission == ExperiencePermission.Allowed)
+                {
+                    SendExperienceEvent(ExperienceEvent.Permissions);
+
+                    m_host.TaskInventory.LockItemsForWrite(true);
+                    m_host.TaskInventory[m_item.ItemID].PermsGranter = agentID;
+                    m_host.TaskInventory[m_item.ItemID].PermsMask = 408628;
+                    m_host.TaskInventory.LockItemsForWrite(false);
+
+                    m_ScriptEngine.PostScriptEvent(m_item.ItemID, new EventParams(
+                            "experience_permissions", new Object[] {
+                            new LSL_Key(agentID.ToString()) },
+                                            new DetectParams[0]));
+                    return;
+                }
+                else if (experiencePermission == ExperiencePermission.Allowed)
+                {
+                    m_ScriptEngine.PostScriptEvent(m_item.ItemID, new EventParams(
+                            "experience_permissions_denied", new Object[] {
+                            new LSL_Key(agentID.ToString()),
+                            new LSL_Integer(ScriptBaseClass.XP_ERROR_NOT_PERMITTED)},
+                                            new DetectParams[0]));
+                    return;
+                }
+                else
+                {
+                    string ownerName = resolveName(m_host.ParentGroup.RootPart.OwnerID);
+                    if (ownerName == String.Empty)
+                        ownerName = "(hippos)";
+
+                    if (!m_waitingForScriptExperienceAnswer)
+                    {
+                        presence.ControllingClient.OnScriptAnswer += handleScriptExperienceAnswer;
+                        m_waitingForScriptExperienceAnswer = true;
+                    }
+
+                    // todo: decode: 408628
+
+                    presence.ControllingClient.SendScriptQuestion(
+                        m_host.UUID, m_host.ParentGroup.RootPart.Name, ownerName, m_item.ItemID, 408628, m_item.ExperienceID);
+                }
+            }
+            else Error("llRequestExperiencePermissions", "Unable to find specified agent to request experience permissions.");
+        }
+
+        void handleScriptExperienceAnswer(IClientAPI client, UUID taskID, UUID itemID, int answer)
+        {
+            if (taskID != m_host.UUID)
+                return;
+
+            client.OnScriptAnswer -= handleScriptExperienceAnswer;
+            m_waitingForScriptExperienceAnswer = false;
+
+            m_log.InfoFormat("[EXPERIENCE] Script answer from {0} is {1}", client.AgentId, answer);
+
+            if ((answer & ScriptBaseClass.PERMISSION_TAKE_CONTROLS) == 0)
+                llReleaseControls();
+
+            m_host.TaskInventory.LockItemsForWrite(true);
+
+            if (answer != 0)
+            {
+                m_log.InfoFormat("[EXPERIENCE] Permissions granted by {0} to {1}", client.AgentId, m_item.ExperienceID);
+
+                World.ExperienceModule.SetExperiencePermission(client.AgentId, m_item.ExperienceID, ExperiencePermission.Allowed);
+                SendExperienceEvent(ExperienceEvent.Permissions);
+
+                m_host.TaskInventory[m_item.ItemID].PermsMask = 408628;
+                m_host.TaskInventory[m_item.ItemID].PermsGranter = client.AgentId;
+
+                m_ScriptEngine.PostScriptEvent(m_item.ItemID, new EventParams(
+                    "experience_permissions", new Object[] {
+                        new LSL_Key(client.AgentId.ToString()) },
+                        new DetectParams[0]));
+            }
+            else
+            {
+                m_host.TaskInventory[m_item.ItemID].PermsMask = 0;
+                m_host.TaskInventory[m_item.ItemID].PermsGranter = UUID.Zero;
+
+                m_ScriptEngine.PostScriptEvent(m_item.ItemID, new EventParams(
+                    "experience_permissions_denied", new Object[] {
+                        new LSL_Key(client.AgentId.ToString()),
+                        new LSL_Integer(ScriptBaseClass.XP_ERROR_NOT_PERMITTED)},
+                        new DetectParams[0]));
+            }
+
+            m_host.TaskInventory.LockItemsForWrite(false);
+        }
+
+        public LSL_Integer llAgentInExperience(string agent)
+        {
+            if (World.ExperienceModule == null)
+                return new LSL_Integer(0);
+
+            UUID agentID;
+
+            if (!UUID.TryParse(agent, out agentID))
+                return new LSL_Integer(0);
+
+            if (m_item.ExperienceID == UUID.Zero)
+                return new LSL_Integer(0);
+
+            ScenePresence presence = World.GetScenePresence(agentID);
+
+            if (presence != null)
+            {
+                bool is_allowed = CheckExperienceAccessAtPos(presence.AbsolutePosition, m_item.ExperienceID);
+
+                if (is_allowed)
+                {
+                    ExperiencePermission experiencePermission = World.ExperienceModule.GetExperiencePermission(agentID, m_item.ExperienceID);
+                    is_allowed = experiencePermission == ExperiencePermission.Allowed;
+                }
+
+                return new LSL_Integer(is_allowed ? 1 : 0);
+            }
+
+            return new LSL_Integer(0);
+        }
+
+        public LSL_List llGetExperienceDetails(string experience_key)
+        {
+            if (World.ExperienceModule == null)
+                return new LSL_List();
+
+            UUID experienceID;
+
+            if (!UUID.TryParse(experience_key, out experienceID))
+                return new LSL_List();
+
+            if (experienceID == UUID.Zero)
+                experienceID = m_item.ExperienceID;
+
+            if (experienceID == UUID.Zero)
+                return new LSL_List();
+
+            ExperienceInfo info = World.ExperienceModule.GetExperienceInfo(experienceID);
+            if (info != null)
+            {
+                int state = 0;
+                string state_message = "no error";
+
+                if ((info.properties & (int)ExperienceFlags.Disabled) != 0)
+                {
+                    state = ScriptBaseClass.XP_ERROR_EXPERIENCE_DISABLED;
+                    state_message = "experience is disabled";
+                }
+                else if ((info.properties & (int)ExperienceFlags.Suspended) != 0)
+                {
+                    state = ScriptBaseClass.XP_ERROR_EXPERIENCE_SUSPENDED;
+                    state_message = "experience is suspended";
+                }
+                else if (!CheckExperienceAccessAtPos(m_host.AbsolutePosition, experienceID))
+                {
+                    state = ScriptBaseClass.XP_ERROR_NOT_PERMITTED_LAND;
+                    state_message = "not allowed to run on this land";
+                }
+
+                return new LSL_List(new object[] {
+                    new LSL_String(info.name),
+                    new LSL_Key(info.owner_id.ToString()),
+                    new LSL_Key(info.public_id.ToString()),
+                    new LSL_Integer(state),
+                    new LSL_String(state_message),
+                    new LSL_Key(info.group_id.ToString())
+                });
+            }
+            return new LSL_List();
+        }
+
+        public LSL_String llGetExperienceErrorMessage(LSL_Integer error)
+        {
+            string error_str = "";
+            if (error == 0)
+                error_str = "no error";
+            else if (error == 1)
+                error_str = "exceeded throttle";
+            else if (error == 2)
+                error_str = "experiences are disabled";
+            else if (error == 3)
+                error_str = "invalid parameters";
+            else if (error == 4)
+                error_str = "operation not permitted";
+            else if (error == 5)
+                error_str = "script not associated with an experience";
+            else if (error == 6)
+                error_str = "not found";
+            else if (error == 7)
+                error_str = "invalid experience";
+            else if (error == 8)
+                error_str = "experience is disabled";
+            else if (error == 9)
+                error_str = "experience is suspended";
+            else if (error == 10)
+                error_str = "unknown error";
+            else if (error == 11)
+                error_str = "experience data quota exceeded";
+            else if (error == 12)
+                error_str = "key-value store is disabled";
+            else if (error == 13)
+                error_str = "key-value store communication failed";
+            else if (error == 14)
+                error_str = "key doesn't exist";
+            else if (error == 15)
+                error_str = "retry update";
+            else if (error == 16)
+                error_str = "experience content rating too high";
+            else if (error == 17)
+                error_str = "not allowed to run on this land";
+            else if (error == 18)
+                error_str = "experience permissions request timed out";
+            return new LSL_String(error_str);
+        }
+
+        public LSL_Integer llSitOnLink(string agent, LSL_Integer link)
+        {
+            if (World.ExperienceModule == null)
+                return new LSL_Integer();
+
+            if (m_item.ExperienceID == UUID.Zero)
+                return new LSL_Integer(ScriptBaseClass.SIT_NOT_EXPERIENCE);
+
+
+            UUID agent_id;
+            if (!UUID.TryParse(agent, out agent_id))
+                return new LSL_Integer(ScriptBaseClass.SIT_INVALID_AGENT);
+
+            ScenePresence presence = World.GetScenePresence(agent_id);
+
+            //todo: banlines? SIT_NO_ACCESS
+
+            if (presence != null)
+            {
+                if (!CheckExperienceAccessAtPos(m_host.AbsolutePosition, m_item.ExperienceID))
+                    return new LSL_Integer(ScriptBaseClass.SIT_NOT_EXPERIENCE);
+
+                if (!CheckExperienceAccessAtPos(presence.AbsolutePosition, m_item.ExperienceID))
+                    return new LSL_Integer(ScriptBaseClass.SIT_NOT_EXPERIENCE);
+
+                if (World.ExperienceModule.GetExperiencePermission(agent_id, m_item.ExperienceID) != ExperiencePermission.Allowed)
+                {
+                    return new LSL_Integer(ScriptBaseClass.SIT_NO_EXPERIENCE_PERMISSION);
+                }
+
+                SceneObjectPart part;
+                if (link == ScriptBaseClass.LINK_THIS)
+                    part = m_host;
+                else if (link == ScriptBaseClass.LINK_ROOT)
+                    part = m_host.ParentGroup.RootPart;
+                else
+                    part = m_host.ParentGroup.GetLinkNumPart(link);
+
+                if (part == null)
+                    return new LSL_Integer(ScriptBaseClass.SIT_INVALID_LINK);
+
+                if (part.ParentGroup.IsAttachment)
+                    return new LSL_Integer(ScriptBaseClass.SIT_INVALID_OBJECT);
+
+                if (part.SitTargetOrientationLL == Quaternion.Identity && part.SitTargetPosition == Vector3.Zero)
+                    return new LSL_Integer(ScriptBaseClass.SIT_NO_SIT_TARGET);
+
+                if (part.SitTargetAvatar != UUID.Zero)
+                    return new LSL_Integer(ScriptBaseClass.SIT_NO_SIT_TARGET);
+
+                presence.ScriptedSit(part, agent_id, m_item.ExperienceID);
+
+                return new LSL_Integer(1);
+            }
+            else return new LSL_Integer(ScriptBaseClass.SIT_INVALID_AGENT);
+        }
+
+        public LSL_Key llCreateKeyValue(string key, string value)
+        {
+            Action<string> act = eventID =>
+            {
+                string response;
+
+                if (m_item.ExperienceID != UUID.Zero)
+                {
+                    if (CheckExperienceAccessAtPos(m_host.AbsolutePosition, m_item.ExperienceID))
+                    {
+                        string create = World.ExperienceModule.CreateKeyValue(m_item.ExperienceID, key, value);
+                        if (create == "success")
+                            response = string.Format("1,{0}", value);
+                        else if (create == "exists")
+                            response = string.Format("0,{0}", ScriptBaseClass.XP_ERROR_STORAGE_EXCEPTION);
+                        else if (create == "full")
+                            response = string.Format("0,{0}", ScriptBaseClass.XP_ERROR_QUOTA_EXCEEDED);
+                        else
+                            response = string.Format("0,{0}", ScriptBaseClass.XP_ERROR_UNKNOWN_ERROR);
+                    }
+                    else
+                    {
+                        response = string.Format("0,{0}", ScriptBaseClass.XP_ERROR_NOT_PERMITTED_LAND);
+                    }
+                }
+                else
+                {
+                    response = string.Format("0,{0}", ScriptBaseClass.XP_ERROR_NO_EXPERIENCE);
+                }
+
+                m_AsyncCommands.DataserverPlugin.DataserverReply(eventID, response);
+            };
+
+            UUID rq = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, act);
+            return rq.ToString();
+        }
+
+        public LSL_Key llDeleteKeyValue(string key)
+        {
+            Action<string> act = eventID =>
+            {
+                string response;
+
+                if (m_item.ExperienceID != UUID.Zero)
+                {
+                    if (CheckExperienceAccessAtPos(m_host.AbsolutePosition, m_item.ExperienceID))
+                    {
+                        string delete = World.ExperienceModule.DeleteKey(m_item.ExperienceID, key);
+                        if (delete == "success")
+                            response = "1,delete";
+                        else if (delete == "missing")
+                            response = string.Format("0,{0}", ScriptBaseClass.XP_ERROR_STORAGE_EXCEPTION);
+                        else
+                            response = string.Format("0,{0}", ScriptBaseClass.XP_ERROR_UNKNOWN_ERROR);
+                    }
+                    else
+                    {
+                        response = string.Format("0,{0}", ScriptBaseClass.XP_ERROR_NOT_PERMITTED_LAND);
+                    }
+                }
+                else
+                {
+                    response = string.Format("0,{0}", ScriptBaseClass.XP_ERROR_NO_EXPERIENCE);
+                }
+
+                m_AsyncCommands.DataserverPlugin.DataserverReply(eventID, response);
+            };
+
+            UUID rq = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, act);
+            return rq.ToString();
+        }
+
+        public LSL_Key llReadKeyValue(string key)
+        {
+            Action<string> act = eventID =>
+            {
+                string response;
+
+                if (m_item.ExperienceID != UUID.Zero)
+                {
+                    if (CheckExperienceAccessAtPos(m_host.AbsolutePosition, m_item.ExperienceID))
+                    {
+                        string get = World.ExperienceModule.GetKeyValue(m_item.ExperienceID, key);
+                        if (get == null)
+                            response = string.Format("0,{0}", ScriptBaseClass.XP_ERROR_KEY_NOT_FOUND);
+                        else
+                            response = "1," + get;
+                    }
+                    else
+                    {
+                        response = string.Format("0,{0}", ScriptBaseClass.XP_ERROR_NOT_PERMITTED_LAND);
+                    }
+                }
+                else
+                {
+                    response = string.Format("0,{0}", ScriptBaseClass.XP_ERROR_NO_EXPERIENCE);
+                }
+
+                m_AsyncCommands.DataserverPlugin.DataserverReply(eventID, response);
+            };
+
+            UUID rq = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, act);
+            return rq.ToString();
+        }
+
+        public LSL_Key llUpdateKeyValue(string key, string value, LSL_Integer check, string original)
+        {
+            Action<string> act = eventID =>
+            {
+                string response;
+
+                if (m_item.ExperienceID != UUID.Zero)
+                {
+                    if (CheckExperienceAccessAtPos(m_host.AbsolutePosition, m_item.ExperienceID))
+                    {
+                        bool do_check = check == 1;
+                        string update = World.ExperienceModule.UpdateKeyValue(m_item.ExperienceID, key, value, do_check, original);
+                        if (update == "success")
+                            response = "1," + value;
+                        else if (update == "mismatch")
+                            response = string.Format("0,{0}", ScriptBaseClass.XP_ERROR_RETRY_UPDATE);
+                        else if (update == "missing")
+                            response = string.Format("0,{0}", ScriptBaseClass.XP_ERROR_KEY_NOT_FOUND);
+                        else if (update == "full")
+                            response = string.Format("0,{0}", ScriptBaseClass.XP_ERROR_QUOTA_EXCEEDED);
+                        else
+                            response = string.Format("0,{0}", ScriptBaseClass.XP_ERROR_UNKNOWN_ERROR);
+                    }
+                    else
+                    {
+                        response = string.Format("0,{0}", ScriptBaseClass.XP_ERROR_NOT_PERMITTED_LAND);
+                    }
+                }
+                else
+                {
+                    response = string.Format("0,{0}", ScriptBaseClass.XP_ERROR_NO_EXPERIENCE);
+                }
+
+                m_AsyncCommands.DataserverPlugin.DataserverReply(eventID, response);
+            };
+
+            UUID rq = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, act);
+            return rq.ToString();
+        }
+
+        public LSL_Key llKeyCountKeyValue()
+        {
+            Action<string> act = eventID =>
+            {
+                string response;
+
+                if (m_item.ExperienceID != UUID.Zero)
+                {
+                    if (CheckExperienceAccessAtPos(m_host.AbsolutePosition, m_item.ExperienceID))
+                    {
+                        int count = World.ExperienceModule.GetKeyCount(m_item.ExperienceID);
+                        response = string.Format("1,{0}", count);
+                    }
+                    else
+                    {
+                        response = string.Format("0,{0}", ScriptBaseClass.XP_ERROR_NOT_PERMITTED_LAND);
+                    }
+                }
+                else
+                {
+                    response = string.Format("0,{0}", ScriptBaseClass.XP_ERROR_NO_EXPERIENCE);
+                }
+
+                m_AsyncCommands.DataserverPlugin.DataserverReply(eventID, response);
+            };
+
+            UUID rq = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, act);
+            return rq.ToString();
+        }
+
+        public LSL_Key llKeysKeyValue(LSL_Integer first, LSL_Integer count)
+        {
+            Action<string> act = eventID =>
+            {
+                string response;
+
+                if (m_item.ExperienceID != UUID.Zero)
+                {
+                    if (CheckExperienceAccessAtPos(m_host.AbsolutePosition, m_item.ExperienceID))
+                    {
+                        string[] keys = World.ExperienceModule.GetKeys(m_item.ExperienceID, first, count);
+                        if (keys.Length > 0)
+                            response = string.Format("1,{0}", string.Join(",", keys));
+                        else
+                            response = string.Format("0,{0}", ScriptBaseClass.XP_ERROR_KEY_NOT_FOUND);
+                    }
+                    else
+                    {
+                        response = string.Format("0,{0}", ScriptBaseClass.XP_ERROR_NOT_PERMITTED_LAND);
+                    }
+                }
+                else
+                {
+                    response = string.Format("0,{0}", ScriptBaseClass.XP_ERROR_NO_EXPERIENCE);
+                }
+
+                m_AsyncCommands.DataserverPlugin.DataserverReply(eventID, response);
+            };
+
+            UUID rq = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, act);
+            return rq.ToString();
+        }
+
+        public LSL_Key llDataSizeKeyValue()
+        {
+            Action<string> act = eventID =>
+            {
+                string response;
+
+                if (m_item.ExperienceID != UUID.Zero)
+                {
+                    if (CheckExperienceAccessAtPos(m_host.AbsolutePosition, m_item.ExperienceID))
+                    {
+                        int used = World.ExperienceModule.GetSize(m_item.ExperienceID);
+                        var info = World.ExperienceModule.GetExperienceInfo(m_item.ExperienceID);
+
+                        int max = 1024 * 1024 * info.quota;
+                        response = string.Format("1,{0},{1}", used, max);
+                    }
+                    else
+                    {
+                        response = string.Format("0,{0}", ScriptBaseClass.XP_ERROR_NOT_PERMITTED_LAND);
+                    }
+                }
+                else
+                {
+                    response = string.Format("0,{0}", ScriptBaseClass.XP_ERROR_NO_EXPERIENCE);
+                }
+
+                m_AsyncCommands.DataserverPlugin.DataserverReply(eventID, response);
+            };
+
+            UUID rq = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, act);
+            return rq.ToString();
+        }
+
+        private EnvironmentUpdate ParamsToEnvUpdate(LSL_Float time, LSL_List param_list)
+        {
+            string parcel = World.LandChannel.GetLandObject(m_host.AbsolutePosition).LandData.Name;
+
+            if(param_list.Length == 0)
+            {
+                return new ClearEnvironmentUpdate
+                {
+                    OwnerID = m_item.OwnerID,
+                    TransitionTime = (float)time.value,
+                    ObjectName = m_item.Name,
+                    Permission = 17,
+                    ParcelName = parcel
+                };
+            }
+
+            var update = new PartialEnvironmentUpdate
+            {
+                OwnerID = m_item.OwnerID,
+                TransitionTime = (float)time.value,
+                ObjectName = m_item.Name,
+                Permission = 17,
+                ParcelName = parcel
+            };
+
+            int n = 0;
+            int rulesParsed = 0;
+            int index;
+
+            try
+            {
+                while (n < param_list.Length)
+                {
+                    ++rulesParsed;
+
+                    int code = param_list.GetLSLIntegerItem(n++);
+
+                    int remain = param_list.Length - n;
+                    index = n;
+
+                    bool error = false;
+
+                    // todo: clamp vectors
+
+                    switch (code)
+                    {
+                        case ScriptBaseClass.SKY_CLOUDS:
+                            if (remain < 7)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_CLOUDS) Expecting vector parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            try
+                            {
+                                update.sky["cloud_color"] = (Vector3)param_list.GetVector3Item(n++);
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_CLOUDS) Expecting vector parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            try
+                            {
+                                update.sky["cloud_shadow"] = (float)param_list.GetLSLFloatItem(n++);
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_CLOUDS) Expecting float parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            try
+                            {
+                                update.sky["cloud_scale"] = (float)param_list.GetLSLFloatItem(n++);
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_CLOUDS) Expecting float parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            try
+                            {
+                                update.sky["cloud_variance"] = (float)param_list.GetLSLFloatItem(n++);
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_CLOUDS) Expecting float parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            try
+                            {
+                                Vector3 scroll = (Vector3)param_list.GetVector3Item(n++);
+                                update.sky["cloud_scroll_rate"] = new Vector2(scroll.X, scroll.Y);
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_CLOUDS) Expecting vector parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            try
+                            {
+                                update.sky["cloud_pos_density1"] = (Vector3)param_list.GetVector3Item(n++);
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_CLOUDS) Expecting vector parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            try
+                            {
+                                update.sky["cloud_pos_density2"] = (Vector3)param_list.GetVector3Item(n++);
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_CLOUDS) Expecting vector parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            break;
+                        case ScriptBaseClass.SKY_CLOUD_TEXTURE:
+                            if (remain < 1)
+                                error = true;
+
+                            if (!error)
+                            {
+                                string texture = param_list.Data[n++].ToString();
+
+                                UUID texture_id = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, texture);
+                                if (texture_id == UUID.Zero)
+                                    update.sky["cloud_id"] = texture_id;
+                                else
+                                    error = true;
+                            }
+
+                            if (error)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} -> SKY_CLOUD_TEXTURE: arg #{1} - parameter 1 must be a texture name/key", rulesParsed, n - index - 1));
+                            }
+
+                            break;
+                        case ScriptBaseClass.SKY_GAMMA:
+                            if (remain < 1)
+                                error = true;
+
+                            if (!error)
+                            {
+                                LSL_Float f = param_list.GetLSLFloatItem(n++);
+                                float fl = (float)f.value;
+                                update.sky["gamma"] = Math.Clamp(fl, 0.0f, 20.0f);
+                            }
+
+                            if (error)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} -> SKY_GAMMA: arg #{1} - parameter 1 must be a float", rulesParsed, n - index - 1));
+                            }
+
+                            break;
+                        case ScriptBaseClass.SKY_DOME:
+                            if (remain < 2)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_DOME) Expecting float parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            try
+                            {
+                                update.sky["cloud_color"] = (Vector3)param_list.GetVector3Item(n++);
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_DOME) Expecting vector parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            try
+                            {
+                                update.sky["cloud_shadow"] = (float)param_list.GetLSLFloatItem(n++);
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_DOME) Expecting float parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            break;
+                        case ScriptBaseClass.SKY_GLOW:
+                            if (remain < 2)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_GLOW) Expecting float parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            Vector3 glow = new Vector3();
+
+                            try
+                            {
+                                float x = (float)param_list.GetLSLFloatItem(n++);
+                                glow.X = x >= 0.0f ? x <= 1.0f ? 40.0f * x : 1.0f : 0.0f;
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_GLOW) Expecting float parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            try
+                            {
+                                float z = (float)param_list.GetLSLFloatItem(n++);
+                                glow.Z = z >= -2.0f ? z <= 2.0f ? 10.0f * -z : 1.0f : 0.0f;
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_GLOW) Expecting float parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            update.sky["glow"] = glow;
+
+                            break;
+                        case ScriptBaseClass.SKY_MOON:
+                            if (remain < 3)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_MOON) Expecting rotation parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            try
+                            {
+                                update.sky["moon_rotation"] = (Quaternion)param_list.GetQuaternionItem(n++);
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_MOON) Expecting rotation parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            try
+                            {
+                                float moon_scale = (float)param_list.GetLSLFloatItem(n++);
+                                update.sky["moon_scale"] = Math.Clamp(moon_scale, 0.25f, 20.0f);
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_MOON) Expecting float parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            try
+                            {
+                                float moon_brightness = (float)param_list.GetLSLFloatItem(n++);
+                                update.sky["moon_brightness"] = Math.Clamp(moon_brightness, 0.0f, 0.0f);
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_MOON) Expecting float parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            break;
+                        case ScriptBaseClass.SKY_MOON_TEXTURE:
+                            if (remain < 1)
+                                error = true;
+
+                            if (!error)
+                            {
+                                string texture = param_list.Data[n++].ToString();
+
+                                UUID texture_id = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, texture);
+                                if (texture_id == UUID.Zero)
+                                    update.sky["moon_id"] = texture_id;
+                                else
+                                    error = true;
+                            }
+
+                            if (error)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} -> SKY_MOON_TEXTURE: arg #{1} - parameter 1 must be a texture name/key", rulesParsed, n - index - 1));
+                            }
+
+                            break;
+                        case ScriptBaseClass.SKY_STAR_BRIGHTNESS:
+                            if (remain < 1)
+                                error = true;
+
+                            if (!error)
+                            {
+                                LSL_Float f = param_list.GetLSLFloatItem(n++);
+                                float fl = (float)f.value;
+                                update.sky["star_brightness"] = Math.Clamp(fl, 0.0f, 500.0f);
+                            }
+
+                            if (error)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} -> SKY_STAR_BRIGHTNESS: arg #{1} - parameter 1 must be a float", rulesParsed, n - index - 1));
+                            }
+
+                            break;
+                        case ScriptBaseClass.SKY_SUN:
+                            if (remain < 3)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_SUN) Expecting rotation parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            try
+                            {
+                                update.sky["sun_rotation"] = (Quaternion)param_list.GetQuaternionItem(n++);
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_SUN) Expecting rotation parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            try
+                            {
+                                float sun_scale = (float)param_list.GetLSLFloatItem(n++);
+                                update.sky["sun_scale"] = Math.Clamp(sun_scale, 0.25f, 20.0f);
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_SUN) Expecting float parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            try
+                            {
+                                Vector3 sun_color = (Vector3)param_list.GetVector3Item(n++);
+
+                                // todo: check this is correct
+
+                                var srgb = llLinear2sRGB(sun_color);
+
+                                update.sky["sunlight_color"] = (Vector3)srgb;
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_SUN) Expecting vector parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            break;
+                        case ScriptBaseClass.SKY_SUN_TEXTURE:
+                            if (remain < 1)
+                                error = true;
+
+                            if (!error)
+                            {
+                                string texture = param_list.Data[n++].ToString();
+
+                                UUID texture_id = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, texture);
+                                if (texture_id == UUID.Zero)
+                                    update.sky["sun_id"] = texture_id;
+                                else
+                                    error = true;
+                            }
+
+                            if (error)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} -> SKY_SUN_TEXTURE: arg #{1} - parameter 1 must be a texture name/key", rulesParsed, n - index - 1));
+                            }
+
+                            break;
+                        case ScriptBaseClass.SKY_PLANET:
+                            if (remain < 3)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_PLANET) Expecting rotation parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            try
+                            {
+                                float planet_radius = (float)param_list.GetLSLFloatItem(n++);
+                                update.sky["planet_radius"] = Math.Clamp(planet_radius, 1000.0f, 32768.0f);
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_PLANET) Expecting rotation parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            try
+                            {
+                                float sky_bottom_radius = (float)param_list.GetLSLFloatItem(n++);
+                                update.sky["sky_bottom_radius"] = Math.Clamp(sky_bottom_radius, 1000.0f, 32768.0f);
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_PLANET) Expecting float parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            try
+                            {
+                                float sky_top_radius = (float)param_list.GetLSLFloatItem(n++);
+                                update.sky["sky_top_radius"] = Math.Clamp(sky_top_radius, 1000.0f, 32768.0f);
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_PLANET) Expecting float parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            break;
+                        case ScriptBaseClass.SKY_REFRACTION:
+                            if (remain < 3)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_REFRACTION) Expecting rotation parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            try
+                            {
+                                float moisture_level = (float)param_list.GetLSLFloatItem(n++);
+                                update.sky["moisture_level"] = Math.Clamp(moisture_level, 0.0f, 1.0f);
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_REFRACTION) Expecting rotation parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            try
+                            {
+                                float droplet_radius = (float)param_list.GetLSLFloatItem(n++);
+                                update.sky["droplet_radius"] = Math.Clamp(droplet_radius, 5.0f, 1000.0f);
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_REFRACTION) Expecting float parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            try
+                            {
+                                float ice_level = (float)param_list.GetLSLFloatItem(n++);
+                                update.sky["ice_level"] = Math.Clamp(ice_level, 0.0f, 1.0f);
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_REFRACTION) Expecting float parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            break;
+                        case ScriptBaseClass.WATER_BLUR_MULTIPLIER:
+                            if (remain < 1)
+                                error = true;
+
+                            if (!error)
+                            {
+                                LSL_Float f = param_list.GetLSLFloatItem(n++);
+                                float fl = (float)f.value;
+                                update.water["blur_multiplier"] = Math.Clamp(fl, -0.5f, 0.5f);
+                            }
+
+                            if (error)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} -> WATER_BLUR_MULTIPLIER: arg #{1} - parameter 1 must be a float", rulesParsed, n - index - 1));
+                            }
+
+                            break;
+                        case ScriptBaseClass.WATER_FOG:
+                            if (remain < 3)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (WATER_FOG) Expecting rotation parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            try
+                            {
+                                update.water["water_fog_color"] = (Vector3)param_list.GetVector3Item(n++);
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (WATER_FOG) Expecting rotation parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            try
+                            {
+                                float water_fog_density = (float)param_list.GetLSLFloatItem(n++);
+                                update.water["water_fog_density"] = Math.Clamp(water_fog_density, -10.0f, 10.0f);
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (WATER_FOG) Expecting float parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            try
+                            {
+                                float underwater_fog_mod = (float)param_list.GetLSLFloatItem(n++);
+                                update.water["underwater_fog_mod"] = Math.Clamp(underwater_fog_mod, 0.0f, 20.0f);
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (WATER_FOG) Expecting float parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            break;
+                        case ScriptBaseClass.WATER_FRESNEL:
+                            if (remain < 2)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (WATER_FRESNEL) Expecting float parameter..", rulesParsed));
+                                return null;
+                            }
+                            
+
+                            try
+                            {
+                                float fresnel_offset = (float)param_list.GetLSLFloatItem(n++);
+                                update.water["fresnel_offset"] = Math.Clamp(fresnel_offset, 0.0f, 1.0f);
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (WATER_FRESNEL) Expecting float parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            try
+                            {
+                                float fresnel_scale = (float)param_list.GetLSLFloatItem(n++);
+                                update.water["fresnel_scale"] = Math.Clamp(fresnel_scale, 0.0f, 1.0f);
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (WATER_FRESNEL) Expecting float parameter..", rulesParsed));
+                                return null;
+                            }
+
+
+                            break;
+                        case ScriptBaseClass.WATER_NORMAL_TEXTURE:
+                            if (remain < 1)
+                                error = true;
+
+                            if (!error)
+                            {
+                                string texture = param_list.Data[n++].ToString();
+
+                                UUID texture_id = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, texture);
+                                if (texture_id == UUID.Zero)
+                                    update.water["normal_map"] = texture_id;
+                                else
+                                    error = true;
+                            }
+
+                            if (error)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} -> WATER_NORMAL_TEXTURE: arg #{1} - parameter 1 must be a texture name/key", rulesParsed, n - index - 1));
+                            }
+
+                            break;
+                        case ScriptBaseClass.WATER_NORMAL_SCALE:
+                            if (remain < 1)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (WATER_NORMAL_SCALE) Expecting float parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            try
+                            {
+                                update.water["normal_scale"] = (Vector3)param_list.GetVector3Item(n++);
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (WATER_NORMAL_SCALE) Expecting vector parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            break;
+                        case ScriptBaseClass.WATER_REFRACTION:
+                            if (remain < 2)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (WATER_REFRACTION) Expecting float parameter..", rulesParsed));
+                                return null;
+                            }
+
+
+                            try
+                            {
+                                float scale_above = (float)param_list.GetLSLFloatItem(n++);
+                                update.water["scale_above"] = Math.Clamp(scale_above, 0.0f, 3.0f);
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (WATER_REFRACTION) Expecting float parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            try
+                            {
+                                float scale_below = (float)param_list.GetLSLFloatItem(n++);
+                                update.water["scale_below"] = Math.Clamp(scale_below, 0.0f, 3.0f);
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (WATER_REFRACTION) Expecting float parameter..", rulesParsed));
+                                return null;
+                            }
+
+
+                            break;
+                        case ScriptBaseClass.WATER_WAVE_DIRECTION:
+                            if (remain < 2)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (WATER_WAVE_DIRECTION) Expecting float parameter..", rulesParsed));
+                                return null;
+                            }
+
+
+                            try
+                            {
+                                Vector3 vec1 = param_list.GetVector3Item(n++);
+                                Vector2 wave1_direction = new Vector2(vec1.X, vec1.Y);
+                                update.water["wave1_direction"] = wave1_direction;
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (WATER_WAVE_DIRECTION) Expecting float parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            try
+                            {
+                                Vector3 vec2 = param_list.GetVector3Item(n++);
+                                Vector2 wave2_direction = new Vector2(vec2.X, vec2.Y);
+                                update.water["wave1_direction"] = wave2_direction;
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (WATER_WAVE_DIRECTION) Expecting float parameter..", rulesParsed));
+                                return null;
+                            }
+
+
+                            break;
+                        case ScriptBaseClass.SKY_AMBIENT:
+                            if (remain < 1)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_AMBIENT) Expecting float parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            try
+                            {
+                                OSDMap legacy_haze_ambient = new OSDMap();
+
+                                var vec = param_list.GetVector3Item(n++);
+                                var srgb = llLinear2sRGB(vec);
+
+                                legacy_haze_ambient["ambient"] = (Vector3)srgb;
+                                update.sky["legacy_haze"] = legacy_haze_ambient;
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_AMBIENT) Expecting vector parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            break;
+                        case ScriptBaseClass.SKY_BLUE:
+                            if (remain < 2)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_BLUE) Expecting float parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            OSDMap legacy_haze_blue = new OSDMap();
+
+                            try
+                            {
+                                var vec = param_list.GetVector3Item(n++);
+                                var srgb = llLinear2sRGB(vec);
+                                legacy_haze_blue["blue_density"] = (Vector3)srgb;
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_BLUE) Expecting vector parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            try
+                            {
+                                var vec = param_list.GetVector3Item(n++);
+                                var srgb = llLinear2sRGB(vec);
+                                legacy_haze_blue["blue_horizon"] = (Vector3)srgb;
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_BLUE) Expecting vector parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            update.sky["legacy_haze"] = legacy_haze_blue;
+
+                            break;
+                        case ScriptBaseClass.SKY_HAZE:
+                            if (remain < 4)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_HAZE) Expecting float parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            OSDMap legacy_haze_haze = new OSDMap();
+
+                            try
+                            {
+                                var val = param_list.GetFloatItem(n++);
+                                legacy_haze_haze["haze_density"] = val * 10.0f;
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_HAZE) Expecting vector parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            try
+                            {
+                                var val = param_list.GetFloatItem(n++);
+                                legacy_haze_haze["haze_horizon"] = val;
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_HAZE) Expecting vector parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            try
+                            {
+                                var val = param_list.GetFloatItem(n++);
+                                legacy_haze_haze["density_multiplier"] = val / 1000.0f;
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_HAZE) Expecting vector parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            try
+                            {
+                                var val = param_list.GetFloatItem(n++);
+                                legacy_haze_haze["distance_multiplier"] = val;
+                            }
+                            catch (InvalidCastException)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} (SKY_HAZE) Expecting vector parameter..", rulesParsed));
+                                return null;
+                            }
+
+                            update.sky["legacy_haze"] = legacy_haze_haze;
+
+                            break;
+                        case ScriptBaseClass.SKY_REFLECTION_PROBE_AMBIANCE:
+                            if (remain < 1)
+                                error = true;
+
+                            if (!error)
+                            {
+                                float fl = (float)param_list.GetLSLFloatItem(n++);
+                                update.sky["reflection_probe_ambiance"] = Math.Clamp(fl, 0.0f, 10.0f);
+                            }
+
+                            if (error)
+                            {
+                                Error("llSetAgentEnvironment", string.Format("Error running rule #{0} -> SKY_REFLECTION_PROBE_AMBIANCE: arg #{1} - parameter 1 must be a float", rulesParsed, n - index - 1));
+                            }
+
+                            break;
+
+                        default:
+                            Error("llSetAgentEnvironment", string.Format("Error running rule #{0} unknown rule id {1}.", rulesParsed, code));
+                            break;
+                    }
+                }
+            }
+            catch
+            {
+
+            }
+
+            return update;
+        }
+
+        public LSL_Integer llSetAgentEnvironment(LSL_Key agent_id, LSL_Float transition, LSL_List param_list)
+        {
+            if (m_item.ExperienceID == UUID.Zero)
+                return new LSL_Integer(ScriptBaseClass.ENV_NOT_EXPERIENCE);
+
+
+            if (!UUID.TryParse(agent_id, out UUID avatar) || avatar.IsZero())
+                return new LSL_Integer(ScriptBaseClass.ENV_INVALID_AGENT);
+
+            ScenePresence presence = World.GetScenePresence(avatar);
+            if (presence == null || presence.IsChildAgent || presence.Animator == null)
+                return new LSL_Integer(ScriptBaseClass.ENV_INVALID_AGENT);
+
+            if (World.ExperienceModule.GetExperiencePermission(avatar, m_item.ExperienceID) != ExperiencePermission.Allowed)
+            {
+                return new LSL_Integer(ScriptBaseClass.ENV_NO_EXPERIENCE_PERMISSION);
+            }
+
+            EnvironmentUpdate update = ParamsToEnvUpdate(transition, param_list);
+
+            if (update == null) return ScriptBaseClass.ENV_INVALID_RULE;
+
+            m_EventQueue.SendEnvironmentUpdate(m_item.ExperienceID, avatar, update);
+
+            return 1;
+        }
+
+        public LSL_Integer llReplaceAgentEnvironment(LSL_Key agent_id, LSL_Float transition, LSL_String environment)
+        {
+            if (m_item.ExperienceID == UUID.Zero)
+                return new LSL_Integer(ScriptBaseClass.ENV_NOT_EXPERIENCE);
+
+
+            if (!UUID.TryParse(agent_id, out UUID avatar) || avatar.IsZero())
+                return new LSL_Integer(ScriptBaseClass.ENV_INVALID_AGENT);
+
+            ScenePresence presence = World.GetScenePresence(avatar);
+            if (presence == null || presence.IsChildAgent || presence.Animator == null)
+                return new LSL_Integer(ScriptBaseClass.ENV_INVALID_AGENT);
+
+            if (World.ExperienceModule.GetExperiencePermission(avatar, m_item.ExperienceID) != ExperiencePermission.Allowed)
+            {
+                return new LSL_Integer(ScriptBaseClass.ENV_NO_EXPERIENCE_PERMISSION);
+            }
+
+            if (string.IsNullOrEmpty(environment) || environment == ScriptBaseClass.NULL_KEY)
+            {
+                var update = new ClearEnvironmentUpdate
+                {
+                    TransitionTime = (float)transition
+                };
+
+                m_EventQueue.SendEnvironmentUpdate(m_item.ExperienceID, avatar, update);
+            }
+            else
+            {
+                UUID envID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, environment);
+                if (envID.IsZero())
+                    return ScriptBaseClass.ENV_NO_ENVIRONMENT;
+
+                AssetBase asset = World.AssetService.Get(envID.ToString());
+                if (asset is null || asset.Type != (byte)AssetType.Settings)
+                    return ScriptBaseClass.ENV_NO_ENVIRONMENT;
+
+
+                var update = new FullEnvironmentUpdate
+                {
+                    AssetID = asset.FullID,
+                    TransitionTime = (float)transition
+                };
+
+                m_EventQueue.SendEnvironmentUpdate(m_item.ExperienceID, avatar, update);
+
+            }
+
+            return 1;
         }
 
         public LSL_List llJson2List(LSL_String json)
@@ -18397,7 +20060,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (o is string str)
             {
                 str = str.Trim();
-                if (str.Length == 0)
+                if(str.Length == 0)
                     return "\"\"";
                 if (str[0] == '{')
                     return str;
@@ -19130,183 +20793,245 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return new LSL_Vector(Util.sRGBtoLinear((float)src.x), Util.sRGBtoLinear((float)src.y), Util.sRGBtoLinear((float)src.z));
         }
 
+        public void llLinksetDataReset()
+        {
+            var rootPrim = m_host.ParentGroup.RootPart;
+
+            if (rootPrim.LinksetData == null)
+            {
+                rootPrim.LinksetData = new LinksetData();
+            }
+            else
+            {
+                rootPrim.LinksetData.Clear();
+            }
+
+            object[] parameters = new object[]
+            {
+                new LSL_Integer(ScriptBaseClass.LINKSETDATA_RESET), new LSL_String(string.Empty), new LSL_String(string.Empty)
+            };
+
+            m_ScriptEngine.PostObjectEvent(
+                rootPrim.LocalId,
+                new EventParams("linkset_data", parameters, Array.Empty<DetectParams>()));
+
+            rootPrim.ParentGroup.HasGroupChanged = true;
+        }
+
         public LSL_Integer llLinksetDataAvailable()
         {
-            if (m_host.ParentGroup.LinksetData is null)
-                return m_linksetDataLimit;
+            var rootPrim = m_host.ParentGroup.RootPart;
 
-            return new LSL_Integer(m_host.ParentGroup.LinksetData.Free());
+            if (rootPrim.LinksetData == null)
+            {
+                rootPrim.LinksetData = new LinksetData();
+            }
+
+            return new LSL_Integer(rootPrim.LinksetData.BytesFree);
         }
 
         public LSL_Integer llLinksetDataCountKeys()
         {
-            if (m_host.ParentGroup.LinksetData is null)
-                return 0;
+            var rootPrim = m_host.ParentGroup.RootPart;
 
-            return new LSL_Integer(m_host.ParentGroup.LinksetData.Count());
-        }
-
-        public LSL_String llLinksetDataRead(LSL_String name)
-        {
-            if (m_host.ParentGroup.LinksetData is null || string.IsNullOrEmpty(name.m_string))
-                return new LSL_String(string.Empty);
-
-            return new LSL_String(m_host.ParentGroup.LinksetData.Get(name.m_string));
-        }
-
-        public LSL_String llLinksetDataReadProtected(LSL_String name, LSL_String pass)
-        {
-            if (m_host.ParentGroup.LinksetData is null || string.IsNullOrEmpty(name.m_string))
-                return new LSL_String(string.Empty);
-
-            return new LSL_String(m_host.ParentGroup.LinksetData.Get(name.m_string, pass.m_string));
-        }
-
-        public LSL_Integer llLinksetDataDelete(LSL_String name)
-        {
-            if (string.IsNullOrEmpty(name.m_string))
-                return ScriptBaseClass.LINKSETDATA_ENOKEY;
-            if (m_host.ParentGroup.LinksetData is null)
-                return ScriptBaseClass.LINKSETDATA_NOTFOUND;
-
-            int ret = m_host.ParentGroup.LinksetData.Remove(name.m_string);
-            if (ret == 0)
+            if (rootPrim.LinksetData == null)
             {
-                m_ScriptEngine.PostObjectLinksetDataEvent(m_host.LocalId, ScriptBaseClass.LINKSETDATA_DELETE, name.m_string, string.Empty);
-                m_host.ParentGroup.HasGroupChanged = true;
-            }
-            return ret;
-        }
-
-        public LSL_Integer llLinksetDataDeleteProtected(LSL_String name, LSL_String pass)
-        {
-            if (string.IsNullOrEmpty(name.m_string))
-                return ScriptBaseClass.LINKSETDATA_ENOKEY;
-            if (m_host.ParentGroup.LinksetData is null)
-                return ScriptBaseClass.LINKSETDATA_NOTFOUND;
-
-            int ret = m_host.ParentGroup.LinksetData.Remove(name.m_string, pass.m_string);
-            if (ret == 0)
-            {
-                m_ScriptEngine.PostObjectLinksetDataEvent(m_host.LocalId, ScriptBaseClass.LINKSETDATA_DELETE, name.m_string, string.Empty);
-                m_host.ParentGroup.HasGroupChanged = true;
-            }
-            return ret;
-        }
-
-        public void llLinksetDataReset()
-        {
-            if (m_host.ParentGroup.LinksetData is null)
-                return;
-
-            bool changed = m_host.ParentGroup.LinksetData.Count() > 0;
-            m_host.ParentGroup.LinksetData = null;
-
-            if(changed)
-            {
-                m_ScriptEngine.PostObjectLinksetDataEvent(m_host.LocalId, ScriptBaseClass.LINKSETDATA_RESET, string.Empty, string.Empty);
-                m_host.ParentGroup.HasGroupChanged = true;
-            }
-        }
-
-        public LSL_Integer llLinksetDataWrite(LSL_String name, LSL_String value)
-        {
-            if (string.IsNullOrEmpty(name.m_string))
-                return ScriptBaseClass.LINKSETDATA_ENOKEY;
-
-            int ret;
-            if (string.IsNullOrEmpty(value.m_string))
-            {
-                if (m_host.ParentGroup.LinksetData is null)
-                    return ScriptBaseClass.LINKSETDATA_NOTFOUND;
-
-                ret = m_host.ParentGroup.LinksetData.Remove(name.m_string);
-                if (ret == 0)
-                {
-                    m_ScriptEngine.PostObjectLinksetDataEvent(m_host.LocalId, ScriptBaseClass.LINKSETDATA_DELETE, name.m_string, string.Empty);
-                    m_host.ParentGroup.HasGroupChanged = true;
-                }
-                return ret;
+                rootPrim.LinksetData = new LinksetData();
             }
 
-            m_host.ParentGroup.LinksetData ??= new(m_linksetDataLimit);
-            ret = m_host.ParentGroup.LinksetData.AddOrUpdate(name.m_string, value.m_string);
-            if (ret == 0)
-            {
-                m_ScriptEngine.PostObjectLinksetDataEvent(m_host.LocalId, ScriptBaseClass.LINKSETDATA_UPDATE, name.m_string, value.m_string);
-                m_host.ParentGroup.HasGroupChanged = true;
-            }
-            return ret;
-        }
-
-        public LSL_Integer llLinksetDataWriteProtected(LSL_String name, LSL_String value, LSL_String pass)
-        {
-            if (string.IsNullOrEmpty(name.m_string))
-                return ScriptBaseClass.LINKSETDATA_ENOKEY;
-
-            int ret;
-            if (string.IsNullOrEmpty(value.m_string))
-            {
-                if (m_host.ParentGroup.LinksetData is null)
-                    return ScriptBaseClass.LINKSETDATA_NOTFOUND;
-
-                ret = m_host.ParentGroup.LinksetData.Remove(name.m_string, pass.m_string);
-                if (ret == 0)
-                {
-                    m_ScriptEngine.PostObjectLinksetDataEvent(m_host.LocalId, ScriptBaseClass.LINKSETDATA_DELETE, name.m_string, string.Empty);
-                    m_host.ParentGroup.HasGroupChanged = true;
-                }
-                return ret;
-            }
-
-            m_host.ParentGroup.LinksetData ??= new(m_linksetDataLimit);
-            ret = m_host.ParentGroup.LinksetData.AddOrUpdate(name.m_string, value.m_string, pass.m_string);
-            if (ret == 0)
-            {
-                m_ScriptEngine.PostObjectLinksetDataEvent(m_host.LocalId, ScriptBaseClass.LINKSETDATA_UPDATE, name.m_string, string.Empty);
-                m_host.ParentGroup.HasGroupChanged = true;
-            }
-            return ret;
-        }
-
-        public LSL_List llLinksetDataDeleteFound(LSL_String pattern, LSL_String pass)
-        {
-            if (string.IsNullOrEmpty(pattern.m_string) || m_host.ParentGroup.LinksetData is null)
-                return new LSL_List(new object[] { new LSL_Integer(0), new LSL_Integer(0)});
-
-            string[] deleted = m_host.ParentGroup.LinksetData.RemoveByPattern(pattern.m_string, pass.m_string, out int notDeleted);
-            int deletedCount = deleted.Length;
-            if(deleted.Length > 0)
-            {
-                string deletedList = string.Join(",", deleted);
-                m_ScriptEngine.PostObjectLinksetDataEvent(m_host.LocalId, ScriptBaseClass.LINKSETDATA_MULTIDELETE, deletedList, string.Empty);
-                m_host.ParentGroup.HasGroupChanged = true;
-            }
-            return new LSL_List(new object[] { new LSL_Integer(deleted.Length), new LSL_Integer(notDeleted) });
+            return new LSL_Integer(rootPrim.LinksetData.Count());
         }
 
         public LSL_Integer llLinksetDataCountFound(LSL_String pattern)
         {
-            if (string.IsNullOrEmpty(pattern.m_string) || m_host.ParentGroup.LinksetData is null)
-                return new LSL_Integer(0);
+            var rootPrim = m_host.ParentGroup.RootPart;
 
-            return m_host.ParentGroup.LinksetData.CountByPattern(pattern.m_string);
+            if (rootPrim.LinksetData == null)
+            {
+                rootPrim.LinksetData = new LinksetData();
+            }
+
+            return rootPrim.LinksetData.LinksetDataCountMatches(pattern);
+        }
+
+
+        public LSL_List llLinksetDataFindKeys(LSL_String pattern, LSL_Integer start, LSL_Integer count)
+        {
+            var rootPrim = m_host.ParentGroup.RootPart;
+
+            if (rootPrim.LinksetData == null)
+            {
+                rootPrim.LinksetData = new LinksetData();
+            }
+
+            return new LSL_List(rootPrim.LinksetData.FindLinksetDataKeys(pattern, start, count));
         }
 
         public LSL_List llLinksetDataListKeys(LSL_Integer start, LSL_Integer count)
         {
-            if (m_host.ParentGroup.LinksetData is null)
-                return new LSL_List();
+            var rootPrim = m_host.ParentGroup.RootPart;
 
-            return new LSL_List(m_host.ParentGroup.LinksetData.ListKeys(start, count));
+            if (rootPrim.LinksetData == null)
+            {
+                rootPrim.LinksetData = new LinksetData();
+            }
+
+            return new LSL_List(rootPrim.LinksetData.GetLinksetDataSubList(start, count));
         }
 
-        public LSL_List llLinksetDataFindKeys(LSL_String pattern, LSL_Integer start, LSL_Integer count)
+        public LSL_String llLinksetDataRead(LSL_String name)
         {
-            if (string.IsNullOrEmpty(pattern.m_string) || m_host.ParentGroup.LinksetData is null)
-                return new LSL_List();
+            return llLinksetDataReadProtected(name, string.Empty);
+        }
 
-            return new LSL_List(m_host.ParentGroup.LinksetData.ListKeysByPatttern(pattern.m_string, start, count));
+        public LSL_String llLinksetDataReadProtected(LSL_String name, LSL_String pass)
+        {
+            var rootPrim = m_host.ParentGroup.RootPart;
+
+            if (rootPrim.LinksetData == null)
+            {
+                rootPrim.LinksetData = new LinksetData();
+            }
+
+            return new LSL_String(rootPrim.LinksetData.ReadLinksetData(name, pass));
+        }
+
+        public LSL_Integer llLinksetDataWrite(LSL_String name, LSL_String value)
+        {
+            return llLinksetDataWriteProtected(name, value, new LSL_String(string.Empty));
+        }
+
+        public LSL_Integer llLinksetDataWriteProtected(LSL_String name, LSL_String value, LSL_String pass)
+        {
+            if (string.IsNullOrEmpty(name))
+                return ScriptBaseClass.LINKSETDATA_ENOKEY;
+
+            // If value is empty this becomes a key delete operation
+            if (string.IsNullOrEmpty(value))
+            {
+                return llLinksetDataDeleteProtected(name, pass);
+            }
+
+            var rootPrim = m_host.ParentGroup.RootPart;
+
+            if (rootPrim.LinksetData == null)
+            {
+                rootPrim.LinksetData = new LinksetData();
+            }
+
+            int ret = rootPrim.LinksetData.AddOrUpdateLinksetDataKey(name, value, pass);
+
+            object[] parameters = new object[]
+            {
+                new LSL_Integer(ScriptBaseClass.LINKSETDATA_UPDATE), name, value
+            };
+
+            if (ret == 0)
+            {
+                m_ScriptEngine.PostObjectEvent(
+                    rootPrim.LocalId,
+                    new EventParams("linkset_data", parameters, Array.Empty<DetectParams>()));
+
+                rootPrim.ParentGroup.HasGroupChanged = true;
+
+                return ScriptBaseClass.LINKSETDATA_OK;
+            }
+            else
+            {
+                if (ret == 1)
+                {
+                    return ScriptBaseClass.LINKSETDATA_EMEMORY;
+                }
+                else if (ret == 2)
+                {
+                    return ScriptBaseClass.LINKSETDATA_NOUPDATE;
+                }
+                else
+                {
+                    return ScriptBaseClass.LINKSETDATA_EPROTECTED;
+                }
+            }
+        }
+
+        public LSL_Integer llLinksetDataDelete(LSL_String name)
+        {
+            return llLinksetDataDeleteProtected(name, new LSL_String(string.Empty));
+        }
+
+        public LSL_List llLinksetDataDeleteFound(LSL_String pattern, LSL_String pass)
+        {
+            int deleted = 0;
+            int not_deleted = 0;
+            var rootPrim = m_host.ParentGroup.RootPart;
+
+            if (rootPrim.LinksetData == null)
+            {
+                rootPrim.LinksetData = new LinksetData();
+            }
+
+            var matches = rootPrim.LinksetData.LinksetDataMultiDelete(pattern, pass, out deleted, out not_deleted);
+
+            string removed_keys = String.Join(",", matches);
+
+            object[] parameters = new object[]
+            {
+                new LSL_Integer(ScriptBaseClass.LINKSETDATA_MULTIDELETE), 
+                new LSL_String(removed_keys), 
+                new LSL_String(string.Empty)
+            };
+
+            if (deleted > 0)
+            {
+                m_ScriptEngine.PostObjectEvent(
+                    m_host.LocalId, 
+                    new EventParams("linkset_data", parameters, Array.Empty<DetectParams>()));
+
+                rootPrim.ParentGroup.HasGroupChanged = true;
+
+            }
+
+            return new LSL_List(new object[]
+            {
+                new LSL_Integer(deleted), new LSL_Integer(not_deleted)
+            });
+        }
+
+        public LSL_Integer llLinksetDataDeleteProtected(LSL_String name, LSL_String pass)
+        {
+            var rootPrim = m_host.ParentGroup.RootPart;
+
+            if (rootPrim.LinksetData == null)
+            {
+                rootPrim.LinksetData = new LinksetData();
+            }
+
+            int ret = rootPrim.LinksetData.DeleteLinksetDataKey(name, pass);
+
+            object[] parameters;
+
+            if (ret == 0)
+            {
+                parameters = new object[]
+                {
+                    new LSL_Integer(ScriptBaseClass.LINKSETDATA_DELETE), name, new LSL_String(string.Empty)
+                };
+
+                m_ScriptEngine.PostObjectEvent(
+                    rootPrim.LocalId, 
+                    new EventParams("linkset_data", parameters, Array.Empty<DetectParams>()));
+
+                rootPrim.ParentGroup.HasGroupChanged = true;
+
+                return new LSL_Integer(ScriptBaseClass.LINKSETDATA_OK);
+            }
+            else if (ret == 1)
+            {
+                return new LSL_Integer(ScriptBaseClass.LINKSETDATA_EPROTECTED);
+            }
+            else
+            {
+                return new LSL_Integer(ScriptBaseClass.LINKSETDATA_NOTFOUND);
+            }
         }
 
         public LSL_Integer llIsFriend(LSL_Key agent_id)

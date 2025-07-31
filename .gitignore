@@ -1,7 +1,8 @@
+OpenSimConsoleHistory.txt
+
 .project
 .settings
 .gitignore
-*.csproj
 *.csproj.user
 *.build
 *.mdb
@@ -16,26 +17,26 @@
 *.bak
 *.lnk
 
+launchSettings.json
+
+build/
+
+*/bin/Debug/*
+*/bin/Release/*
+
+packages/
+
+Prebuild/src/bin
+
 # Ignore .user and .suo files as these are user preference specific
 # http://stackoverflow.com/questions/72298/should-i-add-the-visual-studio-suo-and-user-files-to-source-control
 *.suo
 *.user
 
 *.VisualState.xml
-*/*/obj
-*/*/*/obj
-*/*/*/*/obj
-*/*/*/*/*/obj
-*/*/*/*/*/*/obj
-*/*/*/*/*/*/*/obj
-*/*/bin
-*/*/*/bin
-*/*/*/*/bin
-*/*/*/*/*/bin
-*/*/*/*/*/*/bin
-*/*/*/*/*/*/*/bin
+obj
 .vs/
-addon-modules/
+.vscode/
 bin/Debug/*.dll
 bin/*.dll.mdb
 bin/*.db
@@ -69,6 +70,7 @@ bin/config-include/CenomeCache.ini
 bin/config-include/FlotsamCache.ini
 bin/config-include/GridCommon.ini
 bin/config-include/StandaloneCommon.ini
+bin/config-include/osslEnable.ini
 bin/OpenSim.Grid.AssetInventoryServer.log
 bin/OpenSim.Grid.AssetServer.log
 bin/OpenSim.Grid.GridServer.log
@@ -86,7 +88,6 @@ bin/*.manifest
 bin/crashes/
 Examples/*.dll
 OpenSim.build
-OpenSim.sln
 OpenSim.userprefs
 Prebuild/Prebuild.build
 Prebuild/Prebuild.sln

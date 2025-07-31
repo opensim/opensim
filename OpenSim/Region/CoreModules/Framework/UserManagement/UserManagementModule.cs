@@ -304,6 +304,8 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                         ud.HasGridUserTried = true;
                         ud.IsUnknownUser = false;
                         ud.IsLocal = acc.LocalToGrid;
+                        ud.DisplayName = acc.DisplayName;
+                        ud.NameChanged = Utils.UnixTimeToDateTime(acc.NameChanged);
                         users.Add(ud);
                         found.Add(id);
                     }
@@ -468,6 +470,8 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                         userdata.IsUnknownUser = false;
                         userdata.IsLocal = true;
                         userdata.HasGridUserTried = true;
+                        userdata.DisplayName = uac.DisplayName;
+                        userdata.NameChanged = Utils.UnixTimeToDateTime(uac.NameChanged);
                         m_userCacheByID.Add(id, userdata, 1800000);
 
                         ret[id] = uac.FirstName + " " + uac.LastName;
@@ -599,6 +603,8 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                         userdata.IsUnknownUser = false;
                         userdata.IsLocal = true;
                         userdata.HasGridUserTried = true;
+                        userdata.DisplayName = uac.DisplayName;
+                        userdata.NameChanged = Utils.UnixTimeToDateTime(uac.NameChanged);
                         m_userCacheByID.Add(id, userdata, 1800000);
 
                         ret[id] = uac.FirstName + " " + uac.LastName;
@@ -716,6 +722,8 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                         userdata.IsUnknownUser = false;
                         userdata.IsLocal = true;
                         userdata.HasGridUserTried = true;
+                        userdata.DisplayName = uac.DisplayName;
+                        userdata.NameChanged = Utils.UnixTimeToDateTime(uac.NameChanged);
                         m_userCacheByID.Add(id, userdata, 1800000);
 
                         ret.Add(userdata);
@@ -1019,6 +1027,8 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     userdata.IsUnknownUser = false;
                     userdata.IsLocal = true;
                     userdata.HasGridUserTried = true;
+                    userdata.DisplayName = account.DisplayName;
+                    userdata.NameChanged = Utils.UnixTimeToDateTime(account.NameChanged);
                 }
             }
 
@@ -1281,6 +1291,11 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             else
                 u.HasGridUserTried = true;
             return true;
+        }
+
+        public bool SetDisplayName(UUID agentID, string displayName)
+        {
+            return m_userAccountService.SetDisplayName(agentID, displayName);
         }
 
         #endregion IUserManagement

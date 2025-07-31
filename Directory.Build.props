@@ -1,0 +1,24 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
+  </PropertyGroup>
+  <PropertyGroup>      
+    <MSBuildProjectExtensionsPath>$(SolutionDir)/obj/$(Configuration)/$(MSBuildProjectName)/</MSBuildProjectExtensionsPath>
+    <IntermediateOutputPath>$(SolutionDir)/obj/$(Configuration)/$(MSBuildProjectName)/</IntermediateOutputPath>
+    <OutputPath>$(SolutionDir)/build/$(Configuration)/$(AssemblyName)/</OutputPath>
+    <OutDir>$(OutputPath)</OutDir>
+  </PropertyGroup>
+
+<!-- <ItemGroup>
+  <PackageReference Include="Nerdbank.GitVersioning" Condition="!Exists('packages.config')">
+    <PrivateAssets>all</PrivateAssets>
+    <Version>3.6.133</Version>
+  </PackageReference>
+</ItemGroup> -->
+
+</Project>

@@ -421,22 +421,22 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 //only do this once since constants are static
                 if(doSuper)
                 {
-                    // Add constants to list of built-in constants.
-                    Dictionary<string, object> consts = comms.GetConstants();
-                    foreach(KeyValuePair<string, object> kvp in consts)
+                // Add constants to list of built-in constants.
+                Dictionary<string, object> consts = comms.GetConstants();
+                foreach(KeyValuePair<string, object> kvp in consts)
+                {
+                    try
                     {
-                        try
-                        {
-                            ScriptConst sc = ScriptConst.AddConstant(kvp.Key, kvp.Value);
-                            Verbose("[YEngine]: added comms constant " + sc.name);
-                        }
-                        catch(Exception e)
-                        {
-                            m_log.Error("[YEngine]: failed to add comms constant " + kvp.Key);
-                            m_log.Error("[YEngine]: - " + e.Message);
-                        }
+                        ScriptConst sc = ScriptConst.AddConstant(kvp.Key, kvp.Value);
+                        Verbose("[YEngine]: added comms constant " + sc.name);
+                    }
+                    catch(Exception e)
+                    {
+                        m_log.Error("[YEngine]: failed to add comms constant " + kvp.Key);
+                        m_log.Error("[YEngine]: - " + e.Message);
                     }
                 }
+            }
             }
             else
             {
@@ -898,7 +898,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             if (TryGetInstance(itemID, out XMRInstance instance))
             {
-                TraceCalls("[YEngine]: YEngine.PostScriptEvent({0},{1})", itemID.ToString(), parms.EventName);
+            TraceCalls("[YEngine]: YEngine.PostScriptEvent({0},{1})", itemID.ToString(), parms.EventName);
                 return instance.PostEvent(parms);
             }
             return false;
@@ -909,9 +909,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             if (TryGetInstance(itemID, out XMRInstance instance))
             {
-                TraceCalls("[YEngine]: YEngine.CancelScriptEvent({0},{1})", itemID.ToString(), eventName);
-                instance.CancelEvent(eventName);
-            }
+            TraceCalls("[YEngine]: YEngine.CancelScriptEvent({0},{1})", itemID.ToString(), eventName);
+            instance.CancelEvent(eventName);
+        }
         }
 
         // Events targeted at all scripts in the given prim.
@@ -930,11 +930,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             TraceCalls("[YEngine]: YEngine.PostObjectEvent({0},{1})", localID.ToString(), parms.EventName);
 
-            // In SecondLife, attach events go to all scripts of all prims
+            // In SecondLife, attach and linkset_data events go to all scripts of all prims
             // in a linked object.  So here we duplicate that functionality,
             // as all we ever get is a single attach event for the whole
             // object.
-            if(parms.EventName == "attach")
+            if ((parms.EventName == "attach") || (parms.EventName == "linkset_data"))
             {
                 bool posted = false;
                 foreach(SceneObjectPart primpart in part.ParentGroup.Parts)
@@ -1004,7 +1004,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public DetectParams GetDetectParams(UUID itemID, int number)
         {
             if (TryGetInstance(itemID, out XMRInstance instance))
-                return instance.GetDetectParams(number);
+            return instance.GetDetectParams(number);
             return null;
         }
 
@@ -1018,7 +1018,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public int GetStartParameter(UUID itemID)
         {
             if (TryGetInstance(itemID, out XMRInstance instance))
-                return instance.StartParam;
+            return instance.StartParam;
             return 0;
         }
 
@@ -1046,7 +1046,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public bool GetScriptState(UUID itemID)
         {
             if (TryGetInstance(itemID, out XMRInstance instance))
-                return instance.Running;
+            return instance.Running;
             return false;
         }
 
@@ -1110,7 +1110,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 if (TryGetInstance(itemID, out XMRInstance instance))
                     return (IScriptApi)fi.GetValue(instance);
             }
-            return null;
+                return null;
         }
 
         /**
@@ -1240,7 +1240,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             TraceCalls("[YEngine]: YEngine.PostObjectEvent({0},{1})", itemID.ToString(), name);
 
             if(m_Scene.TryGetSceneObjectPart(itemID, out SceneObjectPart part))
-                return PostObjectEvent(part.LocalId, new EventParams(name, p, zeroDetectParams));
+            return PostObjectEvent(part.LocalId, new EventParams(name, p, zeroDetectParams));
             return false;
         }
 
@@ -1574,8 +1574,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
                 bool curRunnning = instance.Running;
                 instance.m_Item.ScriptRunning = curRunnning;
-                controllingClient.SendScriptRunningReply(objectID, itemID, curRunnning);
-            }
+                    controllingClient.SendScriptRunningReply(objectID, itemID, curRunnning);
+                }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1879,9 +1879,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public XMRInstance GetInstance(UUID itemID)
         {
             XMRInstance instance;
-            lock (m_InstancesDict)
+            lock(m_InstancesDict)
             {
-                if (!m_InstancesDict.TryGetValue(itemID, out instance))
+                if(!m_InstancesDict.TryGetValue(itemID, out instance))
                     instance = null;
             }
             return instance;
@@ -1953,7 +1953,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 {
                     uint rootLocalID = instance.m_Part.ParentGroup.LocalId;
                     if(topScripts.TryGetValue(rootLocalID, out float oldTotal))
-                        topScripts[rootLocalID] = (float)instance.m_CPUTime + oldTotal;
+                    topScripts[rootLocalID] = (float)instance.m_CPUTime + oldTotal;
                     else
                         topScripts[rootLocalID] = (float)instance.m_CPUTime;
 

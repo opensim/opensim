@@ -1,159 +1,161 @@
-/*
- * Copyright (c) Contributors, http://opensimulator.org/
- * See CONTRIBUTORS.TXT for a full list of copyright holders.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSimulator Project nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 using System;
-using System.Buffers;
 using System.Collections.Generic;
-using System.IO;
-using System.Runtime.CompilerServices;
+using System.Linq;
+using System.Reflection;
+using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
-using System.Xml;
-
-//using log4net;
+using ICSharpCode.SharpZipLib.Zip;
+using log4net;
 
 namespace OpenSim.Region.Framework.Scenes
 {
-    public class LinksetData
+    public class LinksetData : ICloneable
     {
-        public int m_MemoryLimit;
-        public int m_MemoryUsed;
-        private readonly object linksetDataLock = new();
-        public Dictionary<string, LinksetDataEntry> Data;
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
+        public const int LINKSETDATA_MAX = 131072;
 
-        public LinksetData(int limit)
+        private static readonly object linksetDataLock = new object();
+
+        public SortedList<string, LinksetDataEntry> Data { get; set; }
+
+        public int BytesFree { get; set; }
+
+        /* Make BytesUsed required so we can fail on an old format serialization.  
+         * If we see that we fall back to deserializing the Collection and calculating
+         * size.  This will require it be present in the data going forward 
+         */
+        [JsonRequired]
+        public int BytesUsed { get; set; }
+
+        public LinksetData()
         {
-            Data = new Dictionary<string, LinksetDataEntry>();
-
-            m_MemoryLimit = limit;
-            m_MemoryUsed = 0;
+            Data = new();
+            BytesFree = LINKSETDATA_MAX;
+            BytesUsed = 0;
         }
 
-        public LinksetData(int limit, int used)
+        public object Clone()
         {
-            Data = new Dictionary<string, LinksetDataEntry>();
-
-            m_MemoryLimit = limit;
-            m_MemoryUsed = used;
+            return LinksetData.DeserializeLinksetData(this.SerializeLinksetData());
         }
 
-        public LinksetData Copy()
+        public void Clear()
+        {
+            lock(linksetDataLock)
+            {
+                Data.Clear();
+                BytesFree = LINKSETDATA_MAX;
+                BytesUsed = 0;
+            }
+        }
+
+        public int Count()
         {
             lock (linksetDataLock)
             {
-                var copy = new LinksetData(m_MemoryLimit, m_MemoryUsed);
-                foreach (var entry in Data)
-                {
-                    LinksetDataEntry val = entry.Value.Copy();
-                    copy.Data[entry.Key] = val;
-                }
-                return copy;
+                return Data.Count;
             }
+        }
+
+        public string SerializeLinksetData()
+        {
+            lock (linksetDataLock)
+            {
+                return ((Data is null) || (Data.Count <= 0)) ? 
+                    null : JsonSerializer.Serialize<LinksetData>(this);
+            }
+        }
+   
+        public static LinksetData DeserializeLinksetData(string data)
+        {
+            LinksetData lsd = null;
+            
+            if (string.IsNullOrWhiteSpace(data) is false)
+            {           
+                try
+                {
+                    lsd = JsonSerializer.Deserialize<LinksetData>(data);                  
+                }
+                catch (JsonException jse)
+                {
+                    try
+                    {
+                        m_log.Debug($"Exception deserializing LinkSetData, trying original format: {jse.Message}");
+                        var listData = JsonSerializer.Deserialize<SortedList<string, LinksetDataEntry>>(data);
+                        lsd = new LinksetData { Data = listData }; 
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.Error($"Exception deserializing LinkSetData new and original format: {data}", e);
+                    }
+                    finally
+                    {
+                        // if we got data but no costs calculate that
+                        if (lsd?.BytesUsed <= 0)
+                        {
+                            var cost = 0;
+
+                            foreach (var kvp in lsd?.Data)
+                            {
+                                cost += kvp.Value.GetCost(kvp.Key);
+                            }
+
+                            lsd.BytesUsed = cost;
+                            lsd.BytesFree = LINKSETDATA_MAX - cost;
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    m_log.Error($"General Exception deserializing LinkSetData", e);
+                }
+            }
+
+            return lsd;
         }
 
         /// <summary>
-        /// Adds or updates a entry to linkset data with optional password
+        /// Adds or updates a entry to linkset data
         /// </summary>
         /// <returns>
-        /// return values must match values expected by LSL
+        /// -1 if the password did not match
+        /// -1 is the data was protected
+        /// 0 if the data was successfully added or updated
+        /// 1 if the data could not be added or updated due to memory
+        /// 2 if the data is unchanged
         /// </returns>
-        public int AddOrUpdate(string key, string value, string pass)
+        public int AddOrUpdateLinksetDataKey(string key, string value, string pass)
         {
-            int deltaMem;
             lock (linksetDataLock)
             {
+                if (LinksetDataOverLimit())
+                    return 1;
+
+                if (string.IsNullOrWhiteSpace(key))
+                    return 2;
+
                 if (Data.TryGetValue(key, out LinksetDataEntry entry))
                 {
                     if (!entry.CheckPassword(pass))
-                        return 3;
+                        return -1;
 
                     if (entry.Value == value)
-                        return 5;
+                        return 2;
 
-                    deltaMem = value.Length - entry.Value.Length;
-                    if ((m_MemoryUsed + deltaMem) > m_MemoryLimit)
-                        return 1;
-
-                    m_MemoryUsed += deltaMem;
-                    if(m_MemoryUsed < 0)
-                        m_MemoryUsed = 0;
-
-                    entry.Value = value;
-                    return 0;
+                    // Subtract out the old entry
+                    LinksetDataAccountingDelta(-entry.GetCost(key));
                 }
 
-                deltaMem = value.Length + key.Length;
-                if (!string.IsNullOrEmpty(pass))
-                    deltaMem += pass.Length;
+                // Add New or Update handled here.
+                var newEntry = new LinksetDataEntry(value, pass);
+                Data[key] = newEntry;
 
-                if ((m_MemoryUsed + deltaMem) > m_MemoryLimit)
-                    return 1;
+                int cost = newEntry.GetCost(key);
+                LinksetDataAccountingDelta(cost);
 
-                m_MemoryUsed += deltaMem;
-                Data[key] = new LinksetDataEntry()
-                {
-                    Value = value,
-                    Password = pass
-                };
-                return 0;
-            }
-        }
-
-        public int AddOrUpdate(string key, string value)
-        {
-            int deltaMem;
-            lock (linksetDataLock)
-            {
-                if (Data.TryGetValue(key, out LinksetDataEntry entry))
-                {
-                    if (entry.IsProtected)
-                        return 3;
-
-                    if (entry.Value == value)
-                        return 5;
-
-                    deltaMem = value.Length - entry.Value.Length;
-                    if ((m_MemoryUsed + deltaMem) > m_MemoryLimit)
-                        return 1;
-                    entry.Value = value;
-                    m_MemoryUsed += deltaMem;
-                    return 0;
-                }
-
-                deltaMem = value.Length + key.Length;
-                if ((m_MemoryUsed + deltaMem) > m_MemoryLimit)
-                    return 1;
-
-                m_MemoryUsed += deltaMem;
-                Data[key] = new LinksetDataEntry()
-                {
-                    Value = value,
-                    Password = null
-                };
                 return 0;
             }
         }
@@ -164,441 +166,257 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="key">The key value we're removing</param>
         /// <param name="pass">The password for a protected field (or string.Empty if not protected)</param>
         /// <returns>
-        /// return values must match values expected by LSL
+        /// 0 if successful.
+        /// 1 if not due to the password.
+        /// -1 if no such key was found
         /// </returns>
-        public int Remove(string key, string pass)
+        public int DeleteLinksetDataKey(string key, string pass)
         {
-            lock (linksetDataLock)
+            if (string.IsNullOrWhiteSpace(key))
             {
-                if (Data.Count <= 0)
-                    return 4;
-
-                if (!Data.TryGetValue(key, out LinksetDataEntry entry))
-                    return 4;
-
-                if (!entry.CheckPassword(pass))
-                    return 3;
-
-                Data.Remove(key);
-
-                m_MemoryUsed -= key.Length + entry.Value.Length;
-                if (!string.IsNullOrEmpty(entry.Password))
-                    m_MemoryUsed -= entry.Password.Length;
-                if (m_MemoryUsed < 0)
-                    m_MemoryUsed = 0;
-
-                return 0;
+                return -1;
             }
-        }
-        public int Remove(string key)
-        {
+
             lock (linksetDataLock)
             {
                 if (Data.Count <= 0)
-                    return 4;
+                    return -1;
 
-                if(string.IsNullOrEmpty(key))
-                    return 4;
+                LinksetDataEntry entry;
+                if (Data.TryGetValue(key, out entry) is false)
+                    return -1;
 
-                if (!Data.TryGetValue(key, out LinksetDataEntry entry))
-                    return 4;
-
-                if (entry.IsProtected)
-                    return 3;
+                if (entry.CheckPassword(pass) is false)
+                    return 1;
 
                 Data.Remove(key);
 
-                m_MemoryUsed -= key.Length + entry.Value.Length;
-                if (m_MemoryUsed < 0)
-                    m_MemoryUsed = 0;
+                LinksetDataAccountingDelta(-entry.GetCost(key));
 
                 return 0;
             }
         }
 
-        public string Get(string key, string pass)
+        /// <summary>
+        /// FindLinksetDataKeys - Given a Regex pattern and start, count return the
+        /// list of matchingkeys in the LinksetData store.
+        /// </summary>
+        /// <param name="pattern">A Regex pattern to match</param>
+        /// <param name="start">starting offset into the list of keys</param>
+        /// <param name="count">how many to return, < 1 means all keys</param>
+        /// <returns></returns>
+        public string[] FindLinksetDataKeys(string pattern, int start, int count)
         {
-            lock (linksetDataLock)
+            List<string> all_keys = new List<string>(GetLinksetDataSubList(0, 0));
+            Regex rx = new Regex(pattern, RegexOptions.CultureInvariant);
+
+            if (count < 1)
+                count = all_keys.Count;
+
+            List<string> matches = new List<string>();
+            foreach (var str in all_keys)
             {
-                return (Data.TryGetValue(key, out LinksetDataEntry entry) && entry.CheckPassword(pass)) ? entry.Value : string.Empty;
+                if (rx.IsMatch(str))
+                    matches.Add(str);
             }
+
+            return matches.Skip(start).Take(count).ToArray();
         }
 
-        public string Get(string key)
+        /// <summary>
+        /// GetLinksetDataSubList - Return a subset of key values from start for count
+        /// </summary>
+        /// <param name="start">Offset in the list for the first key</param>
+        /// <param name="count">How many keys to return, < 1 means all keys</param>
+        /// <returns></returns>
+        public string[] GetLinksetDataSubList(int start, int count)
         {
-            lock (linksetDataLock)
-            {
-                return (Data.TryGetValue(key, out LinksetDataEntry entry) && entry.IsNotProtected) ? entry.Value : string.Empty;
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool HasData()
-        {
-            return Data.Count > 0;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int Count()
-        {
-            return Data.Count;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int Free()
-        {
-            int free = m_MemoryLimit - m_MemoryUsed;
-            return free > 0 ? free : 0;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int Used()
-        {
-            return m_MemoryUsed;
-        }
-
-        public string[] RemoveByPattern(string pattern, string pass, out int notDeleted)
-        {
-            notDeleted = 0;
-            List<string> ret;
-
             lock (linksetDataLock)
             {
                 if (Data.Count <= 0)
-                    return Array.Empty<string>();
-                try
-                {
-                    ret = new List<string>();
-                    Regex reg = new(pattern, RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(1));
+                    return new string[0];
 
-                    foreach (var kvp in Data)
-                    {
-                        if (reg.IsMatch(kvp.Key))
-                        {
-                            if (kvp.Value.CheckPassword(pass))
-                            {
-                                int mem = kvp.Value.Value.Length + kvp.Key.Length;
-                                if(kvp.Value.IsProtected)
-                                    mem += kvp.Value.Password.Length;
-                                m_MemoryUsed -= mem;
-                                ret.Add(kvp.Key);
-                            }
-                            else
-                                notDeleted++;
-                        }
-                    }
-                }
-                catch
-                {
-                    notDeleted = 0;
-                    return Array.Empty<string>();
-                }
+                if (count < 1)
+                    count = Data.Count;
 
-                foreach (string k in ret)
-                    Data.Remove(k);
+                List<string> ret = Data.Keys.Skip(start).Take(count).ToList();
 
-                if (m_MemoryUsed < 0)
-                    m_MemoryUsed = 0;
                 return ret.ToArray();
             }
         }
-        public int CountByPattern(string pattern)
+
+        /// <summary>
+        /// LinksetDataCountMatches - Return a count of the # of keys that match pattern.
+        /// </summary>
+        /// <param name="pattern">The Regex pattern to match</param>
+        /// <returns>An integer count or zero if none</returns>
+        public int LinksetDataCountMatches(string pattern)
         {
             lock (linksetDataLock)
             {
                 if (Data.Count <= 0)
                     return 0;
-                try
-                {
-                    Regex reg = new(pattern, RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(1));
 
-                    int ret = 0;
-                    foreach (string k in Data.Keys)
-                    {
-                        if (reg.IsMatch(k))
-                            ret++;
-                    }
-                    return ret;
-                }
-                catch
+                Regex reg = new Regex(pattern, RegexOptions.CultureInvariant);
+
+                int count = 0;
+                foreach (var kvp in Data)
                 {
-                    return 0;
+                    if (reg.IsMatch(kvp.Key))
+                        count++;
                 }
+
+                return count;
             }
         }
 
-        public string[] ListKeysByPatttern(string pattern, int start, int count)
+        public string[] LinksetDataMultiDelete(string pattern, string pass, out int deleted, out int not_deleted)
         {
-            List<string> lkeys;
             lock (linksetDataLock)
             {
-                if (Data.Count <= 0 || start >= Data.Count)
-                    return Array.Empty<string>();
-                try
+                deleted = 0;
+                not_deleted = 0;
+
+                if (Data.Count <= 0)
+                    return new string[0];
+
+                Regex reg = new Regex(pattern, RegexOptions.CultureInvariant);
+                List<string> matches = new List<string>();
+
+                // Take a copy so we can delete as we iterate
+                foreach (var kvp in Data.ToArray())
                 {
-                    Regex reg = new(pattern, RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(1));
-                    lkeys = new(Data.Count);
-                    foreach (string k in Data.Keys)
+                    if (reg.IsMatch(kvp.Key))
                     {
-                        if (reg.IsMatch(k))
-                            lkeys.Add(k);
+                        if (kvp.Value.CheckPassword(pass))
+                        {
+                            Data.Remove(kvp.Key);
+                            matches.Add(kvp.Key);
+
+                            LinksetDataAccountingDelta(-kvp.Value.GetCost(kvp.Key));
+                            deleted += 1;
+                        }
+                        else
+                        {
+                            not_deleted += 1;
+                        }
                     }
                 }
-                catch
-                {
-                    return Array.Empty<string>();
-                }
+
+                return matches.ToArray();
             }
-            if (lkeys.Count == 0)
-                return Array.Empty<string>();
-
-            lkeys.Sort();
-
-            if (start < 0)
-                start = 0;
-            if (count < 1 || start + count > lkeys.Count)
-                count = lkeys.Count - start;
-            List<string> result = lkeys.GetRange(start, count);
-            return result.ToArray();
         }
 
-        public string[] ListKeys(int start, int count)
+        public bool LinksetDataOverLimit()
         {
-            string[] keys;
             lock (linksetDataLock)
             {
-                if (Data.Count <= 0 || start >= Data.Count)
-                    return Array.Empty<string>();
-
-                keys = new string[Data.Count];
-                Data.Keys.CopyTo(keys, 0);
+                return (BytesFree <= 0);
             }
-            Array.Sort(keys);
-            if (start < 0)
-                start = 0;
-            if (count < 1)
-                return keys[start..];
-            int end = start + count;
-            if (end >= keys.Length)
-                return keys[start..];
-            return keys[start..end];
         }
 
         /// <summary>
         /// Merge the linksetData present in another Linkset into this one.
+        /// The current root will have the new linkset for the merged sog.
         /// If a key is present in our linksetData it wins, dont overide it.
         /// </summary>
         /// <param name="otherLinkset"></param>
-        public void MergeOther(LinksetData otherLinksetData)
+        public void MergeLinksetData(LinksetData otherLinksetData)
         {
-            if (otherLinksetData is null || otherLinksetData.Data is null || otherLinksetData.Count() == 0)
+            // Nothing to merge?
+            if (otherLinksetData is null)
                 return;
 
             lock (linksetDataLock)
             {
-                if(m_MemoryUsed + otherLinksetData.Used() < m_MemoryLimit)
+                foreach (var kvp in otherLinksetData.Data)
                 {
-                    foreach (var kvp in otherLinksetData.Data)
-                    {
-                        if (Data.TryAdd(kvp.Key, kvp.Value))
-                        {
-                            m_MemoryUsed += kvp.Key.Length + kvp.Value.Value.Length;
-                            if (!string.IsNullOrEmpty(kvp.Value.Password))
-                                m_MemoryUsed += kvp.Value.Password.Length;
-                        }
-                    }
-                    return;
+                    // Shouldn't happen but we wont add invalid kvps
+                    if (string.IsNullOrWhiteSpace(kvp.Key))
+                        continue;
+
+                    // If its already present skip it
+                    if (Data.ContainsKey(kvp.Key))
+                        continue;
+
+                    // Do we have space for another entry?
+                    if (LinksetDataOverLimit())
+                        break;
+
+                    LinksetDataEntry val = (LinksetDataEntry)kvp.Value.Clone();
+                    Data[kvp.Key] = val;
+
+                    LinksetDataAccountingDelta(val.GetCost(kvp.Key));
                 }
 
-                SortedList<string,LinksetDataEntry> otherOrdered = new(otherLinksetData.Data);
-                foreach (var kvp in otherOrdered)
-                {
-                    int mem = kvp.Key.Length + kvp.Value.Value.Length;
-                    if (!string.IsNullOrEmpty(kvp.Value.Password))
-                        mem += kvp.Value.Password.Length;
-                    if (m_MemoryUsed + mem >= m_MemoryLimit)
-                        return;
-                    if (Data.TryAdd(kvp.Key, kvp.Value))
-                    {
-                        m_MemoryUsed += mem;
-                        if (!string.IsNullOrEmpty(kvp.Value.Password))
-                            m_MemoryUsed += kvp.Value.Password.Length;
-                    }
-                }
+                // Clear the LinksetData entries from the "other" SOG
+                otherLinksetData.Data.Clear();
 
-                otherLinksetData.Data = null;
-                otherLinksetData.m_MemoryUsed = 0;
+                otherLinksetData.BytesFree = LINKSETDATA_MAX;
+                otherLinksetData.BytesUsed = 0;
             }
         }
 
 
         /// <summary>
-        /// ResetLinksetData - clear the list and update the accounting.
+        /// Reads a value from the key value pair
         /// </summary>
-        public void ResetLinksetData()
+        /// <param name="key">The key value we're retrieving</param>
+        /// <param name="pass">The password for a protected field (or string.Empty if not protected)</param>
+        /// <returns>Blank if no key or pass mismatch. Value if no password or pass matches</returns>
+        public string ReadLinksetData(string key, string pass)
         {
             lock (linksetDataLock)
             {
                 if (Data.Count <= 0)
-                    return;
+                    return string.Empty;
 
-                Data.Clear();
-                m_MemoryUsed = 0;
-            }
-        }
-
-        public string ToJson()
-        {
-            lock (linksetDataLock)
-            {
-                return JsonSerializer.Serialize<Dictionary<string, LinksetDataEntry>>(Data);
-            }
-        }
-
-        public void ToXML(XmlTextWriter writer)
-        {
-            if (Data.Count < 1)
-                return;
-            using MemoryStream ms = new(m_MemoryUsed);
-            ToBin(ms);
-            if (ms.Length < 1)
-                return;
-
-            writer.WriteStartElement("lnkstdt");
-            writer.WriteBase64(ms.GetBuffer(), 0, (int)ms.Length);
-            writer.WriteEndElement();
-        }
-
-        public static LinksetData FromXML(ReadOnlySpan<char> data)
-        {
-            if (data.Length < 8)
-                return null;
-            int minLength = ((data.Length * 3) + 3) / 4;
-            byte[] bindata = ArrayPool<byte>.Shared.Rent(minLength);
-            try
-            {
-                if (Convert.TryFromBase64Chars(data, bindata, out int bytesWritten))
-                    return FromBin(bindata);
-            }
-            catch
-            {
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(bindata);
-            }
-            return  null;
-        }
-
-        public byte[] ToBin()
-        {
-            if(Data.Count < 1)
-                return null;
-
-            using MemoryStream ms = new(m_MemoryUsed);
-            ToBin(ms);
-            return ms.Length > 0 ? ms.ToArray() : null;
-        }
-
-        public void ToBin(MemoryStream ms)
-        {
-            try
-            {
-                using BinaryWriter bw = new BinaryWriter(ms, System.Text.Encoding.UTF8, true);
-                bw.Write((byte)1); // storage version
-                bw.Write7BitEncodedInt(m_MemoryLimit);
-                lock (linksetDataLock)
+                if (Data.TryGetValue(key, out LinksetDataEntry entry))
                 {
-                    bw.Write7BitEncodedInt(Data.Count);
-                    foreach (var kvp in Data)
-                    {
-                        bw.Write(kvp.Key);
-                        bw.Write(kvp.Value.Value);
-                        if(kvp.Value.IsProtected)
-                            bw.Write(kvp.Value.Password);
-                        else
-                            bw.Write((byte)0);
-                    }
+                    return entry.CheckPasswordAndGetValue(pass);
                 }
-                return;
+
+                return string.Empty;
             }
-            catch { }
-            ms.SetLength(0);
         }
 
-        public static LinksetData FromBin(byte[] data)
+        /// <summary>
+        /// Add/Subtract an integer value from the current data allocated for the Linkset.
+        /// Assumes a lock is held from the caller.
+        /// </summary>
+        /// <param name="delta">An integer value, positive adds, negative subtracts delta bytes.</param>
+        private void LinksetDataAccountingDelta(int delta)
         {
-            if (data.Length < 8)
-                return null;
+            BytesUsed += delta;
+            BytesFree = LINKSETDATA_MAX - BytesUsed;
 
-            try
-            {
-                using BinaryReader br = new BinaryReader(new MemoryStream(data));
-                int version = br.Read7BitEncodedInt();
-                int memoryLimit = br.Read7BitEncodedInt();
-                if(memoryLimit < 0 || memoryLimit > 256 * 1024)
-                    memoryLimit = 256 * 1024;
-
-                int count = br.Read7BitEncodedInt();
-                if(count == 0)
-                    return null;
-                LinksetData ld = new LinksetData(memoryLimit);
-                for(int i = 0; i < count; i++)
-                {
-                    string key = br.ReadString();
-                    if (key.Length == 0)
-                        continue;
-                    ld.m_MemoryUsed += key.Length;
-
-                    string value = br.ReadString();
-                    if(value.Length == 0)
-                        continue;
-                    ld.m_MemoryUsed += value.Length;
-
-                    string pass = br.ReadString();
-                    ld.m_MemoryUsed += pass.Length;
-                    if(ld.m_MemoryUsed > memoryLimit)
-                        break;
-
-                    if(pass.Length > 0)
-                    {
-                        ld.Data[key] = new LinksetDataEntry()
-                        {
-                            Value = value,
-                            Password = pass
-                        };
-                    }
-                    else
-                    {
-                        ld.Data[key] = new LinksetDataEntry()
-                        {
-                            Value = value,
-                            Password = null
-                        };
-                    }
-                }
-                return ld;
-            }
-            catch
-            {
-            }
-            return null;
+            if (BytesFree < 0)
+                BytesFree = 0;
         }
     }
 
-    public class LinksetDataEntry
+    public class LinksetDataEntry : ICloneable
     {
-        public string Password;
-        public string Value;
+        public LinksetDataEntry()
+        {
+        }
 
-        public LinksetDataEntry() { }
         public LinksetDataEntry(string value, string password)
         {
             Value = value;
             Password = password;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public object Clone()
+        {
+            return JsonSerializer.Deserialize<LinksetDataEntry>(
+                JsonSerializer.Serialize<LinksetDataEntry>(this));
+        }
+
+        public string Password { get; set; } 
+
+        public string Value { get; set; }
+
         public bool CheckPassword(string pass)
         {
             // A undocumented caveat for LinksetData appears to be that even for unprotected values,
@@ -606,24 +424,43 @@ namespace OpenSim.Region.Framework.Scenes
             return string.IsNullOrEmpty(Password) || (Password == pass);
         }
 
-        public LinksetDataEntry Copy()
+        public string CheckPasswordAndGetValue(string pass)
         {
-            return new LinksetDataEntry
-            {
-                Password = Password,
-                Value = Value
-            };
+            return CheckPassword(pass) ? Value : string.Empty;
         }
 
-        public bool IsProtected
+        public bool IsProtected()
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get { return !string.IsNullOrEmpty(Password); }
+            return !string.IsNullOrEmpty(Password);
         }
-        public bool IsNotProtected
+
+        /// <summary>
+        /// Calculate the cost in bytes for this entry.  Adds in the passed in key and
+        /// if a password is supplied uses 32 bytes minimum unless the password is longer.
+        /// </summary>
+        /// <param name="key">The string key value associated with this entry.</param>
+        /// <returns>int - cost of this entry in bytes</returns>
+        public int GetCost(string key)
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get { return string.IsNullOrEmpty(Password); }
+            int cost = 0;
+
+            if (string.IsNullOrWhiteSpace(key) is false)
+            {
+                cost += Encoding.UTF8.GetBytes(key).Length;
+
+                if (string.IsNullOrWhiteSpace(this.Value) is false)
+                {
+                    cost += Encoding.UTF8.GetBytes(this.Value).Length;
+                }
+
+                if (string.IsNullOrEmpty(this.Password) is false)
+                {
+                    // For parity, the password adds 32 bytes regardless of the length. See LL caveats
+                    cost += Math.Max(Encoding.UTF8.GetBytes(this.Password).Length, 32);
+                }
+            }
+
+            return cost;
         }
     }
 }

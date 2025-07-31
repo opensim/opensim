@@ -28,9 +28,8 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using log4net;
-using MySql.Data.MySqlClient;
 using OpenMetaverse;
+using MySqlConnector;
 
 namespace OpenSim.Data.MySQL
 {
@@ -182,7 +181,7 @@ namespace OpenSim.Data.MySQL
                     return false;
             }
 
-            IncrementFolderVersion(oldParent);
+                IncrementFolderVersion(oldParent);
             IncrementFolderVersion(newParent);
 
             return true;
@@ -192,7 +191,7 @@ namespace OpenSim.Data.MySQL
         {
             using (MySqlCommand cmd  = new MySqlCommand())
             {
-                //cmd.CommandText = String.Format("select * from inventoryitems where avatarId = ?uuid and assetType = ?type and flags & 1", m_Realm);
+//                cmd.CommandText = String.Format("select * from inventoryitems where avatarId = ?uuid and assetType = ?type and flags & 1", m_Realm);
 
                 cmd.CommandText = "select * from inventoryitems where avatarId = ?uuid and assetType = ?type and flags & 1";
 
@@ -213,7 +212,7 @@ namespace OpenSim.Data.MySQL
                 {
                     cmd.Connection = dbcon;
 
-                    //cmd.CommandText = String.Format("select bit_or(inventoryCurrentPermissions) as inventoryCurrentPermissions from inventoryitems where avatarID = ?PrincipalID and assetID = ?AssetID group by assetID", m_Realm);
+//                    cmd.CommandText = String.Format("select bit_or(inventoryCurrentPermissions) as inventoryCurrentPermissions from inventoryitems where avatarID = ?PrincipalID and assetID = ?AssetID group by assetID", m_Realm);
 
                     cmd.CommandText = "select bit_or(inventoryCurrentPermissions) as inventoryCurrentPermissions from inventoryitems where avatarID = ?PrincipalID and assetID = ?AssetID group by assetID";
 
@@ -249,7 +248,7 @@ namespace OpenSim.Data.MySQL
 
     public class MySqlFolderHandler : MySqlInventoryHandler<XInventoryFolder>
     {
-        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public MySqlFolderHandler(string c, string t, string m) : base(c, t, m)
         {
@@ -302,8 +301,8 @@ namespace OpenSim.Data.MySQL
 
         protected bool IncrementFolderVersion(string folderID)
         {
-            //m_log.DebugFormat("[MYSQL FOLDER HANDLER]: Incrementing version on folder {0}", folderID);
-            //Util.PrintCallStack();
+//            m_log.DebugFormat("[MYSQL FOLDER HANDLER]: Incrementing version on folder {0}", folderID);
+//            Util.PrintCallStack();
 
             using (MySqlConnection dbcon = new(m_connectionString))
             {

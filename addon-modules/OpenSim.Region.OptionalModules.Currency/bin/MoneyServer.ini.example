@@ -1,0 +1,77 @@
+[Startup]
+;
+; Place to create a PID file
+; PIDFile = "/tmp/money.pid"
+
+
+[MySql]
+;
+;Connection parameters of MySQL
+hostname = localhost
+database = Database_name
+username = Database_user
+password = Database_password
+
+pooling  = false
+port = 3306
+
+;
+; Max DB connections kept by money server.
+MaxConnection = 20
+
+
+[MoneyServer]
+; Port No. of this Server
+ServerPort = 8008
+
+;
+; If the user is not found in database,he/she will be created with the default balance.
+DefaultBalance = 1000
+ 
+;
+; Is amount==0 transaction enable? Default is false.
+EnableAmountZero = true
+
+;
+; If "00000000-0000-0000-0000-000000000000" is specified, all avatars can get money from system.
+; If "" is specified, nobody can get money.
+BankerAvatar = "00000000-0000-0000-0000-000000000000"
+
+;
+; If you want to use llGiveMoney() function normally even when payer doesn't login to OpenSim,
+; please set true to this valiable
+EnableForceTransfer = true
+
+;
+; Send/Move money to/from avatar by Money Script 
+;EnableScriptSendMoney = true
+;MoneyScriptAccessKey  = "123456789"		;; Specify same secret key in include/config.php or WI(XoopenSim/Modlos)
+;MoneyScriptIPaddress  = "202.26.159.139"	;; Not use 127.0.0.1. This is used to generate Script key
+
+; 
+; for HG/Guest Avatar. Foreign Avatar is always false
+EnableHGAvatar = true
+EnableGuestAvatar = true
+HGAvatarDefaultBalance = 1000
+GuestAvatarDefaultBalance = 1000
+
+;
+; Message that displayed in blue dialog, when balance is updated.
+; If "" is specified, blue dialog is not displayed.
+; You can use {0} and {1} in message string.
+; {0} means amount and {1} means avatar name or object owner name.
+BalanceMessageSendGift     = "Sent Gift L${0} to {1}."						;; for send gift to other avatar
+BalanceMessageReceiveGift  = "Received Gift L${0} from {1}."				;; for receieve gift from other avatar
+BalanceMessagePayCharge    = "Paid the Money L${0} for creation."			;; for upload and group creation charge
+BalanceMessageBuyObject    = "Bought the Object {2} from {1} by L${0}."		;; for buy the object
+BalanceMessageSellObject   = "{1} bought the Object {2} by L${0}."          ;; for sell the object
+BalanceMessageLandSale     = "Paid the Money L${0} for Land."				;; for buy the land
+BalanceMessageScvLandSale  = "Paid the Money L${0} for Land."				;; for get the money of the sold land
+BalanceMessageGetMoney     = "Got the Money L${0} from {1}."				;; for get the money from object by llGiveMoney()
+BalanceMessageBuyMoney     = "Bought the Money L${0}."						;; for buy the money from system
+BalanceMessageRollBack     = "RollBack the Transaction: L${0} from/to {1}."	;; when roll back ocuurred
+BalanceMessageSendMoney    = "Paid the Money L${0} to {1}."					;; for sender of sending the money
+BalanceMessageReceiveMoney = "Received L${0} from {1}."						;; for receive the money
+
+
+[Certificate]

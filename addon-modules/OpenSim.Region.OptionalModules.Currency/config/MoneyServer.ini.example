@@ -1,0 +1,112 @@
+[Startup]
+;
+; Place to create a PID file
+; PIDFile = "/tmp/MoneyServer.exe.pid"
+
+
+[MySql]
+;
+;Connection parameters of MySQL
+hostname = localhost
+database = Database_name
+username = Database_user
+password = Database_password
+
+pooling  = false
+port = 3306
+
+;
+; Max DB connections kept by money server.
+MaxConnection = 20
+
+
+[MoneyServer]
+; Port No. of this Server
+ServerPort = 8008
+
+;
+; If the local user is not found in database,he/she will be created with the default balance.
+DefaultBalance = 0
+ 
+;
+; Is amount==0 transaction enable? Default is false.
+; NOTE set to true to avoid a myriad of timeout transactions.
+; When set to true, free transactions are processed, good for auditing.
+EnableAmountZero = true
+
+;
+; If "00000000-0000-0000-0000-000000000000" is specified, all avatars can get money from system (only for freebie setup).
+; If "" is specified, nobody can get money.
+; Otherwise, it must be the UUID of a banker avatar used as a money buffer. MUST NOT be assigned to a person.
+; Don't use the entry below. It's not a well form guid. You should generate one
+BankerAvatar = "12345678-9abc-def0-1234-56789abcdef0" ;; Grid Banker
+
+;
+; If you want to use llGiveMoney() function normally even when payer doesn't login to OpenSim,
+; please set true to this variable
+EnableForceTransfer = true
+
+;
+; Send/Move money to/from avatar by Money Script 
+;EnableScriptSendMoney = true
+;MoneyScriptAccessKey  = "123456789"		;; Specify same secret key in include/config.php or WI(XoopenSim/Modlos)
+;MoneyScriptIPaddress  = "202.26.159.139"	;; Not use 127.0.0.1. This is used to generate Script key
+
+; 
+; for HG/Guest Avatar. Foreign Avatar is always false
+; Enable HG avatar to let HG visitors transact local currency
+EnableHGAvatar = true
+EnableGuestAvatar = false
+
+; Set default balances to zero for 3rd party managed currency
+HGAvatarDefaultBalance = 0
+GuestAvatarDefaultBalance = 0
+
+;
+; The currency symbol to send to the viewer (3 characrers max)
+; This ONLY works if all regions in a grid have the same currency.
+; Use the setting in OpenSim.ini to definitely set currency in
+; multi-currency grids.
+Currency = "OS$"
+
+; Message that is displayed in blue dialog, when balance is updated.
+; If "" is specified, blue dialog is not displayed.
+; You can use {0} and {1} in message string.
+; {0} means amount,
+; {1} means avatar name or object owner name.
+; {2} related object name
+; {3} ***TBD*** Money Symbol
+
+BalanceMessageSendGift     = "You sent ${0} to {1}."				;; for send gift to other avatar
+BalanceMessageReceiveGift  = "You received ${0} from {1}."			;; for receieve gift from other avatar
+BalanceMessagePayCharge    = ""							;; for upload and group creation charge
+BalanceMessageBuyObject    = "You bought object '{2}' for ${0} from {1}."	;; for buy the object
+BalanceMessageSellObject   = "You paid object '{2}' ${0} to {1}."        	;; for pay to object
+BalanceMessageLandSale     = "Paid ${0} for Land."				;; for buy the land
+BalanceMessageScvLandSale  = ""							;; for get the money of the sold land
+BalanceMessageGetMoney     = "You received ${0} from {1}."			;; for get the money from object by llGiveMoney()
+BalanceMessageBuyMoney     = "Bought ${0} from exchange."			;; for buy the money from system
+BalanceMessageRollBack     = "RollBack the Transaction: ${0} from/to {1}."	;; when roll back ocuurred
+BalanceMessageSendMoney    = "You paid ${0} to {1}."
+BalanceMessageReceiveMoney = "You received ${0} from {1}."			;; for receive the money from system by send_money() script
+
+[Certificate]
+;
+; Certification Configuration	NOTE this is type 509/.p12 certificate
+; ***TBD*** fix to use .pem format so that it is compatible with LetsEncrypt or EFF certbot.			 
+;
+; for HTTPS Server
+;ServerCertFilename = "/etc/letsencrypt/live/yourgrid.net/cert.pem"
+;ServerCertFilename = ""
+;ServerCertPassword = "xyzzy"
+
+; for Client Authentication from MoneyModule
+CheckClientCert = false;
+;CACertFilename = ""
+;ClientCrlFilename = ""
+
+; for XML RPC Client Authentication to MoneyModule
+CheckServerCert = false;
+;ClientCertFilename = "client_cert.p12"
+;ClientCertPassword = ""
+
