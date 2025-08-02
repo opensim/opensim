@@ -25,11 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
-using OpenSim.Region.ScriptEngine.Yengine;
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
 
@@ -89,11 +85,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
     {
         protected static readonly MethodInfo gsmdMethodInfo =
                 typeof(XMRInstAbstract).GetMethod("GetScriptMethodDelegate",
-                                                    new Type[] { typeof(string), typeof(string), typeof(object) });
+                                                    [typeof(string), typeof(string), typeof(object)]);
 
-        private static readonly MethodInfo avpmListMethInfo = typeof(XMRInstArrays).GetMethod("PopList", new Type[] { typeof(int), typeof(LSL_List) });
-        private static readonly MethodInfo avpmObjectMethInfo = typeof(XMRInstArrays).GetMethod("PopObject", new Type[] { typeof(int), typeof(object) });
-        private static readonly MethodInfo avpmStringMethInfo = typeof(XMRInstArrays).GetMethod("PopString", new Type[] { typeof(int), typeof(string) });
+        private static readonly MethodInfo avpmListMethInfo = typeof(XMRInstArrays).GetMethod("PopList", [typeof(int), typeof(LSL_List)]);
+        private static readonly MethodInfo avpmObjectMethInfo = typeof(XMRInstArrays).GetMethod("PopObject", [typeof(int), typeof(object)]);
+        private static readonly MethodInfo avpmStringMethInfo = typeof(XMRInstArrays).GetMethod("PopString", [typeof(int), typeof(string)]);
 
         public TokenType type;        // type of the value and where in the source it was used
 
@@ -104,7 +100,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public Type ToSysType()
         {
-            return (type.ToLSLWrapType() != null) ? type.ToLSLWrapType() : type.ToSysType();
+            return type.ToLSLWrapType() ?? type.ToSysType();
         }
 
         /*
@@ -113,13 +109,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private static MethodInfo ArrVarPopMeth(FieldInfo fi)
         {
-            if(fi.Name == "iarLists")
-                return avpmListMethInfo;
-            if(fi.Name == "iarObjects")
-                return avpmObjectMethInfo;
-            if(fi.Name == "iarStrings")
-                return avpmStringMethInfo;
-            return null;
+            return fi.Name switch
+            {
+                "iarLists" => avpmListMethInfo,
+                "iarObjects"=>avpmObjectMethInfo,
+                "iarStrings" => avpmStringMethInfo,
+                _ => null
+            };
         }
 
         /*
@@ -153,7 +149,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          * call this before pushing value to be popped
          */   
         public abstract void PopPost(ScriptCodeGen scg, Token errorAt);   // call this after pushing value to be popped
-
 
         /*
          * return true: doing a PushVal() does not involve CheckRun()
@@ -306,11 +301,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private CompValu idx;
         private TokenTypeObject tto;
 
-        private static readonly MethodInfo getByKeyMethodInfo = typeof(XMR_Array).GetMethod("GetByKey",
-                                                                                              new Type[] { typeof(object) });
+        private static readonly MethodInfo getByKeyMethodInfo = typeof(XMR_Array).GetMethod("GetByKey", [typeof(object)]);
         private static readonly MethodInfo setByKeyMethodInfo = typeof(XMR_Array).GetMethod("SetByKey",
-                                                                                              new Type[] { typeof (object),
-                                                                                                           typeof (object) });
+                                                                                          [ typeof (object), typeof (object) ]);
 
         // type = TokenTypeObject always, as our array elements are always of type 'object'
         // arr  = where the array object itself is stored
@@ -422,7 +415,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public CompValuChar(TokenType type, char x) : base(type)
         {
-            if(!(this.type is TokenTypeChar))
+            if(this.type is not TokenTypeChar)
             {
                 this.type = new TokenTypeChar(this.type);
             }
@@ -445,8 +438,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
     // The value is kept in a struct/class field of an internal struct/class
     public class CompValuField: CompValu
     {
-        CompValu obj;
-        FieldInfo field;
+        readonly CompValu obj;
+        readonly FieldInfo field;
 
         public CompValuField(TokenType type, CompValu obj, FieldInfo field) : base(type)
         {
@@ -639,7 +632,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public CompValuFloat(TokenType type, double x) : base(type)
         {
-            if(!(this.type is TokenTypeFloat))
+            if(this.type is not TokenTypeFloat)
             {
                 this.type = new TokenTypeFloat(this.type);
             }
@@ -1405,7 +1398,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public CompValuInteger(TokenType type, int x) : base(type)
         {
-            if(!(this.type is TokenTypeInt))
+            if(this.type is not TokenTypeInt)
             {
                 this.type = new TokenTypeInt(this.type);
             }
@@ -1490,7 +1483,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
             else
             {
-                this.localBuilder = scg.ilGen.DeclareLocal(ToSysType(), name);
+                localBuilder = scg.ilGen.DeclareLocal(ToSysType(), name);
             }
         }
 
@@ -1597,15 +1590,15 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public CompValu w;
 
         private static readonly ConstructorInfo lslRotConstructorInfo =
-                typeof(LSL_Rotation).GetConstructor(new Type[] { typeof (double),
-                                                                   typeof (double),
-                                                                   typeof (double),
-                                                                   typeof (double) });
+                typeof(LSL_Rotation).GetConstructor([ typeof (double),
+                                                      typeof (double),
+                                                      typeof (double),
+                                                      typeof (double) ]);
 
         public CompValuRot(TokenType type, CompValu x, CompValu y, CompValu z, CompValu w) :
                 base(type)
         {
-            if(!(type is TokenTypeRot))
+            if(type is not TokenTypeRot)
             {
                 this.type = new TokenTypeRot(type);
             }
@@ -1728,7 +1721,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
     public class CompValuStrChr: CompValu
     {
         private static readonly MethodInfo getCharFromStringMethodInfo =
-                 typeof(CompValuStrChr).GetMethod("GetCharFromString", new Type[] { typeof(string), typeof(int) });
+                 typeof(CompValuStrChr).GetMethod("GetCharFromString", [typeof(string), typeof(int)]);
 
         private CompValu theString;
         private CompValu subscript;
@@ -1767,7 +1760,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public CompValuString(TokenType type, string x) : base(type)
         {
-            if(!(type is TokenTypeKey) && !(this.type is TokenTypeStr))
+            if(type is not TokenTypeKey && this.type is not TokenTypeStr)
             {
                 throw new Exception("bad type " + type.ToString());
             }
@@ -1830,13 +1823,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public CompValu z;
 
         private static readonly ConstructorInfo lslVecConstructorInfo =
-                typeof(LSL_Vector).GetConstructor(new Type[] { typeof (double),
-                                                                 typeof (double),
-                                                                 typeof (double) });
+                typeof(LSL_Vector).GetConstructor([ typeof (double),
+                                                    typeof (double),
+                                                    typeof (double) ]);
 
         public CompValuVec(TokenType type, CompValu x, CompValu y, CompValu z) : base(type)
         {
-            if(!(type is TokenTypeVec))
+            if(type is not TokenTypeVec)
             {
                 this.type = new TokenTypeVec(type);
             }
