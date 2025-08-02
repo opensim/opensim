@@ -55,8 +55,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public HeapTrackerBase(XMRInstAbstract inst)
         {
-            if(inst == null)
-                throw new ArgumentNullException("inst");
+            ArgumentNullException.ThrowIfNull(inst);
             instance = inst;
             usage = 0;
         }
