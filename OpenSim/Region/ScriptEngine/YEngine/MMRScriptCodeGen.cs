@@ -990,55 +990,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                  // Say that the argument variable is going to be located in a local var.
                 TokenDeclVar argVar = argDecl.vars[i];
                 TokenType argTokType = argVar.type;
-                CompValuLocalVar local = new (argTokType, argVar.name.val, this);
-                argVar.location = local;
-
-                 // Copy from the ehArgs[i] element to the temp var.
-                 // Cast as needed, there is a lot of craziness like OpenMetaverse.Quaternion.
-                local.PopPre(this, argVar.name);
-                PushXMRInst();                                          // instance
-                ilGen.Emit(declFunc, OpCodes.Ldfld, ehArgsFieldInfo);   // instance.ehArgs (array of objects)
-                ilGen.Emit(declFunc, OpCodes.Ldc_I4, i);                // array index = i
-                ilGen.Emit(declFunc, OpCodes.Ldelem, typeof(object));  // select the argument we want
-                TokenType stkTokType = tokenTypeObj;                     // stack has a type 'object' on it now
-                Type argSysType = argTokType.ToSysType();               // this is the type the script expects
-
-                if (argSysType == typeof(int))
-                {   // LSL_Integer/int -> int
-                    ilGen.Emit(declFunc, OpCodes.Call, ehArgUnwrapInteger);
-                    stkTokType = tokenTypeInt;                       // stack has a type 'int' on it now
-                }
-                else if (argSysType == typeof(string))
-                {   // LSL_Key/LSL_String/string -> string
-                    ilGen.Emit(declFunc, OpCodes.Call, ehArgUnwrapString);
-                    stkTokType = tokenTypeStr;                       // stack has a type 'string' on it now
-                }
-                else if (argSysType == typeof(double))
-                {   // LSL_Float/double -> double
-                    ilGen.Emit(declFunc, OpCodes.Call, ehArgUnwrapFloat);
-                    stkTokType = tokenTypeFlt;                       // stack has a type 'double' on it now
-                }
-                else if (argSysType == typeof(LSL_Vector))
-                {    // OpenMetaverse.Vector3/LSL_Vector -> LSL_Vector
-                    ilGen.Emit(declFunc, OpCodes.Call, ehArgUnwrapVector);
-                    stkTokType = tokenTypeVec;                       // stack has a type 'LSL_Vector' on it now
-                }
-                else if (argSysType == typeof(LSL_List))
-                {   // LSL_List -> LSL_List
-                    TypeCast.CastTopOfStack(this, argVar.name, stkTokType, argTokType, true);
-                    stkTokType = argTokType;                         // stack has a type 'LSL_List' on it now
-                }
-                else if (argSysType == typeof(LSL_Rotation))
-                {   // OpenMetaverse.Quaternion/LSL_Rotation -> LSL_Rotation
-                    ilGen.Emit(declFunc, OpCodes.Call, ehArgUnwrapRotation);
-                    stkTokType = tokenTypeRot;                       // stack has a type 'LSL_Rotation' on it now
-                }
-
-                local.PopPost(this, argVar.name, stkTokType);           // pop stack type into argtype
+                argVar.location = new CompValuLocalVar(argTokType, argVar.name.val, this);
             }
 
              // Output code for the statements and clean up.
-            GenerateFuncBody();
+            GenerateFuncBody(argDecl.vars.Length > 0);
         }
 
         /**
@@ -1140,7 +1096,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
 
              // Output code for the statements and clean up.
-            GenerateFuncBody();
+            GenerateFuncBody(false);
         }
 
         private void StartFunctionBody(TokenDeclVar declFunc)
@@ -1251,7 +1207,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         /**
          * @brief Output function body (either event handler or script-defined method).
          */
-        private void GenerateFuncBody()
+        private void GenerateFuncBody(bool copyArgs)
         {
              // We want to know if the function's code is trivial, ie,
              // if it doesn't have anything that might be an infinite 
@@ -1311,6 +1267,63 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 ilGen.Emit(curDeclFunc, OpCodes.Ldfld, ScriptCodeGen.callModeFieldInfo);
                 ilGen.Emit(curDeclFunc, OpCodes.Ldc_I4, XMRInstAbstract.CallMode_NORMAL);
                 ilGen.Emit(curDeclFunc, OpCodes.Bne_Un, cmRestore);
+            }
+
+            if(copyArgs)
+            {
+                //ScriptMyLabel LoadArgsLabel = ilGen.DefineLabel("__LoadArgs");
+                //ilGen.MarkLabel(LoadArgsLabel);
+
+                // Copy from the ehArgs[i] element to the temp var.
+                // Cast as needed, there is a lot of craziness like OpenMetaverse.Quaternion.
+                for(int i = 0; i < curDeclFunc.argDecl.vars.Length; i++)
+                {
+                     // Say that the argument variable is going to be located in a local var.
+                    TokenDeclVar argVar = curDeclFunc.argDecl.vars[i];
+                    TokenType argTokType = argVar.type;
+                    CompValuLocalVar local = (CompValuLocalVar)argVar.location;
+
+                    local.PopPre(this, argVar.name);
+                    PushXMRInst();                                          // instance
+                    ilGen.Emit(curDeclFunc, OpCodes.Ldfld, ehArgsFieldInfo);   // instance.ehArgs (array of objects)
+                    ilGen.Emit(curDeclFunc, OpCodes.Ldc_I4, i);                // array index = i
+                    ilGen.Emit(curDeclFunc, OpCodes.Ldelem, typeof(object));  // select the argument we want
+                    TokenType stkTokType = tokenTypeObj;                     // stack has a type 'object' on it now
+                    Type argSysType = argTokType.ToSysType();               // this is the type the script expects
+
+                    if (argSysType == typeof(int))
+                    {   // LSL_Integer/int -> int
+                        ilGen.Emit(curDeclFunc, OpCodes.Call, ehArgUnwrapInteger);
+                        stkTokType = tokenTypeInt;                       // stack has a type 'int' on it now
+                    }
+                    else if (argSysType == typeof(string))
+                    {   // LSL_Key/LSL_String/string -> string
+                        ilGen.Emit(curDeclFunc, OpCodes.Call, ehArgUnwrapString);
+                        stkTokType = tokenTypeStr;                       // stack has a type 'string' on it now
+                    }
+                    else if (argSysType == typeof(double))
+                    {   // LSL_Float/double -> double
+                        ilGen.Emit(curDeclFunc, OpCodes.Call, ehArgUnwrapFloat);
+                        stkTokType = tokenTypeFlt;                       // stack has a type 'double' on it now
+                    }
+                    else if (argSysType == typeof(LSL_Vector))
+                    {    // OpenMetaverse.Vector3/LSL_Vector -> LSL_Vector
+                        ilGen.Emit(curDeclFunc, OpCodes.Call, ehArgUnwrapVector);
+                        stkTokType = tokenTypeVec;                       // stack has a type 'LSL_Vector' on it now
+                    }
+                    else if (argSysType == typeof(LSL_List))
+                    {   // LSL_List -> LSL_List
+                        TypeCast.CastTopOfStack(this, argVar.name, stkTokType, argTokType, true);
+                        stkTokType = argTokType;                         // stack has a type 'LSL_List' on it now
+                    }
+                    else if (argSysType == typeof(LSL_Rotation))
+                    {   // OpenMetaverse.Quaternion/LSL_Rotation -> LSL_Rotation
+                        ilGen.Emit(curDeclFunc, OpCodes.Call, ehArgUnwrapRotation);
+                        stkTokType = tokenTypeRot;                       // stack has a type 'LSL_Rotation' on it now
+                    }
+
+                    local.PopPost(this, argVar.name, stkTokType);           // pop stack type into argtype
+                }
             }
 
             // Splice in the code optimizer for the body of the function.
@@ -1637,7 +1650,18 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 ilGen.Emit(curDeclFunc, OpCodes.Ldc_I4, i);
                 ilGen.Emit(curDeclFunc, OpCodes.Ldelem_Ref);
                 TypeCast.CastTopOfStack(this, argVar.name, tokenTypeObj, argLoc.type, true);
-                argLoc.PopPost(this, argVar.name);
+                Type t = argLoc.type.ToHeapTrackerType();
+                if(t != null)
+                {
+                    if (t == typeof(HeapTrackerList))
+                        HeapTrackerList.GenRestore(curDeclFunc, ilGen);
+                    else if (t == typeof(HeapTrackerObject))
+                        HeapTrackerObject.GenRestore(curDeclFunc, ilGen);
+                    else if (t == typeof(HeapTrackerString))
+                        HeapTrackerString.GenRestore(curDeclFunc, ilGen);
+                }
+                else
+                    argLoc.PopPost(this, argVar.name);
                 i++;
             }
 
