@@ -994,7 +994,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
 
              // Output code for the statements and clean up.
-            GenerateFuncBody(argDecl.vars.Length > 0);
+            GenerateFuncBody(true);
         }
 
         /**
@@ -1207,7 +1207,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         /**
          * @brief Output function body (either event handler or script-defined method).
          */
-        private void GenerateFuncBody(bool copyArgs)
+        private void GenerateFuncBody(bool IsEventFunction)
         {
              // We want to know if the function's code is trivial, ie,
              // if it doesn't have anything that might be an infinite 
@@ -1269,7 +1269,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 ilGen.Emit(curDeclFunc, OpCodes.Bne_Un, cmRestore);
             }
 
-            if(copyArgs)
+            if(IsEventFunction)
             {
                 //ScriptMyLabel LoadArgsLabel = ilGen.DefineLabel("__LoadArgs");
                 //ilGen.MarkLabel(LoadArgsLabel);
@@ -1468,7 +1468,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 // Output code to restore the args, locals and temps then jump to
                 // the call label that we were interrupted at.
                 ilGen.MarkLabel(cmRestore);
-                GenerateFrameRestoreCode(activeTemps);
+                GenerateFrameRestoreCode(activeTemps, IsEventFunction);
             }
 
              // Output epilog that saves stack frame state if CallMode_SAVE.
@@ -1493,7 +1493,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 ilGen.Emit(curDeclFunc, OpCodes.Ldfld, callModeFieldInfo);
                 ilGen.Emit(curDeclFunc, OpCodes.Ldc_I4, XMRInstAbstract.CallMode_SAVE);
                 ilGen.Emit(curDeclFunc, OpCodes.Bne_Un, endFin);
-                GenerateFrameCaptureCode(activeTemps);
+                GenerateFrameCaptureCode(activeTemps, IsEventFunction);
                 ilGen.MarkLabel(endFin);
                 ilGen.Emit(curDeclFunc, OpCodes.Endfinally);
                 ilGen.EndExceptionBlock();
@@ -1567,7 +1567,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          * @param activeTemps = list of locals and temps that we care about, ie, which
          *                      ones get restored by GenerateFrameRestoreCode().
          */
-        private void GenerateFrameCaptureCode(List<ScriptMyLocal> activeTemps)
+        private void GenerateFrameCaptureCode(List<ScriptMyLocal> activeTemps, bool IsEventFunction)
         {
              // Compute total number of slots we need to save stuff.
              // Assume we need to save all call arguments.
@@ -1582,17 +1582,19 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             ilGen.Emit(curDeclFunc, OpCodes.Ldc_I4, nSaves);
             ilGen.Emit(curDeclFunc, OpCodes.Call, captureStackFrameMethodInfo);
 
-             // Copy arg values to object array, boxing as needed.
+            // Copy arg values to object array, boxing as needed.
             int i = 0;
-            foreach(TokenDeclVar argVar in curDeclFunc.argDecl.varDict)
+            if(!IsEventFunction)
             {
-                ilGen.Emit(curDeclFunc, OpCodes.Dup);
-                ilGen.Emit(curDeclFunc, OpCodes.Ldc_I4, i);
-                argVar.location.PushVal(this, argVar.name, tokenTypeObj);
-                ilGen.Emit(curDeclFunc, OpCodes.Stelem_Ref);
-                i++;
+                foreach(TokenDeclVar argVar in curDeclFunc.argDecl.varDict)
+                {
+                    ilGen.Emit(curDeclFunc, OpCodes.Dup);
+                    ilGen.Emit(curDeclFunc, OpCodes.Ldc_I4, i);
+                    argVar.location.PushVal(this, argVar.name, tokenTypeObj);
+                    ilGen.Emit(curDeclFunc, OpCodes.Stelem_Ref);
+                    i++;
+                }
             }
-
              // Copy local and temp values to object array, boxing as needed.
             foreach(ScriptMyLocal lcl in activeTemps)
             {
@@ -1626,7 +1628,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          * @brief Generate code to restore all arguments and locals from the restore stack frame.
          *        This includes temp variables.
          */
-        private void GenerateFrameRestoreCode(List<ScriptMyLocal> activeTemps)
+        private void GenerateFrameRestoreCode(List<ScriptMyLocal> activeTemps, bool IsEventFunction)
         {
             ScriptMyLocal objArray = ilGen.DeclareLocal(typeof(object[]), "__restObjArray");
 
@@ -1642,27 +1644,19 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // Although the caller has restored them to what it called us with, it's possible that this 
              // function has modified them since, so we need to do our own restore.
             int i = 0;
-            foreach(TokenDeclVar argVar in curDeclFunc.argDecl.varDict)
+            if(!IsEventFunction)
             {
-                CompValu argLoc = argVar.location;
-                argLoc.PopPre(this, argVar.name);
-                ilGen.Emit(curDeclFunc, OpCodes.Ldloc, objArray);
-                ilGen.Emit(curDeclFunc, OpCodes.Ldc_I4, i);
-                ilGen.Emit(curDeclFunc, OpCodes.Ldelem_Ref);
-                TypeCast.CastTopOfStack(this, argVar.name, tokenTypeObj, argLoc.type, true);
-                Type t = argLoc.type.ToHeapTrackerType();
-                if(t != null)
+                foreach(TokenDeclVar argVar in curDeclFunc.argDecl.varDict)
                 {
-                    if (t == typeof(HeapTrackerList))
-                        HeapTrackerList.GenRestore(curDeclFunc, ilGen);
-                    else if (t == typeof(HeapTrackerObject))
-                        HeapTrackerObject.GenRestore(curDeclFunc, ilGen);
-                    else if (t == typeof(HeapTrackerString))
-                        HeapTrackerString.GenRestore(curDeclFunc, ilGen);
-                }
-                else
+                    CompValu argLoc = argVar.location;
+                    argLoc.PopPre(this, argVar.name);
+                    ilGen.Emit(curDeclFunc, OpCodes.Ldloc, objArray);
+                    ilGen.Emit(curDeclFunc, OpCodes.Ldc_I4, i);
+                    ilGen.Emit(curDeclFunc, OpCodes.Ldelem_Ref);
+                    TypeCast.CastTopOfStack(this, argVar.name, tokenTypeObj, argLoc.type, true);
                     argLoc.PopPost(this, argVar.name);
-                i++;
+                    i++;
+                }
             }
 
              // Restore local and temp values from object array, unboxing as needed.
