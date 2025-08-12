@@ -13955,24 +13955,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llMapDestination(string simname, LSL_Vector pos, LSL_Vector lookAt)
         {
             DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, 0);
-            if (detectedParams == null)
+            if (detectedParams is null)
             {
-                if (m_host.ParentGroup.IsAttachment == true)
+                if (m_host.ParentGroup.IsAttachment)
                 {
-                    detectedParams = new DetectParams
-                    {
-                        Key = m_host.OwnerID
-                    };
+                    detectedParams = new DetectParams { Key = m_host.OwnerID };
                 }
-                else
-                {
-                    return;
-                }
+            else
+                return;
             }
 
             ScenePresence avatar = World.GetScenePresence(detectedParams.Key);
             avatar?.ControllingClient.SendScriptTeleportRequest(m_host.Name,
-                    simname, pos, lookAt);
+                    simname, pos, lookAt, ScriptBaseClass.BEACON_FOCUS_MAP | ScriptBaseClass.BEACON_SHOW_MAP);
             ScriptSleep(m_sleepMsOnMapDestination);
         }
 

@@ -1181,7 +1181,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             return string.Empty;
         }
 
-        public void SendScriptTeleportRequest (string objName, string simName, Vector3 pos, Vector3 lookAt)
+        public void SendScriptTeleportRequest (string objName, string simName, Vector3 pos, Vector3 lookAt, int options)
         {
         }
 

@@ -1117,5 +1117,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int SIM_STAT_SCRIPT_RUN_PCT       = 25;
         public const int SIM_STAT_AI_MS                = 26;
 
+        public const int BEACON_SHOW_MAP  = 0x1;
+        public const int BEACON_FOCUS_MAP = 0x2;
     }
 }
