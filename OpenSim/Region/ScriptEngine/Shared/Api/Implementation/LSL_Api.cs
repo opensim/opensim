@@ -42,8 +42,8 @@ using OpenSim.Region.PhysicsModules.SharedBase;
 using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared.Api.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
-using OpenSim.Services.Interfaces;
 using OpenSim.Services.Connectors.Hypergrid;
+using OpenSim.Services.Interfaces;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -52,13 +52,13 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using AssetLandmark = OpenSim.Framework.AssetLandmark;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
-using MappingType = OpenMetaverse.MappingType;
 using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
 using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
 using LSL_Key = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
@@ -66,12 +66,12 @@ using LSL_List = OpenSim.Region.ScriptEngine.Shared.LSL_Types.list;
 using LSL_Rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
 using LSL_String = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
 using LSL_Vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
+using MappingType = OpenMetaverse.MappingType;
 using PermissionMask = OpenSim.Framework.PermissionMask;
 using PresenceInfo = OpenSim.Services.Interfaces.PresenceInfo;
 using PrimType = OpenSim.Region.Framework.Scenes.PrimType;
 using RegionFlags = OpenSim.Framework.RegionFlags;
 using RegionInfo = OpenSim.Framework.RegionInfo;
-using System.Runtime.CompilerServices;
 
 #pragma warning disable IDE1006
 
@@ -13961,13 +13961,77 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     detectedParams = new DetectParams { Key = m_host.OwnerID };
                 }
-            else
-                return;
+                else
+                    return;
             }
 
             ScenePresence avatar = World.GetScenePresence(detectedParams.Key);
             avatar?.ControllingClient.SendScriptTeleportRequest(m_host.Name,
                     simname, pos, lookAt, ScriptBaseClass.BEACON_FOCUS_MAP | ScriptBaseClass.BEACON_SHOW_MAP);
+            ScriptSleep(m_sleepMsOnMapDestination);
+        }
+
+        public void llMapBeacon(string simname, LSL_Vector pos, LSL_List loptions)
+        {
+            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, 0);
+            if (detectedParams is null)
+            {
+                if (m_host.ParentGroup.IsAttachment)
+                {
+                    detectedParams = new DetectParams { Key = m_host.OwnerID };
+                }
+                else
+                    return;
+            }
+
+            int options = 0;
+            if(loptions is not null && loptions.Length > 0)
+            {
+                if(loptions.Length != 3)
+                    throw new InvalidCastException("Unknown llMapBeacon rules");
+                try
+                {
+                    int cmd = loptions.GetLSLIntegerItem(0);
+                    if( cmd == ScriptBaseClass.BEACON_MAP)
+                    {
+                        int open_map;
+                        int focus_map;
+                        try
+                        {
+                            open_map = loptions.GetLSLIntegerItem(1);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException("llMapBeacon open_map must be a 0 or 1");
+                        }
+                        try
+                        {
+                            focus_map = loptions.GetLSLIntegerItem(2);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            throw new InvalidCastException("llMapBeacon focus_map must be a 0 or 1 ");
+                        }
+
+                        if (open_map != 0)
+                        {
+                            options =ScriptBaseClass.BEACON_SHOW_MAP;
+                            if (focus_map != 0)
+                                options |= ScriptBaseClass.BEACON_FOCUS_MAP;
+                        }
+                    }
+                    else
+                        throw new InvalidCastException($"Unknown llMapBeacon rule {cmd}");
+                }
+                catch (InvalidCastException)
+                {
+                    throw new InvalidCastException($"Invalid llMapBeacon rule");
+                }
+            }
+
+            ScenePresence avatar = World.GetScenePresence(detectedParams.Key);
+            avatar?.ControllingClient.SendScriptTeleportRequest(m_host.Name,
+                    simname, pos, Vector3.UnitX, options);
             ScriptSleep(m_sleepMsOnMapDestination);
         }
 
