@@ -1396,7 +1396,8 @@ namespace OpenSim.Framework
 
         void SendRegionHandle(UUID regoinID, ulong handle);
         void SendParcelInfo(RegionInfo info, LandData land, UUID parcelID, uint x, uint y);
-        void SendScriptTeleportRequest(string objName, string simName, Vector3 pos, Vector3 lookAt, int options);
+        //void SendScriptTeleportRequest(string objName, string simName, Vector3 pos, Vector3 lookAt, int options);
+        void SendScriptTeleportRequest(string objName, string simName, Vector3 pos, int options); //lookat does nothing
 
         void SendDirPlacesReply(UUID queryID, DirPlacesReplyData[] data);
         void SendDirPeopleReply(UUID queryID, DirPeopleReplyData[] data);

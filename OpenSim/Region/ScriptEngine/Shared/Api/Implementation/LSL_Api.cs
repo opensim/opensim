@@ -13966,8 +13966,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             ScenePresence avatar = World.GetScenePresence(detectedParams.Key);
+            //lookat does nothing
             avatar?.ControllingClient.SendScriptTeleportRequest(m_host.Name,
-                    simname, pos, lookAt, ScriptBaseClass.BEACON_FOCUS_MAP | ScriptBaseClass.BEACON_SHOW_MAP);
+                    simname, pos, ScriptBaseClass.BEACON_FOCUS_MAP | ScriptBaseClass.BEACON_SHOW_MAP);
             ScriptSleep(m_sleepMsOnMapDestination);
         }
 
@@ -14015,7 +14016,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         if (open_map != 0)
                         {
-                            options =ScriptBaseClass.BEACON_SHOW_MAP;
+                            options = ScriptBaseClass.BEACON_SHOW_MAP;
                             if (focus_map != 0)
                                 options |= ScriptBaseClass.BEACON_FOCUS_MAP;
                         }
@@ -14031,7 +14032,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             ScenePresence avatar = World.GetScenePresence(detectedParams.Key);
             avatar?.ControllingClient.SendScriptTeleportRequest(m_host.Name,
-                    simname, pos, Vector3.UnitX, options);
+                    simname, pos, options);
             ScriptSleep(m_sleepMsOnMapDestination);
         }
 

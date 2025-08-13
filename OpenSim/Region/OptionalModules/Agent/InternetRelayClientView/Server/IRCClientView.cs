@@ -1534,7 +1534,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         }
 
-        public void SendScriptTeleportRequest(string objName, string simName, Vector3 pos, Vector3 lookAt, int options)
+        public void SendScriptTeleportRequest(string objName, string simName, Vector3 pos, int options)
         {
 
         }
