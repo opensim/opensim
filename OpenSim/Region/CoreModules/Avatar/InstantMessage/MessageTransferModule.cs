@@ -84,7 +84,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             m_log.Debug("[MESSAGE TRANSFER]: Module enabled");
             m_Enabled = true;
 
-            IMXMLRPCSendWorkers = new ObjectJobEngine(SendGridInstantMessageViaXMLRPCAsync, "IMXMLRPCSendWorkers", 1000, 3);
+            IMXMLRPCSendWorkers = new ObjectJobEngine(DoSendIMviaXMLRPC, "IMXMLRPCSendWorkers", 1000, 3);
         }
 
         public virtual void AddRegion(Scene scene)
