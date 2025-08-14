@@ -1407,6 +1407,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void llMapBeacon(string simname, LSL_Vector pos, LSL_List loptions)
+        {
+            m_LSL_Functions.llMapBeacon(simname, pos, loptions);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void llMapDestination(string simname, LSL_Vector pos, LSL_Vector look_at)
         {
             m_LSL_Functions.llMapDestination(simname, pos, look_at);
