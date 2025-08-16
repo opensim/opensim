@@ -2350,7 +2350,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             if (face == ScriptBaseClass.ALL_SIDES)
                 face = 0;
-            if (face < 0)
+            else if (face < 0)
                 return ScriptBaseClass.NULL_KEY;
 
             Primitive.TextureEntry tex = part.Shape.Textures;
@@ -19508,6 +19508,59 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return new LSL_String();
         }
 
+        public LSL_String llGetRenderMaterial(LSL_Integer lface )
+        {
+            return GetMaterial(m_host, lface.value);
+        }
+
+        protected static LSL_String GetMaterial(SceneObjectPart part, int face)
+        {
+            if (part.Shape.RenderMaterials is null ||
+                    part.Shape.RenderMaterials.entries is null ||
+                    part.Shape.RenderMaterials.entries.Length == 0)
+                return ScriptBaseClass.NULL_KEY;
+
+            if (face == ScriptBaseClass.ALL_SIDES)
+                face = 0;
+            else if (face < 0)
+                return ScriptBaseClass.NULL_KEY;
+            else if (face >= GetNumberOfSides(part))
+                return ScriptBaseClass.NULL_KEY;
+
+            UUID asset = UUID.Zero;
+            bool found = false;
+            foreach(Primitive.RenderMaterials.RenderMaterialEntry re in part.Shape.RenderMaterials.entries)
+            {
+                if(re.te_index == face)
+                {
+                    asset = re.id;
+                    found = true;
+                    break;
+                }
+            }
+
+            if(!found)
+                 return ScriptBaseClass.NULL_KEY;
+
+            lock (part.TaskInventory)
+            {
+                part.TaskInventory.LockItemsForRead(true);
+                try
+                { 
+                    foreach (KeyValuePair<UUID, TaskInventoryItem> inv in part.TaskInventory)
+                    {
+                        if (inv.Value.Type == (int)AssetType.Material && inv.Value.AssetID.Equals(asset))
+                            return inv.Value.Name.ToString();
+                    }
+                }
+                finally { part.TaskInventory.LockItemsForRead(false); }
+            }
+
+            if((part.ParentGroup.EffectiveOwnerPerms & (uint)PermissionMask.All) != (uint)PermissionMask.All)
+                return ScriptBaseClass.NULL_KEY;
+
+            return asset.ToString();
+        }
         static string HMAC_SHA224(string key, string message)
         {
             const int blockSize = 64;
