@@ -2894,5 +2894,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llIsLinkGLTFMaterial(linknum, face);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_Vector llWorldPosToHUD(LSL_Vector WorldPosition)
+        {
+            return m_LSL_Functions.llWorldPosToHUD(WorldPosition);
+        }
     }
 }

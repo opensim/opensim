@@ -19609,6 +19609,68 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return 0;
         }
 
+        public LSL_Vector llWorldPosToHUD(LSL_Vector wp)
+        {
+            if(!m_host.ParentGroup.IsAttachment)
+                return LSL_Vector.Zero;
+
+            uint atp = m_host.ParentGroup.AttachmentPoint;
+            if(atp < (uint)AttachmentPoint.HUDCenter2 || atp > (uint)AttachmentPoint.HUDBottomRight)
+                return LSL_Vector.Zero;
+
+            if (m_item.PermsGranter.NotEqual(m_host.OwnerID) ||
+                (m_item.PermsMask & ScriptBaseClass.PERMISSION_TRACK_CAMERA) == 0)
+            {
+                Error("llGetCameraPos", "No permissions to track the camera");
+                return LSL_Vector.Zero;
+            }
+
+            ScenePresence sp = World.GetScenePresence(m_host.OwnerID);
+            if(sp is null)
+                return LSL_Vector.Zero;
+
+            Vector3 totarget = (Vector3)wp - sp.CameraPosition;
+            totarget.Normalize();
+            float at = totarget.Dot(sp.CameraAtAxis);
+            float left = totarget.Dot(sp.CameraLeftAxis);
+            float up = totarget.Dot(sp.CameraUpAxis);
+
+            if(atp != (uint)AttachmentPoint.HUDCenter2 && atp != (uint)AttachmentPoint.HUDCenter2)
+            {
+                int h = sp.ControllingClient.viewHeight;
+                if(h > 0)
+                {
+                    float aspect = 0.5f * (float)sp.ControllingClient.viewWidth / h;
+                    switch(atp)
+                    {
+                        case (uint)AttachmentPoint.HUDTop:
+                            up -= 0.5f;
+                            break;
+                        case (uint)AttachmentPoint.HUDTopLeft:
+                            up -= 0.5f;
+                            left -= aspect;
+                            break;
+                        case (uint)AttachmentPoint.HUDTopRight:
+                            up -= 0.5f;
+                            left += aspect;
+                            break;
+                        case (uint)AttachmentPoint.HUDBottom:
+                            up += 0.5f;
+                            break;
+                        case (uint)AttachmentPoint.HUDBottomLeft:
+                            up += 0.5f;
+                            left -= aspect;
+                            break;
+                        case (uint)AttachmentPoint.HUDBottomRight:
+                            up += 0.5f;
+                            left += aspect;
+                            break;
+                    }
+                }
+            }
+            return new(at > 0 ? 1 : -1, left, up);
+        }
+
         static string HMAC_SHA224(string key, string message)
         {
             const int blockSize = 64;
