@@ -248,17 +248,12 @@
     ;; Default is Meshmerizer
     ; meshing = Meshmerizer
     ; meshing = ZeroMesher
-    ;; Must select ubODEMeshmerizer with ubOde physics engine
+    ;; With ubOde physics engine you must select ubODEMeshmerizer
     ; meshing = ubODEMeshmerizer
 
     ;; Choose one of the physics engines below
     ;# {physics} {} {Select physics engine} {OpenDynamicsEngine BulletSim basicphysics POS} ubODE
-    ;; BulletSim is the default physics engine.  It provides the best performance and most functionality.
-    ;; BulletSim supports varregions.
-    ;; OpenDynamicsEngine was the previous default physics engine in OpenSimulator 0.7.6.1 and before.
-    ;; It continues to provide a workable physics implementation.  It does not currently support varregions.
-    ;; basicphysics effectively does not model physics at all, making all objects phantom.
-    ;; Default is BulletSim
+    ;; Default is ubODE
     ; physics = BulletSim
     ; physics = basicphysics
     ; physics = POS
