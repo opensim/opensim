@@ -13884,7 +13884,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_TRACK_CAMERA) == 0)
             {
-                Error("llGetCameraAspect", "No permissions to track the camera");
+                Error("llGetCameraFOV", "No permissions to track the camera");
                 return LSL_Float.Zero;
             }
 
@@ -19561,6 +19561,54 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             return asset.ToString();
         }
+
+        public LSL_Integer llIsLinkGLTFMaterial(LSL_Integer linknum, LSL_Integer lface)
+        {
+            SceneObjectPart part;
+            if (linknum == ScriptBaseClass.LINK_ROOT)
+                part = m_host.ParentGroup.RootPart;
+            else if (linknum == ScriptBaseClass.LINK_THIS)
+                part = m_host;
+            else
+                part = m_host.ParentGroup.GetLinkNumPart(linknum);
+            if(part is null)
+                return 0;
+
+            if (part.Shape.RenderMaterials is null ||
+                    part.Shape.RenderMaterials.entries is null ||
+                    part.Shape.RenderMaterials.entries.Length == 0)
+                return 0;
+
+            int face = lface.value;
+            if (face == ScriptBaseClass.ALL_SIDES)
+            {
+                int nsides = GetNumberOfSides(part);
+                bool[] pbr = new bool[nsides];
+                foreach(Primitive.RenderMaterials.RenderMaterialEntry re in part.Shape.RenderMaterials.entries)
+                {
+                    if(re.te_index > 0 && re.te_index < pbr.Length && re.id.IsNotZero())
+                        pbr[re.te_index] = true;
+                }
+                foreach(bool b in pbr)
+                {
+                    if (!b)
+                        return 0;
+                }
+                return 1;
+            }
+
+            if (face < 0)
+                return 0;
+            else if (face >= GetNumberOfSides(part))
+                return 0;
+            foreach(Primitive.RenderMaterials.RenderMaterialEntry re in part.Shape.RenderMaterials.entries)
+            {
+                if(re.te_index == face)
+                    return re.id.IsZero() ? 0 : 1;
+            }
+            return 0;
+        }
+
         static string HMAC_SHA224(string key, string message)
         {
             const int blockSize = 64;
