@@ -410,7 +410,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             set { m_startpos = value; }
         }
         public float StartFar { get; set; }
-        public float FOV { get; set; } = 1.25f;
+        public float FOV { get; set; } = 1.04f;
         public int viewHeight { get; set; } = 480;
         public int viewWidth { get; set; } = 640;
 
