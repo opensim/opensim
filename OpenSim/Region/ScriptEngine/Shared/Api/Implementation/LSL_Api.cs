@@ -19629,44 +19629,48 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if(sp is null)
                 return LSL_Vector.Zero;
 
+            int h = sp.ControllingClient.viewHeight;
+            float aspect = h > 0 ?(float)sp.ControllingClient.viewWidth / h : 1f;
+
             Vector3 totarget = (Vector3)wp - sp.CameraPosition;
-            totarget.Normalize();
             float at = totarget.Dot(sp.CameraAtAxis);
             float left = totarget.Dot(sp.CameraLeftAxis);
             float up = totarget.Dot(sp.CameraUpAxis);
 
-            if(atp != (uint)AttachmentPoint.HUDCenter2 && atp != (uint)AttachmentPoint.HUDCenter2)
+            float fov = at * MathF.Tan((float)sp.ControllingClient.FOV * 0.5f);
+            if(fov > 0)
             {
-                int h = sp.ControllingClient.viewHeight;
-                if(h > 0)
-                {
-                    float aspect = 0.5f * (float)sp.ControllingClient.viewWidth / h;
-                    switch(atp)
-                    {
-                        case (uint)AttachmentPoint.HUDTop:
-                            up -= 0.5f;
-                            break;
-                        case (uint)AttachmentPoint.HUDTopLeft:
-                            up -= 0.5f;
-                            left -= aspect;
-                            break;
-                        case (uint)AttachmentPoint.HUDTopRight:
-                            up -= 0.5f;
-                            left += aspect;
-                            break;
-                        case (uint)AttachmentPoint.HUDBottom:
-                            up += 0.5f;
-                            break;
-                        case (uint)AttachmentPoint.HUDBottomLeft:
-                            up += 0.5f;
-                            left -= aspect;
-                            break;
-                        case (uint)AttachmentPoint.HUDBottomRight:
-                            up += 0.5f;
-                            left += aspect;
-                            break;
-                    }
-                }
+                fov = 0.45f / fov;
+                left *= fov;
+                up *= fov;
+            }
+
+            switch(atp)
+            {
+                case (uint)AttachmentPoint.HUDTop:
+                    up -= 0.5f;
+                    break;
+                case (uint)AttachmentPoint.HUDTopLeft:
+                    up -= 0.5f;
+                    left -= 0.5f * aspect;
+                    break;
+                case (uint)AttachmentPoint.HUDTopRight:
+                    up -= 0.5f;
+                    left += 0.5f * aspect;
+                    break;
+                case (uint)AttachmentPoint.HUDBottom:
+                    up += 0.5f;
+                    break;
+                case (uint)AttachmentPoint.HUDBottomLeft:
+                    up += 0.5f;
+                    left -= 0.5f * aspect;
+                    break;
+                case (uint)AttachmentPoint.HUDBottomRight:
+                    up += 0.5f;
+                    left += 0.5f * aspect;
+                    break;
+                default:
+                    break;
             }
             return new(at > 0 ? 1 : -1, left, up);
         }

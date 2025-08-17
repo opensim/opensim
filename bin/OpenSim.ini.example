@@ -245,7 +245,7 @@
     ;; ZeroMesher is faster but leaves the physics engine to model the mesh
     ;; using the basic shapes that it supports.
     ;; Usually this is only a box or a sphere
-    ;; Default is Meshmerizer
+    ;; Default is ubODEMeshmerizer
     ; meshing = Meshmerizer
     ; meshing = ZeroMesher
     ;; With ubOde physics engine you must select ubODEMeshmerizer
