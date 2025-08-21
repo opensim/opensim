@@ -65,7 +65,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
     {
         public static readonly string OBJECT_CODE_MAGIC = "YObjectCode";
         // reserve positive version values for original xmr
-        public static int COMPILED_VERSION_VALUE = -10;  // decremented when compiler or object file changes
+        public static int COMPILED_VERSION_VALUE = -11;  // decremented when compiler or object file changes
 
         public static readonly int CALL_FRAME_MEMUSE = 64;
         public static readonly int STRING_LEN_TO_MEMUSE = 2;
