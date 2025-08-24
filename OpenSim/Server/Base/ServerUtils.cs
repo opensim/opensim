@@ -327,23 +327,22 @@ namespace OpenSim.Server.Base
 
         public static Dictionary<string, object> ParseQueryString(string query)
         {
-            string[] terms = query.Split(new char[] { '&' });
+            string[] terms = query.Split(['&']);
 
-            int nterms = terms.Length;
-            if (nterms == 0)
-                return new Dictionary<string, object>();
+            if (terms.Length == 0)
+                return [];
 
-            Dictionary<string, object> result = new Dictionary<string, object>(nterms);
+            Dictionary<string, object> result = new Dictionary<string, object>(terms.Length);
             string name;
 
-            for (int i = 0; i < nterms; ++i)
+            for (int i = 0; i < terms.Length; ++i)
             {
-                string[] elems = terms[i].Split(new char[] { '=' });
+                string[] elems = terms[i].Split(['=']);
 
                 if (elems.Length == 0)
                     continue;
 
-                if (String.IsNullOrWhiteSpace(elems[0]))
+                if (string.IsNullOrWhiteSpace(elems[0]))
                     continue;
 
                 name = System.Web.HttpUtility.UrlDecode(elems[0]);
@@ -351,7 +350,7 @@ namespace OpenSim.Server.Base
                 if (name.EndsWith("[]"))
                 {
                     name = name.Substring(0, name.Length - 2);
-                    if (String.IsNullOrWhiteSpace(name))
+                    if (string.IsNullOrWhiteSpace(name))
                         continue;
                     if (result.ContainsKey(name))
                     {
