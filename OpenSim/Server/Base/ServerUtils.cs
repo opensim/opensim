@@ -39,6 +39,7 @@ using OpenMetaverse;
 using Mono.Addins;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Framework.Servers;
+using SWH = System.Web.HttpUtility;
 using OpenMetaverse.StructuredData; // LitJson is hidden on this
 
 [assembly:AddinRoot("Robust", OpenSim.VersionInfo.VersionNumber)]
@@ -222,10 +223,10 @@ namespace OpenSim.Server.Base
             //if (dllName.Length == 0)
             //    Util.PrintCallStack();
 
-            string className = String.Empty;
+            string className = string.Empty;
 
             // The path for a dynamic plugin will contain ":" on Windows
-            string[] parts = dllName.Split(new char[] { ':' });
+            string[] parts = dllName.Split(':');
 
             if (parts.Length < 3)
             {
@@ -237,15 +238,15 @@ namespace OpenSim.Server.Base
             else
             {
                 // This is Windows - we must replace the ":" in the path
-                dllName = String.Format("{0}:{1}", parts[0], parts[1]);
+                dllName = $"{parts[0]}:{parts[1]}";
                 if (parts.Length > 2)
                     className = parts[2];
             }
 
             // Handle extra string arguments in a more generic way
-            if (dllName.Contains("@"))
+            if (dllName.Contains('@'))
             {
-                string[] dllNameParts = dllName.Split(new char[] { '@' });
+                string[] dllNameParts = dllName.Split('@');
                 dllName = dllNameParts[dllNameParts.Length - 1];
                 List<Object> argList = new List<Object>(args);
                 for (int i = 0; i < dllNameParts.Length - 1; ++i)
@@ -327,17 +328,17 @@ namespace OpenSim.Server.Base
 
         public static Dictionary<string, object> ParseQueryString(string query)
         {
-            string[] terms = query.Split(['&']);
+            string[] terms = query.Split('&');
 
             if (terms.Length == 0)
                 return [];
 
-            Dictionary<string, object> result = new Dictionary<string, object>(terms.Length);
+            Dictionary<string, object> result = new(terms.Length);
             string name;
 
             for (int i = 0; i < terms.Length; ++i)
             {
-                string[] elems = terms[i].Split(['=']);
+                string[] elems = terms[i].Split('=');
 
                 if (elems.Length == 0)
                     continue;
@@ -345,30 +346,30 @@ namespace OpenSim.Server.Base
                 if (string.IsNullOrWhiteSpace(elems[0]))
                     continue;
 
-                name = System.Web.HttpUtility.UrlDecode(elems[0]);
+                name = SWH.UrlDecode(elems[0]);
 
                 if (name.EndsWith("[]"))
                 {
-                    name = name.Substring(0, name.Length - 2);
-                    if (string.IsNullOrWhiteSpace(name))
+                    name = name[..^2];
+                    if (name.Length == 0)
                         continue;
-                    if (result.ContainsKey(name))
+                    if (result.TryGetValue(name, out object resultname))
                     {
-                        if (result[name] is not List<string> l)
+                        if (resultname is not List<string> l)
                             continue;
 
                         if (elems.Length > 1 && !string.IsNullOrWhiteSpace(elems[1]))
-                            l.Add(System.Web.HttpUtility.UrlDecode(elems[1]));
+                            l.Add(SWH.UrlDecode(elems[1]));
                         else
                             l.Add(string.Empty);
                     }
                     else
                     {
-                        List<string> newList = new List<string>();
-                        if (elems.Length > 1 && !String.IsNullOrWhiteSpace(elems[1]))
-                            newList.Add(System.Web.HttpUtility.UrlDecode(elems[1]));
-                        else
-                            newList.Add(String.Empty);
+                        List<string> newList =
+                        [
+                            elems.Length > 1 && !string.IsNullOrWhiteSpace(elems[1]) ?
+                                   SWH.UrlDecode(elems[1]) : string.Empty,
+                        ];
                         result[name] = newList;
                     }
                 }
@@ -376,10 +377,10 @@ namespace OpenSim.Server.Base
                 {
                     if (!result.ContainsKey(name))
                     {
-                        if (elems.Length > 1 && !String.IsNullOrWhiteSpace(elems[1]))
-                            result[name] = System.Web.HttpUtility.UrlDecode(elems[1]);
+                        if (elems.Length > 1 && !string.IsNullOrWhiteSpace(elems[1]))
+                            result[name] = SWH.UrlDecode(elems[1]);
                         else
-                            result[name] = String.Empty;
+                            result[name] = string.Empty;
                     }
                 }
             }
@@ -399,14 +400,14 @@ namespace OpenSim.Server.Base
             {
                 if (kvp.Value is List<string> l)
                 {
-                    string nkey = System.Web.HttpUtility.UrlEncode(kvp.Key);
+                    string nkey = SWH.UrlEncode(kvp.Key);
                     for (int i = 0; i < l.Count; ++i)
                     {
                         if (sb.Length != 0)
                             sb.Append('&');
                         sb.Append(nkey);
                         sb.Append("[]=");
-                        sb.Append(System.Web.HttpUtility.UrlEncode(l[i]));
+                        sb.Append(SWH.UrlEncode(l[i]));
                     }
                 }
                 else if (kvp.Value is Dictionary<string, object>)
@@ -425,21 +426,21 @@ namespace OpenSim.Server.Base
                     }
                     if (sb.Length != 0)
                         sb.Append('&');
-                    sb.Append(System.Web.HttpUtility.UrlEncode(kvp.Key));
+                    sb.Append(SWH.UrlEncode(kvp.Key));
                     sb.Append('=');
-                    sb.Append(System.Web.HttpUtility.UrlEncode(js));
+                    sb.Append(SWH.UrlEncode(js));
                 }
                 else
                 {
                     if (sb.Length != 0)
                         sb.Append('&');
-                    sb.Append(System.Web.HttpUtility.UrlEncode(kvp.Key));
+                    sb.Append(SWH.UrlEncode(kvp.Key));
 
                     pvalue = kvp.Value.ToString();
                     if (!string.IsNullOrEmpty(pvalue))
                     {
                         sb.Append('=');
-                        sb.Append(System.Web.HttpUtility.UrlEncode(pvalue));
+                        sb.Append(SWH.UrlEncode(pvalue));
                     }
                 }
             }
