@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace OpenSim.Tools.ControlPanel.Models
 {
@@ -24,7 +25,7 @@ namespace OpenSim.Tools.ControlPanel.Models
         public int ProcessId { get; set; }
         public DateTime? StartTime { get; set; }
         public string ConfigPath { get; set; } = "";
-        public string? ErrorMessage { get; set; }
+        public string ErrorMessage { get; set; }
         
         /// <summary>
         /// Gets the display text for the status.
@@ -102,12 +103,12 @@ namespace OpenSim.Tools.ControlPanel.Models
     /// </summary>
     public class ValidationResult
     {
-        private readonly List<string> _errors = new();
-        private readonly List<string> _warnings = new();
+        private readonly List<string> _errors = new List<string>();
+        private readonly List<string> _warnings = new List<string>();
         
         public bool IsValid => _errors.Count == 0;
-        public IReadOnlyList<string> Errors => _errors.AsReadOnly();
-        public IReadOnlyList<string> Warnings => _warnings.AsReadOnly();
+        public List<string> Errors => _errors;
+        public List<string> Warnings => _warnings;
         
         public void AddError(string error) => _errors.Add(error);
         public void AddWarning(string warning) => _warnings.Add(warning);

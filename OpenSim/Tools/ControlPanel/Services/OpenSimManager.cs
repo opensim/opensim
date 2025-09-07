@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using System.Linq;
 using OpenSim.Tools.ControlPanel.Models;
 
 namespace OpenSim.Tools.ControlPanel.Services
@@ -15,7 +16,7 @@ namespace OpenSim.Tools.ControlPanel.Services
         private readonly Dictionary<string, Process> _runningInstances = new();
         private readonly string _openSimPath;
         
-        public event EventHandler<SimStatusChangedEventArgs>? StatusChanged;
+        public event EventHandler<SimStatusChangedEventArgs> StatusChanged;
         
         public OpenSimManager(string openSimPath = "")
         {
@@ -66,7 +67,7 @@ namespace OpenSim.Tools.ControlPanel.Services
         /// <summary>
         /// Start an OpenSim instance with the specified configuration.
         /// </summary>
-        public async Task<bool> StartSimAsync(string simName, string? configPath = null)
+        public async Task<bool> StartSimAsync(string simName, string configPath = null)
         {
             try
             {
@@ -183,7 +184,7 @@ namespace OpenSim.Tools.ControlPanel.Services
             OnStatusChanged(simName, SimStatus.Stopped);
         }
         
-        private void OnStatusChanged(string simName, SimStatus status, string? errorMessage = null)
+        private void OnStatusChanged(string simName, SimStatus status, string errorMessage = null)
         {
             StatusChanged?.Invoke(this, new SimStatusChangedEventArgs
             {
@@ -249,7 +250,7 @@ namespace OpenSim.Tools.ControlPanel.Services
     {
         public string SimName { get; set; } = "";
         public SimStatus Status { get; set; }
-        public string? ErrorMessage { get; set; }
+        public string ErrorMessage { get; set; }
         public DateTime Timestamp { get; set; }
     }
 }
