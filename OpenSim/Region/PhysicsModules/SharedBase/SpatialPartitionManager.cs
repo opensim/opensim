@@ -291,7 +291,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
             {
                 lock (_lock)
                 {
-                    return new List<ISpatialObject>(_objects);
+                    return _objects;
                 }
             }
         }
