@@ -46,6 +46,9 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         private static DateTime _lastReport = DateTime.UtcNow;
         private static bool _enabled = false;
         
+        // Object pool monitoring
+        private static readonly List<IPoolStatisticsProvider> _pools = new List<IPoolStatisticsProvider>();
+        
         public static bool Enabled 
         { 
             get { return _enabled; } 
@@ -53,6 +56,34 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         }
         
         public static int ReportIntervalSeconds { get; set; } = 30;
+        
+        /// <summary>
+        /// Register an object pool for monitoring
+        /// </summary>
+        public static void RegisterPool(IPoolStatisticsProvider pool)
+        {
+            if (pool != null)
+            {
+                lock (_pools)
+                {
+                    _pools.Add(pool);
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Unregister an object pool from monitoring
+        /// </summary>
+        public static void UnregisterPool(IPoolStatisticsProvider pool)
+        {
+            if (pool != null)
+            {
+                lock (_pools)
+                {
+                    _pools.Remove(pool);
+                }
+            }
+        }
         
         /// <summary>
         /// Start timing an operation
@@ -137,19 +168,45 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         
         private static void ReportMetrics()
         {
-            if (_metrics.Count == 0) return;
+            if (_metrics.Count == 0 && _pools.Count == 0) return;
             
             m_log.InfoFormat("{0} Performance Report:", LogHeader);
-            m_log.InfoFormat("{0} {1,-30} {2,8} {3,8} {4,8} {5,8}", LogHeader, "Operation", "Count", "Total", "Avg", "Max");
             
-            foreach (var kvp in _metrics)
+            // Report timing metrics
+            if (_metrics.Count > 0)
             {
-                lock (kvp.Value)
+                m_log.InfoFormat("{0} {1,-30} {2,8} {3,8} {4,8} {5,8}", LogHeader, "Operation", "Count", "Total", "Avg", "Max");
+                
+                foreach (var kvp in _metrics)
                 {
-                    var metrics = kvp.Value;
-                    var avgTime = metrics.CallCount > 0 ? metrics.TotalTime / metrics.CallCount : 0;
-                    m_log.InfoFormat("{0} {1,-30} {2,8:N0} {3,8:F1} {4,8:F1} {5,8:F1}", 
-                        LogHeader, kvp.Key, metrics.CallCount, metrics.TotalTime, avgTime, metrics.MaxTime);
+                    lock (kvp.Value)
+                    {
+                        var metrics = kvp.Value;
+                        var avgTime = metrics.CallCount > 0 ? metrics.TotalTime / metrics.CallCount : 0;
+                        m_log.InfoFormat("{0} {1,-30} {2,8:N0} {3,8:F1} {4,8:F1} {5,8:F1}", 
+                            LogHeader, kvp.Key, metrics.CallCount, metrics.TotalTime, avgTime, metrics.MaxTime);
+                    }
+                }
+            }
+            
+            // Report object pool statistics
+            if (_pools.Count > 0)
+            {
+                m_log.InfoFormat("{0} Object Pool Statistics:", LogHeader);
+                lock (_pools)
+                {
+                    foreach (var pool in _pools)
+                    {
+                        try
+                        {
+                            var stats = pool.GetPoolStatistics();
+                            m_log.InfoFormat("{0} {1,-20}: {2}", LogHeader, pool.PoolName, stats.ToString());
+                        }
+                        catch (Exception ex)
+                        {
+                            m_log.WarnFormat("{0} Failed to get pool statistics for {1}: {2}", LogHeader, pool.PoolName, ex.Message);
+                        }
+                    }
                 }
             }
         }
@@ -184,5 +241,14 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
             public double MaxTime { get; set; }
             public double MinTime { get; set; }
         }
+    }
+    
+    /// <summary>
+    /// Interface for objects that can provide pool statistics
+    /// </summary>
+    public interface IPoolStatisticsProvider
+    {
+        string PoolName { get; }
+        PoolStatistics GetPoolStatistics();
     }
 }
