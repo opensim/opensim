@@ -512,10 +512,8 @@ namespace OpenSim.Tools.ControlPanel.UI
             switch (choice)
             {
                 case "1":
-                    // Use reflection to get the private field (for demo purposes)
-                    var pathField = _simManager.GetType().GetField("_openSimPath", 
-                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                    var currentPath = pathField?.GetValue(_simManager) ?? "Unknown";
+                    // Display the OpenSim installation path using the public property
+                    var currentPath = _simManager.OpenSimPath ?? "Unknown";
                     
                     Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine($"Current path: {currentPath}");
