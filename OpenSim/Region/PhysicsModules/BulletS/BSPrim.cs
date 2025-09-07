@@ -512,7 +512,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 // Ensure gravity vector is reasonable (prevent NaN/infinity issues)
                 if (!ret.IsFinite())
                 {
-                    PhysScene.Logger.WarnFormat("{0}: ComputeGravity computed invalid gravity {1}, using default", LogHeader, ret);
+                    PhysScene.Logger.WarnFormat("{0}: ComputeGravity computed invalid gravity {1}, using default. ObjectID={2}, Buoyancy={3}", LogHeader, ret, LocalID, buoyancy);
                     ret = PhysScene.DefaultGravity;
                 }
             }
