@@ -18,6 +18,14 @@ ClampBuoyancyValues = true
 ;; Improved collision margin handling (experimental)
 ImprovedCollisionMargins = false
 
+;; Collision margin (gap between physical objects lying on each other)
+;; Smaller values reduce gaps but may affect performance
+;; Default: 0.04, Recommended for precision: 0.01
+CollisionMargin = 0.04
+
+;; Terrain collision margin
+TerrainCollisionMargin = 0.04
+
 ;; Performance optimizations
 ;; Use spatial partitioning for collision detection (experimental)
 UseSpatialPartitioning = false

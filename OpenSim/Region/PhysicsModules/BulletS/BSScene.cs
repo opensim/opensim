@@ -121,6 +121,11 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
         // True if initialized and ready to do simulation steps
         private bool m_initialized = false;
+        
+        // Enhanced collision margin settings
+        private bool m_useImprovedCollisionMargins = false;
+        private float m_enhancedCollisionMargin = 0.04f;
+        private float m_enhancedTerrainMargin = 0.04f;
 
         // Object locked whenever execution is inside the physics engine
         public Object PhysicsEngineLock = new object();
@@ -422,6 +427,26 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                     if (interval < 1) interval = 1;
                     else if (interval > 3600) interval = 3600;
                     PhysicsProfiler.ReportIntervalSeconds = interval;
+                    
+                    // Enhanced collision margin handling
+                    bool improvedMargins = pConfig.GetBoolean("ImprovedCollisionMargins", false);
+                    if (improvedMargins)
+                    {
+                        float collisionMargin = pConfig.GetFloat("CollisionMargin", 0.04f);
+                        float terrainMargin = pConfig.GetFloat("TerrainCollisionMargin", 0.04f);
+                        
+                        // Clamp margins to reasonable values (0.001 to 0.1 meters)
+                        collisionMargin = OpenMetaverse.Utils.Clamp(collisionMargin, 0.001f, 0.1f);
+                        terrainMargin = OpenMetaverse.Utils.Clamp(terrainMargin, 0.001f, 0.1f);
+                        
+                        // Store values for later use during physics object creation
+                        m_enhancedCollisionMargin = collisionMargin;
+                        m_enhancedTerrainMargin = terrainMargin;
+                        m_useImprovedCollisionMargins = true;
+                        
+                        DetailLog("{0},BSScene.InitializeFromConfig,improvedCollisionMargins,collision={1},terrain={2}", 
+                            RegionName, collisionMargin, terrainMargin);
+                    }
                 }
             }
         }
