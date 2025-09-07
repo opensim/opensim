@@ -73,16 +73,16 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
             
             _metrics.AddOrUpdate(operation, 
                 new PerformanceMetrics { TotalTime = milliseconds, CallCount = 1, MaxTime = milliseconds, MinTime = milliseconds },
-                (key, existing) => 
+                (key, existing) =>
                 {
-                    lock (existing)
+                    // Create a new PerformanceMetrics object with updated values
+                    return new PerformanceMetrics
                     {
-                        existing.TotalTime += milliseconds;
-                        existing.CallCount++;
-                        existing.MaxTime = Math.Max(existing.MaxTime, milliseconds);
-                        existing.MinTime = Math.Min(existing.MinTime, milliseconds);
-                        return existing;
-                    }
+                        TotalTime = existing.TotalTime + milliseconds,
+                        CallCount = existing.CallCount + 1,
+                        MaxTime = Math.Max(existing.MaxTime, milliseconds),
+                        MinTime = Math.Min(existing.MinTime, milliseconds)
+                    };
                 });
             
             CheckReporting();
