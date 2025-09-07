@@ -417,7 +417,11 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                     
                     // Initialize physics profiler if enabled
                     PhysicsProfiler.Enabled = pConfig.GetBoolean("EnablePerformanceMonitoring", false);
-                    PhysicsProfiler.ReportIntervalSeconds = pConfig.GetInt("PerformanceReportInterval", 30);
+                    int interval = pConfig.GetInt("PerformanceReportInterval", 30);
+                    // Clamp interval to [1, 3600] seconds
+                    if (interval < 1) interval = 1;
+                    else if (interval > 3600) interval = 3600;
+                    PhysicsProfiler.ReportIntervalSeconds = interval;
                 }
             }
         }
