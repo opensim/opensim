@@ -1,0 +1,66 @@
+;; Configuration for physics performance enhancements and bug fixes
+;; Copy this to bin/config-include/ and customize as needed
+
+[BulletSim]
+;; Enable physics performance monitoring
+EnablePerformanceMonitoring = false
+
+;; How often to report performance metrics (in seconds)
+PerformanceReportInterval = 30
+
+;; Vehicle physics improvements
+;; Normalize vehicle rotations to prevent drift (recommended: true)
+NormalizeVehicleRotations = true
+
+;; Clamp buoyancy values to prevent runaway physics (recommended: true)  
+ClampBuoyancyValues = true
+
+;; Improved collision margin handling (experimental)
+ImprovedCollisionMargins = false
+
+;; Performance optimizations
+;; Use spatial partitioning for collision detection (experimental)
+UseSpatialPartitioning = false
+
+;; Enable object sleep optimization for static objects
+EnableSleepOptimization = true
+
+;; Maximum number of active physics objects before optimization kicks in
+MaxActiveObjects = 1000
+
+;; Memory management
+;; Enable object pooling for physics shapes
+EnableObjectPooling = false
+
+;; Maximum size of shape cache (0 = unlimited)
+MaxShapeCacheSize = 10000
+
+;; Multi-threading (experimental - not recommended for production)
+EnableMultiThreading = false
+
+;; Number of physics threads (0 = auto-detect)
+PhysicsThreadCount = 0
+
+;; Vehicle physics tuning
+;; Maximum vehicle mass to prevent physics instabilities
+MaxVehicleMass = 10000.0
+
+;; Minimum vehicle timestep for stability
+MinVehicleTimestep = 0.01
+
+;; Vehicle buoyancy interaction with hover
+;; true = vehicle buoyancy affects hover, false = separate calculations
+VehicleBuoyancyAffectsHover = true
+
+;; Debugging options
+;; Enable detailed vehicle physics logging
+VehicleDebugLogging = false
+
+;; Enable physics shape debugging
+ShapeDebugLogging = false
+
+;; Enable collision detection debugging  
+CollisionDebugLogging = false
+
+;; Log physics timing information
+LogPhysicsTiming = false

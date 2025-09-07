@@ -854,6 +854,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             }
             set
             {
+                // Normalize quaternion to prevent accumulation of numerical errors
+                value.Normalize();
                 m_knownOrientation = value;
                 m_knownChanged |= m_knownChangedOrientation;
                 m_knownHas |= m_knownChangedOrientation;
@@ -960,7 +962,10 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         {
             get
             {
-                return VehicleOrientation * m_referenceFrame;
+                Quaternion result = VehicleOrientation * m_referenceFrame;
+                // Normalize quaternion to prevent numerical drift that can cause physics instabilities
+                result.Normalize();
+                return result;
             }
         }
 

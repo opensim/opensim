@@ -502,8 +502,19 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
             if (!IsStatic)
             {
-                ret *= (1f - buoyancy);
+                // Clamp buoyancy to valid range to prevent runaway physics
+                // Buoyancy should be between -1 (double gravity) and 1 (anti-gravity)
+                float clampedBuoyancy = OpenMetaverse.Utils.Clamp(buoyancy, -1.0f, 1.0f);
+                
+                ret *= (1f - clampedBuoyancy);
                 ret *= GravModifier;
+                
+                // Ensure gravity vector is reasonable (prevent NaN/infinity issues)
+                if (!ret.IsFinite())
+                {
+                    PhysScene.Logger.WarnFormat("{0}: ComputeGravity computed invalid gravity {1}, using default", LogHeader, ret);
+                    ret = PhysScene.DefaultGravity;
+                }
             }
 
             return ret;
