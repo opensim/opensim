@@ -223,8 +223,8 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         /// </summary>
         private long GetCellKey(int x, int y, int z)
         {
-            // Use bit shifting to create a unique key
-            return ((long)x << 32) | ((long)y << 16) | (long)z;
+            // Use a proper hash function to create a unique key
+            return (long)HashCode.Combine(x, y, z);
         }
         
         private bool AreSameCells(HashSet<long> oldKeys, HashSet<long> newKeys)
