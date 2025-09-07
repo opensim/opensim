@@ -414,6 +414,14 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 {
                     // Let the user add new and interesting material property values.
                     BSMaterials.InitializefromParameters(pConfig);
+                    
+                    // Initialize physics profiler if enabled
+                    PhysicsProfiler.Enabled = pConfig.GetBoolean("EnablePerformanceMonitoring", false);
+                    int interval = pConfig.GetInt("PerformanceReportInterval", 30);
+                    // Clamp interval to [1, 3600] seconds
+                    if (interval < 1) interval = 1;
+                    else if (interval > 3600) interval = 3600;
+                    PhysicsProfiler.ReportIntervalSeconds = interval;
                 }
             }
         }
@@ -635,11 +643,21 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         //    will be in the ObjectsWithCollions and ObjectsWithUpdates structures.
         public override float Simulate(float timeStep)
         {
-            if (!BSParam.UseSeparatePhysicsThread)
+            using (PhysicsProfiler.StartTiming("BSScene.Simulate"))
             {
-                DoPhysicsStep(timeStep);
+                if (!BSParam.UseSeparatePhysicsThread)
+                {
+                    using (PhysicsProfiler.StartTiming("BSScene.DoPhysicsStep"))
+                    {
+                        DoPhysicsStep(timeStep);
+                    }
+                }
+                
+                using (PhysicsProfiler.StartTiming("BSScene.SendUpdatesToSimulator"))
+                {
+                    return SendUpdatesToSimulator(timeStep);
+                }
             }
-            return SendUpdatesToSimulator(timeStep);
         }
 
         // Call the physics engine to do one 'timeStep' and collect collisions and updates
