@@ -18,6 +18,11 @@ namespace OpenSim.Tools.ControlPanel.Services
         
         public event EventHandler<SimStatusChangedEventArgs> StatusChanged;
         
+        /// <summary>
+        /// Gets the OpenSim installation path
+        /// </summary>
+        public string OpenSimPath => _openSimPath;
+        
         public OpenSimManager(string openSimPath = "")
         {
             _openSimPath = string.IsNullOrEmpty(openSimPath) 

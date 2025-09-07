@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenSim Web Control Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .navbar-brand {
+            font-weight: bold;
+            color: #0d6efd !important;
+        }
+        .status-running {
+            color: #198754;
+        }
+        .status-stopped {
+            color: #dc3545;
+        }
+        .status-starting {
+            color: #fd7e14;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+        .btn-group .btn {
+            margin-right: 0.25rem;
+        }
+        .log-container {
+            background-color: #212529;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            height: 400px;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-gear-fill"></i>
+                OpenSim Web Control Panel
+            </a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text">
+                    <i class="bi bi-clock"></i>
+                    <span id="current-time"></span>
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Dashboard Overview -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card metric-card">
+                    <div class="card-body text-center">
+                        <i class="bi bi-server fs-1"></i>
+                        <div class="metric-value" id="total-simulations">0</div>
+                        <div>Total Simulations</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card metric-card">
+                    <div class="card-body text-center">
+                        <i class="bi bi-play-circle fs-1"></i>
+                        <div class="metric-value" id="running-simulations">0</div>
+                        <div>Running</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card metric-card">
+                    <div class="card-body text-center">
+                        <i class="bi bi-people fs-1"></i>
+                        <div class="metric-value" id="active-users">0</div>
+                        <div>Active Users</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card metric-card">
+                    <div class="card-body text-center">
+                        <i class="bi bi-cpu fs-1"></i>
+                        <div class="metric-value" id="cpu-usage">0%</div>
+                        <div>CPU Usage</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="row mb-4">
+            <div class="col">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Quick Actions</h5>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createSimModal">
+                            <i class="bi bi-plus-circle"></i> Create New Simulation
+                        </button>
+                        <button class="btn btn-success" onclick="refreshDashboard()">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh
+                        </button>
+                        <button class="btn btn-info" onclick="showSystemInfo()">
+                            <i class="bi bi-info-circle"></i> System Info
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Simulations Table -->
+        <div class="row">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-server"></i>
+                            Simulation Management
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Status</th>
+                                        <th>Uptime</th>
+                                        <th>Configuration</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="simulations-table">
+                                    <!-- Simulations will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Simulation Modal -->
+    <div class="modal fade" id="createSimModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create New Simulation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createSimForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="simName" class="form-label">Simulation Name</label>
+                                    <input type="text" class="form-control" id="simName" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="regionName" class="form-label">Region Name</label>
+                                    <input type="text" class="form-control" id="regionName" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="httpPort" class="form-label">HTTP Port</label>
+                                    <input type="number" class="form-control" id="httpPort" value="9000" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="internalPort" class="form-label">Internal Port</label>
+                                    <input type="number" class="form-control" id="internalPort" value="9000" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="externalHost" class="form-label">External Host</label>
+                                    <input type="text" class="form-control" id="externalHost" value="127.0.0.1" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="maxAvatars" class="form-label">Max Avatars</label>
+                                    <input type="number" class="form-control" id="maxAvatars" value="100" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="maxObjects" class="form-label">Max Objects</label>
+                                    <input type="number" class="form-control" id="maxObjects" value="15000" required>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="mb-3">
+                                            <label for="locationX" class="form-label">Location X</label>
+                                            <input type="number" class="form-control" id="locationX" value="1000" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="mb-3">
+                                            <label for="locationY" class="form-label">Location Y</label>
+                                            <input type="number" class="form-control" id="locationY" value="1000" required>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="createSimulation()">Create Simulation</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logs Modal -->
+    <div class="modal fade" id="logsModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Simulation Logs</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="log-container" id="log-content">
+                        Loading logs...
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="refreshLogs()">Refresh</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/microsoft-signalr@6.0.0/dist/browser/signalr.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

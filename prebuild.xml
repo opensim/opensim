@@ -2062,6 +2062,34 @@
       </Files>
     </Project>
 
+    <Project name="OpenSim.Tools.WebControlPanel" path="OpenSim/Tools/WebControlPanel" type="Exe">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim"/>
+      <Reference name="OpenSim.Tools.ControlPanel"/>
+      <Reference name="Nini"/>
+      <Reference name="log4net"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+         <Exclude name="bin" pattern="bin"/>
+         <Exclude name="wwwroot" pattern="wwwroot"/>
+        </Match>
+      </Files>
+    </Project>
+
     <!-- Test Clients -->
 	<!--
     <Project name="OpenSim.Tests.Clients.AssetClient" path="OpenSim/Tests/Clients/Assets" type="Exe">
