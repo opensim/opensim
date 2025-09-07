@@ -536,3 +536,33 @@ public class PhysicsMonitorModule : INonSharedRegionModule
 - Better virtual world stability
 - Enhanced user experience with vehicles and physics
 - Foundation for future advanced features
+
+## Future Roadmap: PhysX Integration
+
+### Phase 5: Next-Generation Physics Engine (Months 4-12)
+
+Following the completion of immediate Bullet improvements, the roadmap includes migration to NVIDIA PhysX 5.1+ as outlined in `PHYSICS_ENGINE_RESEARCH.md`:
+
+#### Benefits of PhysX Migration
+- **3-5x Performance Improvement**: Advanced algorithms and GPU acceleration
+- **Industry-Standard Features**: AAA gaming physics capabilities
+- **Modern Architecture**: C++17 codebase with superior multi-threading
+- **Advanced Vehicle Physics**: Professional-grade suspension and tire models
+- **GPU Acceleration**: Optional CUDA support for massive performance gains
+
+#### Migration Strategy
+```
+Month 4-5:  PhysX C# bindings and basic integration
+Month 6-7:  Core physics implementation and actor system
+Month 8-9:  Advanced features (vehicles, character control, constraints)
+Month 10-11: Performance optimization and GPU acceleration
+Month 12:   Testing, validation, and production deployment
+```
+
+#### Risk Mitigation
+- Maintain Bullet as fallback option
+- Gradual region-by-region migration
+- Comprehensive testing and monitoring
+- Community feedback integration
+
+This PhysX integration will position OpenSim as a competitive virtual world platform with modern physics capabilities that rival commercial alternatives.
