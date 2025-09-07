@@ -30,6 +30,18 @@ TerrainCollisionMargin = 0.04
 ;; Use spatial partitioning for collision detection (experimental)
 UseSpatialPartitioning = false
 
+;; Spatial partitioning grid size (in meters, power of 2 recommended)
+SpatialPartitionGridSize = 32.0
+
+;; Enable object sleep optimization for static objects
+EnableSleepOptimization = true
+
+;; Time before static objects are put to sleep (seconds)
+StaticObjectSleepTimeout = 2.0
+
+;; Velocity threshold below which objects are considered for sleep
+SleepVelocityThreshold = 0.01
+
 ;; Enable object sleep optimization for static objects
 EnableSleepOptimization = true
 
@@ -59,6 +71,16 @@ MinVehicleTimestep = 0.01
 ;; Vehicle buoyancy interaction with hover
 ;; true = vehicle buoyancy affects hover, false = separate calculations
 VehicleBuoyancyAffectsHover = true
+
+;; Enhanced vehicle stability improvements
+;; Limit excessive angular velocity that can cause vehicle flipping
+EnableVehicleAngularStabilization = true
+MaxVehicleAngularVelocity = 12.0
+
+;; Vehicle linear motor direction clamping
+;; Prevents unrealistic acceleration values
+EnableVehicleMotorClamping = true
+MaxVehicleLinearMotorDirection = 30.0
 
 ;; Debugging options
 ;; Enable detailed vehicle physics logging

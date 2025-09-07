@@ -122,10 +122,12 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         // True if initialized and ready to do simulation steps
         private bool m_initialized = false;
         
-        // Enhanced collision margin settings
+        // Enhanced physics optimization systems
         private bool m_useImprovedCollisionMargins = false;
         private float m_enhancedCollisionMargin = 0.04f;
         private float m_enhancedTerrainMargin = 0.04f;
+        private SpatialPartitionManager m_spatialPartition = null;
+        private SleepOptimizationManager m_sleepOptimization = null;
 
         // Object locked whenever execution is inside the physics engine
         public Object PhysicsEngineLock = new object();
@@ -446,6 +448,33 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                         
                         DetailLog("{0},BSScene.InitializeFromConfig,improvedCollisionMargins,collision={1},terrain={2}", 
                             RegionName, collisionMargin, terrainMargin);
+                    }
+                    
+                    // Spatial partitioning optimization
+                    bool useSpatialPartitioning = pConfig.GetBoolean("UseSpatialPartitioning", false);
+                    if (useSpatialPartitioning)
+                    {
+                        float gridSize = pConfig.GetFloat("SpatialPartitionGridSize", 32.0f);
+                        gridSize = OpenMetaverse.Utils.Clamp(gridSize, 4.0f, 256.0f);
+                        
+                        m_spatialPartition = new SpatialPartitionManager(gridSize);
+                        DetailLog("{0},BSScene.InitializeFromConfig,spatialPartitioning,gridSize={1}", 
+                            RegionName, gridSize);
+                    }
+                    
+                    // Sleep optimization for static objects
+                    bool enableSleepOptimization = pConfig.GetBoolean("EnableSleepOptimization", true);
+                    if (enableSleepOptimization)
+                    {
+                        float sleepTimeout = pConfig.GetFloat("StaticObjectSleepTimeout", 2.0f);
+                        float velocityThreshold = pConfig.GetFloat("SleepVelocityThreshold", 0.01f);
+                        
+                        sleepTimeout = OpenMetaverse.Utils.Clamp(sleepTimeout, 0.1f, 60.0f);
+                        velocityThreshold = OpenMetaverse.Utils.Clamp(velocityThreshold, 0.001f, 1.0f);
+                        
+                        m_sleepOptimization = new SleepOptimizationManager(sleepTimeout, velocityThreshold);
+                        DetailLog("{0},BSScene.InitializeFromConfig,sleepOptimization,timeout={1},threshold={2}", 
+                            RegionName, sleepTimeout, velocityThreshold);
                     }
                 }
             }
