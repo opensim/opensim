@@ -1412,5 +1412,17 @@ namespace OpenSim.Tests.Common
             return 0x1000;
         }
 
+        public void SendScriptTeleportRequest(string objName, string simName, Vector3 pos, int options)
+        {
+        }
+
+        public void SendPickInfoReply(UUID pickID, UUID creatorID, bool topPick, UUID parcelID, string name, string desc, UUID snapshotID, string user, string originalName, string simName, Vector3d posGlobal, int sortOrder, bool enabled)
+        {
+        }
+
+        public float FOV { get; set; }
+        public int viewHeight { get; set; }
+        public int viewWidth { get; set; }
+        public ViewerFlags ViewerFlags { get; }
     }
 }

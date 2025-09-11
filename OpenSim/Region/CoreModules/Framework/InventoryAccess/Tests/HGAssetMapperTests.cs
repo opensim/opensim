@@ -43,7 +43,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
     [TestFixture]
     public class HGAssetMapperTests : OpenSimTestCase
     {
-        /*
         [Test]
         public void TestPostAssetRewrite()
         {
@@ -144,5 +143,4 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
             Assert.IsTrue(chatEvent.WaitOne(60000), "Chat event in HGAssetMapperTests.RezScript not received");
         }
     }
-        */
 }
