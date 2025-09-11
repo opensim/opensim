@@ -72,6 +72,18 @@ This project involves the comprehensive modernization of OpenSim's graphics and 
 - **Key Focus**: Executive summary and strategic overview
 - **Status**: ✅ Historical reference
 
+### Modernization Impact Analysis
+**File**: [MODERNIZATION_IMPACT_ANALYSIS.md](./MODERNIZATION_IMPACT_ANALYSIS.md)
+- **Purpose**: Comprehensive analysis of all modernization changes and strategic impact
+- **Key Focus**: Cross-component dependencies, risk assessment, competitive positioning
+- **Status**: ✅ Complete strategic analysis
+
+### Expanded Implementation Planning
+**File**: [EXPANDED_IMPLEMENTATION_PLANNING.md](./EXPANDED_IMPLEMENTATION_PLANNING.md)
+- **Purpose**: Detailed technical implementation planning with resource allocation
+- **Key Focus**: Granular implementation tasks, risk management, quality gates
+- **Status**: ✅ Ready for development execution
+
 ## 🎯 Implementation Priorities
 
 ### Phase 1: Foundation (Months 1-3)
