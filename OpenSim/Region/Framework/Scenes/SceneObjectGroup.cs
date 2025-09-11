@@ -5340,6 +5340,19 @@ namespace OpenSim.Region.Framework.Scenes
             return null;
         }
 
+        public void SetBuoyancy(float fvalue)
+        {
+            if(IsAttachment)
+            {
+                ScenePresence avatar = m_scene.GetScenePresence(AttachedAvatar);
+                PhysicsActor pa = avatar?.PhysicsActor;
+                if( pa is not null )
+                    pa.Buoyancy = fvalue;
+            }
+            else
+                RootPart.Buoyancy = fvalue;
+        }
+
         public override string ToString()
         {
             return $"{Name} {UUID} ({AbsolutePosition})";

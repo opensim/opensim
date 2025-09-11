@@ -1602,14 +1602,24 @@ namespace OpenSim.Region.Framework.Scenes
             }
             set
             {
-                if (ParentGroup != null && ParentGroup.RootPart != null && ParentGroup.RootPart != this)
+                if (ParentGroup != null)
                 {
-                    ParentGroup.RootPart.Buoyancy = value;
-                    return;
+                    if (ParentGroup.RootPart != null && ParentGroup.RootPart != this)
+                    {
+                        ParentGroup.RootPart.Buoyancy = value;
+                        return;
+                    }
+                    if (ParentGroup.IsAttachment)
+                    {
+                        ScenePresence avatar = m_scene.GetScenePresence(ParentGroup.AttachedAvatar);
+                        PhysicsActor pa = avatar?.PhysicsActor;
+                        if (pa != null)
+                            pa.Buoyancy = value;
+                    }
+                    else if (PhysActor != null)
+                        PhysActor.Buoyancy = value;
                 }
                 m_buoyancy = value;
-                if (PhysActor != null)
-                    PhysActor.Buoyancy = value;
             }
         }
 

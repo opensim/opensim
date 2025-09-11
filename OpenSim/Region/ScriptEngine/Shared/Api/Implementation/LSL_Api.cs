@@ -4291,10 +4291,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llSetBuoyancy(double buoyancy)
         {
-
             if (!m_host.ParentGroup.IsDeleted)
             {
-                m_host.ParentGroup.RootPart.SetBuoyancy((float)buoyancy);
+                m_host.ParentGroup.SetBuoyancy((float)buoyancy);
             }
         }
 
