@@ -46,7 +46,7 @@ namespace OpenSim.Data.PGSQL
         protected string m_ConnectionString;
         protected PGSQLManager m_database; //used for parameter type translation
         protected Dictionary<string, FieldInfo> m_Fields =
-                new Dictionary<string, FieldInfo>();
+                new Dictionary<string, FieldInfo>(StringComparer.OrdinalIgnoreCase);
 
         protected Dictionary<string, string> m_FieldTypes = new Dictionary<string, string>();
 
@@ -101,7 +101,7 @@ namespace OpenSim.Data.PGSQL
 
         private void LoadFieldTypes()
         {
-            m_FieldTypes = new Dictionary<string, string>();
+            m_FieldTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
             string query = string.Format(@"select column_name,data_type
                         from INFORMATION_SCHEMA.COLUMNS
@@ -268,7 +268,7 @@ namespace OpenSim.Data.PGSQL
             List<T> result = new List<T>();
             if (cmd.Connection == null)
             {
-                cmd.Connection = new NpgsqlConnection(m_connectionString);
+                cmd.Connection = new NpgsqlConnection(m_ConnectionString);
             }
             if (cmd.Connection.State == ConnectionState.Closed)
             {
