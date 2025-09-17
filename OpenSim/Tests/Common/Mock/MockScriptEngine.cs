@@ -161,6 +161,11 @@ namespace OpenSim.Tests.Common
             return true;
         }
 
+        public bool PostObjectLinksetDataEvent(uint localID, int action, ReadOnlySpan<char> name, ReadOnlySpan<char> value)
+        {
+            return true;
+        }
+
         public bool SuspendScript(UUID itemID)
         {
             throw new System.NotImplementedException ();
