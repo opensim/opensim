@@ -283,8 +283,6 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_groupContainsForeignPrims; }
         }
 
-        public bool HasGroupChangedDueToDelink { get; set; }
-
         private bool isTimeToPersist()
         {
             if (IsSelected || IsDeleted || IsAttachment)
@@ -3317,6 +3315,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 linkPart.LinkNum = linkNum++;
                 linkPart.UpdatePrimFlags(UsesPhysics, IsTemporary, IsPhantom, IsVolumeDetect, false);
+                linkPart.Inventory.ForceInventoryPersistence();
 
                 // Get a list of the SOP's in the source group in order of their linknum's.
                 SceneObjectPart[] ogParts = objectGroup.Parts;
@@ -3343,6 +3342,7 @@ namespace OpenSim.Region.Framework.Scenes
                             part.PhysActor.link(m_rootPart.PhysActor);
                         }
                     }
+                    part.Inventory.ForceInventoryPersistence();
                     part.ClearUndoState();
                 }
             }
@@ -3516,7 +3516,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_rootPart.PhysActor is not null)
                 m_rootPart.PhysActor.Building = false;
 
-            objectGroup.HasGroupChangedDueToDelink = true;
+            linkPart.Inventory.ForceInventoryPersistence();
             
             if (sendEvents)
                 linkPart.TriggerScriptChangedEvent(Changed.LINK);

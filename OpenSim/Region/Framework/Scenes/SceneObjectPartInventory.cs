@@ -201,6 +201,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
             m_inventorySerial++;
+            HasInventoryChanged = true;
             m_items.LockItemsForWrite(false);
         }
 
@@ -224,6 +225,7 @@ namespace OpenSim.Region.Framework.Scenes
                 item.ParentID = partID;
             }
             m_inventorySerial++;
+            HasInventoryChanged = true;
             m_items.LockItemsForWrite(false);
         }
 
@@ -1350,8 +1352,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_items[item.ItemID] = item;
                 if(item.InvType == (int)InventoryType.LSL)
                 {
-                    if(m_scripts == null)
-                        m_scripts = new Dictionary<UUID, TaskInventoryItem>();
+                    m_scripts ??= new Dictionary<UUID, TaskInventoryItem>();
                     m_scripts[item.ItemID] = item;
                 }
 
@@ -1412,13 +1413,13 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     m_part.RemFlag(PrimFlags.Scripted);
                 }
-                m_inventorySerial++;
-                m_items.LockItemsForWrite(false);
 
                 m_part.ParentGroup.InvalidateDeepEffectivePerms();
-
-
+                m_inventorySerial++;
                 HasInventoryChanged = true;
+
+                m_items.LockItemsForWrite(false);
+
                 m_part.ParentGroup.HasGroupChanged = true;
                 m_part.ScheduleFullUpdate();
 
@@ -1603,23 +1604,27 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="datastore"></param>
         public void ProcessInventoryBackup(ISimulationDataService datastore)
         {
-                // Removed this because linking will cause an immediate delete of the new
-                // child prim from the database and the subsequent storing of the prim sees
-                // the inventory of it as unchanged and doesn't store it at all. The overhead
-                // of storing prim inventory needlessly is much less than the aggravation
-                // of prim inventory loss.
-                //if (HasInventoryChanged)
-                //    {
-                m_items.LockItemsForRead(true);
-                ICollection<TaskInventoryItem> itemsvalues = m_items.Values;
+            try
+            {
+                m_items.LockItemsForWrite(true);
+                if (!HasInventoryChanged)
+                    return;
                 HasInventoryChanged = false;
+            }
+            finally
+            {
+                m_items.LockItemsForWrite(false);
+            }
+
+            try
+            {
+                m_items.LockItemsForRead(true);
+                datastore.StorePrimInventory(m_part.UUID, m_items.Values);
+            }
+            finally
+            {
                 m_items.LockItemsForRead(false);
-                try
-                {
-                    datastore.StorePrimInventory(m_part.UUID, itemsvalues);
-                }
-                catch {}
-                //    }
+            }
         }
 
         public class InventoryStringBuilder

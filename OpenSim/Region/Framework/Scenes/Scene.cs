@@ -1876,7 +1876,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // sleep if we can
                 if (nowMS > 0)
-                    {
+                {
                     Thread.Sleep((int)(nowMS + 0.5));
 
                     nowMS = Util.GetTimeStampMS();
@@ -1884,14 +1884,14 @@ namespace OpenSim.Region.Framework.Scenes
                     sleepError = sleepMS - frameMS;
                     sleepError = Math.Clamp(sleepError, 0.0f, 20f);
                     frameMS = (float)(nowMS - framestart);
-                    }
+                }
                 else
-                    {
+                {
                     nowMS = Util.GetTimeStampMS();
                     frameMS = (float)(nowMS - framestart);
                     sleepMS = 0.0f;
                     sleepError = 0.0f;
-                    }
+                }
 
                 // script time is not scene frame time, but is displayed per frame
                 float scriptTimeMS = GetAndResetScriptExecutionTime();
