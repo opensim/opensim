@@ -491,9 +491,7 @@ namespace OpenSim.Region.Framework.Scenes
             List<Scene> sceneList = Scenes;
             foreach (Scene scene in sceneList)
             {
-                avatar = scene.GetScenePresence(avatarId);
-
-                if (avatar != null && !avatar.IsChildAgent)
+                if (scene.TryGetSceneRootPresence(avatarId, out avatar))
                     return true;
             }
 

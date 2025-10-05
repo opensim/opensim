@@ -25,21 +25,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Xml;
-using System.Net;
-using System.Reflection;
-using System.Timers;
-using System.Threading;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using Nwc.XmlRpc;
 using OpenMetaverse;
-using Mono.Addins;
 using OpenSim;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
@@ -49,9 +39,20 @@ using OpenSim.Region.CoreModules.World.Terrain;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
-using PresenceInfo = OpenSim.Services.Interfaces.PresenceInfo;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Net;
+using System.Reflection;
+using System.Threading;
+using System.Timers;
+using System.Xml;
+using static System.Net.Mime.MediaTypeNames;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using PermissionMask = OpenSim.Framework.PermissionMask;
+using PresenceInfo = OpenSim.Services.Interfaces.PresenceInfo;
 using RegionInfo = OpenSim.Framework.RegionInfo;
 
 namespace OpenSim.ApplicationPlugins.RemoteController
@@ -131,13 +132,14 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     m_httpServer = MainServer.GetHttpServer((uint)port,ipaddr);
 
                     Dictionary<string, XmlRpcMethod> availableMethods = new Dictionary<string, XmlRpcMethod>();
+                    availableMethods["admin_alert_user"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcAlertUserMethod);
+                    availableMethods["admin_broadcast"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcAlertMethod);
                     availableMethods["admin_create_region"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcCreateRegionMethod);
                     availableMethods["admin_delete_region"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcDeleteRegionMethod);
                     availableMethods["admin_close_region"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcCloseRegionMethod);
                     availableMethods["admin_modify_region"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcModifyRegionMethod);
                     availableMethods["admin_region_query"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcRegionQueryMethod);
                     availableMethods["admin_shutdown"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcShutdownMethod);
-                    availableMethods["admin_broadcast"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcAlertMethod);
                     availableMethods["admin_dialog"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcDialogMethod);
                     availableMethods["admin_restart"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcRestartMethod);
                     availableMethods["admin_load_heightmap"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcLoadHeightmapMethod);
@@ -421,6 +423,39 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             m_log.Info("[RADMIN]: Restart Region request complete");
         }
 
+        private void XmlRpcAlertUserMethod(XmlRpcRequest request, XmlRpcResponse response, IPEndPoint remoteClient)
+        {
+            //m_log.Info("[RADMIN]: AlertUser request started");
+
+            Hashtable responseData = (Hashtable)response.Value;
+            Hashtable requestData = (Hashtable)request.Params[0];
+
+            string agentIdStr = (string)requestData["agent_id"];
+            string message = (string)requestData["message"];
+
+            responseData["accepted"] = true;
+
+            if(!UUID.TryParse(agentIdStr, out UUID agentId))
+            {
+                responseData["success"] = false;
+                responseData["error"] = "Invalid agent_id";
+                m_log.Info($"[RADMIN]: alert to agent got invalid uuid: {agentIdStr}: {message}");
+                return;
+            }
+
+            if(m_application.SceneManager.TryGetRootScenePresence(agentId, out ScenePresence sp ))
+            {
+                sp.ControllingClient.SendAlertMessage(message);
+                m_log.Info($"[RADMIN]: Sent alert to agent {agentIdStr}: {message}");
+                responseData["success"] = true;
+                return;
+            }
+
+            responseData["success"] = false;
+            responseData["error"] = "User not found or not online";
+            m_log.Info($"[RADMIN]: Fail to send alert to not found agent {agentIdStr}: {message}");
+        }
+
         private void XmlRpcAlertMethod(XmlRpcRequest request, XmlRpcResponse response, IPEndPoint remoteClient)
         {
             m_log.Info("[RADMIN]: Alert request started");
@@ -455,7 +490,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
             string message = (string)requestData["message"];
             string fromuuid = (string)requestData["from"];
-            m_log.InfoFormat("[RADMIN]: Broadcasting: {0}", message);
+            m_log.Info($"[RADMIN]: Broadcasting: {message}");
 
             responseData["accepted"] = true;
             responseData["success"] = true;
@@ -464,8 +499,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 delegate(Scene scene)
                 {
                     IDialogModule dialogModule = scene.RequestModuleInterface<IDialogModule>();
-                    if (dialogModule != null)
-                        dialogModule.SendNotificationToUsersInRegion(UUID.Zero, fromuuid, message);
+                    dialogModule?.SendNotificationToUsersInRegion(UUID.Zero, fromuuid, message);
                 });
 
             m_log.Info("[RADMIN]: Dialog request complete");
@@ -619,6 +653,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         {
             m_application.Shutdown();
         }
+
 
         /// <summary>
         /// Create a new region.
