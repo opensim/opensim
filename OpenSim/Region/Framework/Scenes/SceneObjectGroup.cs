@@ -3932,8 +3932,6 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_scene is null || IsDeleted)
                 return;
 
-            HasGroupChanged = true;
-
             if (SetTemporary)
             {
                 DetachFromBackup();
@@ -3998,6 +3996,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_rootPart.UpdatePrimFlags(UsePhysics, SetTemporary, SetPhantom, SetVolumeDetect, false);
 
             m_scene.EventManager.TriggerParcelPrimCountTainted();
+            HasGroupChanged = true;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -4508,17 +4507,6 @@ namespace OpenSim.Region.Framework.Scenes
         public void UpdateGroupRotationR(Quaternion rot)
         {
             m_rootPart.UpdateRotation(rot);
-
-            /* this is done by rootpart RotationOffset set called by UpdateRotation
-            PhysicsActor actor = m_rootPart.PhysActor;
-            if (actor is not null)
-            {
-                actor.Orientation = m_rootPart.RotationOffset;
-                m_scene.PhysicsScene.AddPhysicsActorTaint(actor);
-            }
-            */
-            HasGroupChanged = true;
-            ScheduleGroupForTerseUpdate();
         }
 
         /// <summary>
@@ -4529,13 +4517,6 @@ namespace OpenSim.Region.Framework.Scenes
         public void UpdateGroupRotationPR(Vector3 pos, Quaternion rot)
         {
             m_rootPart.UpdateRotation(rot);
-
-            //already done above
-            //PhysicsActor actor = m_rootPart.PhysActor;
-            //if (actor is not null)
-            //{
-            //    actor.Orientation = m_rootPart.RotationOffset;
-            //}
 
             if (IsAttachment)
             {

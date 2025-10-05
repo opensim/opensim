@@ -5071,7 +5071,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (newTex.FaceTextures[i] != null)
                     newFace = newTex.FaceTextures[i];
 
-                if (oldFace.TextureID != newFace.TextureID)
+                if (oldFace.TextureID.NotEqual(newFace.TextureID))
                     changeFlags |= Changed.TEXTURE;
 
                 Color4 oldRGBA = oldFace.RGBA;
