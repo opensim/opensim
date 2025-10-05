@@ -1087,7 +1087,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             Quaternion currentRot = RootPart.RotationOffset;
             if(setrot)
-                rotation = Quaternion.Conjugate(currentRot) * rotation;
+                rotation = Quaternion.Conjugate(ref currentRot) * rotation;
 
             bool dorot = setrot || (Math.Abs(rotation.W) < 0.99999);
 
@@ -3266,11 +3266,11 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Make the linking root SOP's rotation relative to the new root prim
             Quaternion oldRot = linkPart.RotationOffset;
-            Quaternion newRot = Quaternion.Conjugate(parentRot) * oldRot;
+            Quaternion newRot = Quaternion.Conjugate(ref parentRot) * oldRot;
             linkPart.setRotationOffset(newRot);
 
             Vector3 axPos = linkPart.OffsetPosition;
-            axPos *= Quaternion.Conjugate(parentRot);
+            axPos *= Quaternion.Conjugate(ref parentRot);
             linkPart.OffsetPosition = axPos;
 
             // If there is only one SOP in a SOG, the LinkNum is zero. I.e., not a linkset.
@@ -3682,11 +3682,11 @@ namespace OpenSim.Region.Framework.Scenes
             // Compute the SOP's rotation relative to the rotation of the group.
             parentRot = m_rootPart.RotationOffset;
  
-            Quaternion newRot = Quaternion.Conjugate(parentRot) * worldRot;
+            Quaternion newRot = Quaternion.Conjugate(ref parentRot) * worldRot;
             part.setRotationOffset(newRot);
 
             Vector3 pos = part.OffsetPosition;
-            pos *= Quaternion.Conjugate(parentRot);
+            pos *= Quaternion.Conjugate(ref parentRot);
 
             part.OffsetPosition = pos; // update position and orientation on physics also
 
