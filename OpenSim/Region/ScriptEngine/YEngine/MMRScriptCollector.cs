@@ -2522,8 +2522,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 if(!gn.CanFallThrough())
                 {
                     GraphNode nn;
-                    while(((nn = gn.nextLin) != null) && !(nn is GraphNodeBlock) &&
-                                              !(nn is GraphNodeEndExceptionBlock))
+                    while(((nn = gn.nextLin) != null) && nn is not GraphNodeBlock &&
+                                              nn is not GraphNodeEndExceptionBlock)
                     {
                         if((gn.nextLin = nn.nextLin) != null)
                         {
@@ -2539,12 +2539,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             // leave instruction's target.  A leave instruction can unwind zero or more finally blocks.
             for(GraphNode gn = firstLin; gn != null; gn = gn.nextLin)
             {
-                if(gn is GraphNodeEmitLabelLeave)
+                if(gn is GraphNodeEmitLabelLeave leaveInstr)
                 {
-                    GraphNodeEmitLabelLeave leaveInstr = (GraphNodeEmitLabelLeave)gn;         // the leave instruction
                     GraphNodeMarkLabel leaveTarget = leaveInstr.myLabel.whereAmI;             // label being targeted by leave
                     GraphNodeBeginExceptionBlock leaveTargetsTryBlock =                       // try block directly enclosing leave target
-                        (leaveTarget == null) ? null : leaveTarget.tryBlock;              // ...it must not be unwound
+                        leaveTarget?.tryBlock;                                                // ...it must not be unwound
 
                     // Step through try { }s from the leave instruction towards its target looking for try { }s with finally { }s.
                     // The leave instruction unconditionally branches to the beginning of the innermost one found.
@@ -2558,13 +2557,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         if(tryBlock == null)
                             throw new Exception("leave target not at or outer to leave instruction");
                         GraphNodeCatchFinallyBlock cfb = tryBlock.catchFinallyBlock;
-                        if(cfb is GraphNodeBeginFinallyBlock)
+                        if(cfb is GraphNodeBeginFinallyBlock Gcfb)
                         {
                             if(innerFinallyBlock == null)
                             {
                                 leaveInstr.unwindTo = cfb;
                             }
-                            innerFinallyBlock = (GraphNodeBeginFinallyBlock)cfb;
+                            innerFinallyBlock = Gcfb;
                         }
                     }
 
@@ -2586,8 +2585,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             GraphNodeBlock currentBlock = null;
             for(GraphNode gn = firstLin; gn != null; gn = gn.nextLin)
             {
-                if(gn is GraphNodeBlock)
-                    currentBlock = (GraphNodeBlock)gn;
+                if(gn is GraphNodeBlock Ggn)
+                    currentBlock = Ggn;
                 ScriptMyLocal rdlcl = gn.ReadsLocal();
                 if((rdlcl != null) &&
                     !currentBlock.localsWrittenBeforeRead.Contains(rdlcl) &&
@@ -2625,26 +2624,26 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 // Strip out ldc.i4.1/xor/ldc.i4.1/xor
                 for(GraphNode gn = firstLin; gn != null; gn = gn.nextLin)
                 {
-                    if(!(gn is GraphNodeEmit))
+                    if(gn is not GraphNodeEmit xor2)
                         continue;
-                    GraphNodeEmit xor2 = (GraphNodeEmit)gn;
                     if(xor2.opcode != OpCodes.Xor)
                         continue;
-                    if(!(xor2.prevLin is GraphNodeEmit))
+
+                    if(xor2.prevLin is not GraphNodeEmit ld12)
                         continue;
-                    GraphNodeEmit ld12 = (GraphNodeEmit)xor2.prevLin;
                     if(ld12.opcode != OpCodes.Ldc_I4_1)
                         continue;
-                    if(!(ld12.prevLin is GraphNodeEmit))
+
+                    if(ld12.prevLin is not GraphNodeEmit xor1)
                         continue;
-                    GraphNodeEmit xor1 = (GraphNodeEmit)ld12.prevLin;
                     if(xor1.opcode != OpCodes.Xor)
                         continue;
-                    if(!(xor2.prevLin is GraphNodeEmit))
+
+                    if(xor1.prevLin is not GraphNodeEmit ld11)
                         continue;
-                    GraphNodeEmit ld11 = (GraphNodeEmit)xor1.prevLin;
                     if(ld11.opcode != OpCodes.Ldc_I4_1)
                         continue;
+
                     ld11.prevLin.nextLin = xor2.nextLin;
                     xor2.nextLin.prevLin = ld11.prevLin;
                     didSomething = true;
@@ -2653,24 +2652,23 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 // Replace c{cond}/ldc.i4.1/xor/br{false,true} -> c{cond}/br{true,false}
                 for(GraphNode gn = firstLin; gn != null; gn = gn.nextLin)
                 {
-                    if(!(gn is GraphNodeEmit))
+                    if(gn is not GraphNodeEmit brft)
                         continue;
-                    GraphNodeEmit brft = (GraphNodeEmit)gn;
+
                     if((brft.opcode != OpCodes.Brfalse) && (brft.opcode != OpCodes.Brtrue))
                         continue;
-                    if(!(brft.prevLin is GraphNodeEmit))
+                    if(brft.prevLin is not GraphNodeEmit xor)
                         continue;
-                    GraphNodeEmit xor = (GraphNodeEmit)brft.prevLin;
                     if(xor.opcode != OpCodes.Xor)
                         continue;
-                    if(!(xor.prevLin is GraphNodeEmit))
+                    if(xor.prevLin is not GraphNodeEmit ldc)
                         continue;
-                    GraphNodeEmit ldc = (GraphNodeEmit)xor.prevLin;
+
                     if(ldc.opcode != OpCodes.Ldc_I4_1)
                         continue;
-                    if(!(ldc.prevLin is GraphNodeEmit))
+                    if(ldc.prevLin is not GraphNodeEmit cmp)
                         continue;
-                    GraphNodeEmit cmp = (GraphNodeEmit)ldc.prevLin;
+
                     if(cmp.opcode.StackBehaviourPop != StackBehaviour.Pop1_pop1)
                         continue;
                     if(cmp.opcode.StackBehaviourPush != StackBehaviour.Pushi)
@@ -2684,14 +2682,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 // Replace c{cond}/br{false,true} -> b{!,}{cond}
                 for(GraphNode gn = firstLin; gn != null; gn = gn.nextLin)
                 {
-                    if(!(gn is GraphNodeEmit))
+                    if(gn is not GraphNodeEmit brft)
                         continue;
-                    GraphNodeEmit brft = (GraphNodeEmit)gn;
+
                     if((brft.opcode != OpCodes.Brfalse) && (brft.opcode != OpCodes.Brtrue))
                         continue;
-                    if(!(brft.prevLin is GraphNodeEmit))
+                    if(brft.prevLin is not GraphNodeEmit cmp)
                         continue;
-                    GraphNodeEmit cmp = (GraphNodeEmit)brft.prevLin;
+
                     if(cmp.opcode.StackBehaviourPop != StackBehaviour.Pop1_pop1)
                         continue;
                     if(cmp.opcode.StackBehaviourPush != StackBehaviour.Pushi)
@@ -2717,14 +2715,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 // Replace ld{c.i4.0,null}/br{ne.un,eq} -> br{true,false}
                 for(GraphNode gn = firstLin; gn != null; gn = gn.nextLin)
                 {
-                    if(!(gn is GraphNodeEmit))
+                    if(gn is not GraphNodeEmit brcc)
                         continue;
-                    GraphNodeEmit brcc = (GraphNodeEmit)gn;
+
                     if((brcc.opcode != OpCodes.Bne_Un) && (brcc.opcode != OpCodes.Beq))
                         continue;
-                    if(!(brcc.prevLin is GraphNodeEmit))
+                    if(brcc.prevLin is not GraphNodeEmit ldc0)
                         continue;
-                    GraphNodeEmit ldc0 = (GraphNodeEmit)brcc.prevLin;
+
                     if((ldc0.opcode != OpCodes.Ldc_I4_0) && (ldc0.opcode != OpCodes.Ldnull))
                         continue;
                     ldc0.prevLin.nextLin = brcc;
@@ -2746,33 +2744,32 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 {
 
                     // check for 'ldloc v1' instruction
-                    if(!(gn is GraphNodeEmitLocal))
+                    if(gn is not GraphNodeEmitLocal ldlv1)
                         continue;
-                    GraphNodeEmitLocal ldlv1 = (GraphNodeEmitLocal)gn;
+
                     if(ldlv1.opcode != OpCodes.Ldloc)
                         continue;
 
                     // check for 'stloc v2' instruction
-                    if(!(ldlv1.nextLin is GraphNodeEmitLocal))
+                    if(ldlv1.nextLin is not GraphNodeEmitLocal stlv2)
                         continue;
-                    GraphNodeEmitLocal stlv2 = (GraphNodeEmitLocal)ldlv1.nextLin;
+
                     if(stlv2.opcode != OpCodes.Stloc)
                         continue;
 
                     // check for 'ld<anything> except ld<anything> v2' instruction
-                    if(!(stlv2.nextLin is GraphNodeEmit))
+                    if(stlv2.nextLin is not GraphNodeEmit ldany)
                         continue;
-                    GraphNodeEmit ldany = (GraphNodeEmit)stlv2.nextLin;
+
                     if(!ldany.opcode.ToString().StartsWith("ld"))
                         continue;
-                    if((ldany is GraphNodeEmitLocal) &&
-                        ((GraphNodeEmitLocal)ldany).myLocal == stlv2.myLocal)
+                    if((ldany is GraphNodeEmitLocal Gldany) && Gldany.myLocal == stlv2.myLocal)
                         continue;
 
                     // check for 'ldloc v2' instruction
-                    if(!(ldany.nextLin is GraphNodeEmitLocal))
+                    if(ldany.nextLin is not GraphNodeEmitLocal ldlv2)
                         continue;
-                    GraphNodeEmitLocal ldlv2 = (GraphNodeEmitLocal)ldany.nextLin;
+
                     if(ldlv2.opcode != OpCodes.Ldloc)
                         continue;
                     if(ldlv2.myLocal != stlv2.myLocal)
@@ -2802,11 +2799,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 // stloc/ldloc with dup/stloc.
                 for(GraphNode gn = firstLin; gn != null; gn = gn.nextLin)
                 {
-                    if((gn is GraphNodeEmitLocal) &&
-                        (gn.prevLin is GraphNodeEmitLocal))
+                    if((gn is GraphNodeEmitLocal ldloc) &&
+                        (gn.prevLin is GraphNodeEmitLocal stloc))
                     {
-                        GraphNodeEmitLocal stloc = (GraphNodeEmitLocal)gn.prevLin;
-                        GraphNodeEmitLocal ldloc = (GraphNodeEmitLocal)gn;
                         if((stloc.opcode == OpCodes.Stloc) &&
                             (ldloc.opcode == OpCodes.Ldloc) &&
                             (stloc.myLocal == ldloc.myLocal))
@@ -2846,7 +2841,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     ScriptMyLocal wrlcl = gn.WritesLocal();
                     if((wrlcl != null) && !wrlcl.isReferenced)
                     {
-                        if(!(gn is GraphNodeEmitLocal) || (((GraphNodeEmitLocal)gn).opcode != OpCodes.Stloc))
+                        if(gn is not GraphNodeEmitLocal || (((GraphNodeEmitLocal)gn).opcode != OpCodes.Stloc))
                         {
                             throw new Exception("expecting stloc");
                         }
@@ -2863,11 +2858,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 // Remove any Ld<const>/Dup,Pop.
                 for(GraphNode gn = firstLin; gn != null; gn = gn.nextLin)
                 {
-                    if((gn is GraphNodeEmit) &&
-                        (gn.nextLin is GraphNodeEmit))
+                    if((gn is GraphNodeEmit gne) && (gn.nextLin is GraphNodeEmit nne))
                     {
-                        GraphNodeEmit gne = (GraphNodeEmit)gn;
-                        GraphNodeEmit nne = (GraphNodeEmit)gn.nextLin;
                         if(gne.isPoppable && (nne.opcode == OpCodes.Pop))
                         {
                             gne.prevLin.nextLin = nne.nextLin;
@@ -2962,10 +2954,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 GraphNode nextFallthruNode = null;
                 foreach(GraphNode nn in gn.NextNodes)
                 {
-                    if(nn is GraphNodeBlock)
+                    if(nn is GraphNodeBlock nextBlock)
                     {
                         // Start of a block, go through all locals needed by that block on entry.
-                        GraphNodeBlock nextBlock = (GraphNodeBlock)nn;
                         ResolveBlock(nextBlock);
                         foreach(ScriptMyLocal readByNextBlock in nextBlock.localsReadBeforeWritten)
                         {
@@ -3008,9 +2999,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 GraphNode nextFallthruNode = null;
                 foreach(GraphNode nn in node.NextNodes)
                 {
-                    if(nn is GraphNodeBlock)
+                    if(nn is GraphNodeBlock Gnn)
                     {
-                        if(((GraphNodeBlock)nn).localsReadBeforeWritten.Contains(local))
+                        if(Gnn.localsReadBeforeWritten.Contains(local))
                         {
                             return true;
                         }

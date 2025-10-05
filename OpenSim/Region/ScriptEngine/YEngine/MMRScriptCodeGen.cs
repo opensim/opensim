@@ -1419,14 +1419,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // Output code body.
             GenerateStmtBlock(curDeclFunc.body);
 
-            /*
-            if (doheap)
-            {
-                PushXMRInst();
-                ilGen.Emit(curDeclFunc, OpCodes.Ldloc, curHeapSize);
-                ilGen.Emit(curDeclFunc, OpCodes.Stfld, heapUsedFieldInfo);
-            }
-            */
             // If code falls through to this point, means they are missing 
             // a return statement.  And that is legal only if the function 
             // returns 'void'.
@@ -1595,7 +1587,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     i++;
                 }
             }
-             // Copy local and temp values to object array, boxing as needed.
+
+            // Copy local and temp values to object array, boxing as needed.
             foreach(ScriptMyLocal lcl in activeTemps)
             {
                 ilGen.Emit(curDeclFunc, OpCodes.Dup);
