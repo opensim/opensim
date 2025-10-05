@@ -664,7 +664,8 @@ namespace OpenSim.Region.Framework.Scenes
                 if(m_passTouches != value)
                 {
                     m_passTouches = value;
-                    ParentGroup.HasGroupChanged = true;
+                    if(ParentGroup != null)
+                        ParentGroup.HasGroupChanged = true;
                 }
             }
         }
@@ -678,7 +679,8 @@ namespace OpenSim.Region.Framework.Scenes
                 if(m_passCollisions != value)
                 {
                     m_passCollisions = value;
-                    ParentGroup.HasGroupChanged = true;
+                    if(ParentGroup != null)
+                        ParentGroup.HasGroupChanged = true;
                 }
             }
         }
