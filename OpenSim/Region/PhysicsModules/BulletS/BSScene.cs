@@ -121,6 +121,13 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
         // True if initialized and ready to do simulation steps
         private bool m_initialized = false;
+        
+        // Enhanced physics optimization systems
+        private bool m_useImprovedCollisionMargins = false;
+        private float m_enhancedCollisionMargin = 0.04f;
+        private float m_enhancedTerrainMargin = 0.04f;
+        private SpatialPartitionManager m_spatialPartition = null;
+        private SleepOptimizationManager m_sleepOptimization = null;
 
         // Object locked whenever execution is inside the physics engine
         public Object PhysicsEngineLock = new object();
@@ -414,6 +421,61 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 {
                     // Let the user add new and interesting material property values.
                     BSMaterials.InitializefromParameters(pConfig);
+                    
+                    // Initialize physics profiler if enabled
+                    PhysicsProfiler.Enabled = pConfig.GetBoolean("EnablePerformanceMonitoring", false);
+                    int interval = pConfig.GetInt("PerformanceReportInterval", 30);
+                    // Clamp interval to [1, 3600] seconds
+                    if (interval < 1) interval = 1;
+                    else if (interval > 3600) interval = 3600;
+                    PhysicsProfiler.ReportIntervalSeconds = interval;
+                    
+                    // Enhanced collision margin handling
+                    bool improvedMargins = pConfig.GetBoolean("ImprovedCollisionMargins", false);
+                    if (improvedMargins)
+                    {
+                        float collisionMargin = pConfig.GetFloat("CollisionMargin", 0.04f);
+                        float terrainMargin = pConfig.GetFloat("TerrainCollisionMargin", 0.04f);
+                        
+                        // Clamp margins to reasonable values (0.001 to 0.1 meters)
+                        collisionMargin = OpenMetaverse.Utils.Clamp(collisionMargin, 0.001f, 0.1f);
+                        terrainMargin = OpenMetaverse.Utils.Clamp(terrainMargin, 0.001f, 0.1f);
+                        
+                        // Store values for later use during physics object creation
+                        m_enhancedCollisionMargin = collisionMargin;
+                        m_enhancedTerrainMargin = terrainMargin;
+                        m_useImprovedCollisionMargins = true;
+                        
+                        DetailLog("{0},BSScene.InitializeFromConfig,improvedCollisionMargins,collision={1},terrain={2}", 
+                            RegionName, collisionMargin, terrainMargin);
+                    }
+                    
+                    // Spatial partitioning optimization
+                    bool useSpatialPartitioning = pConfig.GetBoolean("UseSpatialPartitioning", false);
+                    if (useSpatialPartitioning)
+                    {
+                        float gridSize = pConfig.GetFloat("SpatialPartitionGridSize", 32.0f);
+                        gridSize = OpenMetaverse.Utils.Clamp(gridSize, 4.0f, 256.0f);
+                        
+                        m_spatialPartition = new SpatialPartitionManager(gridSize);
+                        DetailLog("{0},BSScene.InitializeFromConfig,spatialPartitioning,gridSize={1}", 
+                            RegionName, gridSize);
+                    }
+                    
+                    // Sleep optimization for static objects
+                    bool enableSleepOptimization = pConfig.GetBoolean("EnableSleepOptimization", true);
+                    if (enableSleepOptimization)
+                    {
+                        float sleepTimeout = pConfig.GetFloat("StaticObjectSleepTimeout", 2.0f);
+                        float velocityThreshold = pConfig.GetFloat("SleepVelocityThreshold", 0.01f);
+                        
+                        sleepTimeout = OpenMetaverse.Utils.Clamp(sleepTimeout, 0.1f, 60.0f);
+                        velocityThreshold = OpenMetaverse.Utils.Clamp(velocityThreshold, 0.001f, 1.0f);
+                        
+                        m_sleepOptimization = new SleepOptimizationManager(sleepTimeout, velocityThreshold);
+                        DetailLog("{0},BSScene.InitializeFromConfig,sleepOptimization,timeout={1},threshold={2}", 
+                            RegionName, sleepTimeout, velocityThreshold);
+                    }
                 }
             }
         }
@@ -635,11 +697,21 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         //    will be in the ObjectsWithCollions and ObjectsWithUpdates structures.
         public override float Simulate(float timeStep)
         {
-            if (!BSParam.UseSeparatePhysicsThread)
+            using (PhysicsProfiler.StartTiming("BSScene.Simulate"))
             {
-                DoPhysicsStep(timeStep);
+                if (!BSParam.UseSeparatePhysicsThread)
+                {
+                    using (PhysicsProfiler.StartTiming("BSScene.DoPhysicsStep"))
+                    {
+                        DoPhysicsStep(timeStep);
+                    }
+                }
+                
+                using (PhysicsProfiler.StartTiming("BSScene.SendUpdatesToSimulator"))
+                {
+                    return SendUpdatesToSimulator(timeStep);
+                }
             }
-            return SendUpdatesToSimulator(timeStep);
         }
 
         // Call the physics engine to do one 'timeStep' and collect collisions and updates
