@@ -32,6 +32,7 @@ using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Timers;
 using log4net;
 using Nini.Config;
@@ -115,6 +116,27 @@ namespace OpenSim.Region.CoreModules.Asset
         private static bool m_updateFileTimeOnCacheHit = false;
 
         private static ExpiringKey<string> m_lastFileAccessTimeChange = null;
+
+        // Shared UTF8 encoding without BOM, used for all small text files
+        private static readonly UTF8Encoding Utf8NoBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+
+        // Small, robust async write helper for status/meta files
+        private static async Task WriteTextFileAsync(
+            string path,
+            string content,
+            CancellationToken ct = default)
+        {
+            var fso = new FileStreamOptions
+            {
+                Mode = FileMode.Create,
+                Access = FileAccess.Write,
+                Share = FileShare.Read,             // allow concurrent readers
+                Options = FileOptions.WriteThrough  // force data immediately to disk
+            };
+            using var fs = new FileStream(path, fso);
+            var buffer = Utf8NoBom.GetBytes(content);
+            await fs.WriteAsync(buffer.AsMemory(0, buffer.Length), ct).ConfigureAwait(false);
+        }
 
         public FlotsamAssetCache()
         {
@@ -1092,7 +1114,8 @@ namespace OpenSim.Region.CoreModules.Asset
         /// This notes the last time the Region had a deep asset scan performed on it.
         /// </summary>
         /// <param name="regionID"></param>
-        private void StampRegionStatusFile(UUID regionID)
+        // Changed to async fire-and-forget to avoid blocking on synchronous file I/O
+        private async void StampRegionStatusFile(UUID regionID)
         {
             string RegionCacheStatusFile = Path.Combine(m_CacheDirectory, $"RegionStatus_{regionID}.fac");
 
@@ -1104,10 +1127,10 @@ namespace OpenSim.Region.CoreModules.Asset
                 }
                 else
                 {
-                    File.WriteAllText(
-                        RegionCacheStatusFile,
-                        "Please do not delete this file unless you are manually clearing your Flotsam Asset Cache.");
+                    const string msg = "Please do not delete this file unless you are manually clearing your Flotsam Asset Cache.";
+                    await WriteTextFileAsync(RegionCacheStatusFile, msg).ConfigureAwait(false);
                 }
+
             }
             catch (Exception e)
             {
