@@ -1032,11 +1032,17 @@ namespace OpenSim.Region.CoreModules.Asset
                         Directory.CreateDirectory(directory);
                     }
 
-                    using (Stream stream = File.Open(tempname, FileMode.Create))
+                    var fso = new FileStreamOptions
+                    {
+                        Mode = FileMode.Create,
+                        Access = FileAccess.Write,
+                        Share = FileShare.None,
+                        Options = FileOptions.SequentialScan
+                    };
+                    using (Stream stream = new FileStream(tempname, fso))
                     {
                         BinaryFormatter bformatter = new();
                         bformatter.Serialize(stream, asset);
-                        stream.Flush();
                     }
                     m_lastFileAccessTimeChange?.Add(filename, 900000);
                 }
@@ -1053,9 +1059,7 @@ namespace OpenSim.Region.CoreModules.Asset
 
                 try
                 {
-                    if(replace)
-                        File.Delete(filename);
-                    File.Move(tempname, filename);
+                    File.Move(tempname, filename, overwrite: replace);
                 }
                 catch
                 {
