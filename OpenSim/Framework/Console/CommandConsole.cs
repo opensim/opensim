@@ -28,14 +28,8 @@
 using System;
 using System.Xml;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
-using log4net;
-using OpenSim.Framework;
 using Nini.Config;
 
 namespace OpenSim.Framework.Console
@@ -84,8 +78,10 @@ namespace OpenSim.Framework.Console
             = "To enter an argument that contains spaces, surround the argument with double quotes.\nFor example, show object name \"My long object name\"\n";
 
         public const string ItemHelpText
-            = @"For more information, type 'help all' to get a list of all commands,
-              or type help <item>' where <item> is one of the following:";
+            = """
+              For more information, type 'help all' to get a list of all commands,
+                            or type help <item>' where <item> is one of the following:
+              """;
 
         /// <value>
         /// Commands organized by keyword in a tree
@@ -96,37 +92,38 @@ namespace OpenSim.Framework.Console
         /// <summary>
         /// Commands organized by module
         /// </summary>
-        private Dictionary<string, List<CommandInfo>> m_modulesCommands = new Dictionary<string, List<CommandInfo>>();
+        private readonly Dictionary<string, List<CommandInfo>> m_modulesCommands = new Dictionary<string, List<CommandInfo>>();
 
         /// <summary>
         /// Get help for the given help string
         /// </summary>
         /// <param name="helpParts">Parsed parts of the help string.  If empty then general help is returned.</param>
+        /// <param name="cmd"></param>
         /// <returns></returns>
         public List<string> GetHelp(string[] cmd)
         {
-            List<string> help = new List<string>();
-            List<string> helpParts = new List<string>(cmd);
+            List<string> help = [];
+            var helpParts = new List<string>(cmd);
 
             // Remove initial help keyword
             helpParts.RemoveAt(0);
 
             help.Add(""); // Will become a newline.
 
-            // General help
-            if (helpParts.Count == 0)
+            switch (helpParts.Count)
             {
-                help.Add(GeneralHelpText);
-                help.Add(ItemHelpText);
-                help.AddRange(CollectModulesHelp(tree));
-            }
-            else if (helpParts.Count == 1 && helpParts[0] == "all")
-            {
-                help.AddRange(CollectAllCommandsHelp());
-            }
-            else
-            {
-                help.AddRange(CollectHelp(helpParts));
+                // General help
+                case 0:
+                    help.Add(GeneralHelpText);
+                    help.Add(ItemHelpText);
+                    help.AddRange(CollectModulesHelp());
+                    break;
+                case 1 when helpParts[0] == "all":
+                    help.AddRange(CollectAllCommandsHelp());
+                    break;
+                default:
+                    help.AddRange(CollectHelp(helpParts));
+                    break;
             }
 
             help.Add(""); // Will become a newline.
@@ -140,13 +137,12 @@ namespace OpenSim.Framework.Console
         /// <returns></returns>
         private List<string> CollectAllCommandsHelp()
         {
-            List<string> help = new List<string>();
+            List<string> help = [];
 
             lock (m_modulesCommands)
             {
-                foreach (List<CommandInfo> commands in m_modulesCommands.Values)
+                foreach (var ourHelpText in m_modulesCommands.Values.Select(commands => commands.ConvertAll(c => $"{c.help_text} - {c.long_help}")))
                 {
-                    var ourHelpText = commands.ConvertAll(c => string.Format("{0} - {1}", c.help_text, c.long_help));
                     help.AddRange(ourHelpText);
                 }
             }
@@ -163,8 +159,8 @@ namespace OpenSim.Framework.Console
         /// <returns></returns>
         private List<string> CollectHelp(List<string> helpParts)
         {
-            string originalHelpRequest = string.Join(" ", helpParts.ToArray());
-            List<string> help = new List<string>();
+            var originalHelpRequest = string.Join(" ", helpParts.ToArray());
+            List<string> help = [];
 
             // Check modules first to see if we just need to display a list of those commands
             if (TryCollectModuleHelp(originalHelpRequest, help))
@@ -173,10 +169,10 @@ namespace OpenSim.Framework.Console
                 return help;
             }
 
-            Dictionary<string, object> dict = tree;
+            var dict = tree;
             while (helpParts.Count > 0)
             {
-                string helpPart = helpParts[0];
+                var helpPart = helpParts[0];
 
                 if (!dict.ContainsKey(helpPart))
                     break;
@@ -190,13 +186,13 @@ namespace OpenSim.Framework.Console
             }
 
             // There was a command for the given help string
-            if (dict.ContainsKey(String.Empty))
+            if (dict.TryGetValue(string.Empty, out var value))
             {
-                CommandInfo commandInfo = (CommandInfo)dict[String.Empty];
+                var commandInfo = (CommandInfo)value;
                 help.Add(commandInfo.help_text);
                 help.Add(commandInfo.long_help);
 
-                string descriptiveHelp = commandInfo.descriptive_help;
+                var descriptiveHelp = commandInfo.descriptive_help;
 
                 // If we do have some descriptive help then insert a spacing line before for readability.
                 if (descriptiveHelp != string.Empty)
@@ -206,7 +202,7 @@ namespace OpenSim.Framework.Console
             }
             else
             {
-                help.Add(string.Format("No help is available for {0}", originalHelpRequest));
+                help.Add($"No help is available for {originalHelpRequest}");
             }
 
             return help;
@@ -216,35 +212,34 @@ namespace OpenSim.Framework.Console
         /// Try to collect help for the given module if that module exists.
         /// </summary>
         /// <param name="moduleName"></param>
-        /// <param name="helpText">/param>
+        /// <param name="helpText"></param>
         /// <returns>true if there was the module existed, false otherwise.</returns>
         private bool TryCollectModuleHelp(string moduleName, List<string> helpText)
         {
             lock (m_modulesCommands)
             {
-                foreach (string key in m_modulesCommands.Keys)
+                foreach (var ourHelpText in 
+                         from key in m_modulesCommands.Keys 
+                         where moduleName.Equals(key, StringComparison.CurrentCultureIgnoreCase)
+                         select m_modulesCommands[key] 
+                         into commands 
+                         select commands.ConvertAll(c => $"{c.help_text} - {c.long_help}"))
                 {
-                    // Allow topic help requests to succeed whether they are upper or lowercase.
-                    if (moduleName.ToLower() == key.ToLower())
-                    {
-                        List<CommandInfo> commands = m_modulesCommands[key];
-                        var ourHelpText = commands.ConvertAll(c => string.Format("{0} - {1}", c.help_text, c.long_help));
-                        ourHelpText.Sort();
-                        helpText.AddRange(ourHelpText);
+                    ourHelpText.Sort();
+                    helpText.AddRange(ourHelpText);
 
-                        return true;
-                    }
+                    return true;
                 }
 
                 return false;
             }
         }
 
-        private List<string> CollectModulesHelp(Dictionary<string, object> dict)
+        private List<string> CollectModulesHelp()
         {
             lock (m_modulesCommands)
             {
-                List<string> helpText = new List<string>(m_modulesCommands.Keys);
+                var helpText = new List<string>(m_modulesCommands.Keys);
                 helpText.Sort();
                 return helpText;
             }
@@ -274,6 +269,7 @@ namespace OpenSim.Framework.Console
         /// Add a command to those which can be invoked from the console.
         /// </summary>
         /// <param name="module"></param>
+        /// <param name="shared"></param>
         /// <param name="command"></param>
         /// <param name="help"></param>
         /// <param name="longhelp"></param>
@@ -281,13 +277,14 @@ namespace OpenSim.Framework.Console
         public void AddCommand(string module, bool shared, string command,
                 string help, string longhelp, CommandDelegate fn)
         {
-            AddCommand(module, shared, command, help, longhelp, String.Empty, fn);
+            AddCommand(module, shared, command, help, longhelp, string.Empty, fn);
         }
 
         /// <summary>
         /// Add a command to those which can be invoked from the console.
         /// </summary>
         /// <param name="module"></param>
+        /// <param name="shared"></param>
         /// <param name="command"></param>
         /// <param name="help"></param>
         /// <param name="longhelp"></param>
@@ -297,15 +294,15 @@ namespace OpenSim.Framework.Console
                 string help, string longhelp, string descriptivehelp,
                 CommandDelegate fn)
         {
-            string[] parts = Parser.Parse(command);
+            var parts = Parser.Parse(command);
 
-            Dictionary<string, Object> current = tree;
+            var current = tree;
 
-            foreach (string part in parts)
+            foreach (var part in parts)
             {
-                if (current.ContainsKey(part))
+                if (current.TryGetValue(part, out object value))
                 {
-                    if (current[part] is Dictionary<string, Object>)
+                    if (value is Dictionary<string, Object>)
                         current = (Dictionary<string, Object>)current[part];
                     else
                         return;
@@ -328,27 +325,31 @@ namespace OpenSim.Framework.Console
                 return;
             }
 
-            info = new CommandInfo();
-            info.module = module;
-            info.shared = shared;
-            info.help_text = help;
-            info.long_help = longhelp;
-            info.descriptive_help = descriptivehelp;
-            info.fn = new List<CommandDelegate>();
-            info.fn.Add(fn);
-            current[String.Empty] = info;
+            info = new CommandInfo
+            {
+                module = module,
+                shared = shared,
+                help_text = help,
+                long_help = longhelp,
+                descriptive_help = descriptivehelp,
+                fn =
+                [
+                    fn
+                ]
+            };
+            current[string.Empty] = info;
 
             // Now add command to modules dictionary
             lock (m_modulesCommands)
             {
                 List<CommandInfo> commands;
-                if (m_modulesCommands.ContainsKey(module))
+                if (m_modulesCommands.TryGetValue(module, out var modulesCommand))
                 {
-                    commands = m_modulesCommands[module];
+                    commands = modulesCommand;
                 }
                 else
                 {
-                    commands = new List<CommandInfo>();
+                    commands = [];
                     m_modulesCommands[module] = commands;
                 }
 
@@ -402,12 +403,12 @@ namespace OpenSim.Framework.Console
             {
                 List<string> choices = new List<string>();
 
-                bool addcr = false;
-                foreach (string s in current.Keys)
+                var addcr = false;
+                foreach (var s in current.Keys)
                 {
                     if (s.Length == 0)
                     {
-                        CommandInfo ci = (CommandInfo)current[String.Empty];
+                        var ci = (CommandInfo)current[string.Empty];
                         if (ci.fn.Count != 0)
                             addcr = true;
                     }
@@ -419,26 +420,27 @@ namespace OpenSim.Framework.Console
                 return choices.ToArray();
             }
 
-            if (current.ContainsKey(String.Empty))
-                return new string[] { "Command help: "+((CommandInfo)current[String.Empty]).help_text};
-
-            return new string[] { new List<string>(current.Keys)[0] };
+            return current.TryGetValue(string.Empty, out var value) ? ["Command help: "+((CommandInfo)value).help_text]
+                :
+            [
+                new List<string>(current.Keys)[0]
+            ];
         }
 
         private CommandInfo ResolveCommand(string[] cmd, out string[] result)
         {
             result = cmd;
-            int index = -1;
+            var index = -1;
 
-            Dictionary<string, object> current = tree;
+            var current = tree;
 
-            foreach (string s in cmd)
+            foreach (var s in cmd)
             {
                 index++;
 
-                List<string> found = new List<string>();
+                var found = new List<string>();
 
-                foreach (string opt in current.Keys)
+                foreach (var opt in current.Keys)
                 {
                     if (opt == s)
                     {
@@ -467,35 +469,30 @@ namespace OpenSim.Framework.Console
                 }
             }
 
-            if (current.ContainsKey(String.Empty))
-                return (CommandInfo)current[String.Empty];
+            if (current.TryGetValue(string.Empty, out object value))
+                return (CommandInfo)value;
 
             return null;
         }
 
         public bool HasCommand(string command)
         {
-            string[] result;
-            return ResolveCommand(Parser.Parse(command), out result) != null;
+            return ResolveCommand(Parser.Parse(command), out _) != null;
         }
 
         public string[] Resolve(string[] cmd)
         {
-            string[] result;
-            CommandInfo ci = ResolveCommand(cmd, out result);
+            var ci = ResolveCommand(cmd, out var result);
 
-            if (ci == null)
-                return new string[0];
+            if (ci == null || ci.fn.Count == 0)
+                return [];
 
-            if (ci.fn.Count == 0)
-                return new string[0];
-
-            foreach (CommandDelegate fn in ci.fn)
+            foreach (var fn in ci.fn)
             {
                 if (fn != null)
                     fn(ci.module, result);
                 else
-                    return new string[0];
+                    return [];
             }
 
             return result;
@@ -503,49 +500,49 @@ namespace OpenSim.Framework.Console
 
         public XmlElement GetXml(XmlDocument doc)
         {
-            CommandInfo help = (CommandInfo)((Dictionary<string, object>)tree["help"])[String.Empty];
+            var help = (CommandInfo)((Dictionary<string, object>)tree["help"])[string.Empty];
             ((Dictionary<string, object>)tree["help"]).Remove(string.Empty);
             if (((Dictionary<string, object>)tree["help"]).Count == 0)
                 tree.Remove("help");
 
-            CommandInfo quit = (CommandInfo)((Dictionary<string, object>)tree["quit"])[String.Empty];
+            var quit = (CommandInfo)((Dictionary<string, object>)tree["quit"])[string.Empty];
             ((Dictionary<string, object>)tree["quit"]).Remove(string.Empty);
             if (((Dictionary<string, object>)tree["quit"]).Count == 0)
                 tree.Remove("quit");
 
-            XmlElement root = doc.CreateElement("", "HelpTree", "");
+            var root = doc.CreateElement("", "HelpTree", "");
 
             ProcessTreeLevel(tree, root, doc);
 
             if (!tree.ContainsKey("help"))
-                tree["help"] = (object) new Dictionary<string, object>();
-            ((Dictionary<string, object>)tree["help"])[String.Empty] = help;
+                tree["help"] = new Dictionary<string, object>();
+            ((Dictionary<string, object>)tree["help"])[string.Empty] = help;
 
             if (!tree.ContainsKey("quit"))
-                tree["quit"] = (object) new Dictionary<string, object>();
-            ((Dictionary<string, object>)tree["quit"])[String.Empty] = quit;
+                tree["quit"] = new Dictionary<string, object>();
+            ((Dictionary<string, object>)tree["quit"])[string.Empty] = quit;
 
             return root;
         }
 
-        private void ProcessTreeLevel(Dictionary<string, object> level, XmlElement xml, XmlDocument doc)
+        private static void ProcessTreeLevel(Dictionary<string, object> level, XmlElement xml, XmlDocument doc)
         {
-            foreach (KeyValuePair<string, object> kvp in level)
+            foreach (var kvp in level)
             {
-                if (kvp.Value is Dictionary<string, Object>)
+                if (kvp.Value is Dictionary<string, object> value)
                 {
-                    XmlElement next = doc.CreateElement("", "Level", "");
+                    var next = doc.CreateElement("", "Level", "");
                     next.SetAttribute("Name", kvp.Key);
 
                     xml.AppendChild(next);
 
-                    ProcessTreeLevel((Dictionary<string, object>)kvp.Value, next, doc);
+                    ProcessTreeLevel(value, next, doc);
                 }
                 else
                 {
-                    CommandInfo c = (CommandInfo)kvp.Value;
+                    var c = (CommandInfo)kvp.Value;
 
-                    XmlElement cmd = doc.CreateElement("", "Command", "");
+                    var cmd = doc.CreateElement("", "Command", "");
 
                     XmlElement e;
 
@@ -576,12 +573,12 @@ namespace OpenSim.Framework.Console
 
         public void FromXml(XmlElement root, CommandDelegate fn)
         {
-            CommandInfo help = (CommandInfo)((Dictionary<string, object>)tree["help"])[String.Empty];
+            var help = (CommandInfo)((Dictionary<string, object>)tree["help"])[string.Empty];
             ((Dictionary<string, object>)tree["help"]).Remove(string.Empty);
             if (((Dictionary<string, object>)tree["help"]).Count == 0)
                 tree.Remove("help");
 
-            CommandInfo quit = (CommandInfo)((Dictionary<string, object>)tree["quit"])[String.Empty];
+            var quit = (CommandInfo)((Dictionary<string, object>)tree["quit"])[string.Empty];
             ((Dictionary<string, object>)tree["quit"]).Remove(string.Empty);
             if (((Dictionary<string, object>)tree["quit"]).Count == 0)
                 tree.Remove("quit");
@@ -591,119 +588,110 @@ namespace OpenSim.Framework.Console
             ReadTreeLevel(tree, root, fn);
 
             if (!tree.ContainsKey("help"))
-                tree["help"] = (object) new Dictionary<string, object>();
-            ((Dictionary<string, object>)tree["help"])[String.Empty] = help;
+                tree["help"] = new Dictionary<string, object>();
+            ((Dictionary<string, object>)tree["help"])[string.Empty] = help;
 
             if (!tree.ContainsKey("quit"))
-                tree["quit"] = (object) new Dictionary<string, object>();
-            ((Dictionary<string, object>)tree["quit"])[String.Empty] = quit;
+                tree["quit"] = new Dictionary<string, object>();
+            ((Dictionary<string, object>)tree["quit"])[string.Empty] = quit;
         }
 
-        private void ReadTreeLevel(Dictionary<string, object> level, XmlNode node, CommandDelegate fn)
+        private static void ReadTreeLevel(Dictionary<string, object> level, XmlNode node, CommandDelegate fn)
         {
-            Dictionary<string, object> next;
-            string name;
-
-            XmlNodeList nodeL = node.ChildNodes;
-            XmlNodeList cmdL;
-            CommandInfo c;
+            var nodeL = node.ChildNodes;
 
             foreach (XmlNode part in nodeL)
             {
                 switch (part.Name)
                 {
-                case "Level":
-                    name = ((XmlElement)part).GetAttribute("Name");
-                    next = new Dictionary<string, object>();
-                    level[name] = next;
-                    ReadTreeLevel(next, part, fn);
-                    break;
-                case "Command":
-                    cmdL = part.ChildNodes;
-                    c = new CommandInfo();
-                    foreach (XmlNode cmdPart in cmdL)
-                    {
-                        switch (cmdPart.Name)
+                    case "Level":
+                        var name = ((XmlElement)part).GetAttribute("Name");
+                        var next = new Dictionary<string, object>();
+                        level[name] = next;
+                        ReadTreeLevel(next, part, fn);
+                        break;
+                    case "Command":
+                        var cmdL = part.ChildNodes;
+                        var c = new CommandInfo();
+                        foreach (XmlNode cmdPart in cmdL)
                         {
-                        case "Module":
-                            c.module = cmdPart.InnerText;
-                            break;
-                        case "Shared":
-                            c.shared = Convert.ToBoolean(cmdPart.InnerText);
-                            break;
-                        case "HelpText":
-                            c.help_text = cmdPart.InnerText;
-                            break;
-                        case "LongHelp":
-                            c.long_help = cmdPart.InnerText;
-                            break;
-                        case "Description":
-                            c.descriptive_help = cmdPart.InnerText;
-                            break;
+                            switch (cmdPart.Name)
+                            {
+                            case "Module":
+                                c.module = cmdPart.InnerText;
+                                break;
+                            case "Shared":
+                                c.shared = Convert.ToBoolean(cmdPart.InnerText);
+                                break;
+                            case "HelpText":
+                                c.help_text = cmdPart.InnerText;
+                                break;
+                            case "LongHelp":
+                                c.long_help = cmdPart.InnerText;
+                                break;
+                            case "Description":
+                                c.descriptive_help = cmdPart.InnerText;
+                                break;
+                            }
                         }
-                    }
-                    c.fn = new List<CommandDelegate>();
-                    c.fn.Add(fn);
-                    level[String.Empty] = c;
-                    break;
+                        c.fn =
+                        [
+                            fn
+                        ];
+                        level[string.Empty] = c;
+                        break;
                 }
             }
         }
     }
 
-    public class Parser
+    public partial class Parser
     {
         // If an unquoted portion ends with an element matching this regex
         // and the next element contains a space, then we have stripped
         // embedded quotes that should not have been stripped
-        private static Regex optionRegex = new Regex("^--[a-zA-Z0-9-]+=$");
+        [GeneratedRegex("^--[a-zA-Z0-9-]+=$")]
+        private static partial Regex OptionParserRegex();
+        
+        private static readonly Regex optionRegex = OptionParserRegex();
 
         public static string[] Parse(string text)
         {
-            List<string> result = new List<string>();
+            List<string> result = [];
 
             int index;
 
-            string[] unquoted = text.Split(new char[] {'"'});
+            var unquoted = text.Split(['"']);
 
             for (index = 0 ; index < unquoted.Length ; index++)
             {
                 if (index % 2 == 0)
                 {
-                    string[] words = unquoted[index].Split();
+                    var words = unquoted[index].Split();
 
-                    bool option = false;
-                    foreach (string w in words)
+                    var option = false;
+                    foreach (var w in words)
                     {
-                        if (w != String.Empty)
-                        {
-                            if (optionRegex.Match(w) == Match.Empty)
-                                option = false;
-                            else
-                                option = true;
-                            result.Add(w);
-                        }
+                        if (w == string.Empty) continue;
+                        option = optionRegex.Match(w) != Match.Empty;
+                        result.Add(w);
                     }
                     // The last item matched the regex, put the quotes back
-                    if (option)
-                    {
-                        // If the line ended with it, don't do anything
-                        if (index < (unquoted.Length - 1))
-                        {
-                            // Get and remove the option name
-                            string optionText = result[result.Count - 1];
-                            result.RemoveAt(result.Count - 1);
+                    if (!option) continue;
+                    // If the line ended with it, don't do anything
+                    if (index >= (unquoted.Length - 1)) continue;
+                    // Get and remove the option name
+                    var optionText = result[result.Count - 1];
+                    result.RemoveAt(result.Count - 1);
 
-                            // Add the quoted value back
-                            optionText += "\"" + unquoted[index + 1] + "\"";
+                    // Add the quoted value back
+                    optionText += "\"" + unquoted[index + 1] + "\"";
 
-                            // Push the result into our return array
-                            result.Add(optionText);
+                    // Push the result into our return array
+                    result.Add(optionText);
 
-                            // Skip the already used value
-                            index++;
-                        }
-                    }
+                    // Skip the already used value
+                    index++;
                 }
                 else
                 {
@@ -713,6 +701,7 @@ namespace OpenSim.Framework.Console
 
             return result.ToArray();
         }
+        
     }
 
     /// <summary>
@@ -738,9 +727,9 @@ namespace OpenSim.Framework.Console
 
         private void Help(string module, string[] cmd)
         {
-            List<string> help = Commands.GetHelp(cmd);
+            var help = Commands.GetHelp(cmd);
 
-            foreach (string s in help)
+            foreach (var s in help)
                 Output(s);
         }
 
@@ -754,40 +743,35 @@ namespace OpenSim.Framework.Console
         /// </summary>
         public void Prompt()
         {
-            string line = ReadLine(DefaultPrompt + "# ", true, true);
+            var line = ReadLine(DefaultPrompt + "# ", true, true);
 
-            if (line != String.Empty)
+            if (line != string.Empty)
                 Output("Invalid command");
         }
 
         public void RunCommand(string cmd)
         {
-            string[] parts = Parser.Parse(cmd);
+            var parts = Parser.Parse(cmd);
             Commands.Resolve(parts);
         }
 
         public override string ReadLine(string p, bool isCommand, bool e)
         {
             System.Console.Write("{0}", p);
-            string cmdinput = System.Console.ReadLine();
+            var cmdinput = System.Console.ReadLine();
 
-            if (isCommand)
+            if (!isCommand) return cmdinput;
+            var cmd = Commands.Resolve(Parser.Parse(cmdinput));
+
+            if (cmd.Length == 0) return cmdinput;
+            int i;
+
+            for (i=0 ; i < cmd.Length ; i++)
             {
-                string[] cmd = Commands.Resolve(Parser.Parse(cmdinput));
-
-                if (cmd.Length != 0)
-                {
-                    int i;
-
-                    for (i=0 ; i < cmd.Length ; i++)
-                    {
-                        if (cmd[i].Contains(" "))
-                            cmd[i] = "\"" + cmd[i] + "\"";
-                    }
-                    return String.Empty;
-                }
+                if (cmd[i].Contains(' '))
+                    cmd[i] = "\"" + cmd[i] + "\"";
             }
-            return cmdinput;
+            return string.Empty;
         }
 
         public virtual void ReadConfig(IConfigSource configSource)
@@ -796,20 +780,16 @@ namespace OpenSim.Framework.Console
 
         public virtual void SetCntrCHandler(OnCntrCCelegate handler)
         {
-            if(OnCntrC == null)
-            {
-                OnCntrC += handler;
-                System.Console.CancelKeyPress += CancelKeyPressed;
-            }
+            if (OnCntrC != null) return;
+            OnCntrC += handler;
+            System.Console.CancelKeyPress += CancelKeyPressed;
         }
 
         protected static void CancelKeyPressed(object sender, ConsoleCancelEventArgs args)
         {
-            if (OnCntrC != null && args.SpecialKey == ConsoleSpecialKey.ControlC)
-            {
-                OnCntrC?.Invoke();
-                args.Cancel = false;
-            }
+            if (OnCntrC == null || args.SpecialKey != ConsoleSpecialKey.ControlC) return;
+            OnCntrC?.Invoke();
+            args.Cancel = false;
         }
 
         protected static void LocalCancelKeyPressed()

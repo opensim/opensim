@@ -36,24 +36,18 @@ namespace OpenSim.Framework.Console
     /// </summary>
     public class OpenSimAppender : AnsiColorTerminalAppender
     {
-        private ConsoleBase m_console = null;
+        public ConsoleBase Console { get; set; } = null;
 
-        public ConsoleBase Console
-        {
-            get { return m_console; }
-            set { m_console = value; }
-        }
-
-        override protected void Append(LoggingEvent le)
+        protected override void Append(LoggingEvent le)
         {
             //if (m_console != null)
             //    m_console.LockOutput();
 
-            string loggingMessage = RenderLoggingEvent(le);
+            var loggingMessage = RenderLoggingEvent(le);
 
             try
             {
-                if (m_console != null)
+                if (Console != null)
                 {
                     ConsoleLevel level;
 
@@ -64,7 +58,7 @@ namespace OpenSim.Framework.Console
                     else
                         level = "normal";
 
-                    m_console.Output(loggingMessage, level);
+                    Console.Output(loggingMessage, level);
                 }
                 else
                 {
@@ -76,7 +70,7 @@ namespace OpenSim.Framework.Console
             }
             catch (Exception e)
             {
-                System.Console.WriteLine("Couldn't write out log message: {0}", e.ToString());
+                System.Console.WriteLine("Couldn't write out log message: {0}", e.Message);
             }
             /*
             finally

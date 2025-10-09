@@ -27,11 +27,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Reflection;
-using System.Text;
-using System.Threading;
-using log4net;
+using System.Linq;
+//using log4net;
 
 namespace OpenSim.Framework.Console
 {
@@ -44,7 +41,7 @@ namespace OpenSim.Framework.Console
             m_string = v;
         }
 
-        static public implicit operator ConsoleLevel(string s)
+        public static implicit operator ConsoleLevel(string s)
         {
             return new ConsoleLevel(s);
         }
@@ -63,7 +60,7 @@ namespace OpenSim.Framework.Console
 
     public class ConsoleBase : IConsole
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod()?.DeclaringType);
 
         protected string prompt = "# ";
 
@@ -92,15 +89,15 @@ namespace OpenSim.Framework.Console
         public virtual void Output(string format, params object[] components)
         {
             //string level = null;
-            if (components != null && components.Length > 0)
+            if (components is { Length: > 0 })
             {
-                ConsoleLevel cl = components[0] as ConsoleLevel;
+                var cl = components[0] as ConsoleLevel;
                 if (cl != null)
                 {
                     //level = cl.ToString();
                     if (components.Length > 1)
                     {
-                        object[] tmp = new object[components.Length - 1];
+                        var tmp = new object[components.Length - 1];
                         Array.Copy(components, 1, tmp, 0, components.Length - 1);
                         components = tmp;
                     }
@@ -109,19 +106,19 @@ namespace OpenSim.Framework.Console
                 }
             }
 
-            string text = (components == null || components.Length == 0) ? format : String.Format(format, components);
+            var text = (components == null || components.Length == 0) ? format : string.Format(format, components);
 
             System.Console.WriteLine(text);
         }
 
         public string Prompt(string p)
         {
-            return ReadLine(String.Format("{0}: ", p), false, true);
+            return ReadLine($"{p}: ", false, true);
         }
 
         public string Prompt(string p, string def)
         {
-            string ret = ReadLine(String.Format("{0} [{1}]: ", p, def), false, true);
+            var ret = ReadLine($"{p} [{def}]: ", false, true);
             if (ret.Length == 0)
                 ret = def;
 
@@ -130,16 +127,41 @@ namespace OpenSim.Framework.Console
 
         public string Prompt(string p, List<char> excludedCharacters)
         {
-            bool itisdone = false;
-            string ret = String.Empty;
+            var itisdone = false;
+            var ret = String.Empty;
             while (!itisdone)
             {
                 itisdone = true;
                 ret = Prompt(p);
 
-                foreach (char c in excludedCharacters)
+                foreach (var c in excludedCharacters.Where(c => ret.Contains(c.ToString())))
                 {
-                    if (ret.Contains(c.ToString()))
+                    System.Console.WriteLine("The character \"" + c.ToString() + "\" is not permitted.");
+                    itisdone = false;
+                }
+            }
+
+            return ret;
+        }
+
+        public virtual string Prompt(string p, string def, List<char> excludedCharacters, bool echo = true)
+        {
+            var itisdone = false;
+            var ret = string.Empty;
+            while (!itisdone)
+            {
+                itisdone = true;
+
+                ret = ReadLine(def == null ? $"{p}: " : $"{p} [{def}]: ", false, echo);
+
+                if (ret.Length == 0 && def != null)
+                {
+                    ret = def;
+                }
+                else
+                {
+                    if (excludedCharacters == null) continue;
+                    foreach (var c in excludedCharacters.Where(c => ret.Contains(c.ToString())))
                     {
                         System.Console.WriteLine("The character \"" + c.ToString() + "\" is not permitted.");
                         itisdone = false;
@@ -150,52 +172,14 @@ namespace OpenSim.Framework.Console
             return ret;
         }
 
-        public virtual string Prompt(string p, string def, List<char> excludedCharacters, bool echo = true)
-        {
-            bool itisdone = false;
-            string ret = String.Empty;
-            while (!itisdone)
-            {
-                itisdone = true;
-
-                if (def == null)
-                    ret = ReadLine(String.Format("{0}: ", p), false, echo);
-                else
-                    ret = ReadLine(String.Format("{0} [{1}]: ", p, def), false, echo);
-
-                if (ret.Length == 0 && def != null)
-                {
-                    ret = def;
-                }
-                else
-                {
-                    if (excludedCharacters != null)
-                    {
-                        foreach (char c in excludedCharacters)
-                        {
-                            if (ret.Contains(c.ToString()))
-                            {
-                                System.Console.WriteLine("The character \"" + c.ToString() + "\" is not permitted.");
-                                itisdone = false;
-                            }
-                        }
-                    }
-                }
-            }
-
-            return ret;
-        }
-
         // Displays a command prompt and returns a default value, user may only enter 1 of 2 options
         public virtual string Prompt(string prompt, string defaultresponse, List<string> options)
         {
-            bool itisdone = false;
-            string optstr = String.Empty;
-            foreach (string s in options)
-                optstr += " " + s;
+            var itisdone = false;
+            var optstr = options.Aggregate(string.Empty, (current, s) => current + (" " + s));
 
-            string temp = Prompt(prompt, defaultresponse);
-            while (itisdone == false)
+            var temp = Prompt(prompt, defaultresponse);
+            while (!itisdone)
             {
                 if (options.Contains(temp))
                 {
@@ -213,9 +197,7 @@ namespace OpenSim.Framework.Console
         public virtual string ReadLine(string p, bool isCommand, bool e)
         {
             System.Console.Write("{0}", p);
-            string cmdinput = System.Console.ReadLine();
-
-            return cmdinput;
+            return System.Console.ReadLine();
         }
     }
 }

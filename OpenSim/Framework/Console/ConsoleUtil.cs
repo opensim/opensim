@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -73,13 +74,10 @@ namespace OpenSim.Framework.Console
         /// <param name='path'></param>
         public static bool CheckFileDoesNotExist(ICommandConsole console, string path)
         {
-            if (File.Exists(path))
-            {
-                console.Output("File {0} already exists.  Please move or remove it.", path);
-                return false;
-            }
+            if (!File.Exists(path)) return true;
+            console.Output("File {0} already exists.  Please move or remove it.", path);
+            return false;
 
-            return true;
         }
 
         /// <summary>
@@ -94,36 +92,28 @@ namespace OpenSim.Framework.Console
         /// <param name='uuid'></param>
         public static bool TryParseConsoleUuid(ICommandConsole console, string rawUuid, out UUID uuid)
         {
-            if (!UUID.TryParse(rawUuid, out uuid))
-            {
-                if (console != null)
-                    console.Output("ERROR: {0} is not a valid uuid", rawUuid);
+            if (UUID.TryParse(rawUuid, out uuid)) return true;
+            if (console != null)
+                console.Output("ERROR: {0} is not a valid uuid", rawUuid);
 
-                return false;
-            }
+            return false;
 
-            return true;
         }
 
         public static bool TryParseConsoleLocalId(ICommandConsole console, string rawLocalId, out uint localId)
         {
             if (!uint.TryParse(rawLocalId, out localId))
             {
-                if (console != null)
-                    console.Output("ERROR: {0} is not a valid local id", localId);
+                console?.Output("ERROR: {0} is not a valid local id", localId);
 
                 return false;
             }
 
-            if (localId == 0)
-            {
-                if (console != null)
-                    console.Output("ERROR: {0} is not a valid local id - it must be greater than 0", localId);
+            if (localId != 0) return true;
+            console?.Output("ERROR: {0} is not a valid local id - it must be greater than 0", localId);
 
-                return false;
-            }
+            return false;
 
-            return true;
         }
 
         /// <summary>
@@ -149,8 +139,7 @@ namespace OpenSim.Framework.Console
                 return true;
             }
 
-            if (console != null)
-                console.Output("ERROR: {0} is not a valid UUID or local id", rawId);
+            console?.Output("ERROR: {0} is not a valid UUID or local id", rawId);
 
             return false;
         }
@@ -164,122 +153,98 @@ namespace OpenSim.Framework.Console
         /// <returns></returns>
         public static bool TryParseConsoleBool(ICommandConsole console, string rawConsoleString, out bool b)
         {
-            if (!bool.TryParse(rawConsoleString, out b))
-            {
-                if (console != null)
-                    console.Output("ERROR: {0} is not a true or false value", rawConsoleString);
+            if (bool.TryParse(rawConsoleString, out b)) return true;
+            console?.Output("ERROR: {0} is not a true or false value", rawConsoleString);
 
-                return false;
-            }
+            return false;
 
-            return true;
         }
 
         /// <summary>
         /// Convert a console input to an int, automatically complaining if a console is given.
         /// </summary>
         /// <param name='console'>Can be null if no console is available.</param>
-        /// <param name='rawConsoleInt'>/param>
+        /// <param name='rawConsoleInt'></param>
         /// <param name='i'></param>
         /// <returns></returns>
         public static bool TryParseConsoleInt(ICommandConsole console, string rawConsoleInt, out int i)
         {
-            if (!int.TryParse(rawConsoleInt, out i))
-            {
-                if (console != null)
-                    console.Output("ERROR: {0} is not a valid integer", rawConsoleInt);
+            if (int.TryParse(rawConsoleInt, out i)) return true;
+            console?.Output("ERROR: {0} is not a valid integer", rawConsoleInt);
 
-                return false;
-            }
+            return false;
 
-            return true;
         }
 
         /// <summary>
         /// Convert a console input to a float, automatically complaining if a console is given.
         /// </summary>
         /// <param name='console'>Can be null if no console is available.</param>
-        /// <param name='rawConsoleInput'>/param>
+        /// <param name='rawConsoleInput'></param>
         /// <param name='i'></param>
         /// <returns></returns>
         public static bool TryParseConsoleFloat(ICommandConsole console, string rawConsoleInput, out float i)
         {
-            if (!float.TryParse(rawConsoleInput, out i))
-            {
-                if (console != null)
-                    console.Output("ERROR: {0} is not a valid float", rawConsoleInput);
+            if (float.TryParse(rawConsoleInput, out i)) return true;
+            console?.Output("ERROR: {0} is not a valid float", rawConsoleInput);
 
-                return false;
-            }
+            return false;
 
-            return true;
         }
 
         /// <summary>
         /// Convert a console input to a double, automatically complaining if a console is given.
         /// </summary>
         /// <param name='console'>Can be null if no console is available.</param>
-        /// <param name='rawConsoleInput'>/param>
+        /// <param name='rawConsoleInput'></param>
         /// <param name='i'></param>
         /// <returns></returns>
         public static bool TryParseConsoleDouble(ICommandConsole console, string rawConsoleInput, out double i)
         {
-            if (!double.TryParse(rawConsoleInput, out i))
-            {
-                if (console != null)
-                    console.Output("ERROR: {0} is not a valid double", rawConsoleInput);
+            if (double.TryParse(rawConsoleInput, out i)) return true;
+            console?.Output("ERROR: {0} is not a valid double", rawConsoleInput);
 
-                return false;
-            }
+            return false;
 
-            return true;
         }
 
         /// <summary>
         /// Convert a console integer to a natural int, automatically complaining if a console is given.
         /// </summary>
         /// <param name='console'>Can be null if no console is available.</param>
-        /// <param name='rawConsoleInt'>/param>
+        /// <param name='rawConsoleInt'></param>
         /// <param name='i'></param>
         /// <returns></returns>
         public static bool TryParseConsoleNaturalInt(ICommandConsole console, string rawConsoleInt, out int i)
         {
-            if (TryParseConsoleInt(console, rawConsoleInt, out i))
-            {
-                if (i < 0)
-                {
-                    if (console != null)
-                        console.Output("ERROR: {0} is not a positive integer", rawConsoleInt);
-
-                    return false;
-                }
-
-                return true;
-            }
+            if (!TryParseConsoleInt(console, rawConsoleInt, out i)) return false;
+            if (i >= 0) return true;
+            console?.Output("ERROR: {0} is not a positive integer", rawConsoleInt);
 
             return false;
+
         }
 
         /// <summary>
         /// Convert a minimum vector input from the console to an OpenMetaverse.Vector3
         /// </summary>
-        /// <param name='rawConsoleVector'>/param>
+        /// <param name='rawConsoleVector'></param>
         /// <param name='vector'></param>
         /// <returns></returns>
         public static bool TryParseConsoleMinVector(string rawConsoleVector, out Vector3 vector)
         {
-            return TryParseConsoleVector(rawConsoleVector, c => float.MinValue.ToString(), out vector);
+            return TryParseConsoleVector(rawConsoleVector, c => float.MinValue.ToString(CultureInfo.InvariantCulture), out vector);
         }
 
         /// <summary>
         /// Convert a maximum vector input from the console to an OpenMetaverse.Vector3
         /// </summary>
-        /// <param name='rawConsoleVector'>/param>
+        /// <param name='rawConsoleVector'></param>
         /// <param name='vector'></param>
         /// <returns></returns>
         public static bool TryParseConsoleMaxVector(string rawConsoleVector, out Vector3 vector)
         {
-            return TryParseConsoleVector(rawConsoleVector, c => float.MaxValue.ToString(), out vector);
+            return TryParseConsoleVector(rawConsoleVector, c => float.MaxValue.ToString(CultureInfo.InvariantCulture), out vector);
         }
 
         /// <summary>
@@ -323,7 +288,7 @@ namespace OpenSim.Framework.Console
         {
             // We don't use Vector2.TryParse() for now because for some reason it expects an input with 3 components
             // rather than 2.
-            string cookedVector = CookVector(rawConsoleVector, 2, blankComponentFunc);
+            var cookedVector = CookVector(rawConsoleVector, 2, blankComponentFunc);
 
             if (cookedVector == null)
             {
@@ -333,7 +298,7 @@ namespace OpenSim.Framework.Console
             }
             else
             {
-                string[] cookedComponents = cookedVector.Split(VectorSeparatorChars);
+                var cookedComponents = cookedVector.Split(VectorSeparatorChars);
 
                 vector = new Vector2(float.Parse(cookedComponents[0]), float.Parse(cookedComponents[1]));
 
@@ -353,7 +318,7 @@ namespace OpenSim.Framework.Console
         private static string CookVector(
             string rawConsoleVector, int dimensions, Func<string, string> blankComponentFunc)
         {
-            List<string> components = rawConsoleVector.Split(VectorSeparatorChars).ToList();
+            var components = rawConsoleVector.Split(VectorSeparatorChars).ToList();
 
             if (components.Count < 1 || components.Count > dimensions)
                 return null;
@@ -362,23 +327,23 @@ namespace OpenSim.Framework.Console
             {
                 if (blankComponentFunc == null)
                     return null;
-                else
-                    for (int i = components.Count; i < dimensions; i++)
-                        components.Add("");
+                for (var i = components.Count; i < dimensions; i++)
+                    components.Add("");
             }
 
-            List<string> cookedComponents
-                = components.ConvertAll<string>(
+            var cookedComponents
+                = components.ConvertAll(
                     c =>
                     {
                         if (c.Length == 0)
                             return blankComponentFunc.Invoke(c);
-                        else if (c == MaxRawConsoleVectorValue)
-                            return float.MaxValue.ToString();
-                        else if (c == MinRawConsoleVectorValue)
-                            return float.MinValue.ToString();
-                        else
-                            return c;
+                        
+                        return c switch
+                        {
+                            MaxRawConsoleVectorValue => float.MaxValue.ToString(CultureInfo.InvariantCulture),
+                            MinRawConsoleVectorValue => float.MinValue.ToString(CultureInfo.InvariantCulture),
+                            _ => c
+                        };
                     });
 
             return string.Join(VectorSeparator, cookedComponents.ToArray());

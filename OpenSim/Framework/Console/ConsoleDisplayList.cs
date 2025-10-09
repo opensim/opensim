@@ -62,24 +62,24 @@ namespace OpenSim.Framework.Console
 
         public ConsoleDisplayList()
         {
-            Rows = new List<KeyValuePair<string, string>>();
+            Rows = [];
             KeyValueDivider = DefaultKeyValueDivider;
         }
 
         public override string ToString()
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             AddToStringBuilder(sb);
             return sb.ToString();
         }
 
         public void AddToStringBuilder(StringBuilder sb)
         {
-            string formatString = GetFormatString();
+            var formatString = GetFormatString();
 //            System.Console.WriteLine("FORMAT STRING [{0}]", formatString);
 
             // rows
-            foreach (KeyValuePair<string, string> row in Rows)
+            foreach (var row in Rows)
                 sb.AppendFormat(formatString, row.Key, row.Value);
         }
 
@@ -88,13 +88,9 @@ namespace OpenSim.Framework.Console
         /// </summary>
         private string GetFormatString()
         {
-            StringBuilder formatSb = new StringBuilder();
+            var formatSb = new StringBuilder();
 
-            int longestKey = -1;
-
-            foreach (KeyValuePair<string, string> row in Rows)
-                if (row.Key.Length > longestKey)
-                    longestKey = row.Key.Length;
+            var longestKey = Rows.Select(row => row.Key.Length).Prepend(-1).Max();
 
             formatSb.Append(' ', Indent);
 

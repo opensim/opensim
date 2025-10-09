@@ -80,13 +80,9 @@ namespace OpenSim.Framework.Console
         {
             // QUESTION: have a case insensitive flag?
             cmdWithParams = cmdWithParams.ToLower().Trim();
-            string matchText = String.Join(" ",m_cmdText).ToLower().Trim();
-            if (cmdWithParams.StartsWith(matchText))
-            {
-                // QUESTION Instead return cmdText.Length; ?
-                return matchText.Length;
-            }
-            return 0;
+            var matchText = string.Join(" ",m_cmdText).ToLower().Trim();
+            return cmdWithParams.StartsWith(matchText) ?
+                matchText.Length : 0; // QUESTION Instead return cmdText.Length; ?
         }
 
         /// <summary>
@@ -94,10 +90,10 @@ namespace OpenSim.Framework.Console
         /// </summary>
         public void Run(string cmd, string[] cmdParams)
         {
-            int skipParams = 0;
+            var skipParams = 0;
             if (m_cmdText.Length > 1)
             {
-                int currentParam = 1;
+                var currentParam = 1;
                 while (currentParam < m_cmdText.Length)
                 {
                     if (cmdParams[skipParams].ToLower().Equals(m_cmdText[currentParam].ToLower()))
@@ -108,7 +104,7 @@ namespace OpenSim.Framework.Console
                 }
 
             }
-            string[] sendCmdParams = cmdParams;
+            var sendCmdParams = cmdParams;
             if (skipParams > 0)
             {
                 sendCmdParams = new string[cmdParams.Length-skipParams];
@@ -124,7 +120,7 @@ namespace OpenSim.Framework.Console
         /// </summary>
         public void ShowHelp(ConsoleBase console)
         {
-            console.Output(String.Join(" ", m_cmdText) + " - " + m_helpText + "\n");
+            console.Output(string.Join(" ", m_cmdText) + " - " + m_helpText + "\n");
         }
 
         /// <summary>
@@ -132,8 +128,9 @@ namespace OpenSim.Framework.Console
         /// </summary>
         public bool IsHelpfull(string cmdWithParams)
         {
-            cmdWithParams = cmdWithParams.ToLower();
-            return cmdWithParams.Contains(String.Join(" ", m_cmdText).ToLower()) || m_helpText.ToLower().Contains(cmdWithParams);
+            var joinedText = string.Join(" ", m_cmdText);
+            return cmdWithParams.Contains(joinedText, StringComparison.CurrentCultureIgnoreCase) 
+                   || m_helpText.Contains(cmdWithParams, StringComparison.CurrentCultureIgnoreCase);
         }
     }
 }
