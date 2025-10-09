@@ -33,7 +33,7 @@ namespace OpenSim.Framework
 {
     [Flags]
     // this enum is stuck, can not be changed or will break compatibilty with any version older than that change
-    public enum AssetFlags : int
+    public enum AssetFlags
     {
         Normal = 0,         // Immutable asset
         Maptile = 1,        // What it says
@@ -49,8 +49,8 @@ namespace OpenSim.Framework
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public static readonly int MAX_ASSET_NAME = 64;
-        public static readonly int MAX_ASSET_DESC = 64;
+        public const int MAX_ASSET_NAME = 64;
+        public const int MAX_ASSET_DESC = 64;
 
         /// <summary>
         /// Data of the Asset
@@ -117,57 +117,38 @@ namespace OpenSim.Framework
             };
         }
 
-        public bool ContainsReferences
-        {
-            get
-            {
-                return
-                    IsTextualAsset && (
-                    Type != (sbyte)AssetType.Notecard
-                    && Type != (sbyte)AssetType.CallingCard
-                    && Type != (sbyte)AssetType.LSLText
-                    && Type != (sbyte)AssetType.Landmark);
-            }
-        }
+        public bool ContainsReferences =>
+            IsTextualAsset && (
+                Type != (sbyte)AssetType.Notecard
+                && Type != (sbyte)AssetType.CallingCard
+                && Type != (sbyte)AssetType.LSLText
+                && Type != (sbyte)AssetType.Landmark);
 
-        public bool IsTextualAsset
-        {
-            get
-            {
-                return !IsBinaryAsset;
-            }
-
-        }
+        public bool IsTextualAsset => !IsBinaryAsset;
 
         /// <summary>
         /// Checks if this asset is a binary or text asset
         /// </summary>
-        public bool IsBinaryAsset
-        {
-            get
-            {
-                return
-                    (Type == (sbyte)AssetType.Animation ||
-                     Type == (sbyte)AssetType.Gesture ||
-                     Type == (sbyte)AssetType.Simstate ||
-                     Type == (sbyte)AssetType.Unknown ||
-                     Type == (sbyte)AssetType.Object ||
-                     Type == (sbyte)AssetType.Sound ||
-                     Type == (sbyte)AssetType.SoundWAV ||
-                     Type == (sbyte)AssetType.Texture ||
-                     Type == (sbyte)AssetType.TextureTGA ||
-                     Type == (sbyte)AssetType.Folder ||
-                     Type == (sbyte)AssetType.ImageJPEG ||
-                     Type == (sbyte)AssetType.ImageTGA ||
-                     Type == (sbyte)AssetType.Mesh ||
-                     Type == (sbyte) AssetType.LSLBytecode);
-            }
-        }
+        public bool IsBinaryAsset =>
+            Type is (sbyte)AssetType.Animation 
+                or (sbyte)AssetType.Gesture 
+                or (sbyte)AssetType.Simstate 
+                or (sbyte)AssetType.Unknown 
+                or (sbyte)AssetType.Object 
+                or (sbyte)AssetType.Sound 
+                or (sbyte)AssetType.SoundWAV 
+                or (sbyte)AssetType.Texture 
+                or (sbyte)AssetType.TextureTGA 
+                or (sbyte)AssetType.Folder 
+                or (sbyte)AssetType.ImageJPEG 
+                or (sbyte)AssetType.ImageTGA 
+                or (sbyte)AssetType.Mesh 
+                or (sbyte) AssetType.LSLBytecode;
 
         public byte[] Data
         {
-            get { return m_data; }
-            set { m_data = value; }
+            get => m_data;
+            set => m_data = value;
         }
 
         /// <summary>
@@ -175,8 +156,8 @@ namespace OpenSim.Framework
         /// </summary>
         public UUID FullID
         {
-            get { return m_metadata.FullID; }
-            set { m_metadata.FullID = value; }
+            get => m_metadata.FullID;
+            set => m_metadata.FullID = value;
         }
 
         /// <summary>
@@ -184,20 +165,20 @@ namespace OpenSim.Framework
         /// </summary>
         public string ID
         {
-            get { return m_metadata.ID; }
-            set { m_metadata.ID = value; }
+            get => m_metadata.ID;
+            set => m_metadata.ID = value;
         }
 
         public string Name
         {
-            get { return m_metadata.Name; }
-            set { m_metadata.Name = value; }
+            get => m_metadata.Name;
+            set => m_metadata.Name = value;
         }
 
         public string Description
         {
-            get { return m_metadata.Description; }
-            set { m_metadata.Description = value; }
+            get => m_metadata.Description;
+            set => m_metadata.Description = value;
         }
 
         /// <summary>
@@ -205,14 +186,14 @@ namespace OpenSim.Framework
         /// </summary>
         public sbyte Type
         {
-            get { return m_metadata.Type; }
-            set { m_metadata.Type = value; }
+            get => m_metadata.Type;
+            set => m_metadata.Type = value;
         }
 
         public int UploadAttempts
         {
-            get { return m_uploadAttempts; }
-            set { m_uploadAttempts = value; }
+            get => m_uploadAttempts;
+            set => m_uploadAttempts = value;
         }
 
         /// <summary>
@@ -220,8 +201,8 @@ namespace OpenSim.Framework
         /// </summary>
         public bool Local
         {
-            get { return m_metadata.Local; }
-            set { m_metadata.Local = value; }
+            get => m_metadata.Local;
+            set => m_metadata.Local = value;
         }
 
         /// <summary>
@@ -229,27 +210,27 @@ namespace OpenSim.Framework
         /// </summary>
         public bool Temporary
         {
-            get { return m_metadata.Temporary; }
-            set { m_metadata.Temporary = value; }
+            get => m_metadata.Temporary;
+            set => m_metadata.Temporary = value;
         }
 
         public string CreatorID
         {
-            get { return m_metadata.CreatorID; }
-            set { m_metadata.CreatorID = value; }
+            get => m_metadata.CreatorID;
+            set => m_metadata.CreatorID = value;
         }
 
         public AssetFlags Flags
         {
-            get { return m_metadata.Flags; }
-            set { m_metadata.Flags = value; }
+            get => m_metadata.Flags;
+            set => m_metadata.Flags = value;
         }
 
         [XmlIgnore]
         public AssetMetadata Metadata
         {
-            get { return m_metadata; }
-            set { m_metadata = value; }
+            get => m_metadata;
+            set => m_metadata = value;
         }
 
         public override string ToString()
@@ -276,7 +257,7 @@ namespace OpenSim.Framework
 
         public UUID FullID
         {
-            get { return m_fullid; }
+            get => m_fullid;
             set { m_fullid = value; m_id = m_fullid.ToString(); }
         }
 
@@ -306,42 +287,37 @@ namespace OpenSim.Framework
 
         public string Name
         {
-            get { return m_name; }
-            set { m_name = value; }
+            get => m_name;
+            set => m_name = value;
         }
 
         public string Description
         {
-            get { return m_description; }
-            set { m_description = value; }
+            get => m_description;
+            set => m_description = value;
         }
 
         public DateTime CreationDate
         {
-            get { return m_creation_date; }
-            set { m_creation_date = value; }
+            get => m_creation_date;
+            set => m_creation_date = value;
         }
 
         public sbyte Type
         {
-            get { return m_type; }
-            set { m_type = value; }
+            get => m_type;
+            set => m_type = value;
         }
 
         public string ContentType
         {
-            get
-            {
-                if (!string.IsNullOrEmpty(m_content_type))
-                    return m_content_type;
-                else
-                    return SLUtil.SLAssetTypeToContentType(m_type);
-            }
+            get => !string.IsNullOrEmpty(m_content_type) 
+                ? m_content_type : SLUtil.SLAssetTypeToContentType(m_type);
             set
             {
                 m_content_type = value;
 
-                sbyte type = SLUtil.ContentTypeToSLAssetType(value);
+                var type = SLUtil.ContentTypeToSLAssetType(value);
                 if (type != -1)
                     m_type = type;
             }
@@ -349,32 +325,32 @@ namespace OpenSim.Framework
 
         public byte[] SHA1
         {
-            get { return m_sha1; }
-            set { m_sha1 = value; }
+            get => m_sha1;
+            set => m_sha1 = value;
         }
 
         public bool Local
         {
-            get { return m_local; }
-            set { m_local = value; }
+            get => m_local;
+            set => m_local = value;
         }
 
         public bool Temporary
         {
-            get { return m_temporary; }
-            set { m_temporary = value; }
+            get => m_temporary;
+            set => m_temporary = value;
         }
 
         public string CreatorID
         {
-            get { return m_creatorid; }
-            set { m_creatorid = value; }
+            get => m_creatorid;
+            set => m_creatorid = value;
         }
 
         public AssetFlags Flags
         {
-            get { return m_flags; }
-            set { m_flags = value; }
+            get => m_flags;
+            set => m_flags = value;
         }
     }
 }

@@ -25,8 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
 using System.Collections.Generic;
+using System.Linq;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 
@@ -49,60 +49,60 @@ namespace OpenSim.Framework
         // these are guessed at by the list here -
         // http://wiki.secondlife.com/wiki/Avatar_Appearance.  We'll
         // correct them over time for when were are wrong.
-        public static readonly int BODY = 0;
-        public static readonly int SKIN = 1;
-        public static readonly int HAIR = 2;
-        public static readonly int EYES = 3;
-        public static readonly int SHIRT = 4;
-        public static readonly int PANTS = 5;
-        public static readonly int SHOES = 6;
-        public static readonly int SOCKS = 7;
-        public static readonly int JACKET = 8;
-        public static readonly int GLOVES = 9;
-        public static readonly int UNDERSHIRT = 10;
-        public static readonly int UNDERPANTS = 11;
-        public static readonly int SKIRT = 12;
+        public const int BODY = 0;
+        public const int SKIN = 1;
+        public const int HAIR = 2;
+        public const int EYES = 3;
+        public const int SHIRT = 4;
+        public const int PANTS = 5;
+        public const int SHOES = 6;
+        public const int SOCKS = 7;
+        public const int JACKET = 8;
+        public const int GLOVES = 9;
+        public const int UNDERSHIRT = 10;
+        public const int UNDERPANTS = 11;
+        public const int SKIRT = 12;
 
-        public static readonly int MAX_BASICWEARABLES = 13;
+        public const int MAX_BASICWEARABLES = 13;
 
-        public static readonly int ALPHA = 13;
-        public static readonly int TATTOO = 14;
-        public static readonly int LEGACY_VERSION_MAX_WEARABLES = 15;
+        public const int ALPHA = 13;
+        public const int TATTOO = 14;
+        public const int LEGACY_VERSION_MAX_WEARABLES = 15;
 
-        public static readonly int PHYSICS = 15;
+        public const int PHYSICS = 15;
 
         public static int MAX_WEARABLES_PV7 = 16;
 
-        public static readonly int UNIVERSAL = 16;
+        public const int UNIVERSAL = 16;
         public static int MAX_WEARABLES = 17;
 
 
-        public static readonly UUID DEFAULT_BODY_ITEM = new UUID("66c41e39-38f9-f75a-024e-585989bfaba9");
-        public static readonly UUID DEFAULT_BODY_ASSET = new UUID("66c41e39-38f9-f75a-024e-585989bfab73");
+        public static readonly UUID DEFAULT_BODY_ITEM = new("66c41e39-38f9-f75a-024e-585989bfaba9");
+        public static readonly UUID DEFAULT_BODY_ASSET = new("66c41e39-38f9-f75a-024e-585989bfab73");
 
-        public static readonly UUID DEFAULT_HAIR_ITEM = new UUID("d342e6c1-b9d2-11dc-95ff-0800200c9a66");
-        public static readonly UUID DEFAULT_HAIR_ASSET = new UUID("d342e6c0-b9d2-11dc-95ff-0800200c9a66");
+        public static readonly UUID DEFAULT_HAIR_ITEM = new("d342e6c1-b9d2-11dc-95ff-0800200c9a66");
+        public static readonly UUID DEFAULT_HAIR_ASSET = new("d342e6c0-b9d2-11dc-95ff-0800200c9a66");
 
-        public static readonly UUID DEFAULT_SKIN_ITEM = new UUID("77c41e39-38f9-f75a-024e-585989bfabc9");
-        public static readonly UUID DEFAULT_SKIN_ASSET = new UUID("77c41e39-38f9-f75a-024e-585989bbabbb");
+        public static readonly UUID DEFAULT_SKIN_ITEM = new("77c41e39-38f9-f75a-024e-585989bfabc9");
+        public static readonly UUID DEFAULT_SKIN_ASSET = new("77c41e39-38f9-f75a-024e-585989bbabbb");
 
-        public static readonly UUID DEFAULT_EYES_ITEM = new UUID("cdc31054-eed8-4021-994f-4e0c6e861b50");
-        public static readonly UUID DEFAULT_EYES_ASSET = new UUID("4bb6fa4d-1cd2-498a-a84c-95c1a0e745a7");
+        public static readonly UUID DEFAULT_EYES_ITEM = new("cdc31054-eed8-4021-994f-4e0c6e861b50");
+        public static readonly UUID DEFAULT_EYES_ASSET = new("4bb6fa4d-1cd2-498a-a84c-95c1a0e745a7");
 
-        public static readonly UUID DEFAULT_SHIRT_ITEM = new UUID("77c41e39-38f9-f75a-0000-585989bf0000");
-        public static readonly UUID DEFAULT_SHIRT_ASSET = new UUID("00000000-38f9-1111-024e-222222111110");
+        public static readonly UUID DEFAULT_SHIRT_ITEM = new("77c41e39-38f9-f75a-0000-585989bf0000");
+        public static readonly UUID DEFAULT_SHIRT_ASSET = new("00000000-38f9-1111-024e-222222111110");
 
-        public static readonly UUID DEFAULT_PANTS_ITEM = new UUID("77c41e39-38f9-f75a-0000-5859892f1111");
-        public static readonly UUID DEFAULT_PANTS_ASSET = new UUID("00000000-38f9-1111-024e-222222111120");
+        public static readonly UUID DEFAULT_PANTS_ITEM = new("77c41e39-38f9-f75a-0000-5859892f1111");
+        public static readonly UUID DEFAULT_PANTS_ASSET = new("00000000-38f9-1111-024e-222222111120");
 
-        public static readonly UUID DEFAULT_ALPHA_ITEM = new UUID("bfb9923c-4838-4d2d-bf07-608c5b1165c8");
-        public static readonly UUID DEFAULT_ALPHA_ASSET = new UUID("1578a2b1-5179-4b53-b618-fe00ca5a5594");
+        public static readonly UUID DEFAULT_ALPHA_ITEM = new("bfb9923c-4838-4d2d-bf07-608c5b1165c8");
+        public static readonly UUID DEFAULT_ALPHA_ASSET = new("1578a2b1-5179-4b53-b618-fe00ca5a5594");
 
-        public static readonly UUID DEFAULT_TATTOO_ITEM = new UUID("c47e22bd-3021-4ba4-82aa-2b5cb34d35e1");
-        public static readonly UUID DEFAULT_TATTOO_ASSET = new UUID("00000000-0000-2222-3333-100000001007");
+        public static readonly UUID DEFAULT_TATTOO_ITEM = new("c47e22bd-3021-4ba4-82aa-2b5cb34d35e1");
+        public static readonly UUID DEFAULT_TATTOO_ASSET = new("00000000-0000-2222-3333-100000001007");
 
-        protected Dictionary<UUID, UUID> m_items = new Dictionary<UUID, UUID>();
-        protected List<UUID> m_ids = new List<UUID>();
+        protected readonly Dictionary<UUID, UUID> m_items = new();
+        protected readonly List<UUID> m_ids = [];
 
         public AvatarWearable()
         {
@@ -120,13 +120,14 @@ namespace OpenSim.Framework
 
         public OSD Pack()
         {
-            OSDArray wearlist = new OSDArray();
+            OSDArray wearlist = [];
 
-            foreach (UUID id in m_ids)
+            foreach (var weardata in m_ids.Select(id => new OSDMap
+                     {
+                         ["item"] = OSD.FromUUID(id),
+                         ["asset"] = OSD.FromUUID(m_items[id])
+                     }))
             {
-                OSDMap weardata = new OSDMap();
-                weardata["item"] = OSD.FromUUID(id);
-                weardata["asset"] = OSD.FromUUID(m_items[id]);
                 wearlist.Add(weardata);
             }
 
@@ -137,18 +138,16 @@ namespace OpenSim.Framework
         {
             Clear();
             OSD tmpOSDA, tmpOSDB;
-            foreach (OSDMap weardata in args)
+            foreach (var osd in args)
             {
+                var weardata = (OSDMap)osd;
                 tmpOSDA = weardata["item"];
                 tmpOSDB = weardata["asset"];
                 Add(tmpOSDA.AsUUID(), tmpOSDB.AsUUID());
             }
         }
 
-        public int Count
-        {
-            get { return m_ids.Count; }
-        }
+        public int Count => m_ids.Count;
 
         public void Add(UUID itemID, UUID assetID)
         {
@@ -191,22 +190,19 @@ namespace OpenSim.Framework
 
         public void RemoveAsset(UUID assetID)
         {
-            UUID itemID = UUID.Zero;
+            var itemID = UUID.Zero;
 
-            foreach (KeyValuePair<UUID, UUID> kvp in m_items)
+            foreach (var kvp in m_items.Where(kvp => kvp.Value == assetID))
             {
-                if (kvp.Value == assetID)
-                {
-                    itemID = kvp.Key;
-                    break;
-                }
+                itemID = kvp.Key;
+                break;
             }
 
-            if (!itemID.IsZero())
-            {
-                m_ids.Remove(itemID);
-                m_items.Remove(itemID);
-            }
+            if (itemID.IsZero()) 
+                return;
+            
+            m_ids.Remove(itemID);
+            m_items.Remove(itemID);
         }
 
         public WearableItem this [int idx]
@@ -230,8 +226,8 @@ namespace OpenSim.Framework
             get
             {
                 // We use the legacy count here because this is just a fallback anyway
-                AvatarWearable[] defaultWearables = new AvatarWearable[LEGACY_VERSION_MAX_WEARABLES];
-                for (int i = 0; i < LEGACY_VERSION_MAX_WEARABLES; i++)
+                var defaultWearables = new AvatarWearable[LEGACY_VERSION_MAX_WEARABLES];
+                for (var i = 0; i < LEGACY_VERSION_MAX_WEARABLES; i++)
                 {
                     defaultWearables[i] = new AvatarWearable();
                 }

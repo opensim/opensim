@@ -25,8 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System.Text;
 using OpenMetaverse;
+using System;
 
 namespace OpenSim.Framework
 {
@@ -48,23 +48,23 @@ namespace OpenSim.Framework
 
         private void InternData()
         {
-            string temp = Util.UTF8.GetString(Data).Trim();
-            string[] parts = temp.Split('\n');
-            int.TryParse(parts[0].Substring(17, 1), out Version);
-            UUID.TryParse(parts[1].Substring(10, 36), out RegionID);
+            var temp = Util.UTF8.GetString(Data).Trim();
+            var parts = temp.Split('\n');
+            int.TryParse(parts[0].AsSpan(17, 1), out Version);
+            UUID.TryParse(parts[1].AsSpan(10, 36), out RegionID);
             if (parts.Length >= 5)
                 Gatekeeper = parts[4].Replace("gatekeeper ", "");
             // The position is a vector with spaces as separators ("10.3 32.5 43").
             // Parse each scalar separately to take into account the system's culture setting.
-            string[] scalars = parts[2].Substring(10, parts[2].Length - 10).Split(' ');
+            var scalars = parts[2][10..].Split(' ');
             if (scalars.Length > 0)
-                System.Single.TryParse(scalars[0], out Position.X);
+                Single.TryParse(scalars[0], out Position.X);
             if (scalars.Length > 1)
-                System.Single.TryParse(scalars[1], out Position.Y);
+                Single.TryParse(scalars[1], out Position.Y);
             if (scalars.Length > 2)
-                System.Single.TryParse(scalars[2], out Position.Z);
+                Single.TryParse(scalars[2], out Position.Z);
 
-            ulong.TryParse(parts[3].Substring(14, parts[3].Length - 14), out RegionHandle);
+            ulong.TryParse(parts[3].AsSpan(14, parts[3].Length - 14), out RegionHandle);
         }
     }
 }

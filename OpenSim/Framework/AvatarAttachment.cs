@@ -25,7 +25,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 
@@ -58,28 +57,25 @@ namespace OpenSim.Framework
 
         public OSDMap Pack()
         {
-            OSDMap attachdata = new OSDMap();
-            attachdata["point"] = OSD.FromInteger(AttachPoint);
-            attachdata["item"] = OSD.FromUUID(ItemID);
-            attachdata["asset"] = OSD.FromUUID(AssetID);
+            var attachdata = new OSDMap
+            {
+                ["point"] = OSD.FromInteger(AttachPoint),
+                ["item"] = OSD.FromUUID(ItemID),
+                ["asset"] = OSD.FromUUID(AssetID)
+            };
 
             return attachdata;
         }
 
         public void Unpack(OSDMap args)
         {
-            OSD tmpOSD;
-            if (args.TryGetValue("point", out tmpOSD))
-                AttachPoint = tmpOSD.AsInteger();
-            if (args.TryGetValue("item", out tmpOSD))
-                ItemID = tmpOSD.AsUUID();
-            else
-                ItemID = UUID.Zero;
+            
+            if (args.TryGetValue("point", out var pointOSD))
+                AttachPoint = pointOSD.AsInteger();
+            
+            ItemID = args.TryGetValue("item", out var itemOSD) ? itemOSD.AsUUID() : UUID.Zero;
 
-            if (args.TryGetValue("asset", out tmpOSD))
-                AssetID = tmpOSD.AsUUID();
-            else
-                AssetID = UUID.Zero;
+            AssetID = args.TryGetValue("asset", out var assetOSD) ? assetOSD.AsUUID() : UUID.Zero;
         }
     }
 }

@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using OpenMetaverse;
 
@@ -92,20 +93,14 @@ namespace OpenSim.Framework
 
         public UUID GetAnimation(string index)
         {
-            KeyValuePair<string, UUID> val;
-            if (m_animations.TryGetValue(index, out val))
-                return val.Value;
-
-            return UUID.Zero;
+            return m_animations.TryGetValue(index, out var val) 
+                ? val.Value : UUID.Zero;
         }
 
         public string GetAnimationName(string index)
         {
-            KeyValuePair<string, UUID> val;
-            if (m_animations.TryGetValue(index, out val))
-                return val.Key;
-
-            return String.Empty;
+            return m_animations.TryGetValue(index, out var val) 
+                ? val.Key : string.Empty;
         }
 
         public void SetAnimation(string index, string name, UUID anim)
@@ -119,9 +114,9 @@ namespace OpenSim.Framework
             m_animations[index] = new KeyValuePair<string, UUID>(name, anim);
         }
 
-        public AnimationSet(Byte[] data)
+        public AnimationSet(byte[] data)
         {
-            string assetData = System.Text.Encoding.ASCII.GetString(data);
+            var assetData = Encoding.ASCII.GetString(data);
             Console.WriteLine("--------------------");
             Console.WriteLine("AnimationSet length {0} bytes", assetData.Length);
             Console.WriteLine(assetData);
@@ -129,16 +124,16 @@ namespace OpenSim.Framework
         }
 
         public static readonly byte[] ZeroCountBytesReply = osUTF8.GetASCIIBytes("version 1\ncount 0\n");
-        public Byte[] ToBytes()
+        public byte[] ToBytes()
         {
             // If there was an error parsing the input, we give back an
             // empty set rather than the original data.
             if (m_parseError || m_animations.Count == 0)
                 return ZeroCountBytesReply;
 
-            osUTF8 sb = OSUTF8Cached.Acquire();
+            var sb = OSUTF8Cached.Acquire();
             sb.AppendASCII("$version 1\ncount {m_animations.Count}\n");
-            foreach (KeyValuePair<string, KeyValuePair<string, UUID>> kvp in m_animations)
+            foreach (var kvp in m_animations)
                 sb.AppendASCII($"{kvp.Key} {kvp.Value.Value} {kvp.Value.Key}\n");
             return OSUTF8Cached.GetArrayAndRelease(sb);
         }
@@ -173,10 +168,8 @@ namespace OpenSim.Framework
                 return 0;
 
             uint ret = 0x7fffffff;
-            uint t;
-            foreach (KeyValuePair<string, KeyValuePair<string, UUID>> kvp in m_animations)
+            foreach (var t in m_animations.Select(kvp => val(kvp.Value.Value)))
             {
-                t = val(kvp.Value.Value);
                 if (t == 0)
                     return 0;
                 ret &= t;

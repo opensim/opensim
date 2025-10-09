@@ -52,27 +52,27 @@ namespace OpenSim.Framework
         {
             lock (m_lock)
             {
-                if (m_agentCircuits.TryGetValue(circuitcode, out AgentCircuitData validcircuit) && validcircuit is not null)
+                if (!m_agentCircuits.TryGetValue(circuitcode, out var validcircuit) || validcircuit is null)
+                    return new AuthenticateResponse();
+                
+                if (sessionID.Equals(validcircuit.SessionID) && agentID.Equals(validcircuit.AgentID))
                 {
-                    if (sessionID.Equals(validcircuit.SessionID) && agentID.Equals(validcircuit.AgentID))
+                    return new AuthenticateResponse()
                     {
-                        return new AuthenticateResponse()
+                        Authorised = true,
+                        LoginInfo = new Login
                         {
-                            Authorised = true,
-                            LoginInfo = new Login
-                            {
-                                Agent = agentID,
-                                Session = sessionID,
-                                SecureSession = validcircuit.SecureSessionID,
-                                First = validcircuit.firstname,
-                                Last = validcircuit.lastname,
-                                InventoryFolder = validcircuit.InventoryFolder,
-                                BaseFolder = validcircuit.BaseFolder,
-                                StartPos = validcircuit.startpos,
-                                StartFar = validcircuit.startfar
-                            }
-                        };
-                    }
+                            Agent = agentID,
+                            Session = sessionID,
+                            SecureSession = validcircuit.SecureSessionID,
+                            First = validcircuit.firstname,
+                            Last = validcircuit.lastname,
+                            InventoryFolder = validcircuit.InventoryFolder,
+                            BaseFolder = validcircuit.BaseFolder,
+                            StartPos = validcircuit.startpos,
+                            StartFar = validcircuit.startfar
+                        }
+                    };
                 }
             }
             return new AuthenticateResponse();
@@ -81,14 +81,13 @@ namespace OpenSim.Framework
         /// <summary>
         /// Add information about a new circuit so that later on we can authenticate a new client session.
         /// </summary>
-        /// <param name="circuitCode"></param>
         /// <param name="agentData"></param>
         public virtual void AddNewCircuit(AgentCircuitData agentData)
         {
             agentData.child = true;
             lock (m_lock)
             {
-                ref AgentCircuitData acd = ref CollectionsMarshal.GetValueRefOrAddDefault(m_agentCircuits, agentData.circuitcode, out bool existed);
+                ref var acd = ref CollectionsMarshal.GetValueRefOrAddDefault(m_agentCircuits, agentData.circuitcode, out var existed);
                 if (existed && acd is not null && acd.AgentID.NotEqual(agentData.AgentID))
                     m_agentCircuitsByUUID.Remove(acd.AgentID);
                 acd = agentData;
@@ -101,7 +100,7 @@ namespace OpenSim.Framework
             agentData.circuitcode = circuitCode;
             lock (m_lock)
             {
-                ref AgentCircuitData acd = ref CollectionsMarshal.GetValueRefOrAddDefault(m_agentCircuits, agentData.circuitcode, out bool existed);
+                ref var acd = ref CollectionsMarshal.GetValueRefOrAddDefault(m_agentCircuits, agentData.circuitcode, out bool existed);
                 if (existed && acd is not null && acd.AgentID.NotEqual(agentData.AgentID))
                     m_agentCircuitsByUUID.Remove(acd.AgentID);
                 acd = agentData;
@@ -144,7 +143,7 @@ namespace OpenSim.Framework
         {
             lock (m_lock)
             {
-                return m_agentCircuits.TryGetValue(circuitCode, out AgentCircuitData agentCircuit) ? agentCircuit : null;
+                return m_agentCircuits.GetValueOrDefault(circuitCode);
             }
         }
 
@@ -152,7 +151,7 @@ namespace OpenSim.Framework
         {
             lock (m_lock)
             {
-                return m_agentCircuitsByUUID.TryGetValue(agentID, out AgentCircuitData agentCircuit) ? agentCircuit : null;
+                return m_agentCircuitsByUUID.GetValueOrDefault(agentID);
             }
         }
 
@@ -170,17 +169,17 @@ namespace OpenSim.Framework
         {
             lock (m_lock)
             {
-                if (m_agentCircuits.TryGetValue(agentData.circuitcode, out AgentCircuitData ac))
-                {
-                    ac.firstname = agentData.firstname;
-                    ac.lastname = agentData.lastname;
-                    ac.startpos = agentData.startpos;
-                    ac.startfar = agentData.startfar;
+                if (!m_agentCircuits.TryGetValue(agentData.circuitcode, out var ac)) 
+                    return;
+                
+                ac.firstname = agentData.firstname;
+                ac.lastname = agentData.lastname;
+                ac.startpos = agentData.startpos;
+                ac.startfar = agentData.startfar;
 
-                    // Updated for when we don't know them before calling Scene.NewUserConnection
-                    ac.SecureSessionID = agentData.SecureSessionID;
-                    ac.SessionID = agentData.SessionID;
-                }
+                // Updated for when we don't know them before calling Scene.NewUserConnection
+                ac.SecureSessionID = agentData.SecureSessionID;
+                ac.SessionID = agentData.SessionID;
             }
         }
 
@@ -195,14 +194,14 @@ namespace OpenSim.Framework
             {
                 if (m_agentCircuits.ContainsKey(newcircuitcode))
                     return false;
-                if (m_agentCircuits.Remove(circuitcode, out AgentCircuitData agentData))
-                {
-                    agentData.circuitcode = newcircuitcode;
-                    m_agentCircuits[newcircuitcode] = agentData;
-                    m_agentCircuitsByUUID[agentData.AgentID] = agentData;
-                    return true;
-                }
-                return false;
+                
+                if (!m_agentCircuits.Remove(circuitcode, out var agentData)) 
+                    return false;
+                
+                agentData.circuitcode = newcircuitcode;
+                m_agentCircuits[newcircuitcode] = agentData;
+                m_agentCircuitsByUUID[agentData.AgentID] = agentData;
+                return true;
             }
         }
 

@@ -44,15 +44,15 @@ namespace OpenSim.Framework
         /// </summary>
         public UUID AnimID
         {
-            get { return animID; }
-            set { animID = value; }
+            get => animID;
+            set => animID = value;
         }
 
         private int sequenceNum;
         public int SequenceNum
         {
-            get { return sequenceNum; }
-            set { sequenceNum = value; }
+            get => sequenceNum;
+            set => sequenceNum = value;
         }
 
         private UUID objectID;
@@ -62,8 +62,8 @@ namespace OpenSim.Framework
         /// </summary>
         public UUID ObjectID
         {
-            get { return objectID; }
-            set { objectID = value; }
+            get => objectID;
+            set => objectID = value;
         }
 
         public Animation()
@@ -99,10 +99,12 @@ namespace OpenSim.Framework
         /// <returns></returns>
         public OSDMap PackUpdateMessage()
         {
-            OSDMap anim = new OSDMap();
-            anim["animation"] = OSD.FromUUID(animID);
-            anim["object_id"] = OSD.FromUUID(objectID);
-            anim["seq_num"] = OSD.FromInteger(sequenceNum);
+            var anim = new OSDMap
+            {
+                ["animation"] = OSD.FromUUID(animID),
+                ["object_id"] = OSD.FromUUID(objectID),
+                ["seq_num"] = OSD.FromInteger(sequenceNum)
+            };
             return anim;
         }
 
@@ -123,8 +125,7 @@ namespace OpenSim.Framework
 
         public override bool Equals(object obj)
         {
-            Animation other = obj as Animation;
-            if (other != null)
+            if (obj is Animation other)
             {
                 return (other.AnimID.Equals(this.AnimID)
                         && other.SequenceNum == this.SequenceNum

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Reflection;
 
 using Nini.Config;
@@ -13,18 +12,18 @@ namespace OpenSim.Framework
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(
-            MethodBase.GetCurrentMethod().DeclaringType);
+            MethodBase.GetCurrentMethod()?.DeclaringType);
 
         private bool[] m_DisallowExport, m_DisallowImport;
         private string[] m_AssetTypeNames;
 
         public AssetPermissions(IConfig config)
         {
-            Type enumType = typeof(AssetType);
+            var enumType = typeof(AssetType);
             m_AssetTypeNames = Enum.GetNames(enumType);
-            for (int i = 0; i < m_AssetTypeNames.Length; i++)
+            for (var i = 0; i < m_AssetTypeNames.Length; i++)
                 m_AssetTypeNames[i] = m_AssetTypeNames[i].ToLower();
-            int n = Enum.GetValues(enumType).Length;
+            var n = Enum.GetValues(enumType).Length;
             m_DisallowExport = new bool[n];
             m_DisallowImport = new bool[n];
 
@@ -38,11 +37,11 @@ namespace OpenSim.Framework
             if (assetConfig == null)
                 return;
 
-            string perms = assetConfig.GetString(variable, String.Empty);
-            string[] parts = perms.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-            foreach (string s in parts)
+            var perms = assetConfig.GetString(variable, string.Empty);
+            var parts = perms.Split([','], StringSplitOptions.RemoveEmptyEntries);
+            foreach (var s in parts)
             {
-                int index = Array.IndexOf(m_AssetTypeNames, s.Trim().ToLower());
+                var index = Array.IndexOf(m_AssetTypeNames, s.Trim().ToLower());
                 if (index >= 0)
                     bitArray[index] = true;
                 else
@@ -53,32 +52,29 @@ namespace OpenSim.Framework
 
         public bool AllowedExport(sbyte type)
         {
-            string assetTypeName = ((AssetType)type).ToString();
+            var assetTypeName = ((AssetType)type).ToString();
 
-            int index = Array.IndexOf(m_AssetTypeNames, assetTypeName.ToLower());
-            if (index >= 0 && m_DisallowExport[index])
-            {
-                m_log.Debug($"[Asset Permissions]: Export denied: configuration does not allow export of AssetType {assetTypeName}");
-                return false;
-            }
+            var index = Array.IndexOf(m_AssetTypeNames, assetTypeName.ToLower());
+            if (index < 0 || !m_DisallowExport[index]) 
+                return true;
+            
+            m_log.Debug($"[Asset Permissions]: Export denied: configuration does not allow export of AssetType {assetTypeName}");
+            return false;
 
-            return true;
         }
 
         public bool AllowedImport(sbyte type)
         {
-            string assetTypeName = ((AssetType)type).ToString();
+            var assetTypeName = ((AssetType)type).ToString();
 
-            int index = Array.IndexOf(m_AssetTypeNames, assetTypeName.ToLower());
-            if (index >= 0 && m_DisallowImport[index])
-            {
-                m_log.Debug($"[Asset Permissions]: Import denied: configuration does not allow import of AssetType {assetTypeName}");
-                return false;
-            }
+            var index = Array.IndexOf(m_AssetTypeNames, assetTypeName.ToLower());
+            if (index < 0 || !m_DisallowImport[index]) 
+                return true;
+            
+            m_log.Debug($"[Asset Permissions]: Import denied: configuration does not allow import of AssetType {assetTypeName}");
+            return false;
 
-            return true;
         }
-
-
+        
     }
 }
