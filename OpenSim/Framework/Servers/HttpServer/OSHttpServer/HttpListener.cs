@@ -152,13 +152,13 @@ namespace OSHttpServer
                 }
                 catch (SocketException snssErr)
                 {
-                    m_logWriter.Write(this, LogPrio.Debug, "OSHTTP Accept wait ignoring error: " + snssErr.Message);
+                    m_logWriter.Write(this, LogPrio.Debug, $"OSHTTP Accept wait ignoring error: {snssErr.Message}");
                     socket?.Dispose();
                     continue;
                 }
                 catch (Exception err)
                 {
-                    m_logWriter.Write(this, LogPrio.Debug, "OSHTTP Accept wait fatal error: " + err.Message);
+                    m_logWriter.Write(this, LogPrio.Debug, $"OSHTTP Accept wait fatal error: {err.Message}");
                     ExceptionThrown?.Invoke(this, err);
                 }
 
@@ -197,13 +197,13 @@ namespace OSHttpServer
                 }
                 catch (SocketException snssErr)
                 {
-                    m_logWriter.Write(this, LogPrio.Debug, "OSHTTP Accept processing ignoring error: " + snssErr.Message);
+                    m_logWriter.Write(this, LogPrio.Debug, $"OSHTTP Accept processing ignoring error: {snssErr.Message}");
                     socket?.Dispose();
                     continue;
                 }
                 catch (Exception err)
                 {
-                    m_logWriter.Write(this, LogPrio.Debug, "OSHTTP Accept processing fatal error: " + err.Message);
+                    m_logWriter.Write(this, LogPrio.Debug, $"OSHTTP Accept processing fatal error: {err.Message}");
                     ExceptionThrown?.Invoke(this, err);
                 }
             }
