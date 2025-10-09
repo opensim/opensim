@@ -1023,7 +1023,7 @@ namespace OpenSim.Region.CoreModules.Asset
                     return;
                 }
 
-                string directory = Path.GetDirectoryName(filename);
+                string directory = Path.GetDirectoryName(filename) ?? string.Empty;
                 string tempname = Path.Combine(directory, Path.GetRandomFileName());
                 try
                 {
