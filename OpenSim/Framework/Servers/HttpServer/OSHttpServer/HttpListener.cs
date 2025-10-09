@@ -28,6 +28,8 @@ namespace OSHttpServer
         public event EventHandler<ClientAcceptedEventArgs> Accepted;
         public event ExceptionHandler ExceptionThrown;
         public event EventHandler<RequestEventArgs> RequestReceived;
+        
+        private int m_stopped; // 0 = running, 1 = stop initiated
 
         /// <summary>
         /// Listen for regular HTTP connections
@@ -214,10 +216,10 @@ namespace OSHttpServer
         /// <returns>true if connection can be accepted; otherwise false.</returns>
         protected bool OnAcceptingSocket(Socket socket)
         {
-            if(Accepted!=null)
+            if (Accepted is not null)
             {
                 ClientAcceptedEventArgs args = new(socket);
-                Accepted?.Invoke(this, args);
+                Accepted.Invoke(this, args);
                 return !args.Revoked;
             }
             return true;
@@ -244,13 +246,28 @@ namespace OSHttpServer
         /// <exception cref="SocketException"></exception>
         public void Stop()
         {
+            // Idempotent: if Stop() was already called, return immediately
+            if (Interlocked.Exchange(ref m_stopped, 1) == 1)
+                return;
+                
             m_shutdown = true;
-            m_CancellationSource.Cancel();
-            m_contextFactory.Shutdown();
-            if (!m_shutdownEvent.WaitOne())
-                m_logWriter.Write(this, LogPrio.Error, "Failed to shutdown listener properly.");
-            m_listener.Stop();
-            m_listener = null;
+            
+            // Try to cancel any running operations gracefully
+            try { m_CancellationSource?.Cancel(); } catch { /* ignore */ }
+            try { m_contextFactory?.Shutdown(); } catch { /* ignore */ }
+            
+            // Atomically take the listener reference so no other thread can see it anymore
+            var listener = Interlocked.Exchange(ref m_listener, null);
+            
+            try { listener?.Stop(); } catch { /* ignore */ }
+            
+            // wait for AcceptLoop to finish
+            var ok = m_shutdownEvent.WaitOne(TimeSpan.FromSeconds(10)); // 10s timeout recommended
+            if (!ok)
+                m_logWriter.Write(this, LogPrio.Error, "Failed to shutdown listener properly - TIMEOUT 10s");
+
+            try { m_CancellationSource?.Dispose(); } catch { /* ignore */ }
+
             Dispose();
         }
 
@@ -262,11 +279,8 @@ namespace OSHttpServer
 
         protected void Dispose(bool disposing)
         {
-            if (m_shutdownEvent != null)
-            {
-                m_shutdownEvent.Dispose();
-                m_CancellationSource.Dispose();
-            }
+            m_shutdownEvent?.Dispose();
+            m_CancellationSource?.Dispose(); // double?
         }
     }
 }
