@@ -28,37 +28,37 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Xml;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
 
-/// <summary>
-/// Loads assets from the filesystem location.  Not yet a plugin, though it should be.
-/// </summary>
+
 namespace OpenSim.Framework.AssetLoader.Filesystem
 {
+    /// <summary>
+    /// Loads assets from the filesystem location.  Not yet a plugin, though it should be.
+    /// </summary>
     public class AssetLoaderFileSystem : IAssetLoader
     {
-        private static readonly UUID LIBRARY_OWNER_ID = new UUID("11111111-1111-0000-0000-000100bba000");
-        private static readonly string LIBRARY_OWNER_IDstr = "11111111-1111-0000-0000-000100bba000";
+        private const string DEFAULT_LIBRARY_OWNER_ID = "11111111-1111-0000-0000-000100bba000";
 
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod()?.DeclaringType);
 
         protected static AssetBase CreateAsset(string assetIdStr, string name, string path, sbyte type)
         {
-            AssetBase asset = new AssetBase(new UUID(assetIdStr), name, type, LIBRARY_OWNER_IDstr);
+            var asset = new AssetBase(new UUID(assetIdStr), name, type, DEFAULT_LIBRARY_OWNER_ID);
 
-            if (!String.IsNullOrEmpty(path))
+            if (!string.IsNullOrEmpty(path))
             {
                 //m_log.InfoFormat("[ASSETS]: Loading: [{0}][{1}]", name, path);
-
                 LoadAsset(asset, path);
             }
             else
             {
-                asset.Data = Array.Empty<byte>();
+                asset.Data = [];
                 m_log.InfoFormat("[ASSETS]: Instantiated: [{0}]", name);
             }
 
@@ -67,23 +67,12 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
 
         protected static void LoadAsset(AssetBase info, string path)
         {
-//            bool image =
-//               (info.Type == (sbyte)AssetType.Texture ||
-//                info.Type == (sbyte)AssetType.TextureTGA ||
-//                info.Type == (sbyte)AssetType.ImageJPEG ||
-//                info.Type == (sbyte)AssetType.ImageTGA);
-
-            FileInfo fInfo = new FileInfo(path);
-            long numBytes = fInfo.Length;
-            if (fInfo.Exists)
+            var fileInfo = new FileInfo(path);
+            if (fileInfo.Exists)
             {
-                FileStream fStream = new FileStream(path, FileMode.Open, FileAccess.Read);
-                BinaryReader br = new BinaryReader(fStream);
-                byte[] idata = br.ReadBytes((int)numBytes);
-                br.Close();
-                fStream.Close();
-                info.Data = idata;
-                //info.loaded=true;
+                using var fileStream = new FileStream(path, FileMode.Open, FileAccess.Read);
+                using var binaryReader = new BinaryReader(fileStream);
+                info.Data = binaryReader.ReadBytes((int)fileInfo.Length);
             }
             else
             {
@@ -93,34 +82,33 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
 
         public void ForEachDefaultXmlAsset(string assetSetFilename, Action<AssetBase> action)
         {
-            List<AssetBase> assets = new List<AssetBase>();
-            if (File.Exists(assetSetFilename))
-            {
-                string assetSetPath = "ERROR";
-                string assetRootPath = "";
-                try
-                {
-                    XmlConfigSource source = new XmlConfigSource(assetSetFilename);
-                    assetRootPath = Path.GetFullPath(source.SavePath);
-                    assetRootPath = Path.GetDirectoryName(assetRootPath);
-
-                    for (int i = 0; i < source.Configs.Count; i++)
-                    {
-                        assetSetPath = source.Configs[i].GetString("file", String.Empty);
-
-                        LoadXmlAssetSet(Path.Combine(assetRootPath, assetSetPath), assets);
-                    }
-                }
-                catch (XmlException e)
-                {
-                    m_log.ErrorFormat("[ASSETS]: Error loading {0} : {1}", assetSetPath, e.Message);
-                }
-            }
-            else
+            if (!File.Exists(assetSetFilename))
             {
                 m_log.ErrorFormat("[ASSETS]: Asset set control file {0} does not exist! No assets loaded.", assetSetFilename);
+                return;           
             }
+            
+            var assets = new List<AssetBase>();
+            
+            var assetSetPath = "ERROR";
+            try
+            {
+                var source = new XmlConfigSource(assetSetFilename);
+                var assetRootPath = Path.GetFullPath(source.SavePath);
+                assetRootPath = Path.GetDirectoryName(assetRootPath);
 
+                foreach (IConfig cfg in source.Configs)
+                {
+                    assetSetPath = cfg.GetString("file", string.Empty);
+                    var assetFinalPath = (assetRootPath is null) ? assetSetPath : Path.Combine(assetRootPath, assetSetPath);
+                    LoadXmlAssetSet(assetFinalPath, assets);
+                }
+            }
+            catch (XmlException e)
+            {
+                m_log.ErrorFormat("[ASSETS]: Error loading {0} : {1}", assetSetPath, e.Message);
+            }
+            
             assets.ForEach(action);
         }
 
@@ -133,39 +121,33 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
         {
             //m_log.InfoFormat("[ASSETS]: Loading asset set {0}", assetSetPath);
 
-            if (File.Exists(assetSetPath))
-            {
-                try
-                {
-                    XmlConfigSource source = new XmlConfigSource(assetSetPath);
-                    String dir = Path.GetDirectoryName(assetSetPath);
-
-                    for (int i = 0; i < source.Configs.Count; i++)
-                    {
-                        string assetIdStr = source.Configs[i].GetString("assetID", UUID.Random().ToString());
-                        string name = source.Configs[i].GetString("name", String.Empty);
-                        sbyte type = (sbyte)source.Configs[i].GetInt("assetType", 0);
-
-                        string assetPath =  source.Configs[i].GetString("fileName", String.Empty);
-                        AssetBase newAsset;
-                        if (string.IsNullOrEmpty(assetPath))
-                            newAsset = CreateAsset(assetIdStr, name, null, type);
-                        else
-                            newAsset = CreateAsset(assetIdStr, name, Path.Combine(dir, assetPath), type);
-
-                        newAsset.Type = type;
-                        assets.Add(newAsset);
-                    }
-                }
-                catch (XmlException e)
-                {
-                    m_log.ErrorFormat("[ASSETS]: Error loading {0} : {1}", assetSetPath, e.Message);
-                }
-            }
-            else
+            if (!File.Exists(assetSetPath))
             {
                 m_log.ErrorFormat("[ASSETS]: Asset set file {0} does not exist!", assetSetPath);
+                return;           
             }
+
+            try
+            {
+                var source = new XmlConfigSource(assetSetPath);
+                var dir = Path.GetDirectoryName(assetSetPath) ?? string.Empty;
+                
+                assets.AddRange(
+                    from IConfig cfg in source.Configs 
+                    let assetPath = cfg.GetString("fileName", string.Empty) 
+                    select CreateAsset(
+                        cfg.GetString("assetID", UUID.Random().ToString()), 
+                        cfg.GetString("name", string.Empty), 
+                        string.IsNullOrEmpty(assetPath) ? null : Path.Combine(dir, assetPath), 
+                        (sbyte)cfg.GetInt("assetType", 0)
+                    )
+                );
+            }
+            catch (XmlException e)
+            {
+                m_log.ErrorFormat("[ASSETS]: Error loading {0} : {1}", assetSetPath, e.Message);
+            }
+            
         }
     }
 }
