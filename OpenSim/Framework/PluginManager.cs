@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
@@ -28,16 +27,11 @@
 
 
 using System;
-using System.Text;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using Mono.Addins;
 using Mono.Addins.Setup;
-using Mono.Addins.Description;
-using OpenSim.Framework;
-
 
 namespace OpenSim.Framework
 {
@@ -46,12 +40,11 @@ namespace OpenSim.Framework
     /// </summary>
     public class PluginManager : SetupService
     {
-        public AddinRegistry PluginRegistry;
+        public readonly AddinRegistry PluginRegistry;
 
         public PluginManager(AddinRegistry registry): base (registry)
         {
             PluginRegistry = registry;
-
         }
 
         /// <summary>
@@ -60,20 +53,15 @@ namespace OpenSim.Framework
         /// <returns>
         /// The plugin.
         /// </returns>
-        /// <param name='args'>
-        /// Arguments.
-        /// </param>
         public bool InstallPlugin(int ndx, out Dictionary<string, object> result)
         {
-            Dictionary<string, object> res = new Dictionary<string, object>();
+            var res = new Dictionary<string, object>();
 
-            PackageCollection pack = new PackageCollection();
-            PackageCollection toUninstall;
-            DependencyCollection unresolved;
+            var pack = new PackageCollection();
 
             IProgressStatus ps = new ConsoleProgressStatus(false);
 
-            AddinRepositoryEntry[] available = GetSortedAvailbleAddins();
+            var available = GetSortedAvailbleAddins();
 
             if (ndx > (available.Length - 1))
             {
@@ -82,19 +70,19 @@ namespace OpenSim.Framework
                 return false;
             }
 
-            AddinRepositoryEntry aentry = available[ndx];
+            var aentry = available[ndx];
 
-            Package p = Package.FromRepository(aentry);
+            var p = Package.FromRepository(aentry);
             pack.Add(p);
 
-            ResolveDependencies(ps, pack, out toUninstall, out unresolved);
+            ResolveDependencies(ps, pack, out _, out _);
 
             // Attempt to install the plugin disabled
-            if (Install(ps, pack) == true)
+            if (Install(ps, pack))
             {
                 MainConsole.Instance.Output("Ignore the following error...");
                 PluginRegistry.Update(ps);
-                Addin addin = PluginRegistry.GetAddin(aentry.Addin.Id);
+                var addin = PluginRegistry.GetAddin(aentry.Addin.Id);
                 PluginRegistry.DisableAddin(addin.Id);
                 addin.Enabled = false;
 
@@ -103,24 +91,20 @@ namespace OpenSim.Framework
                 result = res;
                 return true;
             }
-            else
-            {
-                MainConsole.Instance.Output("Installation Failed");
-                result = res;
-                return false;
-            }
+
+            MainConsole.Instance.Output("Installation Failed");
+            result = res;
+            return false;
+            
         }
 
         // Remove plugin
         /// <summary>
         /// Uns the install.
         /// </summary>
-        /// <param name='args'>
-        /// Arguments.
-        /// </param>
         public void UnInstall(int ndx)
         {
-            Addin[] addins = GetSortedAddinList("RobustPlugin");
+            var addins = GetSortedAddinList("RobustPlugin");
 
             if (ndx > (addins.Length -1))
             {
@@ -128,14 +112,13 @@ namespace OpenSim.Framework
                 return;
             }
 
-            Addin addin = addins[ndx];
+            var addin = addins[ndx];
             MainConsole.Instance.Output("Uninstalling plugin {0}", addin.Id);
             AddinManager.Registry.DisableAddin(addin.Id);
             addin.Enabled = false;
             IProgressStatus ps = new ConsoleProgressStatus(false);
             Uninstall(ps, addin.Id);
             MainConsole.Instance.Output("Uninstall Success - restart to complete operation");
-            return;
         }
 
         /// <summary>
@@ -157,27 +140,28 @@ namespace OpenSim.Framework
         /// </param>
         public void ListInstalledAddins(out Dictionary<string, object> result)
         {
-            Dictionary<string, object> res = new Dictionary<string, object>();
+            var res = new Dictionary<string, object>();
 
-            Addin[] addins = GetSortedAddinList("RobustPlugin");
-            if(addins.Count() < 1)
+            var addins = GetSortedAddinList("RobustPlugin");
+            if (addins.Length == 0)
             {
                 MainConsole.Instance.Output("Error!");
             }
-            int count = 0;
-            foreach (Addin addin in addins)
+            var count = 0;
+            foreach (var addin in addins)
             {
-                Dictionary<string, object> r = new Dictionary<string, object>();
-                r["enabled"] = addin.Enabled == true ? true : false;
-                r["name"] = addin.LocalId;
-                r["version"] = addin.Version;
+                var r = new Dictionary<string, object>
+                {
+                    ["enabled"] = addin.Enabled,
+                    ["name"] = addin.LocalId,
+                    ["version"] = addin.Version
+                };
 
                 res.Add(count.ToString(), r);
 
                 count++;
             }
             result = res;
-            return;
         }
 
         // List compatible plugins in registered repositories
@@ -189,23 +173,24 @@ namespace OpenSim.Framework
         /// </param>
         public void ListAvailable(out Dictionary<string, object> result)
         {
-            Dictionary<string, object> res = new Dictionary<string, object>();
+            var res = new Dictionary<string, object>();
 
-            AddinRepositoryEntry[] addins = GetSortedAvailbleAddins();
+            var addins = GetSortedAvailbleAddins();
 
-            int count = 0;
-            foreach (AddinRepositoryEntry addin in addins)
+            var count = 0;
+            foreach (var addin in addins)
             {
-                Dictionary<string, object> r = new Dictionary<string, object>();
-                r["name"] = addin.Addin.Name;
-                r["version"] = addin.Addin.Version;
-                r["repository"] = addin.RepositoryName;
+                var r = new Dictionary<string, object>
+                {
+                    ["name"] = addin.Addin.Name,
+                    ["version"] = addin.Addin.Version,
+                    ["repository"] = addin.RepositoryName
+                };
 
                 res.Add(count.ToString(), r);
                 count++;
             }
             result = res;
-            return;
         }
 
         // List available updates ** 1
@@ -215,15 +200,16 @@ namespace OpenSim.Framework
         public void ListUpdates()
         {
             IProgressStatus ps = new ConsoleProgressStatus(true);
+            
             Console.WriteLine ("Looking for updates...");
-            Repositories.UpdateAllRepositories (ps);
+            Repositories.UpdateAllRepositories(ps);
             Console.WriteLine ("Available add-in updates:");
 
-            AddinRepositoryEntry[] entries = Repositories.GetAvailableUpdates();
+            var entries = Repositories.GetAvailableUpdates();
 
-            foreach (AddinRepositoryEntry entry in entries)
+            foreach (var entry in entries)
             {
-                Console.WriteLine(String.Format("{0}",entry.Addin.Id));
+                Console.WriteLine($"{entry.Addin.Id}");
             }
         }
 
@@ -273,8 +259,8 @@ namespace OpenSim.Framework
         /// </param>
         public void RemoveRepository(string[] args)
         {
-            AddinRepository[] reps = Repositories.GetRepositories();
-            Array.Sort(reps, (r1,r2) => r1.Title.CompareTo(r2.Title));
+            var reps = Repositories.GetRepositories();
+            Array.Sort(reps, (r1,r2) => string.Compare(r1.Title, r2.Title, StringComparison.Ordinal));
             if (reps.Length == 0)
             {
                 MainConsole.Instance.Output("No repositories have been registered.");
@@ -288,9 +274,8 @@ namespace OpenSim.Framework
                 return;
             }
 
-            AddinRepository rep = reps[n];
+            var rep = reps[n];
             Repositories.RemoveRepository(rep.Url);
-            return;
         }
 
         // Enable repository
@@ -302,8 +287,8 @@ namespace OpenSim.Framework
         /// </param>
         public void EnableRepository(string[] args)
         {
-            AddinRepository[] reps = Repositories.GetRepositories();
-            Array.Sort(reps, (r1,r2) => r1.Title.CompareTo(r2.Title));
+            var reps = Repositories.GetRepositories();
+            Array.Sort(reps, (r1,r2) => string.Compare(r1.Title, r2.Title, StringComparison.Ordinal));
             if (reps.Length == 0)
             {
                 MainConsole.Instance.Output("No repositories have been registered.");
@@ -319,7 +304,6 @@ namespace OpenSim.Framework
 
             AddinRepository rep = reps[n];
             Repositories.SetRepositoryEnabled(rep.Url, true);
-            return;
         }
 
         // Disable a repository
@@ -331,8 +315,8 @@ namespace OpenSim.Framework
         /// </param>
         public void DisableRepository(string[] args)
         {
-            AddinRepository[] reps = Repositories.GetRepositories();
-            Array.Sort(reps, (r1,r2) => r1.Title.CompareTo(r2.Title));
+            var reps = Repositories.GetRepositories();
+            Array.Sort(reps, (r1,r2) => string.Compare(r1.Title, r2.Title, StringComparison.Ordinal));
             if (reps.Length == 0)
             {
                 MainConsole.Instance.Output("No repositories have been registered.");
@@ -348,7 +332,6 @@ namespace OpenSim.Framework
 
             AddinRepository rep = reps[n];
             Repositories.SetRepositoryEnabled(rep.Url, false);
-            return;
         }
 
         // List registered repositories
@@ -360,28 +343,29 @@ namespace OpenSim.Framework
         /// </param>
         public void ListRepositories(out Dictionary<string, object> result)
         {
-            Dictionary<string, object> res = new Dictionary<string, object>();
+            var res = new Dictionary<string, object>();
             result = res;
 
-            AddinRepository[] reps = GetSortedAddinRepo();
+            var reps = GetSortedAddinRepo();
             if (reps.Length == 0)
             {
                 MainConsole.Instance.Output("No repositories have been registered.");
                 return;
             }
 
-            int count = 0;
-            foreach (AddinRepository rep in reps)
+            var count = 0;
+            foreach (var rep in reps)
             {
-                Dictionary<string, object> r = new Dictionary<string, object>();
-                r["enabled"] = rep.Enabled == true ? true : false;
-                r["name"] = rep.Name;
-                r["url"] = rep.Url;
+                var r = new Dictionary<string, object>
+                {
+                    ["enabled"] = rep.Enabled,
+                    ["name"] = rep.Name,
+                    ["url"] = rep.Url
+                };
 
                 res.Add(count.ToString(), r);
                 count++;
             }
-            return;
         }
 
         /// <summary>
@@ -399,15 +383,13 @@ namespace OpenSim.Framework
         /// <returns>
         /// The info.
         /// </returns>
-        /// <param name='args'>
-        /// Arguments.
-        /// </param>
+
         public bool AddinInfo(int ndx, out Dictionary<string, object> result)
         {
-            Dictionary<string, object> res = new Dictionary<string, object>();
+            var res = new Dictionary<string, object>();
             result = res;
 
-            Addin[] addins = GetSortedAddinList("RobustPlugin");
+            var addins = GetSortedAddinList("RobustPlugin");
 
             if (ndx > (addins.Length - 1))
             {
@@ -415,7 +397,7 @@ namespace OpenSim.Framework
                 return false;
             }
             // author category description
-            Addin addin = addins[ndx];
+            var addin = addins[ndx];
 
             res["author"] = addin.Description.Author;
             res["category"] = addin.Description.Category;
@@ -437,7 +419,7 @@ namespace OpenSim.Framework
         /// </param>
         public void DisablePlugin(string[] args)
         {
-            Addin[] addins = GetSortedAddinList("RobustPlugin");
+            var addins = GetSortedAddinList("RobustPlugin");
 
             int n = Convert.ToInt16(args[2]);
             if (n > (addins.Length -1))
@@ -446,10 +428,9 @@ namespace OpenSim.Framework
                 return;
             }
 
-            Addin addin = addins[n];
+            var addin = addins[n];
             AddinManager.Registry.DisableAddin(addin.Id);
             addin.Enabled = false;
-            return;
         }
 
         // Enable plugin
@@ -461,7 +442,7 @@ namespace OpenSim.Framework
         /// </param>
         public void EnablePlugin(string[] args)
         {
-            Addin[] addins = GetSortedAddinList("RobustPlugin");
+            var addins = GetSortedAddinList("RobustPlugin");
 
             int n = Convert.ToInt16(args[2]);
             if (n > (addins.Length -1))
@@ -470,38 +451,39 @@ namespace OpenSim.Framework
                 return;
             }
 
-            Addin addin = addins[n];
+            var addin = addins[n];
 
             addin.Enabled = true;
             AddinManager.Registry.EnableAddin(addin.Id);
             // AddinManager.Registry.Update();
-            if(PluginRegistry.IsAddinEnabled(addin.Id))
+            if (PluginRegistry.IsAddinEnabled(addin.Id))
             {
-                ConsoleProgressStatus ps = new ConsoleProgressStatus(false);
-                if (!AddinManager.AddinEngine.IsAddinLoaded(addin.Id))
-                {
-                    MainConsole.Instance.Output("Ignore the following error...");
-                    AddinManager.Registry.Rebuild(ps);
-                    AddinManager.AddinEngine.LoadAddin(ps, addin.Id);
-                }
+                var ps = new ConsoleProgressStatus(false);
+                
+                if (AddinManager.AddinEngine.IsAddinLoaded(addin.Id)) return;
+                
+                MainConsole.Instance.Output("Ignore the following error...");
+                AddinManager.Registry.Rebuild(ps);
+                AddinManager.AddinEngine.LoadAddin(ps, addin.Id);
             }
             else
             {
                 MainConsole.Instance.Output("Not Enabled in this domain {0}", addin.Name);
             }
-            return;
         }
 
 
 
         #region Util
+        
+        // @todo: remove this?
         private void Testing()
         {
-            Addin[] list = Registry.GetAddins();
+            var list = Registry.GetAddins();
 
             var addins = list.Where( a => a.Description.Category == "RobustPlugin");
 
-            foreach (Addin addin in addins)
+            foreach (var addin in addins)
             {
                 MainConsole.Instance.Output("Addin {0}", addin.Name);
             }
@@ -511,40 +493,45 @@ namespace OpenSim.Framework
         // of needing to type in the full ids
         private AddinRepositoryEntry[] GetSortedAvailbleAddins()
         {
-            ArrayList list = new ArrayList();
+            var list = new ArrayList();
             list.AddRange(Repositories.GetAvailableAddins());
 
-            AddinRepositoryEntry[] addins = list.ToArray(typeof(AddinRepositoryEntry)) as AddinRepositoryEntry[];
+            var addins = list.ToArray(typeof(AddinRepositoryEntry)) as AddinRepositoryEntry[];
 
-            Array.Sort(addins,(r1,r2) => r1.Addin.Id.CompareTo(r2.Addin.Id));
+            if (addins is not null && addins.Length > 0)
+            {
+                Array.Sort(addins,(r1,r2) => string.Compare(r1.Addin.Id, r2.Addin.Id, StringComparison.Ordinal));
+            }
 
             return addins;
         }
 
         private AddinRepository[] GetSortedAddinRepo()
         {
-            ArrayList list = new ArrayList();
+            var list = new ArrayList();
             list.AddRange(Repositories.GetRepositories());
 
-            AddinRepository[] repos = list.ToArray(typeof(AddinRepository)) as AddinRepository[];
-            Array.Sort (repos,(r1,r2) => r1.Name.CompareTo(r2.Name));
-
+            var repos = list.ToArray(typeof(AddinRepository)) as AddinRepository[];
+            if (repos is not null && repos.Length > 0)
+            {
+                Array.Sort(repos, (r1, r2) => string.Compare(r1.Name, r2.Name, StringComparison.Ordinal));
+            }
             return repos;
+         
         }
 
         private Addin[] GetSortedAddinList(string category)
         {
 
-            ArrayList xlist = new ArrayList();
-            ArrayList list = new ArrayList();
+            var xlist = new ArrayList();
+            var list = new ArrayList();
             try
             {
                 list.AddRange(PluginRegistry.GetAddins());
             }
             catch (Exception)
             {
-                Addin[] x = xlist.ToArray(typeof(Addin)) as Addin[];
-                return x;
+                return xlist.ToArray(typeof(Addin)) as Addin[];
             }
 
             foreach (Addin addin in list)
@@ -553,9 +540,13 @@ namespace OpenSim.Framework
                     xlist.Add(addin);
             }
 
-            Addin[] addins = xlist.ToArray(typeof(Addin)) as Addin[];
-            Array.Sort(addins,(r1,r2) => r1.Id.CompareTo(r2.Id));
-
+            var addins = xlist.ToArray(typeof(Addin)) as Addin[];
+            
+            if (addins is not null && addins.Length > 0)
+            {
+                Array.Sort(addins, (r1, r2) => string.Compare(r1.Id, r2.Id, StringComparison.Ordinal));
+            }
+            
             return addins;
         }
         #endregion Util
