@@ -88,6 +88,26 @@
       </Files>
     </Project>
 
+    <Project name="OpenSim.Framework.Security" path="OpenSim/Framework/Security" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="OpenSim.Framework" path ="../../../bin"/>
+      <Reference name="log4net" path ="../../../bin"/>
+      <Files>
+        <Match pattern="*.cs" recurse="false"/>
+      </Files>
+    </Project>
+
     <Project name="OpenSim.Services.Interfaces" path="OpenSim/Services/Interfaces" type="Library">
       <Configuration name="Debug">
         <Options>
