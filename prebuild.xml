@@ -102,9 +102,13 @@
 
       <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="OpenSim.Framework" path ="../../../bin"/>
+      <Reference name="OpenSim.Framework.Console" path ="../../../bin"/>
+      <Reference name="Nini" path ="../../../bin"/>
       <Reference name="log4net" path ="../../../bin"/>
       <Files>
-        <Match pattern="*.cs" recurse="false"/>
+        <Match path="DOSProtector" pattern="*.cs" recurse="true">
+          <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 

@@ -24,48 +24,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+using System;
+using OpenSim.Framework.Security.DOSProtector.Interfaces;
 
-namespace OpenSim.Framework.Security
+namespace OpenSim.Framework.Security.DOSProtector.Options
 {
-    /// <summary>
-    /// Builder class for creating DOS protector instances based on options type.
-    /// Automatically selects the appropriate implementation (Basic or Advanced).
-    /// </summary>
-    public static class DOSProtectorBuilder
+    
+    public class BasicDosProtectorOptions : IDOSProtectorOptions
     {
+        public int MaxRequestsInTimeframe { get; set; }
+        public TimeSpan RequestTimeSpan { get; set; }
+        public TimeSpan ForgetTimeSpan { get; set; }
+        public bool AllowXForwardedFor { get; set; }
+        public string ReportingName { get; set; } = "BASICDOSPROTECTOR";
+        public ThrottleAction ThrottledAction { get; set; } = ThrottleAction.DoThrottledMethod;
+        public int MaxConcurrentSessions { get; set; }
+
         /// <summary>
-        /// Builds a DOS protector instance based on the options type.
-        /// - BasicDosProtectorOptions → BasicDOSProtector
-        /// - AdvancedDosProtectorOptions → AdvancedDOSProtector
+        /// Time-To-Live for inspection entries. Inactive clients are removed after this duration.
+        /// Defaults to 10 minutes to allow for temporary traffic bursts.
         /// </summary>
-        /// <param name="options">Configuration options (Basic or Advanced)</param>
-        /// <returns>IDOSProtector instance</returns>
-        /// <example>
-        /// <code>
-        /// // Creates BasicDOSProtector
-        /// var basic = DOSProtectorBuilder.Build(new BasicDosProtectorOptions { ... });
-        ///
-        /// // Creates AdvancedDOSProtector (automatically detected)
-        /// var advanced = DOSProtectorBuilder.Build(new AdvancedDosProtectorOptions
-        /// {
-        ///     LimitBlockExtensions = true,
-        ///     MaxBlockExtensions = 3
-        /// });
-        ///
-        /// // Use with SessionScope pattern
-        /// using (var session = protector.CreateSession(key, endpoint))
-        /// {
-        ///     // handle request
-        /// }
-        /// </code>
-        /// </example>
-        public static IDOSProtector Build(BasicDosProtectorOptions options)
-        {
-            return options switch
-            {
-                AdvancedDosProtectorOptions advancedOptions => new AdvancedDOSProtector(advancedOptions),
-                _ => new BasicDOSProtector(options)
-            };
-        }
+        public TimeSpan InspectionTTL { get; set; } = TimeSpan.FromMinutes(10);
+
+        /// <summary>
+        /// Log level for DOS protection events.
+        /// Controls verbosity of logging to prevent log spam during attacks.
+        /// Default: Warn (logs blocks and warnings)
+        /// </summary>
+        public DOSProtectorLogLevel LogLevel { get; set; } = DOSProtectorLogLevel.Warn;
+
+        /// <summary>
+        /// Redact client identifiers (IPs) in log messages for privacy/GDPR compliance.
+        /// When enabled, logs show partial identifiers (e.g., "192.168.***.***").
+        /// Default: false (full identifiers logged)
+        /// </summary>
+        public bool RedactClientIdentifiers { get; set; } = false;
     }
 }

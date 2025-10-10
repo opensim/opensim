@@ -1,0 +1,24 @@
+; Configuration for DOS Protector Plugin System
+; Copy this to your bin/ directory and rename to DOSProtector.ini
+
+[DOSProtector]
+    ; Enable/disable plugin loading
+    ; Default: true
+    EnablePlugins = true
+
+    ; Comma-separated list of paths to scan for DOS protector plugin assemblies
+    ; Paths can be:
+    ;   - Absolute path to a DLL file
+    ;   - Absolute path to a directory (scans for *.dll files)
+    ;   - Relative path from bin/ directory
+    ;
+    ; Examples:
+    ;   PluginPaths = "C:\OpenSim\Plugins\DOSProtectors,./addons/dosprotectors"
+    ;   PluginPaths = "../custom-plugins/MyDOSProtector.dll"
+    ;
+    ; Default: empty (no additional plugins)
+    PluginPaths = ""
+
+    ; Enable verbose logging during plugin discovery
+    ; Default: false
+    VerbosePluginLoading = false

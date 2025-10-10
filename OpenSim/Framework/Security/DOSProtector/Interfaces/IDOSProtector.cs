@@ -26,7 +26,7 @@
  */
 using System;
 
-namespace OpenSim.Framework.Security
+namespace OpenSim.Framework.Security.DOSProtector.Interfaces
 {
     /// <summary>
     /// Interface for DOS protection implementations

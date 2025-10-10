@@ -24,37 +24,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-using System;
 
-namespace OpenSim.Framework.Security
+namespace OpenSim.Framework.Security.DOSProtector.Options
 {
     /// <summary>
-    /// Advanced configuration options for AdvancedDOSProtector
-    /// Extends BasicDosProtectorOptions with additional security features
+    /// Action to take when throttling occurs
     /// </summary>
-    public class AdvancedDosProtectorOptions : BasicDosProtectorOptions
+    public enum ThrottleAction
     {
-        /// <summary>
-        /// Enable block extension limiting to prevent permanent blocks.
-        /// When enabled, uses MaxBlockExtensions and/or MaxTotalBlockDuration.
-        /// Default: false (preserves existing unlimited extension behavior).
-        /// </summary>
-        public bool LimitBlockExtensions { get; set; } = false;
+        /// <summary>Execute the throttled method</summary>
+        DoThrottledMethod,
+        /// <summary>Throw an exception</summary>
+        DoThrow
+    }
 
-        /// <summary>
-        /// Maximum number of times a block can be extended.
-        /// Only applies when LimitBlockExtensions = true.
-        /// 0 = no limit on extension count (only duration matters).
-        /// Default: 3
-        /// </summary>
-        public int MaxBlockExtensions { get; set; } = 3;
-
-        /// <summary>
-        /// Maximum total duration a client can remain blocked.
-        /// Only applies when LimitBlockExtensions = true.
-        /// TimeSpan.Zero = no duration limit (only extension count matters).
-        /// Default: 1 hour
-        /// </summary>
-        public TimeSpan MaxTotalBlockDuration { get; set; } = TimeSpan.FromHours(1);
+    /// <summary>
+    /// Log level for DOS protection events
+    /// </summary>
+    public enum DOSProtectorLogLevel
+    {
+        /// <summary>No logging</summary>
+        None,
+        /// <summary>Only errors and critical blocks</summary>
+        Error,
+        /// <summary>Warnings and blocks (default)</summary>
+        Warn,
+        /// <summary>Info including unblocks</summary>
+        Info,
+        /// <summary>Debug including cleanup operations</summary>
+        Debug
     }
 }

@@ -25,29 +25,37 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 using System;
+using OpenSim.Framework.Security.DOSProtector.Interfaces;
 
-namespace OpenSim.Framework.Security
+namespace OpenSim.Framework.Security.DOSProtector.Options
 {
-    public enum ThrottleAction
+    /// <summary>
+    /// Advanced configuration options for AdvancedDOSProtector
+    /// Extends BasicDosProtectorOptions with additional security features
+    /// </summary>
+    public class AdvancedDosProtectorOptions : BasicDosProtectorOptions
     {
-        DoThrottledMethod,
-        DoThrow
-    }
-
-    public class BasicDosProtectorOptions
-    {
-        public int MaxRequestsInTimeframe;
-        public TimeSpan RequestTimeSpan;
-        public TimeSpan ForgetTimeSpan;
-        public bool AllowXForwardedFor;
-        public string ReportingName = "BASICDOSPROTECTOR";
-        public ThrottleAction ThrottledAction = ThrottleAction.DoThrottledMethod;
-        public int MaxConcurrentSessions;
+        /// <summary>
+        /// Enable block extension limiting to prevent permanent blocks.
+        /// When enabled, uses MaxBlockExtensions and/or MaxTotalBlockDuration.
+        /// Default: false (preserves existing unlimited extension behavior).
+        /// </summary>
+        public bool LimitBlockExtensions { get; set; } = false;
 
         /// <summary>
-        /// Time-To-Live for inspection entries. Inactive clients are removed after this duration.
-        /// Defaults to 10 minutes to allow for temporary traffic bursts.
+        /// Maximum number of times a block can be extended.
+        /// Only applies when LimitBlockExtensions = true.
+        /// 0 = no limit on extension count (only duration matters).
+        /// Default: 3
         /// </summary>
-        public TimeSpan InspectionTTL { get; set; } = TimeSpan.FromMinutes(10);
+        public int MaxBlockExtensions { get; set; } = 3;
+
+        /// <summary>
+        /// Maximum total duration a client can remain blocked.
+        /// Only applies when LimitBlockExtensions = true.
+        /// TimeSpan.Zero = no duration limit (only extension count matters).
+        /// Default: 1 hour
+        /// </summary>
+        public TimeSpan MaxTotalBlockDuration { get; set; } = TimeSpan.FromHours(1);
     }
 }
