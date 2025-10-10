@@ -32,7 +32,17 @@ using log4net;
 
 namespace OpenSim.Framework
 {
-
+    /// <summary>
+    /// DEPRECATED: Please migrate to OpenSim.Framework.Security.BasicDOSProtector or AdvancedDOSProtector.
+    ///
+    /// This class remains here for backward compatibility and includes the memory leak fix (TTL cleanup).
+    /// For new features like block extension limiting, use OpenSim.Framework.Security.AdvancedDOSProtector.
+    ///
+    /// Migration: Simply change your using statement to:
+    ///   using OpenSim.Framework.Security;
+    ///
+    /// See: OpenSim/Framework/Security/ for the new implementation.
+    /// </summary>
     public class BasicDOSProtector : IDisposable
     {
         public enum ThrottleAction
@@ -480,6 +490,15 @@ namespace OpenSim.Framework
     }
 
 
+    /// <summary>
+    /// DEPRECATED: Please migrate to OpenSim.Framework.Security.BasicDosProtectorOptions or AdvancedDosProtectorOptions.
+    ///
+    /// This class remains here for backward compatibility.
+    /// For advanced features, use OpenSim.Framework.Security.AdvancedDosProtectorOptions.
+    ///
+    /// Migration: Change your using statement to:
+    ///   using OpenSim.Framework.Security;
+    /// </summary>
     public class BasicDosProtectorOptions
     {
         public int MaxRequestsInTimeframe;
