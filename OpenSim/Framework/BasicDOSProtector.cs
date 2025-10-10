@@ -25,8 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 using System;
+using System.Threading;
 using System.Collections.Generic;
-using System.Collections.Concurrent;
 using System.Reflection;
 using log4net;
 
@@ -41,81 +41,121 @@ namespace OpenSim.Framework
             DoThrow
         }
 
-        // Thread-safe collections
+        // General request checker
         private readonly CircularBuffer<int> _generalRequestTimes;
-        private readonly ConcurrentDictionary<string, CircularBuffer<int>> _deeperInspection;
-        private readonly ConcurrentDictionary<string, int> _tempBlocked;
-        private readonly ConcurrentDictionary<string, int> _sessions;
-        
         private readonly BasicDosProtectorOptions _options;
+
+        // Per client request checker
+        private readonly Dictionary<string, CircularBuffer<int>> _deeperInspection;
+
+        // Blocked list
+        private readonly Dictionary<string, int> _tempBlocked;
+
+        // Active session counter
+        private readonly Dictionary<string, int> _sessions;
+
+        // Cleanup timer
         private readonly System.Timers.Timer _forgetTimer;
+
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod()?.DeclaringType);
-        
-        // Single lock for _generalRequestTimes since it's shared across all requests
+
+        // Lock order: Always acquire in this order to prevent deadlocks:
+        // 1. _deeperInspection (monitor lock)
+        // 2. _blockLockSlim
+        // 3. _sessionLockSlim
+        // 4. _generalRequestLock
+        private readonly ReaderWriterLockSlim _blockLockSlim = new();
+        private readonly ReaderWriterLockSlim _sessionLockSlim = new();
         private readonly object _generalRequestLock = new();
-        
-        private volatile bool _disposed = false;
+
+        private bool _disposed;
 
         public BasicDOSProtector(BasicDosProtectorOptions options)
         {
             ArgumentNullException.ThrowIfNull(options);
 
-            _options = options;
-            
             _generalRequestTimes = new CircularBuffer<int>(options.MaxRequestsInTimeframe + 1, true);
             _generalRequestTimes.Put(0);
-            
-            _deeperInspection = new ConcurrentDictionary<string, CircularBuffer<int>>();
-            _tempBlocked = new ConcurrentDictionary<string, int>();
-            _sessions = new ConcurrentDictionary<string, int>();
-            
+            _options = options;
+            _deeperInspection = new Dictionary<string, CircularBuffer<int>>();
+            _tempBlocked = new Dictionary<string, int>();
+            _sessions = new Dictionary<string, int>();
             _forgetTimer = new System.Timers.Timer();
-            _forgetTimer.Elapsed += OnForgetTimerElapsed;
-            _forgetTimer.Interval = _options.ForgetTimeSpan.TotalMilliseconds;
-            _forgetTimer.AutoReset = false; // Manual restart for efficiency
-        }
-
-        private void OnForgetTimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
-        {
-            if (_disposed)
-                return;
-
-            try
+            _forgetTimer.Elapsed += delegate
             {
-                var now = Util.EnvironmentTickCount();
-                List<string> toRemove = [];
+                List<string> removes = [];
 
                 // Find expired blocks
-                foreach (var kvp in _tempBlocked)
+                _blockLockSlim.EnterReadLock();
+                try
                 {
-                    if (Util.EnvironmentTickCountSubtract(now, kvp.Value) > 0)
+                    var now = Util.EnvironmentTickCount();
+                    foreach (var kvp in _tempBlocked)
                     {
-                        toRemove.Add(kvp.Key);
+                        // Expired if now >= expiry (kvp.Value - now <= 0)
+                        if (Util.EnvironmentTickCountSubtract(kvp.Value, now) <= 0)
+                            removes.Add(kvp.Key);
                     }
+                }
+                finally
+                {
+                    _blockLockSlim.ExitReadLock();
                 }
 
                 // Remove expired entries
-                foreach (var key in toRemove)
+                if (removes.Count > 0)
                 {
-                    if (!_tempBlocked.TryRemove(key, out _)) 
-                        continue;
-                    
-                    _deeperInspection.TryRemove(key, out _);
-                    _sessions.TryRemove(key, out _);
-                        
-                    m_log.Info($"[{_options.ReportingName}] client: {key} is no longer blocked.");
+                    lock (_deeperInspection)
+                    {
+                        _blockLockSlim.EnterWriteLock();
+                        try
+                        {
+                            foreach (var t in removes)
+                            {
+                                _tempBlocked.Remove(t);
+                                _deeperInspection.Remove(t);
+                            }
+                        }
+                        finally
+                        {
+                            _blockLockSlim.ExitWriteLock();
+                        }
+                    }
+
+                    _sessionLockSlim.EnterWriteLock();
+                    try
+                    {
+                        foreach (var t in removes)
+                        {
+                            _sessions.Remove(t);
+                        }
+                    }
+                    finally
+                    {
+                        _sessionLockSlim.ExitWriteLock();
+                    }
+
+                    foreach (var str in removes)
+                    {
+                        m_log.Info($"[{_options.ReportingName}] client: {str} is no longer blocked.");
+                    }
                 }
 
                 // Restart timer if there are still blocked clients
-                if (_tempBlocked.Count > 0)
+                _blockLockSlim.EnterReadLock();
+                try
                 {
-                    _forgetTimer.Start();
+                    if (_tempBlocked.Count > 0)
+                        _forgetTimer.Enabled = true;
                 }
-            }
-            catch (Exception ex)
-            {
-                m_log.Error($"[{_options.ReportingName}] Error in forget timer: {ex.Message}", ex);
-            }
+                finally
+                {
+                    _blockLockSlim.ExitReadLock();
+                }
+            };
+
+            _forgetTimer.Interval = _options.ForgetTimeSpan.TotalMilliseconds;
+            _forgetTimer.AutoReset = false;
         }
 
         /// <summary>
@@ -125,7 +165,18 @@ namespace OpenSim.Framework
         /// <returns>bool Yes or No, True or False for blocked</returns>
         public bool IsBlocked(string key)
         {
-            return !string.IsNullOrEmpty(key) && _tempBlocked.ContainsKey(key);
+            if (string.IsNullOrEmpty(key))
+                return false;
+
+            _blockLockSlim.EnterReadLock();
+            try
+            {
+                return _tempBlocked.ContainsKey(key);
+            }
+            finally
+            {
+                _blockLockSlim.ExitReadLock();
+            }
         }
 
         /// <summary>
@@ -145,41 +196,81 @@ namespace OpenSim.Framework
             var clientstring = key;
 
             // Check if already blocked
-            if (_tempBlocked.ContainsKey(clientstring))
+            _blockLockSlim.EnterReadLock();
+            try
             {
-                return _options.ThrottledAction == ThrottleAction.DoThrottledMethod ? false : throw new System.Security.SecurityException("Throttled");
+                if (_tempBlocked.ContainsKey(clientstring))
+                {
+                    return _options.ThrottledAction == ThrottleAction.DoThrottledMethod 
+                        ? false 
+                        : throw new System.Security.SecurityException("Throttled");
+                }
+            }
+            finally
+            {
+                _blockLockSlim.ExitReadLock();
             }
 
             // Track general request rate
             lock (_generalRequestLock)
-            {
                 _generalRequestTimes.Put(Util.EnvironmentTickCount());
-            }
 
-            // Check concurrent sessions
+            // Check concurrent sessions if enabled
             if (_options.MaxConcurrentSessions > 0)
             {
-                var sessionCount = _sessions.GetOrAdd(key, 0);
-                
-                if (sessionCount > _options.MaxConcurrentSessions)
+                var sessionCount = 0;
+                _sessionLockSlim.EnterReadLock();
+                try
                 {
-                    BlockClient(clientstring, endpoint, "concurrency");
+                    _sessions.TryGetValue(key, out sessionCount);
+                }
+                finally
+                {
+                    _sessionLockSlim.ExitReadLock();
+                }
 
-                    return _options.ThrottledAction == ThrottleAction.DoThrottledMethod ? false : throw new System.Security.SecurityException("Throttled");
+                if (sessionCount >= _options.MaxConcurrentSessions)
+                {
+                    // Add to blocking and cleanup methods
+                    lock (_deeperInspection)
+                    {
+                        _blockLockSlim.EnterWriteLock();
+                        try
+                        {
+                            int blockDuration = (int)Math.Min(_options.ForgetTimeSpan.TotalMilliseconds, int.MaxValue / 2);
+                            if (!_tempBlocked.ContainsKey(clientstring))
+                            {
+                                _tempBlocked.Add(clientstring,
+                                                 Util.EnvironmentTickCount() + blockDuration);
+
+                                _forgetTimer.Enabled = true;
+
+                                m_log.Warn($"[{_options.ReportingName}]: client: {clientstring} is blocked for {_options.ForgetTimeSpan.TotalMilliseconds}ms based on concurrency, X-ForwardedForAllowed status is {_options.AllowXForwardedFor}, endpoint:{endpoint}");
+                            }
+                            else
+                                _tempBlocked[clientstring] = Util.EnvironmentTickCount() + blockDuration;
+                        }
+                        finally
+                        {
+                            _blockLockSlim.ExitWriteLock();
+                        }
+                    }
+
+                    return _options.ThrottledAction == ThrottleAction.DoThrottledMethod
+                        ? false
+                        : throw new System.Security.SecurityException("Throttled");
                 }
                 else
-                {
                     ProcessConcurrency(key, endpoint);
-                }
             }
 
             // Check if general rate limit exceeded
             bool generalLimitExceeded;
             lock (_generalRequestLock)
             {
-                generalLimitExceeded = _generalRequestTimes.Size == _generalRequestTimes.Capacity && 
-                                       (Util.EnvironmentTickCountSubtract(Util.EnvironmentTickCount(), _generalRequestTimes.Get()) <
-                                           _options.RequestTimeSpan.TotalMilliseconds);
+                generalLimitExceeded = _generalRequestTimes.Size == _generalRequestTimes.Capacity &&
+                    (Util.EnvironmentTickCountSubtract(Util.EnvironmentTickCount(), _generalRequestTimes.Get()) <
+                     _options.RequestTimeSpan.TotalMilliseconds);
             }
 
             if (generalLimitExceeded)
@@ -192,13 +283,24 @@ namespace OpenSim.Framework
                         : throw new System.Security.SecurityException("Throttled");
                 }
             }
-
+            
             return true;
         }
 
         private void ProcessConcurrency(string key, string endpoint)
         {
-            _sessions.AddOrUpdate(key, 1, (k, oldValue) => oldValue + 1);
+            _sessionLockSlim.EnterWriteLock();
+            try
+            {
+                if (_sessions.TryGetValue(key, out int count))
+                    _sessions[key] = count + 1;
+                else
+                    _sessions.Add(key, 1);
+            }
+            finally
+            {
+                _sessionLockSlim.ExitWriteLock();
+            }
         }
 
         public void ProcessEnd(string key, string endpoint)
@@ -206,18 +308,21 @@ namespace OpenSim.Framework
             if (string.IsNullOrEmpty(key))
                 return;
 
-            _sessions.AddOrUpdate(key, 
-                0, // If key doesn't exist, set to 0 (shouldn't happen in normal flow)
-                (k, oldValue) =>
-                {
-                    var newValue = oldValue - 1;
-                    return newValue < 0 ? 0 : newValue; // Prevent negative values
-                });
-
-            // Remove if zero
-            if (_sessions.TryGetValue(key, out var count) && count <= 0)
+            _sessionLockSlim.EnterWriteLock();
+            try
             {
-                _sessions.TryRemove(key, out _);
+                if (_sessions.TryGetValue(key, out int count))
+                {
+                    count--;
+                    if (count <= 0)
+                        _sessions.Remove(key);
+                    else
+                        _sessions[key] = count;
+                }
+            }
+            finally
+            {
+                _sessionLockSlim.ExitWriteLock();
             }
         }
 
@@ -229,55 +334,56 @@ namespace OpenSim.Framework
         /// <returns></returns>
         private bool DeeperInspection(string key, string endpoint)
         {
-            int now = Util.EnvironmentTickCount();
-
-            // Get or create client buffer
-            CircularBuffer<int> clientBuffer = _deeperInspection.GetOrAdd(key, k =>
+            lock (_deeperInspection)
             {
-                var buffer = new CircularBuffer<int>(_options.MaxRequestsInTimeframe + 1, true);
-                
-                // Start timer on first deeper inspection entry
-                if (_deeperInspection.Count == 1)
+                string clientstring = key;
+
+                if (_deeperInspection.ContainsKey(clientstring))
                 {
-                    _forgetTimer.Start();
+                    _deeperInspection[clientstring].Put(Util.EnvironmentTickCount());
+                    if (_deeperInspection[clientstring].Size == _deeperInspection[clientstring].Capacity &&
+                        (Util.EnvironmentTickCountSubtract(Util.EnvironmentTickCount(), _deeperInspection[clientstring].Get()) <
+                         _options.RequestTimeSpan.TotalMilliseconds))
+                    {
+                        // Looks like we're over the limit
+                        _blockLockSlim.EnterWriteLock();
+                        try
+                        {
+                            int blockDuration = (int)Math.Min(_options.ForgetTimeSpan.TotalMilliseconds, int.MaxValue / 2);
+                            if (!_tempBlocked.ContainsKey(clientstring))
+                            {
+                                _tempBlocked.Add(clientstring, Util.EnvironmentTickCount() + blockDuration);
+                                _forgetTimer.Enabled = true;
+                            }
+                            else
+                                _tempBlocked[clientstring] = Util.EnvironmentTickCount() + blockDuration;
+                        }
+                        finally
+                        {
+                            _blockLockSlim.ExitWriteLock();
+                        }
+
+                        m_log.Warn($"[{_options.ReportingName}]: client: {clientstring} is blocked for {_options.ForgetTimeSpan.TotalMilliseconds}ms, X-ForwardedForAllowed status is {_options.AllowXForwardedFor}, endpoint:{endpoint}");
+                        return false;
+                    }
                 }
-                
-                return buffer;
-            });
-
-            // Thread-safe update of buffer
-            lock (clientBuffer)
-            {
-                clientBuffer.Put(now);
-
-                // Check if limit exceeded ! DO NOT INVERT "IF"!
-                if (clientBuffer.Size == clientBuffer.Capacity &&
-                    (Util.EnvironmentTickCountSubtract(now, clientBuffer.Get()) <
-                     _options.RequestTimeSpan.TotalMilliseconds))
+                else
                 {
-
-                    // Block this client
-                    BlockClient(key, endpoint, "rate limit");
-                    return false;
+                    _deeperInspection.Add(clientstring, new CircularBuffer<int>(_options.MaxRequestsInTimeframe + 1, true));
+                    _deeperInspection[clientstring].Put(Util.EnvironmentTickCount());
                 }
             }
-
             return true;
         }
 
-        private void BlockClient(string key, string endpoint, string reason)
+        /// <summary>
+        /// Creates a disposable session scope that automatically calls ProcessEnd when disposed.
+        /// Use with 'using' statement to ensure ProcessEnd is always called.
+        /// </summary>
+        public SessionScope CreateSession(string key, string endpoint)
         {
-            var blockUntil = Util.EnvironmentTickCount() + (int)_options.ForgetTimeSpan.TotalMilliseconds;
-            
-            _tempBlocked.AddOrUpdate(key, blockUntil, (k, oldValue) => blockUntil);
-            
-            // Ensure timer is running
-            if (!_forgetTimer.Enabled)
-            {
-                _forgetTimer.Start();
-            }
-
-            m_log.Warn($"[{_options.ReportingName}]: client: {key} is blocked for {_options.ForgetTimeSpan.TotalMilliseconds}ms based on {reason}, X-ForwardedForAllowed status is {_options.AllowXForwardedFor}, endpoint:{endpoint}");
+            ProcessConcurrency(key, endpoint);
+            return new SessionScope(this, key, endpoint);
         }
 
         public void Dispose()
@@ -287,16 +393,34 @@ namespace OpenSim.Framework
 
             _disposed = true;
 
-            if (_forgetTimer != null)
+            _forgetTimer?.Stop();
+            _forgetTimer?.Dispose();
+
+            _blockLockSlim?.Dispose();
+            _sessionLockSlim?.Dispose();
+        }
+
+        /// <summary>
+        /// Helper struct for automatic session cleanup using 'using' pattern.
+        /// Example: using (var session = protector.CreateSession(key, endpoint)) { ... }
+        /// </summary>
+        public readonly struct SessionScope : IDisposable
+        {
+            private readonly BasicDOSProtector _protector;
+            private readonly string _key;
+            private readonly string _endpoint;
+
+            internal SessionScope(BasicDOSProtector protector, string key, string endpoint)
             {
-                _forgetTimer.Stop();
-                _forgetTimer.Elapsed -= OnForgetTimerElapsed;
-                _forgetTimer.Dispose();
+                _protector = protector;
+                _key = key;
+                _endpoint = endpoint;
             }
 
-            _deeperInspection?.Clear();
-            _tempBlocked?.Clear();
-            _sessions?.Clear();
+            public void Dispose()
+            {
+                _protector?.ProcessEnd(_key, _endpoint);
+            }
         }
     }
 
