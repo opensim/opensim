@@ -48,6 +48,9 @@ namespace OpenSim.Framework
         // Per client request checker
         private readonly Dictionary<string, CircularBuffer<int>> _deeperInspection;
 
+        // Track last access time for TTL-based cleanup
+        private readonly Dictionary<string, int> _deeperInspectionLastAccess;
+
         // Blocked list
         private readonly Dictionary<string, int> _tempBlocked;
 
@@ -78,12 +81,14 @@ namespace OpenSim.Framework
             _generalRequestTimes.Put(0);
             _options = options;
             _deeperInspection = new Dictionary<string, CircularBuffer<int>>();
+            _deeperInspectionLastAccess = new Dictionary<string, int>();
             _tempBlocked = new Dictionary<string, int>();
             _sessions = new Dictionary<string, int>();
             _forgetTimer = new System.Timers.Timer();
             _forgetTimer.Elapsed += delegate
             {
                 List<string> removes = [];
+                List<string> staleInspections = [];
 
                 // Find expired blocks
                 _blockLockSlim.EnterReadLock();
@@ -102,6 +107,44 @@ namespace OpenSim.Framework
                     _blockLockSlim.ExitReadLock();
                 }
 
+                // Find stale inspection entries (not blocked, but inactive)
+                lock (_deeperInspection)
+                {
+                    var now = Util.EnvironmentTickCount();
+                    int ttl = (int)Math.Min(_options.InspectionTTL.TotalMilliseconds, int.MaxValue / 2);
+
+                    foreach (var kvp in _deeperInspectionLastAccess)
+                    {
+                        // Skip if client is currently blocked
+                        bool isBlocked = false;
+                        _blockLockSlim.EnterReadLock();
+                        try
+                        {
+                            isBlocked = _tempBlocked.ContainsKey(kvp.Key);
+                        }
+                        finally
+                        {
+                            _blockLockSlim.ExitReadLock();
+                        }
+
+                        if (!isBlocked && Util.EnvironmentTickCountSubtract(now, kvp.Value) > ttl)
+                        {
+                            staleInspections.Add(kvp.Key);
+                        }
+                    }
+
+                    // Remove stale inspections
+                    if (staleInspections.Count > 0)
+                    {
+                        foreach (var key in staleInspections)
+                        {
+                            _deeperInspection.Remove(key);
+                            _deeperInspectionLastAccess.Remove(key);
+                        }
+                        m_log.Debug($"[{_options.ReportingName}] Cleaned up {staleInspections.Count} stale inspection entries.");
+                    }
+                }
+
                 // Remove expired entries
                 if (removes.Count > 0)
                 {
@@ -114,6 +157,7 @@ namespace OpenSim.Framework
                             {
                                 _tempBlocked.Remove(t);
                                 _deeperInspection.Remove(t);
+                                _deeperInspectionLastAccess.Remove(t);
                             }
                         }
                         finally
@@ -141,12 +185,15 @@ namespace OpenSim.Framework
                     }
                 }
 
-                // Restart timer if there are still blocked clients
+                // Restart timer if there are still blocked clients or tracked inspections
                 _blockLockSlim.EnterReadLock();
                 try
                 {
-                    if (_tempBlocked.Count > 0)
-                        _forgetTimer.Enabled = true;
+                    lock (_deeperInspection)
+                    {
+                        if (_tempBlocked.Count > 0 || _deeperInspection.Count > 0)
+                            _forgetTimer.Enabled = true;
+                    }
                 }
                 finally
                 {
@@ -337,12 +384,15 @@ namespace OpenSim.Framework
             lock (_deeperInspection)
             {
                 string clientstring = key;
+                int now = Util.EnvironmentTickCount();
 
                 if (_deeperInspection.ContainsKey(clientstring))
                 {
-                    _deeperInspection[clientstring].Put(Util.EnvironmentTickCount());
+                    _deeperInspection[clientstring].Put(now);
+                    _deeperInspectionLastAccess[clientstring] = now;
+
                     if (_deeperInspection[clientstring].Size == _deeperInspection[clientstring].Capacity &&
-                        (Util.EnvironmentTickCountSubtract(Util.EnvironmentTickCount(), _deeperInspection[clientstring].Get()) <
+                        (Util.EnvironmentTickCountSubtract(now, _deeperInspection[clientstring].Get()) <
                          _options.RequestTimeSpan.TotalMilliseconds))
                     {
                         // Looks like we're over the limit
@@ -352,11 +402,11 @@ namespace OpenSim.Framework
                             int blockDuration = (int)Math.Min(_options.ForgetTimeSpan.TotalMilliseconds, int.MaxValue / 2);
                             if (!_tempBlocked.ContainsKey(clientstring))
                             {
-                                _tempBlocked.Add(clientstring, Util.EnvironmentTickCount() + blockDuration);
+                                _tempBlocked.Add(clientstring, now + blockDuration);
                                 _forgetTimer.Enabled = true;
                             }
                             else
-                                _tempBlocked[clientstring] = Util.EnvironmentTickCount() + blockDuration;
+                                _tempBlocked[clientstring] = now + blockDuration;
                         }
                         finally
                         {
@@ -370,7 +420,12 @@ namespace OpenSim.Framework
                 else
                 {
                     _deeperInspection.Add(clientstring, new CircularBuffer<int>(_options.MaxRequestsInTimeframe + 1, true));
-                    _deeperInspection[clientstring].Put(Util.EnvironmentTickCount());
+                    _deeperInspection[clientstring].Put(now);
+                    _deeperInspectionLastAccess[clientstring] = now;
+
+                    // Start timer if this is the first inspection entry
+                    if (_deeperInspection.Count == 1)
+                        _forgetTimer.Enabled = true;
                 }
             }
             return true;
@@ -434,5 +489,11 @@ namespace OpenSim.Framework
         public string ReportingName = "BASICDOSPROTECTOR";
         public BasicDOSProtector.ThrottleAction ThrottledAction = BasicDOSProtector.ThrottleAction.DoThrottledMethod;
         public int MaxConcurrentSessions;
+
+        /// <summary>
+        /// Time-To-Live for inspection entries. Inactive clients are removed after this duration.
+        /// Defaults to 2x ForgetTimeSpan to allow for temporary traffic bursts.
+        /// </summary>
+        public TimeSpan InspectionTTL { get; set; } = TimeSpan.FromMinutes(10);
     }
 }
