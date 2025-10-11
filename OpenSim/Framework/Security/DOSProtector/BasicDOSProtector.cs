@@ -25,35 +25,25 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 using System;
-using System.Threading;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading;
 using log4net;
+using OpenSim.Framework;
+using OpenSim.Framework.Security.DOSProtector.Attributes;
+using OpenSim.Framework.Security.DOSProtector.Interfaces;
+using OpenSim.Framework.Security.DOSProtector.Options;
 
-namespace OpenSim.Framework
+
+namespace OpenSim.Framework.Security.DOSProtector
 {
-    /// <summary>
-    /// DEPRECATED: Please migrate to OpenSim.Framework.Security.BasicDOSProtector or AdvancedDOSProtector.
-    ///
-    /// This class remains here for backward compatibility and includes the memory leak fix (TTL cleanup).
-    /// For new features like block extension limiting, use OpenSim.Framework.Security.AdvancedDOSProtector.
-    ///
-    /// Migration: Simply change your using statement to:
-    ///   using OpenSim.Framework.Security;
-    ///
-    /// See: OpenSim/Framework/Security/ for the new implementation.
-    /// </summary>
-    public class BasicDOSProtector : IDisposable
-    {
-        public enum ThrottleAction
-        {
-            DoThrottledMethod,
-            DoThrow
-        }
 
+    [DOSProtectorOptions(typeof(BasicDosProtectorOptions))]
+    public class BasicDOSProtector : BaseDOSProtector
+    {
+        
         // General request checker
         private readonly CircularBuffer<int> _generalRequestTimes;
-        private readonly BasicDosProtectorOptions _options;
 
         // Per client request checker
         private readonly Dictionary<string, CircularBuffer<int>> _deeperInspection;
@@ -70,8 +60,6 @@ namespace OpenSim.Framework
         // Cleanup timer
         private readonly System.Timers.Timer _forgetTimer;
 
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod()?.DeclaringType);
-
         // Lock order: Always acquire in this order to prevent deadlocks:
         // 1. _deeperInspection (monitor lock)
         // 2. _blockLockSlim
@@ -83,13 +71,12 @@ namespace OpenSim.Framework
 
         private bool _disposed;
 
-        public BasicDOSProtector(BasicDosProtectorOptions options)
+        public BasicDOSProtector(IDOSProtectorOptions options) : base(options)
         {
             ArgumentNullException.ThrowIfNull(options);
 
             _generalRequestTimes = new CircularBuffer<int>(options.MaxRequestsInTimeframe + 1, true);
             _generalRequestTimes.Put(0);
-            _options = options;
             _deeperInspection = new Dictionary<string, CircularBuffer<int>>();
             _deeperInspectionLastAccess = new Dictionary<string, int>();
             _tempBlocked = new Dictionary<string, int>();
@@ -151,7 +138,7 @@ namespace OpenSim.Framework
                             _deeperInspection.Remove(key);
                             _deeperInspectionLastAccess.Remove(key);
                         }
-                        m_log.Debug($"[{_options.ReportingName}] Cleaned up {staleInspections.Count} stale inspection entries.");
+                        Log(DOSProtectorLogLevel.Debug, $"[{_options.ReportingName}] Cleaned up {staleInspections.Count} stale inspection entries.");
                     }
                 }
 
@@ -191,7 +178,7 @@ namespace OpenSim.Framework
 
                     foreach (var str in removes)
                     {
-                        m_log.Info($"[{_options.ReportingName}] client: {str} is no longer blocked.");
+                        Log(DOSProtectorLogLevel.Info, $"[{_options.ReportingName}] client: {RedactClient(str)} is no longer blocked.");
                     }
                 }
 
@@ -219,8 +206,9 @@ namespace OpenSim.Framework
         /// Given a string Key, Returns if that context is blocked
         /// </summary>
         /// <param name="key">A Key identifying the context</param>
+        /// <param name="context">Optional context data for decision making</param>
         /// <returns>bool Yes or No, True or False for blocked</returns>
-        public bool IsBlocked(string key)
+        public override bool IsBlocked(string key, IDOSProtectorContext context = null)
         {
             if (string.IsNullOrEmpty(key))
                 return false;
@@ -241,8 +229,9 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="key"></param>
         /// <param name="endpoint"></param>
+        /// <param name="context">Optional context data for decision making</param>
         /// <returns></returns>
-        public bool Process(string key, string endpoint)
+        public override bool Process(string key, string endpoint, IDOSProtectorContext context = null)
         {
             if (_options.MaxRequestsInTimeframe < 1 || _options.RequestTimeSpan.TotalMilliseconds < 1)
                 return true;
@@ -302,7 +291,7 @@ namespace OpenSim.Framework
 
                                 _forgetTimer.Enabled = true;
 
-                                m_log.Warn($"[{_options.ReportingName}]: client: {clientstring} is blocked for {_options.ForgetTimeSpan.TotalMilliseconds}ms based on concurrency, X-ForwardedForAllowed status is {_options.AllowXForwardedFor}, endpoint:{endpoint}");
+                                Log(DOSProtectorLogLevel.Warn, $"[{_options.ReportingName}]: client: {RedactClient(clientstring)} is blocked for {_options.ForgetTimeSpan.TotalMilliseconds}ms based on concurrency, X-ForwardedForAllowed status is {_options.AllowXForwardedFor}, endpoint:{endpoint}");
                             }
                             else
                                 _tempBlocked[clientstring] = Util.EnvironmentTickCount() + blockDuration;
@@ -360,7 +349,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public void ProcessEnd(string key, string endpoint)
+        public override void ProcessEnd(string key, string endpoint, IDOSProtectorContext context = null)
         {
             if (string.IsNullOrEmpty(key))
                 return;
@@ -423,7 +412,7 @@ namespace OpenSim.Framework
                             _blockLockSlim.ExitWriteLock();
                         }
 
-                        m_log.Warn($"[{_options.ReportingName}]: client: {clientstring} is blocked for {_options.ForgetTimeSpan.TotalMilliseconds}ms, X-ForwardedForAllowed status is {_options.AllowXForwardedFor}, endpoint:{endpoint}");
+                        Log(DOSProtectorLogLevel.Warn, $"[{_options.ReportingName}]: client: {RedactClient(clientstring)} is blocked for {_options.ForgetTimeSpan.TotalMilliseconds}ms, X-ForwardedForAllowed status is {_options.AllowXForwardedFor}, endpoint:{endpoint}");
                         return false;
                     }
                 }
@@ -445,13 +434,13 @@ namespace OpenSim.Framework
         /// Creates a disposable session scope that automatically calls ProcessEnd when disposed.
         /// Use with 'using' statement to ensure ProcessEnd is always called.
         /// </summary>
-        public SessionScope CreateSession(string key, string endpoint)
+        public override IDisposable CreateSession(string key, string endpoint, IDOSProtectorContext context = null)
         {
             ProcessConcurrency(key, endpoint);
-            return new SessionScope(this, key, endpoint);
+            return new SessionScope(this, key, endpoint, context);
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             if (_disposed)
                 return;
@@ -465,54 +454,6 @@ namespace OpenSim.Framework
             _sessionLockSlim?.Dispose();
         }
 
-        /// <summary>
-        /// Helper struct for automatic session cleanup using 'using' pattern.
-        /// Example: using (var session = protector.CreateSession(key, endpoint)) { ... }
-        /// </summary>
-        public readonly struct SessionScope : IDisposable
-        {
-            private readonly BasicDOSProtector _protector;
-            private readonly string _key;
-            private readonly string _endpoint;
-
-            internal SessionScope(BasicDOSProtector protector, string key, string endpoint)
-            {
-                _protector = protector;
-                _key = key;
-                _endpoint = endpoint;
-            }
-
-            public void Dispose()
-            {
-                _protector?.ProcessEnd(_key, _endpoint);
-            }
-        }
     }
-
-
-    /// <summary>
-    /// DEPRECATED: Please migrate to OpenSim.Framework.Security.BasicDosProtectorOptions or AdvancedDosProtectorOptions.
-    ///
-    /// This class remains here for backward compatibility.
-    /// For advanced features, use OpenSim.Framework.Security.AdvancedDosProtectorOptions.
-    ///
-    /// Migration: Change your using statement to:
-    ///   using OpenSim.Framework.Security;
-    /// </summary>
-    public class BasicDosProtectorOptions
-    {
-        public int MaxRequestsInTimeframe;
-        public TimeSpan RequestTimeSpan;
-        public TimeSpan ForgetTimeSpan;
-        public bool AllowXForwardedFor;
-        public string ReportingName = "BASICDOSPROTECTOR";
-        public BasicDOSProtector.ThrottleAction ThrottledAction = BasicDOSProtector.ThrottleAction.DoThrottledMethod;
-        public int MaxConcurrentSessions;
-
-        /// <summary>
-        /// Time-To-Live for inspection entries. Inactive clients are removed after this duration.
-        /// Defaults to 2x ForgetTimeSpan to allow for temporary traffic bursts.
-        /// </summary>
-        public TimeSpan InspectionTTL { get; set; } = TimeSpan.FromMinutes(10);
-    }
+    
 }
