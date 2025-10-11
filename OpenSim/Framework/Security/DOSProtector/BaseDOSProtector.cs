@@ -90,10 +90,10 @@ namespace OpenSim.Framework.Security.DOSProtector
         }
 
         public abstract void Dispose();
-        public abstract bool IsBlocked(string key);
-        public abstract bool Process(string key, string endpoint);
-        public abstract void ProcessEnd(string key, string endpoint);
-        public abstract IDisposable CreateSession(string key, string endpoint);
+        public abstract bool IsBlocked(string key, IDOSProtectorContext context = null);
+        public abstract bool Process(string key, string endpoint, IDOSProtectorContext context = null);
+        public abstract void ProcessEnd(string key, string endpoint, IDOSProtectorContext context = null);
+        public abstract IDisposable CreateSession(string key, string endpoint, IDOSProtectorContext context = null);
 
         /// <summary>
         /// Helper struct for automatic session cleanup using 'using' pattern.
@@ -104,17 +104,19 @@ namespace OpenSim.Framework.Security.DOSProtector
             private readonly IDOSProtector _protector;
             private readonly string _key;
             private readonly string _endpoint;
+            private readonly IDOSProtectorContext _context;
 
-            internal SessionScope(IDOSProtector protector, string key, string endpoint)
+            internal SessionScope(IDOSProtector protector, string key, string endpoint, IDOSProtectorContext context = null)
             {
                 _protector = protector;
                 _key = key;
                 _endpoint = endpoint;
+                _context = context;
             }
 
             public void Dispose()
             {
-                _protector?.ProcessEnd(_key, _endpoint);
+                _protector?.ProcessEnd(_key, _endpoint, _context);
             }
         }
     }

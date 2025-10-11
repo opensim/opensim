@@ -114,6 +114,19 @@ namespace OpenSim.Framework.Security.DOSProtector
         }
 
         /// <summary>
+        /// Returns the full mapping of options types to protector types.
+        /// Used internally by DOSProtectorConfigLoader for plugin resolution.
+        /// </summary>
+        internal static Dictionary<Type, Type> GetOptionsToProtectorMap()
+        {
+            lock (_lock)
+            {
+                Initialize();
+                return new Dictionary<Type, Type>(_optionsToProtectorMap);
+            }
+        }
+
+        /// <summary>
         /// Initializes the mapping between options types and protector implementations by scanning assemblies.
         /// </summary>
         private static void Initialize()
@@ -272,15 +285,62 @@ namespace OpenSim.Framework.Security.DOSProtector
         }
 
         /// <summary>
-        /// Builds a DOS protector instance based on the provided options type.
+        /// Builds a DOS protector instance based on identifier and options.
+        /// If options is null or empty, attempts to load from configuration.
+        /// Multiple options create a HybridDOSProtector that chains protectors in order.
         /// Uses DOSProtectorOptionsAttribute to determine the correct implementation.
         /// </summary>
-        public static IDOSProtector Build(IDOSProtectorOptions options)
+        /// <param name="identifier">Unique identifier for this protector instance (e.g., "LoginService")</param>
+        /// <param name="options">Optional: Pre-configured options. If null/empty, loads from DOSProtector.ini</param>
+        /// <returns>Configured DOS protector instance</returns>
+        public static IDOSProtector Build(string identifier, params IDOSProtectorOptions[] options)
+        {
+            if (string.IsNullOrWhiteSpace(identifier))
+                throw new ArgumentException("Identifier cannot be null or empty", nameof(identifier));
+
+            Initialize();
+
+            // If no options provided, try to load from configuration
+            if (options == null || options.Length == 0)
+            {
+                options = DOSProtectorConfigLoader.LoadServiceOptions(identifier);
+
+                // If still no options found, use BasicDOSProtector with defaults
+                if (options == null || options.Length == 0)
+                {
+                    m_log.Info($"[DOSProtectorBuilder]: No configuration found for identifier '{identifier}', using BasicDOSProtector with default settings");
+                    options = new IDOSProtectorOptions[] { new Options.BasicDosProtectorOptions { ReportingName = identifier } };
+                }
+            }
+
+            // Single protector
+            if (options.Length == 1)
+            {
+                return BuildSingle(options[0]);
+            }
+
+            // Multiple protectors - create hybrid
+            m_log.Info($"[DOSProtectorBuilder]: Creating hybrid protector with {options.Length} implementations for '{identifier}'");
+            var protectors = new List<IDOSProtector>();
+
+            foreach (var option in options)
+            {
+                if (option != null)
+                {
+                    protectors.Add(BuildSingle(option));
+                }
+            }
+
+            return new HybridDOSProtector(protectors);
+        }
+
+        /// <summary>
+        /// Builds a single DOS protector instance from options
+        /// </summary>
+        private static IDOSProtector BuildSingle(IDOSProtectorOptions options)
         {
             if (options == null)
                 throw new ArgumentNullException(nameof(options));
-
-            Initialize();
 
             var optionsType = options.GetType();
 

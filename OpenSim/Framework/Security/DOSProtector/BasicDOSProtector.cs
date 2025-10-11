@@ -25,9 +25,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 using System;
-using System.Threading;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Security.DOSProtector.Attributes;
@@ -206,8 +206,9 @@ namespace OpenSim.Framework.Security.DOSProtector
         /// Given a string Key, Returns if that context is blocked
         /// </summary>
         /// <param name="key">A Key identifying the context</param>
+        /// <param name="context">Optional context data for decision making</param>
         /// <returns>bool Yes or No, True or False for blocked</returns>
-        public override bool IsBlocked(string key)
+        public override bool IsBlocked(string key, IDOSProtectorContext context = null)
         {
             if (string.IsNullOrEmpty(key))
                 return false;
@@ -228,8 +229,9 @@ namespace OpenSim.Framework.Security.DOSProtector
         /// </summary>
         /// <param name="key"></param>
         /// <param name="endpoint"></param>
+        /// <param name="context">Optional context data for decision making</param>
         /// <returns></returns>
-        public override bool Process(string key, string endpoint)
+        public override bool Process(string key, string endpoint, IDOSProtectorContext context = null)
         {
             if (_options.MaxRequestsInTimeframe < 1 || _options.RequestTimeSpan.TotalMilliseconds < 1)
                 return true;
@@ -347,7 +349,7 @@ namespace OpenSim.Framework.Security.DOSProtector
             }
         }
 
-        public override void ProcessEnd(string key, string endpoint)
+        public override void ProcessEnd(string key, string endpoint, IDOSProtectorContext context = null)
         {
             if (string.IsNullOrEmpty(key))
                 return;
@@ -432,10 +434,10 @@ namespace OpenSim.Framework.Security.DOSProtector
         /// Creates a disposable session scope that automatically calls ProcessEnd when disposed.
         /// Use with 'using' statement to ensure ProcessEnd is always called.
         /// </summary>
-        public override IDisposable CreateSession(string key, string endpoint)
+        public override IDisposable CreateSession(string key, string endpoint, IDOSProtectorContext context = null)
         {
             ProcessConcurrency(key, endpoint);
-            return new SessionScope(this, key, endpoint);
+            return new SessionScope(this, key, endpoint, context);
         }
 
         public override void Dispose()

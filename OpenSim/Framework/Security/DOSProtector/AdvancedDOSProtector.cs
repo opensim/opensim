@@ -25,13 +25,14 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 using System;
-using System.Threading;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Security.DOSProtector.Attributes;
 using OpenSim.Framework.Security.DOSProtector.Options;
+using OpenSim.Framework.Security.DOSProtector.Interfaces;
 
 namespace OpenSim.Framework.Security.DOSProtector
 {
@@ -214,7 +215,7 @@ namespace OpenSim.Framework.Security.DOSProtector
             _forgetTimer.AutoReset = false;
         }
 
-        public override bool IsBlocked(string key)
+        public override bool IsBlocked(string key, IDOSProtectorContext context = null)
         {
             if (string.IsNullOrEmpty(key))
                 return false;
@@ -230,7 +231,7 @@ namespace OpenSim.Framework.Security.DOSProtector
             }
         }
 
-        public override bool Process(string key, string endpoint)
+        public override bool Process(string key, string endpoint, IDOSProtectorContext context = null)
         {
             if (_options.MaxRequestsInTimeframe < 1 || _options.RequestTimeSpan.TotalMilliseconds < 1)
                 return true;
@@ -358,7 +359,7 @@ namespace OpenSim.Framework.Security.DOSProtector
             }
         }
 
-        public override void ProcessEnd(string key, string endpoint)
+        public override void ProcessEnd(string key, string endpoint, IDOSProtectorContext context = null)
         {
             if (string.IsNullOrEmpty(key))
                 return;
@@ -482,10 +483,10 @@ namespace OpenSim.Framework.Security.DOSProtector
             return true;
         }
 
-        public override IDisposable CreateSession(string key, string endpoint)
+        public override IDisposable CreateSession(string key, string endpoint, IDOSProtectorContext context = null)
         {
             ProcessConcurrency(key, endpoint);
-            return new SessionScope(this, key, endpoint);
+            return new SessionScope(this, key, endpoint, context);
         }
 
         public override void Dispose()

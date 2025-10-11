@@ -37,23 +37,26 @@ namespace OpenSim.Framework.Security.DOSProtector.Interfaces
         /// Check if a given key is currently blocked
         /// </summary>
         /// <param name="key">A Key identifying the context</param>
+        /// <param name="context">Optional context data for decision making (e.g., Country, UserId, Authenticated)</param>
         /// <returns>True if blocked, false otherwise</returns>
-        bool IsBlocked(string key);
+        bool IsBlocked(string key, IDOSProtectorContext context = null);
 
         /// <summary>
         /// Process the velocity of this context
         /// </summary>
         /// <param name="key">A Key identifying the context</param>
         /// <param name="endpoint">The endpoint for logging purposes</param>
+        /// <param name="context">Optional context data for decision making (e.g., Country, UserId, Authenticated)</param>
         /// <returns>True if allowed, false if throttled</returns>
-        bool Process(string key, string endpoint);
+        bool Process(string key, string endpoint, IDOSProtectorContext context = null);
 
         /// <summary>
         /// Mark the end of processing for this context (decrements session counter)
         /// </summary>
         /// <param name="key">A Key identifying the context</param>
         /// <param name="endpoint">The endpoint for logging purposes</param>
-        void ProcessEnd(string key, string endpoint);
+        /// <param name="context">Optional context data (same as passed to Process)</param>
+        void ProcessEnd(string key, string endpoint, IDOSProtectorContext context = null);
 
         /// <summary>
         /// Creates a disposable session scope that automatically calls ProcessEnd when disposed.
@@ -61,7 +64,8 @@ namespace OpenSim.Framework.Security.DOSProtector.Interfaces
         /// </summary>
         /// <param name="key">A Key identifying the context</param>
         /// <param name="endpoint">The endpoint for logging purposes</param>
+        /// <param name="context">Optional context data for decision making (e.g., Country, UserId, Authenticated)</param>
         /// <returns>A SessionScope that calls ProcessEnd on dispose</returns>
-        IDisposable CreateSession(string key, string endpoint);
+        IDisposable CreateSession(string key, string endpoint, IDOSProtectorContext context = null);
     }
 }
