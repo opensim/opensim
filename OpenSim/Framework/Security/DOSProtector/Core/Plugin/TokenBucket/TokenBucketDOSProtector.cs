@@ -28,12 +28,51 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using OpenSim.Framework.Security.DOSProtector.Attributes;
-using OpenSim.Framework.Security.DOSProtector.Interfaces;
-using OpenSim.Framework.Security.DOSProtector.Options;
+//using System.Threading.RateLimiting;  
+using OpenSim.Framework.Security.DOSProtector.SDK;
 
-namespace OpenSim.Framework.Security.DOSProtector.Plugins
+// @todo: Replace with System.Threading.RateLimiting 
+namespace OpenSim.Framework.Security.DOSProtector.Core.Plugin.TokenBucket
 {
+    
+    /// <summary>
+    /// Configuration options for TokenBucketDOSProtector.
+    /// Implements Token Bucket algorithm for smooth rate limiting with burst support.
+    /// </summary>
+    public class TokenBucketDosProtectorOptions : BaseDosProtectorOptions
+    {
+        /// <summary>
+        /// Maximum number of tokens the bucket can hold (burst capacity).
+        /// Allows short bursts of requests up to this limit.
+        /// Default: 10 tokens
+        /// </summary>
+        public double BucketCapacity { get; set; } = 10.0;
+
+        /// <summary>
+        /// Rate at which tokens are added to the bucket (tokens per second).
+        /// Determines the sustained request rate allowed.
+        /// Default: 2 tokens/second (120 requests/minute)
+        /// </summary>
+        public double RefillRate { get; set; } = 2.0;
+
+        /// <summary>
+        /// Number of tokens consumed per request.
+        /// Can be used to assign different costs to different request types.
+        /// Default: 1 token per request
+        /// </summary>
+        public double TokenCost { get; set; } = 1.0;
+
+        /// <summary>
+        /// Constructor with sensible defaults for typical API protection
+        /// </summary>
+        public TokenBucketDosProtectorOptions()
+        {
+            ReportingName = "TokenBucket";
+        }
+    }
+    
+    
+    
     /// <summary>
     /// Token Bucket algorithm implementation for smooth rate limiting.
     /// Allows bursts while maintaining average rate limit over time.

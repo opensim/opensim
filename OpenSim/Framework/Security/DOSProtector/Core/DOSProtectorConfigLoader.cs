@@ -32,10 +32,9 @@ using System.Linq;
 using System.Reflection;
 using log4net;
 using Nini.Config;
-using OpenSim.Framework.Security.DOSProtector.Interfaces;
-using OpenSim.Framework.Security.DOSProtector.Options;
+using OpenSim.Framework.Security.DOSProtector.SDK;
 
-namespace OpenSim.Framework.Security.DOSProtector
+namespace OpenSim.Framework.Security.DOSProtector.Core
 {
     /// <summary>
     /// Loads DOS Protector configuration from INI file and configures the builder
@@ -269,6 +268,7 @@ namespace OpenSim.Framework.Security.DOSProtector
             string normalizedName = implementation.Replace("DOSProtector", "").Replace("Protector", "");
 
             // 1. Try built-in types first (fast path)
+            /*
             var builtIn = normalizedName.ToLowerInvariant() switch
             {
                 "basic" => new Options.BasicDosProtectorOptions(),
@@ -279,10 +279,12 @@ namespace OpenSim.Framework.Security.DOSProtector
                 "honeypot" => new Options.HoneypotDosProtectorOptions(),
                 _ => null
             };
+            
 
             if (builtIn != null)
                 return builtIn;
-
+            */
+            
             // 2. Try to find external plugin via DOSProtectorBuilder
             // Get all discovered protectors (includes external plugins)
             var optionsToProtectorMap = DOSProtectorBuilder.GetOptionsToProtectorMap();

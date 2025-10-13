@@ -29,10 +29,7 @@ using System;
 using System.Reflection;
 using log4net;
 
-using OpenSim.Framework.Security.DOSProtector.Interfaces;
-using OpenSim.Framework.Security.DOSProtector.Options;
-
-namespace OpenSim.Framework.Security.DOSProtector
+namespace OpenSim.Framework.Security.DOSProtector.SDK
 {
     /// <summary>
     /// Abstract base class for DOS protector implementations providing common logging functionality
@@ -41,7 +38,7 @@ namespace OpenSim.Framework.Security.DOSProtector
     {
         // ReSharper disable once MemberCanBePrivate.Global
         protected static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod()?.DeclaringType);
-        protected readonly IDOSProtectorOptions _options = options;
+        protected IDOSProtectorOptions _options = options;
 
         /// <summary>
         /// Redacts client identifier for logging if RedactClientIdentifiers is enabled

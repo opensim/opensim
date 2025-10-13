@@ -28,12 +28,54 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using OpenSim.Framework.Security.DOSProtector.Attributes;
-using OpenSim.Framework.Security.DOSProtector.Interfaces;
-using OpenSim.Framework.Security.DOSProtector.Options;
+using OpenSim.Framework.Security.DOSProtector.SDK;
+using OpenSim.Framework.Security.DOSProtector.Core.Plugin.Basic;
 
-namespace OpenSim.Framework.Security.DOSProtector.Plugins
+namespace OpenSim.Framework.Security.DOSProtector.Core.Plugin.Honeypot
 {
+    
+    /// <summary>
+    /// Configuration options for HoneypotDOSProtector.
+    /// Detects bot behavior through honeypot traps and timing analysis.
+    /// </summary>
+    public class HoneypotDosProtectorOptions : Basic.BasicDosProtectorOptions
+    {
+        /// <summary>
+        /// Minimum time between requests in milliseconds.
+        /// Requests faster than this are considered suspicious (inhuman speed).
+        /// Default: 100ms (10 requests/second)
+        /// </summary>
+        public int MinRequestIntervalMs { get; set; } = 100;
+
+        /// <summary>
+        /// Number of fast requests before marking client as suspicious bot.
+        /// Default: 3
+        /// </summary>
+        public int FastRequestThreshold { get; set; } = 3;
+
+        /// <summary>
+        /// List of honeypot trap endpoints.
+        /// Any request to these endpoints marks the client as a bot.
+        /// Example: ["/admin", "/wp-admin", "/.env", "/phpmyadmin"]
+        /// </summary>
+        public List<string> TrapEndpoints { get; set; } = new();
+
+        /// <summary>
+        /// Enable detection of inhuman request speed.
+        /// Default: true
+        /// </summary>
+        public bool DetectInhumanSpeed { get; set; } = true;
+
+        /// <summary>
+        /// Constructor with sensible defaults
+        /// </summary>
+        public HoneypotDosProtectorOptions()
+        {
+            ReportingName = "Honeypot";
+        }
+    }
+    
+    
     /// <summary>
     /// DOS Protector with honeypot detection to identify bot behavior.
     /// Detects bots by tracking suspicious patterns:
@@ -45,7 +87,7 @@ namespace OpenSim.Framework.Security.DOSProtector.Plugins
     public class HoneypotDOSProtector : BaseDOSProtector
     {
         private readonly HoneypotDosProtectorOptions _honeypotOptions;
-        private readonly BasicDOSProtector _baseProtector;
+        private readonly Basic.BasicDOSProtector _baseProtector;
         private readonly Dictionary<string, ClientBehavior> _clientBehaviors;
         private readonly ReaderWriterLockSlim _behaviorsLock;
         private readonly HashSet<string> _suspiciousClients;
@@ -57,7 +99,7 @@ namespace OpenSim.Framework.Security.DOSProtector.Plugins
             ArgumentNullException.ThrowIfNull(options);
 
             _honeypotOptions = options;
-            _baseProtector = new BasicDOSProtector(options);
+            _baseProtector = new Basic.BasicDOSProtector(options);
             _clientBehaviors = new Dictionary<string, ClientBehavior>();
             _behaviorsLock = new ReaderWriterLockSlim();
             _suspiciousClients = new HashSet<string>();

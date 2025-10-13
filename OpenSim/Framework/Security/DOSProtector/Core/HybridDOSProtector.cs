@@ -28,9 +28,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using OpenSim.Framework.Security.DOSProtector.Interfaces;
+using OpenSim.Framework.Security.DOSProtector.SDK;
 
-namespace OpenSim.Framework.Security.DOSProtector
+namespace OpenSim.Framework.Security.DOSProtector.Core
 {
     /// <summary>
     /// Hybrid DOS protector that chains multiple protector implementations.
@@ -88,9 +88,15 @@ namespace OpenSim.Framework.Security.DOSProtector
         /// </summary>
         public void ProcessEnd(string key, string endpoint, IDOSProtectorContext context = null)
         {
-            foreach (var protector in _protectors)
+            // ProcessEnd in reverse order (stack discipline)
+            for (int i = _protectors.Count - 1; i >= 0; --i)
             {
-                protector.ProcessEnd(key, endpoint, context);
+                try { _protectors[i].ProcessEnd(key, endpoint, context); }
+                catch (Exception)
+                {
+                    // swallow per protector; 
+                    // @todo: log?
+                }
             }
         }
 
@@ -100,11 +106,25 @@ namespace OpenSim.Framework.Security.DOSProtector
         /// </summary>
         public IDisposable CreateSession(string key, string endpoint, IDOSProtectorContext context = null)
         {
+            
+            // Create nested guards in order; dispose in reverse
+            var guards = new Stack<IDisposable>(_protectors.Count);
+            
+            foreach (var p in _protectors)
+            {
+                var g = p.CreateSession(key, endpoint, context);
+                if (g != null) guards.Push(g);
+            }
+            
+            return new CompositeGuard(this, key, endpoint, context, guards);
+            
             // Check all protectors before creating session
+            /*
             if (!Process(key, endpoint, context))
                 return null;
 
             return new HybridSessionScope(this, key, endpoint, context);
+            */
         }
 
         /// <summary>
@@ -126,6 +146,7 @@ namespace OpenSim.Framework.Security.DOSProtector
         /// <summary>
         /// Session scope for automatic cleanup
         /// </summary>
+        /*
         private readonly struct HybridSessionScope : IDisposable
         {
             private readonly HybridDOSProtector _protector;
@@ -144,6 +165,43 @@ namespace OpenSim.Framework.Security.DOSProtector
             public void Dispose()
             {
                 _protector?.ProcessEnd(_key, _endpoint, _context);
+            }
+        }
+        */
+        
+        private sealed class CompositeGuard : IDisposable
+        {
+            private readonly HybridDOSProtector _owner;
+            private readonly string _key;
+            private readonly string _endpoint;
+            private readonly IDOSProtectorContext _context;
+            private readonly Stack<IDisposable> _guards; // LIFO
+            private bool _disposed;
+
+
+            public CompositeGuard(HybridDOSProtector owner, string key, string endpoint, IDOSProtectorContext ctx, Stack<IDisposable> guards)
+            {
+                _owner = owner;
+                _key = key;
+                _endpoint = endpoint;
+                _context = ctx;
+                _guards = guards;
+            }
+            
+            public void Dispose()
+            {
+                if (_disposed) return;
+                _disposed = true;
+                
+                while (_guards.Count > 0)
+                {
+                    try { _guards.Pop().Dispose(); } 
+                    catch { /* ignore */ }
+                }
+                
+                // Ensure ProcessEnd semantics
+                try { _owner.ProcessEnd(_key, _endpoint, _context); } 
+                catch { /* ignore */ }
             }
         }
     }

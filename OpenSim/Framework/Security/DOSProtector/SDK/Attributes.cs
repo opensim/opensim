@@ -1,8 +1,7 @@
-﻿using System;
+using System;
 
-namespace OpenSim.Framework.Security.DOSProtector.Attributes
+namespace OpenSim.Framework.Security.DOSProtector.SDK
 {
-
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     public sealed class DOSProtectorOptionsAttribute(Type optionsType) : Attribute
     {

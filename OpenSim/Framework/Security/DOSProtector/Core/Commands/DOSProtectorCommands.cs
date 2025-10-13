@@ -30,7 +30,7 @@ using System.Linq;
 using System.Text;
 using OpenSim.Framework.Console;
 
-namespace OpenSim.Framework.Security.DOSProtector.Commands
+namespace OpenSim.Framework.Security.DOSProtector.Core.Commands
 {
     /// <summary>
     /// Console commands for managing DOS Protector plugins

@@ -27,14 +27,63 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
-using OpenSim.Framework.Security.DOSProtector.Attributes;
-using OpenSim.Framework.Security.DOSProtector.Interfaces;
-using OpenSim.Framework.Security.DOSProtector.Options;
+using OpenSim.Framework.Security.DOSProtector.SDK;
+using OpenSim.Framework.Security.DOSProtector.Core.Plugin.Basic;
 
-namespace OpenSim.Framework.Security.DOSProtector.Plugins
+namespace OpenSim.Framework.Security.DOSProtector.Core.Plugin.IPFilter
 {
+    
+    /// <summary>
+    /// Configuration options for IPFilterDOSProtector.
+    /// Provides IP whitelist/blacklist filtering with CIDR support.
+    /// </summary>
+    public class IPFilterDosProtectorOptions : Basic.BasicDosProtectorOptions
+    {
+        /// <summary>
+        /// List of whitelisted individual IP addresses.
+        /// These IPs bypass rate limiting (if WhitelistBypassesRateLimit is true).
+        /// Example: ["127.0.0.1", "192.168.1.100"]
+        /// </summary>
+        public List<string> WhitelistedIPs { get; set; } = new();
+
+        /// <summary>
+        /// List of whitelisted IP ranges in CIDR notation.
+        /// Example: ["192.168.1.0/24", "10.0.0.0/8"]
+        /// </summary>
+        public List<string> WhitelistedCIDRs { get; set; } = new();
+
+        /// <summary>
+        /// List of blacklisted individual IP addresses.
+        /// These IPs are always blocked, regardless of rate limits.
+        /// Example: ["1.2.3.4", "5.6.7.8"]
+        /// </summary>
+        public List<string> BlacklistedIPs { get; set; } = new();
+
+        /// <summary>
+        /// List of blacklisted IP ranges in CIDR notation.
+        /// Example: ["123.45.0.0/16"]
+        /// </summary>
+        public List<string> BlacklistedCIDRs { get; set; } = new();
+
+        /// <summary>
+        /// If true, whitelisted IPs completely bypass rate limiting.
+        /// If false, whitelisted IPs are still subject to rate limits (but not blacklist).
+        /// Default: true
+        /// </summary>
+        public bool WhitelistBypassesRateLimit { get; set; } = true;
+
+        /// <summary>
+        /// Constructor with sensible defaults
+        /// </summary>
+        public IPFilterDosProtectorOptions()
+        {
+            ReportingName = "IPFilter";
+        }
+    }
+    
     /// <summary>
     /// DOS Protector with IP whitelist/blacklist filtering.
     /// Supports individual IPs and CIDR ranges.
@@ -43,7 +92,7 @@ namespace OpenSim.Framework.Security.DOSProtector.Plugins
     public class IPFilterDOSProtector : BaseDOSProtector
     {
         private readonly IPFilterDosProtectorOptions _filterOptions;
-        private readonly BasicDOSProtector _baseProtector;
+        private readonly Basic.BasicDOSProtector _baseProtector;
         private readonly HashSet<string> _whitelist;
         private readonly HashSet<string> _blacklist;
         private readonly List<IPNetwork> _whitelistNetworks;
@@ -61,7 +110,7 @@ namespace OpenSim.Framework.Security.DOSProtector.Plugins
             _blacklistNetworks = ParseNetworks(options.BlacklistedCIDRs ?? new List<string>());
 
             // Create base protector for rate limiting
-            _baseProtector = new BasicDOSProtector(options);
+            _baseProtector = new Basic.BasicDOSProtector(options);
 
             Log(DOSProtectorLogLevel.Info,
                 $"[IPFilterDOSProtector]: Initialized - " +

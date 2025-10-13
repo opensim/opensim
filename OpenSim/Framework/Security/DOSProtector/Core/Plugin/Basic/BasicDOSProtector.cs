@@ -30,14 +30,26 @@ using System.Reflection;
 using System.Threading;
 using log4net;
 using OpenSim.Framework;
-using OpenSim.Framework.Security.DOSProtector.Attributes;
-using OpenSim.Framework.Security.DOSProtector.Interfaces;
-using OpenSim.Framework.Security.DOSProtector.Options;
+using OpenSim.Framework.Security.DOSProtector.SDK;
 
 
-namespace OpenSim.Framework.Security.DOSProtector
+namespace OpenSim.Framework.Security.DOSProtector.Core.Plugin.Basic
 {
 
+    
+    public class BasicDosProtectorOptions : BaseDosProtectorOptions
+    {
+        public int MaxRequestsInTimeframe { get; set; }
+        public TimeSpan RequestTimeSpan { get; set; }
+        public TimeSpan ForgetTimeSpan { get; set; }
+        public bool AllowXForwardedFor { get; set; }
+        public new string ReportingName { get; set; } = "BASICDOSPROTECTOR";
+        public new ThrottleAction ThrottledAction { get; set; } = ThrottleAction.DoThrottledMethod;
+        public int MaxConcurrentSessions { get; set; }
+        
+    }
+    
+    
     [DOSProtectorOptions(typeof(BasicDosProtectorOptions))]
     public class BasicDOSProtector : BaseDOSProtector
     {
@@ -68,13 +80,16 @@ namespace OpenSim.Framework.Security.DOSProtector
         private readonly ReaderWriterLockSlim _blockLockSlim = new();
         private readonly ReaderWriterLockSlim _sessionLockSlim = new();
         private readonly object _generalRequestLock = new();
+        private readonly BasicDosProtectorOptions _basicOptions;
 
         private bool _disposed;
-
-        public BasicDOSProtector(IDOSProtectorOptions options) : base(options)
+        
+        public BasicDOSProtector(BasicDosProtectorOptions options) 
+            : base(options)
         {
             ArgumentNullException.ThrowIfNull(options);
 
+            _basicOptions = options;
             _generalRequestTimes = new CircularBuffer<int>(options.MaxRequestsInTimeframe + 1, true);
             _generalRequestTimes.Put(0);
             _deeperInspection = new Dictionary<string, CircularBuffer<int>>();
@@ -198,7 +213,7 @@ namespace OpenSim.Framework.Security.DOSProtector
                 }
             };
 
-            _forgetTimer.Interval = _options.ForgetTimeSpan.TotalMilliseconds;
+            _forgetTimer.Interval = _basicOptions.ForgetTimeSpan.TotalMilliseconds;
             _forgetTimer.AutoReset = false;
         }
 
@@ -233,7 +248,7 @@ namespace OpenSim.Framework.Security.DOSProtector
         /// <returns></returns>
         public override bool Process(string key, string endpoint, IDOSProtectorContext context = null)
         {
-            if (_options.MaxRequestsInTimeframe < 1 || _options.RequestTimeSpan.TotalMilliseconds < 1)
+            if (_basicOptions.MaxRequestsInTimeframe < 1 || _basicOptions.RequestTimeSpan.TotalMilliseconds < 1)
                 return true;
 
             if (string.IsNullOrEmpty(key))
@@ -262,7 +277,7 @@ namespace OpenSim.Framework.Security.DOSProtector
                 _generalRequestTimes.Put(Util.EnvironmentTickCount());
 
             // Check concurrent sessions if enabled
-            if (_options.MaxConcurrentSessions > 0)
+            if (_basicOptions.MaxConcurrentSessions > 0)
             {
                 var sessionCount = 0;
                 _sessionLockSlim.EnterReadLock();
@@ -275,7 +290,7 @@ namespace OpenSim.Framework.Security.DOSProtector
                     _sessionLockSlim.ExitReadLock();
                 }
 
-                if (sessionCount >= _options.MaxConcurrentSessions)
+                if (sessionCount >= _basicOptions.MaxConcurrentSessions)
                 {
                     // Add to blocking and cleanup methods
                     lock (_deeperInspection)
@@ -283,7 +298,7 @@ namespace OpenSim.Framework.Security.DOSProtector
                         _blockLockSlim.EnterWriteLock();
                         try
                         {
-                            int blockDuration = (int)Math.Min(_options.ForgetTimeSpan.TotalMilliseconds, int.MaxValue / 2);
+                            int blockDuration = (int)Math.Min(_basicOptions.ForgetTimeSpan.TotalMilliseconds, int.MaxValue / 2);
                             if (!_tempBlocked.ContainsKey(clientstring))
                             {
                                 _tempBlocked.Add(clientstring,
@@ -291,7 +306,7 @@ namespace OpenSim.Framework.Security.DOSProtector
 
                                 _forgetTimer.Enabled = true;
 
-                                Log(DOSProtectorLogLevel.Warn, $"[{_options.ReportingName}]: client: {RedactClient(clientstring)} is blocked for {_options.ForgetTimeSpan.TotalMilliseconds}ms based on concurrency, X-ForwardedForAllowed status is {_options.AllowXForwardedFor}, endpoint:{endpoint}");
+                                Log(DOSProtectorLogLevel.Warn, $"[{_options.ReportingName}]: client: {RedactClient(clientstring)} is blocked for {_basicOptions.ForgetTimeSpan.TotalMilliseconds}ms based on concurrency, X-ForwardedForAllowed status is {_basicOptions.AllowXForwardedFor}, endpoint:{endpoint}");
                             }
                             else
                                 _tempBlocked[clientstring] = Util.EnvironmentTickCount() + blockDuration;
@@ -316,7 +331,7 @@ namespace OpenSim.Framework.Security.DOSProtector
             {
                 generalLimitExceeded = _generalRequestTimes.Size == _generalRequestTimes.Capacity &&
                     (Util.EnvironmentTickCountSubtract(Util.EnvironmentTickCount(), _generalRequestTimes.Get()) <
-                     _options.RequestTimeSpan.TotalMilliseconds);
+                     _basicOptions.RequestTimeSpan.TotalMilliseconds);
             }
 
             if (generalLimitExceeded)
@@ -392,13 +407,13 @@ namespace OpenSim.Framework.Security.DOSProtector
 
                     if (_deeperInspection[clientstring].Size == _deeperInspection[clientstring].Capacity &&
                         (Util.EnvironmentTickCountSubtract(now, _deeperInspection[clientstring].Get()) <
-                         _options.RequestTimeSpan.TotalMilliseconds))
+                         _basicOptions.RequestTimeSpan.TotalMilliseconds))
                     {
                         // Looks like we're over the limit
                         _blockLockSlim.EnterWriteLock();
                         try
                         {
-                            int blockDuration = (int)Math.Min(_options.ForgetTimeSpan.TotalMilliseconds, int.MaxValue / 2);
+                            int blockDuration = (int)Math.Min(_basicOptions.ForgetTimeSpan.TotalMilliseconds, int.MaxValue / 2);
                             if (!_tempBlocked.ContainsKey(clientstring))
                             {
                                 _tempBlocked.Add(clientstring, now + blockDuration);
@@ -412,13 +427,13 @@ namespace OpenSim.Framework.Security.DOSProtector
                             _blockLockSlim.ExitWriteLock();
                         }
 
-                        Log(DOSProtectorLogLevel.Warn, $"[{_options.ReportingName}]: client: {RedactClient(clientstring)} is blocked for {_options.ForgetTimeSpan.TotalMilliseconds}ms, X-ForwardedForAllowed status is {_options.AllowXForwardedFor}, endpoint:{endpoint}");
+                        Log(DOSProtectorLogLevel.Warn, $"[{_options.ReportingName}]: client: {RedactClient(clientstring)} is blocked for {_basicOptions.ForgetTimeSpan.TotalMilliseconds}ms, X-ForwardedForAllowed status is {_basicOptions.AllowXForwardedFor}, endpoint:{endpoint}");
                         return false;
                     }
                 }
                 else
                 {
-                    _deeperInspection.Add(clientstring, new CircularBuffer<int>(_options.MaxRequestsInTimeframe + 1, true));
+                    _deeperInspection.Add(clientstring, new CircularBuffer<int>(_basicOptions.MaxRequestsInTimeframe + 1, true));
                     _deeperInspection[clientstring].Put(now);
                     _deeperInspectionLastAccess[clientstring] = now;
 

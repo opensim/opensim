@@ -29,9 +29,9 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using OpenSim.Framework.Security.DOSProtector.Interfaces;
 
-namespace OpenSim.Framework.Security.DOSProtector
+
+namespace OpenSim.Framework.Security.DOSProtector.SDK
 {
     /// <summary>
     /// Thread-safe implementation of IDOSProtectorContext using ConcurrentDictionary.

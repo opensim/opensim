@@ -32,11 +32,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using log4net;
-using OpenSim.Framework.Security.DOSProtector.Attributes;
-using OpenSim.Framework.Security.DOSProtector.Interfaces;
-using OpenSim.Framework.Security.DOSProtector.Options;
+using OpenSim.Framework.Security.DOSProtector.Core.Plugin.Zero;
+using OpenSim.Framework.Security.DOSProtector.SDK;
 
-namespace OpenSim.Framework.Security.DOSProtector
+namespace OpenSim.Framework.Security.DOSProtector.Core
 {
     /// <summary>
     /// Builder class for creating DOS protector instances based on options type.
@@ -305,11 +304,10 @@ namespace OpenSim.Framework.Security.DOSProtector
             {
                 options = DOSProtectorConfigLoader.LoadServiceOptions(identifier);
 
-                // If still no options found, use BasicDOSProtector with defaults
+                // If still no options found, use ZeroProtector
                 if (options == null || options.Length == 0)
                 {
-                    m_log.Info($"[DOSProtectorBuilder]: No configuration found for identifier '{identifier}', using BasicDOSProtector with default settings");
-                    options = new IDOSProtectorOptions[] { new Options.BasicDosProtectorOptions { ReportingName = identifier } };
+                    options = new IDOSProtectorOptions[] { new ZeroOptions { ReportingName = identifier } };
                 }
             }
 
@@ -360,9 +358,9 @@ namespace OpenSim.Framework.Security.DOSProtector
                 }
                 currentType = currentType.BaseType;
             }
-
-            // Fallback to BasicDOSProtector
-            return new BasicDOSProtector(options);
+            
+            throw new InvalidOperationException(
+                $"No DOS protector implementation found for options type {optionsType.Name}");
         }
 
         private static IDOSProtector CreateInstance(Type protectorType, IDOSProtectorOptions options)

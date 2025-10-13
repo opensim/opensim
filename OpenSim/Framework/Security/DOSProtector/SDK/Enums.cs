@@ -24,40 +24,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-using System;
-using OpenSim.Framework.Security.DOSProtector.Interfaces;
 
-namespace OpenSim.Framework.Security.DOSProtector.Options
+namespace OpenSim.Framework.Security.DOSProtector.SDK
 {
-    
-    public class BasicDosProtectorOptions : IDOSProtectorOptions
+    /// <summary>
+    /// Action to take when throttling occurs
+    /// </summary>
+    public enum ThrottleAction
     {
-        public int MaxRequestsInTimeframe { get; set; }
-        public TimeSpan RequestTimeSpan { get; set; }
-        public TimeSpan ForgetTimeSpan { get; set; }
-        public bool AllowXForwardedFor { get; set; }
-        public string ReportingName { get; set; } = "BASICDOSPROTECTOR";
-        public ThrottleAction ThrottledAction { get; set; } = ThrottleAction.DoThrottledMethod;
-        public int MaxConcurrentSessions { get; set; }
+        /// <summary>Execute the throttled method</summary>
+        DoThrottledMethod,
+        /// <summary>Throw an exception</summary>
+        DoThrow
+    }
 
-        /// <summary>
-        /// Time-To-Live for inspection entries. Inactive clients are removed after this duration.
-        /// Defaults to 10 minutes to allow for temporary traffic bursts.
-        /// </summary>
-        public TimeSpan InspectionTTL { get; set; } = TimeSpan.FromMinutes(10);
-
-        /// <summary>
-        /// Log level for DOS protection events.
-        /// Controls verbosity of logging to prevent log spam during attacks.
-        /// Default: Warn (logs blocks and warnings)
-        /// </summary>
-        public DOSProtectorLogLevel LogLevel { get; set; } = DOSProtectorLogLevel.Warn;
-
-        /// <summary>
-        /// Redact client identifiers (IPs) in log messages for privacy/GDPR compliance.
-        /// When enabled, logs show partial identifiers (e.g., "192.168.***.***").
-        /// Default: false (full identifiers logged)
-        /// </summary>
-        public bool RedactClientIdentifiers { get; set; } = false;
+    /// <summary>
+    /// Log level for DOS protection events
+    /// </summary>
+    public enum DOSProtectorLogLevel
+    {
+        /// <summary>No logging</summary>
+        None,
+        /// <summary>Only errors and critical blocks</summary>
+        Error,
+        /// <summary>Warnings and blocks (default)</summary>
+        Warn,
+        /// <summary>Info including unblocks</summary>
+        Info,
+        /// <summary>Debug including cleanup operations</summary>
+        Debug
     }
 }

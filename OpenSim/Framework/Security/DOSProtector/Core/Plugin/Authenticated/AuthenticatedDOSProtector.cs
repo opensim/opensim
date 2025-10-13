@@ -26,12 +26,56 @@
  */
 
 using System;
-using OpenSim.Framework.Security.DOSProtector.Attributes;
-using OpenSim.Framework.Security.DOSProtector.Interfaces;
-using OpenSim.Framework.Security.DOSProtector.Options;
+using OpenSim.Framework.Security.DOSProtector.SDK;
+using OpenSim.Framework.Security.DOSProtector.Core.Plugin.Basic;
 
-namespace OpenSim.Framework.Security.DOSProtector.Plugins
+namespace OpenSim.Framework.Security.DOSProtector.Core.Plugin.Authenticated
 {
+    
+    /// <summary>
+    /// Configuration options for AuthenticatedDOSProtector.
+    /// Provides different rate limits for authenticated vs anonymous users.
+    /// </summary>
+    public class AuthenticatedDosProtectorOptions : Basic.BasicDosProtectorOptions
+    {
+        /// <summary>
+        /// Maximum requests per timeframe for anonymous users.
+        /// Should be more restrictive than authenticated limits.
+        /// Default: 10 requests
+        /// </summary>
+        public int AnonymousMaxRequests { get; set; } = 10;
+
+        /// <summary>
+        /// Maximum requests per timeframe for authenticated users.
+        /// Can be more relaxed for trusted logged-in users.
+        /// Default: 50 requests
+        /// </summary>
+        public int AuthenticatedMaxRequests { get; set; } = 50;
+
+        /// <summary>
+        /// Maximum concurrent sessions for anonymous users.
+        /// Default: 2 sessions
+        /// </summary>
+        public int AnonymousMaxConcurrentSessions { get; set; } = 2;
+
+        /// <summary>
+        /// Maximum concurrent sessions for authenticated users.
+        /// Default: 10 sessions
+        /// </summary>
+        public int AuthenticatedMaxConcurrentSessions { get; set; } = 10;
+
+        /// <summary>
+        /// Constructor with sensible defaults
+        /// </summary>
+        public AuthenticatedDosProtectorOptions()
+        {
+            ReportingName = "AuthenticatedDOS";
+            RequestTimeSpan = TimeSpan.FromMinutes(1);
+            ForgetTimeSpan = TimeSpan.FromMinutes(5);
+        }
+    }
+    
+    
     /// <summary>
     /// DOS Protector with different rate limits for authenticated vs anonymous users.
     /// Authenticated users get higher limits, anonymous users are more restricted.
@@ -40,19 +84,16 @@ namespace OpenSim.Framework.Security.DOSProtector.Plugins
     [DOSProtectorOptions(typeof(AuthenticatedDosProtectorOptions))]
     public class AuthenticatedDOSProtector : BaseDOSProtector
     {
-        private readonly AuthenticatedDosProtectorOptions _authOptions;
-        private readonly DOSProtector.BasicDOSProtector _anonymousProtector;
-        private readonly DOSProtector.BasicDOSProtector _authenticatedProtector;
+        private readonly Basic.BasicDOSProtector _anonymousProtector;
+        private readonly Basic.BasicDOSProtector _authenticatedProtector;
 
         public AuthenticatedDOSProtector(AuthenticatedDosProtectorOptions options)
             : base(options)
         {
             ArgumentNullException.ThrowIfNull(options);
 
-            _authOptions = options;
-
             // Create protector for anonymous users (strict limits)
-            var anonymousOptions = new Options.BasicDosProtectorOptions
+            var anonymousOptions = new Basic.BasicDosProtectorOptions
             {
                 MaxRequestsInTimeframe = options.AnonymousMaxRequests,
                 RequestTimeSpan = options.RequestTimeSpan,
@@ -65,10 +106,10 @@ namespace OpenSim.Framework.Security.DOSProtector.Plugins
                 RedactClientIdentifiers = options.RedactClientIdentifiers,
                 ReportingName = $"{options.ReportingName}-Anonymous"
             };
-            _anonymousProtector = new DOSProtector.BasicDOSProtector(anonymousOptions);
+            _anonymousProtector = new Basic.BasicDOSProtector(anonymousOptions);
 
             // Create protector for authenticated users (relaxed limits)
-            var authenticatedOptions = new Options.BasicDosProtectorOptions
+            var authenticatedOptions = new Basic.BasicDosProtectorOptions
             {
                 MaxRequestsInTimeframe = options.AuthenticatedMaxRequests,
                 RequestTimeSpan = options.RequestTimeSpan,
@@ -81,7 +122,7 @@ namespace OpenSim.Framework.Security.DOSProtector.Plugins
                 RedactClientIdentifiers = options.RedactClientIdentifiers,
                 ReportingName = $"{options.ReportingName}-Authenticated"
             };
-            _authenticatedProtector = new DOSProtector.BasicDOSProtector(authenticatedOptions);
+            _authenticatedProtector = new Basic.BasicDOSProtector(authenticatedOptions);
 
             Log(DOSProtectorLogLevel.Info,
                 $"[AuthenticatedDOSProtector]: Initialized - " +
@@ -148,7 +189,7 @@ namespace OpenSim.Framework.Security.DOSProtector.Plugins
         /// <summary>
         /// Selects the appropriate protector based on authentication status
         /// </summary>
-        private DOSProtector.BasicDOSProtector GetProtectorForKey(string key)
+        private Basic.BasicDOSProtector GetProtectorForKey(string key)
         {
             return IsAuthenticatedKey(key)
                 ? _authenticatedProtector

@@ -30,12 +30,50 @@ using System.Reflection;
 using System.Threading;
 using log4net;
 using OpenSim.Framework;
-using OpenSim.Framework.Security.DOSProtector.Attributes;
-using OpenSim.Framework.Security.DOSProtector.Options;
-using OpenSim.Framework.Security.DOSProtector.Interfaces;
+using OpenSim.Framework.Security.DOSProtector.SDK;
 
-namespace OpenSim.Framework.Security.DOSProtector
+namespace OpenSim.Framework.Security.DOSProtector.Core.Plugin.Advanced
 {
+    
+    /// <summary>
+    /// Advanced configuration options for AdvancedDOSProtector
+    /// Extends BasicDosProtectorOptions with additional security features
+    /// </summary>
+    public class AdvancedDosProtectorOptions : BaseDosProtectorOptions
+    {
+        public int MaxRequestsInTimeframe { get; set; }
+        public TimeSpan RequestTimeSpan { get; set; }
+        public TimeSpan ForgetTimeSpan { get; set; }
+        public bool AllowXForwardedFor { get; set; }
+        public new string ReportingName { get; set; } = "ADVANCEDDOSPROTECTOR";
+        public new ThrottleAction ThrottledAction { get; set; } = ThrottleAction.DoThrottledMethod;
+        public int MaxConcurrentSessions { get; set; }
+        
+        /// <summary>
+        /// Enable block extension limiting to prevent permanent blocks.
+        /// When enabled, uses MaxBlockExtensions and/or MaxTotalBlockDuration.
+        /// Default: false (preserves existing unlimited extension behavior).
+        /// </summary>
+        public bool LimitBlockExtensions { get; set; } = false;
+
+        /// <summary>
+        /// Maximum number of times a block can be extended.
+        /// Only applies when LimitBlockExtensions = true.
+        /// 0 = no limit on extension count (only duration matters).
+        /// Default: 3
+        /// </summary>
+        public int MaxBlockExtensions { get; set; } = 3;
+
+        /// <summary>
+        /// Maximum total duration a client can remain blocked.
+        /// Only applies when LimitBlockExtensions = true.
+        /// TimeSpan.Zero = no duration limit (only extension count matters).
+        /// Default: 1 hour
+        /// </summary>
+        public TimeSpan MaxTotalBlockDuration { get; set; } = TimeSpan.FromHours(1);
+    }
+    
+    
     /// <summary>
     /// Advanced DOS protection with extended features:
     /// - Inherits all BasicDOSProtector functionality (memory leak fix, TTL cleanup, etc.)
@@ -79,7 +117,8 @@ namespace OpenSim.Framework.Security.DOSProtector
 
         private bool _disposed;
 
-        public AdvancedDOSProtector(AdvancedDosProtectorOptions options) : base(options)
+        public AdvancedDOSProtector(AdvancedDosProtectorOptions options) 
+            : base(options)
         {
             ArgumentNullException.ThrowIfNull(options);
 
@@ -211,7 +250,7 @@ namespace OpenSim.Framework.Security.DOSProtector
                 }
             };
 
-            _forgetTimer.Interval = _options.ForgetTimeSpan.TotalMilliseconds;
+            _forgetTimer.Interval = _advancedOptions.ForgetTimeSpan.TotalMilliseconds;
             _forgetTimer.AutoReset = false;
         }
 
@@ -233,7 +272,7 @@ namespace OpenSim.Framework.Security.DOSProtector
 
         public override bool Process(string key, string endpoint, IDOSProtectorContext context = null)
         {
-            if (_options.MaxRequestsInTimeframe < 1 || _options.RequestTimeSpan.TotalMilliseconds < 1)
+            if (_advancedOptions.MaxRequestsInTimeframe < 1 || _advancedOptions.RequestTimeSpan.TotalMilliseconds < 1)
                 return true;
 
             if (string.IsNullOrEmpty(key))
@@ -262,7 +301,7 @@ namespace OpenSim.Framework.Security.DOSProtector
                 _generalRequestTimes.Put(Util.EnvironmentTickCount());
 
             // Check concurrent sessions if enabled
-            if (_options.MaxConcurrentSessions > 0)
+            if (_advancedOptions.MaxConcurrentSessions > 0)
             {
                 var sessionCount = 0;
                 _sessionLockSlim.EnterReadLock();
@@ -275,7 +314,7 @@ namespace OpenSim.Framework.Security.DOSProtector
                     _sessionLockSlim.ExitReadLock();
                 }
 
-                if (sessionCount >= _options.MaxConcurrentSessions)
+                if (sessionCount >= _advancedOptions.MaxConcurrentSessions)
                 {
                     // Add to blocking with extension limit check
                     lock (_deeperInspection)
@@ -284,7 +323,7 @@ namespace OpenSim.Framework.Security.DOSProtector
                         try
                         {
                             int now = Util.EnvironmentTickCount();
-                            int blockDuration = (int)Math.Min(_options.ForgetTimeSpan.TotalMilliseconds, int.MaxValue / 2);
+                            int blockDuration = (int)Math.Min(_advancedOptions.ForgetTimeSpan.TotalMilliseconds, int.MaxValue / 2);
                             bool isNewBlock = !_tempBlocked.ContainsKey(clientstring);
 
                             if (isNewBlock)
@@ -295,7 +334,7 @@ namespace OpenSim.Framework.Security.DOSProtector
                                 _blockExtensionCounts[clientstring] = 0;
                                 _forgetTimer.Enabled = true;
 
-                                Log(DOSProtectorLogLevel.Warn, $"[{_options.ReportingName}]: client: {RedactClient(clientstring)} is blocked for {_options.ForgetTimeSpan.TotalMilliseconds}ms based on concurrency, X-ForwardedForAllowed status is {_options.AllowXForwardedFor}, endpoint:{endpoint}");
+                                Log(DOSProtectorLogLevel.Warn, $"[{_options.ReportingName}]: client: {RedactClient(clientstring)} is blocked for {_advancedOptions.ForgetTimeSpan.TotalMilliseconds}ms based on concurrency, X-ForwardedForAllowed status is {_advancedOptions.AllowXForwardedFor}, endpoint:{endpoint}");
                             }
                             else
                             {
@@ -326,7 +365,7 @@ namespace OpenSim.Framework.Security.DOSProtector
             {
                 generalLimitExceeded = _generalRequestTimes.Size == _generalRequestTimes.Capacity &&
                     (Util.EnvironmentTickCountSubtract(Util.EnvironmentTickCount(), _generalRequestTimes.Get()) <
-                     _options.RequestTimeSpan.TotalMilliseconds);
+                     _advancedOptions.RequestTimeSpan.TotalMilliseconds);
             }
 
             if (generalLimitExceeded)
@@ -396,13 +435,13 @@ namespace OpenSim.Framework.Security.DOSProtector
 
                     if (_deeperInspection[clientstring].Size == _deeperInspection[clientstring].Capacity &&
                         (Util.EnvironmentTickCountSubtract(now, _deeperInspection[clientstring].Get()) <
-                         _options.RequestTimeSpan.TotalMilliseconds))
+                         _advancedOptions.RequestTimeSpan.TotalMilliseconds))
                     {
                         // Looks like we're over the limit
                         _blockLockSlim.EnterWriteLock();
                         try
                         {
-                            int blockDuration = (int)Math.Min(_options.ForgetTimeSpan.TotalMilliseconds, int.MaxValue / 2);
+                            int blockDuration = (int)Math.Min(_advancedOptions.ForgetTimeSpan.TotalMilliseconds, int.MaxValue / 2);
                             bool isNewBlock = !_tempBlocked.ContainsKey(clientstring);
 
                             if (isNewBlock)
@@ -427,13 +466,13 @@ namespace OpenSim.Framework.Security.DOSProtector
                             _blockLockSlim.ExitWriteLock();
                         }
 
-                        Log(DOSProtectorLogLevel.Warn, $"[{_options.ReportingName}]: client: {RedactClient(clientstring)} is blocked for {_options.ForgetTimeSpan.TotalMilliseconds}ms, X-ForwardedForAllowed status is {_options.AllowXForwardedFor}, endpoint:{endpoint}");
+                        Log(DOSProtectorLogLevel.Warn, $"[{_options.ReportingName}]: client: {RedactClient(clientstring)} is blocked for {_advancedOptions.ForgetTimeSpan.TotalMilliseconds}ms, X-ForwardedForAllowed status is {_advancedOptions.AllowXForwardedFor}, endpoint:{endpoint}");
                         return false;
                     }
                 }
                 else
                 {
-                    _deeperInspection.Add(clientstring, new CircularBuffer<int>(_options.MaxRequestsInTimeframe + 1, true));
+                    _deeperInspection.Add(clientstring, new CircularBuffer<int>(_advancedOptions.MaxRequestsInTimeframe + 1, true));
                     _deeperInspection[clientstring].Put(now);
                     _deeperInspectionLastAccess[clientstring] = now;
 
