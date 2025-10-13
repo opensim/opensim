@@ -107,7 +107,8 @@
       <Reference name="log4net" path ="../../../bin"/>
       <Files>
         <Match path="DOSProtector" pattern="*.cs" recurse="true">
-          <Exclude name="obj" pattern="obj"/>
+            <Exclude name="obj" pattern="obj"/>
+            <Exclude name="Tests" pattern="Tests"/>
         </Match>
       </Files>
     </Project>
