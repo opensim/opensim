@@ -34,21 +34,19 @@ namespace OpenSim.Framework
     /// A double dictionary that is thread abort safe.
     /// </summary>
     /// <remarks>
-    /// This adapts OpenMetaverse.DoubleDictionary to be thread-abort safe by acquiring ReaderWriterLockSlim within
-    /// a finally section (which can't be interrupted by Thread.Abort()).
-    /// </remarks>
+
     public class DoubleDictionaryThreadAbortSafe<TKey1, TKey2, TValue>
     {
-        Dictionary<TKey1, TValue> Dictionary1;
-        Dictionary<TKey2, TValue> Dictionary2;
+        readonly Dictionary<TKey1, TValue> Dictionary1;
+        readonly Dictionary<TKey2, TValue> Dictionary2;
         private TValue[] m_array;
 
-        ReaderWriterLockSlim rwLock = new ReaderWriterLockSlim();
+        readonly ReaderWriterLockSlim rwLock = new();
 
         public DoubleDictionaryThreadAbortSafe()
         {
-            Dictionary1 = new Dictionary<TKey1,TValue>();
-            Dictionary2 = new Dictionary<TKey2,TValue>();
+            Dictionary1 = [];
+            Dictionary2 = [];
             m_array = null;
         }
 
@@ -61,133 +59,102 @@ namespace OpenSim.Framework
 
         ~DoubleDictionaryThreadAbortSafe()
         {
-            if(rwLock != null)
-                rwLock.Dispose();
+            rwLock?.Dispose();
         }
 
         public void Add(TKey1 key1, TKey2 key2, TValue value)
         {
-            bool gotLock = false;
-
+            rwLock.EnterWriteLock();
             try
             {
-                // Avoid an asynchronous Thread.Abort() from possibly never existing an acquired lock by placing
-                // the acquision inside the main try.  The inner finally block is needed because thread aborts cannot
-                // interrupt code in these blocks (hence gotLock is guaranteed to be set correctly).
-                try {}
-                finally
-                {
-                    rwLock.EnterWriteLock();
-                    gotLock = true;
-                }
-                    Dictionary1[key1] = value;
-                    Dictionary2[key2] = value;
-                    m_array = null;
+                Dictionary1[key1] = value;
+                Dictionary2[key2] = value;
+                m_array = null;
             }
-            finally
-            {
-                if (gotLock)
-                    rwLock.ExitWriteLock();
-            }
+            finally { rwLock.ExitWriteLock(); }
         }
 
         public bool Remove(TKey1 key1, TKey2 key2)
         {
-            bool success;
-            bool gotLock = false;
-
+            rwLock.EnterWriteLock();
             try
             {
-                // Avoid an asynchronous Thread.Abort() from possibly never existing an acquired lock by placing
-                // the acquision inside the main try.  The inner finally block is needed because thread aborts cannot
-                // interrupt code in these blocks (hence gotLock is guaranteed to be set correctly).
-                try {}
-                finally
-                {
-                    rwLock.EnterWriteLock();
-                    gotLock = true;
-                }
-                success = Dictionary1.Remove(key1);
+                bool success = Dictionary1.Remove(key1);
                 success &= Dictionary2.Remove(key2);
                 m_array = null;
+                return success;
             }
-            finally
-            {
-                if (gotLock)
-                    rwLock.ExitWriteLock();
-            }
+            finally { rwLock.ExitWriteLock(); }
+        }
 
-            return success;
+        public bool Remove(TKey1 key1, TKey2 key2, out TValue value)
+        {
+            rwLock.EnterWriteLock();
+            try
+            {
+                bool success = Dictionary1.Remove(key1, out value);
+                success &= Dictionary2.Remove(key2);
+                m_array = null;
+                return success;
+            }
+            finally { rwLock.ExitWriteLock(); }
         }
 
         public bool Remove(TKey1 key1)
         {
-            bool found = false;
-            bool gotLock = false;
-
+            rwLock.EnterWriteLock();
             try
             {
-                // Avoid an asynchronous Thread.Abort() from possibly never existing an acquired lock by placing
-                // the acquision inside the main try.  The inner finally block is needed because thread aborts cannot
-                // interrupt code in these blocks (hence gotLock is guaranteed to be set correctly).
-                try {}
-                finally
-                {
-                    rwLock.EnterWriteLock();
-                    gotLock = true;
-                }
-
                 // This is an O(n) operation!
-                TValue value;
-                if (Dictionary1.TryGetValue(key1, out value))
-                {
+                if (Dictionary1.Remove(key1, out TValue value))
+                {   
+                    m_array = null;
                     foreach (KeyValuePair<TKey2, TValue> kvp in Dictionary2)
                     {
                         if (kvp.Value.Equals(value))
                         {
-                            try { }
-                            finally
-                            {
-                                Dictionary1.Remove(key1);
-                                Dictionary2.Remove(kvp.Key);
-                                m_array = null;
-                            }
-                            found = true;
-                            break;
+                            Dictionary2.Remove(kvp.Key);
+                            return true;
                         }
                     }
                 }
+                return false;
             }
-            finally
-            {
-                if (gotLock)
-                    rwLock.ExitWriteLock();
-            }
+            finally { rwLock.ExitWriteLock(); }
+        }
 
-            return found;
+        public bool Remove(TKey1 key1, out TValue value)
+        {
+            rwLock.EnterWriteLock();
+            try
+            {
+                // This is an O(n) operation!
+                if (Dictionary1.Remove(key1, out value))
+                { 
+                    m_array = null;
+                    foreach (KeyValuePair<TKey2, TValue> kvp in Dictionary2)
+                    {
+                        if (kvp.Value.Equals(value))
+                        {
+                            Dictionary2.Remove(kvp.Key);
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+            finally { rwLock.ExitWriteLock(); }
         }
 
         public bool Remove(TKey2 key2)
         {
-            bool found = false;
-            bool gotLock = false;
-
+            rwLock.EnterWriteLock();
             try
             {
-                // Avoid an asynchronous Thread.Abort() from possibly never existing an acquired lock by placing
-                // the acquision inside the main try.  The inner finally block is needed because thread aborts cannot
-                // interrupt code in these blocks (hence gotLock is guaranteed to be set correctly).
-                try {}
-                finally
-                {
-                    rwLock.EnterWriteLock();
-                    gotLock = true;
-                }
-
                 // This is an O(n) operation!
-                TValue value;
-                if (Dictionary2.TryGetValue(key2, out value))
+                if (Dictionary2.Remove(key2, out TValue value))
                 {
+                    m_array = null;
                     foreach (KeyValuePair<TKey1, TValue> kvp in Dictionary1)
                     {
                         if (kvp.Value.Equals(value))
@@ -195,49 +162,51 @@ namespace OpenSim.Framework
                             try { }
                             finally
                             {
-                                Dictionary2.Remove(key2);
                                 Dictionary1.Remove(kvp.Key);
-                                m_array = null;
+                                
                             }
-                            found = true;
-                            break;
+                            return true;
                         }
                     }
                 }
+                return false;
             }
-            finally
-            {
-                if (gotLock)
-                    rwLock.ExitWriteLock();
-            }
+            finally { rwLock.ExitWriteLock(); }
+        }
 
-            return found;
+        public bool Remove(TKey2 key2, out TValue value)
+        {
+            rwLock.EnterWriteLock();
+            try
+            {
+                // This is an O(n) operation!
+                if (Dictionary2.Remove(key2, out value))
+                {
+                    m_array = null;
+                    foreach (KeyValuePair<TKey1, TValue> kvp in Dictionary1)
+                    {
+                        if (kvp.Value.Equals(value))
+                        {
+                            Dictionary1.Remove(kvp.Key);
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+            finally { rwLock.ExitWriteLock(); }
         }
 
         public void Clear()
         {
-            bool gotLock = false;
-
+            rwLock.EnterWriteLock();
             try
             {
-                // Avoid an asynchronous Thread.Abort() from possibly never existing an acquired lock by placing
-                // the acquision inside the main try.  The inner finally block is needed because thread aborts cannot
-                // interrupt code in these blocks (hence gotLock is guaranteed to be set correctly).
-                try {}
-                finally
-                {
-                    rwLock.EnterWriteLock();
-                    gotLock = true;
-                    Dictionary1.Clear();
-                    Dictionary2.Clear();
-                    m_array = null;
-                }
+                Dictionary1.Clear();
+                Dictionary2.Clear();
+                m_array = null;
             }
-            finally
-            {
-                if (gotLock)
-                    rwLock.ExitWriteLock();
-            }
+            finally { rwLock.ExitWriteLock(); }
         }
 
         public int Count
@@ -247,68 +216,42 @@ namespace OpenSim.Framework
 
         public bool ContainsKey(TKey1 key)
         {
-            return Dictionary1.ContainsKey(key);
+            rwLock.EnterReadLock();
+            try
+            {
+                return Dictionary1.ContainsKey(key);
+            }
+            finally { rwLock.ExitReadLock(); }
         }
 
         public bool ContainsKey(TKey2 key)
         {
-            return Dictionary2.ContainsKey(key);
+            rwLock.EnterReadLock();
+            try
+            {   
+                return Dictionary2.ContainsKey(key);
+            }
+            finally { rwLock.ExitReadLock(); }
         }
 
         public bool TryGetValue(TKey1 key, out TValue value)
         {
-            bool success;
-            bool gotLock = false;
-
+            rwLock.EnterReadLock();
             try
             {
-                // Avoid an asynchronous Thread.Abort() from possibly never existing an acquired lock by placing
-                // the acquision inside the main try.  The inner finally block is needed because thread aborts cannot
-                // interrupt code in these blocks (hence gotLock is guaranteed to be set correctly).
-                try {}
-                finally
-                {
-                    rwLock.EnterReadLock();
-                    gotLock = true;
-                }
-
-                success = Dictionary1.TryGetValue(key, out value);
+                return Dictionary1.TryGetValue(key, out value);
             }
-            finally
-            {
-                if (gotLock)
-                    rwLock.ExitReadLock();
-            }
-
-            return success;
+            finally { rwLock.ExitReadLock(); }
         }
 
         public bool TryGetValue(TKey2 key, out TValue value)
         {
-            bool success;
-            bool gotLock = false;
-
+            rwLock.EnterReadLock();
             try
             {
-                // Avoid an asynchronous Thread.Abort() from possibly never existing an acquired lock by placing
-                // the acquision inside the main try.  The inner finally block is needed because thread aborts cannot
-                // interrupt code in these blocks (hence gotLock is guaranteed to be set correctly).
-                try {}
-                finally
-                {
-                    rwLock.EnterReadLock();
-                    gotLock = true;
-                }
-
-                success = Dictionary2.TryGetValue(key, out value);
+                return Dictionary2.TryGetValue(key, out value);
             }
-            finally
-            {
-                if (gotLock)
-                    rwLock.ExitReadLock();
-            }
-
-            return success;
+            finally { rwLock.ExitReadLock(); }
         }
 
         public void ForEach(Action<TValue> action)
@@ -323,76 +266,44 @@ namespace OpenSim.Framework
 
         public void ForEach(Action<KeyValuePair<TKey1, TValue>> action)
         {
-            bool gotLock = false;
-
+            rwLock.EnterReadLock();
             try
             {
-                // Avoid an asynchronous Thread.Abort() from possibly never existing an acquired lock by placing
-                // the acquision inside the main try.  The inner finally block is needed because thread aborts cannot
-                // interrupt code in these blocks (hence gotLock is guaranteed to be set correctly).
-                try {}
-                finally
-                {
-                    rwLock.EnterReadLock();
-                    gotLock = true;
-                }
-
                 foreach (KeyValuePair<TKey1, TValue> entry in Dictionary1)
                     action(entry);
             }
-            finally
-            {
-                if (gotLock)
-                    rwLock.ExitReadLock();
-            }
+            finally { rwLock.ExitReadLock(); }
         }
 
         public void ForEach(Action<KeyValuePair<TKey2, TValue>> action)
         {
-            bool gotLock = false;
-
+            rwLock.EnterReadLock();
             try
             {
-                // Avoid an asynchronous Thread.Abort() from possibly never existing an acquired lock by placing
-                // the acquision inside the main try.  The inner finally block is needed because thread aborts cannot
-                // interrupt code in these blocks (hence gotLock is guaranteed to be set correctly).
-                try {}
-                finally
-                {
-                    rwLock.EnterReadLock();
-                    gotLock = true;
-                }
-
                 foreach (KeyValuePair<TKey2, TValue> entry in Dictionary2)
                     action(entry);
             }
-            finally
-            {
-                if (gotLock)
-                    rwLock.ExitReadLock();
-            }
+            finally { rwLock.ExitReadLock(); }
         }
 
         public TValue FindValue(Predicate<TValue> predicate)
         {
             TValue[] values = GetArray();
-            int len = values.Length;
-            for (int i = 0; i < len; ++i)
+            for (int i = 0; i < values.Length; ++i)
             {
                 if (predicate(values[i]))
                     return values[i];
             }
 
-            return default(TValue);
+            return default;
         }
 
         public IList<TValue> FindAll(Predicate<TValue> predicate)
         {
-            IList<TValue> list = new List<TValue>();
+            IList<TValue> list = [];
             TValue[] values = GetArray();
 
-            int len = values.Length;
-            for (int i = 0; i < len; ++i)
+            for (int i = 0; i < values.Length; ++i)
             {
                 if (predicate(values[i]))
                     list.Add(values[i]);
@@ -402,21 +313,11 @@ namespace OpenSim.Framework
 
         public int RemoveAll(Predicate<TValue> predicate)
         {
-            IList<TKey1> list = new List<TKey1>();
-            bool gotUpgradeableLock = false;
+            IList<TKey1> list = [];
 
+            rwLock.EnterUpgradeableReadLock();
             try
             {
-                // Avoid an asynchronous Thread.Abort() from possibly never existing an acquired lock by placing
-                // the acquision inside the main try.  The inner finally block is needed because thread aborts cannot
-                // interrupt code in these blocks (hence gotLock is guaranteed to be set correctly).
-                try {}
-                finally
-                {
-                    rwLock.EnterUpgradeableReadLock();
-                    gotUpgradeableLock = true;
-                }
-
                 foreach (KeyValuePair<TKey1, TValue> kvp in Dictionary1)
                 {
                     if (predicate(kvp.Value))
@@ -430,83 +331,43 @@ namespace OpenSim.Framework
                         list2.Add(kvp.Key);
                 }
 
-                bool gotWriteLock = false;
-
                 try
                 {
-                    try {}
-                    finally
-                    {
-                        rwLock.EnterWriteLock();
-                        gotWriteLock = true;
+                    rwLock.EnterWriteLock();
 
-                        for (int i = 0; i < list.Count; i++)
-                            Dictionary1.Remove(list[i]);
+                    for (int i = 0; i < list.Count; i++)
+                        Dictionary1.Remove(list[i]);
 
-                        for (int i = 0; i < list2.Count; i++)
-                            Dictionary2.Remove(list2[i]);
-                        m_array = null;
-                    }
+                    for (int i = 0; i < list2.Count; i++)
+                        Dictionary2.Remove(list2[i]);
+                    m_array = null;
+                    return list.Count;
                 }
-                finally
-                {
-                    if (gotWriteLock)
-                        rwLock.ExitWriteLock();
-                }
+                finally { rwLock.ExitWriteLock(); }
             }
-            finally
-            {
-                if (gotUpgradeableLock)
-                    rwLock.ExitUpgradeableReadLock();
-            }
+            finally { rwLock.ExitUpgradeableReadLock(); }
 
-            return list.Count;
         }
 
         public TValue[] GetArray()
         {
-            bool gotupLock = false;
+            rwLock.EnterUpgradeableReadLock();
             try
             {
-                try { }
-                finally
-                {
-                    rwLock.EnterUpgradeableReadLock();
-                    gotupLock = true;
-                }
-
                 if (m_array == null)
                 {
-                    bool gotwritelock = false;
+                    rwLock.EnterWriteLock();
                     try
                     {
-                        try { }
-                        finally
-                        {
-                            rwLock.EnterWriteLock();
-                            gotwritelock = true;
-                        }
-
                         m_array = new TValue[Dictionary1.Count];
                         Dictionary1.Values.CopyTo(m_array, 0);
                     }
-                    finally
-                    {
-                        if (gotwritelock)
-                            rwLock.ExitWriteLock();
-                    }
+                    finally { rwLock.ExitWriteLock(); }
                 }
                 return m_array;
             }
-            catch
-            {
-                return new TValue[0];
-            }
-            finally
-            {
-                if (gotupLock)
-                    rwLock.ExitUpgradeableReadLock();
-            }
+            catch { return []; }
+            finally { rwLock.ExitUpgradeableReadLock(); }
         }
     }
 }

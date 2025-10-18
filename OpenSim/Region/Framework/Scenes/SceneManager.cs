@@ -92,18 +92,23 @@ namespace OpenSim.Region.Framework.Scenes
         private static SceneManager m_instance = null;
         public static SceneManager Instance
         {
-            get {
-                if (m_instance == null)
-                    m_instance = new SceneManager();
+            get
+            {
+                m_instance ??= new SceneManager();
                 return m_instance;
             }
         }
 
-        private readonly DoubleDictionary<UUID, string, Scene> m_localScenes = new DoubleDictionary<UUID, string, Scene>();
+        private readonly DoubleDictionaryThreadAbortSafe<UUID, string, Scene> m_localScenes = new();
 
         public List<Scene> Scenes
         {
-            get { return new List<Scene>(m_localScenes.FindAll(delegate(Scene s) { return true; })); }
+            get { return [.. m_localScenes.GetArray()]; }
+        }
+
+        public Scene[] GetScenes()
+        {
+            return m_localScenes.GetArray();
         }
 
         /// <summary>
@@ -120,10 +125,8 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (CurrentScene == null)
                 {
-                    List<Scene> sceneList = Scenes;
-                    if (sceneList.Count == 0)
-                        return null;
-                    return sceneList[0];
+                    ReadOnlySpan<Scene> sceneList = GetScenes();
+                    return sceneList.Length > 0 ? sceneList[0] : null;
                 }
                 else
                 {
@@ -135,19 +138,13 @@ namespace OpenSim.Region.Framework.Scenes
         public SceneManager()
         {
             m_instance = this;
-            m_localScenes = new DoubleDictionary<UUID, string, Scene>();
+            m_localScenes = new DoubleDictionaryThreadAbortSafe<UUID, string, Scene>();
         }
 
         public void Close()
         {
-            List<Scene> localScenes = null;
-
-            lock (m_localScenes)
-            {
-                localScenes = Scenes;
-            }
-
-            for (int i = 0; i < localScenes.Count; i++)
+            Scene[] localScenes = GetScenes();
+            for(int i = 0; i < localScenes.Length; i++)
             {
                 localScenes[i].Close();
             }
@@ -175,8 +172,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             lock (m_localScenes)
             {
-                m_localScenes.TryGetValue(rdata.RegionID, out restartedScene);
-                m_localScenes.Remove(rdata.RegionID);
+                m_localScenes.Remove(rdata.RegionID, out restartedScene);
             }
 
             // If the currently selected scene has been restarted, then we can't reselect here since we the scene
@@ -205,9 +201,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (s != null)
             {
-                List<Scene> sceneList = Scenes;
+                Scene[] sceneList = GetScenes();
 
-                for (int i = 0; i < sceneList.Count; i++)
+                for (int i = 0; i < sceneList.Length; i++)
                 {
                     if (sceneList[i]!= s)
                     {
@@ -229,8 +225,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void SaveCurrentSceneToXml(string filename)
         {
             IRegionSerialiserModule serialiser = CurrentOrFirstScene.RequestModuleInterface<IRegionSerialiserModule>();
-            if (serialiser != null)
-                serialiser.SavePrimsToXml(CurrentOrFirstScene, filename);
+            serialiser?.SavePrimsToXml(CurrentOrFirstScene, filename);
         }
 
         /// <summary>
@@ -242,8 +237,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void LoadCurrentSceneFromXml(string filename, bool generateNewIDs, Vector3 loadOffset)
         {
             IRegionSerialiserModule serialiser = CurrentOrFirstScene.RequestModuleInterface<IRegionSerialiserModule>();
-            if (serialiser != null)
-                serialiser.LoadPrimsFromXml(CurrentOrFirstScene, filename, generateNewIDs, loadOffset);
+            serialiser?.LoadPrimsFromXml(CurrentOrFirstScene, filename, generateNewIDs, loadOffset);
         }
 
         /// <summary>
@@ -253,15 +247,13 @@ namespace OpenSim.Region.Framework.Scenes
         public void SaveCurrentSceneToXml2(string filename)
         {
             IRegionSerialiserModule serialiser = CurrentOrFirstScene.RequestModuleInterface<IRegionSerialiserModule>();
-            if (serialiser != null)
-                serialiser.SavePrimsToXml2(CurrentOrFirstScene, filename);
+            serialiser?.SavePrimsToXml2(CurrentOrFirstScene, filename);
         }
 
         public void SaveNamedPrimsToXml2(string primName, string filename)
         {
             IRegionSerialiserModule serialiser = CurrentOrFirstScene.RequestModuleInterface<IRegionSerialiserModule>();
-            if (serialiser != null)
-                serialiser.SaveNamedPrimsToXml2(CurrentOrFirstScene, primName, filename);
+            serialiser?.SaveNamedPrimsToXml2(CurrentOrFirstScene, primName, filename);
         }
 
         /// <summary>
@@ -270,8 +262,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void LoadCurrentSceneFromXml2(string filename)
         {
             IRegionSerialiserModule serialiser = CurrentOrFirstScene.RequestModuleInterface<IRegionSerialiserModule>();
-            if (serialiser != null)
-                serialiser.LoadPrimsFromXml2(CurrentOrFirstScene, filename);
+            serialiser?.LoadPrimsFromXml2(CurrentOrFirstScene, filename);
         }
 
         /// <summary>
@@ -282,8 +273,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void SaveCurrentSceneToArchive(string[] cmdparams)
         {
             IRegionArchiverModule archiver = CurrentOrFirstScene.RequestModuleInterface<IRegionArchiverModule>();
-            if (archiver != null)
-                archiver.HandleSaveOarConsoleCommand(string.Empty, cmdparams);
+            archiver?.HandleSaveOarConsoleCommand(string.Empty, cmdparams);
         }
 
         /// <summary>
@@ -294,8 +284,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void LoadArchiveToCurrentScene(string[] cmdparams)
         {
             IRegionArchiverModule archiver = CurrentOrFirstScene.RequestModuleInterface<IRegionArchiverModule>();
-            if (archiver != null)
-                archiver.HandleLoadOarConsoleCommand(string.Empty, cmdparams);
+            archiver?.HandleLoadOarConsoleCommand(string.Empty, cmdparams);
         }
 
         public string SaveCurrentSceneMapToXmlString()
@@ -338,18 +327,16 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool TrySetCurrentScene(string regionName)
         {
-            if ((String.Compare(regionName, "root") == 0)
-                || (String.Compare(regionName, "..") == 0)
-                || (String.Compare(regionName, "/") == 0))
+            if ((string.Compare(regionName, "root") == 0)
+                || (string.Compare(regionName, "..") == 0)
+                || (string.Compare(regionName, "/") == 0))
             {
                 CurrentScene = null;
                 return true;
             }
             else
             {
-                Scene s;
-
-                if (m_localScenes.TryGetValue(regionName, out s))
+                if (m_localScenes.TryGetValue(regionName, out Scene s))
                 {
                     CurrentScene = s;
                     return true;
@@ -386,7 +373,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool TryGetScene(uint locX, uint locY, out Scene scene)
         {
-            List<Scene> sceneList = Scenes;
+            Scene[] sceneList = GetScenes();
             foreach (Scene mscene in sceneList)
             {
                 if (mscene.RegionInfo.RegionLocX == locX &&
@@ -403,7 +390,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool TryGetScene(IPEndPoint ipEndPoint, out Scene scene)
         {
-            List<Scene> sceneList = Scenes;
+            Scene[] sceneList = GetScenes();
             foreach (Scene mscene in sceneList)
             {
                 if ((mscene.RegionInfo.InternalEndPoint.Equals(ipEndPoint.Address)) &&
@@ -420,7 +407,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public List<ScenePresence> GetCurrentSceneAvatars()
         {
-            List<ScenePresence> avatars = new List<ScenePresence>();
+            List<ScenePresence> avatars = [];
 
             ForEachSelectedScene(
                 delegate(Scene scene)
@@ -437,7 +424,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public List<ScenePresence> GetCurrentScenePresences()
         {
-            List<ScenePresence> presences = new List<ScenePresence>();
+            List<ScenePresence> presences = [];
 
             ForEachSelectedScene(delegate(Scene scene)
             {
@@ -452,13 +439,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public RegionInfo GetRegionInfo(UUID regionID)
         {
-            Scene s;
-            if (m_localScenes.TryGetValue(regionID, out s))
-            {
-                return s.RegionInfo;
-            }
-
-            return null;
+            return m_localScenes.TryGetValue(regionID, out Scene s) ? s.RegionInfo : null;
         }
 
         public void ForceCurrentSceneClientUpdate()
@@ -473,7 +454,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool TryGetScenePresence(UUID avatarId, out ScenePresence avatar)
         {
-            List<Scene> sceneList = Scenes;
+            Scene[] sceneList = GetScenes();
             foreach (Scene scene in sceneList)
             {
                 if (scene.TryGetScenePresence(avatarId, out avatar))
@@ -488,7 +469,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool TryGetRootScenePresence(UUID avatarId, out ScenePresence avatar)
         {
-            List<Scene> sceneList = Scenes;
+            Scene[] sceneList = GetScenes();
             foreach (Scene scene in sceneList)
             {
                 if (scene.TryGetSceneRootPresence(avatarId, out avatar))
@@ -509,7 +490,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool TryGetAvatarByName(string avatarName, out ScenePresence avatar)
         {
-            List<Scene> sceneList = Scenes;
+            Scene[] sceneList = GetScenes();
             foreach (Scene scene in sceneList)
             {
                 if (scene.TryGetAvatarByName(avatarName, out avatar))
@@ -524,7 +505,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool TryGetRootScenePresenceByName(string firstName, string lastName, out ScenePresence sp)
         {
-            List<Scene> sceneList = Scenes;
+            Scene[] sceneList = GetScenes();
             foreach (Scene scene in sceneList)
             {
                 sp = scene.GetScenePresence(firstName, lastName);
@@ -538,8 +519,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void ForEachScene(Action<Scene> action)
         {
-            List<Scene> sceneList = Scenes;
-            sceneList.ForEach(action);
+            Scene[] sceneList = GetScenes();
+            foreach(Scene s in sceneList)
+                action(s);
         }
     }
 }
