@@ -1382,7 +1382,7 @@
       <Reference name="OpenMetaverseTypes"/>
       <Reference name="OpenMetaverse.StructuredData"/>
       <Reference name="OpenMetaverse"/>
-      <Reference name="Mono.Data.SqliteClient"/>
+      <Reference name="Mono.Data.Sqlite"/>
       <Reference name="netcd"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Capabilities"/>
