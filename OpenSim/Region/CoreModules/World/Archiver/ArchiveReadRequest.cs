@@ -29,7 +29,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Xml;
@@ -39,13 +38,11 @@ using OpenSim.Framework;
 using OpenSim.Framework.Monitoring;
 using OpenSim.Framework.Serialization;
 using OpenSim.Framework.Serialization.External;
-using OpenSim.Region.CoreModules.World.Terrain;
 using OpenSim.Region.CoreModules.World.Land;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Services.Interfaces;
-using System.Threading;
 
 namespace OpenSim.Region.CoreModules.World.Archiver
 {
@@ -848,7 +845,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         if (!ResolveGroupUuid(kvp.Value.GroupID))
                             kvp.Value.GroupID = UUID.Zero;
                     }
-                   
                     part.TaskInventory.LockItemsForRead(false);
                 }
             }
