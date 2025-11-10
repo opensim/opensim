@@ -848,6 +848,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         if (!ResolveGroupUuid(kvp.Value.GroupID))
                             kvp.Value.GroupID = UUID.Zero;
                     }
+                   
                     part.TaskInventory.LockItemsForRead(false);
                 }
             }

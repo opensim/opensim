@@ -4180,7 +4180,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             an.Data = new AvatarNotesReplyPacket.DataBlock
             {
                 TargetID = targetID,
-                Notes = Utils.StringToBytes(text)
+                Notes = Utils.StringToBytes(text, 1022)
             };
 
             OutPacket(an, ThrottleOutPacketType.Task);
