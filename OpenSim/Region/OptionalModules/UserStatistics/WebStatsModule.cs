@@ -42,7 +42,7 @@ using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using Mono.Data.Sqlite;
+using System.Data.SQLite;
 using Mono.Addins;
 
 using Caps = OpenSim.Framework.Capabilities.Caps;
@@ -58,7 +58,7 @@ namespace OpenSim.Region.UserStatistics
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private static SqliteConnection dbConn;
+        private static SQLiteConnection dbConn;
 
         /// <summary>
         /// User statistics sessions keyed by agent ID
@@ -91,11 +91,11 @@ namespace OpenSim.Region.UserStatistics
             if (!enabled)
                 return;
 
-            DllmapConfigHelper.RegisterAssembly(typeof(SqliteConnection).Assembly);
+            DllmapConfigHelper.RegisterAssembly(typeof(SQLiteConnection).Assembly);
 
             //IConfig startupConfig = config.Configs["Startup"];
 
-            dbConn = new SqliteConnection("URI=file:LocalUserStatistics.db,version=3");
+            dbConn = new SQLiteConnection("URI=file:LocalUserStatistics.db");
             dbConn.Open();
             CreateTables(dbConn);
 
@@ -329,9 +329,9 @@ namespace OpenSim.Region.UserStatistics
             return responsedata;
         }
 
-        private void CreateTables(SqliteConnection db)
+        private void CreateTables(SQLiteConnection db)
         {
-            using (SqliteCommand createcmd = new SqliteCommand(SQL_STATS_TABLE_CREATE, db))
+            using (SQLiteCommand createcmd = new SQLiteCommand(SQL_STATS_TABLE_CREATE, db))
             {
                 createcmd.ExecuteNonQuery();
             }
@@ -619,7 +619,7 @@ namespace OpenSim.Region.UserStatistics
             return uid;
         }
 
-        private void UpdateUserStats(UserSession uid, SqliteConnection db)
+        private void UpdateUserStats(UserSession uid, SQLiteConnection db)
         {
 //            m_log.DebugFormat(
 //                "[WEB STATS MODULE]: Updating user stats for {0} {1}, session {2}", uid.name_f, uid.name_l, uid.session_id);
@@ -629,62 +629,62 @@ namespace OpenSim.Region.UserStatistics
 
             lock (db)
             {
-                using (SqliteCommand updatecmd = new SqliteCommand(SQL_STATS_TABLE_INSERT, db))
+                using (SQLiteCommand updatecmd = new SQLiteCommand(SQL_STATS_TABLE_INSERT, db))
                 {
-                    updatecmd.Parameters.Add(new SqliteParameter(":session_id", uid.session_data.session_id.ToString()));
-                    updatecmd.Parameters.Add(new SqliteParameter(":agent_id", uid.session_data.agent_id.ToString()));
-                    updatecmd.Parameters.Add(new SqliteParameter(":region_id", uid.session_data.region_id.ToString()));
-                    updatecmd.Parameters.Add(new SqliteParameter(":last_updated", (int) uid.session_data.last_updated));
-                    updatecmd.Parameters.Add(new SqliteParameter(":remote_ip", uid.session_data.remote_ip));
-                    updatecmd.Parameters.Add(new SqliteParameter(":name_f", uid.session_data.name_f));
-                    updatecmd.Parameters.Add(new SqliteParameter(":name_l", uid.session_data.name_l));
-                    updatecmd.Parameters.Add(new SqliteParameter(":avg_agents_in_view", uid.session_data.avg_agents_in_view));
-                    updatecmd.Parameters.Add(new SqliteParameter(":min_agents_in_view",
+                    updatecmd.Parameters.Add(new SQLiteParameter(":session_id", uid.session_data.session_id.ToString()));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":agent_id", uid.session_data.agent_id.ToString()));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":region_id", uid.session_data.region_id.ToString()));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":last_updated", (int) uid.session_data.last_updated));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":remote_ip", uid.session_data.remote_ip));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":name_f", uid.session_data.name_f));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":name_l", uid.session_data.name_l));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":avg_agents_in_view", uid.session_data.avg_agents_in_view));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":min_agents_in_view",
                                                                  (int) uid.session_data.min_agents_in_view));
-                    updatecmd.Parameters.Add(new SqliteParameter(":max_agents_in_view",
+                    updatecmd.Parameters.Add(new SQLiteParameter(":max_agents_in_view",
                                                                  (int) uid.session_data.max_agents_in_view));
-                    updatecmd.Parameters.Add(new SqliteParameter(":mode_agents_in_view",
+                    updatecmd.Parameters.Add(new SQLiteParameter(":mode_agents_in_view",
                                                                  (int) uid.session_data.mode_agents_in_view));
-                    updatecmd.Parameters.Add(new SqliteParameter(":avg_fps", uid.session_data.avg_fps));
-                    updatecmd.Parameters.Add(new SqliteParameter(":min_fps", uid.session_data.min_fps));
-                    updatecmd.Parameters.Add(new SqliteParameter(":max_fps", uid.session_data.max_fps));
-                    updatecmd.Parameters.Add(new SqliteParameter(":mode_fps", uid.session_data.mode_fps));
-                    updatecmd.Parameters.Add(new SqliteParameter(":a_language", uid.session_data.a_language));
-                    updatecmd.Parameters.Add(new SqliteParameter(":mem_use", uid.session_data.mem_use));
-                    updatecmd.Parameters.Add(new SqliteParameter(":meters_traveled", uid.session_data.meters_traveled));
-                    updatecmd.Parameters.Add(new SqliteParameter(":avg_ping", uid.session_data.avg_ping));
-                    updatecmd.Parameters.Add(new SqliteParameter(":min_ping", uid.session_data.min_ping));
-                    updatecmd.Parameters.Add(new SqliteParameter(":max_ping", uid.session_data.max_ping));
-                    updatecmd.Parameters.Add(new SqliteParameter(":mode_ping", uid.session_data.mode_ping));
-                    updatecmd.Parameters.Add(new SqliteParameter(":regions_visited", uid.session_data.regions_visited));
-                    updatecmd.Parameters.Add(new SqliteParameter(":run_time", uid.session_data.run_time));
-                    updatecmd.Parameters.Add(new SqliteParameter(":avg_sim_fps", uid.session_data.avg_sim_fps));
-                    updatecmd.Parameters.Add(new SqliteParameter(":min_sim_fps", uid.session_data.min_sim_fps));
-                    updatecmd.Parameters.Add(new SqliteParameter(":max_sim_fps", uid.session_data.max_sim_fps));
-                    updatecmd.Parameters.Add(new SqliteParameter(":mode_sim_fps", uid.session_data.mode_sim_fps));
-                    updatecmd.Parameters.Add(new SqliteParameter(":start_time", uid.session_data.start_time));
-                    updatecmd.Parameters.Add(new SqliteParameter(":client_version", uid.session_data.client_version));
-                    updatecmd.Parameters.Add(new SqliteParameter(":s_cpu", uid.session_data.s_cpu));
-                    updatecmd.Parameters.Add(new SqliteParameter(":s_gpu", uid.session_data.s_gpu));
-                    updatecmd.Parameters.Add(new SqliteParameter(":s_os", uid.session_data.s_os));
-                    updatecmd.Parameters.Add(new SqliteParameter(":s_ram", uid.session_data.s_ram));
-                    updatecmd.Parameters.Add(new SqliteParameter(":d_object_kb", uid.session_data.d_object_kb));
-                    updatecmd.Parameters.Add(new SqliteParameter(":d_texture_kb", uid.session_data.d_texture_kb));
-                    updatecmd.Parameters.Add(new SqliteParameter(":d_world_kb", uid.session_data.d_world_kb));
-                    updatecmd.Parameters.Add(new SqliteParameter(":n_in_kb", uid.session_data.n_in_kb));
-                    updatecmd.Parameters.Add(new SqliteParameter(":n_in_pk", uid.session_data.n_in_pk));
-                    updatecmd.Parameters.Add(new SqliteParameter(":n_out_kb", uid.session_data.n_out_kb));
-                    updatecmd.Parameters.Add(new SqliteParameter(":n_out_pk", uid.session_data.n_out_pk));
-                    updatecmd.Parameters.Add(new SqliteParameter(":f_dropped", uid.session_data.f_dropped));
-                    updatecmd.Parameters.Add(new SqliteParameter(":f_failed_resends", uid.session_data.f_failed_resends));
-                    updatecmd.Parameters.Add(new SqliteParameter(":f_invalid", uid.session_data.f_invalid));
-                    updatecmd.Parameters.Add(new SqliteParameter(":f_off_circuit", uid.session_data.f_off_circuit));
-                    updatecmd.Parameters.Add(new SqliteParameter(":f_resent", uid.session_data.f_resent));
-                    updatecmd.Parameters.Add(new SqliteParameter(":f_send_packet", uid.session_data.f_send_packet));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":avg_fps", uid.session_data.avg_fps));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":min_fps", uid.session_data.min_fps));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":max_fps", uid.session_data.max_fps));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":mode_fps", uid.session_data.mode_fps));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":a_language", uid.session_data.a_language));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":mem_use", uid.session_data.mem_use));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":meters_traveled", uid.session_data.meters_traveled));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":avg_ping", uid.session_data.avg_ping));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":min_ping", uid.session_data.min_ping));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":max_ping", uid.session_data.max_ping));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":mode_ping", uid.session_data.mode_ping));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":regions_visited", uid.session_data.regions_visited));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":run_time", uid.session_data.run_time));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":avg_sim_fps", uid.session_data.avg_sim_fps));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":min_sim_fps", uid.session_data.min_sim_fps));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":max_sim_fps", uid.session_data.max_sim_fps));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":mode_sim_fps", uid.session_data.mode_sim_fps));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":start_time", uid.session_data.start_time));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":client_version", uid.session_data.client_version));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":s_cpu", uid.session_data.s_cpu));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":s_gpu", uid.session_data.s_gpu));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":s_os", uid.session_data.s_os));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":s_ram", uid.session_data.s_ram));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":d_object_kb", uid.session_data.d_object_kb));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":d_texture_kb", uid.session_data.d_texture_kb));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":d_world_kb", uid.session_data.d_world_kb));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":n_in_kb", uid.session_data.n_in_kb));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":n_in_pk", uid.session_data.n_in_pk));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":n_out_kb", uid.session_data.n_out_kb));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":n_out_pk", uid.session_data.n_out_pk));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":f_dropped", uid.session_data.f_dropped));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":f_failed_resends", uid.session_data.f_failed_resends));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":f_invalid", uid.session_data.f_invalid));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":f_off_circuit", uid.session_data.f_off_circuit));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":f_resent", uid.session_data.f_resent));
+                    updatecmd.Parameters.Add(new SQLiteParameter(":f_send_packet", uid.session_data.f_send_packet));
 
 //                        StringBuilder parameters = new StringBuilder();
-//                        SqliteParameterCollection spc = updatecmd.Parameters;
-//                        foreach (SqliteParameter sp in spc)
+//                        SQLiteParameterCollection spc = updatecmd.Parameters;
+//                        foreach (SQLiteParameter sp in spc)
 //                            parameters.AppendFormat("{0}={1},", sp.ParameterName, sp.Value);
 //
 //                        m_log.DebugFormat("[WEB STATS MODULE]: Parameters {0}", parameters);

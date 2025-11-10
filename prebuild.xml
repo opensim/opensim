@@ -1284,7 +1284,7 @@
       <Reference name="OpenMetaverseTypes"/>
       <Reference name="OpenMetaverse"/>
       <Reference name="OpenMetaverse.StructuredData"/>
-      <Reference name="Mono.Data.Sqlite"/>
+      <Reference name="System.Data.SQLite"/>
       <Reference name="Mono.Addins"/>
       <Reference name="log4net"/>
 
@@ -1382,7 +1382,7 @@
       <Reference name="OpenMetaverseTypes"/>
       <Reference name="OpenMetaverse.StructuredData"/>
       <Reference name="OpenMetaverse"/>
-      <Reference name="Mono.Data.Sqlite"/>
+      <Reference name="System.Data.SQLite"/>
       <Reference name="netcd"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Capabilities"/>
@@ -2294,7 +2294,7 @@
       <Reference name="OpenSim.Data.SQLite"/>
 
       <Reference name="MySql.Data"/>
-      <Reference name="Mono.Data.Sqlite"/>
+      <Reference name="System.Data.SQLite"/>
       <Files>
         <Match pattern="*.cs" recurse="true">
          <Exclude name="obj" pattern="obj"/>

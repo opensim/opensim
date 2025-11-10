@@ -31,11 +31,7 @@ using System.Collections.Generic;
 using System.Data;
 using OpenMetaverse;
 using OpenSim.Framework;
-#if CSharpSqlite
-  using Community.CsharpSqlite.Sqlite;
-#else
-  using Mono.Data.Sqlite;
-#endif
+using System.Data.SQLite;
 
 namespace OpenSim.Data.SQLite
 {

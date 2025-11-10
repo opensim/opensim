@@ -29,7 +29,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-using Mono.Data.Sqlite;
+using System.Data.SQLite;
 using OpenMetaverse;
 using OpenSim.Framework;
 
@@ -49,7 +49,7 @@ namespace OpenSim.Region.UserStatistics
             Hashtable modeldata = new Hashtable();
             modeldata.Add("Scenes", pParams["Scenes"]);
             modeldata.Add("Reports", pParams["Reports"]);
-            SqliteConnection dbConn = (SqliteConnection)pParams["DatabaseConnection"];
+            SQLiteConnection dbConn = (SQLiteConnection)pParams["DatabaseConnection"];
             List<SessionList> lstSessions = new List<SessionList>();
             Hashtable requestvars = (Hashtable) pParams["RequestVars"];
 
@@ -105,14 +105,14 @@ namespace OpenSim.Region.UserStatistics
 
                 sql += " ORDER BY a.name_f, a.name_l, b.last_updated;";
 
-                SqliteCommand cmd = new SqliteCommand(sql, dbConn);
+                SQLiteCommand cmd = new SQLiteCommand(sql, dbConn);
 
                 if (puserUUID.Length > 0)
-                    cmd.Parameters.Add(new SqliteParameter(":agent_id", puserUUID));
+                    cmd.Parameters.Add(new SQLiteParameter(":agent_id", puserUUID));
                 if (clientVersionString.Length > 0)
-                    cmd.Parameters.Add(new SqliteParameter(":client_version", clientVersionString));
+                    cmd.Parameters.Add(new SQLiteParameter(":client_version", clientVersionString));
 
-                SqliteDataReader sdr = cmd.ExecuteReader();
+                SQLiteDataReader sdr = cmd.ExecuteReader();
 
                 if (sdr.HasRows)
                 {

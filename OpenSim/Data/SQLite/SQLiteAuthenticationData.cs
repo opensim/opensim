@@ -34,11 +34,7 @@ using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
 
-#if CSharpSqlite
-    using Community.CsharpSqlite.Sqlite;
-#else
-    using Mono.Data.Sqlite;
-#endif
+using System.Data.SQLite;
 
 namespace OpenSim.Data.SQLite
 {
@@ -50,7 +46,7 @@ namespace OpenSim.Data.SQLite
         private List<string> m_ColumnNames;
         private int m_LastExpire;
 
-        protected static SqliteConnection m_Connection;
+        protected static SQLiteConnection m_Connection;
         private static bool m_initialized = false;
 
         protected virtual Assembly Assembly
@@ -65,9 +61,9 @@ namespace OpenSim.Data.SQLite
 
             if (!m_initialized)
             {
-                DllmapConfigHelper.RegisterAssembly(typeof(SqliteConnection).Assembly);
+                DllmapConfigHelper.RegisterAssembly(typeof(SQLiteConnection).Assembly);
 
-                m_Connection = new SqliteConnection(connectionString);
+                m_Connection = new SQLiteConnection(connectionString);
                 m_Connection.Open();
 
                 Migration m = new Migration(m_Connection, Assembly, "AuthStore");
@@ -83,9 +79,9 @@ namespace OpenSim.Data.SQLite
             ret.Data = new Dictionary<string, object>();
             IDataReader result;
 
-            using (SqliteCommand cmd = new SqliteCommand("select * from `" + m_Realm + "` where UUID = :PrincipalID"))
+            using (SQLiteCommand cmd = new SQLiteCommand("select * from `" + m_Realm + "` where UUID = :PrincipalID"))
             {
-                cmd.Parameters.Add(new SqliteParameter(":PrincipalID", principalID.ToString()));
+                cmd.Parameters.Add(new SQLiteParameter(":PrincipalID", principalID.ToString()));
 
                 result = ExecuteReader(cmd, m_Connection);
             }
@@ -137,7 +133,7 @@ namespace OpenSim.Data.SQLite
             foreach (object o in data.Data.Values)
                 values[i++] = o.ToString();
 
-            using (SqliteCommand cmd = new SqliteCommand())
+            using (SQLiteCommand cmd = new SQLiteCommand())
             {
                 if (Get(data.PrincipalID) != null)
                 {
@@ -150,13 +146,13 @@ namespace OpenSim.Data.SQLite
                         if (!first)
                             update += ", ";
                         update += "`" + field + "` = :" + field;
-                        cmd.Parameters.Add(new SqliteParameter(":" + field, data.Data[field]));
+                        cmd.Parameters.Add(new SQLiteParameter(":" + field, data.Data[field]));
 
                         first = false;
                     }
 
                     update += " where UUID = :UUID";
-                    cmd.Parameters.Add(new SqliteParameter(":UUID", data.PrincipalID.ToString()));
+                    cmd.Parameters.Add(new SQLiteParameter(":UUID", data.PrincipalID.ToString()));
 
                     cmd.CommandText = update;
                     try
@@ -180,9 +176,9 @@ namespace OpenSim.Data.SQLite
                             String.Join("`, `", fields) +
                             "`) values (:UUID, :" + String.Join(", :", fields) + ")";
 
-                    cmd.Parameters.Add(new SqliteParameter(":UUID", data.PrincipalID.ToString()));
+                    cmd.Parameters.Add(new SQLiteParameter(":UUID", data.PrincipalID.ToString()));
                     foreach (string field in fields)
-                        cmd.Parameters.Add(new SqliteParameter(":" + field, data.Data[field]));
+                        cmd.Parameters.Add(new SQLiteParameter(":" + field, data.Data[field]));
 
                     cmd.CommandText = insert;
 
@@ -206,7 +202,7 @@ namespace OpenSim.Data.SQLite
 
         public bool SetDataItem(UUID principalID, string item, string value)
         {
-            using (SqliteCommand cmd = new SqliteCommand("update `" + m_Realm +
+            using (SQLiteCommand cmd = new SQLiteCommand("update `" + m_Realm +
                     "` set `" + item + "` = " + value + " where UUID = '" + principalID.ToString() + "'"))
             {
                 if (ExecuteNonQuery(cmd, m_Connection) > 0)
@@ -221,7 +217,7 @@ namespace OpenSim.Data.SQLite
             if (System.Environment.TickCount - m_LastExpire > 30000)
                 DoExpire();
 
-            using (SqliteCommand cmd = new SqliteCommand("insert into tokens (UUID, token, validity) values ('" + principalID.ToString() +
+            using (SQLiteCommand cmd = new SQLiteCommand("insert into tokens (UUID, token, validity) values ('" + principalID.ToString() +
                 "', '" + token + "', datetime('now', 'localtime', '+" + lifetime.ToString() + " minutes'))"))
             {
                 if (ExecuteNonQuery(cmd, m_Connection) > 0)
@@ -236,7 +232,7 @@ namespace OpenSim.Data.SQLite
             if (System.Environment.TickCount - m_LastExpire > 30000)
                 DoExpire();
 
-            using (SqliteCommand cmd = new SqliteCommand("update tokens set validity = datetime('now', 'localtime', '+" + lifetime.ToString() +
+            using (SQLiteCommand cmd = new SQLiteCommand("update tokens set validity = datetime('now', 'localtime', '+" + lifetime.ToString() +
                 " minutes') where UUID = '" + principalID.ToString() + "' and token = '" + token + "' and validity > datetime('now', 'localtime')"))
             {
                 if (ExecuteNonQuery(cmd, m_Connection) > 0)
@@ -248,7 +244,7 @@ namespace OpenSim.Data.SQLite
 
         private void DoExpire()
         {
-            using (SqliteCommand cmd = new SqliteCommand("delete from tokens where validity < datetime('now', 'localtime')"))
+            using (SQLiteCommand cmd = new SQLiteCommand("delete from tokens where validity < datetime('now', 'localtime')"))
                 ExecuteNonQuery(cmd, m_Connection);
 
             m_LastExpire = System.Environment.TickCount;
