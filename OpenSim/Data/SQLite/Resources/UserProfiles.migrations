@@ -98,5 +98,6 @@ CREATE TABLE IF NOT EXISTS usersettings (
   visible binary(1) NOT NULL,
   email varchar(254) NOT NULL,
   PRIMARY KEY (useruuid)
-)
+);
+
 commit;
