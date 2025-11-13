@@ -92,6 +92,7 @@ commit;
 :VERSION 3         # -------------------------------
  
 begin;
+
 CREATE TABLE IF NOT EXISTS usersettings (
   useruuid char(36) NOT NULL,
   imviaemail binary(1) NOT NULL,
