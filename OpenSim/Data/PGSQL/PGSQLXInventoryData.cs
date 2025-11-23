@@ -109,7 +109,7 @@ namespace OpenSim.Data.PGSQL
 
         public XInventoryItem[] GetActiveGestures(UUID principalID)
         {
-            return m_Items.GetActiveGestures(principalID.ToString());
+            return m_Items.GetActiveGestures(principalID);
         }
 
         public int GetAssetPermissions(UUID principalID, UUID assetID)
@@ -158,12 +158,13 @@ namespace OpenSim.Data.PGSQL
 
             return true;
         }
-
         public XInventoryItem[] GetActiveGestures(string principalID)
         {
-            if(!UUID.TryParse(principalID, out UUID princID))
-                return [];
-            
+            return UUID.TryParse(principalID, out UUID princID) ? GetActiveGestures(princID) : [];
+        }
+
+        public XInventoryItem[] GetActiveGestures(UUID principalID)
+        {
             using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
             {
                 using (NpgsqlCommand cmd = new NpgsqlCommand())
@@ -172,7 +173,7 @@ namespace OpenSim.Data.PGSQL
 
                     cmd.CommandText = "select * from inventoryitems where avatarID = :uuid and assetType = :type and flags = 1";
 
-                    cmd.Parameters.Add(m_database.CreateParameter("uuid", princID));
+                    cmd.Parameters.Add(m_database.CreateParameter("uuid", principalID));
                     cmd.Parameters.Add(m_database.CreateParameter("type", (int)AssetType.Gesture));
                     cmd.Connection = conn;
                     conn.Open();
