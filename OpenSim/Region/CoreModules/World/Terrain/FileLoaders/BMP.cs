@@ -40,6 +40,11 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
     /// </summary>
     internal class BMP : GenericSystemDrawing
     {
+        public override int SupportedHeight
+        {
+            get { return 256; }
+        }
+
         /// <summary>
         /// Exports a file to a image on the disk using a System.Drawing exporter.
         /// </summary>
@@ -73,6 +78,11 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
 
         //Returns true if this extension is supported for terrain save-tile
         public override bool SupportsTileSave()
+        {
+            return false;
+        }
+
+        public override bool SupportsExtendedTileSave()
         {
             return false;
         }

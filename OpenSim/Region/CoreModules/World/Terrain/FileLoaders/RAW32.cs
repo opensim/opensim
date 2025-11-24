@@ -43,6 +43,11 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
             get { return ".r32"; }
         }
 
+        public int SupportedHeight
+        {
+            get { return 4096; }
+        }
+
         public ITerrainChannel LoadFile(string filename)
         {
             FileInfo file = new FileInfo(filename);
@@ -189,6 +194,16 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
         public bool SupportsTileSave()
         {
             return false;
+        }
+
+        public bool SupportsExtendedTileSave()
+        {
+            return false;
+        }
+
+        public void SaveFile(ITerrainChannel map, string filename, int fileWidth, int fileHeight, int startX, int startY, int stopX, int stopY, int offsetX, int offsetY)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -49,6 +49,11 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
             get { return ".gsd"; }
         }
 
+        public virtual int SupportedHeight
+        {
+            get { return 256; }
+        }
+
         /// <summary>
         /// Loads a file from a specified filename on the disk,
         /// parses the image using the System.Drawing parsers
@@ -203,6 +208,11 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
             return false;
         }
 
+        public virtual bool SupportsExtendedTileSave()
+        {
+            return false;
+        }
+
         /// <summary>
         /// Protected method, generates a grayscale bitmap
         /// image from a specified terrain channel.
@@ -243,6 +253,11 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
                 }
             }
             return bmp;
+        }
+
+        public virtual void SaveFile(ITerrainChannel map, string filename, int fileWidth, int fileHeight, int startX, int startY, int stopX, int stopY, int offsetX, int offsetY)
+        {
+            throw new NotImplementedException();
         }
     }
 }
