@@ -179,6 +179,15 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 PhysScene.PE.SetCcdMotionThreshold(PhysBody, BSParam.CcdMotionThreshold);
                 PhysScene.PE.SetCcdSweptSphereRadius(PhysBody, BSParam.CcdSweptSphereRadius);
             }
+            else if (BSParam.ShouldAutoComputeCcd)
+            {
+                // For avatars, size is approximate. Use the smallest dimension of the capsule.
+                float minDim = Math.Min(Size.X, Math.Min(Size.Y, Size.Z));
+                float motionThreshold = minDim * 0.5f;
+                float sweptSphereRadius = minDim * 0.2f;
+                PhysScene.PE.SetCcdMotionThreshold(PhysBody, motionThreshold);
+                PhysScene.PE.SetCcdSweptSphereRadius(PhysBody, sweptSphereRadius);
+            }
     
             UpdatePhysicalMassProperties(RawMass, false);
     

@@ -204,6 +204,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public static bool BHullAddNeighboursDistPoints { get; private set; }   // false
         public static bool BHullAddFacesPoints { get; private set; }            // false
         public static bool BHullShouldAdjustCollisionMargin { get; private set; }   // false
+        public static bool ShouldAutoComputeCcd { get; private set; }           // false
         public static float WhichHACD { get; private set; }                // zero if Bullet HACD, non-zero says VHACD
         // Parameters for VHACD 2.0: http://code.google.com/p/v-hacd
         // To enable, set both ShouldUseBulletHACD=true and WhichHACD=1
@@ -800,6 +801,10 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 true ),
             new ParameterDefn<bool>("BHullShouldAdjustCollisionMargin", "Bullet impl: whether to shrink resulting hulls to account for collision margin",
                 false ),
+            new ParameterDefn<bool>("ShouldAutoComputeCcd", "Enable automatic computation of CCD parameters based on object size",
+                false,
+                (s) => { return ShouldAutoComputeCcd; },
+                (s,v) => { ShouldAutoComputeCcd = v; } ),
 
             new ParameterDefn<float>("WhichHACD", "zero if Bullet HACD, non-zero says VHACD",
                 0f ),

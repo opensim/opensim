@@ -57,7 +57,10 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 	    
         public void Dispose()
         {
-            // TODO!!!!!!!!!
+            // Shapes are tracked by reference counts and static dictionaries in the specific shape classes.
+            // Individual prims dereference their shapes when destroyed (which happens before this Dispose).
+            // So, mainly we just log here.
+            if (DDetail) DetailLog("{0},BSShapeCollection.Dispose,called", BSScene.DetailLogZero);
         }
 	    
         // Callbacks called just before either the body or shape is destroyed.

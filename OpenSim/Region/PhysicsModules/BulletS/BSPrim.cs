@@ -1028,6 +1028,14 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                     PhysScene.PE.SetCcdMotionThreshold(PhysBody, BSParam.CcdMotionThreshold);
                     PhysScene.PE.SetCcdSweptSphereRadius(PhysBody, BSParam.CcdSweptSphereRadius);
                 }
+                else if (BSParam.ShouldAutoComputeCcd)
+                {
+                    float minDim = Math.Min(Size.X, Math.Min(Size.Y, Size.Z));
+                    float motionThreshold = minDim * 0.5f;
+                    float sweptSphereRadius = minDim * 0.2f;
+                    PhysScene.PE.SetCcdMotionThreshold(PhysBody, motionThreshold);
+                    PhysScene.PE.SetCcdSweptSphereRadius(PhysBody, sweptSphereRadius);
+                }
 
                 // Various values for simulation limits
                 PhysScene.PE.SetDamping(PhysBody, BSParam.LinearDamping, BSParam.AngularDamping);
@@ -1204,14 +1212,20 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         {
             set
             {
-                base.PIDTarget = value;
-                BSActor actor;
-                if (PhysicalActors.TryGetActor(MoveToTargetActorName, out actor))
+                if (value.IsFinite())
                 {
-                    // if the actor exists, tell it to refresh its values.
-                    actor.Refresh();
+                    base.PIDTarget = value;
+                    BSActor actor;
+                    if (PhysicalActors.TryGetActor(MoveToTargetActorName, out actor))
+                    {
+                        // if the actor exists, tell it to refresh its values.
+                        actor.Refresh();
+                    }
                 }
-
+                else
+                {
+                    m_log.WarnFormat("{0}: PIDTarget: Got a NaN target. LocalID={1}", LogHeader, LocalID);
+                }
             }
         }
         // Used for llSetHoverHeight and maybe vehicle height
