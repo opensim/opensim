@@ -64,6 +64,10 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
         private BSActorAvatarMove m_moveActor;
         private const string AvatarMoveActorName = "BSCharacter.AvatarMove";
+        
+        // Parameters for the setForce and setTorque actors
+        public const string SetForceActorName = "BSCharacter.SetForceActor";
+        public const string SetTorqueActorName = "BSCharacter.SetTorqueActor";
 
         // Avatar debouncing filter to smooth out contact reports
         private AvatarContactFilter m_contactFilter = new AvatarContactFilter();
@@ -178,8 +182,11 @@ namespace OpenSim.Region.PhysicsModule.BulletS
     
             UpdatePhysicalMassProperties(RawMass, false);
     
-            // Make so capsule does not fall over
-            PhysScene.PE.SetAngularFactorV(PhysBody, OMV.Vector3.Zero);
+            // Make so capsule does not fall over (Lock X and Y rotation), but allow Z rotation for turning
+            PhysScene.PE.SetAngularFactorV(PhysBody, new OMV.Vector3(0f, 0f, 1f));
+            
+            // Set damping to control spinning
+            PhysScene.PE.SetDamping(PhysBody, BSParam.LinearDamping, BSParam.AngularDamping);
     
             // The avatar mover sets some parameters.
             PhysicalActors.Refresh();
@@ -329,7 +336,22 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             });
         }
 
-        public override void LockAngularMotion(byte axislocks) { return; }
+        public override void LockAngularMotion(byte axislocks) 
+        {
+             // Map axislocks to AngularFactor
+            // 0 means locked, 1 means free.
+            // axislocks bits: 2=X, 4=Y, 8=Z (from BSPrim)
+            
+            float x = ((axislocks & 0x02) != 0) ? 0f : 1f;
+            float y = ((axislocks & 0x04) != 0) ? 0f : 1f;
+            float z = ((axislocks & 0x08) != 0) ? 0f : 1f;
+            
+            PhysScene.TaintedObject(LocalID, "BSCharacter.LockAngularMotion", delegate()
+            {
+                if (PhysBody.HasPhysicalBody)
+                    PhysScene.PE.SetAngularFactorV(PhysBody, new OMV.Vector3(x, y, z));
+            });
+        }
 
         public override OMV.Vector3 Position {
             get {
@@ -439,12 +461,21 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             get { return RawForce; }
             set {
                 RawForce = value;
-                // m_log.DebugFormat("{0}: Force = {1}", LogHeader, _force);
+                // Use Actor to maintain force if it's not zero
+                EnableActor(RawForce != OMV.Vector3.Zero, SetForceActorName, delegate()
+                {
+                    return new BSActorSetForce(PhysScene, this, SetForceActorName);
+                });
+                
                 PhysScene.TaintedObject(LocalID, "BSCharacter.SetForce", delegate()
                 {
                     DetailLog("{0},BSCharacter.setForce,taint,force={1}", LocalID, RawForce);
                     if (PhysBody.HasPhysicalBody)
                         PhysScene.PE.SetObjectForce(PhysBody, RawForce);
+                    
+                    BSActor actor;
+                    if (PhysicalActors.TryGetActor(SetForceActorName, out actor))
+                        actor.Refresh();
                 });
             }
         }
@@ -459,6 +490,25 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         // Allows the detection of collisions with inherently non-physical prims. see llVolumeDetect for more
         public override void SetVolumeDetect(int param) { return; }
         public override bool IsVolumeDetect { get { return false; } }
+        
+        public override void SetMaterial(int material)
+        {
+            base.SetMaterial(material);
+            // Apply material properties to physics body
+             PhysScene.TaintedObject(LocalID, "BSCharacter.SetMaterial", delegate()
+            {
+                if (PhysBody.HasPhysicalBody)
+                {
+                    PhysScene.PE.SetFriction(PhysBody, Friction);
+                    PhysScene.PE.SetRestitution(PhysBody, Restitution);
+                    // Density change requires mass update?
+                    // BSCharacter mass is usually derived from size/density.
+                    // If density changes, mass changes.
+                    ComputeAvatarVolumeAndMass();
+                    UpdatePhysicalMassProperties(RawMass, true);
+                }
+            });
+        }
 
         public override OMV.Vector3 GeometricCenter { get { return OMV.Vector3.Zero; } }
         public override OMV.Vector3 CenterOfMass { get { return OMV.Vector3.Zero; } }
@@ -526,8 +576,20 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         }
 
         public override OMV.Vector3 Torque {
-            get { return RawTorque; }
-            set { RawTorque = value;
+             get { return RawTorque; }
+            set {
+                RawTorque = value;
+                EnableActor(RawTorque != OMV.Vector3.Zero, SetTorqueActorName, delegate()
+                {
+                    return new BSActorSetTorque(PhysScene, this, SetTorqueActorName);
+                });
+
+                PhysScene.TaintedObject(LocalID, "BSCharacter.SetTorque", delegate()
+                {
+                     BSActor actor;
+                    if (PhysicalActors.TryGetActor(SetTorqueActorName, out actor))
+                        actor.Refresh();
+                });
             }
         }
 
@@ -748,7 +810,21 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             }
         }
 
-        public override void AddAngularForce(bool inTaintTime, OMV.Vector3 force) {
+        public override void AddAngularForce(bool inTaintTime, OMV.Vector3 force) 
+        {
+             if (force.IsFinite())
+            {
+                OMV.Vector3 angForce = force;
+                PhysScene.TaintedObject(inTaintTime, LocalID, "BSCharacter.AddAngularForce", delegate()
+                {
+                    if (PhysBody.HasPhysicalBody)
+                    {
+                        DetailLog("{0},BSCharacter.AddAngularForce,taint,angForce={1}", LocalID, angForce);
+                        PhysScene.PE.ApplyTorque(PhysBody, angForce);
+                        PhysScene.PE.Activate(PhysBody, true);
+                    }
+                });
+            }
         }
 
         // The avatar's physical shape (whether capsule or cube) is unit sized. BulletSim sets
