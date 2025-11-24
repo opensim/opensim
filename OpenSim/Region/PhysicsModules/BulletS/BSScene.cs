@@ -133,6 +133,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         private CollisionMarginManager m_collisionMarginManager = null;
         private SpatialPartitionManager m_spatialPartition = null;
         private SleepOptimizationManager m_sleepOptimization = null;
+        private int m_sleepOptimizationFrameCounter = 0;
 
         // Object locked whenever execution is inside the physics engine
         public Object PhysicsEngineLock = new object();
@@ -611,7 +612,10 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
             BSCharacter actor = new BSCharacter(localID, avName, this, position, Vector3.Zero, size, footOffset, isFlying);
             lock (PhysObjects)
+            {
                 PhysObjects.Add(localID, actor);
+                UpdateSpatialPartition(actor);
+            }
 
             // TODO: Remove kludge someday.
             // We must generate a collision for avatars whether they collide or not.
@@ -634,7 +638,10 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 try
                 {
                     lock (PhysObjects)
+                    {
                         PhysObjects.Remove(bsactor.LocalID);
+                        RemoveFromSpatialPartition(bsactor);
+                    }
                     // Remove kludge someday
                     lock (AvatarsInSceneLock)
                         AvatarsInScene.Remove(bsactor);
@@ -664,7 +671,11 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 // m_log.DebugFormat("{0}: RemovePrim. id={1}/{2}", LogHeader, bsprim.Name, bsprim.LocalID);
                 try
                 {
-                    lock (PhysObjects) PhysObjects.Remove(bsprim.LocalID);
+                    lock (PhysObjects) 
+                    {
+                        PhysObjects.Remove(bsprim.LocalID);
+                        RemoveFromSpatialPartition(bsprim);
+                    }
                 }
                 catch (Exception e)
                 {
@@ -689,7 +700,11 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             // DetailLog("{0},BSScene.AddPrimShape,call", localID);
 
             BSPhysObject prim = new BSPrimLinkable(localID, primName, this, position, size, rotation, pbs, isPhysical);
-            lock (PhysObjects) PhysObjects.Add(localID, prim);
+            lock (PhysObjects)
+            {
+                PhysObjects.Add(localID, prim);
+                UpdateSpatialPartition(prim);
+            }
             return prim;
         }
 
@@ -742,6 +757,18 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             lock (PhysicsEngineLock)
             {
                 InSimulationTime = true;
+
+                // Perform sleep optimization check (throttled to every 10 frames)
+                if (m_sleepOptimization != null)
+                {
+                    m_sleepOptimizationFrameCounter++;
+                    if (m_sleepOptimizationFrameCounter >= 10)
+                    {
+                        m_sleepOptimization.CheckObjects(this, timeStep * 10f);
+                        m_sleepOptimizationFrameCounter = 0;
+                    }
+                }
+
                 // update the prim states while we know the physics engine is not busy
                 numTaints += ProcessTaints();
 
@@ -831,7 +858,10 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                             if (PhysObjects.TryGetValue(entprop.ID, out pobj))
                             {
                                 if (pobj.IsInitialized)
+                                {
                                     pobj.UpdateProperties(entprop);
+                                    UpdateSpatialPartition(pobj);
+                                }
                             }
                         }
                     }
@@ -1570,6 +1600,28 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             if (m_useImprovedCollisionMargins && m_collisionMarginManager != null)
             {
                 m_collisionMarginManager.UpdateCollisionMargin(prim);
+            }
+        }
+
+        /// <summary>
+        /// Updates the object in the spatial partition system.
+        /// </summary>
+        internal void UpdateSpatialPartition(BSPhysObject obj)
+        {
+            if (m_spatialPartition != null)
+            {
+                m_spatialPartition.UpdateObject(obj);
+            }
+        }
+
+        /// <summary>
+        /// Removes the object from the spatial partition system.
+        /// </summary>
+        internal void RemoveFromSpatialPartition(BSPhysObject obj)
+        {
+            if (m_spatialPartition != null)
+            {
+                m_spatialPartition.RemoveObject(obj);
             }
         }
 

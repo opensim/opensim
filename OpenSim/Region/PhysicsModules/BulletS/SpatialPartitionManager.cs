@@ -43,6 +43,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         // Key is a simple hash of int x, int y, int z
         private Dictionary<long, List<BSPhysObject>> m_grid = new Dictionary<long, List<BSPhysObject>>();
         private Dictionary<uint, long> m_objectLocations = new Dictionary<uint, long>();
+        private object m_lock = new object();
 
         /// <summary>
         /// Initializes a new instance of the SpatialPartitionManager.
@@ -75,27 +76,30 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             Vector3 pos = obj.RawPosition;
             long key = GetKey(pos);
 
-            // Check if object is already tracked and moved
-            if (m_objectLocations.TryGetValue(obj.LocalID, out long oldKey))
+            lock (m_lock)
             {
-                if (oldKey == key) return; // Haven't changed cell
-
-                // Remove from old cell
-                if (m_grid.TryGetValue(oldKey, out List<BSPhysObject> oldCell))
+                // Check if object is already tracked and moved
+                if (m_objectLocations.TryGetValue(obj.LocalID, out long oldKey))
                 {
-                    oldCell.Remove(obj);
-                    if (oldCell.Count == 0) m_grid.Remove(oldKey);
-                }
-            }
+                    if (oldKey == key) return; // Haven't changed cell
 
-            // Add to new cell
-            if (!m_grid.TryGetValue(key, out List<BSPhysObject> cell))
-            {
-                cell = new List<BSPhysObject>();
-                m_grid[key] = cell;
+                    // Remove from old cell
+                    if (m_grid.TryGetValue(oldKey, out List<BSPhysObject> oldCell))
+                    {
+                        oldCell.Remove(obj);
+                        if (oldCell.Count == 0) m_grid.Remove(oldKey);
+                    }
+                }
+
+                // Add to new cell
+                if (!m_grid.TryGetValue(key, out List<BSPhysObject> cell))
+                {
+                    cell = new List<BSPhysObject>();
+                    m_grid[key] = cell;
+                }
+                cell.Add(obj);
+                m_objectLocations[obj.LocalID] = key;
             }
-            cell.Add(obj);
-            m_objectLocations[obj.LocalID] = key;
         }
 
         /// <summary>
@@ -104,14 +108,17 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         /// <param name="obj">The physical object to remove.</param>
         public void RemoveObject(BSPhysObject obj)
         {
-            if (m_objectLocations.TryGetValue(obj.LocalID, out long key))
+            lock (m_lock)
             {
-                if (m_grid.TryGetValue(key, out List<BSPhysObject> cell))
+                if (m_objectLocations.TryGetValue(obj.LocalID, out long key))
                 {
-                    cell.Remove(obj);
-                    if (cell.Count == 0) m_grid.Remove(key);
+                    if (m_grid.TryGetValue(key, out List<BSPhysObject> cell))
+                    {
+                        cell.Remove(obj);
+                        if (cell.Count == 0) m_grid.Remove(key);
+                    }
+                    m_objectLocations.Remove(obj.LocalID);
                 }
-                m_objectLocations.Remove(obj.LocalID);
             }
         }
 
@@ -132,22 +139,25 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
             float radiusSq = radius * radius;
 
-            for (int x = minX; x <= maxX; x++)
+            lock (m_lock)
             {
-                for (int y = minY; y <= maxY; y++)
+                for (int x = minX; x <= maxX; x++)
                 {
-                    for (int z = minZ; z <= maxZ; z++)
+                    for (int y = minY; y <= maxY; y++)
                     {
-                        // Recompute hash for this cell
-                        long key = (long)((x * 73856093) ^ (y * 19349663) ^ (z * 83492791));
-                        
-                        if (m_grid.TryGetValue(key, out List<BSPhysObject> cell))
+                        for (int z = minZ; z <= maxZ; z++)
                         {
-                            foreach (BSPhysObject obj in cell)
+                            // Recompute hash for this cell
+                            long key = (long)((x * 73856093) ^ (y * 19349663) ^ (z * 83492791));
+                            
+                            if (m_grid.TryGetValue(key, out List<BSPhysObject> cell))
                             {
-                                if (Vector3.DistanceSquared(obj.RawPosition, position) <= radiusSq)
+                                foreach (BSPhysObject obj in cell)
                                 {
-                                    result.Add(obj);
+                                    if (Vector3.DistanceSquared(obj.RawPosition, position) <= radiusSq)
+                                    {
+                                        result.Add(obj);
+                                    }
                                 }
                             }
                         }

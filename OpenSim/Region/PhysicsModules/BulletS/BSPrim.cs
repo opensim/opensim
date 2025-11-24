@@ -342,6 +342,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 if (PhysBody.HasPhysicalBody)
                 {
                     PhysScene.PE.SetTranslation(PhysBody, RawPosition, RawOrientation);
+                    PhysScene.UpdateSpatialPartition(this);
                     ActivateIfPhysical(false);
                 }
             }
