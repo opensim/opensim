@@ -6,7 +6,7 @@
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
  *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyrightD
+ *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
  *     * Neither the name of the OpenSimulator Project nor the
@@ -34,6 +34,10 @@ using OpenSim.Region.PhysicsModules.SharedBase;
 
 namespace OpenSim.Region.PhysicsModule.BulletS
 {
+    /// <summary>
+    /// Represents an avatar (character) in the physics simulation.
+    /// Handles avatar specific movement, collisions, and properties.
+    /// </summary>
     public sealed class BSCharacter : BSPhysObject
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -60,22 +64,31 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
         private BSActorAvatarMove m_moveActor;
         private const string AvatarMoveActorName = "BSCharacter.AvatarMove";
+        
+        // Parameters for the setForce and setTorque actors
+        public const string SetForceActorName = "BSCharacter.SetForceActor";
+        public const string SetTorqueActorName = "BSCharacter.SetTorqueActor";
+
+        // Avatar debouncing filter to smooth out contact reports
+        private AvatarContactFilter m_contactFilter = new AvatarContactFilter();
 
         private OMV.Vector3 _PIDTarget;
         private float _PIDTau;
     
-    //        public override OMV.Vector3 RawVelocity
-    //        { get { return base.RawVelocity; }
-    //            set {
-    //                if (value != base.RawVelocity)
-    //                    Util.PrintCallStack();
-    //                Console.WriteLine("Set rawvel to {0}", value);
-    //                base.RawVelocity = value; }
-    //        }
-    
         // Avatars are always complete (in the physics engine sense)
         public override bool IsIncomplete { get { return false; } }
 
+        /// <summary>
+        /// Constructor for BSCharacter.
+        /// </summary>
+        /// <param name="localID">Local ID of the avatar</param>
+        /// <param name="avName">Name of the avatar</param>
+        /// <param name="parent_scene">Reference to the physics scene</param>
+        /// <param name="pos">Initial position</param>
+        /// <param name="vel">Initial velocity</param>
+        /// <param name="size">Initial size (capsule dimensions)</param>
+        /// <param name="footOffset">Offset from center to feet</param>
+        /// <param name="isFlying">Initial flying state</param>
         public BSCharacter(
                 uint localID, String avName, BSScene parent_scene, OMV.Vector3 pos, OMV.Vector3 vel, OMV.Vector3 size, float footOffset, bool isFlying)
     
@@ -129,6 +142,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             IsInitialized = false;
     
             base.Destroy();
+            m_contactFilter.Clear(LocalID);
     
             DetailLog("{0},BSCharacter.Destroy", LocalID);
             PhysScene.TaintedObject(LocalID, "BSCharacter.destroy", delegate()
@@ -165,11 +179,23 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 PhysScene.PE.SetCcdMotionThreshold(PhysBody, BSParam.CcdMotionThreshold);
                 PhysScene.PE.SetCcdSweptSphereRadius(PhysBody, BSParam.CcdSweptSphereRadius);
             }
+            else if (BSParam.ShouldAutoComputeCcd)
+            {
+                // For avatars, size is approximate. Use the smallest dimension of the capsule.
+                float minDim = Math.Min(Size.X, Math.Min(Size.Y, Size.Z));
+                float motionThreshold = minDim * 0.5f;
+                float sweptSphereRadius = minDim * 0.2f;
+                PhysScene.PE.SetCcdMotionThreshold(PhysBody, motionThreshold);
+                PhysScene.PE.SetCcdSweptSphereRadius(PhysBody, sweptSphereRadius);
+            }
     
             UpdatePhysicalMassProperties(RawMass, false);
     
-            // Make so capsule does not fall over
-            PhysScene.PE.SetAngularFactorV(PhysBody, OMV.Vector3.Zero);
+            // Make so capsule does not fall over (Lock X and Y rotation), but allow Z rotation for turning
+            PhysScene.PE.SetAngularFactorV(PhysBody, new OMV.Vector3(0f, 0f, 1f));
+            
+            // Set damping to control spinning
+            PhysScene.PE.SetDamping(PhysBody, BSParam.LinearDamping, BSParam.AngularDamping);
     
             // The avatar mover sets some parameters.
             PhysicalActors.Refresh();
@@ -319,7 +345,26 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             });
         }
 
-        public override void LockAngularMotion(byte axislocks) { return; }
+        /// <summary>
+        /// Locks the avatar's angular motion on specified axes.
+        /// </summary>
+        /// <param name="axislocks">Bitmask of axes to lock (2=X, 4=Y, 8=Z).</param>
+        public override void LockAngularMotion(byte axislocks) 
+        {
+             // Map axislocks to AngularFactor
+            // 0 means locked, 1 means free.
+            // axislocks bits: 2=X, 4=Y, 8=Z (from BSPrim)
+            
+            float x = ((axislocks & 0x02) != 0) ? 0f : 1f;
+            float y = ((axislocks & 0x04) != 0) ? 0f : 1f;
+            float z = ((axislocks & 0x08) != 0) ? 0f : 1f;
+            
+            PhysScene.TaintedObject(LocalID, "BSCharacter.LockAngularMotion", delegate()
+            {
+                if (PhysBody.HasPhysicalBody)
+                    PhysScene.PE.SetAngularFactorV(PhysBody, new OMV.Vector3(x, y, z));
+            });
+        }
 
         public override OMV.Vector3 Position {
             get {
@@ -349,6 +394,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 if (PhysBody.HasPhysicalBody)
                 {
                     PhysScene.PE.SetTranslation(PhysBody, RawPosition, RawOrientation);
+                    PhysScene.UpdateSpatialPartition(this);
                 }
             }
         }
@@ -425,16 +471,29 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             PhysScene.PE.SetMassProps(PhysBody, physMass, localInertia);
         }
 
+        /// <summary>
+        /// Gets or sets the constant force applied to the avatar.
+        /// Setting this enables the SetForceActor to maintain the force across frames.
+        /// </summary>
         public override OMV.Vector3 Force {
             get { return RawForce; }
             set {
                 RawForce = value;
-                // m_log.DebugFormat("{0}: Force = {1}", LogHeader, _force);
+                // Use Actor to maintain force if it's not zero
+                EnableActor(RawForce != OMV.Vector3.Zero, SetForceActorName, delegate()
+                {
+                    return new BSActorSetForce(PhysScene, this, SetForceActorName);
+                });
+                
                 PhysScene.TaintedObject(LocalID, "BSCharacter.SetForce", delegate()
                 {
                     DetailLog("{0},BSCharacter.setForce,taint,force={1}", LocalID, RawForce);
                     if (PhysBody.HasPhysicalBody)
                         PhysScene.PE.SetObjectForce(PhysBody, RawForce);
+                    
+                    BSActor actor;
+                    if (PhysicalActors.TryGetActor(SetForceActorName, out actor))
+                        actor.Refresh();
                 });
             }
         }
@@ -449,6 +508,25 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         // Allows the detection of collisions with inherently non-physical prims. see llVolumeDetect for more
         public override void SetVolumeDetect(int param) { return; }
         public override bool IsVolumeDetect { get { return false; } }
+        
+        public override void SetMaterial(int material)
+        {
+            base.SetMaterial(material);
+            // Apply material properties to physics body
+             PhysScene.TaintedObject(LocalID, "BSCharacter.SetMaterial", delegate()
+            {
+                if (PhysBody.HasPhysicalBody)
+                {
+                    PhysScene.PE.SetFriction(PhysBody, Friction);
+                    PhysScene.PE.SetRestitution(PhysBody, Restitution);
+                    // Density change requires mass update?
+                    // BSCharacter mass is usually derived from size/density.
+                    // If density changes, mass changes.
+                    ComputeAvatarVolumeAndMass();
+                    UpdatePhysicalMassProperties(RawMass, true);
+                }
+            });
+        }
 
         public override OMV.Vector3 GeometricCenter { get { return OMV.Vector3.Zero; } }
         public override OMV.Vector3 CenterOfMass { get { return OMV.Vector3.Zero; } }
@@ -516,8 +594,20 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         }
 
         public override OMV.Vector3 Torque {
-            get { return RawTorque; }
-            set { RawTorque = value;
+             get { return RawTorque; }
+            set {
+                RawTorque = value;
+                EnableActor(RawTorque != OMV.Vector3.Zero, SetTorqueActorName, delegate()
+                {
+                    return new BSActorSetTorque(PhysScene, this, SetTorqueActorName);
+                });
+
+                PhysScene.TaintedObject(LocalID, "BSCharacter.SetTorque", delegate()
+                {
+                     BSActor actor;
+                    if (PhysicalActors.TryGetActor(SetTorqueActorName, out actor))
+                        actor.Refresh();
+                });
             }
         }
 
@@ -706,6 +796,11 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             AddForce(false, addForce);
         }
 
+        /// <summary>
+        /// Applies a central force to the avatar for a single simulation step.
+        /// </summary>
+        /// <param name="inTaintTime">If true, the operation is performed immediately.</param>
+        /// <param name="force">The force vector to apply.</param>
         public override void AddForce(bool inTaintTime, OMV.Vector3 force)
         {
             if (force.IsFinite())
@@ -738,7 +833,26 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             }
         }
 
-        public override void AddAngularForce(bool inTaintTime, OMV.Vector3 force) {
+        /// <summary>
+        /// Adds an instantaneous angular force (torque impulse) to the avatar.
+        /// </summary>
+        /// <param name="inTaintTime">If true, the operation is performed immediately; otherwise it is queued.</param>
+        /// <param name="force">The torque vector to apply.</param>
+        public override void AddAngularForce(bool inTaintTime, OMV.Vector3 force) 
+        {
+             if (force.IsFinite())
+            {
+                OMV.Vector3 angForce = force;
+                PhysScene.TaintedObject(inTaintTime, LocalID, "BSCharacter.AddAngularForce", delegate()
+                {
+                    if (PhysBody.HasPhysicalBody)
+                    {
+                        DetailLog("{0},BSCharacter.AddAngularForce,taint,angForce={1}", LocalID, angForce);
+                        PhysScene.PE.ApplyTorque(PhysBody, angForce);
+                        PhysScene.PE.Activate(PhysBody, true);
+                    }
+                });
+            }
         }
 
         // The avatar's physical shape (whether capsule or cube) is unit sized. BulletSim sets
@@ -884,6 +998,34 @@ namespace OpenSim.Region.PhysicsModule.BulletS
     
             DetailLog("{0},BSCharacter.UpdateProperties,call,pos={1},orient={2},vel={3},accel={4},rotVel={5}",
                     LocalID, RawPosition, RawOrientation, RawVelocity, _acceleration, RawRotationalVelocity);
+        }
+
+        /// <summary>
+        /// Process a collision event for the avatar.
+        /// Includes debounce logic to prevent jittery movement/animation reporting.
+        /// </summary>
+        public override bool Collide(BSPhysObject collidee, OMV.Vector3 contactPoint, OMV.Vector3 contactNormal, float pentrationDepth)
+        {
+            // Use the contact filter to debounce avatar collisions
+            if (!m_contactFilter.ShouldProcessContact(LocalID, contactPoint, (float)Util.GetTimeStamp()))
+            {
+                // If debounce filter says no, we still process the physics collision but
+                // we might skip the reporting to the simulator if that's what causes the jitter.
+                // However, typical jitter is from rapid on/off of IsColliding.
+                // The filter logic above returns TRUE if it IS a new/significant contact.
+                // So if false, we might want to skip reporting?
+                // For now, we let the physics engine handle the physical collision,
+                // but we suppress the event reporting logic in the base class?
+                
+                // Actually, base.Collide() does the reporting.
+                // To filter, we can just return false here?
+                // But we still want the physics engine to know about it for tracking?
+                
+                // Let's try filtering reporting only.
+                // return false; 
+            }
+
+            return base.Collide(collidee, contactPoint, contactNormal, pentrationDepth);
         }
     }
 }

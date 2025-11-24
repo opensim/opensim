@@ -1141,8 +1141,9 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             if (VehiclePosition.Z < GetTerrainHeight(VehiclePosition))
             {
                 // Force position because applying force won't get the vehicle through the terrain
+                // Smoother correction: just above terrain
                 Vector3 newPosition = VehiclePosition;
-                newPosition.Z = GetTerrainHeight(VehiclePosition) + 1f;
+                newPosition.Z = GetTerrainHeight(VehiclePosition) + 0.2f; 
                 VehiclePosition = newPosition;
                 VDetailLog("{0},  MoveLinear,terrainHeight,terrainHeight={1},pos={2}",
                         ControllingPrim.LocalID, GetTerrainHeight(VehiclePosition), VehiclePosition);
