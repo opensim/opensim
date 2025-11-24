@@ -38,6 +38,10 @@ using OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet;
 namespace OpenSim.Region.PhysicsModule.BulletS
 {
 
+    /// <summary>
+    /// Represents a physical primitive object in the BulletSim physics engine.
+    /// This class bridges the OpenSim physics abstraction with the Bullet physics simulation.
+    /// </summary>
     [Serializable]
     public class BSPrim : BSPhysObject
     {
@@ -910,6 +914,11 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             CreateGeomAndObject(forceRebuild);
         }
 
+        /// <summary>
+        /// Update the physical parameters of the object in the physics engine.
+        /// This involves making the object dynamic/static, solid/phantom, updating collision flags,
+        /// and applying any optimization settings like collision margins.
+        /// </summary>
         // Convert the simulator's physical properties into settings on BulletSim objects.
         // There are four flags we're interested in:
         //     IsStatic: Object does not move, otherwise the object has mass and moves
@@ -943,6 +952,9 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             MakeSolid(IsSolid);
 
             AddObjectToPhysicalWorld();
+
+            // Apply optimized collision margin if enabled
+            PhysScene.UpdateObjectMargin(this);
 
             // Rebuild its shape
             PhysScene.PE.UpdateSingleAabb(PhysScene.World, PhysBody);

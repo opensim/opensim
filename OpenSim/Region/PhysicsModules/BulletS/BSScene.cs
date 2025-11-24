@@ -43,6 +43,10 @@ using Mono.Addins;
 
 namespace OpenSim.Region.PhysicsModule.BulletS
 {
+    /// <summary>
+    /// The main physics scene for BulletSim.
+    /// Manages the physics world, simulation loop, and collection of physical objects.
+    /// </summary>
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "BulletSPhysicsScene")]
     public sealed class BSScene : PhysicsScene, IPhysicsParameters, INonSharedRegionModule
     {
@@ -126,6 +130,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         private bool m_useImprovedCollisionMargins = false;
         private float m_enhancedCollisionMargin = 0.04f;
         private float m_enhancedTerrainMargin = 0.04f;
+        private CollisionMarginManager m_collisionMarginManager = null;
         private SpatialPartitionManager m_spatialPartition = null;
         private SleepOptimizationManager m_sleepOptimization = null;
 
@@ -445,8 +450,9 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                         m_enhancedCollisionMargin = collisionMargin;
                         m_enhancedTerrainMargin = terrainMargin;
                         m_useImprovedCollisionMargins = true;
+                        m_collisionMarginManager = new CollisionMarginManager(this);
                         
-                        DetailLog("{0},BSScene.InitializeFromConfig,improvedCollisionMargins,collision={1},terrain={2}", 
+                        DetailLog("{0},BSScene.InitializeFromConfig,improvedCollisionMargins,collision={1},terrain={2}",  
                             RegionName, collisionMargin, terrainMargin);
                     }
                     
@@ -1539,6 +1545,19 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         {
             PhysicsLogging.Write(msg, args);
         }
+
+        /// <summary>
+        /// Updates the collision margin for a specific physical object if enhanced collision margins are enabled.
+        /// </summary>
+        /// <param name="prim">The physical object to update.</param>
+        public void UpdateObjectMargin(BSPhysObject prim)
+        {
+            if (m_useImprovedCollisionMargins && m_collisionMarginManager != null)
+            {
+                m_collisionMarginManager.UpdateCollisionMargin(prim);
+            }
+        }
+
         // Used to fill in the LocalID when there isn't one. It's the correct number of characters.
         public const string DetailLogZero = "0000000000";
 
