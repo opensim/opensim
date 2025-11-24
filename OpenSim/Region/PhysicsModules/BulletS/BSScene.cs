@@ -198,7 +198,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         private Object _taintLock = new Object();   // lock for using the next object
         private List<TaintCallbackEntry> _taintOperations;
         private Dictionary<string, TaintCallbackEntry> _postTaintOperations;
-        private List<TaintCallbackEntry> _postStepOperations;
+        private List<TaintCallbackEntry> _taintProcessing;
+        private Dictionary<string, TaintCallbackEntry> _postTaintProcessing;
 
         // A pointer to an instance if this structure is passed to the C++ code
         // Used to pass basic configuration values to the unmanaged code.
@@ -307,7 +308,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         {
             _taintOperations = new List<TaintCallbackEntry>();
             _postTaintOperations = new Dictionary<string, TaintCallbackEntry>();
-            _postStepOperations = new List<TaintCallbackEntry>();
+            _taintProcessing = new List<TaintCallbackEntry>();
+            _postTaintProcessing = new Dictionary<string, TaintCallbackEntry>();
             PhysObjects = new Dictionary<uint, BSPhysObject>();
             Shapes = new BSShapeCollection(this);
 
@@ -1366,17 +1368,23 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         private int ProcessRegularTaints()
         {
             int ret = 0;
-            if (m_initialized && _taintOperations.Count > 0)  // save allocating new list if there is nothing to process
-            {
-                // swizzle a new list into the list location so we can process what's there
-                List<TaintCallbackEntry> oldList;
-                lock (_taintLock)
-                {
-                    oldList = _taintOperations;
-                    _taintOperations = new List<TaintCallbackEntry>();
-                }
+            if (!m_initialized) return ret;
 
-                foreach (TaintCallbackEntry tcbe in oldList)
+            List<TaintCallbackEntry> workList = null;
+
+            lock (_taintLock)
+            {
+                if (_taintOperations.Count > 0)
+                {
+                    workList = _taintOperations;
+                    _taintOperations = _taintProcessing;
+                    _taintProcessing = workList;
+                }
+            }
+
+            if (workList != null)
+            {
+                foreach (TaintCallbackEntry tcbe in workList)
                 {
                     try
                     {
@@ -1389,7 +1397,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                         m_log.ErrorFormat("{0}: ProcessTaints: {1}: Exception: {2}", LogHeader, tcbe.ident, e);
                     }
                 }
-                oldList.Clear();
+                workList.Clear();
             }
             return ret;
         }
@@ -1415,16 +1423,23 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         private int ProcessPostTaintTaints()
         {
             int ret = 0;
-            if (m_initialized && _postTaintOperations.Count > 0)
-            {
-                Dictionary<string, TaintCallbackEntry> oldList;
-                lock (_taintLock)
-                {
-                    oldList = _postTaintOperations;
-                    _postTaintOperations = new Dictionary<string, TaintCallbackEntry>();
-                }
+            if (!m_initialized) return ret;
 
-                foreach (KeyValuePair<string,TaintCallbackEntry> kvp in oldList)
+            Dictionary<string, TaintCallbackEntry> workMap = null;
+
+            lock (_taintLock)
+            {
+                if (_postTaintOperations.Count > 0)
+                {
+                    workMap = _postTaintOperations;
+                    _postTaintOperations = _postTaintProcessing;
+                    _postTaintProcessing = workMap;
+                }
+            }
+
+            if (workMap != null)
+            {
+                foreach (KeyValuePair<string, TaintCallbackEntry> kvp in workMap)
                 {
                     try
                     {
@@ -1437,7 +1452,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                         m_log.ErrorFormat("{0}: ProcessPostTaintTaints: {1}: Exception: {2}", LogHeader, kvp.Key, e);
                     }
                 }
-                oldList.Clear();
+                workMap.Clear();
             }
             return ret;
         }

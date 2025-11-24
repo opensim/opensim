@@ -36,10 +36,19 @@ using OMV = OpenMetaverse;
 
 namespace OpenSim.Region.PhysicsModule.BulletS
 {
+    /// <summary>
+    /// A physical actor that applies forces to an object to keep it hovering at a specified height.
+    /// </summary>
     public class BSActorHover : BSActor
     {
         private BSVMotor m_hoverMotor;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BSActorHover"/> class.
+        /// </summary>
+        /// <param name="physicsScene">The physics scene this actor belongs to.</param>
+        /// <param name="pObj">The physical object this actor controls.</param>
+        /// <param name="actorName">The name of this actor instance.</param>
         public BSActorHover(BSScene physicsScene, BSPhysObject pObj, string actorName)
             : base(physicsScene, pObj, actorName)
         {
@@ -47,23 +56,27 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             m_physicsScene.DetailLog("{0},BSActorHover,constructor", m_controllingPrim.LocalID);
         }
 
-        // BSActor.isActive
+        /// <summary>
+        /// Gets a value indicating whether this actor is currently active.
+        /// </summary>
         public override bool isActive
         {
             get { return Enabled; }
         }
 
-        // Release any connections and resources used by the actor.
-        // BSActor.Dispose()
+        /// <summary>
+        /// Releases unmanaged and - optionally - managed resources.
+        /// </summary>
         public override void Dispose()
         {
             Enabled = false;
             DeactivateHover();
         }
 
-        // Called when physical parameters (properties set in Bullet) need to be re-applied.
-        // Called at taint-time.
-        // BSActor.Refresh()
+        /// <summary>
+        /// Refreshes the actor's state. Called when physical parameters (properties set in Bullet) need to be re-applied.
+        /// This method is typically called at taint-time.
+        /// </summary>
         public override void Refresh()
         {
             m_physicsScene.DetailLog("{0},BSActorHover,refresh", m_controllingPrim.LocalID);
@@ -85,16 +98,20 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             }
         }
 
-        // The object's physical representation is being rebuilt so pick up any physical dependencies (constraints, ...).
-        //     Register a prestep action to restore physical requirements before the next simulation step.
-        // Called at taint-time.
-        // BSActor.RemoveDependencies()
+        /// <summary>
+        /// Called when the object's physical representation is being rebuilt.
+        /// Allows the actor to remove any physical dependencies (constraints, etc.) before the body is destroyed.
+        /// This is called at taint-time.
+        /// </summary>
         public override void RemoveDependencies()
         {
             // Nothing to do for the hoverer since it is all software at pre-step action time.
         }
 
-        // If a hover motor has not been created, create one and start the hovering.
+        /// <summary>
+        /// Activates the hover mechanism.
+        /// Creates the motor if it doesn't exist and subscribes to the pre-step event.
+        /// </summary>
         private void ActivateHover()
         {
             if (m_hoverMotor == null)
@@ -118,6 +135,10 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             }
         }
 
+        /// <summary>
+        /// Deactivates the hover mechanism.
+        /// Unsubscribes from the pre-step event and releases the motor.
+        /// </summary>
         private void DeactivateHover()
         {
             if (m_hoverMotor != null)
@@ -127,7 +148,11 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             }
         }
 
-        // Called just before the simulation step. Update the vertical position for hoverness.
+        /// <summary>
+        /// The pre-step action called just before the simulation step.
+        /// Updates the vertical position for hoverness by applying forces.
+        /// </summary>
+        /// <param name="timeStep">The time step for the current simulation frame.</param>
         private void Hoverer(float timeStep)
         {
             // Don't do hovering while the object is selected.
@@ -187,8 +212,11 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                             m_controllingPrim.LocalID, targetHeight, error, totalForce, m_controllingPrim.RawMass);
         }
 
-        // Based on current position, determine what we should be hovering at now.
-        // Must recompute often. What if we walked offa cliff>
+        /// <summary>
+        /// Computes the current target hover height based on the object's position and hover settings.
+        /// This accounts for terrain height and water level if applicable.
+        /// </summary>
+        /// <returns>The target Z coordinate for hovering.</returns>
         private float ComputeCurrentHoverHeight()
         {
             float ret = m_controllingPrim.HoverHeight;

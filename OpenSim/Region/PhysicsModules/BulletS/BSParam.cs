@@ -801,6 +801,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 true ),
             new ParameterDefn<bool>("BHullShouldAdjustCollisionMargin", "Bullet impl: whether to shrink resulting hulls to account for collision margin",
                 false ),
+            // Auto-compute CCD parameters for small/fast objects
             new ParameterDefn<bool>("ShouldAutoComputeCcd", "Enable automatic computation of CCD parameters based on object size",
                 false,
                 (s) => { return ShouldAutoComputeCcd; },

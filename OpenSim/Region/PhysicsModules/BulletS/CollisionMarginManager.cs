@@ -31,6 +31,10 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.PhysicsModule.BulletS
 {
+    /// <summary>
+    /// Manages dynamic collision margin optimization for physical objects.
+    /// Calculates optimal margins based on object size to improve stability and performance.
+    /// </summary>
     public class CollisionMarginManager
     {
         private BSScene m_scene;
@@ -38,11 +42,20 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         private const float MIN_MARGIN = 0.001f;
         private const float MAX_MARGIN = 0.2f;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CollisionMarginManager"/> class.
+        /// </summary>
+        /// <param name="scene">The physics scene this manager belongs to.</param>
         public CollisionMarginManager(BSScene scene)
         {
             m_scene = scene;
         }
 
+        /// <summary>
+        /// Calculates the optimal collision margin for a physical object based on its size.
+        /// </summary>
+        /// <param name="prim">The physical object to calculate the margin for.</param>
+        /// <returns>The calculated optimal margin.</returns>
         public float CalculateOptimalMargin(BSPhysObject prim)
         {
             Vector3 size = prim.Size; // This is the size passed by user (scale)
@@ -60,6 +73,10 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             return Utils.Clamp(optimalMargin, MIN_MARGIN, MAX_MARGIN);
         }
 
+        /// <summary>
+        /// Updates the collision margins for all physical objects in the scene.
+        /// This is typically called periodically or when configuration changes.
+        /// </summary>
         public void UpdateCollisionMargins()
         {
             // Iterate over all physical objects in the scene
@@ -80,6 +97,10 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         }
 
         // Update margin for a specific object
+        /// <summary>
+        /// Updates the collision margin for a specific physical object.
+        /// </summary>
+        /// <param name="prim">The physical object to update.</param>
         public void UpdateCollisionMargin(BSPhysObject prim)
         {
             if (prim.PhysShape.HasPhysicalShape)

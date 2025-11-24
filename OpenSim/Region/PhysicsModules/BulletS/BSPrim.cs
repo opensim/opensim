@@ -1208,6 +1208,10 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             }
         }
 
+        /// <summary>
+        /// Set the target for the PID controller.
+        /// This method includes a sanity check to ensure the target vector is finite (no NaNs or Infinities).
+        /// </summary>
         public override OMV.Vector3 PIDTarget
         {
             set

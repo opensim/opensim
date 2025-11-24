@@ -345,6 +345,10 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             });
         }
 
+        /// <summary>
+        /// Locks the avatar's angular motion on specified axes.
+        /// </summary>
+        /// <param name="axislocks">Bitmask of axes to lock (2=X, 4=Y, 8=Z).</param>
         public override void LockAngularMotion(byte axislocks) 
         {
              // Map axislocks to AngularFactor
@@ -466,6 +470,10 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             PhysScene.PE.SetMassProps(PhysBody, physMass, localInertia);
         }
 
+        /// <summary>
+        /// Gets or sets the constant force applied to the avatar.
+        /// Setting this enables the SetForceActor to maintain the force across frames.
+        /// </summary>
         public override OMV.Vector3 Force {
             get { return RawForce; }
             set {
@@ -787,6 +795,11 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             AddForce(false, addForce);
         }
 
+        /// <summary>
+        /// Applies a central force to the avatar for a single simulation step.
+        /// </summary>
+        /// <param name="inTaintTime">If true, the operation is performed immediately.</param>
+        /// <param name="force">The force vector to apply.</param>
         public override void AddForce(bool inTaintTime, OMV.Vector3 force)
         {
             if (force.IsFinite())
@@ -819,6 +832,11 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             }
         }
 
+        /// <summary>
+        /// Adds an instantaneous angular force (torque impulse) to the avatar.
+        /// </summary>
+        /// <param name="inTaintTime">If true, the operation is performed immediately; otherwise it is queued.</param>
+        /// <param name="force">The torque vector to apply.</param>
         public override void AddAngularForce(bool inTaintTime, OMV.Vector3 force) 
         {
              if (force.IsFinite())
