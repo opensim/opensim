@@ -6,7 +6,7 @@
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
  *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyrightD
+ *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
  *     * Neither the name of the OpenSimulator Project nor the
@@ -38,7 +38,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 {
     public class BSActorHover : BSActor
     {
-        private BSFMotor m_hoverMotor;
+        private BSVMotor m_hoverMotor;
 
         public BSActorHover(BSScene physicsScene, BSPhysObject pObj, string actorName)
             : base(physicsScene, pObj, actorName)
@@ -100,7 +100,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             if (m_hoverMotor == null)
             {
                 // Turning the target on
-                m_hoverMotor = new BSFMotor("BSActorHover",
+                m_hoverMotor = new BSVMotor("BSActorHover",
                                             m_controllingPrim.HoverTau,               // timeScale
                                             BSMotor.Infinite,           // decay time scale
                                             1f                          // efficiency
@@ -110,6 +110,11 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 m_hoverMotor.PhysicsScene = m_physicsScene; // DEBUG DEBUG so motor will output detail log messages.
     
                 m_physicsScene.BeforeStep += Hoverer;
+            }
+            else
+            {
+                // Update parameters if already active
+                m_hoverMotor.TimeScale = m_controllingPrim.HoverTau;
             }
         }
 
@@ -129,19 +134,57 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             if (!isActive)
                 return;
     
+            // Recompute target height based on terrain/water
+            float targetHeight = ComputeCurrentHoverHeight();
+            
+            // Update motor state
             m_hoverMotor.SetCurrent(m_controllingPrim.RawPosition.Z);
-            m_hoverMotor.SetTarget(ComputeCurrentHoverHeight());
-            float targetHeight = m_hoverMotor.Step(timeStep);
-    
-            // 'targetHeight' is where we'd like the Z of the prim to be at this moment.
-            // Compute the amount of force to push us there.
-            float moveForce = (targetHeight - m_controllingPrim.RawPosition.Z) * m_controllingPrim.RawMass;
-            // Undo anything the object thinks it's doing at the moment
-            moveForce = -m_controllingPrim.RawVelocity.Z * m_controllingPrim.Mass;
-    
-            m_physicsScene.PE.ApplyCentralImpulse(m_controllingPrim.PhysBody, new OMV.Vector3(0f, 0f, moveForce));
-            m_physicsScene.DetailLog("{0},BSPrim.Hover,move,targHt={1},moveForce={2},mass={3}",
-                            m_controllingPrim.LocalID, targetHeight, moveForce, m_controllingPrim.RawMass);
+            m_hoverMotor.SetTarget(targetHeight);
+            
+            // Calculate the error (distance to target)
+            float error = targetHeight - m_controllingPrim.RawPosition.Z;
+            
+            // If we are close enough, just apply a force to counteract gravity and velocity
+            // This prevents jittering when hovering at equilibrium
+            if (Math.Abs(error) < 0.01f && Math.Abs(m_controllingPrim.RawVelocity.Z) < 0.1f)
+            {
+                 // Counteract gravity
+                 OMV.Vector3 antiGravity = -m_controllingPrim.Gravity * m_controllingPrim.RawMass;
+                 // Counteract vertical velocity (damping)
+                 OMV.Vector3 damping = new OMV.Vector3(0f, 0f, -m_controllingPrim.RawVelocity.Z * m_controllingPrim.RawMass * 2.0f); // 2.0 is damping factor
+                 
+                 m_physicsScene.PE.ApplyCentralForce(m_controllingPrim.PhysBody, antiGravity + damping);
+                 return;
+            }
+
+            // Calculate correction using the motor (PID-like behavior)
+            float correctionAmount = m_hoverMotor.Step(timeStep);
+            
+            // Convert correction to force
+            // Force = Mass * Acceleration
+            // Acceleration = Correction / TimeStep^2  (Simplified)
+            // Better approach: Force to reach target in TimeScale seconds.
+            
+            // Calculate desired velocity to reach target
+            float desiredVelocity = (targetHeight - m_controllingPrim.RawPosition.Z) / m_controllingPrim.HoverTau;
+            
+            // Clamp desired velocity to reasonable limits to prevent rocket launches
+            desiredVelocity = OMV.Utils.Clamp(desiredVelocity, -50f, 50f);
+            
+            // Calculate force needed to achieve desired velocity in one timestep
+            // F = m * (v_target - v_current) / dt
+            float moveForce = m_controllingPrim.RawMass * (desiredVelocity - m_controllingPrim.RawVelocity.Z) / timeStep;
+            
+            // Add force to counteract gravity so we don't sag
+            float gravityForce = -m_controllingPrim.Gravity.Z * m_controllingPrim.RawMass;
+            
+            float totalForce = moveForce + gravityForce;
+
+            // Apply the force
+            m_physicsScene.PE.ApplyCentralForce(m_controllingPrim.PhysBody, new OMV.Vector3(0f, 0f, totalForce));
+            
+            m_physicsScene.DetailLog("{0},BSActorHover.Hoverer,move,targHt={1},err={2},force={3},mass={4}",
+                            m_controllingPrim.LocalID, targetHeight, error, totalForce, m_controllingPrim.RawMass);
         }
 
         // Based on current position, determine what we should be hovering at now.

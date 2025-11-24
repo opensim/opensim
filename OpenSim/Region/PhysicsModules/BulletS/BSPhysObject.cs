@@ -559,7 +559,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             // This is different than the collection created for sending up to the simulator as it is cleared every tick.
             if (CollisionsLastTickStep != PhysScene.SimulationStep)
             {
-                CollisionsLastTick = new CollisionEventUpdate();
+                CollisionsLastTick.Clear(); // Reuse existing object instead of allocating new
                 CollisionsLastTickStep = PhysScene.SimulationStep;
             }
             CollisionsLastTick.AddCollider(collideeLocalID, new ContactPoint(contactPoint, contactNormal, pentrationDepth));
