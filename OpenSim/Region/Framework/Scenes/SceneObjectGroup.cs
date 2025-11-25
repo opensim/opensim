@@ -2298,6 +2298,8 @@ namespace OpenSim.Region.Framework.Scenes
                                    (int) (color.Z * 0xff));
             if(Text != text || newcolor!= Color)
             {
+                Text = text;
+                Color = newcolor;
                 HasGroupChanged = true;
                 m_rootPart.ScheduleFullUpdate();
             }
