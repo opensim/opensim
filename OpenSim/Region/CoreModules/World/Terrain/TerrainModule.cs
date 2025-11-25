@@ -25,7 +25,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -74,9 +73,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
         private object _modifyLock = new();
 
-#pragma warning disable 414
-        private static readonly string LogHeader = "[TERRAIN]: ";
-#pragma warning restore 414
+        private const string LogHeader = "[TERRAIN]: ";
 
         private readonly Commander m_commander = new("terrain");
         private readonly Dictionary<string, ITerrainLoader> m_loaders = [];
@@ -211,10 +208,10 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         /// <summary>
         /// Human readable list of terrain file extensions that are supported.
         /// </summary>
-        private string m_supportedFileExtensions = String.Empty;
+        private string m_supportedFileExtensions = string.Empty;
 
         //For terrain save-tile file extensions
-        private string m_supportFileExtensionsForTileSave = String.Empty;
+        private string m_supportFileExtensionsForTileSave = string.Empty;
 
         #region ICommandableModule Members
 
@@ -377,36 +374,34 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                                 throw new ArgumentException(String.Format("wrong size, use a file with size {0} x {1}",
                                                                           m_scene.RegionInfo.RegionSizeX, m_scene.RegionInfo.RegionSizeY));
                             }
-                            m_log.DebugFormat(LogHeader + "Loaded terrain, wd/ht: {0}/{1}", channel.Width, channel.Height);
+                            m_log.Debug($"{LogHeader}Loaded terrain, wd/ht: {channel.Width}/{channel.Height}");
                             m_scene.Heightmap = channel;
                             m_channel = channel;
                             UpdateBakedMap();
                         }
                         catch (NotImplementedException)
                         {
-                            m_log.ErrorFormat(LogHeader + "Unable to load heightmap, the {0} parser does not support file loading. (May be save only)", loader.Value);
-                            throw new TerrainException(String.Format("unable to load heightmap: parser {0} does not support loading", loader.Value));
+                            m_log.ErrorFormat($"{LogHeader}Unable to load heightmap, the {loader.Value} parser does not support file loading. (May be save only)");
+                            throw new TerrainException($"unable to load heightmap: parser {loader.Value} does not support loading");
                         }
                         catch (FileNotFoundException)
                         {
-                            m_log.ErrorFormat(LogHeader + "Unable to load heightmap, file not found. (A directory permissions error may also cause this)");
-                            throw new TerrainException(
-                                String.Format("unable to load heightmap: file {0} not found (or permissions do not allow access", filename));
+                            m_log.ErrorFormat($"{LogHeader}Unable to load heightmap, file not found. (A directory permissions error may also cause this)");
+                            throw new TerrainException($"unable to load heightmap: file {filename} not found (or permissions do not allow access");
                         }
                         catch (ArgumentException e)
                         {
-                            m_log.ErrorFormat(LogHeader + "Unable to load heightmap: {0}", e.Message);
-                            throw new TerrainException(
-                                String.Format("Unable to load heightmap: {0}", e.Message));
+                            m_log.Error($"{LogHeader}Unable to load heightmap: {e.Message}");
+                            throw new TerrainException($"Unable to load heightmap: {e.Message}");
                         }
                     }
-                    m_log.InfoFormat(LogHeader + "File ({0}) loaded successfully", filename);
+                    m_log.Info($"{LogHeader}File ({filename}) loaded successfully");
                     return;
                 }
             }
 
-            m_log.Error(LogHeader + "Unable to load heightmap, no file loader available for that format.");
-            throw new TerrainException(String.Format("unable to load heightmap from file {0}: no loader available for that format", filename));
+            m_log.Error($"{LogHeader}Unable to load heightmap, no file loader available for that format.");
+            throw new TerrainException($"unable to load heightmap from file {filename}: no loader available for that format");
         }
 
         /// <summary>
@@ -422,18 +417,18 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                     if (filename.EndsWith(loader.Key) && loader.Value.SupportedHeight > m_channel.MaxHeight())
                     {
                         loader.Value.SaveFile(filename, m_channel);
-                        m_log.InfoFormat(LogHeader + "Saved terrain from {0} to {1}", m_scene.RegionInfo.RegionName, filename);
+                        m_log.Info($"{LogHeader}Saved terrain from {m_scene.RegionInfo.RegionName} to {filename}");
                         return;
                     }
                 }
             }
             catch(IOException ioe)
             {
-                m_log.ErrorFormat(LogHeader + "Unable to save to {0}, {1}", filename, ioe.Message);
+                m_log.Error($"{LogHeader}Unable to save to {filename}, {ioe.Message}");
             }
 
-            m_log.ErrorFormat(LogHeader + "Could not save terrain from {0} to {1}.  Valid file extensions are {2}",
-                m_scene.RegionInfo.RegionName, filename, m_supportedFileExtensions);
+            m_log.Error(
+                $"{LogHeader}Could not save terrain from {m_scene.RegionInfo.RegionName} to {filename}. Valid file extensions are {m_supportedFileExtensions}");
         }
 
         /// <summary>
@@ -473,17 +468,17 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                         }
                         catch(NotImplementedException)
                         {
-                            m_log.ErrorFormat(LogHeader + "Unable to load heightmap, the {0} parser does not support file loading. (May be save only)", loader.Value);
-                            throw new TerrainException(String.Format("unable to load heightmap: parser {0} does not support loading", loader.Value));
+                            m_log.Error($"{LogHeader}Unable to load heightmap, the {loader.Value} parser does not support file loading. (May be save only)");
+                            throw new TerrainException($"unable to load heightmap: parser {loader.Value} does not support loading");
                         }
                     }
 
-                    m_log.InfoFormat(LogHeader + "File ({0}) loaded successfully", filename);
+                    m_log.Info($"{LogHeader}File ({filename}) loaded successfully");
                     return;
                 }
             }
-            m_log.Error("[TERRAIN]: Unable to load heightmap, no file loader available for that format.");
-            throw new TerrainException(String.Format("unable to load heightmap from file {0}: no loader available for that format", filename));
+            m_log.Error($"{LogHeader}Unable to load heightmap, no file loader available for that format.");
+            throw new TerrainException($"unable to load heightmap from file {filename}: no loader available for that format");
         }
 
         public void LoadFromStream(string filename, Vector3 displacement,
@@ -503,12 +498,12 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                         }
                         catch (NotImplementedException)
                         {
-                            m_log.ErrorFormat(LogHeader + "Unable to load heightmap, the {0} parser does not support file loading. (May be save only)", loader.Value);
-                            throw new TerrainException(String.Format("unable to load heightmap: parser {0} does not support loading", loader.Value));
+                            m_log.ErrorFormat($"{LogHeader}Unable to load heightmap, the { loader.Value} parser does not support file loading. (May be save only)");
+                            throw new TerrainException("unable to load heightmap: parser {loader.Value} does not support loading");
                         }
                     }
 
-                    m_log.InfoFormat(LogHeader + "File ({0}) loaded successfully", filename);
+                    m_log.Info($"{LogHeader}File ({filename}) loaded successfully");
                     return;
                 }
             }
@@ -529,7 +524,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             Stream file = response.GetResponseStream();
 
             if (response.ContentLength == 0)
-                throw new Exception(String.Format("{0} returned an empty file", uri.ToString()));
+                throw new Exception($"{uri} returned an empty file");
 
             // return new BufferedStream(file, (int) response.ContentLength);
             return new BufferedStream(file, 1000000);
@@ -597,8 +592,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             }
             catch(NotImplementedException)
             {
-                m_log.ErrorFormat(LogHeader + "Unable to save to {0}, saving of this file format has not been implemented.", filename);
-                throw new TerrainException(String.Format("Unable to save heightmap: saving of this file format not implemented"));
+                m_log.Error($"{LogHeader}Unable to save to {filename}, saving of this file format has not been implemented.");
+                throw new TerrainException("Unable to save heightmap: saving of this file format not implemented");
             }
         }
 
@@ -660,7 +655,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             string[] files = Directory.GetFiles(plugineffectsPath);
             foreach(string file in files)
             {
-                m_log.InfoFormat(LogHeader + "Loading effects in {0}", file);
+                m_log.Info($"{LogHeader}Loading effects in {file}");
                 try
                 {
                     Assembly library = Assembly.LoadFrom(file);

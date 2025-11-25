@@ -2292,14 +2292,15 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SetText(string text, Vector3 color, double alpha)
         {
-            Color = Color.FromArgb(0xff - (int) (alpha * 0xff),
+            Color newcolor = Color.FromArgb(0xff - (int) (alpha * 0xff),
                                    (int) (color.X * 0xff),
                                    (int) (color.Y * 0xff),
                                    (int) (color.Z * 0xff));
-            Text = text;
-
-            HasGroupChanged = true;
-            m_rootPart.ScheduleFullUpdate();
+            if(Text != text || newcolor!= Color)
+            {
+                HasGroupChanged = true;
+                m_rootPart.ScheduleFullUpdate();
+            }
         }
 
         /// <summary>

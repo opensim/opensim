@@ -47,8 +47,9 @@ namespace OpenSim.Region.Framework.Scenes
     /// </summary>
     public class TerrainChannel : ITerrainChannel
     {
+        const string LogHeader = "[TERRAIN CHANNEL]: ";
+
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private static string LogHeader = "[TERRAIN CHANNEL]: ";
 
         protected TerrainData m_terrainData;
 
@@ -177,12 +178,14 @@ namespace OpenSim.Region.Framework.Scenes
 
         public int MaxHeight()
         {
-            float max = 0;
+            float max = float.MinValue;
             for (int ii = 0; ii < Width; ii++)
             {
                 for (int jj = 0; jj < Height; jj++)
                 {
-                    max = (m_terrainData[ii, jj] > max) ? m_terrainData[ii, jj] : max; 
+                    float cur = m_terrainData[ii, jj];
+                    if(cur > max)
+                        max = cur; 
                 }
             }
             return (int)max + 1;

@@ -30,7 +30,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using OpenMetaverse.ImportExport.Collada14;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
@@ -70,7 +69,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
 
         public override ITerrainChannel LoadStream(Stream stream)
         {
-            return LoadTIFF(String.Empty, out int _, stream, null);
+            return LoadTIFF(string.Empty, out int _, stream, null);
         }
 
         public override void SaveFile(string filename, ITerrainChannel map)
