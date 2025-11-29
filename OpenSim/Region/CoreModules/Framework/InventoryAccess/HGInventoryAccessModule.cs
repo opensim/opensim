@@ -405,6 +405,11 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                             assetServerURL = UserManagementModule.GetUserServerURL(userID, "AssetServerURI");
                             assetServerURL = assetServerURL.Trim('/');
                         }
+                        if(assetServerURL.Length == 0)
+                        {
+                            m_log.Debug($"[HGScene]: user {userID} asset server returned empty url");
+                            return false;
+                        }
                         return true;
                     }
                 }
@@ -417,7 +422,12 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     }
                     else
                     {
-                        m_log.DebugFormat("[HGScene]: user {0} has foreign assets {1}", userID, assetServerURL);
+                        if(assetServerURL.Length == 0)
+                        {
+                            m_log.Debug($"[HGScene]: user {userID} asset server returned empty url");
+                            return false;
+                        }
+                        m_log.Debug($"[HGScene]: user {userID} has foreign assets {assetServerURL}");
                         return true;
                     }
                 }
