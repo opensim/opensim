@@ -43,6 +43,10 @@ using Mono.Addins;
 
 namespace OpenSim.Region.PhysicsModule.BulletS
 {
+    /// <summary>
+    /// The main physics scene for BulletSim.
+    /// Manages the physics world, simulation loop, and collection of physical objects.
+    /// </summary>
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "BulletSPhysicsScene")]
     public sealed class BSScene : PhysicsScene, IPhysicsParameters, INonSharedRegionModule
     {
@@ -121,6 +125,15 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
         // True if initialized and ready to do simulation steps
         private bool m_initialized = false;
+        
+        // Enhanced physics optimization systems
+        private bool m_useImprovedCollisionMargins = false;
+        private float m_enhancedCollisionMargin = 0.04f;
+        private float m_enhancedTerrainMargin = 0.04f;
+        private CollisionMarginManager m_collisionMarginManager = null;
+        private SpatialPartitionManager m_spatialPartition = null;
+        private SleepOptimizationManager m_sleepOptimization = null;
+        private int m_sleepOptimizationFrameCounter = 0;
 
         // Object locked whenever execution is inside the physics engine
         public Object PhysicsEngineLock = new object();
@@ -186,7 +199,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         private Object _taintLock = new Object();   // lock for using the next object
         private List<TaintCallbackEntry> _taintOperations;
         private Dictionary<string, TaintCallbackEntry> _postTaintOperations;
-        private List<TaintCallbackEntry> _postStepOperations;
+        private List<TaintCallbackEntry> _taintProcessing;
+        private Dictionary<string, TaintCallbackEntry> _postTaintProcessing;
 
         // A pointer to an instance if this structure is passed to the C++ code
         // Used to pass basic configuration values to the unmanaged code.
@@ -295,7 +309,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         {
             _taintOperations = new List<TaintCallbackEntry>();
             _postTaintOperations = new Dictionary<string, TaintCallbackEntry>();
-            _postStepOperations = new List<TaintCallbackEntry>();
+            _taintProcessing = new List<TaintCallbackEntry>();
+            _postTaintProcessing = new Dictionary<string, TaintCallbackEntry>();
             PhysObjects = new Dictionary<uint, BSPhysObject>();
             Shapes = new BSShapeCollection(this);
 
@@ -414,6 +429,62 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 {
                     // Let the user add new and interesting material property values.
                     BSMaterials.InitializefromParameters(pConfig);
+                    
+                    // Initialize physics profiler if enabled
+                    PhysicsProfiler.Enabled = pConfig.GetBoolean("EnablePerformanceMonitoring", false);
+                    int interval = pConfig.GetInt("PerformanceReportInterval", 30);
+                    // Clamp interval to [1, 3600] seconds
+                    if (interval < 1) interval = 1;
+                    else if (interval > 3600) interval = 3600;
+                    PhysicsProfiler.ReportIntervalSeconds = interval;
+                    
+                    // Enhanced collision margin handling
+                    bool improvedMargins = pConfig.GetBoolean("ImprovedCollisionMargins", false);
+                    if (improvedMargins)
+                    {
+                        float collisionMargin = pConfig.GetFloat("CollisionMargin", 0.04f);
+                        float terrainMargin = pConfig.GetFloat("TerrainCollisionMargin", 0.04f);
+                        
+                        // Clamp margins to reasonable values (0.001 to 0.1 meters)
+                        collisionMargin = OpenMetaverse.Utils.Clamp(collisionMargin, 0.001f, 0.1f);
+                        terrainMargin = OpenMetaverse.Utils.Clamp(terrainMargin, 0.001f, 0.1f);
+                        
+                        // Store values for later use during physics object creation
+                        m_enhancedCollisionMargin = collisionMargin;
+                        m_enhancedTerrainMargin = terrainMargin;
+                        m_useImprovedCollisionMargins = true;
+                        m_collisionMarginManager = new CollisionMarginManager(this);
+                        
+                        DetailLog("{0},BSScene.InitializeFromConfig,improvedCollisionMargins,collision={1},terrain={2}",  
+                            RegionName, collisionMargin, terrainMargin);
+                    }
+                    
+                    // Spatial partitioning optimization
+                    bool useSpatialPartitioning = pConfig.GetBoolean("UseSpatialPartitioning", false);
+                    if (useSpatialPartitioning)
+                    {
+                        float gridSize = pConfig.GetFloat("SpatialPartitionGridSize", 32.0f);
+                        gridSize = OpenMetaverse.Utils.Clamp(gridSize, 4.0f, 256.0f);
+                        
+                        m_spatialPartition = new SpatialPartitionManager(gridSize);
+                        DetailLog("{0},BSScene.InitializeFromConfig,spatialPartitioning,gridSize={1}", 
+                            RegionName, gridSize);
+                    }
+                    
+                    // Sleep optimization for static objects
+                    bool enableSleepOptimization = pConfig.GetBoolean("EnableSleepOptimization", true);
+                    if (enableSleepOptimization)
+                    {
+                        float sleepTimeout = pConfig.GetFloat("StaticObjectSleepTimeout", 2.0f);
+                        float velocityThreshold = pConfig.GetFloat("SleepVelocityThreshold", 0.01f);
+                        
+                        sleepTimeout = OpenMetaverse.Utils.Clamp(sleepTimeout, 0.1f, 60.0f);
+                        velocityThreshold = OpenMetaverse.Utils.Clamp(velocityThreshold, 0.001f, 1.0f);
+                        
+                        m_sleepOptimization = new SleepOptimizationManager(sleepTimeout, velocityThreshold);
+                        DetailLog("{0},BSScene.InitializeFromConfig,sleepOptimization,timeout={1},threshold={2}", 
+                            RegionName, sleepTimeout, velocityThreshold);
+                    }
                 }
             }
         }
@@ -541,7 +612,10 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
             BSCharacter actor = new BSCharacter(localID, avName, this, position, Vector3.Zero, size, footOffset, isFlying);
             lock (PhysObjects)
+            {
                 PhysObjects.Add(localID, actor);
+                UpdateSpatialPartition(actor);
+            }
 
             // TODO: Remove kludge someday.
             // We must generate a collision for avatars whether they collide or not.
@@ -564,7 +638,10 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 try
                 {
                     lock (PhysObjects)
+                    {
                         PhysObjects.Remove(bsactor.LocalID);
+                        RemoveFromSpatialPartition(bsactor);
+                    }
                     // Remove kludge someday
                     lock (AvatarsInSceneLock)
                         AvatarsInScene.Remove(bsactor);
@@ -594,7 +671,11 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 // m_log.DebugFormat("{0}: RemovePrim. id={1}/{2}", LogHeader, bsprim.Name, bsprim.LocalID);
                 try
                 {
-                    lock (PhysObjects) PhysObjects.Remove(bsprim.LocalID);
+                    lock (PhysObjects) 
+                    {
+                        PhysObjects.Remove(bsprim.LocalID);
+                        RemoveFromSpatialPartition(bsprim);
+                    }
                 }
                 catch (Exception e)
                 {
@@ -619,7 +700,11 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             // DetailLog("{0},BSScene.AddPrimShape,call", localID);
 
             BSPhysObject prim = new BSPrimLinkable(localID, primName, this, position, size, rotation, pbs, isPhysical);
-            lock (PhysObjects) PhysObjects.Add(localID, prim);
+            lock (PhysObjects)
+            {
+                PhysObjects.Add(localID, prim);
+                UpdateSpatialPartition(prim);
+            }
             return prim;
         }
 
@@ -635,11 +720,21 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         //    will be in the ObjectsWithCollions and ObjectsWithUpdates structures.
         public override float Simulate(float timeStep)
         {
-            if (!BSParam.UseSeparatePhysicsThread)
+            using (PhysicsProfiler.StartTiming("BSScene.Simulate"))
             {
-                DoPhysicsStep(timeStep);
+                if (!BSParam.UseSeparatePhysicsThread)
+                {
+                    using (PhysicsProfiler.StartTiming("BSScene.DoPhysicsStep"))
+                    {
+                        DoPhysicsStep(timeStep);
+                    }
+                }
+                
+                using (PhysicsProfiler.StartTiming("BSScene.SendUpdatesToSimulator"))
+                {
+                    return SendUpdatesToSimulator(timeStep);
+                }
             }
-            return SendUpdatesToSimulator(timeStep);
         }
 
         // Call the physics engine to do one 'timeStep' and collect collisions and updates
@@ -662,6 +757,18 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             lock (PhysicsEngineLock)
             {
                 InSimulationTime = true;
+
+                // Perform sleep optimization check (throttled to every 10 frames)
+                if (m_sleepOptimization != null)
+                {
+                    m_sleepOptimizationFrameCounter++;
+                    if (m_sleepOptimizationFrameCounter >= 10)
+                    {
+                        m_sleepOptimization.CheckObjects(this, timeStep * 10f);
+                        m_sleepOptimizationFrameCounter = 0;
+                    }
+                }
+
                 // update the prim states while we know the physics engine is not busy
                 numTaints += ProcessTaints();
 
@@ -751,7 +858,10 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                             if (PhysObjects.TryGetValue(entprop.ID, out pobj))
                             {
                                 if (pobj.IsInitialized)
+                                {
                                     pobj.UpdateProperties(entprop);
+                                    UpdateSpatialPartition(pobj);
+                                }
                             }
                         }
                     }
@@ -1288,17 +1398,23 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         private int ProcessRegularTaints()
         {
             int ret = 0;
-            if (m_initialized && _taintOperations.Count > 0)  // save allocating new list if there is nothing to process
-            {
-                // swizzle a new list into the list location so we can process what's there
-                List<TaintCallbackEntry> oldList;
-                lock (_taintLock)
-                {
-                    oldList = _taintOperations;
-                    _taintOperations = new List<TaintCallbackEntry>();
-                }
+            if (!m_initialized) return ret;
 
-                foreach (TaintCallbackEntry tcbe in oldList)
+            List<TaintCallbackEntry> workList = null;
+
+            lock (_taintLock)
+            {
+                if (_taintOperations.Count > 0)
+                {
+                    workList = _taintOperations;
+                    _taintOperations = _taintProcessing;
+                    _taintProcessing = workList;
+                }
+            }
+
+            if (workList != null)
+            {
+                foreach (TaintCallbackEntry tcbe in workList)
                 {
                     try
                     {
@@ -1311,7 +1427,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                         m_log.ErrorFormat("{0}: ProcessTaints: {1}: Exception: {2}", LogHeader, tcbe.ident, e);
                     }
                 }
-                oldList.Clear();
+                workList.Clear();
             }
             return ret;
         }
@@ -1337,16 +1453,23 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         private int ProcessPostTaintTaints()
         {
             int ret = 0;
-            if (m_initialized && _postTaintOperations.Count > 0)
-            {
-                Dictionary<string, TaintCallbackEntry> oldList;
-                lock (_taintLock)
-                {
-                    oldList = _postTaintOperations;
-                    _postTaintOperations = new Dictionary<string, TaintCallbackEntry>();
-                }
+            if (!m_initialized) return ret;
 
-                foreach (KeyValuePair<string,TaintCallbackEntry> kvp in oldList)
+            Dictionary<string, TaintCallbackEntry> workMap = null;
+
+            lock (_taintLock)
+            {
+                if (_postTaintOperations.Count > 0)
+                {
+                    workMap = _postTaintOperations;
+                    _postTaintOperations = _postTaintProcessing;
+                    _postTaintProcessing = workMap;
+                }
+            }
+
+            if (workMap != null)
+            {
+                foreach (KeyValuePair<string, TaintCallbackEntry> kvp in workMap)
                 {
                     try
                     {
@@ -1359,7 +1482,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                         m_log.ErrorFormat("{0}: ProcessPostTaintTaints: {1}: Exception: {2}", LogHeader, kvp.Key, e);
                     }
                 }
-                oldList.Clear();
+                workMap.Clear();
             }
             return ret;
         }
@@ -1467,6 +1590,41 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         {
             PhysicsLogging.Write(msg, args);
         }
+
+        /// <summary>
+        /// Updates the collision margin for a specific physical object if enhanced collision margins are enabled.
+        /// </summary>
+        /// <param name="prim">The physical object to update.</param>
+        public void UpdateObjectMargin(BSPhysObject prim)
+        {
+            if (m_useImprovedCollisionMargins && m_collisionMarginManager != null)
+            {
+                m_collisionMarginManager.UpdateCollisionMargin(prim);
+            }
+        }
+
+        /// <summary>
+        /// Updates the object in the spatial partition system.
+        /// </summary>
+        internal void UpdateSpatialPartition(BSPhysObject obj)
+        {
+            if (m_spatialPartition != null)
+            {
+                m_spatialPartition.UpdateObject(obj);
+            }
+        }
+
+        /// <summary>
+        /// Removes the object from the spatial partition system.
+        /// </summary>
+        internal void RemoveFromSpatialPartition(BSPhysObject obj)
+        {
+            if (m_spatialPartition != null)
+            {
+                m_spatialPartition.RemoveObject(obj);
+            }
+        }
+
         // Used to fill in the LocalID when there isn't one. It's the correct number of characters.
         public const string DetailLogZero = "0000000000";
 
