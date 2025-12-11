@@ -59,6 +59,11 @@ namespace OpenSim.Tests.Common
             return items;
         }
 
+        public XInventoryFolder[] GetFolder(string field, string val)
+        {
+            return GetFolders(new string[] { field }, new string[] { val });
+        }
+
         public XInventoryFolder[] GetFolders(string[] fields, string[] vals)
         {
 //            Console.WriteLine(
