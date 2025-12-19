@@ -1631,10 +1631,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             else
                 scale.Clamp(World.m_minNonphys, World.m_maxNonphys);
 
-            Vector3 tmp = part.Scale;
-            part.Scale = scale;
-            if(scale.NotEqual(tmp))
+            if(scale.NotEqual(part.Scale))
             {
+                part.Scale = scale;
                 part.ParentGroup.HasGroupChanged = true;
                 part.SendFullUpdateToAllClients();
             }
@@ -12851,25 +12850,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         private static LSL_List ParseString2List(string src, LSL_List separators, LSL_List spacers, bool keepNulls)
         {
-            int          srclen    = src.Length;
-            int          seplen    = separators.Length;
+            if(string.IsNullOrEmpty(src) || separators == null || spacers == null)
+                return new LSL_List();
+
             object[]     separray  = separators.Data;
-            int          spclen    = spacers.Length;
             object[]     spcarray  = spacers.Data;
-            int          dellen    = 0;
-            string[]     delarray  = new string[seplen+spclen];
+            string[]     delarray  = new string[separators.Length + spacers.Length];
 
-            int          outlen    = 0;
-            string[]     outarray  = new string[srclen*2+1];
+            string[]     outarray  = new string[2 * src.Length + 1];
 
-            int          i, j;
             string       d;
 
             /*
              * Convert separator and spacer lists to C# strings.
              * Also filter out null strings so we don't hang.
              */
-            for (i = 0; i < seplen; i ++)
+            int dellen = 0;
+            int outlen = 0;
+            for (int i = 0; i < separators.Length; i ++)
             {
                 d = separray[i].ToString();
                 if (d.Length > 0)
@@ -12877,9 +12875,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     delarray[dellen++] = d;
                 }
             }
-            seplen = dellen;
+            int seplen = dellen;
 
-            for (i = 0; i < spclen; i ++)
+            for (int i = 0; i < spacers.Length; i ++)
             {
                 d = spcarray[i].ToString();
                 if (d.Length > 0)
@@ -12891,16 +12889,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             /*
              * Scan through source string from beginning to end.
              */
-            for (i = 0;;)
+            for (int i = 0;;)
             {
-
                 /*
                  * Find earliest delimeter in src starting at i (if any).
                  */
                 int    earliestDel = -1;
-                int    earliestSrc = srclen;
+                int    earliestSrc = src.Length;
                 string earliestStr = null;
-                for (j = 0; j < dellen; j ++)
+                for (int j = 0; j < dellen; j++)
                 {
                     d = delarray[j];
                     if (d != null)
@@ -12951,7 +12948,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
              * Make up an exact-sized output array suitable for an LSL_List object.
              */
             object[] outlist = new object[outlen];
-            for (i = 0; i < outlen; i ++)
+            for (int i = 0; i < outlen; i ++)
             {
                 outlist[i] = new LSL_String(outarray[i]);
             }
