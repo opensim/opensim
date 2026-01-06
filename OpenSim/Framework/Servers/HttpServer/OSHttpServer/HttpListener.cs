@@ -170,9 +170,10 @@ namespace OSHttpServer
                 if(socket == null)
                     continue;
 
-                socket.NoDelay = true;
                 try
                 {
+                    socket.NoDelay = true;
+
                     if (!OnAcceptingSocket(socket))
                     {
                         socket.Disconnect(true);
