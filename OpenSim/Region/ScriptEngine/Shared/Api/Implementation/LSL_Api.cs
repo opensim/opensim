@@ -3161,19 +3161,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         // this is actually wrong. according to SL wiki, this function should not support negative indexes.
         public LSL_String llInsertString(string dest, int index, string src)
         {
+            if(string.IsNullOrEmpty(src))
+                return dest;
+
             // Normalize indices (if negative).
             // After normalization they may still be
             // negative, but that is now relative to
             // the start, rather than the end, of the
             // sequence.
+
             char c;
             if (index < 0)
             {
-                index = dest.Length+index;
+                index = dest.Length + index;
 
                 // Negative now means it is less than the lower
                 // bound of the string.
-                if(index > 0)
+                if(index >= 0 && index < dest.Length)
                 {
                     c = dest[index];
                     if (c >= 0xDC00 && c <= 0xDFFF)
@@ -3182,11 +3186,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 if (index < 0)
                 {
-                    return src+dest;
+                    return src + dest;
                 }
 
             }
-            else
+            else if(index < dest.Length)
             {
                 c = dest[index];
                 if (c >= 0xDC00 && c <= 0xDFFF)
