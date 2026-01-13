@@ -1069,29 +1069,32 @@ namespace OpenSim.Services.GridService
 
         private int ParseFlags(int prev, string flags)
         {
+            if(string.IsNullOrEmpty(flags))
+                return prev;
+
             OpenSim.Framework.RegionFlags f = (OpenSim.Framework.RegionFlags)prev;
 
-            string[] parts = flags.Split(new char[] {',', ' '}, StringSplitOptions.RemoveEmptyEntries);
+            string[] parts = flags.Split([',', ' '], StringSplitOptions.RemoveEmptyEntries);
 
             foreach (string p in parts)
             {
-                int val;
-
                 try
                 {
-                    if (p.StartsWith("+"))
+                    int val;
+
+                    if (p.StartsWith('+'))
                     {
-                        val = (int)Enum.Parse(typeof(OpenSim.Framework.RegionFlags), p.Substring(1));
+                        val = (int)Enum.Parse(typeof(OpenSim.Framework.RegionFlags), p.AsSpan(1), true);
                         f |= (OpenSim.Framework.RegionFlags)val;
                     }
-                    else if (p.StartsWith("-"))
+                    else if (p.StartsWith('-'))
                     {
-                        val = (int)Enum.Parse(typeof(OpenSim.Framework.RegionFlags), p.Substring(1));
+                        val = (int)Enum.Parse(typeof(OpenSim.Framework.RegionFlags), p.AsSpan(1), true);
                         f &= ~(OpenSim.Framework.RegionFlags)val;
                     }
                     else
                     {
-                        val = (int)Enum.Parse(typeof(OpenSim.Framework.RegionFlags), p);
+                        val = (int)Enum.Parse(typeof(OpenSim.Framework.RegionFlags), p.AsSpan());
                         f |= (OpenSim.Framework.RegionFlags)val;
                     }
                 }
