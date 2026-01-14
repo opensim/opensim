@@ -88,7 +88,6 @@ namespace OpenSim.Server.Handlers.Grid
 
             if (stats_available)
             {
-                
                 stats_available = false;
                 string gridService = m_Config.Configs["GridService"].GetString("LocalServiceModule", string.Empty);
                 if(!string.IsNullOrEmpty(gridService))
