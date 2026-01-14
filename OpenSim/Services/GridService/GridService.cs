@@ -1074,7 +1074,7 @@ namespace OpenSim.Services.GridService
 
             OpenSim.Framework.RegionFlags f = (OpenSim.Framework.RegionFlags)prev;
 
-            string[] parts = flags.Split([',', ' '], StringSplitOptions.RemoveEmptyEntries);
+            string[] parts = flags.Split(new char[]{',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
             foreach (string p in parts)
             {
