@@ -1,0 +1,107 @@
+; Configuration for DOS Protector Plugin System
+; Copy this to your bin/ directory and rename to DOSProtector.ini
+
+[DOSProtector]
+    ; Enable/disable plugin loading
+    ; Default: true
+    EnablePlugins = true
+
+    ; Comma-separated list of paths to scan for DOS protector plugin assemblies
+    ; Paths can be:
+    ;   - Absolute path to a DLL file
+    ;   - Absolute path to a directory (scans for *.dll files)
+    ;   - Relative path from bin/ directory
+    ;
+    ; Examples:
+    ;   PluginPaths = "C:\OpenSim\Plugins\DOSProtectors,./addons/dosprotectors"
+    ;   PluginPaths = "../custom-plugins/MyDOSProtector.dll"
+    ;
+    ; Default: empty (no additional plugins)
+    PluginPaths = ""
+
+    ; Enable verbose logging during plugin discovery
+    ; Default: false
+    VerbosePluginLoading = false
+
+; ============================================================================
+; Service-Specific DOS Protector Configuration
+; ============================================================================
+; Each service can have its own DOS protector configuration using the format:
+; [ServiceName.DOSProtector]
+;
+; The Implementation property can be:
+;   - Single implementation: Implementation = BasicDOSProtector
+;   - Multiple implementations (Hybrid): Implementation = IPFilter,Honeypot,TokenBucket
+;
+; Available implementations:
+;   - BasicDOSProtector: Simple rate limiting with fixed time windows
+;   - AdvancedDOSProtector: Rate limiting with block extension limiting
+;   - TokenBucketDOSProtector: Smooth rate limiting with burst support
+;   - AuthenticatedDOSProtector: Different limits for authenticated vs anonymous
+;   - IPFilterDOSProtector: IP whitelist/blacklist with CIDR support
+;   - HoneypotDOSProtector: Bot detection via behavioral analysis
+;
+; For hybrid configurations with implementation-specific settings, create sections:
+; [ServiceName.ImplementationName] with specific options for that implementation
+; ============================================================================
+
+; Example 1: Single Implementation
+[LoginService.DOSProtector]
+    Implementation = BasicDOSProtector
+    MaxRequests = 10
+    ForgetClientTime = 120
+    LogLevel = Warn
+    RedactIP = true
+
+; Example 2: Hybrid Configuration - Shared Settings
+[AssetService.DOSProtector]
+    Implementation = IPFilter,TokenBucket
+    ; Shared settings (used by all implementations if not overridden)
+    MaxRequests = 100
+    ForgetClientTime = 300
+    LogLevel = Info
+
+; IPFilter-specific settings
+[AssetService.IPFilter]
+    WhitelistedCIDRs = 192.168.1.0/24,10.0.0.0/8
+    BlacklistedCIDRs = 185.220.101.0/24
+    WhitelistBypassesRateLimit = true
+
+; TokenBucket-specific settings
+[AssetService.TokenBucket]
+    BucketCapacity = 100
+    RefillRate = 10.0
+    TokenCost = 1
+
+; Example 3: Multi-Layer Protection
+[InventoryService.DOSProtector]
+    Implementation = IPFilter,Honeypot,TokenBucket
+    ForgetClientTime = 600
+    LogLevel = Debug
+
+[InventoryService.IPFilter]
+    WhitelistedIPs = 192.168.1.100,192.168.1.101
+    WhitelistedCIDRs = 10.0.0.0/8
+
+[InventoryService.Honeypot]
+    MinRequestIntervalMs = 50
+    FastRequestThreshold = 5
+    TrapEndpoints = /admin,/wp-admin,/.env
+    DetectInhumanSpeed = true
+
+[InventoryService.TokenBucket]
+    BucketCapacity = 200
+    RefillRate = 20.0
+
+; Example 4: Authenticated Service
+[GridService.DOSProtector]
+    Implementation = Authenticated
+    LogLevel = Warn
+
+; Anonymous users (stricter limits)
+    AnonymousMaxRequests = 10
+    AnonymousConcurrentSessions = 3
+
+; Authenticated users (relaxed limits)
+    AuthenticatedMaxRequests = 100
+    AuthenticatedConcurrentSessions = 20
