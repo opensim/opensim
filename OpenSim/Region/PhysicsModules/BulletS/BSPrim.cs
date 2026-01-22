@@ -38,6 +38,10 @@ using OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet;
 namespace OpenSim.Region.PhysicsModule.BulletS
 {
 
+    /// <summary>
+    /// Represents a physical primitive object in the BulletSim physics engine.
+    /// This class bridges the OpenSim physics abstraction with the Bullet physics simulation.
+    /// </summary>
     [Serializable]
     public class BSPrim : BSPhysObject
     {
@@ -338,6 +342,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 if (PhysBody.HasPhysicalBody)
                 {
                     PhysScene.PE.SetTranslation(PhysBody, RawPosition, RawOrientation);
+                    PhysScene.UpdateSpatialPartition(this);
                     ActivateIfPhysical(false);
                 }
             }
@@ -502,8 +507,19 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
             if (!IsStatic)
             {
-                ret *= (1f - buoyancy);
+                // Clamp buoyancy to valid range to prevent runaway physics
+                // Buoyancy should be between -1 (double gravity) and 1 (anti-gravity)
+                float clampedBuoyancy = OpenMetaverse.Utils.Clamp(buoyancy, -1.0f, 1.0f);
+                
+                ret *= (1f - clampedBuoyancy);
                 ret *= GravModifier;
+                
+                // Ensure gravity vector is reasonable (prevent NaN/infinity issues)
+                if (!ret.IsFinite())
+                {
+                    PhysScene.Logger.WarnFormat("{0}: ComputeGravity computed invalid gravity {1}, using default. ObjectID={2}, Buoyancy={3}", LogHeader, ret, LocalID, buoyancy);
+                    ret = PhysScene.DefaultGravity;
+                }
             }
 
             return ret;
@@ -899,6 +915,11 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             CreateGeomAndObject(forceRebuild);
         }
 
+        /// <summary>
+        /// Update the physical parameters of the object in the physics engine.
+        /// This involves making the object dynamic/static, solid/phantom, updating collision flags,
+        /// and applying any optimization settings like collision margins.
+        /// </summary>
         // Convert the simulator's physical properties into settings on BulletSim objects.
         // There are four flags we're interested in:
         //     IsStatic: Object does not move, otherwise the object has mass and moves
@@ -932,6 +953,9 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             MakeSolid(IsSolid);
 
             AddObjectToPhysicalWorld();
+
+            // Apply optimized collision margin if enabled
+            PhysScene.UpdateObjectMargin(this);
 
             // Rebuild its shape
             PhysScene.PE.UpdateSingleAabb(PhysScene.World, PhysBody);
@@ -1004,6 +1028,14 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 {
                     PhysScene.PE.SetCcdMotionThreshold(PhysBody, BSParam.CcdMotionThreshold);
                     PhysScene.PE.SetCcdSweptSphereRadius(PhysBody, BSParam.CcdSweptSphereRadius);
+                }
+                else if (BSParam.ShouldAutoComputeCcd)
+                {
+                    float minDim = Math.Min(Size.X, Math.Min(Size.Y, Size.Z));
+                    float motionThreshold = minDim * 0.5f;
+                    float sweptSphereRadius = minDim * 0.2f;
+                    PhysScene.PE.SetCcdMotionThreshold(PhysBody, motionThreshold);
+                    PhysScene.PE.SetCcdSweptSphereRadius(PhysBody, sweptSphereRadius);
                 }
 
                 // Various values for simulation limits
@@ -1177,18 +1209,28 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             }
         }
 
+        /// <summary>
+        /// Set the target for the PID controller.
+        /// This method includes a sanity check to ensure the target vector is finite (no NaNs or Infinities).
+        /// </summary>
         public override OMV.Vector3 PIDTarget
         {
             set
             {
-                base.PIDTarget = value;
-                BSActor actor;
-                if (PhysicalActors.TryGetActor(MoveToTargetActorName, out actor))
+                if (value.IsFinite())
                 {
-                    // if the actor exists, tell it to refresh its values.
-                    actor.Refresh();
+                    base.PIDTarget = value;
+                    BSActor actor;
+                    if (PhysicalActors.TryGetActor(MoveToTargetActorName, out actor))
+                    {
+                        // if the actor exists, tell it to refresh its values.
+                        actor.Refresh();
+                    }
                 }
-
+                else
+                {
+                    m_log.WarnFormat("{0}: PIDTarget: Got a NaN target. LocalID={1}", LogHeader, LocalID);
+                }
             }
         }
         // Used for llSetHoverHeight and maybe vehicle height

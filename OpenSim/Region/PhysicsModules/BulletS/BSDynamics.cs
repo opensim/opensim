@@ -854,6 +854,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             }
             set
             {
+                // Normalize quaternion to prevent accumulation of numerical errors
+                value.Normalize();
                 m_knownOrientation = value;
                 m_knownChanged |= m_knownChangedOrientation;
                 m_knownHas |= m_knownChangedOrientation;
@@ -960,7 +962,10 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         {
             get
             {
-                return VehicleOrientation * m_referenceFrame;
+                Quaternion result = VehicleOrientation * m_referenceFrame;
+                // Normalize quaternion to prevent numerical drift that can cause physics instabilities
+                result.Normalize();
+                return result;
             }
         }
 
@@ -1136,8 +1141,9 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             if (VehiclePosition.Z < GetTerrainHeight(VehiclePosition))
             {
                 // Force position because applying force won't get the vehicle through the terrain
+                // Smoother correction: just above terrain
                 Vector3 newPosition = VehiclePosition;
-                newPosition.Z = GetTerrainHeight(VehiclePosition) + 1f;
+                newPosition.Z = GetTerrainHeight(VehiclePosition) + 0.2f; 
                 VehiclePosition = newPosition;
                 VDetailLog("{0},  MoveLinear,terrainHeight,terrainHeight={1},pos={2}",
                         ControllingPrim.LocalID, GetTerrainHeight(VehiclePosition), VehiclePosition);

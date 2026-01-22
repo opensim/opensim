@@ -519,11 +519,18 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public CollisionEventUpdate CollisionsLastTick = new CollisionEventUpdate();
         private long CollisionsLastTickStep = -1;
 
-        // The simulation step is telling this object about a collision.
-        // I'm the 'collider', the thing I'm colliding with is the 'collidee'.
-        // Return 'true' if a collision was processed and should be sent up.
-        // Return 'false' if this object is not enabled/subscribed/appropriate for or has already seen this collision.
-        // Called at taint time from within the Step() function
+        /// <summary>
+        /// Called after a simulation step to post a collision with this object.
+        /// This method records the collision and queues it for reporting to the simulator.
+        /// </summary>
+        /// <param name="collidee">The physical object that this object is colliding with.</param>
+        /// <param name="contactPoint">The world coordinate of the collision contact point.</param>
+        /// <param name="contactNormal">The normal vector at the contact point.</param>
+        /// <param name="pentrationDepth">The depth of penetration.</param>
+        /// <returns>
+        /// Returns <c>true</c> if the collision was processed and queued for reporting.
+        /// Returns <c>false</c> if the collision was ignored or not subscribed to.
+        /// </returns>
         public virtual bool Collide(BSPhysObject collidee, OMV.Vector3 contactPoint, OMV.Vector3 contactNormal, float pentrationDepth)
         {
             bool ret = false;
@@ -559,7 +566,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             // This is different than the collection created for sending up to the simulator as it is cleared every tick.
             if (CollisionsLastTickStep != PhysScene.SimulationStep)
             {
-                CollisionsLastTick = new CollisionEventUpdate();
+                CollisionsLastTick.Clear(); // Reuse existing object instead of allocating new
                 CollisionsLastTickStep = PhysScene.SimulationStep;
             }
             CollisionsLastTick.AddCollider(collideeLocalID, new ContactPoint(contactPoint, contactNormal, pentrationDepth));
