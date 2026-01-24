@@ -3434,7 +3434,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             target.Animator.RemoveAnimation(animation);
-                
         }
 
         public void osNpcWhisper(LSL_Key npc, int channel, string message)

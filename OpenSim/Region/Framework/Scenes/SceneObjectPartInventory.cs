@@ -150,9 +150,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Force the task inventory of this prim to persist at the next update sweep
         /// </summary>
-        public void ForceInventoryPersistence()
+        public void ForceInventoryPersistence(bool force = true)
         {
-            HasInventoryChanged = true;
+            HasInventoryChanged = force || m_items.Count > 0;
         }
 
         /// <summary>

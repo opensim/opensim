@@ -2124,6 +2124,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // from the database. They will be rewritten immediately,
                     // minus the rows for the unlinked child prims.
                     m_parentScene.SimulationDataService.RemoveObject(g.UUID, m_parentScene.RegionInfo.RegionID);
+                    g.SetPartsInventoryChanged(); // so we also need to force inventory save
                     g.InvalidatePartsLinkMaps();
                     g.TriggerScriptChangedEvent(Changed.LINK);
                     g.HasGroupChanged = true; // Persist

@@ -44,11 +44,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Force all task inventories of prims in the scene object to persist
         /// </summary>
-        public void ForceInventoryPersistence()
+        public void ForceInventoryPersistence(bool force = true)
         {
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
-                parts[i].Inventory.ForceInventoryPersistence();
+                parts[i].Inventory.ForceInventoryPersistence(force);
         }
 
         /// <summary>

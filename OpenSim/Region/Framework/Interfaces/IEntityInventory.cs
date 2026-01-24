@@ -44,7 +44,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <summary>
         /// Force the task inventory of this prim to persist at the next update sweep
         /// </summary>
-        void ForceInventoryPersistence();
+        void ForceInventoryPersistence(bool force = true);
 
         /// <summary>
         /// Reset UUIDs for all the items in the prim's inventory.
