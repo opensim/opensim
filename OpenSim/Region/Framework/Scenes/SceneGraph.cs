@@ -373,11 +373,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// </returns>
         protected internal bool AddNewSceneObject(SceneObjectGroup sceneObject, bool attachToBackup, bool sendClientUpdates)
         {
-
             bool ret = AddSceneObject(sceneObject, attachToBackup, sendClientUpdates);
 
-           // Ensure that we persist this new scene object if it's not an
-            // attachment
+           // Ensure that we persist this new scene object if it's not an attachment
 
             if (attachToBackup)
                 sceneObject.HasGroupChanged = true;

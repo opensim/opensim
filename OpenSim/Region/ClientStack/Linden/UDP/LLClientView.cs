@@ -3214,16 +3214,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AvatarPropertiesReplyPacket avatarReply = (AvatarPropertiesReplyPacket)PacketPool.Instance.GetPacket(PacketType.AvatarPropertiesReply);
             avatarReply.AgentData.AgentID = m_agentId;
             avatarReply.AgentData.AvatarID = avatarID;
-            if (aboutText != null)
-                avatarReply.PropertiesData.AboutText = Util.StringToBytes1024(aboutText);
-            else
-                avatarReply.PropertiesData.AboutText = Utils.EmptyBytes;
+            avatarReply.PropertiesData.AboutText = aboutText == null ? [] : Util.StringToBytes1024(aboutText);
             avatarReply.PropertiesData.BornOn = Util.StringToBytes256(bornOn);
             avatarReply.PropertiesData.CharterMember = membershipType;
-            if (flAbout != null)
-                avatarReply.PropertiesData.FLAboutText = Util.StringToBytes256(flAbout);
-            else
-                avatarReply.PropertiesData.FLAboutText = Utils.EmptyBytes;
+            avatarReply.PropertiesData.FLAboutText = flAbout == null ? [] : Util.StringToBytes256(flAbout);
             avatarReply.PropertiesData.Flags = flags;
             avatarReply.PropertiesData.FLImageID = flImageID;
             avatarReply.PropertiesData.ImageID = imageID;

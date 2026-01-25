@@ -4046,11 +4046,11 @@ namespace OpenSim.Region.Framework.Scenes
             RootPart.ScheduleFullUpdate();
         }
 
-        public void SetPartsInventoryChanged()
+        public void SetPartsInventoryChanged(bool force = true)
         {
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
-                parts[i].Inventory?.ForceInventoryPersistence();
+                parts[i].Inventory?.ForceInventoryPersistence(force);
         }
 
         public void UpdatePermissions(UUID AgentID, byte field, uint localID,
