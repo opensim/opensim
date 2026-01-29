@@ -319,9 +319,7 @@ namespace OpenSim.Services.HypergridService
         {
             reason = string.Empty;
 
-            string authURL = string.Empty;
-            if (aCircuit.ServiceURLs.ContainsKey("HomeURI"))
-                authURL = aCircuit.ServiceURLs["HomeURI"].ToString();
+            string authURL = aCircuit.ServiceURLs.TryGetValue("HomeURI", out object value) ? value.ToString() : string.Empty;
 
             m_log.InfoFormat("[GATEKEEPER SERVICE]: Login request for {0} {1} @ {2} ({3}) at {4} using viewer {5}, channel {6}, IP {7}, Mac {8}, Id0 {9}, Teleport Flags: {10}. From region {11}",
                 aCircuit.firstname, aCircuit.lastname, authURL, aCircuit.AgentID, destination.RegionID,
