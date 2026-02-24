@@ -10,7 +10,7 @@
     ; The following is for a grid non-spatial voice service. For groups and IMs.  Link is WebRtcVoiceServiceURI
     ; NonSpatialVoiceService=WebRtcVoice.dll:WebRtcVoiceServiceConnector
     ; URL for the grid service that is providing the WebRtcVoiceService. Used by WebRtcVoiceServiceConnector.
-    WebRtcVoiceServerURI = ${Const|PrivURL}:${Const|PrivatePort}
+    ;WebRtcVoiceServerURI = ${Const|PrivURL}:${Const|PrivatePort}
     ; Debugging: output to log file messages sent and received from the viewer. Very verbose.
     MessageDetails = false
 
