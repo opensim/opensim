@@ -76,6 +76,8 @@
     ; from outside their networks, using firewalls
     PrivatePort = "8003"
 
+
+
 [Startup]
     ;# {ConsolePrompt} {} {ConsolePrompt} {} "Region (\R) "
     ;; Console prompt
@@ -364,7 +366,10 @@
     ; NoVerifyCertHostname = true
     ;; having both options true does provide encryption but with low security
     ;; set both true if you don't care to use SSL, they are needed to contact regions or grids that do use it.
-    
+
+    ;; list of stun servers, for now to tell viewers for webrtc support
+    StunServers = stun.l.google.com:19302, stun.cloudflare.com:3478
+
 [AccessControl]
     ;# {AllowedClients} {} {Bar (|) separated list of allowed clients} {}
     ;; Bar (|) separated list of viewers which may gain access to the regions.

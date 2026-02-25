@@ -1293,6 +1293,12 @@ namespace OpenSim.Region.Framework.Scenes
                         if (!string.IsNullOrEmpty(SceneGridInfo.EconomyURL))
                             fm.AddOpenSimExtraFeature("currency-base-uri", SceneGridInfo.EconomyURL);
                     }
+
+                    if (SceneGridInfo.StunServers is not null)
+                    {
+                        string stuns = string.Join(',', SceneGridInfo.StunServers);
+                        fm.AddFeature("stun-servers", stuns);
+                    }
                 }
             }
         }
