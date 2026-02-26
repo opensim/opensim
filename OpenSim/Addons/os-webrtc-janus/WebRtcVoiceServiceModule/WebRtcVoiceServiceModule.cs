@@ -209,7 +209,7 @@ namespace osWebRtcVoice
         // IWebRtcVoiceService
 
         // IWebRtcVoiceService.ProvisionVoiceAccountRequest
-        public async Task<OSDMap> ProvisionVoiceAccountRequest(OSDMap pRequest, UUID pUserID, UUID pSceneID)
+        public OSDMap ProvisionVoiceAccountRequest(OSDMap pRequest, UUID pUserID, UUID pSceneID)
         {
             OSDMap response = null;
             IVoiceViewerSession vSession = null;
@@ -246,13 +246,13 @@ namespace osWebRtcVoice
             }
             if (vSession is not null)
             {
-                response = await vSession.VoiceService.ProvisionVoiceAccountRequest(vSession, pRequest, pUserID, pSceneID);
+                response = vSession.VoiceService.ProvisionVoiceAccountRequest(vSession, pRequest, pUserID, pSceneID);
             }
             return response;
         }
 
         // IWebRtcVoiceService.VoiceSignalingRequest
-        public async Task<OSDMap> VoiceSignalingRequest(OSDMap pRequest, UUID pUserID, UUID pSceneID)
+        public OSDMap VoiceSignalingRequest(OSDMap pRequest, UUID pUserID, UUID pSceneID)
         {
             OSDMap response = null;
             IVoiceViewerSession vSession = null;
@@ -261,7 +261,7 @@ namespace osWebRtcVoice
                 // request has a viewer session. Use that to find the voice service
                 if (VoiceViewerSession.TryGetViewerSession(viewerSessionId, out vSession))
                 {
-                    response = await vSession.VoiceService.VoiceSignalingRequest(vSession, pRequest, pUserID, pSceneID);
+                    response = vSession.VoiceService.VoiceSignalingRequest(vSession, pRequest, pUserID, pSceneID);
                 }
                 else
                 {
@@ -276,13 +276,13 @@ namespace osWebRtcVoice
         }
 
         // This module should never be called with this signature
-        public Task<OSDMap> ProvisionVoiceAccountRequest(IVoiceViewerSession pVSession, OSDMap pRequest, UUID pUserID, UUID pSceneID)
+        public OSDMap ProvisionVoiceAccountRequest(IVoiceViewerSession pVSession, OSDMap pRequest, UUID pUserID, UUID pSceneID)
         {
             throw new NotImplementedException();
         }
 
         // This module should never be called with this signature
-        public Task<OSDMap> VoiceSignalingRequest(IVoiceViewerSession pVSession, OSDMap pRequest, UUID pUserID, UUID pSceneID)
+        public OSDMap VoiceSignalingRequest(IVoiceViewerSession pVSession, OSDMap pRequest, UUID pUserID, UUID pSceneID)
         {
             throw new NotImplementedException();
         }

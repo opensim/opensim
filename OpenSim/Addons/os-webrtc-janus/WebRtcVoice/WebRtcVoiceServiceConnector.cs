@@ -27,7 +27,6 @@
 
 using System;
 using System.Reflection;
-using System.Threading.Tasks;
 
 using OpenSim.Framework;
 
@@ -36,7 +35,6 @@ using OpenMetaverse.StructuredData;
 
 using log4net;
 using Nini.Config;
-using OSHttpServer;
 
 namespace osWebRtcVoice
 {
@@ -65,12 +63,12 @@ namespace osWebRtcVoice
                     m_serverURI = moduleConfig.GetString("WebRtcVoiceServerURI", string.Empty);
                     if (string.IsNullOrWhiteSpace(m_serverURI))
                     {
-                        m_log.ErrorFormat("{0} WebRtcVoiceServiceConnector enabled but no WebRtcVoiceServerURI specified", LogHeader);
+                        m_log.Error($"{LogHeader} WebRtcVoiceServiceConnector enabled but no WebRtcVoiceServerURI specified");
                         m_Enabled = false;
                     }
                     else
                     {
-                        m_log.InfoFormat("{0} WebRtcVoiceServiceConnector enabled", LogHeader);
+                        m_log.Info($"{LogHeader} WebRtcVoiceServiceConnector enabled");
                     }
 
                     m_MessageDetails = moduleConfig.GetBoolean("MessageDetails", false);
@@ -83,50 +81,49 @@ namespace osWebRtcVoice
         //    so that the viewer session ID is the same here as from the WebRTC service.
         public IVoiceViewerSession CreateViewerSession(OSDMap pRequest, UUID pUserID, UUID pSceneID)
         {
-            m_log.DebugFormat("{0} CreateViewerSession", LogHeader);
+            m_log.Debug($"{LogHeader} CreateViewerSession");
             return new VoiceViewerSession(this, pUserID, pSceneID);   
         }
 
-        public Task<OSDMap> ProvisionVoiceAccountRequest(OSDMap pRequest, UUID pUserID, UUID pSceneID)
+        public OSDMap ProvisionVoiceAccountRequest(OSDMap pRequest, UUID pUserID, UUID pSceneID)
         {
-            m_log.DebugFormat("{0} ProvisionVoiceAccountRequest without ViewerSession. uID={1}, sID={2}", LogHeader, pUserID, pSceneID);
+            m_log.Debug($"{LogHeader} ProvisionVoiceAccountRequest without ViewerSession. uID={pUserID}, sID={pSceneID}");
             return null;
         }
 
         // Received a ProvisionVoiceAccountRequest from a viewer. Forward it to the WebRTC service.
-        public async Task<OSDMap> ProvisionVoiceAccountRequest(IVoiceViewerSession pVSession, OSDMap pRequest, UUID pUserID, UUID pSceneID)
+        public OSDMap ProvisionVoiceAccountRequest(IVoiceViewerSession pVSession, OSDMap pRequest, UUID pUserID, UUID pSceneID)
         {
-            m_log.DebugFormat("{0} VoiceSignalingRequest. uID={1}, sID={2}", LogHeader, pUserID, pSceneID);
-            OSDMap req = new OSDMap()
+            m_log.Debug($"{LogHeader} VoiceSignalingRequest. uID={pUserID}, sID={pSceneID}");
+            OSDMap req = new()
             {
                 { "request", pRequest },
                 { "userID", pUserID.ToString() },
                 { "scene", pSceneID.ToString() }
             };
-            var resp = await JsonRpcRequest("provision_voice_account_request", m_serverURI, req);
+            var resp = JsonRpcRequest("provision_voice_account_request", m_serverURI, req);
 
             // Kludge to sync the viewer session number in our IVoiceViewerSession with the one from the WebRTC service.
-            if (resp.ContainsKey("viewer_session"))
+            if (resp.TryGetString("viewer_session", out string otherViewerSessionId))
             {
-                string otherViewerSessionId = resp["viewer_session"].AsString();
-                m_log.DebugFormat("{0} ProvisionVoiceAccountRequest: syncing viewSessionID. old={1}, new={2}",
-                                LogHeader, pVSession.ViewerSessionID, otherViewerSessionId);
+                m_log.Debug(
+                    $"{LogHeader} ProvisionVoiceAccountRequest: syncing viewSessionID. old={pVSession.ViewerSessionID}, new={otherViewerSessionId}");
                 VoiceViewerSession.UpdateViewerSessionId(pVSession, otherViewerSessionId);
             }
 
             return resp;
         }
 
-        public Task<OSDMap> VoiceSignalingRequest(OSDMap pRequest, UUID pUserID, UUID pSceneID)
+        public OSDMap VoiceSignalingRequest(OSDMap pRequest, UUID pUserID, UUID pSceneID)
         {
-            m_log.DebugFormat("{0} VoiceSignalingRequest without ViewerSession. uID={1}, sID={2}", LogHeader, pUserID, pSceneID);
+            m_log.Debug($"{LogHeader} VoiceSignalingRequest without ViewerSession. uID={pUserID}, sID={pSceneID}");
             return null;
         }
 
-        public Task<OSDMap> VoiceSignalingRequest(IVoiceViewerSession pVSession, OSDMap pRequest, UUID pUserID, UUID pSceneID)
+        public OSDMap VoiceSignalingRequest(IVoiceViewerSession pVSession, OSDMap pRequest, UUID pUserID, UUID pSceneID)
         {
             m_log.DebugFormat("{0} VoiceSignalingRequest. uID={1}, sID={2}", LogHeader, pUserID, pSceneID);
-            OSDMap req = new OSDMap()
+            OSDMap req = new()
             {
                 { "request", pRequest },
                 { "userID", pUserID.ToString() },
@@ -135,16 +132,13 @@ namespace osWebRtcVoice
             return JsonRpcRequest("voice_signaling_request", m_serverURI, req);
         }
 
-        public Task<OSDMap> JsonRpcRequest(string method, string uri, OSDMap pParams)
+        public OSDMap JsonRpcRequest(string method, string uri, OSDMap pParams)
         {
             string jsonId = UUID.Random().ToString();
 
             if(string.IsNullOrWhiteSpace(uri))
                 return null;
 
-            TaskCompletionSource<OSDMap> tcs = new TaskCompletionSource<OSDMap>();
-            _ = Task.Run(() =>
-            {
                 OSDMap request = new()
                 {
                     { "jsonrpc", OSD.FromString("2.0") },
@@ -156,61 +150,54 @@ namespace osWebRtcVoice
                 OSDMap outerResponse = null;
                 try
                 {
-                    if (m_MessageDetails) m_log.DebugFormat("{0}: request: {1}", LogHeader, request);
+                    if (m_MessageDetails) m_log.Debug($"{LogHeader}: request: {request}");
+
                     outerResponse = WebUtil.PostToService(uri, request, 10000, true);
-                    if (m_MessageDetails) m_log.DebugFormat("{0}: response: {1}", LogHeader, outerResponse);
+
+                    if (m_MessageDetails) m_log.Debug($"{LogHeader}: response: {outerResponse}");
                 }
                 catch (Exception e)
                 {
-                    m_log.ErrorFormat("{0}: JsonRpc request '{1}' to {2} failed: {3}", LogHeader, method, uri, e);
-                    m_log.DebugFormat("{0}: request: {1}", LogHeader, request);
-                    tcs.SetResult(new OSDMap()
+                    m_log.Error($"{LogHeader}: JsonRpc request '{method}' to {uri} failed: {e.Message}");
+                    m_log.Debug($"{LogHeader}: request: {request}");
+                    return new OSDMap()
                     {
                         { "error", OSD.FromString(e.Message) }
-                    });
+                    };
+                }
+
+                if (!outerResponse.TryGetOSDMap("_Result", out OSDMap response))
+                {
+                    string errm = $"JsonRpc request '{method}' to {1} returned an invalid response: {OSDParser.SerializeJsonString(outerResponse)}";
+                    m_log.Error(errm);
+                    return new OSDMap()
+                    {
+                        { "error", errm }
+                    };
                 }
 
                 OSD osdtmp;
-                if (!outerResponse.TryGetValue("_Result", out osdtmp) || (osdtmp is not OSDMap))
-                {
-                    string errm = String.Format("JsonRpc request '{0}' to {1} returned an invalid response: {2}",
-                        method, uri, OSDParser.SerializeJsonString(outerResponse));
-                    m_log.ErrorFormat(errm);
-                    tcs.SetResult(new OSDMap()
-                    {
-                        { "error", errm }
-                    });
-                }
-
-                OSDMap response = osdtmp as OSDMap;
                 if (response.TryGetValue("error", out osdtmp))
                 {
-                    string errm = String.Format("JsonRpc request '{0}' to {1} returned an error: {2}",
-                        method, uri, OSDParser.SerializeJsonString(osdtmp));
-                    m_log.ErrorFormat(errm);
-                    tcs.SetResult(new OSDMap()
+                    string errm = $"JsonRpc request '{method}' to {uri} returned an error: {OSDParser.SerializeJsonString(osdtmp)}";
+                    m_log.Error(errm);
+                    return new OSDMap()
                     {
                         { "error", errm }
-                    });
+                    };
                 }
 
-                OSDMap resultmap = null;
-                if (!response.TryGetValue("result", out osdtmp) || (osdtmp is not OSDMap))
+                if (!response.TryGetOSDMap("result", out OSDMap resultmap ))
                 {
-                    string errm = String.Format("JsonRpc request '{0}' to {1} returned result as non-OSDMap: {2}",
-                        method, uri, OSDParser.SerializeJsonString(outerResponse));
-                    m_log.ErrorFormat(errm);
-                    tcs.SetResult(new OSDMap()
+                    string errm = $"JsonRpc request '{method}' to {uri} returned result as non-OSDMap: {OSDParser.SerializeJsonString(outerResponse)}";
+                    m_log.Error(errm);
+                    return new OSDMap()
                     {
                         { "error", errm }
-                    });
+                    };
                 }
-                resultmap = osdtmp as OSDMap;
 
-                tcs.SetResult(resultmap);
-            });
-
-            return tcs.Task;
+            return resultmap;
         }
 
     }

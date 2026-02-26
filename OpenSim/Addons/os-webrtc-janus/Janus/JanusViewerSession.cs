@@ -71,20 +71,20 @@ namespace osWebRtcVoice
         {
             ViewerSessionID = OMV.UUID.Random().ToString();
             VoiceService = pVoiceService;
-            m_log.DebugFormat("{0} JanusViewerSession created {1}", LogHeader, ViewerSessionID);
+            m_log.Debug($"{LogHeader} JanusViewerSession created {ViewerSessionID}");
         }
         public JanusViewerSession(string pViewerSessionID, IWebRtcVoiceService pVoiceService)
         {
             ViewerSessionID = pViewerSessionID;
             VoiceService = pVoiceService;
-            m_log.DebugFormat("{0} JanusViewerSession created {1}", LogHeader, ViewerSessionID);
+            m_log.Debug($"{LogHeader} JanusViewerSession created {ViewerSessionID}");
         }
 
         // Send the messages to the voice service to try and get rid of the session
         // IVoiceViewerSession.Shutdown
         public async Task Shutdown()
         {
-            m_log.DebugFormat("{0} JanusViewerSession shutdown {1}", LogHeader, ViewerSessionID);
+            m_log.DebugFormat($"{LogHeader} JanusViewerSession shutdown {ViewerSessionID}");
             if (Room is not null)
             {
                 var rm = Room;
@@ -101,7 +101,7 @@ namespace osWebRtcVoice
             {
                 var s = Session;
                 Session = null;
-                await s.DestroySession();
+                _ = await s.DestroySession().ConfigureAwait(false);
                 s.Dispose();
             }
         }

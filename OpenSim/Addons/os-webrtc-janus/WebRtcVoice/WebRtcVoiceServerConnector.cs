@@ -114,7 +114,7 @@ namespace osWebRtcVoice
                         m_log.ErrorFormat("{0} PVAR: no local service", LogHeader);
                         return false;
                     }
-                    OSDMap resp = m_WebRtcVoiceService.ProvisionVoiceAccountRequest(request, userID, sceneID).Result;
+                    OSDMap resp = m_WebRtcVoiceService.ProvisionVoiceAccountRequest(request, userID, sceneID);
 
                     pResponse = new JsonRpcResponse();
                     pResponse.Result = resp;
@@ -147,7 +147,7 @@ namespace osWebRtcVoice
 
                 try
                 {
-                    OSDMap resp = m_WebRtcVoiceService.VoiceSignalingRequest(request, userID, sceneID).Result;
+                    OSDMap resp = m_WebRtcVoiceService.VoiceSignalingRequest(request, userID, sceneID);
 
                     pResponse = new JsonRpcResponse();
                     pResponse.Result = resp;
