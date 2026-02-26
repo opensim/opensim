@@ -526,7 +526,7 @@ namespace OpenSim.Framework
                 {
                     OSHHTPHost tmp = new OSHHTPHost(stuns[i].Trim(), false);
                     if (tmp.IsValidHost)
-                        stunsarr.Add(tmp.URI);
+                        stunsarr.Add("stun:" + tmp.HostAndPort);
                 }
                 m_StunServers = stunsarr.Count > 0 ? stunsarr.ToArray() : null;
             }
@@ -785,7 +785,7 @@ namespace OpenSim.Framework
                     {
                         OSHHTPHost tmp = new OSHHTPHost(value[i].Trim(), false);
                         if (tmp.IsValidHost)
-                            values.Add(tmp.URI);
+                            values.Add("stun:" + tmp.HostAndPort);
                     }
                     m_StunServers = values.Count > 0 ? values.ToArray() : null;
                 }
