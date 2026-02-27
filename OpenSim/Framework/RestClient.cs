@@ -286,7 +286,8 @@ namespace OpenSim.Framework
                     responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead);
                     responseMessage.EnsureSuccessStatusCode();
 
-                    Stream respStream = responseMessage.Content.ReadAsStream();
+                    using CancellationTokenSource cts = new(30000);
+                    using Stream respStream = responseMessage.Content.ReadAsStream(cts.Token);
                     int length = respStream.Read(_readbuf, 0, BufferSize);
                     while (length > 0)
                     {

@@ -644,8 +644,8 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                     else
                         len = -1;
 
-                    Stream resStream = responseMessage.Content.ReadAsStream();
-
+                    using CancellationTokenSource cts = new(30000);
+                    Stream resStream = responseMessage.Content.ReadAsStream(cts.Token);
                     if(resStream is not null)
                     {
                         int maxBytes =  (len < 0  || len > HttpBodyMaxLen) ? HttpBodyMaxLen : len;
