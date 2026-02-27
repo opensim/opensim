@@ -45,7 +45,6 @@ using OpenSim.Services.Connectors.Hypergrid;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Services.UserProfilesService;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
-using OpenSim.Region.CoreModules.Avatar.Friends;
 
 namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 {
@@ -61,8 +60,8 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         // The pair of Dictionaries are used to handle the switching of classified ads
         // by maintaining a cache of classified id to creator id mappings and an interest
         // count. The entries are removed when the interest count reaches 0.
-        readonly Dictionary<UUID, UUID> m_classifiedCache = new();
-        readonly Dictionary<UUID, int> m_classifiedInterest = new();
+        readonly Dictionary<UUID, UUID> m_classifiedCache = [];
+        readonly Dictionary<UUID, int> m_classifiedInterest = [];
         readonly ExpiringCacheOS<UUID, UserProfileCacheEntry> m_profilesCache = new(60000);
 
         IGroupsModule m_groupsModule = null;
@@ -79,128 +78,150 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             public int reqtype;
         }
 
-        private readonly ConcurrentStack<AsyncPropsRequest> m_asyncRequests = new();
-        private readonly object m_asyncRequestsLock = new();
-        private bool m_asyncRequestsRunning = false;
+        private readonly ConcurrentStack<AsyncPropsRequest> m_asyncLocalRequests = new();
+        private readonly object m_asyncLocalRequestsLock = new();
+        private bool m_asyncLocalRequestsRunning = false;
+        private readonly ConcurrentStack<AsyncPropsRequest> m_asyncHGRequests = new();
+        private readonly object m_asyncHGRequestsLock = new();
+        private bool m_asyncHGRequestsRunning = false;
 
-        private void ProcessRequests()
+        private void ProcessLocalRequests()
         {
-            lock(m_asyncRequestsLock)
+            lock(m_asyncLocalRequestsLock)
             {
-                while (m_asyncRequests.TryPop(out AsyncPropsRequest req))
+                while (m_asyncLocalRequests.TryPop(out AsyncPropsRequest req))
                 {
-                    try
+                    IClientAPI client = req.client;
+                    if(!client.IsActive)
+                        continue;
+                    ProcessRequest(req);
+                }
+                m_asyncLocalRequestsRunning = false;
+            }
+        }
+
+        private void ProcessHGRequests()
+        {
+            lock(m_asyncHGRequestsLock)
+            {
+                while (m_asyncHGRequests.TryPop(out AsyncPropsRequest req))
+                {
+                    IClientAPI client = req.client;
+                    if(!client.IsActive)
+                        continue;
+                    ProcessRequest(req);
+                }
+                m_asyncHGRequestsRunning = false;
+            }
+        }
+
+        private void ProcessRequest(AsyncPropsRequest req)
+        {
+            try
+            {
+                IClientAPI client = req.client;
+                if(req.reqtype == 0)
+                {
+                    ScenePresence p = req.presence;
+
+                    bool foreign = GetUserProfileServerURI(req.agent, out string serverURI);
+                    bool ok  = serverURI.Length > 0;
+
+                    byte[] membershipType = new byte[1];
+                    string born = string.Empty;
+                    uint flags = 0x00;
+
+                    if (ok && GetUserAccountData(req.agent, out UserAccount acc))
                     {
-                        IClientAPI client = req.client;
-                        if(!client.IsActive)
-                            continue;
+                        flags = (uint)(acc.UserFlags & 0xff);
 
-                        if(req.reqtype == 0)
+                        if (acc.UserTitle.Length == 0)
+                            membershipType[0] = (byte)((acc.UserFlags & 0x0f00) >> 8);
+                        else
+                            membershipType = Utils.StringToBytes(acc.UserTitle);
+
+                        int val_born = acc.Created;
+                        if (val_born != 0)
+                            born = Util.ToDateTime(val_born).ToString("M/d/yyyy", CultureInfo.InvariantCulture);
+                    }
+                    else
+                        ok = false;
+
+                    UserProfileProperties props = new() { UserId = req.agent };
+
+                    if (ok)
+                        ok = GetProfileData(ref props, foreign, serverURI, out string result);
+
+                    if (!ok)
+                        props.AboutText = "Profile not available at this time. User may still be unknown to this grid";
+
+                    if (!m_allowUserProfileWebURLs)
+                        props.WebUrl = "";
+
+                    GroupMembershipData[] agentGroups = null;
+                    if(ok && m_groupsModule is not null)
+                        agentGroups = m_groupsModule.GetMembershipData(req.agent);
+
+                    HashSet<IClientAPI> clients;
+                    lock (m_profilesCache)
+                    {
+                        if (!m_profilesCache.TryGetValue(props.UserId, out UserProfileCacheEntry uce) || uce is null)
+                            uce = new UserProfileCacheEntry();
+                        uce.props = props;
+                        uce.born = born;
+                        uce.membershipType = membershipType;
+                        uce.flags = flags;
+                        clients = uce.ClientsWaitingProps;
+                        uce.ClientsWaitingProps = null;
+                        uce.avatarGroups = agentGroups;
+                        m_profilesCache.AddOrUpdate(props.UserId, uce, PROFILECACHEEXPIRE);
+                    }
+
+                    if (IsFriendOnline(req.client, req.agent))
+                        flags |= (uint)ProfileFlags.Online;
+                    else
+                        flags &= (uint)~ProfileFlags.Online;
+
+                    if (clients is null)
+                    {
+                        client.SendAvatarProperties(props.UserId, props.AboutText, born, membershipType, props.FirstLifeText, flags,
+                                                        props.FirstLifeImageId, props.ImageId, props.WebUrl, props.PartnerId);
+
+                        client.SendAvatarInterestsReply(props.UserId, (uint)props.WantToMask, props.WantToText,
+                                                        (uint)props.SkillsMask, props.SkillsText, props.Language);
+                        if (agentGroups is not null)
+                            client.SendAvatarGroupsReply(req.agent, agentGroups);
+                    }
+                    else
+                    {
+                        if (!clients.Contains(client) && client.IsActive)
                         {
-                            ScenePresence p = req.presence;
+                            client.SendAvatarProperties(props.UserId, props.AboutText, born, membershipType, props.FirstLifeText, flags,
+                                                            props.FirstLifeImageId, props.ImageId, props.WebUrl, props.PartnerId);
 
-                            bool foreign = GetUserProfileServerURI(req.agent, out string serverURI);
-                            bool ok  = serverURI.Length > 0;
+                            client.SendAvatarInterestsReply(props.UserId, (uint)props.WantToMask, props.WantToText,
+                                                            (uint)props.SkillsMask, props.SkillsText, props.Language);
+                            if (agentGroups is not null)
+                                client.SendAvatarGroupsReply(req.agent, agentGroups);
+                        }
+                        foreach (IClientAPI cli in clients)
+                        {
+                            if (!cli.IsActive)
+                                continue;
+                            cli.SendAvatarProperties(props.UserId, props.AboutText, born, membershipType, props.FirstLifeText, flags,
+                                                        props.FirstLifeImageId, props.ImageId, props.WebUrl, props.PartnerId);
 
-                            byte[] membershipType = new byte[1];
-                            string born = string.Empty;
-                            uint flags = 0x00;
-
-                           if (ok && GetUserAccountData(req.agent, out UserAccount acc))
-                           {
-                                flags = (uint)(acc.UserFlags & 0xff);
-
-                                if (acc.UserTitle.Length == 0)
-                                    membershipType[0] = (byte)((acc.UserFlags & 0x0f00) >> 8);
-                                else
-                                    membershipType = Utils.StringToBytes(acc.UserTitle);
-
-                                int val_born = acc.Created;
-                                if (val_born != 0)
-                                  born = Util.ToDateTime(val_born).ToString("M/d/yyyy", CultureInfo.InvariantCulture);
-                            }
-                            else
-                                ok = false;
-
-                            UserProfileProperties props = new() { UserId = req.agent };
-
-                            if (ok)
-                                ok = GetProfileData(ref props, foreign, serverURI, out string result);
-
-                            if (!ok)
-                                props.AboutText = "Profile not available at this time. User may still be unknown to this grid";
-
-                            if (!m_allowUserProfileWebURLs)
-                                props.WebUrl = "";
-
-                            GroupMembershipData[] agentGroups = null;
-                            if(ok && m_groupsModule is not null)
-                                agentGroups = m_groupsModule.GetMembershipData(req.agent);
-
-                            HashSet<IClientAPI> clients;
-                            lock (m_profilesCache)
-                            {
-                                if (!m_profilesCache.TryGetValue(props.UserId, out UserProfileCacheEntry uce) || uce is null)
-                                    uce = new UserProfileCacheEntry();
-                                uce.props = props;
-                                uce.born = born;
-                                uce.membershipType = membershipType;
-                                uce.flags = flags;
-                                clients = uce.ClientsWaitingProps;
-                                uce.ClientsWaitingProps = null;
-                                uce.avatarGroups = agentGroups;
-                                m_profilesCache.AddOrUpdate(props.UserId, uce, PROFILECACHEEXPIRE);
-                            }
-
-                            if (IsFriendOnline(req.client, req.agent))
-                                flags |= (uint)ProfileFlags.Online;
-                            else
-                                flags &= (uint)~ProfileFlags.Online;
-
-                            if (clients is null)
-                            {
-                                client.SendAvatarProperties(props.UserId, props.AboutText, born, membershipType, props.FirstLifeText, flags,
-                                                              props.FirstLifeImageId, props.ImageId, props.WebUrl, props.PartnerId);
-
-                                client.SendAvatarInterestsReply(props.UserId, (uint)props.WantToMask, props.WantToText,
-                                                             (uint)props.SkillsMask, props.SkillsText, props.Language);
-                                if (agentGroups is not null)
-                                    client.SendAvatarGroupsReply(req.agent, agentGroups);
-                            }
-                            else
-                            {
-                                if (!clients.Contains(client) && client.IsActive)
-                                {
-                                    client.SendAvatarProperties(props.UserId, props.AboutText, born, membershipType, props.FirstLifeText, flags,
-                                                                  props.FirstLifeImageId, props.ImageId, props.WebUrl, props.PartnerId);
-
-                                    client.SendAvatarInterestsReply(props.UserId, (uint)props.WantToMask, props.WantToText,
-                                                                 (uint)props.SkillsMask, props.SkillsText, props.Language);
-                                    if (agentGroups is not null)
-                                        client.SendAvatarGroupsReply(req.agent, agentGroups);
-                                }
-                                foreach (IClientAPI cli in clients)
-                                {
-                                    if (!cli.IsActive)
-                                        continue;
-                                    cli.SendAvatarProperties(props.UserId, props.AboutText, born, membershipType, props.FirstLifeText, flags,
-                                                                props.FirstLifeImageId, props.ImageId, props.WebUrl, props.PartnerId);
-
-                                    cli.SendAvatarInterestsReply(props.UserId, (uint)props.WantToMask, props.WantToText,
-                                                                (uint)props.SkillsMask, props.SkillsText, props.Language);
-                                    if (agentGroups is not null)
-                                        cli.SendAvatarGroupsReply(req.agent, agentGroups);
-                                }
-                            }
+                            cli.SendAvatarInterestsReply(props.UserId, (uint)props.WantToMask, props.WantToText,
+                                                        (uint)props.SkillsMask, props.SkillsText, props.Language);
+                            if (agentGroups is not null)
+                                cli.SendAvatarGroupsReply(req.agent, agentGroups);
                         }
                     }
-                    catch (Exception e)
-                    {
-                        m_log.ErrorFormat("[UserProfileModule]: Process fail {0} : {1}", e.Message, e.StackTrace);
-                    }
-
                 }
-                m_asyncRequestsRunning = false;
+            }
+            catch (Exception e)
+            {
+                m_log.Error($"[UserProfileModule]: Process fail {e.Message} : {e.StackTrace}");
             }
         }
 
@@ -243,7 +264,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         public bool Enabled
         {
             get;
-            set;
+            private set;
         }
 
         private GridInfo m_thisGridInfo;
@@ -260,7 +281,6 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         public void Initialise(IConfigSource source)
         {
             Config = source;
-            ReplaceableInterface = typeof(IProfileModule);
 
             IConfig profileConfig = Config.Configs["UserProfiles"];
 
@@ -292,8 +312,17 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             m_allowUserProfileWebURLs = profileConfig.GetBoolean("AllowUserProfileWebURLs", m_allowUserProfileWebURLs);
 
             m_log.Debug("[UserProfileModule]: Full Profiles Enabled");
-            ReplaceableInterface = null;
+
+            MainConsole.Instance.Commands.AddCommand("Debug", false, "profiles status",
+                "profiles status",
+                "Show user profile Queues count",
+                HandleShowStatus);
             Enabled = true;
+        }
+
+        private void HandleShowStatus(string module, string[] cmdparms)
+        {
+            MainConsole.Instance.Output($"Profile requests in '{Scene.Name}' Local: {m_asyncLocalRequests.Count} HG: {m_asyncHGRequests.Count}");
         }
 
         /// <summary>
@@ -369,7 +398,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         /// </value>
         public Type ReplaceableInterface
         {
-            get; private set;
+            get { return null; }
         }
 
         /// <summary>
@@ -1645,131 +1674,47 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 agent = avatarID,
                 reqtype = 0
             };
-    
-            m_asyncRequests.Push(req);
 
-            if (Monitor.TryEnter(m_asyncRequestsLock))
+            if(m_userManagementModule.IsLocalGridUser(avatarID))
             {
-                try
+                m_asyncLocalRequests.Push(req);
+
+                if (Monitor.TryEnter(m_asyncLocalRequestsLock))
                 {
-                    if (!m_asyncRequestsRunning)
+                    try
                     {
-                        m_asyncRequestsRunning = true;
-                        Util.FireAndForget(x => ProcessRequests());
+                        if (!m_asyncLocalRequestsRunning)
+                        {
+                            m_asyncLocalRequestsRunning = true;
+                            Util.FireAndForget(x => ProcessLocalRequests());
+                        }
+                    }
+                    finally
+                    {
+                        Monitor.Exit(m_asyncLocalRequestsLock);
                     }
                 }
-                finally
-                {
-                    Monitor.Exit(m_asyncRequestsLock);
-                }
-            }
-
-            /*
-            string serverURI = string.Empty;
-            bool foreign = GetUserProfileServerURI(avatarID, out serverURI);
-
-            UserAccount account = null;
-            Dictionary<string,object> userInfo;
-
-            if (!foreign)
-            {
-                account = Scene.UserAccountService.GetUserAccount(Scene.RegionInfo.ScopeID, avatarID);
             }
             else
             {
-                userInfo = new Dictionary<string, object>();
-            }
+                m_asyncHGRequests.Push(req);
 
-            Byte[] membershipType = new Byte[1];
-            string born = string.Empty;
-            uint flags = 0x00;
-
-            if (null != account)
-            {
-                if (account.UserTitle.Length == 0)
-                    membershipType[0] = (Byte)((account.UserFlags & 0xf00) >> 8);
-                else
-                    membershipType = Utils.StringToBytes(account.UserTitle);
-
-                born = Util.ToDateTime(account.Created).ToString(
-                                  "M/d/yyyy", CultureInfo.InvariantCulture);
-                flags = (uint)(account.UserFlags & 0xff);
-            }
-            else
-            {
-                if (GetUserAccountData(avatarID, out userInfo) == true)
+                if (Monitor.TryEnter(m_asyncHGRequestsLock))
                 {
-                    if ((string)userInfo["user_title"].Length == 0)
-                        membershipType[0] = (Byte)(((Byte)userInfo["user_flags"] & 0xf00) >> 8);
-                    else
-                        membershipType = Utils.StringToBytes((string)userInfo["user_title"]);
-
-                    int val_born = (int)userInfo["user_created"];
-                    if(val_born != 0)
-                        born = Util.ToDateTime(val_born).ToString(
-                                  "M/d/yyyy", CultureInfo.InvariantCulture);
-
-                    // picky, picky
-                    int val_flags = (int)userInfo["user_flags"];
-                    flags = (uint)(val_flags & 0xff);
+                    try
+                    {
+                        if (!m_asyncHGRequestsRunning)
+                        {
+                            m_asyncHGRequestsRunning = true;
+                            Util.FireAndForget(x => ProcessHGRequests());
+                        }
+                    }
+                    finally
+                    {
+                        Monitor.Exit(m_asyncHGRequestsLock);
+                    }
                 }
             }
-
-            props = new UserProfileProperties();
-            props.UserId = avatarID;
-
-            string result = string.Empty;
-            if(!GetProfileData(ref props, foreign, serverURI, out result))
-            {
-                props.AboutText ="Profile not available at this time. User may still be unknown to this grid";
-            }
-
-            if(!m_allowUserProfileWebURLs)
-                props.WebUrl ="";
-
-            HashSet<IClientAPI> clients;
-            lock(m_profilesCache)
-            {
-                if(!m_profilesCache.TryGetValue(props.UserId, out uce) || uce == null)
-                    uce = new UserProfileCacheEntry();
-                uce.props = props;
-                uce.born = born;
-                uce.membershipType = membershipType;
-                uce.flags = flags;
-                clients = uce.ClientsWaitingProps;
-                uce.ClientsWaitingProps = null;
-                m_profilesCache.AddOrUpdate(props.UserId, uce, PROFILECACHEEXPIRE);
-            }
-
-            // if on same region force online
-            if(p != null && !p.IsDeleted)
-                flags |= 0x10;
-
-            if(clients == null)
-            {
-                remoteClient.SendAvatarProperties(props.UserId, props.AboutText, born, membershipType , props.FirstLifeText, flags,
-                                              props.FirstLifeImageId, props.ImageId, props.WebUrl, props.PartnerId);
-
-                remoteClient.SendAvatarInterestsReply(props.UserId, (uint)props.WantToMask, props.WantToText,
-                                             (uint)props.SkillsMask, props.SkillsText, props.Language);
-            }
-            else
-            {
-                if(!clients.Contains(remoteClient))
-                    clients.Add(remoteClient);
-                foreach(IClientAPI cli in clients)
-                {
-                    if(!cli.IsActive)
-                        continue;
-                    cli.SendAvatarProperties(props.UserId, props.AboutText, born, membershipType , props.FirstLifeText, flags,
-                                              props.FirstLifeImageId, props.ImageId, props.WebUrl, props.PartnerId);
-
-                    cli.SendAvatarInterestsReply(props.UserId, (uint)props.WantToMask, props.WantToText,
-                                             (uint)props.SkillsMask, props.SkillsText, props.Language);
-
-                }
-            }
-            */
         }
 
         /// <summary>
