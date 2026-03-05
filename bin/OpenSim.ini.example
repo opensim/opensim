@@ -364,10 +364,10 @@
     ;; you can also bypass the hostname or domain verification
     ;# {NoVerifyCertHostname} {} {do not verify SSL Cert name versus peer name} {true false} true
     ; NoVerifyCertHostname = true
-    ;; having both options true does provide encryption but with low security
+    ;; having both options true does provide encryption but with lower security
     ;; set both true if you don't care to use SSL, they are needed to contact regions or grids that do use it.
 
-    ;; list of stun servers, for now to tell viewers for webrtc support
+    ;; comma separated list of stun servers (in host:port format), for webrtc support, possible other uses in future
     StunServers = stun.l.google.com:19302, stun.cloudflare.com:3478
 
 [AccessControl]

@@ -1424,15 +1424,14 @@ namespace OpenSim.Framework
                     request.Content.Headers.TryAddWithoutValidation("Content-Length", sendlen.ToString());
                 }
 
-                responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead);
+                responseMessage = client.Send(request, HttpCompletionOption.ResponseContentRead);
                 responseMessage.EnsureSuccessStatusCode();
 
                 int rcvlen = 0;
                 if ((responseMessage.Content.Headers.ContentLength is long contentLength) && contentLength != 0)
                 {
                     rcvlen = (int)contentLength;
-                    using CancellationTokenSource cts = new(30000);
-                    using Stream respStream = responseMessage.Content.ReadAsStream(cts.Token);
+                    using Stream respStream = responseMessage.Content.ReadAsStream();
                     deserial = XMLResponseHelper.LogAndDeserialize<TResponse>(
                         reqnum, respStream, contentLength);
                 }
@@ -1519,15 +1518,14 @@ namespace OpenSim.Framework
                 //else
                 //    request.Headers.TryAddWithoutValidation("Connection", "close");
 
-                responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead);
+                responseMessage = client.Send(request, HttpCompletionOption.ResponseContentRead);
                 responseMessage.EnsureSuccessStatusCode();
 
                 int rcvlen = 0;
                 if ((responseMessage.Content.Headers.ContentLength is long contentLength) && contentLength != 0)
                 {
                     rcvlen = (int)contentLength;
-                    using CancellationTokenSource cts = new(30000);
-                    using Stream respStream = responseMessage.Content.ReadAsStream(cts.Token);
+                    using Stream respStream = responseMessage.Content.ReadAsStream();
                     deserial = XMLResponseHelper.LogAndDeserialize<TResponse>(
                         reqnum, respStream, contentLength);
                 }
