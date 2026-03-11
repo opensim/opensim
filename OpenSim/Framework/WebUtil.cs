@@ -33,9 +33,13 @@ using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Security;
+using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Web;
@@ -46,9 +50,6 @@ using log4net;
 using Nwc.XmlRpc;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework.ServiceAuth;
-using System.Net.Http;
-using System.Security.Authentication;
-using System.Runtime.CompilerServices;
 
 namespace OpenSim.Framework
 {
@@ -265,39 +266,6 @@ namespace OpenSim.Framework
             return client;
         }
 
-        /// <summary>
-        /// PUT JSON-encoded data to a web service that returns LLSD or
-        /// JSON data
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static OSDMap PutToServiceCompressed(string url, OSDMap data, int timeout)
-        {
-            return ServiceOSDRequest(url, data, "PUT", timeout, true, false);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static OSDMap PutToService(string url, OSDMap data, int timeout)
-        {
-            return ServiceOSDRequest(url, data, "PUT", timeout, false, false);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static OSDMap PostToService(string url, OSDMap data, int timeout, bool rpc)
-        {
-            return ServiceOSDRequest(url, data, "POST", timeout, false, rpc);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static OSDMap PostToServiceCompressed(string url, OSDMap data, int timeout)
-        {
-            return ServiceOSDRequest(url, data, "POST", timeout, true, false);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static OSDMap GetFromService(string url, int timeout)
-        {
-            return ServiceOSDRequest(url, null, "GET", timeout, false, false);
-        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void LogOutgoingDetail(Stream outputStream)
@@ -334,13 +302,10 @@ namespace OpenSim.Framework
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void LogOutgoingDetail(string context, string output)
         {
-            if (DebugLevel >= 5)
-            {
-                if (output.Length > MaxRequestDiagLength)
-                    output = output[..MaxRequestDiagLength] + "...";
-            }
-
-            m_log.Debug($"[LOGHTTP]: {context} {Util.BinaryToASCII(output)}");
+            if (DebugLevel >= 5 && output.Length > MaxRequestDiagLength)
+                m_log.Debug($"[LOGHTTP]: {context} {Util.BinaryToASCII(output[..MaxRequestDiagLength])}");
+            else
+                m_log.Debug($"[LOGHTTP]: {context} {Util.BinaryToASCII(output)}");
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -355,6 +320,56 @@ namespace OpenSim.Framework
             LogOutgoingDetail($"RESPONSE {reqnum}: ", input);
         }
 
+        /// <summary>
+        /// PUT JSON-encoded data to a web service that returns LLSD or
+        /// JSON data
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static OSDMap PutToServiceCompressed(string url, OSDMap data, int timeout)
+        {
+            return ServiceOSDRequest(url, data, "PUT", timeout, true, false);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static OSDMap PutToService(string url, OSDMap data, int timeout)
+        {
+            return ServiceOSDRequest(url, data, "PUT", timeout, false, false);
+        }
+
+        public static int EstimatedReceiveTimeout(HttpContentHeaders headers, bool keepalive)
+        {
+            if (headers.ContentLength is long contentLength)
+            {
+                int t = (int)(contentLength/1024L);
+                if( t > 55000)
+                    return 60000;
+                return t + 5000;
+            }
+            if(keepalive) // this is ilegal without contentlenght
+            {
+                return 5000;
+            }
+            return 30000;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static OSDMap PostToService(string url, OSDMap data, int timeout, bool rpc)
+        {
+            return ServiceOSDRequest(url, data, "POST", timeout, false, rpc);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static OSDMap PostToServiceCompressed(string url, OSDMap data, int timeout)
+        {
+            return ServiceOSDRequest(url, data, "POST", timeout, true, false);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static OSDMap GetFromService(string url, int timeout)
+        {
+            return ServiceOSDRequest(url, null, "GET", timeout, false, false);
+        }
+
         public static OSDMap ServiceOSDRequest(string url, OSDMap data, string method, int timeout, bool compressed, bool rpc, bool keepalive = false)
         {
             int reqnum = RequestNumber++;
@@ -367,6 +382,7 @@ namespace OpenSim.Framework
 
             int sendlen = 0;
             int rcvlen = 0;
+            bool bodyTimedOut = false;
             HttpResponseMessage responseMessage = null;
             HttpRequestMessage request = null;
             HttpClient client = null;
@@ -425,14 +441,21 @@ namespace OpenSim.Framework
                 responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead);
                 responseMessage.EnsureSuccessStatusCode();
 
-                using CancellationTokenSource cts = new(30000);
-                Stream resStream = responseMessage.Content.ReadAsStream(cts.Token);
+                Stream resStream = responseMessage.Content.ReadAsStream();
                 if (resStream is not null)
                 {
+                    string responseStr;
                     using StreamReader reader = new(resStream);
-                    string responseStr = reader.ReadToEnd();
-                    if (WebUtil.DebugLevel >= 5)
-                        WebUtil.LogResponseDetail(reqnum, responseStr);
+                    using (CancellationTokenSource cts = new(EstimatedReceiveTimeout(responseMessage.Content.Headers,keepalive)))
+                    { 
+                        _ = cts.Token.Register(() =>
+                        {
+                            bodyTimedOut = true;
+                            resStream?.Close();
+                        });
+                        responseStr = reader.ReadToEnd();
+                    }
+                    if (DebugLevel >= 5) LogResponseDetail(reqnum, responseStr);
                     rcvlen = responseStr.Length;
                     return CanonicalizeResults(responseStr);
                 }
@@ -454,7 +477,11 @@ namespace OpenSim.Framework
                 client?.Dispose();
 
                 ticks = Util.EnvironmentTickCountSubtract(ticks);
-                if (ticks > LongCallTime)
+                if(bodyTimedOut)
+                {
+                   errorMessage = $"[WEB UTIL]: receive timeout {reqnum} {method} {url} ({ticks}ms); " + errorMessage;
+                }
+                else if (ticks > LongCallTime)
                 {
                     m_log.Info($"[WEB UTIL]: SvcOSD {reqnum} {method} {url} took {ticks}ms, {sendlen}/{rcvlen}bytes");
                 }
@@ -477,25 +504,29 @@ namespace OpenSim.Framework
         ///     _RawResult == the raw string that came back
         ///     _Result == the OSD unpacked string
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static OSDMap CanonicalizeResults(string response)
         {
-            OSDMap result = new()
-            {
-                // Default values
-                ["Success"] = OSD.FromBoolean(true),
-                ["success"] = OSD.FromBoolean(true),
-                ["_RawResult"] = OSD.FromString(response),
-                ["_Result"] = new OSDMap()
-            };
-
             if (response.Equals("true", StringComparison.OrdinalIgnoreCase))
-                return result;
+            {
+                return new OSDMap()
+                    {
+                        ["Success"] = OSD.FromBoolean(true),
+                        ["success"] = OSD.FromBoolean(true),
+                        ["_RawResult"] = OSD.FromString(response),
+                        ["_Result"] = new OSDMap()
+                    };
+            }
 
             if (response.Equals("false", StringComparison.OrdinalIgnoreCase))
             {
-                result["Success"] = OSD.FromBoolean(false);
-                result["success"] = OSD.FromBoolean(false);
-                return result;
+                return new OSDMap()
+                    {
+                        ["Success"] = OSD.FromBoolean(false),
+                        ["success"] = OSD.FromBoolean(false),
+                        ["_RawResult"] = OSD.FromString(response),
+                        ["_Result"] = new OSDMap()
+                    };
             }
 
             try
@@ -503,8 +534,13 @@ namespace OpenSim.Framework
                 OSD responseOSD = OSDParser.Deserialize(response);
                 if (responseOSD.Type == OSDType.Map)
                 {
-                    result["_Result"] = (OSDMap)responseOSD;
-                    return result;
+                    return new OSDMap()
+                        {
+                            ["Success"] = OSD.FromBoolean(true),
+                            ["success"] = OSD.FromBoolean(true),
+                            ["_RawResult"] = OSD.FromString(response),
+                            ["_Result"] = (OSDMap)responseOSD
+                        };
                 }
             }
             catch
@@ -513,7 +549,13 @@ namespace OpenSim.Framework
                 //m_log.DebugFormat("[WEB UTIL] couldn't decode <{0}>: {1}",response,e.Message);
             }
 
-            return result;
+            return new OSDMap()
+                {
+                    ["Success"] = OSD.FromBoolean(true),
+                    ["success"] = OSD.FromBoolean(true),
+                    ["_RawResult"] = OSD.FromString(response),
+                    ["_Result"] = new OSDMap()
+                };
         }
 
         #endregion JSONRequest
@@ -542,6 +584,7 @@ namespace OpenSim.Framework
             int sendlen = 0;
             int rcvlen = 0;
 
+            bool bodyTimedOut = false;
             HttpResponseMessage responseMessage = null;
             HttpRequestMessage request = null;
             HttpClient client = null;
@@ -553,16 +596,7 @@ namespace OpenSim.Framework
 
                 request.Headers.ExpectContinue = false;
                 request.Headers.TransferEncodingChunked = false;
-
-                //if (keepalive)
-                //{
-                //    request.Headers.TryAddWithoutValidation("Keep-Alive", "timeout=30, max=10");
-                //    request.Headers.TryAddWithoutValidation("Connection", "Keep-Alive");
-                //    request.Headers.ConnectionClose = false;
-                //}
-                //else
-                    request.Headers.TryAddWithoutValidation("Connection", "close");
-
+                request.Headers.TryAddWithoutValidation("Connection", "close");
                 request.Headers.TryAddWithoutValidation(OSHeaderRequestID, reqnum.ToString());
 
                 if (data is not null)
@@ -572,7 +606,7 @@ namespace OpenSim.Framework
                     if (DebugLevel >= 5)
                         LogOutgoingDetail("SEND", reqnum, queryString);
 
-                    byte[] buffer = System.Text.Encoding.UTF8.GetBytes(queryString);
+                    byte[] buffer = Encoding.UTF8.GetBytes(queryString);
                     queryString = null;
 
                     sendlen = buffer.Length;
@@ -591,9 +625,18 @@ namespace OpenSim.Framework
                 responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead);
                 responseMessage.EnsureSuccessStatusCode();
 
-                using CancellationTokenSource cts = new(30000);
-                using StreamReader reader = new(responseMessage.Content.ReadAsStream(cts.Token));
-                string responseStr = reader.ReadToEnd();
+                string responseStr;
+                Stream str = responseMessage.Content.ReadAsStream();
+                using StreamReader reader = new(str);
+                using(CancellationTokenSource cts = new(EstimatedReceiveTimeout(responseMessage.Content.Headers,false)))
+                {
+                     _ = cts.Token.Register(() =>
+                        {
+                            bodyTimedOut = true;
+                            str?.Close();
+                        });
+                     responseStr = reader.ReadToEnd();
+                }
                 rcvlen = responseStr.Length;
                 if (DebugLevel >= 5)
                     LogResponseDetail(reqnum, responseStr);
@@ -620,7 +663,11 @@ namespace OpenSim.Framework
                 client?.Dispose();
 
                 ticks = Util.EnvironmentTickCountSubtract(ticks);
-                if (ticks > LongCallTime)
+                if(bodyTimedOut)
+                {
+                   errorMessage = $"[LOGHTTP] Data receive timeout {reqnum} '{method}' to {url} ({ticks}ms); " + errorMessage;
+                }
+                else if (ticks > LongCallTime)
                 {
                     m_log.Info(
                         $"[LOGHTTP]: Slow ServiceForm request {reqnum} '{method}' to {url} took {ticks}ms, {sendlen}/{rcvlen}bytes");
@@ -665,17 +712,16 @@ namespace OpenSim.Framework
         /// <remarks>This is similar to the Uri constructor that takes a base
         /// Uri and the relative path, except this method can append a relative
         /// path fragment on to an existing relative path</remarks>
-        public static Uri Combine(this Uri uri, string fragment)
+        public static Uri Combine(Uri uri, string fragment)
         {
             string fragment1 = uri.Fragment;
-            string fragment2 = fragment;
 
             if (!fragment1.EndsWith('/'))
                 fragment1 += '/';
-            if (fragment2.StartsWith('/'))
-                fragment2 = fragment2[1..];
+            if (fragment.StartsWith('/'))
+                fragment = fragment[1..];
 
-            return new Uri(uri, fragment1 + fragment2);
+            return new Uri(uri, fragment1 + fragment);
         }
 
         /// <summary>
@@ -687,7 +733,7 @@ namespace OpenSim.Framework
         /// <param name="fragment">Relative path fragment to append to the end
         /// of the Uri, or an absolute Uri to return unmodified</param>
         /// <returns>The combined Uri</returns>
-        public static Uri Combine(this Uri uri, Uri fragment)
+        public static Uri Combine(Uri uri, Uri fragment)
         {
             if (fragment.IsAbsoluteUri)
                 return fragment;
@@ -1154,6 +1200,8 @@ namespace OpenSim.Framework
             string respstring = string.Empty;
             int sendlen = 0;
             int rcvlen = 0;
+            bool bodyTimedOut = false;
+
             try
             {
                 client = WebUtil.GetNewGlobalHttpClient(timeoutsecs * 1000);
@@ -1182,7 +1230,7 @@ namespace OpenSim.Framework
                     sendlen = data.Length;
 
                     if (WebUtil.DebugLevel >= 5)
-                        WebUtil.LogOutgoingDetail("SEND", reqnum, System.Text.Encoding.UTF8.GetString(data));
+                        WebUtil.LogOutgoingDetail("SEND", reqnum, Encoding.UTF8.GetString(data));
 
                     request.Content = new ByteArrayContent(data);
                     request.Content.Headers.TryAddWithoutValidation("Content-Type", "application/x-www-form-urlencoded");
@@ -1194,15 +1242,26 @@ namespace OpenSim.Framework
 
                 if ((responseMessage.Content.Headers.ContentLength is long contentLength) && contentLength != 0)
                 {
-                    using CancellationTokenSource cts = new(30000);
-                    using StreamReader reader = new(responseMessage.Content.ReadAsStream(cts.Token));
-                    respstring = reader.ReadToEnd();
+                    Stream str = responseMessage.Content.ReadAsStream();
+                    using StreamReader reader = new(str);
+                    using (CancellationTokenSource cts = new(WebUtil.EstimatedReceiveTimeout(responseMessage.Content.Headers, keepalive)))
+                    { 
+                        _ = cts.Token.Register(() =>
+                            {
+                                bodyTimedOut = true;
+                                str?.Close();
+                            });
+                        respstring = reader.ReadToEnd();
+                    }
                     rcvlen = respstring.Length;
                 }
             }
             catch (Exception e)
             {
-                m_log.Info($"[FORMS]: Error receiving response from {requestUrl}: {e.Message}");
+                if(bodyTimedOut)
+                    m_log.Info($"[FORMS]: request {reqnum} {method} {requestUrl} receive timeout");
+                else
+                    m_log.Info($"[FORMS]: Error receiving response from {requestUrl}: {e.Message}");
                 throw;
             }
             finally
@@ -1213,7 +1272,11 @@ namespace OpenSim.Framework
             }
 
             ticks = Util.EnvironmentTickCountSubtract(ticks);
-            if (ticks > WebUtil.LongCallTime)
+            if(bodyTimedOut)
+            {
+                m_log.Info($"[FORMS]: request {reqnum} {method} {requestUrl} receive timeout ({ticks}ms)");
+            }
+            else if (ticks > WebUtil.LongCallTime)
             {
                 m_log.Info($"[FORMS]: request {reqnum} {method} {requestUrl} took {ticks}ms, {sendlen}/{rcvlen}bytes");
             }
@@ -1248,6 +1311,8 @@ namespace OpenSim.Framework
             string respstring = String.Empty;
             int sendlen = 0;
             int rcvlen = 0;
+            bool bodyTimedOut = false;
+
             try
             {
                 client = WebUtil.GetNewGlobalHttpClient(timeoutsecs * 1000);
@@ -1274,20 +1339,31 @@ namespace OpenSim.Framework
                 request.Content.Headers.TryAddWithoutValidation("Content-Length", sendlen.ToString());
 
                 if (WebUtil.DebugLevel >= 5)
-                    WebUtil.LogOutgoingDetail("SEND", reqnum, System.Text.Encoding.UTF8.GetString(data));
+                    WebUtil.LogOutgoingDetail("SEND", reqnum, Encoding.UTF8.GetString(data));
 
                 responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead);
 
                 if ((responseMessage.Content.Headers.ContentLength is long contentLength) && contentLength != 0)
                 {
-                    using CancellationTokenSource cts = new(30000);
-                    using StreamReader reader = new(responseMessage.Content.ReadAsStream(cts.Token));
-                    respstring = reader.ReadToEnd();
+                    Stream str = responseMessage.Content.ReadAsStream();
+                    using StreamReader reader = new(str);
+                    using (CancellationTokenSource cts = new(WebUtil.EstimatedReceiveTimeout(responseMessage.Content.Headers, keepalive)))
+                    { 
+                        _ = cts.Token.Register(() =>
+                            {
+                                bodyTimedOut = true;
+                                str?.Close();
+                            });
+                        respstring = reader.ReadToEnd();
+                    }
                 }
             }
             catch (Exception e)
             {
-                m_log.Info($"[FORMS]: Error receiving response from {requestUrl}: {e.Message}");
+                if(bodyTimedOut)
+                    m_log.Info($"[FORMS]: request {reqnum} POST {requestUrl} receive timeout");
+                else
+                    m_log.Info($"[FORMS]: Error receiving response from {requestUrl}: {e.Message}");
                 throw;
             }
             finally
@@ -1298,7 +1374,9 @@ namespace OpenSim.Framework
             }
 
             ticks = Util.EnvironmentTickCountSubtract(ticks);
-            if (ticks > WebUtil.LongCallTime)
+            if(bodyTimedOut)
+                m_log.Info($"[FORMS]: request {reqnum} POST {requestUrl} receive timeout ({ticks}ms)");
+            else if (ticks > WebUtil.LongCallTime)
             {
                 m_log.Info($"[FORMS]: request {reqnum} POST {requestUrl} took {ticks}ms {sendlen}/{rcvlen}bytes");
             }
@@ -1381,6 +1459,7 @@ namespace OpenSim.Framework
             HttpResponseMessage responseMessage = null;
             HttpRequestMessage request = null;
             HttpClient client = null;
+            bool bodyTimedOut = false;
 
             try
             {
@@ -1424,7 +1503,7 @@ namespace OpenSim.Framework
                     request.Content.Headers.TryAddWithoutValidation("Content-Length", sendlen.ToString());
                 }
 
-                responseMessage = client.Send(request, HttpCompletionOption.ResponseContentRead);
+                responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead);
                 responseMessage.EnsureSuccessStatusCode();
 
                 int rcvlen = 0;
@@ -1432,8 +1511,16 @@ namespace OpenSim.Framework
                 {
                     rcvlen = (int)contentLength;
                     using Stream respStream = responseMessage.Content.ReadAsStream();
-                    deserial = XMLResponseHelper.LogAndDeserialize<TResponse>(
-                        reqnum, respStream, contentLength);
+                    using (CancellationTokenSource cts = new(WebUtil.EstimatedReceiveTimeout(responseMessage.Content.Headers, true)))
+                    { 
+                        _ = cts.Token.Register(() =>
+                            {
+                                bodyTimedOut = true;
+                                respStream?.Close();
+                            });
+                        deserial = XMLResponseHelper.LogAndDeserialize<TResponse>(
+                            reqnum, respStream, contentLength);
+                    }
                 }
                 else
                 {
@@ -1441,7 +1528,11 @@ namespace OpenSim.Framework
                 }
 
                 ticks = Util.EnvironmentTickCountSubtract(ticks);
-                if (ticks > WebUtil.LongCallTime)
+                if(bodyTimedOut)
+                {
+                   m_log.Info($"[LOGHTTP]: receive timeout {reqnum} {method} {requestUrl} ({ticks}ms)");
+                }
+                else if (ticks > WebUtil.LongCallTime)
                 {
                     m_log.Info($"[LOGHTTP]: Slow SRestObjReq {reqnum} {method} {requestUrl} took {ticks}ms, {rcvlen}bytes");
                 }
@@ -1475,7 +1566,10 @@ namespace OpenSim.Framework
             }
             catch (Exception e)
             {
-                m_log.Debug($"[SRestObjReq]: Exception on response from {method} {requestUrl}: {e.Message}");
+                if(bodyTimedOut)
+                   m_log.Info($"[LOGHTTP]: receive timeout {reqnum} {method} {requestUrl}");
+                else
+                   m_log.Debug($"[SRestObjReq]: Exception on response from {method} {requestUrl}: {e.Message}");
             }
             finally
             {
@@ -1490,7 +1584,6 @@ namespace OpenSim.Framework
         public static TResponse MakeGetRequest<TResponse>(string requestUrl, int pTimeout, IServiceAuth auth)
         {
             int reqnum = WebUtil.RequestNumber++;
-
             if (WebUtil.DebugLevel >= 3)
                 m_log.Debug($"[LOGHTTP]: HTTP OUT {reqnum} SRestObjReq GET {requestUrl}");
 
@@ -1499,6 +1592,7 @@ namespace OpenSim.Framework
             HttpResponseMessage responseMessage = null;
             HttpRequestMessage request = null;
             HttpClient client = null;
+            bool bodyTimedOut = false;
             try
             {
                 client = WebUtil.GetNewGlobalHttpClient(pTimeout);
@@ -1518,7 +1612,7 @@ namespace OpenSim.Framework
                 //else
                 //    request.Headers.TryAddWithoutValidation("Connection", "close");
 
-                responseMessage = client.Send(request, HttpCompletionOption.ResponseContentRead);
+                responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead);
                 responseMessage.EnsureSuccessStatusCode();
 
                 int rcvlen = 0;
@@ -1526,8 +1620,16 @@ namespace OpenSim.Framework
                 {
                     rcvlen = (int)contentLength;
                     using Stream respStream = responseMessage.Content.ReadAsStream();
-                    deserial = XMLResponseHelper.LogAndDeserialize<TResponse>(
-                        reqnum, respStream, contentLength);
+                    using (CancellationTokenSource cts = new(WebUtil.EstimatedReceiveTimeout(responseMessage.Content.Headers, true)))
+                    { 
+                        _ = cts.Token.Register(() =>
+                            {
+                                bodyTimedOut = true;
+                                respStream?.Close();
+                            });
+                        deserial = XMLResponseHelper.LogAndDeserialize<TResponse>(
+                            reqnum, respStream, contentLength);
+                    }
                 }
                 else
                 {
@@ -1535,7 +1637,11 @@ namespace OpenSim.Framework
                 }
 
                 ticks = Util.EnvironmentTickCountSubtract(ticks);
-                if (ticks > WebUtil.LongCallTime)
+                if(bodyTimedOut)
+                {
+                   m_log.Info($"[SRestObjReq]: GET receive timeout {reqnum} {requestUrl} ({ticks}ms)");
+                }
+                else if (ticks > WebUtil.LongCallTime)
                 {
                     m_log.Info($"[LOGHTTP]: Slow SRestObjReq  GET {reqnum} {requestUrl} took {ticks}ms, {rcvlen}bytes");
                 }
@@ -1567,7 +1673,10 @@ namespace OpenSim.Framework
             }
             catch (Exception e)
             {
-                m_log.Debug($"[SRestObjReq]: Exception on response from GET {requestUrl}: {e.Message}");
+                if(bodyTimedOut)
+                   m_log.Debug($"[SRestObjReq]: GET receive timeout {reqnum} {requestUrl}");
+                else
+                    m_log.Debug($"[SRestObjReq]: Exception on response from GET {requestUrl}: {e.Message}");
             }
             finally
             {
@@ -1614,7 +1723,7 @@ namespace OpenSim.Framework
                 }
 
                 dataBuffer = ms.ToArray();
-                WebUtil.LogResponseDetail(reqnum, System.Text.Encoding.UTF8.GetString(dataBuffer));
+                WebUtil.LogResponseDetail(reqnum, Encoding.UTF8.GetString(dataBuffer));
 
                 ms.Position = 0;
                 return (TResponse)deserializer.Deserialize(ms);

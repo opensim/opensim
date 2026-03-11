@@ -281,9 +281,21 @@ namespace OpenSim.Framework
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte[] UTF8Getbytes(string s, int len)
+        {
+            return UTF8.GetBytes(s, 0, len);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte[] UTF8NBGetbytes(string s)
         {
             return UTF8NoBomEncoding.GetBytes(s);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte[] UTF8NBGetbytes(string s, int len)
+        {
+            return UTF8NoBomEncoding.GetBytes(s, 0 , len);
         }
 
         /// <value>

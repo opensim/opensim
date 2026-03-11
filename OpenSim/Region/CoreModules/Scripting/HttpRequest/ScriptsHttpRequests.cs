@@ -595,11 +595,14 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
             if (Removed)
                  return;
 
+            bool bodyTimedOut = false;
             HttpResponseMessage responseMessage = null;
             HttpRequestMessage request = null;
+            HttpClient client = null;
+
             try
             {
-                HttpClient client = RequestModule.GetHttpClient(HttpVerifyCert);
+                client = RequestModule.GetHttpClient(HttpVerifyCert);
                 request = new (new HttpMethod(HttpMethod), Url);
 
                 int datalen;
@@ -644,26 +647,35 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                     else
                         len = -1;
 
-                    using CancellationTokenSource cts = new(30000);
-                    Stream resStream = responseMessage.Content.ReadAsStream(cts.Token);
+                    using Stream resStream = responseMessage.Content.ReadAsStream();
                     if(resStream is not null)
                     {
-                        int maxBytes =  (len < 0  || len > HttpBodyMaxLen) ? HttpBodyMaxLen : len;
-                        byte[] buf = new byte[maxBytes];
-
                         int totalBodyBytes = 0;
-                        int count;
-                        do
-                        {
-                            count = resStream.Read(buf, totalBodyBytes, maxBytes - totalBodyBytes);
-                            totalBodyBytes += count;
-                        } while (count > 0 && totalBodyBytes < maxBytes); // any more data to read?
-                        resStream.Dispose();
+                        byte[] buf;
 
-                        if (totalBodyBytes > 0)
+                        using(CancellationTokenSource cts = new(WebUtil.EstimatedReceiveTimeout(responseMessage.Content.Headers, false)))
+                        {
+                        _ = cts.Token.Register(() =>
+                            {
+                                bodyTimedOut = true;
+                                resStream?.Close();
+                            });
+
+                            int maxBytes =  (len < 0  || len > HttpBodyMaxLen) ? HttpBodyMaxLen : len;
+                            buf = new byte[maxBytes];
+
+                            int count;
+                            do
+                            {
+                                count = resStream.Read(buf, totalBodyBytes, maxBytes - totalBodyBytes);
+                                totalBodyBytes += count;
+                            } while (count > 0 && totalBodyBytes < maxBytes && !Removed); // any more data to read?
+                        }
+
+                        if (!Removed && totalBodyBytes > 0)
                         {
                             string tempString = Util.UTF8.GetString(buf, 0, totalBodyBytes);
-                            ResponseBody = tempString.Replace("\r", "");
+                            ResponseBody = tempString.ReplaceLineEndings("\n");
                         }
                     }
                 }
@@ -682,8 +694,16 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
             {
                 if (!Removed)
                 {
+                    if(bodyTimedOut)
+                    {
+                        Status = 408;
+
+                        ResponseBody = "Request timeout";
+                        RequestModule.GotCompletedRequest(this);
+                    }
+
                     // We need to resubmit ?
-                    if (Status == (int)HttpStatusCode.MovedPermanently ||
+                    else if (Status == (int)HttpStatusCode.MovedPermanently ||
                             Status == (int)HttpStatusCode.Found ||
                             Status == (int)HttpStatusCode.SeeOther ||
                             Status == (int)HttpStatusCode.TemporaryRedirect)
@@ -757,8 +777,10 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                         RequestModule.GotCompletedRequest(this);
                     }
                 }
+
                 responseMessage?.Dispose();
-                request.Dispose();
+                request?.Dispose();
+                client?.Dispose();
             }
         }
 
