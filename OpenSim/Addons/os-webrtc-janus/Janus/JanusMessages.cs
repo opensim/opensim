@@ -47,7 +47,7 @@ namespace osWebRtcVoice
         protected static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         protected static readonly string LogHeader = "[JANUS MESSAGE]";
 
-        protected OSDMap m_message = new OSDMap();
+        protected OSDMap m_message = new();
 
         public JanusMessage()
         {
@@ -68,15 +68,18 @@ namespace osWebRtcVoice
         }
         public OSDMap RawBody => m_message;
 
-        public string TransactionId { 
+        public string TransactionId
+        { 
             get { return m_message.TryGetString("transaction", out string tid) ? tid : null;  }
             set { m_message["transaction"] = value; }
         }
-        public string Sender { 
+        public string Sender
+        { 
             get { return m_message.TryGetString("sender", out string tid) ? tid : null;  }
             set { m_message["sender"] = value; }
         }
-        public OSDMap Jsep { 
+        public OSDMap Jsep
+        { 
             get { return m_message.TryGetOSDMap("jsep", out OSDMap jsep) ? jsep : null; }
             set { m_message["jsep"] = value; }
         }
@@ -94,11 +97,22 @@ namespace osWebRtcVoice
             m_message["apisecret"] = pToken;
         }
         // Note that the session_id is a long number in the JSON so we convert the string.
-        public string sessionId { 
-            get { return m_message.TryGetValue("session_id", out OSD tmposd) ? OSDToLong(tmposd).ToString() : string.Empty; }
-            set { m_message["session_id"] = long.Parse(value); }
+        public string sessionId
+        { 
+            get
+            {
+                return m_message.TryGetValue("session_id", out OSD tmposd) ?
+                    OSDToLong(tmposd).ToString() : string.Empty;
+            }
+            set
+            {
+                m_message["session_id"] = long.Parse(value);
+            }
         }
-        public bool hasSessionId { get { return m_message.ContainsKey("session_id"); } }
+        public bool hasSessionId
+        {
+            get { return m_message.ContainsKey("session_id"); }
+        }
         public void AddSessionId(string pToken)
         {
             AddSessionId(long.Parse(pToken));
@@ -125,46 +139,10 @@ namespace osWebRtcVoice
         {
             return m_message.ToString();
         }
-        // Utility function to convert an OSD object to an long. The OSD object can be an OSDInteger
-        //    or an OSDArray of 4 or 8 integers. 
-        // This exists because the JSON to OSD parser can return an OSDArray for a long number
-        //    since there is not an OSDLong type.
-        // The design of the OSD conversion functions kinda needs one to know how the number
-        //    is stored in order to extract it. Like, if it's stored as a long value (8 bytes)
-        //    and one fetches it with .AsInteger(), it will return the first 4 bytes as an integer
-        //    and not the long value. So this function looks at the type of the OSD object and
-        //    extracts the number appropriately.
+
         public static long OSDToLong(OSD pIn)
         {
-            long ret = 0;
-            switch (pIn.Type)
-            {
-                case OSDType.Integer:
-                    ret = (long)(pIn as OSDInteger).AsInteger();
-                    break;
-                case OSDType.Binary:
-                    byte[] value = (pIn as OSDBinary).value;
-                    if (value.Length == 4)
-                    {
-                        ret = (long)(pIn as OSDBinary).AsInteger();
-                    }
-                    if (value.Length == 8)
-                    {
-                        ret = (pIn as OSDBinary).AsLong();
-                    }
-                    break;
-                case OSDType.Array:
-                    if ((pIn as OSDArray).Count == 4)
-                    {
-                        ret = (long)pIn.AsInteger();
-                    }
-                    if ((pIn as OSDArray).Count == 8)
-                    {
-                        ret = pIn.AsLong();
-                    }
-                    break;
-            }
-            return ret;
+            return pIn.AsLong();
         }
     }
     // ==============================================================
@@ -220,14 +198,14 @@ namespace osWebRtcVoice
         {
             return ReturnCode == pCode;
         }
-        public virtual string ReturnCode { get { 
-            string ret = String.Empty;
-            if (m_message is not null && m_message.ContainsKey("janus"))
-            {
-                ret = m_message["janus"].AsString();
+        public virtual string ReturnCode
+        {
+            get
+            { 
+                return m_message is not null && m_message.ContainsKey("janus") ?
+                    m_message["janus"].AsString() : string.Empty;
             }
-            return ret;
-        } }
+        }
     }
 
     // ==============================================================
@@ -261,29 +239,24 @@ namespace osWebRtcVoice
         }
 
         // Dig through the response to get the error code or 0 if there is none
-        public int errorCode { get {
-            int ret = 0;
-            if (m_message.ContainsKey("error"))
+        public int errorCode
+        {
+            get
             {
-                var err = m_message["error"];
-                if (err is OSDMap)
-                    ret = (int)OSDToLong((err as OSDMap)["code"]);
+                return m_message.TryGetOSDMap("error", out OSDMap errMap) ?
+                    (int)OSDToLong(errMap["code"]) : 0;
             }
-            return ret;
-        }}
+        }
 
         // Dig through the response to get the error reason or empty string if there is none
-        public string errorReason { get {
-            string ret = String.Empty;
-            if (m_message.ContainsKey("error"))
+        public string errorReason
+        {
+            get
             {
-                var err = m_message["error"];
-                if (err is OSDMap)
-                    ret = (err as OSDMap)["reason"];
+                return m_message.TryGetOSDMap("error", out OSDMap errMap) ?
+                    errMap["reason"] : string.Empty;
             }
-            // return ((m_message["error"] as OSDMap)?["reason"]) ?? String.Empty;
-            return ret;
-        }}
+        }
     }
     // ==============================================================
     // Create session request and response
@@ -346,10 +319,15 @@ namespace osWebRtcVoice
     {
         public AttachPluginResp(JanusMessageResp pResp) : base(pResp.RawBody)
         { }
-        public string pluginId { get {
-            return dataSection.ContainsKey("id") ? OSDToLong(dataSection["id"]).ToString() : String.Empty;
-        }}
+        public string pluginId
+        {
+            get
+            {
+                return dataSection.ContainsKey("id") ? OSDToLong(dataSection["id"]).ToString() : string.Empty;
+            }
+        }
     }
+
     // ==============================================================
     public class DetachPluginReq : JanusMessageReq
     {
@@ -431,19 +409,21 @@ namespace osWebRtcVoice
         public OSDMap m_data;
         public PluginMsgResp(JanusMessageResp pResp) : base(pResp.RawBody)
         {
-            if (m_message is not null && m_message.ContainsKey("plugindata"))
+            if (m_message is not null && m_message.TryGetOSDMap("plugindata", out OSDMap m_pluginData))
             {
                 // Move the plugin data up into the m_data var so it is easier to get to
-                m_pluginData = m_message["plugindata"] as OSDMap;
-                if (m_pluginData is not null && m_pluginData.ContainsKey("data"))
+                if (m_pluginData is not null)
                 {
-                    m_data = m_pluginData["data"] as OSDMap;
+                    m_pluginData.TryGetOSDMap("data", out OSDMap m_data);
                     // m_log.DebugFormat("{0} AudioBridgeResp. Found both plugindata and data: data={1}", LogHeader, m_data.ToString());
                 }
             }
         }
 
-        public OSDMap PluginRespData { get { return m_data; } }
+        public OSDMap PluginRespData
+        {
+            get { return m_data; }
+        }
 
         // Get an integer value for a key in the response data or zero if not there
         public int PluginRespDataInt(string pKey)

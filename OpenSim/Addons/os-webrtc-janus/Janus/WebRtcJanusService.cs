@@ -64,7 +64,7 @@ namespace osWebRtcVoice
             Assembly assembly = Assembly.GetExecutingAssembly();
             string version = assembly.GetName().Version?.ToString() ?? "unknown";
 
-            _log.DebugFormat("{0} WebRtcJanusService version {1}", LogHeader, version);
+            _log.Debug($"{LogHeader} WebRtcJanusService version {version}");
             _Config = pConfig;
             IConfig webRtcVoiceConfig = _Config.Configs["WebRtcVoice"];
 
