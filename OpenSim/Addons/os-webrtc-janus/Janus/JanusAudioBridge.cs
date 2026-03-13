@@ -88,7 +88,7 @@ namespace osWebRtcVoice
                 JanusMessageResp resp = await SendPluginMsg(new AudioBridgeCreateRoomReq(pRoomId, pSpatial, pRoomDesc));
                 AudioBridgeResp abResp = new AudioBridgeResp(resp);
 
-                m_log.DebugFormat("{0} CreateRoom. ReturnCode: {1}", LogHeader, abResp.AudioBridgeReturnCode);
+                m_log.Debug($"{LogHeader} CreateRoom. ReturnCode: '{abResp.AudioBridgeReturnCode}'");
                 switch (abResp.AudioBridgeReturnCode)
                 {
                     case "created":
@@ -97,23 +97,23 @@ namespace osWebRtcVoice
                     case "event":
                         if (abResp.AudioBridgeErrorCode == 486)
                         {
-                            m_log.WarnFormat("{0} CreateRoom. Room {1} already exists. Reusing! {2}", LogHeader, pRoomId, abResp.ToString());
+                            m_log.Warn($"{LogHeader} CreateRoom. Room {pRoomId} already exists. Reusing! {abResp}");
                             // if room already exists, just use it
                             ret = new JanusRoom(this, pRoomId);
                         }
                         else
                         {
-                            m_log.ErrorFormat("{0} CreateRoom. XX Room creation failed: {1}", LogHeader, abResp.ToString());
+                            m_log.Error($"{LogHeader} CreateRoom. XX Room creation failed: {abResp}");
                         }
                         break;
                     default:
-                        m_log.ErrorFormat("{0} CreateRoom. YY Room creation failed: {1}", LogHeader, abResp.ToString());
+                        m_log.Error($"{LogHeader} CreateRoom. YY Room creation failed: {abResp}");
                         break;
                 }   
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("{0} CreateRoom. Exception {1}", LogHeader, e);
+                m_log.Error($"{LogHeader} CreateRoom. Exception {e.Message}");
             }
             return ret;
         }
