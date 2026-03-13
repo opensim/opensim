@@ -472,7 +472,5 @@ namespace osWebRtcVoice
             // m_log.InfoFormat(msg, args);
             MainConsole.Instance.Output(msg, args);
         }
-
-
     }
  }

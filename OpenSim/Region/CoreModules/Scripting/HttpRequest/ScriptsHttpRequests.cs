@@ -598,11 +598,10 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
             bool bodyTimedOut = false;
             HttpResponseMessage responseMessage = null;
             HttpRequestMessage request = null;
-            HttpClient client = null;
 
             try
             {
-                client = RequestModule.GetHttpClient(HttpVerifyCert);
+                HttpClient client = RequestModule.GetHttpClient(HttpVerifyCert);
                 request = new (new HttpMethod(HttpMethod), Url);
 
                 int datalen;
@@ -685,10 +684,10 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                 Status = e.StatusCode is null ? 499 : (int)e.StatusCode;
                 ResponseBody = e.Message;
             }
-            //catch (Exception e)
-            catch
+            catch (Exception e)
             {
-                // Don't crash on anything else
+                Status = 499;
+                ResponseBody = e.Message;
             }
             finally
             {
@@ -780,7 +779,6 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
 
                 responseMessage?.Dispose();
                 request?.Dispose();
-                client?.Dispose();
             }
         }
 
