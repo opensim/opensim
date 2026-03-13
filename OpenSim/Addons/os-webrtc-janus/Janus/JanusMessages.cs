@@ -440,12 +440,12 @@ namespace osWebRtcVoice
         public OSDMap m_data;
         public PluginMsgResp(JanusMessageResp pResp) : base(pResp.RawBody)
         {
-            if (m_message is not null && m_message.TryGetOSDMap("plugindata", out OSDMap m_pluginData))
+            if (m_message is not null && m_message.TryGetOSDMap("plugindata", out m_pluginData))
             {
                 // Move the plugin data up into the m_data var so it is easier to get to
                 if (m_pluginData is not null)
                 {
-                    m_pluginData.TryGetOSDMap("data", out OSDMap m_data);
+                    _ = m_pluginData.TryGetOSDMap("data", out m_data);
                     // m_log.DebugFormat("{0} AudioBridgeResp. Found both plugindata and data: data={1}", LogHeader, m_data.ToString());
                 }
             }
