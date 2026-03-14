@@ -84,7 +84,7 @@ namespace osWebRtcVoice
         // IVoiceViewerSession.Shutdown
         public async Task Shutdown()
         {
-            m_log.DebugFormat($"{LogHeader} JanusViewerSession shutdown {ViewerSessionID}");
+            m_log.Debug($"{LogHeader} JanusViewerSession shutdown {ViewerSessionID}");
             if (Room is not null)
             {
                 var rm = Room;

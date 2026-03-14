@@ -76,7 +76,7 @@ namespace osWebRtcVoice
                 JanusMessageResp resp = await _AudioBridge.SendPluginMsg(joinReq);
                 AudioBridgeJoinRoomResp joinResp = new(resp);
 
-                // if (joinResp is not null && joinResp.AudioBridgeReturnCode == "joined" && joinResp.ParticipantId > 0)
+//                if (joinResp is not null && joinResp.AudioBridgeReturnCode == "joined" && joinResp.ParticipantId > 0)
                 if (joinResp is not null && joinResp.AudioBridgeReturnCode == "joined")
                 {
                     pVSession.ParticipantId = joinResp.ParticipantId;

@@ -566,7 +566,7 @@ namespace osWebRtcVoice
         }
 
         public int ParticipantId { get { return PluginRespDataInt("id"); } }
-        //public long ParticipantId { get { return PluginRespDataLong("id"); } }
+//        public long ParticipantId { get { return PluginRespDataLong("id"); } }
     }
 
     // ==============================================================
