@@ -83,7 +83,7 @@ namespace osWebRtcVoice
         }
 
         public OSDMap Jsep
-        { 
+        {
             get { return m_message.TryGetOSDMap("jsep", out OSDMap jsep) ? jsep : null; }
             set { m_message["jsep"] = value; }
         }
@@ -107,8 +107,8 @@ namespace osWebRtcVoice
         { 
             get
             {
-                return m_message.TryGetValue("session_id", out OSD tmposd) ?
-                    tmposd.AsLong().ToString() : string.Empty;
+                return m_message.TryGetValue("session_id", out OSD sessionId) ?
+                    sessionId.AsLong().ToString() : string.Empty;
             }
             set
             {
@@ -116,10 +116,7 @@ namespace osWebRtcVoice
             }
         }
 
-        public bool hasSessionId
-        {
-            get { return m_message.ContainsKey("session_id"); }
-        }
+        public bool hasSessionId { get { return m_message.ContainsKey("session_id"); } }
 
         public void AddSessionId(string pToken)
         {
@@ -131,10 +128,7 @@ namespace osWebRtcVoice
             m_message["session_id"] = pToken;
         }
 
-        public bool hasHandleId
-        {
-            get { return m_message.ContainsKey("handle_id"); }
-        }
+        public bool hasHandleId { get { return m_message.ContainsKey("handle_id"); } }
 
         public void AddHandleId(string pToken)
         {
@@ -142,7 +136,7 @@ namespace osWebRtcVoice
         }
         public string sender
         {
-            get { return m_message.TryGetString("sender", out string str) ? str : string.Empty; }
+            get { return m_message.TryGetString("sender", out string sender) ? sender : string.Empty; }
         }
 
         public virtual string ToJson()
@@ -267,8 +261,9 @@ namespace osWebRtcVoice
         {
             get
             {
-                return m_message.TryGetOSDMap("error", out OSDMap errMap) ?
-                    errMap["reason"] : string.Empty;
+                if(m_message.TryGetOSDMap("error", out OSDMap errMap))
+                    return errMap.TryGetString("reason", out string reason) ? reason : string.Empty;
+                return string.Empty;
             }
         }
     }
@@ -306,7 +301,7 @@ namespace osWebRtcVoice
         {
             // Doesn't include the session ID because it is the URI
         }
-    }   
+    }
 
     // ==============================================================
     public class TrickleReq : JanusMessageReq
@@ -328,7 +323,7 @@ namespace osWebRtcVoice
             else
                 m_message["candidate"] = pCandidates;
         }
-    }   
+    }
 
     // ==============================================================
     public class AttachPluginReq : JanusMessageReq
@@ -368,7 +363,7 @@ namespace osWebRtcVoice
         {
             // Doesn't include the session ID or plugin ID because it is the URI
         }
-    }   
+    }
 
     // ==============================================================
     // Plugin messages are defined here as wrappers around OSDMap.
@@ -385,8 +380,8 @@ namespace osWebRtcVoice
     // }
     public class PluginMsgReq : JanusMessageReq
     {
-        private OSDMap m_body = new OSDMap();
-        
+        private OSDMap m_body = new();
+
         // Note that the passed OSDMap is placed in the "body" section of the message
         public PluginMsgReq(OSDMap pBody) : base("message")
         {
@@ -497,7 +492,7 @@ namespace osWebRtcVoice
     //            "permanent": false
     //        }
     //    }
-    public class AudioBridgeResp: PluginMsgResp
+    public class AudioBridgeResp : PluginMsgResp
     {
         public AudioBridgeResp(JanusMessageResp pResp) : base(pResp)
         {
