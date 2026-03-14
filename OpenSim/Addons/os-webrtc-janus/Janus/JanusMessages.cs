@@ -72,13 +72,13 @@ namespace osWebRtcVoice
 
         public string TransactionId
         { 
-            get { return m_message.TryGetString("transaction", out string tid) ? tid : null;  }
+            get { return m_message.TryGetString("transaction", out string tid) ? tid : null; }
             set { m_message["transaction"] = value; }
         }
 
         public string Sender
         { 
-            get { return m_message.TryGetString("sender", out string tid) ? tid : null;  }
+            get { return m_message.TryGetString("sender", out string tid) ? tid : null; }
             set { m_message["sender"] = value; }
         }
 
@@ -199,7 +199,7 @@ namespace osWebRtcVoice
         }
 
         // Return the "data" portion of the response as an OSDMap or null if there is none
-        public OSDMap dataSection { get { return m_message.TryGetOSDMap("data", out OSDMap osdm) ? osdm : null; } }
+        public OSDMap dataSection { get { return m_message.TryGetOSDMap("data", out OSDMap data) ? data : null; } }
 
         // Check if a successful response code is in the response
         public virtual bool isSuccess { get { return CheckReturnCode("success"); } }
@@ -216,8 +216,8 @@ namespace osWebRtcVoice
         {
             get
             { 
-                return m_message is not null && m_message.ContainsKey("janus") ?
-                    m_message["janus"].AsString() : string.Empty;
+                return m_message is not null && m_message.TryGetString("janus", out string sjanus) ?
+                    sjanus : string.Empty;
             }
         }
     }
@@ -464,6 +464,14 @@ namespace osWebRtcVoice
             return m_data.TryGetValue(pKey, out OSD okey) ? (int)okey.AsLong(): 0;
         }
 
+        // Get an long value for a key in the response data or zero if not there
+        public long PluginRespDataLong(string pKey)
+        {
+            if (m_data is null)
+                return 0L;
+            return m_data.TryGetValue(pKey, out OSD okey) ? okey.AsLong(): 0L;
+        }
+
         // Get a string value for a key in the response data or empty string if not there
         public string PluginRespDataString(string pKey)
         {
@@ -519,7 +527,7 @@ namespace osWebRtcVoice
                                                 { "spatial_audio", pSpatial },
                                                 { "denoise", false },
                                                 { "record", false }
-                                            })  
+                                            })
         {
             if (!String.IsNullOrEmpty(pDesc))
                 AddStringToBody("description", pDesc);
@@ -533,7 +541,7 @@ namespace osWebRtcVoice
                                                 { "request", "destroy" },
                                                 { "room", pRoomId },
                                                 { "permanent", true }
-                                            })  
+                                            })
         {
         }
     }
@@ -558,6 +566,7 @@ namespace osWebRtcVoice
         }
 
         public int ParticipantId { get { return PluginRespDataInt("id"); } }
+        //public long ParticipantId { get { return PluginRespDataLong("id"); } }
     }
 
     // ==============================================================
@@ -565,7 +574,7 @@ namespace osWebRtcVoice
     {
         // TODO:
         public AudioBridgeConfigRoomReq(int pRoomId, string pSdp) : base(new OSDMap() {
-                                                { "request", "configure" },
+                                                { "request", "configure" }
                                             })
         {
         }
@@ -586,7 +595,7 @@ namespace osWebRtcVoice
                                                 { "request", "leave" },
                                                 { "room", pRoomId },
                                                 { "id", pAttendeeId }
-                                            })  
+                                            })
         {
         }
     }
@@ -607,7 +616,7 @@ namespace osWebRtcVoice
         public AudioBridgeListParticipantsReq(int pRoom) : base(new OSDMap() {
                                                 { "request", "listparticipants" },
                                                 { "room", pRoom }
-                                            })  
+                                            })
         {
         }
     }
