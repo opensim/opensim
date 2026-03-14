@@ -97,23 +97,35 @@ namespace osWebRtcVoice
                     case "event":
                         if (abResp.AudioBridgeErrorCode == 486)
                         {
-                            m_log.Warn($"{LogHeader} CreateRoom. Room {pRoomId} already exists. Reusing! {abResp}");
+                            m_log.Info($"{LogHeader} CreateRoom. Room {pRoomId} already exists (reconnect).");
+                            if (m_log.IsDebugEnabled)
+                            {
+                                m_log.Debug($"{LogHeader} CreateRoom. Reconnect details: {abResp}");
+                            }
                             // if room already exists, just use it
                             ret = new JanusRoom(this, pRoomId);
                         }
                         else
                         {
-                            m_log.Error($"{LogHeader} CreateRoom. XX Room creation failed: {abResp}");
+                            m_log.Error($"{LogHeader} CreateRoom. XX Room creation failed.");
+                            if (m_log.IsDebugEnabled)
+                            {
+                                m_log.Debug($"{LogHeader} CreateRoom. XX failure detail: {abResp}");
+                            }
                         }
                         break;
                     default:
-                        m_log.Error($"{LogHeader} CreateRoom. YY Room creation failed: {abResp}");
+                        m_log.Error($"{LogHeader} CreateRoom. YY Room creation failed.");
+                        if (m_log.IsDebugEnabled)
+                        {
+                            m_log.Debug($"{LogHeader} CreateRoom. YY failure detail: {abResp}");
+                        }
                         break;
                 }   
             }
             catch (Exception e)
             {
-                m_log.Error($"{LogHeader} CreateRoom. Exception {e.Message}");
+                m_log.Error($"{LogHeader} CreateRoom. Exception '{e.Message}'");
             }
             return ret;
         }
