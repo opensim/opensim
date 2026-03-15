@@ -333,7 +333,7 @@ namespace osWebRtcVoice
 
                 if (pRequest.TryGetOSDMap("jsep", out OSDMap jsep))
                 {
-                    await viewerSession.ProvisionLock.WaitAsync().ConfigureAwait(false);
+                    await viewerSession.ProvisionLock.WaitAsync();
 
                     try
                     {

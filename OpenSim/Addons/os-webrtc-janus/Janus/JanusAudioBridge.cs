@@ -180,6 +180,7 @@ namespace osWebRtcVoice
             int roomNumber = Math.Abs(hashed.GetHashCode());
             return roomNumber;
         }
+
         public async Task<JanusRoom> SelectRoom(string pRegionId, string pChannelType, bool pSpatial, int pParcelLocalID, string pChannelID)
         {
             int roomNumber = CalcRoomNumber(pRegionId, pChannelType, pParcelLocalID, pChannelID);

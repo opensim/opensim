@@ -148,7 +148,7 @@ namespace osWebRtcVoice
                 { "params", pParams }
             };
 
-            OSDMap outerResponse = null;
+            OSDMap outerResponse;
             try
             {
                 if (m_MessageDetails) m_log.Debug($"{LogHeader}: request: {request}");

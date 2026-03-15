@@ -66,7 +66,7 @@ namespace osWebRtcVoice
 
         public string PluginId { get; set; }
 
-        private CancellationTokenSource _CancelTokenSource = new CancellationTokenSource();
+//        private CancellationTokenSource _CancelTokenSource = new();
 
         public bool IsConnected { get; set; }
 
@@ -173,7 +173,7 @@ namespace osWebRtcVoice
                 m_log.Error($"{LogHeader} DestroySession: exception ", e);
             }
             IsConnected = false;
-            _CancelTokenSource.Cancel();
+//            _CancelTokenSource.Cancel();
 
             return ret;
         }
@@ -265,8 +265,7 @@ namespace osWebRtcVoice
         public async Task<JanusMessageResp> SendToJanus(JanusMessageReq pReq, string pURI, bool admin = false)
         {
             AddJanusHeaders(pReq, admin);
-            // m_log.DebugFormat("{0} SendToJanus", LogHeader);
-            if (_MessageDetails) m_log.DebugFormat("{0} SendToJanus. URI={1}, req={2}", LogHeader, pURI, pReq.ToJson());
+            if (_MessageDetails) m_log.DebugFormat($"{LogHeader} SendToJanus. URI={pURI}, req={pReq.ToJson}");
 //            if (_MessageDetails) DebugLog("{0} SendToJanus. URI={1}, req={2}", LogHeader, pURI, pReq.ToJson());
 
             JanusMessageResp ret = null;
@@ -286,7 +285,8 @@ namespace osWebRtcVoice
                 HttpRequestMessage reqMsg = new(HttpMethod.Post, pURI);
                 reqMsg.Content = new StringContent(reqStr, System.Text.Encoding.UTF8, MediaTypeNames.Application.Json);
                 reqMsg.Headers.TryAddWithoutValidation("Accept", "application/json");
-                HttpResponseMessage response = await httpClient.SendAsync(reqMsg, _CancelTokenSource.Token);
+//                HttpResponseMessage response = await httpClient.SendAsync(reqMsg, _CancelTokenSource.Token);
+                HttpResponseMessage response = await httpClient.SendAsync(reqMsg);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -295,7 +295,7 @@ namespace osWebRtcVoice
                     if (ret.CheckReturnCode("ack"))
                     {
                         // Some messages are asynchronous and completed with an event
-                        if (_MessageDetails) m_log.DebugFormat("{0} SendToJanus: ack response {1}", LogHeader, respStr);
+                        if (_MessageDetails) m_log.Debug($"{LogHeader} SendToJanus: ack response {respStr}");
 //                        if (_MessageDetails) DebugLog("{0} SendToJanus: ack response {1}", LogHeader, respStr);
 /*
                         if (_OutstandingRequests.TryGetValue(pReq.TransactionId, out OutstandingRequest outstandingRequest))
@@ -314,14 +314,14 @@ namespace osWebRtcVoice
                     {
                         // If the response is not an ack, that means a synchronous request/response so return the response
                         _= _OutstandingRequests.TryRemove(pReq.TransactionId, out _);
-                        if (_MessageDetails) m_log.DebugFormat("{0} SendToJanus: response {1}", LogHeader, respStr);
+                        if (_MessageDetails) m_log.Debug($"{LogHeader} SendToJanus: response {respStr}");
 //                        if (_MessageDetails) DebugLog("{0} SendToJanus: response {1}", LogHeader, respStr);
 
                     }
                 }
                 else
                 {
-                    m_log.ErrorFormat("{0} SendToJanus: response not successful {1}", LogHeader, response);
+                    m_log.Error("{LogHeader} SendToJanus: response not successful {response}");
                     _= _OutstandingRequests.TryRemove(pReq.TransactionId, out _);
                 }
             }
@@ -362,7 +362,7 @@ namespace osWebRtcVoice
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("{0} SendToJanusNoWait: exception {1}", LogHeader, e.Message);
+                m_log.Error($"{LogHeader} SendToJanusNoWait: exception {e.Message}");
             }
             return ret;
 
@@ -399,12 +399,12 @@ namespace osWebRtcVoice
             // The following two are required for the WebSocket interface. They are optional for the
             //     HTTP interface since the session and plugin handle are in the URL.
             // SessionId is added to the message if not already there
-            if (!pReq.hasSessionId && !String.IsNullOrEmpty(SessionId))
+            if (!pReq.hasSessionId && !string.IsNullOrEmpty(SessionId))
             {
                 pReq.AddSessionId(SessionId);
             }
             // HandleId connects to the plugin
-            if (!pReq.hasHandleId && !String.IsNullOrEmpty(PluginId))
+            if (!pReq.hasHandleId && !string.IsNullOrEmpty(PluginId))
             {
                 pReq.AddHandleId(PluginId);
             }
@@ -458,16 +458,18 @@ namespace osWebRtcVoice
                 HttpResponseMessage response = null;
                 try
                 {
-                    response = await httpClient.SendAsync(reqMsg, _CancelTokenSource.Token);
+//                    response = await httpClient.SendAsync(reqMsg, _CancelTokenSource.Token);
+                    response = await httpClient.SendAsync(reqMsg).ConfigureAwait(false);
+
                     if (response is not null && response.IsSuccessStatusCode)
                     {
-                        string respStr = await response.Content.ReadAsStringAsync();
+                        string respStr = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                         ret = JanusMessageResp.FromJson(respStr);
                         // m_log.DebugFormat("{0} GetFromJanus: response {1}", LogHeader, respStr);
                     }
                     else
                     {
-                        m_log.ErrorFormat("{0} GetFromJanus: response not successful {1}", LogHeader, response);
+                        m_log.Error($"{LogHeader} GetFromJanus: response not successful {response}");
 //                        m_log.ErrorFormat("{0} GetFromJanus: response not successful", LogHeader);
 //                        if (m_log.IsDebugEnabled)
 //                            m_log.DebugFormat("{0} GetFromJanus: response detail {1}", LogHeader, response);
@@ -576,20 +578,21 @@ namespace osWebRtcVoice
                                         break;
                                     case "server_info":
                                         // Just info on the Janus instance
-                                        m_log.DebugFormat("{0} EventLongPoll: server_info {1}", LogHeader, resp.ToString());
+                                        m_log.Debug($"{LogHeader} EventLongPoll: server_info {resp}");
                                         break;
                                     case "ack":
                                         // 'ack' says the request was received and an event will follow
-                                        if (_MessageDetails) m_log.DebugFormat("{0} EventLongPoll: ack {1}", LogHeader, resp.ToString());
+                                        if (_MessageDetails) m_log.Debug($"{LogHeader} EventLongPoll: ack {resp}");
                                         break;
                                     case "success":
                                         // success is a sync response that says the request was completed
-                                        if (_MessageDetails) m_log.DebugFormat("{0} EventLongPoll: success {1}", LogHeader, resp.ToString());
+                                        if (_MessageDetails) m_log.Debug($"{LogHeader} EventLongPoll: success {resp}");
                                         break;
                                     case "trickle":
                                         // got a trickle ICE candidate from Janus
                                         // this is for reverse communication from Janus to the client and we don't do that
-                                        if (_MessageDetails) m_log.DebugFormat("{0} EventLongPoll: trickle {1}", LogHeader, resp.ToString());
+                                        if (_MessageDetails) m_log.Debug($"{LogHeader} EventLongPoll: trickle {resp}");
+
                                         OnTrickle?.Invoke(eventResp);
                                         break;
                                     case "webrtcup":
@@ -652,11 +655,11 @@ namespace osWebRtcVoice
                                         else
                                         {
                                             OnError?.Invoke(eventResp);
-                                            m_log.ErrorFormat("{0} EventLongPoll: error with no transaction. {1}", LogHeader, resp.ToString());
+                                            m_log.Error($"{LogHeader} EventLongPoll: error with no transaction. {resp}");
                                         }
                                         break;
                                     case "event":
-                                        if (_MessageDetails) m_log.DebugFormat("{0} EventLongPoll: event {1}", LogHeader, resp.ToString());
+                                        if (_MessageDetails) m_log.Debug($"{LogHeader} EventLongPoll: event {resp}");
                                         if (TryGetOutstandingRequest(resp.TransactionId, out OutstandingRequest outstandingRequest2))
                                         {
                                             // Someone is waiting for this event

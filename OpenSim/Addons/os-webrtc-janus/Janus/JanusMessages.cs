@@ -565,8 +565,7 @@ namespace osWebRtcVoice
         {
         }
 
-        public int ParticipantId { get { return PluginRespDataInt("id"); } }
-//        public long ParticipantId { get { return PluginRespDataLong("id"); } }
+        public long ParticipantId { get { return PluginRespDataLong("id"); } }
     }
 
     // ==============================================================
@@ -591,7 +590,7 @@ namespace osWebRtcVoice
     // ==============================================================
     public class AudioBridgeLeaveRoomReq : PluginMsgReq
     {
-        public AudioBridgeLeaveRoomReq(int pRoomId, int pAttendeeId) : base(new OSDMap() {
+        public AudioBridgeLeaveRoomReq(int pRoomId, long pAttendeeId) : base(new OSDMap() {
                                                 { "request", "leave" },
                                                 { "room", pRoomId },
                                                 { "id", pAttendeeId }
@@ -628,6 +627,7 @@ namespace osWebRtcVoice
         {
         }
     }
+
     // ==============================================================
     // The LongPoll request returns events from  the plugins. These are formatted
     //    like the other responses but are not responses to requests.

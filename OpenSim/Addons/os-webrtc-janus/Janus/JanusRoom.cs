@@ -75,8 +75,7 @@ namespace osWebRtcVoice
                 JanusMessageResp resp = await _AudioBridge.SendPluginMsg(joinReq);
                 AudioBridgeJoinRoomResp joinResp = new(resp);
 
-//                if (joinResp is not null && joinResp.AudioBridgeReturnCode == "joined" && joinResp.ParticipantId > 0)
-                if (joinResp is not null && joinResp.AudioBridgeReturnCode == "joined")
+                if (joinResp is not null && joinResp.AudioBridgeReturnCode == "joined" && joinResp.ParticipantId > 0)
                 {
                     pVSession.ParticipantId = joinResp.ParticipantId;
                     pVSession.Answer = joinResp.Jsep;
@@ -95,8 +94,7 @@ namespace osWebRtcVoice
                         JanusMessageResp retryResp = await _AudioBridge.SendPluginMsg(retryJoinReq);
                         AudioBridgeJoinRoomResp retryJoinResp = new(retryResp);
 
-//                        if (retryJoinResp is not null && retryJoinResp.AudioBridgeReturnCode == "joined" && retryJoinResp.ParticipantId > 0)
-                        if (retryJoinResp is not null && retryJoinResp.AudioBridgeReturnCode == "joined")
+                        if (retryJoinResp is not null && retryJoinResp.AudioBridgeReturnCode == "joined" && retryJoinResp.ParticipantId > 0)
                         {
                             pVSession.ParticipantId = retryJoinResp.ParticipantId;
                             pVSession.Answer = retryJoinResp.Jsep;
@@ -115,7 +113,6 @@ namespace osWebRtcVoice
                 }
                 else
                 {
-/*
                     if (joinResp is not null && joinResp.AudioBridgeReturnCode == "joined" && joinResp.ParticipantId <= 0)
                     {
                         m_log.ErrorFormat("{0} JoinRoom. Joined response contains invalid participant id {1} for room {2}",
@@ -123,7 +120,7 @@ namespace osWebRtcVoice
                         if (m_log.IsDebugEnabled)
                             m_log.DebugFormat("{0} JoinRoom. Invalid participant detail: {1}", LogHeader, joinResp.ToString());
                     }
-*/
+
                     m_log.ErrorFormat("{0} JoinRoom. Failed to join room {1}", LogHeader, RoomId);
                     if (m_log.IsDebugEnabled)
                         m_log.DebugFormat("{0} JoinRoom. Failure detail: {1}", LogHeader, joinResp?.ToString() ?? "null");
@@ -176,10 +173,9 @@ namespace osWebRtcVoice
                         if (!string.Equals(display, pDisplay, StringComparison.Ordinal))
                             continue;
 
-//                        long participantId = participant.TryGetValue("id", out OSD idNode) ? idNode.AsLong() : 0L;
-//                        if (participantId <= 0)
-//                            continue;
-                        int participantId = participant.TryGetValue("id", out OSD idNode) ? (int)idNode.AsLong() : 0;
+                        long participantId = participant.TryGetValue("id", out OSD idNode) ? idNode.AsLong() : 0L;
+                        if (participantId <= 0)
+                            continue;
 
                         JanusMessageResp leaveRespRaw = await _AudioBridge.SendPluginMsg(new AudioBridgeLeaveRoomReq(roomId, participantId));
                         AudioBridgeResp leaveResp = new(leaveRespRaw);
