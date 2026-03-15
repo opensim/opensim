@@ -38,6 +38,7 @@ using OpenMetaverse.StructuredData;
 
 using log4net;
 using System.Threading;
+using OpenSim.Framework;
 
 namespace osWebRtcVoice
 {
@@ -66,7 +67,6 @@ namespace osWebRtcVoice
         public string PluginId { get; set; }
 
         private CancellationTokenSource _CancelTokenSource = new CancellationTokenSource();
-        private HttpClient _HttpClient = new HttpClient();
 
         public bool IsConnected { get; set; }
 
@@ -89,11 +89,6 @@ namespace osWebRtcVoice
             if (IsConnected)
             {
                 _ = DestroySession();
-            }
-            if (_HttpClient is not null)
-            {
-                _HttpClient.Dispose();
-                _HttpClient = null;
             }
         }
 
@@ -287,10 +282,11 @@ namespace osWebRtcVoice
 
                 string reqStr = pReq.ToJson();
 
+                HttpClient httpClient = WebUtil.GetNewGlobalHttpClient(30000);
                 HttpRequestMessage reqMsg = new(HttpMethod.Post, pURI);
                 reqMsg.Content = new StringContent(reqStr, System.Text.Encoding.UTF8, MediaTypeNames.Application.Json);
-                reqMsg.Headers.Add("Accept", "application/json");
-                HttpResponseMessage response = await _HttpClient.SendAsync(reqMsg, _CancelTokenSource.Token);
+                reqMsg.Headers.TryAddWithoutValidation("Accept", "application/json");
+                HttpResponseMessage response = await httpClient.SendAsync(reqMsg, _CancelTokenSource.Token);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -355,11 +351,12 @@ namespace osWebRtcVoice
 
             try
             {
+                HttpClient httpClient = WebUtil.GetNewGlobalHttpClient(30000);
                 HttpRequestMessage reqMsg = new(HttpMethod.Post, pURI);
                 string reqStr = pReq.ToJson();
                 reqMsg.Content = new StringContent(reqStr, System.Text.Encoding.UTF8, MediaTypeNames.Application.Json);
-                reqMsg.Headers.Add("Accept", "application/json");
-                HttpResponseMessage response = await _HttpClient.SendAsync(reqMsg);
+                reqMsg.Headers.TryAddWithoutValidation("Accept", "application/json");
+                HttpResponseMessage response = await httpClient.SendAsync(reqMsg);
                 string respStr = await response.Content.ReadAsStringAsync();
                 ret = JanusMessageResp.FromJson(respStr);
             }
@@ -443,7 +440,7 @@ namespace osWebRtcVoice
         /// </summary>
         /// <param name="pURI"></param>
         /// <returns></returns>
-        public async Task<JanusMessageResp> GetFromJanus(string pURI)
+        public async Task<JanusMessageResp> GetFromJanus(string pURI, int timeout = 30000)
         {
             if (!string.IsNullOrEmpty(_JanusAPIToken))
             {
@@ -454,12 +451,14 @@ namespace osWebRtcVoice
             try
             {
                 // m_log.DebugFormat("{0} GetFromJanus: URI = \"{1}\"", LogHeader, pURI);
+                //HttpClient httpClient = WebUtil.GetNewGlobalHttpClient(timeout);
+                HttpClient httpClient = WebUtil.GetGlobalNoRedirHttpClient(timeout);
                 HttpRequestMessage reqMsg = new HttpRequestMessage(HttpMethod.Get, pURI);
-                reqMsg.Headers.Add("Accept", "application/json");
+                reqMsg.Headers.TryAddWithoutValidation("Accept", "application/json");
                 HttpResponseMessage response = null;
                 try
                 {
-                    response = await _HttpClient.SendAsync(reqMsg, _CancelTokenSource.Token);
+                    response = await httpClient.SendAsync(reqMsg, _CancelTokenSource.Token);
                     if (response is not null && response.IsSuccessStatusCode)
                     {
                         string respStr = await response.Content.ReadAsStringAsync();
@@ -563,10 +562,10 @@ namespace osWebRtcVoice
                 {
                     try
                     {
-                        var resp = await GetFromJanus(SessionUri);
+                        JanusMessageResp resp = await GetFromJanus(SessionUri, 60000);
                         if (resp is not null)
                         {
-                            _ = Task.Run(() =>
+                            //_ = Task.Run(() =>
                             {
                                 EventResp eventResp = new EventResp(resp);
                                 switch (resp.ReturnCode)
@@ -733,7 +732,8 @@ namespace osWebRtcVoice
                                         m_log.DebugFormat("{0} EventLongPoll: unknown response {1}", LogHeader, resp.ToString());
                                         break;
                                 }
-                            });
+                            }
+     //                       );
                         }
                         else
                         {
