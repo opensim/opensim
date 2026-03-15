@@ -1239,7 +1239,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                                 $"The OAR you are trying to load has major version number of {majorVersion} but this version can only load OARs with major version number {MAX_MAJOR_VERSION} and below");
                         }
 
-                        m_log.InfoFormat($"[ARCHIVER]: Loading OAR with version {version}");
+                        m_log.Info($"[ARCHIVER]: Loading OAR with version {version}");
                     }
                     else if (xtr.Name.ToString() == "datetime")
                     {

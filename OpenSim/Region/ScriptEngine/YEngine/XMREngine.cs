@@ -228,7 +228,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 string oscode = Enum.GetName(typeof(SceneScriptEvents), 1UL << i);
                 if(mycode != oscode)
                 {
-                    m_log.ErrorFormat($"[YEngine]: {i} mycode={mycode}, oscode={oscode}");
+                    m_log.Error($"[YEngine]: {i} mycode={mycode}, oscode={oscode}");
                     err = true;
                 }
             }

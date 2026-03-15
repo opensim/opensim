@@ -1584,11 +1584,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         {
                             try
                             {
-                                m_log.WarnFormat($"[PHYSICS]: Operation failed for a actor {item.actor.Name} {item.what}");
+                                m_log.Warn($"[PHYSICS]: Operation failed for a actor {item.actor.Name} {item.what}");
                             }
                             catch
                             {
-                                m_log.WarnFormat("[PHYSICS]: Operation failed for a unknown actor");
+                                m_log.Warn("[PHYSICS]: Operation failed for a unknown actor");
                             }
                         }
                         donechanges++;

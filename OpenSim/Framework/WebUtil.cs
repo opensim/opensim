@@ -1138,7 +1138,7 @@ namespace OpenSim.Framework
                         }
                         catch (Exception e)
                         {
-                            m_log.ErrorFormat($"[ASYNC REQUEST]: Request {verb} {requestUrl} callback failed with exception {e.Message}");
+                            m_log.Error($"[ASYNC REQUEST]: Request {verb} {requestUrl} callback failed with exception {e.Message}");
                         }
 
                     }, null);

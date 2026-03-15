@@ -948,7 +948,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     return (float)dov;
                 if (o is LSL_Types.LSLString lso)
                     return Convert.ToSingle(lso.m_string);
-                throw new InvalidCastException(string.Format($"LSL float expected but {0} given", o is not null ? o.GetType().Name : "null"));
+                throw new InvalidCastException(string.Format("LSL float expected but {0} given", o is not null ? o.GetType().Name : "null"));
             }
 
             public LSL_Types.LSLString GetLSLStringItem(int itemIndex)

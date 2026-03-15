@@ -205,7 +205,7 @@ namespace osWebRtcVoice
 
             if(request.HttpMethod != "POST")
             {
-                m_log.DebugFormat($"[{logHeader}][ProvisionVoice]: Not a POST request. Agent={agentID}");
+                m_log.Debug($"[{logHeader}][ProvisionVoice]: Not a POST request. Agent={agentID}");
                 response.StatusCode = (int)HttpStatusCode.NotFound;
                 return;
             }
@@ -231,7 +231,7 @@ namespace osWebRtcVoice
                 }
             }
 
-            if (_MessageDetails) m_log.DebugFormat($"{logHeader}[ProvisionVoice]: request: {map}");
+            if (_MessageDetails) m_log.Debug($"{logHeader}[ProvisionVoice]: request: {map}");
 
             if (map.TryGetString("channel_type", out string channelType))
             {
@@ -308,7 +308,7 @@ namespace osWebRtcVoice
 
             if(resp is not null)
             {
-                if (_MessageDetails) m_log.DebugFormat($"{logHeader}[ProvisionVoice]: response: {resp}");
+                if (_MessageDetails) m_log.Debug($"{logHeader}[ProvisionVoice]: response: {resp}");
 
                 // TODO: check for errors and package the response
 
@@ -319,7 +319,7 @@ namespace osWebRtcVoice
             }
             else
             {
-                m_log.DebugFormat($"{logHeader}[ProvisionVoice]: got null response");
+                m_log.Debug($"{logHeader}[ProvisionVoice]: got null response");
                 response.StatusCode = (int)HttpStatusCode.OK;
             }
             return;
@@ -330,7 +330,7 @@ namespace osWebRtcVoice
             IWebRtcVoiceService voiceService = scene.RequestModuleInterface<IWebRtcVoiceService>();
             if (voiceService is null)
             {
-                m_log.ErrorFormat($"{logHeader}[VoiceSignalingRequest]: avatar \"{agentID}\": no voice service");
+                m_log.Error($"{logHeader}[VoiceSignalingRequest]: avatar \"{agentID}\": no voice service");
                 response.StatusCode = (int)HttpStatusCode.NotFound;
                 return;
             }
@@ -346,7 +346,7 @@ namespace osWebRtcVoice
             OSDMap map = BodyToMap(request, "VoiceSignalingRequest");
             if (map is null)
             {
-                m_log.ErrorFormat($"{logHeader}[VoiceSignalingRequest]: No request data found. Agent={agentID}");
+                m_log.Error($"{logHeader}[VoiceSignalingRequest]: No request data found. Agent={agentID}");
                 response.StatusCode = (int)HttpStatusCode.NoContent;
                 return;
             }
@@ -384,7 +384,7 @@ namespace osWebRtcVoice
         /// <param name="scene"></param>
         public void ChatSessionRequest(IOSHttpRequest request, IOSHttpResponse response, UUID agentID, Scene scene)
         {
-            m_log.DebugFormat("{0}: ChatSessionRequest received for agent {1} in scene {2}", logHeader, agentID, scene.RegionInfo.RegionName);
+            m_log.Debug($"{logHeader}: ChatSessionRequest received for agent {agentID} in scene {scene.Name}");
             if (request.HttpMethod != "POST")
             {
                 response.StatusCode = (int)HttpStatusCode.NotFound;
@@ -444,7 +444,7 @@ namespace osWebRtcVoice
                     IEventQueue queue = scene.RequestModuleInterface<IEventQueue>();
                     if (queue is null)
                     {
-                        m_log.ErrorFormat("{0}: no event queue for scene {1}", logHeader, scene.RegionInfo.RegionName);
+                        m_log.Error($"{logHeader}: no event queue for scene {scene.Name}");
                         response.StatusCode = (int)HttpStatusCode.InternalServerError;
                     }
                     else

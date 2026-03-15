@@ -106,7 +106,6 @@ namespace OpenSim.Server.Handlers.Presence
             }
 
             return FailureResult();
-
         }
 
         byte[] LoginAgent(Dictionary<string, object> request)

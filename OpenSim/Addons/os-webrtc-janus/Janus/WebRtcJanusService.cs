@@ -432,7 +432,7 @@ namespace osWebRtcVoice
                     {
                         // The client has finished sending candidates
                         resp = await viewerSession.Session.TrickleCompleted(viewerSession).ConfigureAwait(false);
-                        _log.DebugFormat($"{LogHeader} VoiceSignalingRequest: candidate completed");
+                        _log.Debug($"{LogHeader} VoiceSignalingRequest: candidate completed");
                     }
                     else
                     {
@@ -483,7 +483,7 @@ namespace osWebRtcVoice
             }
             if (resp is null)
             {
-                _log.ErrorFormat($"{LogHeader} VoiceSignalingRequest: no response so returning error");
+                _log.Error($"{LogHeader} VoiceSignalingRequest: no response so returning error");
                 ret = new OSDMap
                 {
                     { "response", "error" }

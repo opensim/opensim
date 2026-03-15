@@ -254,7 +254,7 @@ namespace OpenSim.Services.HypergridService
                 region = m_GridService.GetLocalRegionByName(m_ScopeID, regionName);
                 if (region is null)
                 {
-                    m_log.DebugFormat($"[GATEKEEPER SERVICE]: LinkLocalRegion could not find local region {regionName}");
+                    m_log.Debug($"[GATEKEEPER SERVICE]: LinkLocalRegion could not find local region {regionName}");
                     reason = "Region not found";
                     return false;
                 }

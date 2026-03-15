@@ -381,12 +381,12 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                         }
                         catch (NotImplementedException)
                         {
-                            m_log.ErrorFormat($"{LogHeader}Unable to load heightmap, the {loader.Value} parser does not support file loading. (May be save only)");
+                            m_log.Error($"{LogHeader}Unable to load heightmap, the {loader.Value} parser does not support file loading. (May be save only)");
                             throw new TerrainException($"unable to load heightmap: parser {loader.Value} does not support loading");
                         }
                         catch (FileNotFoundException)
                         {
-                            m_log.ErrorFormat($"{LogHeader}Unable to load heightmap, file not found. (A directory permissions error may also cause this)");
+                            m_log.Error($"{LogHeader}Unable to load heightmap, file not found. (A directory permissions error may also cause this)");
                             throw new TerrainException($"unable to load heightmap: file {filename} not found (or permissions do not allow access");
                         }
                         catch (ArgumentException e)
@@ -498,7 +498,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                         }
                         catch (NotImplementedException)
                         {
-                            m_log.ErrorFormat($"{LogHeader}Unable to load heightmap, the { loader.Value} parser does not support file loading. (May be save only)");
+                            m_log.Error($"{LogHeader}Unable to load heightmap, the { loader.Value} parser does not support file loading. (May be save only)");
                             throw new TerrainException("unable to load heightmap: parser {loader.Value} does not support loading");
                         }
                     }

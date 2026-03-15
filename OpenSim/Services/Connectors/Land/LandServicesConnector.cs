@@ -102,41 +102,45 @@ namespace OpenSim.Services.Connectors
                     else
                     {
                         hash = (Hashtable)response.Value;
-                        try
+                        if(hash is not null)
                         {
-                            landData = new LandData();
-                            landData.AABBMax = Vector3.Parse((string)hash["AABBMax"]);
-                            landData.AABBMin = Vector3.Parse((string)hash["AABBMin"]);
-                            landData.Area = Convert.ToInt32(hash["Area"]);
-                            landData.AuctionID = Convert.ToUInt32(hash["AuctionID"]);
-                            landData.Description = (string)hash["Description"];
-                            landData.Flags = Convert.ToUInt32(hash["Flags"]);
-                            landData.GlobalID = new UUID((string)hash["GlobalID"]);
-                            landData.Name = (string)hash["Name"];
-                            landData.OwnerID = new UUID((string)hash["OwnerID"]);
-                            landData.SalePrice = Convert.ToInt32(hash["SalePrice"]);
-                            landData.SnapshotID = new UUID((string)hash["SnapshotID"]);
-                            landData.UserLocation = Vector3.Parse((string)hash["UserLocation"]);
-                            if (hash["RegionAccess"] != null)
-                                regionAccess = (byte)Convert.ToInt32((string)hash["RegionAccess"]);
-                            if(hash["Dwell"] != null)
-                                landData.Dwell = Convert.ToSingle((string)hash["Dwell"]);
-                            //m_log.DebugFormat("[LAND CONNECTOR]: Got land data for parcel {0}", landData.Name);
+                            try
+                            {
+                                landData = new LandData();
+                                landData.AABBMax = Vector3.Parse((string)hash["AABBMax"]);
+                                landData.AABBMin = Vector3.Parse((string)hash["AABBMin"]);
+                                landData.Area = Convert.ToInt32(hash["Area"]);
+                                landData.AuctionID = Convert.ToUInt32(hash["AuctionID"]);
+                                landData.Description = (string)hash["Description"];
+                                landData.Flags = Convert.ToUInt32(hash["Flags"]);
+                                landData.GlobalID = new UUID((string)hash["GlobalID"]);
+                                landData.Name = (string)hash["Name"];
+                                landData.OwnerID = new UUID((string)hash["OwnerID"]);
+                                landData.SalePrice = Convert.ToInt32(hash["SalePrice"]);
+                                landData.SnapshotID = new UUID((string)hash["SnapshotID"]);
+                                landData.UserLocation = Vector3.Parse((string)hash["UserLocation"]);
+                                if (hash["RegionAccess"] != null)
+                                    regionAccess = (byte)Convert.ToInt32((string)hash["RegionAccess"]);
+                                if(hash["Dwell"] != null)
+                                    landData.Dwell = Convert.ToSingle((string)hash["Dwell"]);
+                                //m_log.DebugFormat("[LAND CONNECTOR]: Got land data for parcel {0}", landData.Name);
+                            }
+                            catch (Exception e)
+                            {
+                                m_log.Error(
+                                    $"[LAND CONNECTOR]: Got exception while parsing land data: {e.Message} {e.StackTrace}");
+                            }
                         }
-                        catch (Exception e)
-                        {
-                            m_log.ErrorFormat(
-                                "[LAND CONNECTOR]: Got exception while parsing land-data: {0} {1}",
-                                e.Message, e.StackTrace);
-                        }
+                        else
+                            m_log.Warn($"[LAND CONNECTOR]: Couldn't get land data for parcel region handle {regionHandle}");
                     }
                 }
                 else
-                    m_log.WarnFormat("[LAND CONNECTOR]: Couldn't find region with handle {0}", regionHandle);
+                    m_log.Warn($"[LAND CONNECTOR]: Couldn't find region with handle {regionHandle}");
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[LAND CONNECTOR]: Couldn't contact region {0}: {1}", regionHandle, e.Message);
+                m_log.Error($"[LAND CONNECTOR]: Couldn't contact region {regionHandle}: {e.Message}");
             }
 
             return landData;
