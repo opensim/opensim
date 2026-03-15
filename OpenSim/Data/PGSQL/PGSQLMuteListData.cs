@@ -44,13 +44,12 @@ namespace OpenSim.Data.PGSQL
 
         public MuteData[] Get(UUID agentID)
         {
-            var data = base.Get("AgentID", agentID.ToString());
-            return data;
+            return base.Get("AgentID", agentID.ToString());
         }
 
         public bool Delete(UUID agentID, UUID muteID, string muteName)
         {
-            var query = $"DELETE FROM MuteList WHERE \"AgentID\" = :AgentID and " +
+            string query = $"DELETE FROM MuteList WHERE \"AgentID\" = :AgentID and " +
                         $"\"MuteID\" = :MuteID and " +
                         $"\"MuteName\" = :MuteName";
 

@@ -142,20 +142,25 @@ namespace OpenSim.Groups
             }
 
             // Create the group
-            GroupData data = new GroupData();
-            data.GroupID = UUID.Random();
-            data.Data = new Dictionary<string, string>();
-            data.Data["Name"] = name;
-            data.Data["Charter"] = charter;
-            data.Data["InsigniaID"] = insigniaID.ToString();
-            data.Data["FounderID"] = founderID.ToString();
-            data.Data["MembershipFee"] = membershipFee.ToString();
-            data.Data["OpenEnrollment"] = openEnrollment ? "1" : "0";
-            data.Data["ShowInList"] = showInList ? "1" : "0";
-            data.Data["AllowPublish"] = allowPublish ? "1" : "0";
-            data.Data["MaturePublish"] = maturePublish ? "1" : "0";
             UUID ownerRoleID = UUID.Random();
-            data.Data["OwnerRoleID"] = ownerRoleID.ToString();
+            string founderIDstr = founderID.ToString();
+            GroupData data = new()
+            {
+                GroupID = UUID.Random(),
+                Data = new Dictionary<string, string>
+                {
+                    ["Name"] = name,
+                    ["Charter"] = charter,
+                    ["InsigniaID"] = insigniaID.ToString(),
+                    ["FounderID"] = founderIDstr,
+                    ["MembershipFee"] = membershipFee.ToString(),
+                    ["OpenEnrollment"] = openEnrollment ? "1" : "0",
+                    ["ShowInList"] = showInList ? "1" : "0",
+                    ["AllowPublish"] = allowPublish ? "1" : "0",
+                    ["MaturePublish"] = maturePublish ? "1" : "0",
+                    ["OwnerRoleID"] = ownerRoleID.ToString()
+                }
+            };
 
             if (!m_Database.StoreGroup(data))
                 return UUID.Zero;
@@ -171,8 +176,8 @@ namespace OpenSim.Groups
             _AddOrUpdateGroupRole(RequestingAgentID, data.GroupID, ownerRoleID, "Owners", "Owners of the group", "Owner of " + name, (ulong)OwnerPowers, true);
 
             // Add founder to group
-            _AddAgentToGroup(RequestingAgentID, founderID.ToString(), data.GroupID, ownerRoleID);
-            _AddAgentToGroup(RequestingAgentID, founderID.ToString(), data.GroupID, officersRoleID);
+            _AddAgentToGroup(RequestingAgentID, founderIDstr, data.GroupID, ownerRoleID);
+            _AddAgentToGroup(RequestingAgentID, founderIDstr, data.GroupID, officersRoleID);
 
             return data.GroupID;
         }
@@ -186,7 +191,7 @@ namespace OpenSim.Groups
             // Check perms
             if (!HasPower(RequestingAgentID, groupID, GroupPowers.ChangeActions))
             {
-                m_log.DebugFormat("[Groups]: ({0}) Attempt at updating group {1} denied because of lack of permission", RequestingAgentID, groupID);
+                m_log.Debug($"[Groups]: ({RequestingAgentID}) Attempt at updating group {groupID} denied because of lack of permission");
                 return;
             }
 
@@ -219,7 +224,7 @@ namespace OpenSim.Groups
 
         public List<DirGroupsReplyData> FindGroups(string RequestingAgentID, string search)
         {
-            List<DirGroupsReplyData> groups = new List<DirGroupsReplyData>();
+            List<DirGroupsReplyData> groups = [];
 
             GroupData[] data = m_Database.RetrieveGroups(search);
 
@@ -228,7 +233,7 @@ namespace OpenSim.Groups
                 foreach (GroupData d in data)
                 {
                     // Don't list group proxies
-                    if (d.Data.ContainsKey("Location") && d.Data["Location"] != string.Empty)
+                    if (d.Data.TryGetValue("Location", out string loc) && loc != string.Empty)
                         continue;
 
                     int nmembers = m_Database.MemberCount(d.GroupID);
@@ -257,7 +262,7 @@ namespace OpenSim.Groups
 
         public List<ExtendedGroupMembersData> GetGroupMembers(string RequestingAgentID, UUID GroupID)
         {
-            List<ExtendedGroupMembersData> members = new List<ExtendedGroupMembersData>();
+            List<ExtendedGroupMembersData> members = [];
 
             GroupData group = m_Database.RetrieveGroup(GroupID);
             if (group == null)

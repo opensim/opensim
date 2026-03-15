@@ -82,7 +82,7 @@ namespace osWebRtcVoice
         {
             lock (ViewerSessions)
             {
-                var sessions = ViewerSessions.Where(v => v.Value.VoiceServiceSessionId == pVSSessionId);
+                IEnumerable<KeyValuePair<string,IVoiceViewerSession>> sessions = ViewerSessions.Where(v => v.Value.VoiceServiceSessionId == pVSSessionId);
                 if (sessions.Count() > 0)
                 {
                     pViewerSession = sessions.First().Value;

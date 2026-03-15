@@ -155,7 +155,7 @@ namespace osWebRtcVoice
         // getHashCode() is not deterministic across sessions.
         public static int CalcRoomNumber(string pRegionId, string pChannelType, int pParcelLocalID, string pChannelID)
         {
-            var hasher = new BHasherMdjb2();
+            BHasherMdjb2 hasher = new();
             // If there is a channel specified it must be group 
             switch (pChannelType)
             {
@@ -174,7 +174,7 @@ namespace osWebRtcVoice
                 default:
                     throw new Exception("Unknown channel type: " + pChannelType);
             }   
-            var hashed = hasher.Finish();
+            BHash hashed = hasher.Finish();
             // The "Abs()" is because Janus room number must be a positive integer
             // And note that this is the BHash.GetHashCode() and not Object.getHashCode().
             int roomNumber = Math.Abs(hashed.GetHashCode());

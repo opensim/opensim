@@ -101,7 +101,7 @@ namespace osWebRtcVoice
                 { "userID", pUserID.ToString() },
                 { "scene", pSceneID.ToString() }
             };
-            var resp = JsonRpcRequest("provision_voice_account_request", m_serverURI, req);
+            OSDMap resp = JsonRpcRequest("provision_voice_account_request", m_serverURI, req);
 
             // Kludge to sync the viewer session number in our IVoiceViewerSession with the one from the WebRTC service.
             if (resp.TryGetString("viewer_session", out string otherViewerSessionId))

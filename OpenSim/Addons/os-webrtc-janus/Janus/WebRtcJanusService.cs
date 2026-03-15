@@ -720,7 +720,7 @@ namespace osWebRtcVoice
                                 roomid, room["description"], room["num_participants"],
                                 room["sampling_rate"], room["spatial_audio"], room["record"]);
 
-                            var participantResp = ab.SendAudioBridgeMsg(new AudioBridgeListParticipantsReq(roomid)).Result;
+                            AudioBridgeResp participantResp = ab.SendAudioBridgeMsg(new AudioBridgeListParticipantsReq(roomid)).Result;
 
                             if (participantResp is not null && participantResp.AudioBridgeReturnCode == "participants")
                             {

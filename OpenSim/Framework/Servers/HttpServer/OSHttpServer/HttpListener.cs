@@ -123,7 +123,7 @@ namespace OSHttpServer
         /// </summary>
         public bool UseTraceLogs { get; set; }
 
-        private async void AcceptLoop()
+        private async Task AcceptLoop()
         {
             while (true)
             {
@@ -239,7 +239,7 @@ namespace OSHttpServer
 
             m_listener = new TcpListener(m_address, m_port);
             m_listener.Start(backlog);
-            Task.Run(AcceptLoop).ConfigureAwait(false);
+            _ = Task.Run(AcceptLoop);
         }
 
         /// <summary>

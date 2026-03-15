@@ -105,7 +105,7 @@ namespace osWebRtcVoice
                 JanusMessageResp resp = await SendToJanus(new CreateSessionReq());
                 if (resp is not null && resp.isSuccess)
                 {
-                    var sessionResp = new CreateSessionResp(resp);
+                    CreateSessionResp sessionResp = new(resp);
                     SessionId = sessionResp.returnedId;
                     IsConnected = true;
                     SessionUri = _JanusServerURI + "/" + SessionId;
@@ -702,7 +702,7 @@ namespace osWebRtcVoice
                                         break;
                                     case "GETERROR":
                                         // Special error response from the GET
-                                        var errorResp = new ErrorResp(resp);
+                                        ErrorResp errorResp = new(resp);
                                         switch (errorResp.errorCode)
                                         {
                                             case 404:

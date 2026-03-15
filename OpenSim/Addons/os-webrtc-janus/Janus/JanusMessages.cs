@@ -193,7 +193,7 @@ namespace osWebRtcVoice
 
         public static JanusMessageResp FromJson(string pJson)
         {
-            var newBody = OSDParser.DeserializeJson(pJson) as OSDMap;
+            OSDMap newBody = OSDParser.DeserializeJson(pJson) as OSDMap;
             return new JanusMessageResp(newBody);
         }
 

@@ -1526,8 +1526,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         {
             m_log.Info("[RADMIN]: AuthenticateUser: new request");
 
-            var responseData = (Hashtable)response.Value;
-            var requestData = (Hashtable)request.Params[0];
+            Hashtable responseData = (Hashtable)response.Value;
+            Hashtable requestData = (Hashtable)request.Params[0];
 
             lock (m_requestLock)
             {
@@ -1541,11 +1541,11 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                                                                              "token_lifetime"
                                                                          });
 
-                    var firstName = (string)requestData["user_firstname"];
-                    var lastName = (string)requestData["user_lastname"];
-                    var password = (string)requestData["user_password"];
+                    string firstName = (string)requestData["user_firstname"];
+                    string lastName = (string)requestData["user_lastname"];
+                    string password = (string)requestData["user_password"];
 
-                    var scene = m_application.SceneManager.CurrentOrFirstScene;
+                    Scene scene = m_application.SceneManager.CurrentOrFirstScene;
 
                     if (scene.Equals(null))
                     {
@@ -1553,8 +1553,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                         throw new Exception("Scene does not exist.");
                     }
 
-                    var scopeID = scene.RegionInfo.ScopeID;
-                    var account = scene.UserAccountService.GetUserAccount(scopeID, firstName, lastName);
+                    UUID scopeID = scene.RegionInfo.ScopeID;
+                    UserAccount account = scene.UserAccountService.GetUserAccount(scopeID, firstName, lastName);
 
                     if (account.Equals(null) || account.PrincipalID.Equals(UUID.Zero))
                     {
@@ -1584,18 +1584,17 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     {
                         m_log.DebugFormat("[RADMIN]: AuthenticateUser: token lifetime longer than 30s for {0} {1}", firstName,
                                           lastName);
-                        throw new Exception(String.Format("token lifetime longer than 30s for {0} {1}", firstName,
-                                          lastName));
+                        throw new Exception($"token lifetime longer than 30s for {firstName} {lastName}");
                     }
 
-                    var authModule = scene.RequestModuleInterface<IAuthenticationService>();
+                    IAuthenticationService authModule = scene.RequestModuleInterface<IAuthenticationService>();
                     if (authModule == null)
                     {
                         m_log.Debug("[RADMIN]: AuthenticateUser: no authentication module loded");
                         throw new Exception("no authentication module loaded");
                     }
 
-                    var token = authModule.Authenticate(account.PrincipalID, password, lifetime);
+                    string token = authModule.Authenticate(account.PrincipalID, password, lifetime);
                     if (String.IsNullOrEmpty(token))
                     {
                         m_log.DebugFormat("[RADMIN]: AuthenticateUser: authentication failed for {0} {1}", firstName,

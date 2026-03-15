@@ -45,12 +45,6 @@ using Caps=OpenSim.Framework.Capabilities.Caps;
 
 namespace OpenSim.Region.ClientStack.Linden
 {
-    public struct QueueItem
-    {
-        public int id;
-        public OSDMap body;
-    }
-
     [Mono.Addins.Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "EventQueueGetModule")]
     public partial class  EventQueueGetModule : IEventQueue, INonSharedRegionModule
     {

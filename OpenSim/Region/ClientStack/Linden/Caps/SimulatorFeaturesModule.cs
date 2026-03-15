@@ -347,13 +347,7 @@ namespace OpenSim.Region.ClientStack.Linden
             GridInfo ginfo = scene.SceneGridInfo;
             lock (m_features)
             {
-                OSDMap extrasMap;
-                if (m_features.TryGetValue("OpenSimExtras", out OSD extra))
-                    extrasMap = extra as OSDMap;
-                else
-                {
-                    extrasMap = new OSDMap();
-                }
+                OSDMap extrasMap = m_features.TryGetOSDMap("OpenSimExtras", out OSDMap extra) ? extra : new OSDMap();
 
                 foreach (string key in extraFeatures.Keys)
                 {
