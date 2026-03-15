@@ -141,17 +141,17 @@ namespace osWebRtcVoice
         }
         public string sender
         {
-            get { return m_message.TryGetString("sender", out string sender) ? sender : string.Empty; }
+            get { return m_message is not null && m_message.TryGetString("sender", out string sender) ? sender : string.Empty; }
         }
 
         public virtual string ToJson()
         {
-            return m_message.ToString();
+            return m_message is null ? "'null'": m_message.ToString();
         }
         
         public override string ToString()
         {
-            return m_message.ToString();
+            return m_message is null ? "'null'": m_message.ToString();
         }
     }
 
@@ -438,7 +438,7 @@ namespace osWebRtcVoice
     {
         public OSDMap m_pluginData;
         public OSDMap m_data;
-        public PluginMsgResp(JanusMessageResp pResp) : base(pResp.RawBody)
+        public PluginMsgResp(JanusMessageResp pResp) : base(pResp?.RawBody)
         {
             if (m_message is not null && m_message.TryGetOSDMap("plugindata", out m_pluginData))
             {

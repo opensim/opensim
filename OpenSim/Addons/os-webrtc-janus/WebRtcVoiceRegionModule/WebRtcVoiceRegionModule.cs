@@ -68,7 +68,7 @@ namespace osWebRtcVoice
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static readonly string logHeader = "[REGION WEBRTC VOICE]";
 
-        private static byte[] llsdUndefAnswerBytes = Util.UTF8.GetBytes("<llsd><undef /></llsd>"); 
+        private static byte[] llsdUndefAnswerBytes = Util.UTF8.GetBytes("<llsd><undef /></llsd>");
         private bool _MessageDetails = false;
 
         // Control info
@@ -79,6 +79,8 @@ namespace osWebRtcVoice
         // ISharedRegionModule.Initialize
         public void Initialise(IConfigSource config)
         {
+//            WebRtcDebugControl.ApplyFromConfig(config);
+
             m_Config = config.Configs["WebRtcVoice"];
             if (m_Config is not null)
             {
@@ -100,7 +102,7 @@ namespace osWebRtcVoice
         // ISharedRegionModule.AddRegion
         public void AddRegion(Scene scene)
         {
-            // todo register module to get parcels changes etc
+            // TODO: register module to get parcels changes etc
         }
 
         // ISharedRegionModule.RemoveRegion
@@ -161,7 +163,7 @@ namespace osWebRtcVoice
         public void OnRegisterCaps(Scene scene, UUID agentID, Caps caps)
         {
             m_log.Debug(
-                $"{logHeader}: OnRegisterCaps called with agentID {agentID} caps {caps} in scene {scene.Name}");
+                $"{logHeader}: OnRegisterCaps called with agentID {agentID} in scene {scene.Name}");
 
             caps.RegisterSimpleHandler("ProvisionVoiceAccountRequest",
                     new SimpleStreamHandler("/" + UUID.Random(), (IOSHttpRequest httpRequest, IOSHttpResponse httpResponse) =>
@@ -224,7 +226,10 @@ namespace osWebRtcVoice
             {
                 if (vstosd is OSDString vst && !((string)vst).Equals("webrtc", StringComparison.OrdinalIgnoreCase))
                 {
-                    m_log.Warn($"{logHeader}[ProvisionVoice]: voice_server_type is not 'webrtc'. Request: {map}");
+                    m_log.Warn($"{logHeader}[ProvisionVoice]: voice_server_type is not 'webrtc'");
+                    if (m_log.IsDebugEnabled)
+                        m_log.Warn($"{logHeader}[ProvisionVoice]: Request detail: {map}");
+
                     response.RawBuffer = llsdUndefAnswerBytes;
                     response.StatusCode = (int)HttpStatusCode.OK;
                     return;
@@ -289,6 +294,9 @@ namespace osWebRtcVoice
 
                         if ((land.Flags & (uint)ParcelFlags.UseEstateVoiceChan) != 0)
                         {
+                            // By removing the parcel_local_id, the voice service will treat this as an estate channel
+                            //    request and return the appropriate voice credentials for the estate channel
+                            //    instead of a parcel channel
                             map.Remove("parcel_local_id"); // estate channel
                         }
                         else if(parcel.IsRestrictedFromLand(agentID) || parcel.IsBannedFromLand(agentID))
@@ -330,7 +338,7 @@ namespace osWebRtcVoice
             IWebRtcVoiceService voiceService = scene.RequestModuleInterface<IWebRtcVoiceService>();
             if (voiceService is null)
             {
-                m_log.Error($"{logHeader}[VoiceSignalingRequest]: avatar \"{agentID}\": no voice service");
+                m_log.Error($"{logHeader}[VoiceSignalingRequest]: No voice service, Agent={agentID}");
                 response.StatusCode = (int)HttpStatusCode.NotFound;
                 return;
             }
@@ -366,8 +374,8 @@ namespace osWebRtcVoice
 
             if (_MessageDetails) m_log.Debug($"{logHeader}[VoiceSignalingRequest]: Response: {resp}");
 
-            // TODO: check for errors and package the response
-
+            // TODO: check for errors
+            // viewers ignore response
             response.RawBuffer = llsdUndefAnswerBytes;
             response.StatusCode = (int)HttpStatusCode.OK;
             return;
@@ -480,9 +488,9 @@ namespace osWebRtcVoice
         {
             try
             {
-                using Stream inputStream = request.InputStream;
-                if (inputStream.Length > 0)
-                {
+                if (request.InputStream.Length > 0)
+                { 
+                    using Stream inputStream = request.InputStream;
                     OSD tmp = OSDParser.DeserializeLLSDXml(inputStream);
                     if (_MessageDetails)
                         m_log.Debug($"{pCaller} BodyToMap: Request: {tmp}");

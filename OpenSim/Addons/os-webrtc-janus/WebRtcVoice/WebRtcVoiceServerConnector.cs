@@ -58,6 +58,8 @@ namespace osWebRtcVoice
 
         public WebRtcVoiceServerConnector(IConfigSource pConfig, IHttpServer pServer, string pConfigName)
         {
+//            WebRtcDebugControl.ApplyFromConfig(pConfig);
+
             IConfig moduleConfig = pConfig.Configs["WebRtcVoice"];
 
             if (moduleConfig is not null)
@@ -72,15 +74,13 @@ namespace osWebRtcVoice
                     // The local service provides  the IWebRtcVoiceService interface and directs the requests
                     //   to the WebRTC service.
                     string localServiceModule = moduleConfig.GetString("LocalServiceModule", "WebRtcVoiceServiceModule.dll:WebRtcVoiceServiceModule");
-                    m_log.DebugFormat("{0} loading {1}", LogHeader, localServiceModule);
 
-                    object[] args = new object[0];
-                    m_WebRtcVoiceService = ServerUtils.LoadPlugin<IWebRtcVoiceService>(localServiceModule, args); 
+                    m_log.Debug($"{LogHeader} loading {localServiceModule}");
+                    m_WebRtcVoiceService = ServerUtils.LoadPlugin<IWebRtcVoiceService>(localServiceModule, []);
 
                     // The WebRtcVoiceServiceModule is both an IWebRtcVoiceService and a ISharedRegionModule
                     //     so we can initialize it as if it was the region module.
-                    ISharedRegionModule sharedModule = m_WebRtcVoiceService as ISharedRegionModule;
-                    if (sharedModule is null)
+                    if (m_WebRtcVoiceService is not ISharedRegionModule sharedModule)
                     {
                         m_log.ErrorFormat("{0} local service module does not implement ISharedRegionModule", LogHeader);
                         m_Enabled = false;
@@ -98,7 +98,7 @@ namespace osWebRtcVoice
         private bool Handle_ProvisionVoiceAccountRequest(OSDMap pJson, ref JsonRpcResponse pResponse)
         {
             bool ret = false;
-            m_log.DebugFormat("{0} Handle_ProvisionVoiceAccountRequest", LogHeader);
+            m_log.Debug($"{LogHeader} Handle_ProvisionVoiceAccountRequest");
             if (m_MessageDetails) m_log.DebugFormat("{0} PVAR: req={1}", LogHeader, pJson.ToString());
 
             if (pJson.ContainsKey("params") && pJson["params"] is OSDMap paramsMap)

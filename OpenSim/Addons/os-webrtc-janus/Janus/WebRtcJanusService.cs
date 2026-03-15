@@ -446,18 +446,19 @@ namespace osWebRtcVoice
                             }
                         ];
                         resp = await viewerSession.Session.TrickleCandidates(viewerSession, candidatesArray);
-                        _log.DebugFormat("{0} VoiceSignalingRequest: single candidate", LogHeader);
+                        _log.Debug($"{LogHeader} VoiceSignalingRequest: single candidate");
                     }
                 }
                 else if (pRequest.TryGetOSDArray("candidates", out OSDArray candidates))
                 {
                     OSDArray candidatesArray = [];
-                    int sourceCount = candidates.Count;
-                    int candidateLimit = _MaxSignalingCandidatesPerRequest;
+                    //int sourceCount = candidates.Count;
+                    //int candidateLimit = _MaxSignalingCandidatesPerRequest;
                     foreach (OSDMap cand in candidates)
                     {
-                        if (candidateLimit > 0 && candidatesArray.Count >= candidateLimit)
-                            break;
+                        // TODO: can not limit candidates blindly
+//                        if (candidateLimit > 0 && candidatesArray.Count >= candidateLimit)
+//                            break;
 
                         candidatesArray.Add(new OSDMap() {
                             { "candidate", cand["candidate"].AsString() },
@@ -466,15 +467,15 @@ namespace osWebRtcVoice
                         });
                     }
                     resp = await viewerSession.Session.TrickleCandidates(viewerSession, candidatesArray).ConfigureAwait(false);
-                    if (candidateLimit > 0 && sourceCount > candidatesArray.Count)
-                    {
-                        _log.WarnFormat("{0} VoiceSignalingRequest: capped candidates {1}/{2} (MaxSignalingCandidatesPerRequest={3})",
-                                LogHeader, candidatesArray.Count, sourceCount, candidateLimit);
-                    }
-                    else
-                    {
+//                    if (candidateLimit > 0 && sourceCount > candidatesArray.Count)
+//                    {
+//                        _log.WarnFormat("{0} VoiceSignalingRequest: capped candidates {1}/{2} (MaxSignalingCandidatesPerRequest={3})",
+//                                LogHeader, candidatesArray.Count, sourceCount, candidateLimit);
+//                    }
+//                    else
+//                    {
                         _log.DebugFormat("{0} VoiceSignalingRequest: {1} candidates", LogHeader, candidatesArray.Count);
-                    }
+//                    }
                 }
                 else
                 {

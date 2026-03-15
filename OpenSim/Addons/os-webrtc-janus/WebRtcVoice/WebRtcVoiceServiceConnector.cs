@@ -44,14 +44,16 @@ namespace osWebRtcVoice
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static readonly string LogHeader = "[WEBRTC VOICE SERVICE CONNECTOR]";
-        private bool m_Enabled = false;
-        private bool m_MessageDetails = false;
+        private readonly bool m_Enabled = false;
+        private readonly bool m_MessageDetails = false;
         private IConfigSource m_Config;
 
         string m_serverURI = "http://localhost:8080";
 
         public WebRtcVoiceServiceConnector(IConfigSource pConfig)
         {
+//            WebRtcDebugControl.ApplyFromConfig(pConfig);
+
             m_Config = pConfig;
             IConfig moduleConfig = m_Config.Configs["WebRtcVoice"];
 
@@ -65,13 +67,12 @@ namespace osWebRtcVoice
                     {
                         m_log.Error($"{LogHeader} WebRtcVoiceServiceConnector enabled but no WebRtcVoiceServerURI specified");
                         m_Enabled = false;
-                    }
-                    else
-                    {
-                        m_log.Info($"{LogHeader} WebRtcVoiceServiceConnector enabled");
+                        return;
                     }
 
                     m_MessageDetails = moduleConfig.GetBoolean("MessageDetails", false);
+
+                    m_log.Info($"{LogHeader} WebRtcVoiceServiceConnector enabled");
                 }
             }
         }
@@ -82,7 +83,7 @@ namespace osWebRtcVoice
         public IVoiceViewerSession CreateViewerSession(OSDMap pRequest, UUID pUserID, UUID pSceneID)
         {
             m_log.Debug($"{LogHeader} CreateViewerSession");
-            return new VoiceViewerSession(this, pUserID, pSceneID);   
+            return new VoiceViewerSession(this, pSceneID, pUserID);   
         }
 
         public OSDMap ProvisionVoiceAccountRequest(OSDMap pRequest, UUID pUserID, UUID pSceneID)
@@ -122,7 +123,7 @@ namespace osWebRtcVoice
 
         public OSDMap VoiceSignalingRequest(IVoiceViewerSession pVSession, OSDMap pRequest, UUID pUserID, UUID pSceneID)
         {
-            m_log.DebugFormat("{0} VoiceSignalingRequest. uID={1}, sID={2}", LogHeader, pUserID, pSceneID);
+            m_log.Debug($"{LogHeader} VoiceSignalingRequest. uID={pUserID}, sID={pSceneID}");
             OSDMap req = new()
             {
                 { "request", pRequest },
@@ -139,66 +140,74 @@ namespace osWebRtcVoice
             if(string.IsNullOrWhiteSpace(uri))
                 return null;
 
-                OSDMap request = new()
+            OSDMap request = new()
+            {
+                { "jsonrpc", OSD.FromString("2.0") },
+                { "id", OSD.FromString(jsonId) },
+                { "method", OSD.FromString(method) },
+                { "params", pParams }
+            };
+
+            OSDMap outerResponse = null;
+            try
+            {
+                if (m_MessageDetails) m_log.Debug($"{LogHeader}: request: {request}");
+
+                outerResponse = WebUtil.PostToService(uri, request, 10000, true);
+
+                if (m_MessageDetails) m_log.Debug($"{LogHeader}: response: {outerResponse}");
+            }
+            catch (Exception e)
+            {
+                m_log.Error($"{LogHeader}: JsonRpc request '{method}' to {uri} failed: {e.Message}");
+                m_log.Debug($"{LogHeader}: request: {request}");
+                return new OSDMap()
                 {
-                    { "jsonrpc", OSD.FromString("2.0") },
-                    { "id", OSD.FromString(jsonId) },
-                    { "method", OSD.FromString(method) },
-                    { "params", pParams }
+                    { "error", OSD.FromString(e.Message) }
                 };
+            }
 
-                OSDMap outerResponse = null;
-                try
+            if (outerResponse is null || outerResponse.Count == 0)
+            {
+                string errm = $"JsonRpc request '{method}' to {uri} returned an empty response";
+                m_log.Error(errm);
+                return new OSDMap()
                 {
-                    if (m_MessageDetails) m_log.Debug($"{LogHeader}: request: {request}");
+                    { "error", errm }
+                };
+            }
 
-                    outerResponse = WebUtil.PostToService(uri, request, 10000, true);
-
-                    if (m_MessageDetails) m_log.Debug($"{LogHeader}: response: {outerResponse}");
-                }
-                catch (Exception e)
+            if (!outerResponse.TryGetOSDMap("_Result", out OSDMap response))
+            {
+                string errm = $"JsonRpc request '{method}' to {uri} returned an invalid response: {OSDParser.SerializeJsonString(outerResponse)}";
+                m_log.Error(errm);
+                return new OSDMap()
                 {
-                    m_log.Error($"{LogHeader}: JsonRpc request '{method}' to {uri} failed: {e.Message}");
-                    m_log.Debug($"{LogHeader}: request: {request}");
-                    return new OSDMap()
-                    {
-                        { "error", OSD.FromString(e.Message) }
-                    };
-                }
+                    { "error", errm }
+                };
+            }
 
-                if (!outerResponse.TryGetOSDMap("_Result", out OSDMap response))
+            if (response.TryGetValue("error", out OSD osdtmp))
+            {
+                string errm = $"JsonRpc request '{method}' to {uri} returned an error: {OSDParser.SerializeJsonString(osdtmp)}";
+                m_log.Error(errm);
+                return new OSDMap()
                 {
-                    string errm = $"JsonRpc request '{method}' to {1} returned an invalid response: {OSDParser.SerializeJsonString(outerResponse)}";
-                    m_log.Error(errm);
-                    return new OSDMap()
-                    {
-                        { "error", errm }
-                    };
-                }
+                    { "error", errm }
+                };
+            }
 
-                OSD osdtmp;
-                if (response.TryGetValue("error", out osdtmp))
+            if (!response.TryGetOSDMap("result", out OSDMap resultmap ))
+            {
+                string errm = $"JsonRpc request '{method}' to {uri} returned result as non-OSDMap: {OSDParser.SerializeJsonString(outerResponse)}";
+                m_log.Error(errm);
+                return new OSDMap()
                 {
-                    string errm = $"JsonRpc request '{method}' to {uri} returned an error: {OSDParser.SerializeJsonString(osdtmp)}";
-                    m_log.Error(errm);
-                    return new OSDMap()
-                    {
-                        { "error", errm }
-                    };
-                }
-
-                if (!response.TryGetOSDMap("result", out OSDMap resultmap ))
-                {
-                    string errm = $"JsonRpc request '{method}' to {uri} returned result as non-OSDMap: {OSDParser.SerializeJsonString(outerResponse)}";
-                    m_log.Error(errm);
-                    return new OSDMap()
-                    {
-                        { "error", errm }
-                    };
-                }
+                    { "error", errm }
+                };
+            }
 
             return resultmap;
         }
-
     }
 }
