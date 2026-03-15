@@ -102,6 +102,11 @@ namespace osWebRtcVoice
             m_message["apisecret"] = pToken;
         }
 
+        public void AddAdminToken(string pToken)
+        {
+            m_message["admin_secret"] = pToken;
+        }
+
         // Note that the session_id is a long number in the JSON so we convert the string.
         public string sessionId
         { 

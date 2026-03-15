@@ -47,13 +47,15 @@ namespace osWebRtcVoice
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static readonly string LogHeader = "[JANUS SESSION]";
 
+        // Set to true to enable Janus session debug logging.
+        private bool _DebugEnabled = false;
         // Set to 'true' to get the messages send and received from Janus
         private bool _MessageDetails = false;
 
-        private string _JanusServerURI = String.Empty;
-        private string _JanusAPIToken = String.Empty;
-        private string _JanusAdminURI = String.Empty;
-        private string _JanusAdminToken = String.Empty;
+        private string _JanusServerURI = string.Empty;
+        private string _JanusAPIToken = string.Empty;
+        private string _JanusAdminURI = string.Empty;
+        private string _JanusAdminToken = string.Empty;
 
         public string JanusServerURI => _JanusServerURI;
         public string JanusAdminURI => _JanusAdminURI;
@@ -69,9 +71,11 @@ namespace osWebRtcVoice
         public bool IsConnected { get; set; }
 
         // Wrapper around the session connection to Janus-gateway
-        public JanusSession(string pServerURI, string pAPIToken, string pAdminURI, string pAdminToken, bool pDebugMessages = false)
+        public JanusSession(string pServerURI, string pAPIToken, string pAdminURI, string pAdminToken, bool pDebugEnabled = false, bool pDebugMessages = false)
         {
-            m_log.DebugFormat("{0} JanusSession constructor", LogHeader);
+//            m_log.DebugFormat("{0} JanusSession constructor", LogHeader);
+            _DebugEnabled = pDebugEnabled;
+            DebugLog("{0} JanusSession constructor", LogHeader);
             _JanusServerURI = pServerURI;
             _JanusAPIToken = pAPIToken;
             _JanusAdminURI = pAdminURI;
@@ -103,7 +107,7 @@ namespace osWebRtcVoice
             bool ret = false;
             try
             {
-                var resp = await SendToJanus(new CreateSessionReq());
+                JanusMessageResp resp = await SendToJanus(new CreateSessionReq());
                 if (resp is not null && resp.isSuccess)
                 {
                     var sessionResp = new CreateSessionResp(resp);
@@ -111,6 +115,7 @@ namespace osWebRtcVoice
                     IsConnected = true;
                     SessionUri = _JanusServerURI + "/" + SessionId;
                     m_log.DebugFormat("{0} CreateSession. Created. ID={1}, URL={2}", LogHeader, SessionId, SessionUri);
+//                    DebugLog("{0} CreateSession. Created. ID={1}, URL={2}", LogHeader, SessionId, SessionUri);
                     ret = true;
                     StartLongPoll();
                 }
@@ -137,6 +142,7 @@ namespace osWebRtcVoice
                 {
                     // Note that setting IsConnected to false will cause the long poll to exit
                     m_log.Debug($"{LogHeader} DestroySession. Destroyed");
+//                    Debug("{0} DestroySession. Destroyed", LogHeader);
                 }
                 else
                 {
@@ -148,10 +154,12 @@ namespace osWebRtcVoice
                             case 458:
                                 // This is the error code for a session that is already destroyed
                                 m_log.Debug($"{LogHeader} DestroySession: session already destroyed");
+//                                DebugLog("{0} DestroySession: session already destroyed", LogHeader);
                                 break;
                             case 459:
                                 // This is the error code for handle already destroyed
                                 if (_MessageDetails) m_log.Debug($"{LogHeader} DestroySession: Handle not found");
+//                                if (_MessageDetails) DebugLog("{0} DestroySession: Handle not found", LogHeader);
                                 break;
                             default:
                                 m_log.Error($"{LogHeader} DestroySession: failed {eResp.errorReason}");
@@ -160,8 +168,9 @@ namespace osWebRtcVoice
                     }
                     else
                     {
-                        m_log.Error($"{LogHeader} DestroySession: failed. Resp: {resp}");
-                    }
+                        m_log.Error($"{LogHeader} DestroySession: failed response");
+                        if (m_log.IsDebugEnabled)
+                            m_log.DebugFormat("{0} DestroySession: response detail {1}", LogHeader, resp.ToString());                    }
                 }
             }
             catch (Exception e)
@@ -210,6 +219,23 @@ namespace osWebRtcVoice
         {
             _Plugins.Add(pPlugin.PluginName, pPlugin);
         }
+
+        private void DebugLog(string pFormat, params object[] pArgs)
+        {
+            if (_DebugEnabled)
+            {
+                m_log.DebugFormat(pFormat, pArgs);
+            }
+        }
+
+        private void DebugLog(string message)
+        {
+            if (_DebugEnabled)
+            {
+                m_log.Debug(message);
+            }
+        }
+
         // ====================================================================
         // Post to the session
         public async Task<JanusMessageResp> SendToSession(JanusMessageReq pReq)
@@ -241,11 +267,12 @@ namespace osWebRtcVoice
         /// <param name="pReq"></param>
         /// <param name="pURI"></param>
         /// <returns></returns>
-        public async Task<JanusMessageResp> SendToJanus(JanusMessageReq pReq, string pURI)
+        public async Task<JanusMessageResp> SendToJanus(JanusMessageReq pReq, string pURI, bool admin = false)
         {
-            AddJanusHeaders(pReq);
+            AddJanusHeaders(pReq, admin);
             // m_log.DebugFormat("{0} SendToJanus", LogHeader);
             if (_MessageDetails) m_log.DebugFormat("{0} SendToJanus. URI={1}, req={2}", LogHeader, pURI, pReq.ToJson());
+//            if (_MessageDetails) DebugLog("{0} SendToJanus. URI={1}, req={2}", LogHeader, pURI, pReq.ToJson());
 
             JanusMessageResp ret = null;
             try
@@ -273,6 +300,7 @@ namespace osWebRtcVoice
                     {
                         // Some messages are asynchronous and completed with an event
                         if (_MessageDetails) m_log.DebugFormat("{0} SendToJanus: ack response {1}", LogHeader, respStr);
+//                        if (_MessageDetails) DebugLog("{0} SendToJanus: ack response {1}", LogHeader, respStr);
 /*
                         if (_OutstandingRequests.TryGetValue(pReq.TransactionId, out OutstandingRequest outstandingRequest))
                         {
@@ -291,6 +319,8 @@ namespace osWebRtcVoice
                         // If the response is not an ack, that means a synchronous request/response so return the response
                         _= _OutstandingRequests.TryRemove(pReq.TransactionId, out _);
                         if (_MessageDetails) m_log.DebugFormat("{0} SendToJanus: response {1}", LogHeader, respStr);
+//                        if (_MessageDetails) DebugLog("{0} SendToJanus: response {1}", LogHeader, respStr);
+
                     }
                 }
                 else
@@ -319,7 +349,7 @@ namespace osWebRtcVoice
         /// <returns></returns>
         private async Task<JanusMessageResp> SendToJanusNoWait(JanusMessageReq pReq, string pURI)
         {
-            JanusMessageResp ret = new JanusMessageResp();
+            JanusMessageResp ret = new();
 
             AddJanusHeaders(pReq);
 
@@ -346,13 +376,24 @@ namespace osWebRtcVoice
         }
 
         // There are various headers that are in most Janus requests. Add them here.
-        private void AddJanusHeaders(JanusMessageReq pReq)
+        private void AddJanusHeaders(JanusMessageReq pReq, bool admin = false)
         {
             // Authentication token
-            if (!string.IsNullOrEmpty(_JanusAPIToken))
+            if(admin)
             {
-                pReq.AddAPIToken(_JanusAPIToken);
+                if (!string.IsNullOrEmpty(_JanusAdminToken))
+                {
+                    pReq.AddAdminToken(_JanusAdminToken);
+                }
             }
+            else
+            {
+                if (!string.IsNullOrEmpty(_JanusAPIToken))
+                {
+                    pReq.AddAPIToken(_JanusAPIToken);
+                }
+            }
+
             // Transaction ID that matches responses to requests
             if (string.IsNullOrEmpty(pReq.TransactionId))
             {
@@ -380,16 +421,16 @@ namespace osWebRtcVoice
                 return false;
             }
 
-             if(_OutstandingRequests.TryGetValue(pTransactionId, out pOutstandingRequest))
+            if (_OutstandingRequests.TryGetValue(pTransactionId, out pOutstandingRequest))
                 return true;
 
-             pOutstandingRequest = null;
+            pOutstandingRequest = null;
             return false;
         }
 
         public Task<JanusMessageResp> SendToJanusAdmin(JanusMessageReq pReq)
         {
-            return SendToJanus(pReq, _JanusAdminURI);
+            return SendToJanus(pReq, _JanusAdminURI, true);
         }
 
         public Task<JanusMessageResp> GetFromJanus()
@@ -428,7 +469,10 @@ namespace osWebRtcVoice
                     else
                     {
                         m_log.ErrorFormat("{0} GetFromJanus: response not successful {1}", LogHeader, response);
-                        var eResp = new ErrorResp("GETERROR");
+//                        m_log.ErrorFormat("{0} GetFromJanus: response not successful", LogHeader);
+//                        if (m_log.IsDebugEnabled)
+//                            m_log.DebugFormat("{0} GetFromJanus: response detail {1}", LogHeader, response);
+                        ErrorResp eResp = new("GETERROR");
                         // Add the sessionId so the proper session can be shut down
                         eResp.AddSessionId(SessionId);
                         if (response is not null)
@@ -445,6 +489,8 @@ namespace osWebRtcVoice
                 catch (TaskCanceledException e)
                 {
                     if (_MessageDetails) m_log.DebugFormat("{0} GetFromJanus: task canceled: {1}", LogHeader, e.Message);
+//                    if (_MessageDetails) DebugLog("{0} GetFromJanus: task canceled: {1}", LogHeader, e.Message);
+
                     ErrorResp eResp = new("GETERROR");
                     eResp.SetError(499, "Task canceled");
                     ret = eResp;
@@ -509,7 +555,9 @@ namespace osWebRtcVoice
         {
             bool running = true;
 
-            m_log.DebugFormat("{0} EventLongPoll", LogHeader);
+            m_log.Debug($"{LogHeader} EventLongPoll");
+//            DebugLog($"{LogHeader} EventLongPoll");
+
             Task.Run(async () => {
                 while (running && IsConnected)
                 {
@@ -618,6 +666,20 @@ namespace osWebRtcVoice
                                         else
                                         {
                                             m_log.ErrorFormat("{0} EventLongPoll: event no outstanding request {1}", LogHeader, resp.ToString());
+                                            // Janus often pushes plugin events without a transaction id (normal async flow).
+                                            // Keep unknown transaction ids visible, but do not treat missing transaction ids as errors.
+                                            if (string.IsNullOrEmpty(resp.TransactionId))
+                                            {
+                                                m_log.DebugFormat("{0} EventLongPoll: async event with no transaction {1}", LogHeader, resp.ToString());
+//                                                if (_MessageDetails) DebugLog("{0} EventLongPoll: async event with no transaction {1}", LogHeader, resp.ToString());
+                                            }
+                                            else
+                                            {
+                                                m_log.WarnFormat("{0} EventLongPoll: event with unknown transaction", LogHeader);
+                                                if (m_log.IsDebugEnabled)
+                                                    m_log.DebugFormat("{0} EventLongPoll: unknown transaction detail {1}", LogHeader, resp.ToString());
+                                            }
+
                                             OnEvent?.Invoke(eventResp);
                                         }
                                         break;
@@ -697,15 +759,11 @@ namespace osWebRtcVoice
 
             try
             {
-                switch (value.Type)
+                return value.Type switch
                 {
-                    case OSDType.Integer:
-                    case OSDType.Binary:
-                    case OSDType.Array:
-                        return value.AsLong().ToString();
-                    default:
-                        return value.AsString();
-                }
+                    OSDType.Integer or OSDType.Binary or OSDType.Array => value.AsLong().ToString(),
+                    _ => value.AsString(),
+                };
             }
             catch
             {

@@ -30,7 +30,6 @@ using System.Reflection;
 
 using OpenMetaverse.StructuredData;
 
-using Nini.Config;
 using log4net;
 using System.Threading.Tasks;
 
@@ -114,16 +113,22 @@ namespace osWebRtcVoice
                         m_log.Error($"{LogHeader} JoinRoom. Recovery failed: could not clear previous room membership. Resp={joinResp}");
                     }
                 }
-/*
                 else
                 {
+/*
                     if (joinResp is not null && joinResp.AudioBridgeReturnCode == "joined" && joinResp.ParticipantId <= 0)
                     {
-                        m_log.Error($"{LogHeader} JoinRoom. Joined response contains invalid participant id {joinResp.ParticipantId} for room {RoomId}. Resp={joinResp}");
+                        m_log.ErrorFormat("{0} JoinRoom. Joined response contains invalid participant id {1} for room {2}",
+                                LogHeader, joinResp.ParticipantId, RoomId);
+                        if (m_log.IsDebugEnabled)
+                            m_log.DebugFormat("{0} JoinRoom. Invalid participant detail: {1}", LogHeader, joinResp.ToString());
                     }
-                    m_log.Error($"{LogHeader} JoinRoom. Failed to join room {RoomId}. Resp={joinResp}");
-                }
 */
+                    m_log.ErrorFormat("{0} JoinRoom. Failed to join room {1}", LogHeader, RoomId);
+                    if (m_log.IsDebugEnabled)
+                        m_log.DebugFormat("{0} JoinRoom. Failure detail: {1}", LogHeader, joinResp?.ToString() ?? "null");
+
+                }
             }
             catch (Exception e)
             {
@@ -171,9 +176,10 @@ namespace osWebRtcVoice
                         if (!string.Equals(display, pDisplay, StringComparison.Ordinal))
                             continue;
 
+//                        long participantId = participant.TryGetValue("id", out OSD idNode) ? idNode.AsLong() : 0L;
+//                        if (participantId <= 0)
+//                            continue;
                         int participantId = participant.TryGetValue("id", out OSD idNode) ? (int)idNode.AsLong() : 0;
-                        if (participantId <= 0)
-                            continue;
 
                         JanusMessageResp leaveRespRaw = await _AudioBridge.SendPluginMsg(new AudioBridgeLeaveRoomReq(roomId, participantId));
                         AudioBridgeResp leaveResp = new(leaveRespRaw);

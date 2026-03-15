@@ -29,10 +29,6 @@ using System;
 using System.Reflection;
 using System.Threading.Tasks;
 
-using OpenSim.Framework;
-using OpenSim.Services.Interfaces;
-using OpenSim.Services.Base;
-
 using OpenMetaverse.StructuredData;
 using OpenMetaverse;
 
@@ -92,10 +88,10 @@ namespace osWebRtcVoice
             bool ret = false;
             try
             {
-                var resp = await _JanusSession.SendToSession(new AttachPluginReq(PluginName));
+                JanusMessageResp resp = await _JanusSession.SendToSession(new AttachPluginReq(PluginName));
                 if (resp is not null && resp.isSuccess)
                 {
-                    var handleResp = new AttachPluginResp(resp);
+                    AttachPluginResp handleResp = new(resp);
                     PluginId = handleResp.pluginId;
                     PluginUri = _JanusSession.SessionUri + "/" + PluginId;
                     m_log.DebugFormat("{0} Activate. Plugin attached. ID={1}, URL={2}", LogHeader, PluginId, PluginUri);
@@ -130,7 +126,7 @@ namespace osWebRtcVoice
                 _JanusSession.OnEvent -= Handle_Event;
                 _JanusSession.OnMessage -= Handle_Message;
                 // We send the 'detach' message to the plugin URI
-                var resp = await _JanusSession.SendToJanus(new DetachPluginReq(), PluginUri);
+                JanusMessageResp resp = await _JanusSession.SendToJanus(new DetachPluginReq(), PluginUri);
                 if (resp is not null && resp.isSuccess)
                 {
                     m_log.DebugFormat("{0} Detach. Detached", LogHeader);

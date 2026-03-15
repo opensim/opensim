@@ -20,7 +20,7 @@
     ; APIKey to access the Janus Gateway. Must be set to the same value as the Janus Gateway.
     APIToken = APITokenToNeverCheckIn
     ; URI to access the admin port on Janus Gateway
-    JanusGatewayAdminURI = http://janus.example.org/admin
+    JanusGatewayAdminURI = http://janus.example.org:14224/admin
     ; APIKey to access the admin port on the Janus Gateway. Must be set to the same value as the Janus Gateway.
     AdminAPIToken = AdminAPITokenToNeverCheckIn
     ; Debugging: output to log file messages sent and received from Janus. Very verbose.
