@@ -439,7 +439,7 @@ namespace osWebRtcVoice
                                 { "sdpMLineIndex", candidate.ContainsKey("sdpMLineIndex") ? candidate["sdpMLineIndex"].AsLong() : 0 }
                             }
                         ];
-                        resp = await viewerSession.Session.TrickleCandidates(viewerSession, candidatesArray);
+                        resp = await viewerSession.Session.TrickleCandidates(viewerSession, candidatesArray).ConfigureAwait(false);
                         _log.Debug($"{LogHeader} VoiceSignalingRequest: single candidate");
                     }
                 }
@@ -752,7 +752,7 @@ namespace osWebRtcVoice
             if (_ViewerSession is null || _ViewerSession.Session is null)
                 return;
 
-            JanusMessageResp resp = await _ViewerSession.Session.SendToJanusAdmin(new JanusMessageReq("list_sessions"));
+            JanusMessageResp resp = await _ViewerSession.Session.SendToJanusAdmin(new JanusMessageReq("list_sessions")).ConfigureAwait(false);
             if (resp is null)
             {
                 WriteOut("Failed to get sessions (no response)");
@@ -816,7 +816,7 @@ namespace osWebRtcVoice
             }
 
             JanusAudioBridge ab = _ViewerSession.AudioBridge;
-            AudioBridgeResp roomsResp = await ab.SendAudioBridgeMsg(new AudioBridgeListRoomsReq());
+            AudioBridgeResp roomsResp = await ab.SendAudioBridgeMsg(new AudioBridgeListRoomsReq()).ConfigureAwait(false);
             if (roomsResp is null || !roomsResp.isSuccess || roomsResp.PluginRespData is null)
             {
                 WriteOut("Failed to get room list");
@@ -853,7 +853,7 @@ namespace osWebRtcVoice
             WriteOut("  Spatial     : {0}", GetMapString(foundRoom, "spatial_audio"));
             WriteOut("  Recording   : {0}", GetMapString(foundRoom, "record"));
 
-            AudioBridgeResp participantResp = await ab.SendAudioBridgeMsg(new AudioBridgeListParticipantsReq(roomId));
+            AudioBridgeResp participantResp = await ab.SendAudioBridgeMsg(new AudioBridgeListParticipantsReq(roomId)).ConfigureAwait(false);
             if (participantResp is null || participantResp.PluginRespData is null ||
                 !participantResp.PluginRespData.TryGetValue("participants", out OSD participantsNode) ||
                 participantsNode is not OSDArray participants)

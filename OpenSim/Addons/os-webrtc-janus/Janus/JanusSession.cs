@@ -102,7 +102,7 @@ namespace osWebRtcVoice
             bool ret = false;
             try
             {
-                JanusMessageResp resp = await SendToJanus(new CreateSessionReq());
+                JanusMessageResp resp = await SendToJanus(new CreateSessionReq()).ConfigureAwait(false);
                 if (resp is not null && resp.isSuccess)
                 {
                     CreateSessionResp sessionResp = new(resp);
@@ -132,7 +132,7 @@ namespace osWebRtcVoice
             bool ret = false;
             try
             {
-                JanusMessageResp resp = await SendToSession(new DestroySessionReq());
+                JanusMessageResp resp = await SendToSession(new DestroySessionReq()).ConfigureAwait(false);
                 if (resp is not null && resp.isSuccess)
                 {
                     // Note that setting IsConnected to false will cause the long poll to exit
@@ -185,11 +185,11 @@ namespace osWebRtcVoice
             // if the audiobridge is active, the trickle message is sent to it
             if (pVSession.AudioBridge is null)
             {
-                ret = await SendToJanusNoWait(new TrickleReq(pVSession, pCandidates));
+                ret = await SendToJanusNoWait(new TrickleReq(pVSession, pCandidates)).ConfigureAwait(false);
             }
             else
             {
-                ret = await SendToJanusNoWait(new TrickleReq(pVSession, pCandidates), pVSession.AudioBridge.PluginUri);
+                ret = await SendToJanusNoWait(new TrickleReq(pVSession, pCandidates), pVSession.AudioBridge.PluginUri).ConfigureAwait(false);
             }
             return ret;
         }
@@ -200,11 +200,11 @@ namespace osWebRtcVoice
             // if the audiobridge is active, the trickle message is sent to it
             if (pVSession.AudioBridge is null)
             {
-                ret = await SendToJanusNoWait(new TrickleReq(pVSession));
+                ret = await SendToJanusNoWait(new TrickleReq(pVSession)).ConfigureAwait(false);
             }
             else
             {
-                ret = await SendToJanusNoWait(new TrickleReq(pVSession), pVSession.AudioBridge.PluginUri);
+                ret = await SendToJanusNoWait(new TrickleReq(pVSession), pVSession.AudioBridge.PluginUri).ConfigureAwait(false);
             }
             return ret;
         }
@@ -286,11 +286,11 @@ namespace osWebRtcVoice
                 reqMsg.Content = new StringContent(reqStr, System.Text.Encoding.UTF8, MediaTypeNames.Application.Json);
                 reqMsg.Headers.TryAddWithoutValidation("Accept", "application/json");
 //                HttpResponseMessage response = await httpClient.SendAsync(reqMsg, _CancelTokenSource.Token);
-                HttpResponseMessage response = await httpClient.SendAsync(reqMsg);
+                HttpResponseMessage response = await httpClient.SendAsync(reqMsg).ConfigureAwait(false);
 
                 if (response.IsSuccessStatusCode)
                 {
-                    string respStr = await response.Content.ReadAsStringAsync();
+                    string respStr = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                     ret = JanusMessageResp.FromJson(respStr);
                     if (ret.CheckReturnCode("ack"))
                     {
@@ -356,8 +356,8 @@ namespace osWebRtcVoice
                 string reqStr = pReq.ToJson();
                 reqMsg.Content = new StringContent(reqStr, System.Text.Encoding.UTF8, MediaTypeNames.Application.Json);
                 reqMsg.Headers.TryAddWithoutValidation("Accept", "application/json");
-                HttpResponseMessage response = await httpClient.SendAsync(reqMsg);
-                string respStr = await response.Content.ReadAsStringAsync();
+                HttpResponseMessage response = await httpClient.SendAsync(reqMsg).ConfigureAwait(false);
+                string respStr = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 ret = JanusMessageResp.FromJson(respStr);
             }
             catch (Exception e)
@@ -399,12 +399,12 @@ namespace osWebRtcVoice
             // The following two are required for the WebSocket interface. They are optional for the
             //     HTTP interface since the session and plugin handle are in the URL.
             // SessionId is added to the message if not already there
-            if (!pReq.hasSessionId && !string.IsNullOrEmpty(SessionId))
+            if (!admin && !pReq.hasSessionId && !string.IsNullOrEmpty(SessionId))
             {
                 pReq.AddSessionId(SessionId);
             }
             // HandleId connects to the plugin
-            if (!pReq.hasHandleId && !string.IsNullOrEmpty(PluginId))
+            if (!admin && !pReq.hasHandleId && !string.IsNullOrEmpty(PluginId))
             {
                 pReq.AddHandleId(PluginId);
             }
@@ -564,7 +564,7 @@ namespace osWebRtcVoice
                 {
                     try
                     {
-                        JanusMessageResp resp = await GetFromJanus(SessionUri, 60000);
+                        JanusMessageResp resp = await GetFromJanus(SessionUri, 60000).ConfigureAwait(false);
                         if (resp is not null)
                         {
                             //_ = Task.Run(() =>

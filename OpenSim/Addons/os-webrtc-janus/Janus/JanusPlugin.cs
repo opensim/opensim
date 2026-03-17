@@ -88,7 +88,7 @@ namespace osWebRtcVoice
             bool ret = false;
             try
             {
-                JanusMessageResp resp = await _JanusSession.SendToSession(new AttachPluginReq(PluginName));
+                JanusMessageResp resp = await _JanusSession.SendToSession(new AttachPluginReq(PluginName)).ConfigureAwait(false);
                 if (resp is not null && resp.isSuccess)
                 {
                     AttachPluginResp handleResp = new(resp);
@@ -126,7 +126,7 @@ namespace osWebRtcVoice
                 _JanusSession.OnEvent -= Handle_Event;
                 _JanusSession.OnMessage -= Handle_Message;
                 // We send the 'detach' message to the plugin URI
-                JanusMessageResp resp = await _JanusSession.SendToJanus(new DetachPluginReq(), PluginUri);
+                JanusMessageResp resp = await _JanusSession.SendToJanus(new DetachPluginReq(), PluginUri).ConfigureAwait(false);
                 if (resp is not null && resp.isSuccess)
                 {
                     m_log.DebugFormat("{0} Detach. Detached", LogHeader);

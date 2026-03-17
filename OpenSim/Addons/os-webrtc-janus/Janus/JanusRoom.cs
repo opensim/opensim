@@ -72,7 +72,7 @@ namespace osWebRtcVoice
                 // joinReq.SetJsep("offer", cleanSdp);
                 joinReq.SetJsep("offer", pVSession.Offer);
 
-                JanusMessageResp resp = await _AudioBridge.SendPluginMsg(joinReq);
+                JanusMessageResp resp = await _AudioBridge.SendPluginMsg(joinReq).ConfigureAwait(false);
                 AudioBridgeJoinRoomResp joinResp = new(resp);
 
                 if (joinResp is not null && joinResp.AudioBridgeReturnCode == "joined" && joinResp.ParticipantId > 0)
@@ -86,12 +86,12 @@ namespace osWebRtcVoice
                 {
                     m_log.Warn($"{LogHeader} JoinRoom. Already in a room for agent {pVSession.AgentId}. Attempting recovery.");
 
-                    bool recovered = await RecoverAlreadyInRoomAndLeave(pVSession.AgentId.ToString());
+                    bool recovered = await RecoverAlreadyInRoomAndLeave(pVSession.AgentId.ToString()).ConfigureAwait(false);
                     if (recovered)
                     {
                         AudioBridgeAgentJoinRoomReq retryJoinReq = new(RoomId, pVSession.AgentId);
                         retryJoinReq.SetJsep("offer", pVSession.Offer);
-                        JanusMessageResp retryResp = await _AudioBridge.SendPluginMsg(retryJoinReq);
+                        JanusMessageResp retryResp = await _AudioBridge.SendPluginMsg(retryJoinReq).ConfigureAwait(false);
                         AudioBridgeJoinRoomResp retryJoinResp = new(retryResp);
 
                         if (retryJoinResp is not null && retryJoinResp.AudioBridgeReturnCode == "joined" && retryJoinResp.ParticipantId > 0)
@@ -138,7 +138,7 @@ namespace osWebRtcVoice
         {
             try
             {
-                JanusMessageResp listRoomsRespRaw = await _AudioBridge.SendPluginMsg(new AudioBridgeListRoomsReq());
+                JanusMessageResp listRoomsRespRaw = await _AudioBridge.SendPluginMsg(new AudioBridgeListRoomsReq()).ConfigureAwait(false);
                 AudioBridgeResp listRoomsResp = new AudioBridgeResp(listRoomsRespRaw);
                 if (listRoomsResp?.PluginRespData is null ||
                     !listRoomsResp.PluginRespData.TryGetValue("list", out OSD roomListNode) ||
@@ -157,7 +157,7 @@ namespace osWebRtcVoice
 //                    if (roomId <= 0)
 //                        continue;
 
-                    JanusMessageResp listParticipantsRespRaw = await _AudioBridge.SendPluginMsg(new AudioBridgeListParticipantsReq(roomId));
+                    JanusMessageResp listParticipantsRespRaw = await _AudioBridge.SendPluginMsg(new AudioBridgeListParticipantsReq(roomId)).ConfigureAwait(false);
                     AudioBridgeResp listParticipantsResp = new AudioBridgeResp(listParticipantsRespRaw);
                     if (listParticipantsResp?.PluginRespData is null ||
                         !listParticipantsResp.PluginRespData.TryGetValue("participants", out OSD participantsNode) ||
@@ -177,7 +177,7 @@ namespace osWebRtcVoice
                         if (participantId <= 0)
                             continue;
 
-                        JanusMessageResp leaveRespRaw = await _AudioBridge.SendPluginMsg(new AudioBridgeLeaveRoomReq(roomId, participantId));
+                        JanusMessageResp leaveRespRaw = await _AudioBridge.SendPluginMsg(new AudioBridgeLeaveRoomReq(roomId, participantId)).ConfigureAwait(false);
                         AudioBridgeResp leaveResp = new(leaveRespRaw);
 
                         if (leaveResp is not null)
@@ -226,7 +226,7 @@ namespace osWebRtcVoice
             try
             {
                 JanusMessageResp resp = await _AudioBridge.SendPluginMsg(
-                    new AudioBridgeLeaveRoomReq(RoomId, pAttendeeSession.ParticipantId));
+                    new AudioBridgeLeaveRoomReq(RoomId, pAttendeeSession.ParticipantId)).ConfigureAwait(false);
 
                 if (resp is null)
                 {

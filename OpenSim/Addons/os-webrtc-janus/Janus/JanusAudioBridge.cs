@@ -89,7 +89,7 @@ namespace osWebRtcVoice
             JanusRoom ret = null;
             try
             {
-                JanusMessageResp resp = await SendPluginMsg(new AudioBridgeCreateRoomReq(pRoomId, pSpatial, pRoomDesc));
+                JanusMessageResp resp = await SendPluginMsg(new AudioBridgeCreateRoomReq(pRoomId, pSpatial, pRoomDesc)).ConfigureAwait(false);
                 AudioBridgeResp abResp = new(resp);
 
                 m_log.Debug($"{LogHeader} CreateRoom. ReturnCode: '{abResp.AudioBridgeReturnCode}'");
@@ -202,7 +202,7 @@ namespace osWebRtcVoice
 
             // The room doesn't exist. Create it.
             string roomDesc = pRegionId + "/" + pChannelType + "/" + pParcelLocalID + "/" + pChannelID;
-            JanusRoom ret = await CreateRoom(roomNumber, pSpatial, roomDesc);
+            JanusRoom ret = await CreateRoom(roomNumber, pSpatial, roomDesc).ConfigureAwait(false);
 
             JanusRoom existingRoom = null;
             if (ret is not null)

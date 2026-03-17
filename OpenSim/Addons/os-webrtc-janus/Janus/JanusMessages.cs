@@ -563,7 +563,7 @@ namespace osWebRtcVoice
         public AudioBridgeAgentJoinRoomReq(int pRoomId, UUID Agent) : base(new OSDMap() {
                                         { "request", "join" },
                                         { "room", pRoomId },
-                                        { "id", new OSDNLong(Math.Abs((long)(Agent.ulonga ^ Agent.ulongb)))},
+                                        { "id", new OSDLong(Math.Abs((long)(Agent.ulonga ^ Agent.ulongb)))},
                                         { "display", Agent.ToString() }
                                     })
         {
