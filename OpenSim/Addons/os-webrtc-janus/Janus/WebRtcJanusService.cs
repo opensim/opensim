@@ -62,7 +62,7 @@ namespace osWebRtcVoice
         // Delay between a disconnect and next join for same agent.
         private int _RejoinCooldownMs = 250;
 
-        private readonly ConcurrentDictionary<UUID, DateTime> _LastDisconnectByAgent = new ConcurrentDictionary<UUID, DateTime>();
+        private readonly ConcurrentDictionary<UUID, DateTime> _LastDisconnectByAgent = new();
         private long _VoiceFlowCounter;
 
         // An extra "viewer session" that is created initially. Used to verify the service
@@ -71,12 +71,6 @@ namespace osWebRtcVoice
 
         public WebRtcJanusService(IConfigSource pConfig) : base(pConfig)
         {
-//            WebRtcDebugControl.ApplyFromConfig(pConfig);
-
-            Assembly assembly = Assembly.GetExecutingAssembly();
-            string version = assembly.GetName().Version?.ToString() ?? "unknown";
-
-            _log.Debug($"{LogHeader} WebRtcJanusService version {version}");
             _Config = pConfig;
             IConfig webRtcVoiceConfig = _Config.Configs["WebRtcVoice"];
 
@@ -156,13 +150,13 @@ namespace osWebRtcVoice
 
         private async Task<bool> ConnectToSessionAndAudioBridge(JanusViewerSession pViewerSession)
         {
-            JanusSession janusSession = new JanusSession(_JanusServerURI, _JanusAPIToken, _JanusAdminURI, _JanusAdminToken, _MessageDetails);
+            JanusSession janusSession = new(_JanusServerURI, _JanusAPIToken, _JanusAdminURI, _JanusAdminToken, _MessageDetails);
             if (await janusSession.CreateSession().ConfigureAwait(false))
             {
                 _log.DebugFormat("{0} JanusSession created", LogHeader);
 
                 // Once the session is created, create a handle to the plugin for rooms
-                JanusAudioBridge audioBridge = new JanusAudioBridge(janusSession);
+                JanusAudioBridge audioBridge = new(janusSession);
 
                 if (await audioBridge.Activate(_Config).ConfigureAwait(false))
                 {

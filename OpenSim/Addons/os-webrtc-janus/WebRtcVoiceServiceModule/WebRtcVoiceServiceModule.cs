@@ -74,8 +74,6 @@ namespace osWebRtcVoice
         // Get configuration and load the modules that will handle spatial and non-spatial voice.
         public void Initialise(IConfigSource pConfig)
         {
-//            WebRtcDebugControl.ApplyFromConfig(pConfig);
-
             m_Config = pConfig;
             IConfig moduleConfig = m_Config.Configs["WebRtcVoice"];
 

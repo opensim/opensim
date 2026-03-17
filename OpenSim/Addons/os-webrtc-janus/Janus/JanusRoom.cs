@@ -68,7 +68,7 @@ namespace osWebRtcVoice
                 //    and, if removed, the viewer complains that the "m=" sections are
                 //    out of order. Not "cleaning" (removing the data section) seems to work.
                 // string cleanSdp = CleanupSdp(pSdp);
-                AudioBridgeJoinRoomReq joinReq = new(RoomId, pVSession.AgentId.ToString());
+                AudioBridgeAgentJoinRoomReq joinReq = new(RoomId, pVSession.AgentId);
                 // joinReq.SetJsep("offer", cleanSdp);
                 joinReq.SetJsep("offer", pVSession.Offer);
 
@@ -89,7 +89,7 @@ namespace osWebRtcVoice
                     bool recovered = await RecoverAlreadyInRoomAndLeave(pVSession.AgentId.ToString());
                     if (recovered)
                     {
-                        AudioBridgeJoinRoomReq retryJoinReq = new(RoomId, pVSession.AgentId.ToString());
+                        AudioBridgeAgentJoinRoomReq retryJoinReq = new(RoomId, pVSession.AgentId);
                         retryJoinReq.SetJsep("offer", pVSession.Offer);
                         JanusMessageResp retryResp = await _AudioBridge.SendPluginMsg(retryJoinReq);
                         AudioBridgeJoinRoomResp retryJoinResp = new(retryResp);

@@ -54,7 +54,6 @@ namespace osWebRtcVoice
         public OMV.UUID AgentId { get; set; }
 
         // Janus keeps track of the user by this ID
-//        public int ParticipantId { get; set; }
         public long ParticipantId { get; set; }
 
         // Connections to the Janus server

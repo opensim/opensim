@@ -58,16 +58,20 @@ namespace osWebRtcVoice
 
         public async Task<AudioBridgeResp> SendAudioBridgeMsg(PluginMsgReq pMsg)
         {
-            AudioBridgeResp ret = null;
             try
             {
-                ret = new AudioBridgeResp(await SendPluginMsg(pMsg));
+                JanusMessageResp ret = await SendPluginMsg(pMsg).ConfigureAwait(false);
+                if(ret is not null)
+                    return new AudioBridgeResp(ret);
+                else
+                    m_log.Error($"{LogHeader} AudioBridge SendPluginMsg returned null");
+
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("{0} SendPluginMsg. Exception {1}", LogHeader, e);
+                m_log.Error($"{LogHeader} SendPluginMsg. Exception", e);
             }
-            return ret;
+            return null;
         }
 
         /// <summary>
@@ -86,7 +90,7 @@ namespace osWebRtcVoice
             try
             {
                 JanusMessageResp resp = await SendPluginMsg(new AudioBridgeCreateRoomReq(pRoomId, pSpatial, pRoomDesc));
-                AudioBridgeResp abResp = new AudioBridgeResp(resp);
+                AudioBridgeResp abResp = new(resp);
 
                 m_log.Debug($"{LogHeader} CreateRoom. ReturnCode: '{abResp.AudioBridgeReturnCode}'");
                 switch (abResp.AudioBridgeReturnCode)
@@ -132,22 +136,21 @@ namespace osWebRtcVoice
 
         public async Task<bool> DestroyRoom(JanusRoom janusRoom)
         {
-            bool ret = false;
             try
             {
-                JanusMessageResp resp = await SendPluginMsg(new AudioBridgeDestroyRoomReq(janusRoom.RoomId));
-                ret = true;
+                JanusMessageResp resp = await SendPluginMsg(new AudioBridgeDestroyRoomReq(janusRoom.RoomId)).ConfigureAwait(false);
+                return true;
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("{0} DestroyRoom. Exception {1}", LogHeader, e);
+                m_log.Error($"{LogHeader} DestroyRoom. Exception ", e);
             }
-            return ret;
+            return false;
         }
 
         // Constant used to denote that this is a spatial audio room for the region (as opposed to parcels)
         public const int REGION_ROOM_ID = -999;
-        private Dictionary<int, JanusRoom> _rooms = new Dictionary<int, JanusRoom>();
+        private Dictionary<int, JanusRoom> _rooms = [];
 
         // Calculate a room number for the given parameters. The room number is a hash of the parameters.
         // The attempt is to deterministicly create a room number so all regions will generate the

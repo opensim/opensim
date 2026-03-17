@@ -529,7 +529,7 @@ namespace osWebRtcVoice
                                                 { "record", false }
                                             })
         {
-            if (!String.IsNullOrEmpty(pDesc))
+            if (!string.IsNullOrEmpty(pDesc))
                 AddStringToBody("description", pDesc);
         }
     }
@@ -554,6 +554,18 @@ namespace osWebRtcVoice
                                                 { "room", pRoomId },
                                                 { "display", pAgentName }
                                             })
+        {
+        }
+    }
+
+    public class AudioBridgeAgentJoinRoomReq : PluginMsgReq
+    {
+        public AudioBridgeAgentJoinRoomReq(int pRoomId, UUID Agent) : base(new OSDMap() {
+                                        { "request", "join" },
+                                        { "room", pRoomId },
+                                        { "id", new OSDNLong(Math.Abs((long)(Agent.ulonga ^ Agent.ulongb)))},
+                                        { "display", Agent.ToString() }
+                                    })
         {
         }
     }
