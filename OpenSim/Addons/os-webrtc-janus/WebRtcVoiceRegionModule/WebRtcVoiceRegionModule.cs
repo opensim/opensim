@@ -205,7 +205,7 @@ namespace osWebRtcVoice
 
             if(request.HttpMethod != "POST")
             {
-                m_log.Debug($"[{logHeader}][ProvisionVoice]: Not a POST request. Agent={agentID}");
+                m_log.Debug($"{logHeader}[ProvisionVoice]: Not a POST request. Agent={agentID}");
                 response.StatusCode = (int)HttpStatusCode.NotFound;
                 return;
             }
@@ -343,7 +343,7 @@ namespace osWebRtcVoice
 
             if(request.HttpMethod != "POST")
             {
-                m_log.Error($"[{logHeader}][VoiceSignaling]: Not a POST request. Agent={agentID}");
+                m_log.Error($"{logHeader}[VoiceSignaling]: Not a POST request. Agent={agentID}");
                 response.StatusCode = (int)HttpStatusCode.NotFound;
                 return;
             }

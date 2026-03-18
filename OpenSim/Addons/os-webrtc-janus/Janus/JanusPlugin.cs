@@ -94,7 +94,7 @@ namespace osWebRtcVoice
                     AttachPluginResp handleResp = new(resp);
                     PluginId = handleResp.pluginId;
                     PluginUri = _JanusSession.SessionUri + "/" + PluginId;
-                    m_log.DebugFormat("{0} Activate. Plugin attached. ID={1}, URL={2}", LogHeader, PluginId, PluginUri);
+                    m_log.Debug($"{LogHeader} Activate. Plugin attached. ID={PluginId}, URL={PluginUri}");
                     _JanusSession.PluginId = PluginId;
                     _JanusSession.OnEvent += Handle_Event;
                     _JanusSession.OnMessage += Handle_Message;
@@ -102,12 +102,12 @@ namespace osWebRtcVoice
                 }
                 else
                 {
-                    m_log.ErrorFormat("{0} Activate: failed to attach to plugin {1}", LogHeader, PluginName);
+                    m_log.Error($"{LogHeader} Activate: failed to attach to plugin {PluginName}");
                 }
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("{0} Activate: exception attaching to plugin {1}: {2}", LogHeader, PluginName, e);
+                m_log.Error($"{LogHeader} Activate: exception attaching to plugin {PluginName}:", e);
             }
 
             return ret;
@@ -118,7 +118,7 @@ namespace osWebRtcVoice
             bool ret = false;
             if (!IsConnected || _JanusSession is null)
             {
-                m_log.WarnFormat("{0} Detach. Not connected", LogHeader);
+                m_log.Warn($"{LogHeader} Detach. Not connected");
                 return ret;
             }
             try
@@ -129,17 +129,17 @@ namespace osWebRtcVoice
                 JanusMessageResp resp = await _JanusSession.SendToJanus(new DetachPluginReq(), PluginUri).ConfigureAwait(false);
                 if (resp is not null && resp.isSuccess)
                 {
-                    m_log.DebugFormat("{0} Detach. Detached", LogHeader);
+                    m_log.Debug($"{LogHeader} Detach. Detached");
                     ret = true;
                 }
                 else
                 {
-                    m_log.ErrorFormat("{0} Detach: failed", LogHeader);
+                    m_log.Error($"{LogHeader} Detach: failed");
                 }
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("{0} Detach: exception {1}", LogHeader, e);
+                m_log.Error($"{LogHeader} Detach: exception", e);
             }
 
             return ret;
@@ -147,11 +147,11 @@ namespace osWebRtcVoice
 
         public virtual void Handle_Event(JanusMessageResp pResp)
         {
-            m_log.DebugFormat("{0} Handle_Event: {1}", LogHeader, pResp.ToString());
+            m_log.Debug($"{LogHeader} Handle_Event: {pResp}");
         }
         public virtual void Handle_Message(JanusMessageResp pResp)
         {
-            m_log.DebugFormat("{0} Handle_Message: {1}", LogHeader, pResp.ToString());
+            m_log.Debug($"{LogHeader} Handle_Message: {pResp}");
         }
     }
 }

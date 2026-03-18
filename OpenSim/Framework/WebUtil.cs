@@ -244,23 +244,23 @@ namespace OpenSim.Framework
             SharedSocketsHttpHandler = shh;
         }
 
-        public static HttpClient GetNewGlobalHttpClient(int timeout)
+        public static HttpClient GetNewGlobalHttpClient(int timeout, int maxBufferSize = 250 * 1024 * 1024)
         {
             var client = new HttpClient(SharedSocketsHttpHandler, false)
             {
                 Timeout = TimeSpan.FromMilliseconds(timeout > 0 ? timeout : 30000),
-                MaxResponseContentBufferSize = 250 * 1024 * 1024,
+                MaxResponseContentBufferSize = maxBufferSize,
             };
             client.DefaultRequestHeaders.ExpectContinue = false;
             return client;
         }
 
-        public static HttpClient GetGlobalNoRedirHttpClient(int timeout)
+        public static HttpClient GetGlobalNoRedirHttpClient(int timeout, int maxBufferSize = 250 * 1024 * 1024)
         {
             var client = new HttpClient(SharedSocketsHttpHandlerNoRedir, false)
             {
                 Timeout = TimeSpan.FromMilliseconds(timeout > 0 ? timeout : 30000),
-                MaxResponseContentBufferSize = 250 * 1024 * 1024,
+                MaxResponseContentBufferSize = maxBufferSize,
             };
             client.DefaultRequestHeaders.ExpectContinue = false;
             return client;

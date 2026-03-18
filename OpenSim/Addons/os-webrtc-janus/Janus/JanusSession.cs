@@ -266,7 +266,6 @@ namespace osWebRtcVoice
         {
             AddJanusHeaders(pReq, admin);
             if (_MessageDetails) m_log.DebugFormat($"{LogHeader} SendToJanus. URI={pURI}, req={pReq.ToJson}");
-//            if (_MessageDetails) DebugLog("{0} SendToJanus. URI={1}, req={2}", LogHeader, pURI, pReq.ToJson());
 
             JanusMessageResp ret = null;
             try
@@ -285,7 +284,7 @@ namespace osWebRtcVoice
                 HttpRequestMessage reqMsg = new(HttpMethod.Post, pURI);
                 reqMsg.Content = new StringContent(reqStr, System.Text.Encoding.UTF8, MediaTypeNames.Application.Json);
                 reqMsg.Headers.TryAddWithoutValidation("Accept", "application/json");
-//                HttpResponseMessage response = await httpClient.SendAsync(reqMsg, _CancelTokenSource.Token);
+
                 HttpResponseMessage response = await httpClient.SendAsync(reqMsg).ConfigureAwait(false);
 
                 if (response.IsSuccessStatusCode)
@@ -321,7 +320,7 @@ namespace osWebRtcVoice
                 }
                 else
                 {
-                    m_log.Error("{LogHeader} SendToJanus: response not successful {response}");
+                    m_log.Error($"{LogHeader} SendToJanus: response not successful {response}");
                     _= _OutstandingRequests.TryRemove(pReq.TransactionId, out _);
                 }
             }
@@ -452,13 +451,12 @@ namespace osWebRtcVoice
             {
                 // m_log.DebugFormat("{0} GetFromJanus: URI = \"{1}\"", LogHeader, pURI);
                 //HttpClient httpClient = WebUtil.GetNewGlobalHttpClient(timeout);
-                HttpClient httpClient = WebUtil.GetGlobalNoRedirHttpClient(timeout);
+                HttpClient httpClient = WebUtil.GetGlobalNoRedirHttpClient(timeout, 1024 * 1024);
                 HttpRequestMessage reqMsg = new HttpRequestMessage(HttpMethod.Get, pURI);
                 reqMsg.Headers.TryAddWithoutValidation("Accept", "application/json");
                 HttpResponseMessage response = null;
                 try
                 {
-//                    response = await httpClient.SendAsync(reqMsg, _CancelTokenSource.Token);
                     response = await httpClient.SendAsync(reqMsg).ConfigureAwait(false);
 
                     if (response is not null && response.IsSuccessStatusCode)
@@ -469,28 +467,26 @@ namespace osWebRtcVoice
                     }
                     else
                     {
-                        m_log.Error($"{LogHeader} GetFromJanus: response not successful {response}");
-//                        m_log.ErrorFormat("{0} GetFromJanus: response not successful", LogHeader);
-//                        if (m_log.IsDebugEnabled)
-//                            m_log.DebugFormat("{0} GetFromJanus: response detail {1}", LogHeader, response);
                         ErrorResp eResp = new("GETERROR");
                         // Add the sessionId so the proper session can be shut down
                         eResp.AddSessionId(SessionId);
                         if (response is not null)
                         {
                             eResp.SetError((int)response.StatusCode, response.ReasonPhrase);
+                            m_log.Error($"{LogHeader} GetFromJanus: response not successful {response}");
                         }
                         else
                         {
                             eResp.SetError(0, "Connection refused");
+                            m_log.Error($"{LogHeader} GetFromJanus: response not successful");
                         }
                         ret = eResp;
                     }
                 }
                 catch (TaskCanceledException e)
                 {
-                    if (_MessageDetails) m_log.DebugFormat("{0} GetFromJanus: task canceled: {1}", LogHeader, e.Message);
-//                    if (_MessageDetails) DebugLog("{0} GetFromJanus: task canceled: {1}", LogHeader, e.Message);
+                    if (_MessageDetails)
+                        m_log.Debug($"{LogHeader} GetFromJanus: task canceled: {e.Message}");
 
                     ErrorResp eResp = new("GETERROR");
                     eResp.SetError(499, "Task canceled");
@@ -498,7 +494,7 @@ namespace osWebRtcVoice
                 }
                 catch (Exception e)
                 {
-                    m_log.ErrorFormat("{0} GetFromJanus: exception {1}", LogHeader, e.Message);
+                    m_log.Error($"{LogHeader} GetFromJanus: exception {e.Message}");
                     ErrorResp eResp = new("GETERROR");
                     eResp.SetError(400, "Exception: " + e.Message);
                     ret = eResp;
@@ -506,7 +502,7 @@ namespace osWebRtcVoice
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("{0} GetFromJanus: exception {1}", LogHeader, e);
+                m_log.Error($"{LogHeader} GetFromJanus: exception ", e);
                 ErrorResp eResp = new("GETERROR");
                 eResp.SetError(400, "Exception: " + e.Message);
                 ret = eResp;
