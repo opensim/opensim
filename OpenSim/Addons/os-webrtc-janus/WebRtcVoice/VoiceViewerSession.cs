@@ -67,12 +67,27 @@ namespace osWebRtcVoice
         }
 
         // public static bool TryGetViewerSessionByAgentId(UUID pAgentId, out IVoiceViewerSession pViewerSession)
-        public static bool TryGetViewerSessionByAgentId(UUID pAgentId, out IEnumerable<KeyValuePair<string, IVoiceViewerSession>> pViewerSessions)
+        public static bool TryGetViewerSessionsByAgentId(UUID pAgentId, out IEnumerable<KeyValuePair<string, IVoiceViewerSession>> pViewerSessions)
         {
             lock (ViewerSessions)
             {
                 pViewerSessions = ViewerSessions.Where(v => v.Value.AgentId == pAgentId);
                 return pViewerSessions.Count() > 0;
+            }
+        }
+
+        public static bool TryGetViewerSessionByAgentId(UUID pAgentId, out IVoiceViewerSession pViewerSession)
+        {
+            lock (ViewerSessions)
+            {
+                IEnumerable<KeyValuePair<string,IVoiceViewerSession>> sessions = ViewerSessions.Where(v => v.Value.AgentId == pAgentId);
+                if(sessions.Count() > 0)
+                {
+                    pViewerSession = sessions.First().Value;
+                    return true;
+                }
+                pViewerSession = null;
+                return false;
             }
         }
 
@@ -107,6 +122,15 @@ namespace osWebRtcVoice
             }
         }
 
+        public static bool TryGetViewerSessionsByAgentAndRegion(UUID pAgentId, UUID pRegionId, out IEnumerable<KeyValuePair<string, IVoiceViewerSession>> pViewerSessions)
+        {
+            lock (ViewerSessions)
+            {
+                pViewerSessions = ViewerSessions.Where(v => v.Value.AgentId == pAgentId && v.Value.RegionId == pRegionId);
+                return pViewerSessions.Count() > 0;
+            }
+        }
+
         public static void AddViewerSession(IVoiceViewerSession pSession)
         {
             lock (ViewerSessions)
@@ -114,6 +138,7 @@ namespace osWebRtcVoice
                 ViewerSessions[pSession.ViewerSessionID] = pSession;
             }
         }
+
         public static void RemoveViewerSession(string pSessionId)
         {
             lock (ViewerSessions)

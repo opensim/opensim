@@ -211,7 +211,7 @@ namespace osWebRtcVoice
             }
 
             // Deserialize the request. Convert the LLSDXml to OSD for our use
-            OSDMap map = BodyToMap(request, "ProvisionVoiceAccountRequest");
+            OSDMap map = BodyToMap(request, $"{logHeader}[ProvisionVoice]");
             if (map is null)
             {
                 m_log.Error($"{logHeader}[ProvisionVoice]: No request data found. Agent={agentID}");
@@ -349,7 +349,7 @@ namespace osWebRtcVoice
             }
 
             // Deserialize the request. Convert the LLSDXml to OSD for our use
-            OSDMap map = BodyToMap(request, "VoiceSignalingRequest");
+            OSDMap map = BodyToMap(request, $"{logHeader}[VoiceSignaling]");
             if (map is null)
             {
                 m_log.Error($"{logHeader}[VoiceSignalingRequest]: No request data found. Agent={agentID}");
@@ -404,7 +404,7 @@ namespace osWebRtcVoice
                 return;
             }
 
-            OSDMap reqmap = BodyToMap(request, "[ChatSessionRequest]");
+            OSDMap reqmap = BodyToMap(request, $"{logHeader}[ChatSessionRequest]");
             if (reqmap is null)
             {
                 m_log.Warn($"{logHeader} ChatSessionRequest: message body not parsable in request for agent {agentID}");
