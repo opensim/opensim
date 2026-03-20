@@ -41,6 +41,7 @@ using Mono.Addins;
 
 using log4net;
 using Nini.Config;
+using System.Linq;
 
 [assembly: Addin("WebRtcVoiceServiceModule", "1.0")]
 [assembly: AddinDependency("OpenSim.Region.Framework", OpenSim.VersionInfo.VersionNumber)]
@@ -259,30 +260,33 @@ namespace osWebRtcVoice
             return true;
         }
 
-        private void CleanupDuplicateSessions(UUID pAgentID, UUID pSceneID, string pKeepViewerSessionId)
+        private static void CleanupDuplicateSessions(UUID pAgentID, UUID pSceneID, string pKeepViewerSessionId)
         {
-            List<KeyValuePair<string, IVoiceViewerSession>> candidates = GetViewerSessionsByAgentAndScene(pAgentID, pSceneID);
-            foreach (KeyValuePair<string, IVoiceViewerSession> candidate in candidates)
+            if(VoiceViewerSession.TryGetViewerSessionsByAgentAndRegion(pAgentID, pSceneID, out IEnumerable<KeyValuePair<string, IVoiceViewerSession>> candidates))
             {
-                if (!string.IsNullOrEmpty(pKeepViewerSessionId) && candidate.Key == pKeepViewerSessionId)
-                    continue;
-
-                m_log.Warn(
-                    $"{LogHeader} CleanupDuplicateSessions: removing stale viewer_session {candidate.Key} for agent {pAgentID}, scene {pSceneID}");
-
-                VoiceViewerSession.RemoveViewerSession(candidate.Key);
-                _ = Task.Run(async () =>
+                bool noskip = string.IsNullOrEmpty(pKeepViewerSessionId);
+                foreach (KeyValuePair<string, IVoiceViewerSession> candidate in candidates)
                 {
-                    try
+                    if (noskip && candidate.Key == pKeepViewerSessionId)
+                        continue;
+
+                    m_log.Warn(
+                        $"{LogHeader} CleanupDuplicateSessions: removing stale viewer_session {candidate.Key} for agent {pAgentID}, scene {pSceneID}");
+
+                    VoiceViewerSession.RemoveViewerSession(candidate.Key);
+                    _ = Task.Run(async () =>
                     {
-                        await candidate.Value.Shutdown();
-                    }
-                    catch (Exception ex)
-                    {
-                        m_log.Debug(
-                            $"{LogHeader} CleanupDuplicateSessions: shutdown failed for viewer_session {candidate.Key}: {ex.Message}");
-                    }
-                });
+                        try
+                        {
+                            await candidate.Value.Shutdown();
+                        }
+                        catch (Exception ex)
+                        {
+                            m_log.Debug(
+                                $"{LogHeader} CleanupDuplicateSessions: shutdown failed for viewer_session {candidate.Key}: {ex.Message}");
+                        }
+                    });
+                }
             }
         }
 
@@ -299,22 +303,29 @@ namespace osWebRtcVoice
                 {
                     if(UUID.ZeroString.Equals(viewerSessionId, StringComparison.OrdinalIgnoreCase))
                     {
-                        if (VoiceViewerSession.TryGetViewerSessionByAgentId(pUserID, out vSession))
+                        if (VoiceViewerSession.TryGetViewerSessionsByAgentId(pUserID, out IEnumerable<KeyValuePair<string, IVoiceViewerSession>> vSessions))
                         {
-                            m_log.Warn(
-                                $"{LogHeader} ProvisionVoiceAccountRequest: null viewer session: using {vSession.ViewerSessionID}");
-                            return new OSDMap
+                            m_log.Info(
+                                $"{LogHeader} ProvisionVoiceAccountRequest: doing logout for {vSessions.Count()} stall sessions");
+
+                            OSDMap vreq = new() {{ "logout" , true} };
+
+                            foreach(KeyValuePair<string, IVoiceViewerSession> kvp in vSessions)
                             {
-                                { "response", "OK" },
-                                { "message", "logout" }
-                            };
+                                IVoiceViewerSession v = kvp.Value;
+                                if(v is null)
+                                    continue;
+                                vreq["viewer_session"] = v.VoiceServiceSessionId;
+                                v.VoiceService.ProvisionVoiceAccountRequest(v, vreq , pUserID, pSceneID);
+                            }
+                            return new OSDMap {{ "response", "closed" }};
                         }
                         else
                         {
                             return new OSDMap
                             {
                                 { "response", "error" },
-                                { "message", "Unable to provision voice session (missing viewer_session/channel_type or session not found)" }
+                                { "message", "Unable to provision voice session not found)" }
                             };
                         }
                     }
@@ -346,13 +357,13 @@ namespace osWebRtcVoice
                     {
                         // TODO: check if this userId is making a new session (case that user is reconnecting)
                         vSession = m_spatialVoiceService.CreateViewerSession(pRequest, pUserID, pSceneID);
-                        VoiceViewerSession.AddViewerSession(vSession);
+                        if(vSession != null) VoiceViewerSession.AddViewerSession(vSession);
                     }
                     else
                     {
                         // TODO: check if this userId is making a new session (case that user is reconnecting)
                         vSession = m_nonSpatialVoiceService.CreateViewerSession(pRequest, pUserID, pSceneID);
-                        VoiceViewerSession.AddViewerSession(vSession);
+                        if(vSession != null) VoiceViewerSession.AddViewerSession(vSession);
                     }
                 }
             }
