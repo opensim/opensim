@@ -318,8 +318,9 @@ namespace osWebRtcVoice
                                 vreq["viewer_session"] = v.VoiceServiceSessionId;
                                 v.VoiceService.ProvisionVoiceAccountRequest(v, vreq , pUserID, pSceneID);
                             }
-                            return new OSDMap {{ "response", "closed" }};
+                            //return new OSDMap {{ "response", "closed" }};
                         }
+                        /*
                         else
                         {
                             return new OSDMap
@@ -328,6 +329,8 @@ namespace osWebRtcVoice
                                 { "message", "Unable to provision voice session not found)" }
                             };
                         }
+                        */
+                        return new OSDMap {{ "response", "closed" }};
                     }
 
                     if (VoiceViewerSession.TryGetViewerSession(viewerSessionId, out vSession))
