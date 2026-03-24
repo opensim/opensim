@@ -58,7 +58,7 @@ namespace osWebRtcVoice
     /// Fancier configurations are possible.
     /// </summary>
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "WebRtcVoiceServiceModule")]
-    public class WebRtcVoiceServiceModule : ISharedRegionModule, IWebRtcVoiceService
+    public class WebRtcVoiceServiceModule : IWebRtcVoiceService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static string LogHeader = "[WEBRTC VOICE SERVICE MODULE]";
@@ -71,9 +71,7 @@ namespace osWebRtcVoice
 
         // =====================================================================
 
-        // ISharedRegionModule.Initialize
-        // Get configuration and load the modules that will handle spatial and non-spatial voice.
-        public void Initialise(IConfigSource pConfig)
+        public WebRtcVoiceServiceModule(IConfigSource pConfig)
         {
             m_Config = pConfig;
             IConfig moduleConfig = m_Config.Configs["WebRtcVoice"];
@@ -121,7 +119,7 @@ namespace osWebRtcVoice
                         m_nonSpatialVoiceService = ServerUtils.LoadPlugin<IWebRtcVoiceService>(nonSpatialDllName, [ m_Config ]);
                         if (m_nonSpatialVoiceService is null)
                         {
-                            m_log.Error("{LogHeader} Could not load NonSpatialVoiceService from {nonSpatialDllName}");
+                            m_log.Error($"{LogHeader} Could not load NonSpatialVoiceService from {nonSpatialDllName}");
                             m_Enabled = false;
                         }
                     }
@@ -134,85 +132,6 @@ namespace osWebRtcVoice
             }
         }
 
-        // ISharedRegionModule.PostInitialize
-        public void PostInitialise()
-        {
-        }
-
-        // ISharedRegionModule.Close
-        public void Close()
-        {
-        }
-
-        // ISharedRegionModule.ReplaceableInterface
-        public Type ReplaceableInterface
-        {
-            get { return null; }
-        }
-
-        // ISharedRegionModule.Name
-        public string Name
-        {
-            get { return "WebRtcVoiceServiceModule"; }
-        }
-
-        // ISharedRegionModule.AddRegion
-        public void AddRegion(Scene scene)
-        {
-            if (m_Enabled)
-            {
-                m_log.Debug($"{LogHeader} Adding WebRtcVoiceService to region {scene.Name}");
-                scene.RegisterModuleInterface<IWebRtcVoiceService>(this);
-
-                // TODO: figure out what events we care about
-                // When new client (child or root) is added to scene, before OnClientLogin
-                // scene.EventManager.OnNewClient         += Event_OnNewClient;
-                // When client is added on login.
-                // scene.EventManager.OnClientLogin       += Event_OnClientLogin;
-                // New presence is added to scene. Child, root, and NPC. See Scene.AddNewAgent()
-                // scene.EventManager.OnNewPresence       += Event_OnNewPresence;
-                // scene.EventManager.OnRemovePresence    += Event_OnRemovePresence;
-                // update to client position (either this or 'significant')
-                // scene.EventManager.OnClientMovement    += Event_OnClientMovement;
-                // "significant" update to client position
-                // scene.EventManager.OnSignificantClientMovement += Event_OnSignificantClientMovement;
-            }
-
-        }
-
-        // ISharedRegionModule.RemoveRegion
-        public void RemoveRegion(Scene scene)
-        {
-            if (m_Enabled)
-            {
-                scene.UnregisterModuleInterface<IWebRtcVoiceService>(this);
-            }
-        }
-
-        // ISharedRegionModule.RegionLoaded
-        public void RegionLoaded(Scene scene)
-        {
-        }
-
-        // =====================================================================
-        // Thought about doing this but currently relying on the voice service
-        //     event ("hangup") to remove the viewer session.
-/*
-        private void Event_OnRemovePresence(UUID pAgentID)
-        {
-            // When a presence is removed, remove the viewer sessions for that agent
-            IEnumerable<KeyValuePair<string, IVoiceViewerSession>> vSessions;
-            if (VoiceViewerSession.TryGetViewerSessionByAgentId(pAgentID, out vSessions))
-            {
-                foreach(KeyValuePair<string, IVoiceViewerSession> v in vSessions)
-                {
-                    m_log.DebugFormat("{0} Event_OnRemovePresence: removing viewer session {1}", LogHeader, v.Key);
-                    VoiceViewerSession.RemoveViewerSession(v.Key);
-                    v.Value.Shutdown();
-                }
-            }
-        }
-*/
 
         private static List<KeyValuePair<string, IVoiceViewerSession>> GetViewerSessionsByAgentAndScene(UUID pAgentID, UUID pSceneID)
         {
@@ -235,29 +154,6 @@ namespace osWebRtcVoice
                 return null;
 
             return propertyInfo.GetValue(pSource);
-        }
-
-        private static bool IsViewerSessionReusable(IVoiceViewerSession pViewerSession)
-        {
-            if (pViewerSession is null)
-                return false;
-
-            if (string.IsNullOrEmpty(pViewerSession.ViewerSessionID) || string.IsNullOrEmpty(pViewerSession.VoiceServiceSessionId))
-                return false;
-
-            object disconnectReason = TryGetPropertyValue(pViewerSession, "DisconnectReason");
-            if (disconnectReason is string reason && !string.IsNullOrEmpty(reason))
-                return false;
-
-            object sessionObj = TryGetPropertyValue(pViewerSession, "Session");
-            if (sessionObj is not null)
-            {
-                object isConnectedObj = TryGetPropertyValue(sessionObj, "IsConnected");
-                if (isConnectedObj is bool isConnected && !isConnected)
-                    return false;
-            }
-
-            return true;
         }
 
         private static void CleanupDuplicateSessions(UUID pAgentID, UUID pSceneID, string pKeepViewerSessionId)
