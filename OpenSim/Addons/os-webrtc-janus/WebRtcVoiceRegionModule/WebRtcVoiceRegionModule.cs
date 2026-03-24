@@ -133,6 +133,7 @@ namespace osWebRtcVoice
 
                     if (m_Enabled)
                     {
+                        _MessageDetails = m_Config.GetBoolean("MessageDetails", false);
                         m_log.Info($"{LogHeader} WebRtcVoiceService enabled");
                     }
                 }
@@ -336,111 +337,15 @@ namespace osWebRtcVoice
 
             if (_MessageDetails) m_log.Debug($"{LogHeader}[ProvisionVoice]: request: {map}");
 
-            if (map.TryGetString("channel_type", out string channelType))
-            {
-                //do fully not trust viewers voice parcel requests
-                if (channelType == "local")
-                {
-                    if (!scene.RegionInfo.EstateSettings.AllowVoice)
-                    {
-                        m_log.Debug($"{LogHeader}[ProvisionVoice]:region \"{scene.Name}\": voice not enabled in estate settings");
-                        response.RawBuffer = llsdUndefAnswerBytes;
-                        response.StatusCode = (int)HttpStatusCode.NotImplemented;
-                        return;
-                    }
-                    if (scene.LandChannel == null)
-                    {
-                        m_log.Error($"{LogHeader}[ProvisionVoice] region \"{scene.Name}\" land data not yet available");
-                        response.RawBuffer = llsdUndefAnswerBytes;
-                        response.StatusCode = (int)HttpStatusCode.NotImplemented;
-                        return;
-                    }
-
-                    if(!scene.TryGetScenePresence(agentID, out ScenePresence sp))
-                    {
-                        m_log.Debug($"{LogHeader}[ProvisionVoice]:avatar not found");
-                        response.RawBuffer = llsdUndefAnswerBytes;
-                        response.StatusCode = (int)HttpStatusCode.NotFound;
-                        return;
-                    }
-
-                    if(map.TryGetInt("parcel_local_id", out int parcelID))
-                    {
-                        ILandObject parcel = scene.LandChannel.GetLandObject(parcelID);
-                        if (parcel == null)
-                        {
-                            response.RawBuffer = llsdUndefAnswerBytes;
-                            response.StatusCode = (int)HttpStatusCode.NotFound;
-                            return;
-                        }
-                        
-                        LandData land = parcel.LandData;
-                        if (land == null)
-                        {
-                            response.RawBuffer = llsdUndefAnswerBytes;
-                            response.StatusCode = (int)HttpStatusCode.NotFound;
-                            return;
-                        }
-
-                        if (!scene.RegionInfo.EstateSettings.TaxFree && (land.Flags & (uint)ParcelFlags.AllowVoiceChat) == 0)
-                        {
-                            m_log.Debug($"{LogHeader}[ProvisionVoice]:parcel voice not allowed");
-                            response.RawBuffer = llsdUndefAnswerBytes;
-                            response.StatusCode = (int)HttpStatusCode.Forbidden;
-                            return;
-                        }
-
-                        if ((land.Flags & (uint)ParcelFlags.UseEstateVoiceChan) != 0)
-                        {
-                            // By removing the parcel_local_id, the voice service will treat this as an estate channel
-                            //    request and return the appropriate voice credentials for the estate channel
-                            //    instead of a parcel channel
-                            map.Remove("parcel_local_id"); // estate channel
-                        }
-                        else if(parcel.IsRestrictedFromLand(agentID) || parcel.IsBannedFromLand(agentID))
-                        {
-                            // check Z distance?
-                            m_log.Debug($"{LogHeader}[ProvisionVoice]:agent not allowed on parcel");
-                            response.RawBuffer = llsdUndefAnswerBytes;
-                            response.StatusCode = (int)HttpStatusCode.Forbidden;
-                            return;
-                        }
-                    }
-                }
-            }
-
-            // The checks passed. Send the request to the voice service.
-            OSDMap resp = ProvisionVoiceAccountRequestCont(map, agentID, scene.RegionInfo.RegionID);
-
-            if(resp is not null)
-            {
-                if (_MessageDetails) m_log.Debug($"{LogHeader}[ProvisionVoice]: response: {resp}");
-
-                // TODO: check for errors and package the response
-
-                // Convert the OSD to LLSDXml for the response
-                string xmlResp = OSDParser.SerializeLLSDXmlString(resp);
-                response.RawBuffer = Util.UTF8.GetBytes(xmlResp);
-                response.StatusCode = (int)HttpStatusCode.OK;
-            }
-            else
-            {
-                m_log.Debug($"{LogHeader}[ProvisionVoice]: got null response");
-                response.StatusCode = (int)HttpStatusCode.OK;
-            }
-            return;
-        }
-
-        public OSDMap ProvisionVoiceAccountRequestCont(OSDMap pRequest, UUID pUserID, UUID pSceneID)
-        {
             IVoiceViewerSession vSession = null;
-            if (pRequest.TryGetString("viewer_session", out string viewerSessionId))
+
+            if (map.TryGetString("viewer_session", out string viewerSessionId))
             {
-                if(pRequest.TryGetBool("logout", out bool islog) && islog)
+                if(map.TryGetBool("logout", out bool islog) && islog)
                 {
                     if(UUID.ZeroString.Equals(viewerSessionId, StringComparison.OrdinalIgnoreCase))
                     {
-                        if (VoiceViewerSession.TryGetViewerSessionsByAgentId(pUserID, out IEnumerable<KeyValuePair<string, IVoiceViewerSession>> vSessions))
+                        if (VoiceViewerSession.TryGetViewerSessionsByAgentId(agentID, out IEnumerable<KeyValuePair<string, IVoiceViewerSession>> vSessions))
                         {
                             m_log.Info(
                                 $"{LogHeader} ProvisionVoiceAccountRequest: doing logout for {vSessions.Count()} stall sessions");
@@ -453,78 +358,142 @@ namespace osWebRtcVoice
                                 if(v is null)
                                     continue;
                                 vreq["viewer_session"] = v.VoiceServiceSessionId;
-                                v.VoiceService.ProvisionVoiceAccountRequest(v, vreq , pUserID, pSceneID);
+                                v.VoiceService.ProvisionVoiceAccountRequest(v, vreq , agentID, scene.RegionInfo.RegionID);
                             }
-                            //return new OSDMap {{ "response", "closed" }};
                         }
-                        /*
-                        else
-                        {
-                            return new OSDMap
-                            {
-                                { "response", "error" },
-                                { "message", "Unable to provision voice session not found)" }
-                            };
-                        }
-                        */
-                        return new OSDMap {{ "response", "closed" }};
+
+                        response.RawBuffer = OSDParser.SerializeLLSDXmlBytes(new OSDMap {{ "response", "closed" }});
+                        response.StatusCode = (int)HttpStatusCode.OK;
+                        return ;
                     }
 
                     if (VoiceViewerSession.TryGetViewerSession(viewerSessionId, out vSession))
                     {
                         VoiceViewerSession.RemoveViewerSession(viewerSessionId);
-                        OSDMap resp = vSession.VoiceService.ProvisionVoiceAccountRequest(vSession, pRequest, pUserID, pSceneID);
-                        return resp ?? new OSDMap() {
+                        OSDMap logoutresp = vSession.VoiceService.ProvisionVoiceAccountRequest(vSession, map, agentID, scene.RegionInfo.RegionID);
+                        logoutresp ??= new OSDMap() {
                             { "response", "error" },
                             { "message", "Logout session not found" } };
+
+                        response.RawBuffer = OSDParser.SerializeLLSDXmlBytes(logoutresp);
+                        response.StatusCode = (int)HttpStatusCode.OK;
+                        return ;
                     }
                 }
 
                 // request has a viewer session. Use that to find the voice service
                 if (VoiceViewerSession.TryGetViewerSession(viewerSessionId, out vSession))
                 {
-                    CleanupDuplicateSessions(pUserID, pSceneID, viewerSessionId);
+                    CleanupDuplicateSessions(agentID, scene.RegionInfo.RegionID, viewerSessionId);
                 }
             }
+
             else
             {
-                // the request does not have a viewer session. See if it's an initial request
-                if (pRequest.TryGetString("channel_type", out string channelType))
+                //no session id.. new channel?
+                if (map.TryGetString("channel_type", out string channelType))
                 {
-                    // Ensure stale sessions are cleared before creating a new one.
-                    CleanupDuplicateSessions(pUserID, pSceneID, null);
+                    CleanupDuplicateSessions(agentID, scene.RegionInfo.RegionID, null);
+
+                    //do fully not trust viewers voice parcel requests
                     if (channelType == "local")
                     {
+                        if (!scene.RegionInfo.EstateSettings.AllowVoice)
+                        {
+                            m_log.Debug($"{LogHeader}[ProvisionVoice]:region \"{scene.Name}\": voice not enabled in estate settings");
+                            response.RawBuffer = llsdUndefAnswerBytes;
+                            response.StatusCode = (int)HttpStatusCode.NotImplemented;
+                            return;
+                        }
+                        if (scene.LandChannel == null)
+                        {
+                            m_log.Error($"{LogHeader}[ProvisionVoice] region \"{scene.Name}\" land data not yet available");
+                            response.RawBuffer = llsdUndefAnswerBytes;
+                            response.StatusCode = (int)HttpStatusCode.NotImplemented;
+                            return;
+                        }
+
+                        if(!scene.TryGetScenePresence(agentID, out ScenePresence sp))
+                        {
+                            m_log.Debug($"{LogHeader}[ProvisionVoice]:avatar not found");
+                            response.RawBuffer = llsdUndefAnswerBytes;
+                            response.StatusCode = (int)HttpStatusCode.NotFound;
+                            return;
+                        }
+
+                        if(map.TryGetInt("parcel_local_id", out int parcelID))
+                        {
+                            ILandObject parcel = scene.LandChannel.GetLandObject(parcelID);
+                            if (parcel == null)
+                            {
+                                response.RawBuffer = llsdUndefAnswerBytes;
+                                response.StatusCode = (int)HttpStatusCode.NotFound;
+                                return;
+                            }
+                        
+                            LandData land = parcel.LandData;
+                            if (land == null)
+                            {
+                                response.RawBuffer = llsdUndefAnswerBytes;
+                                response.StatusCode = (int)HttpStatusCode.NotFound;
+                                return;
+                            }
+
+                            if (!scene.RegionInfo.EstateSettings.TaxFree && (land.Flags & (uint)ParcelFlags.AllowVoiceChat) == 0)
+                            {
+                                m_log.Debug($"{LogHeader}[ProvisionVoice]:parcel voice not allowed");
+                                response.RawBuffer = llsdUndefAnswerBytes;
+                                response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                return;
+                            }
+
+                            if ((land.Flags & (uint)ParcelFlags.UseEstateVoiceChan) != 0)
+                            {
+                                // By removing the parcel_local_id, the voice service will treat this as an estate channel
+                                //    request and return the appropriate voice credentials for the estate channel
+                                //    instead of a parcel channel
+                                map.Remove("parcel_local_id"); // estate channel
+                            }
+                            else if(parcel.IsRestrictedFromLand(agentID) || parcel.IsBannedFromLand(agentID))
+                            {
+                                // check Z distance?
+                                m_log.Debug($"{LogHeader}[ProvisionVoice]:agent not allowed on parcel");
+                                response.RawBuffer = llsdUndefAnswerBytes;
+                                response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                return;
+                            }
+                        }
                         // TODO: check if this userId is making a new session (case that user is reconnecting)
-                        vSession = m_spatialVoiceService.CreateViewerSession(pRequest, pUserID, pSceneID);
+                        vSession = m_spatialVoiceService.CreateViewerSession(map, agentID, scene.RegionInfo.RegionID);
                         if(vSession != null) VoiceViewerSession.AddViewerSession(vSession);
                     }
                     else
                     {
                         // TODO: check if this userId is making a new session (case that user is reconnecting)
-                        vSession = m_nonSpatialVoiceService.CreateViewerSession(pRequest, pUserID, pSceneID);
+                        vSession = m_nonSpatialVoiceService.CreateViewerSession(map, agentID, scene.RegionInfo.RegionID);
                         if(vSession != null) VoiceViewerSession.AddViewerSession(vSession);
                     }
                 }
             }
 
-            OSDMap response = null;
-
+            OSDMap resp = null;
             if (vSession is not null)
             {
-                response = vSession.VoiceService.ProvisionVoiceAccountRequest(vSession, pRequest, pUserID, pSceneID);
+                resp = vSession.VoiceService.ProvisionVoiceAccountRequest(vSession, map, agentID, scene.RegionInfo.RegionID);
             }
 
-            if (response is null)
+            if (resp is null)
             {
-                return new OSDMap
-                {
-                    { "response", "error" },
-                    { "message", "Unable to provision voice session (missing viewer_session/channel_type or session not found)" }
-                };
-             }
+                response.StatusCode = (int)HttpStatusCode.BadRequest;
+                if (_MessageDetails) m_log.Debug($"{LogHeader}[ProvisionVoice]: got null response");
+                return;
+            }
 
-            return response;
+            if (_MessageDetails) m_log.Debug($"{LogHeader}[ProvisionVoice]: response: {resp}");
+
+            response.RawBuffer = OSDParser.SerializeLLSDXmlToBytes(resp);
+            response.StatusCode = (int)HttpStatusCode.OK;
+            return;
         }
 
 
@@ -557,28 +526,13 @@ namespace osWebRtcVoice
                 }
             }
 
-            OSDMap resp = VoiceSignalingRequestCont(map, agentID, scene.RegionInfo.RegionID);
-
-            if (_MessageDetails) m_log.Debug($"{LogHeader}[VoiceSignalingRequest]: Response: {resp}");
-
-            // TODO: check for errors
-            // viewers ignore response
-            response.RawBuffer = llsdUndefAnswerBytes;
-            response.StatusCode = (int)HttpStatusCode.OK;
-            return;
-        }
-
-
-        public OSDMap VoiceSignalingRequestCont(OSDMap pRequest, UUID pUserID, UUID pSceneID)
-        {
-            OSDMap response = null;
-            IVoiceViewerSession vSession = null;
-            if (pRequest.TryGetString("viewer_session", out string viewerSessionId))
+            OSDMap resp = null;
+            if (map.TryGetString("viewer_session", out string viewerSessionId))
             {
                 // request has a viewer session. Use that to find the voice service
-                if (VoiceViewerSession.TryGetViewerSession(viewerSessionId, out vSession))
+                if (VoiceViewerSession.TryGetViewerSession(viewerSessionId, out IVoiceViewerSession vSession))
                 {
-                    response = vSession.VoiceService.VoiceSignalingRequest(vSession, pRequest, pUserID, pSceneID);
+                    resp = vSession.VoiceService.VoiceSignalingRequest(vSession, map, agentID, scene.RegionInfo.RegionID);
                 }
                 else
                 {
@@ -589,9 +543,15 @@ namespace osWebRtcVoice
             {
                 m_log.Error($"{LogHeader} VoiceSignalingRequest: no viewer_session in request");
             }
-            return response;
-        }
 
+            if (_MessageDetails) m_log.Debug($"{LogHeader}[VoiceSignalingRequest]: Response: {resp ?? "null"}");
+
+            // TODO: check for errors
+            // viewers ignore response
+            response.RawBuffer = llsdUndefAnswerBytes;
+            response.StatusCode = (int)HttpStatusCode.OK;
+            return;
+        }
 
         /// <summary>
         /// Callback for a client request for ChatSessionRequest.
