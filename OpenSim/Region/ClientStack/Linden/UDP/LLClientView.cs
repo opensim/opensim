@@ -12201,7 +12201,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             var lrp = (LogoutRequestPacket)packet;
             m_log.Info($"[CLIENT]: Got a logout request for {c.Name} in {c.Scene.Name}");
-            c.OnLogout?.Invoke(c);
+            try
+            {
+                c.OnLogout?.Invoke(c);
+            }
+            catch { }
+            c.UDPServer.LogoutHandler(c);
         }
 
         /// <summary>
@@ -12212,7 +12217,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected virtual void Logout(IClientAPI client)
         {
             m_log.Info($"[CLIENT]: Got a logout request for {Name} in {Scene.Name}");
-            OnLogout?.Invoke(client);
+            try
+            {
+                OnLogout?.Invoke(client);
+            }
+            catch { }
+            UDPServer.LogoutHandler(client);
         }
 
         /// <summary>
