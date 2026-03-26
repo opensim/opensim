@@ -1400,6 +1400,34 @@ namespace OpenSim.Framework
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UUID ComputeShake128UUID(string src)
+        {
+            return ComputeShake128UUID(Encoding.ASCII.GetBytes(src));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UUID ComputeShake128UUID(ReadOnlySpan<byte> src)
+        {
+            byte[] ret;
+            UUID uuid;
+            if(Shake128.IsSupported)
+            {
+                ret = Shake128.HashData(src, 16);
+                uuid = new(ret, 0);
+            }
+            else
+            { 
+                ret = SHA1.HashData(src);
+                uuid = new(ret, 2);
+            }
+            uuid.c &= 0x0fff;
+            uuid.c |= 0x5000;
+            uuid.d &= 0x3f;
+            uuid.d |= 0x80;
+            return uuid;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string AESEncrypt(ReadOnlySpan<char> secret, ReadOnlySpan<char> plainText)
         {
             return AESEncryptString(secret, plainText, string.Empty);
