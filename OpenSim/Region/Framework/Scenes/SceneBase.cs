@@ -28,12 +28,12 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
 
 using OpenSim.Region.Framework.Interfaces;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
@@ -56,10 +56,21 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Fields
 
-        public string Name { get { return RegionInfo.RegionName; } }
+        public string Name
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return RegionInfo.RegionName; }
+        }
+
+        public UUID ID
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return RegionInfo.RegionID; }
+        }
 
         public IConfigSource Config
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return GetConfig(); }
         }
 
@@ -73,33 +84,34 @@ namespace OpenSim.Region.Framework.Scenes
         /// </value>
         public Dictionary<string, IRegionModuleBase> RegionModules
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return m_regionModules; }
         }
-        private Dictionary<string, IRegionModuleBase> m_regionModules = new Dictionary<string, IRegionModuleBase>();
+        private Dictionary<string, IRegionModuleBase> m_regionModules = [];
 
         /// <value>
         /// The module interfaces available from this scene.
         /// </value>
-        protected Dictionary<Type, List<object>> ModuleInterfaces = new Dictionary<Type, List<object>>();
+        protected Dictionary<Type, List<object>> ModuleInterfaces = [];
 
         /// <summary>
         /// These two objects hold the information about any formats used
         /// by modules that hold agent specific data.
         /// </summary>
         protected List<UUID> FormatsOffered = new List<UUID>();
-        protected Dictionary<object, List<UUID>> FormatsWanted = new Dictionary<object, List<UUID>>();
+        protected Dictionary<object, List<UUID>> FormatsWanted = [];
 
-        protected Dictionary<string, object> ModuleAPIMethods = new Dictionary<string, object>();
+        protected Dictionary<string, object> ModuleAPIMethods = [];
 
         /// <value>
         /// The module commanders available from this scene
         /// </value>
-        protected Dictionary<string, ICommander> m_moduleCommanders = new Dictionary<string, ICommander>();
+        protected Dictionary<string, ICommander> m_moduleCommanders = [];
 
         /// <value>
         /// Registered classes that are capable of creating entities.
         /// </value>
-        protected Dictionary<PCode, IEntityCreator> m_entityCreators = new Dictionary<PCode, IEntityCreator>();
+        protected Dictionary<PCode, IEntityCreator> m_entityCreators = [];
 
         /// <summary>
         /// The last allocated local prim id.  When a new local id is requested, the next number in the sequence is
@@ -108,10 +120,11 @@ namespace OpenSim.Region.Framework.Scenes
         protected int m_lastAllocatedLocalId = 720000;
         protected int m_lastAllocatedIntId = 7200;
 
-        protected readonly ClientManager m_clientManager = new ClientManager();
+        protected readonly ClientManager m_clientManager = new();
 
         public bool LoginsEnabled
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 return m_loginsEnabled;
@@ -130,6 +143,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool Ready
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 return m_ready;
