@@ -227,24 +227,6 @@ namespace osWebRtcVoice
             return $"flow={pFlowId}, viewer_session={pViewerSession?.ViewerSessionID ?? "<none>"}";
         }
 
-        private async Task EnforceRejoinCooldown(UUID pAgentId, JanusViewerSession pViewerSession, long pFlowId)
-        {
-            if (_RejoinCooldownMs <= 0)
-                return;
-
-            if (_LastDisconnectByAgent.TryGetValue(pAgentId, out DateTime lastDisconnectUtc))
-            {
-                int elapsedMs = (int)(DateTime.UtcNow - lastDisconnectUtc).TotalMilliseconds;
-                int waitMs = _RejoinCooldownMs - elapsedMs;
-                if (waitMs > 0)
-                {
-                    _log.DebugFormat("{0} ProvisionVoiceAccountRequest: applying rejoin cooldown {1}ms ({2})",
-                            LogHeader, waitMs, FlowTag(pFlowId, pViewerSession));
-                    await Task.Delay(waitMs);
-                 }
-             }
-         }
-
         // Disconnect the viewer session. This is called when the viewer logs out or hangs up.
 
         private void DisconnectViewerSession(JanusViewerSession pViewerSession, string pReason)

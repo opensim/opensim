@@ -133,30 +133,7 @@ namespace osWebRtcVoice
         }
 
 
-        private static List<KeyValuePair<string, IVoiceViewerSession>> GetViewerSessionsByAgentAndScene(UUID pAgentID, UUID pSceneID)
-        {
-            List<KeyValuePair<string, IVoiceViewerSession>> matches = [];
-            if (VoiceViewerSession.TryGetViewerSessionsByAgentId(pAgentID, out IEnumerable<KeyValuePair<string, IVoiceViewerSession>> vSessions))
-            {
-                foreach (KeyValuePair<string, IVoiceViewerSession> v in vSessions)
-                     matches.Add(v);
-            }
-            return matches;
-        }
-
-        private static object TryGetPropertyValue(object pSource, string pPropertyName)
-        {
-            if (pSource is null || string.IsNullOrEmpty(pPropertyName))
-                return null;
-
-            PropertyInfo propertyInfo = pSource.GetType().GetProperty(pPropertyName);
-            if (propertyInfo is null)
-                return null;
-
-            return propertyInfo.GetValue(pSource);
-        }
-
-        private static void CleanupDuplicateSessions(UUID pAgentID, UUID pSceneID, string pKeepViewerSessionId)
+         private static void CleanupDuplicateSessions(UUID pAgentID, UUID pSceneID, string pKeepViewerSessionId)
         {
             if(VoiceViewerSession.TryGetViewerSessionsByAgentAndRegion(pAgentID, pSceneID, out IEnumerable<KeyValuePair<string, IVoiceViewerSession>> candidates))
             {
@@ -211,32 +188,25 @@ namespace osWebRtcVoice
                                 IVoiceViewerSession v = kvp.Value;
                                 if(v is null)
                                     continue;
-                                vreq["viewer_session"] = v.VoiceServiceSessionId;
+                                vreq["viewer_session"] = v.ViewerSessionID;
+
+                                VoiceViewerSession.RemoveViewerSession(v.ViewerSessionID);
                                 v.VoiceService.ProvisionVoiceAccountRequest(v, vreq , pUserID, pSceneID);
                             }
-                            //return new OSDMap {{ "response", "closed" }};
                         }
-                        /*
-                        else
-                        {
-                            return new OSDMap
-                            {
-                                { "response", "error" },
-                                { "message", "Unable to provision voice session not found)" }
-                            };
-                        }
-                        */
+
                         return new OSDMap {{ "response", "closed" }};
                     }
 
+                    OSDMap resp = null;
                     if (VoiceViewerSession.TryGetViewerSession(viewerSessionId, out vSession))
                     {
                         VoiceViewerSession.RemoveViewerSession(viewerSessionId);
-                        OSDMap resp = vSession.VoiceService.ProvisionVoiceAccountRequest(vSession, pRequest, pUserID, pSceneID);
-                        return resp ?? new OSDMap() {
-                            { "response", "error" },
-                            { "message", "Logout session not found" } };
+                        resp = vSession.VoiceService.ProvisionVoiceAccountRequest(vSession, pRequest, pUserID, pSceneID);
                     }
+                    return resp ?? new OSDMap() {
+                        { "response", "error" },
+                        { "message", "Logout session not found" } };
                 }
 
                 // request has a viewer session. Use that to find the voice service
@@ -256,7 +226,14 @@ namespace osWebRtcVoice
                     {
                         // TODO: check if this userId is making a new session (case that user is reconnecting)
                         vSession = m_spatialVoiceService.CreateViewerSession(pRequest, pUserID, pSceneID);
-                        if(vSession != null) VoiceViewerSession.AddViewerSession(vSession);
+                        if(vSession != null)
+                        {
+                            if(pRequest.TryGetInt("parcel_local_id", out int parcelID))
+                                vSession.Flags = IVoiceViewerSession.VFlags.IsParcel;
+                            else
+                                vSession.Flags = IVoiceViewerSession.VFlags.IsEstate;
+                            VoiceViewerSession.AddViewerSession(vSession);
+                        }
                     }
                     else
                     {

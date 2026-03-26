@@ -166,6 +166,11 @@ namespace osWebRtcVoice
                     OnRegisterCaps(scene, agentID, caps);
                 };
 
+                scene.EventManager.OnRemovePresence += delegate (UUID agentID)
+                {
+                    OnRemovePresence(scene, agentID);
+                };
+
                 ISimulatorFeaturesModule simFeatures = scene.RequestModuleInterface<ISimulatorFeaturesModule>();
                 simFeatures?.AddFeature("VoiceServerType", OSD.FromString("webrtc"));
             }
@@ -188,42 +193,52 @@ namespace osWebRtcVoice
             get { return null; }
         }
 
-        // =====================================================================
-        // Thought about doing this but currently relying on the voice service
-        //     event ("hangup") to remove the viewer session.
-/*
-        private void Event_OnRemovePresence(UUID pAgentID)
+        private static void OnRemovePresence(Scene pScene, UUID pAgentID)
         {
-            // When a presence is removed, remove the viewer sessions for that agent
-            IEnumerable<KeyValuePair<string, IVoiceViewerSession>> vSessions;
-            if (VoiceViewerSession.TryGetViewerSessionByAgentId(pAgentID, out vSessions))
+            // When a presence is removed, remove the parcel viewer sessions for that agent
+            List<IVoiceViewerSession> toremove = [];
+            if (VoiceViewerSession.TryGetViewerSessionsByAgentAndRegion(pAgentID, pScene.RegionInfo.RegionID, out IEnumerable<KeyValuePair<string, IVoiceViewerSession>> vSessions))
             {
                 foreach(KeyValuePair<string, IVoiceViewerSession> v in vSessions)
                 {
-                    m_log.DebugFormat("{0} Event_OnRemovePresence: removing viewer session {1}", LogHeader, v.Key);
-                    VoiceViewerSession.RemoveViewerSession(v.Key);
-                    v.Value.Shutdown();
+                    if((v.Value.Flags & IVoiceViewerSession.VFlags.IsParcel) != 0)
+                        toremove.Add(v.Value);
+                }
+
+                if(toremove.Count > 0)
+                {
+                    foreach(IVoiceViewerSession v in toremove)
+                        VoiceViewerSession.RemoveViewerSession(v.ViewerSessionID);
+
+                    Util.FireAndForget( x =>
+                    {
+                       List<IVoiceViewerSession> toremoveas = toremove;
+                        foreach(IVoiceViewerSession v in toremoveas)
+                        try
+                        {
+                            OSDMap vreq = new()
+                            {
+                                { "logout" , true},
+                                { "viewer_session" , v.ViewerSessionID}
+                            };
+                            v.VoiceService.ProvisionVoiceAccountRequest(v, vreq , v.AgentId, v.RegionId);
+                        }
+                        catch (Exception ex)
+                        {
+                            m_log.Debug(
+                                $"{LogHeader} OnRemovePresence: shutdown failed for viewer_session {v.ViewerSessionID}: {ex.Message}");
+                        }
+                    });
                 }
             }
         }
-*/
-
-        private static List<KeyValuePair<string, IVoiceViewerSession>> GetViewerSessionsByAgentAndScene(UUID pAgentID, UUID pSceneID)
-        {
-            List<KeyValuePair<string, IVoiceViewerSession>> matches = [];
-            if (VoiceViewerSession.TryGetViewerSessionsByAgentId(pAgentID, out IEnumerable<KeyValuePair<string, IVoiceViewerSession>> vSessions))
-            {
-                foreach (KeyValuePair<string, IVoiceViewerSession> v in vSessions)
-                     matches.Add(v);
-            }
-            return matches;
-        }
-
+ 
         private static void CleanupDuplicateSessions(UUID pAgentID, UUID pSceneID, string pKeepViewerSessionId)
         {
             if(VoiceViewerSession.TryGetViewerSessionsByAgentAndRegion(pAgentID, pSceneID, out IEnumerable<KeyValuePair<string, IVoiceViewerSession>> candidates))
             {
                 bool noskip = string.IsNullOrEmpty(pKeepViewerSessionId);
+                List<IVoiceViewerSession> toremove = [];
                 foreach (KeyValuePair<string, IVoiceViewerSession> candidate in candidates)
                 {
                     if (noskip && candidate.Key == pKeepViewerSessionId)
@@ -231,24 +246,36 @@ namespace osWebRtcVoice
 
                     m_log.Warn(
                         $"{LogHeader} CleanupDuplicateSessions: removing stale viewer_session {candidate.Key} for agent {pAgentID}, scene {pSceneID}");
+                    toremove.Add(candidate.Value);
+                }
+                foreach(IVoiceViewerSession v in toremove)
+                    VoiceViewerSession.RemoveViewerSession(v.ViewerSessionID);
 
-                    VoiceViewerSession.RemoveViewerSession(candidate.Key);
-                    _ = Task.Run(async () =>
+                if(toremove.Count > 0)
+                {
+                    Util.FireAndForget( x =>
                     {
-                        try
+                        foreach(IVoiceViewerSession v in toremove)
                         {
-                            await candidate.Value.Shutdown();
-                        }
-                        catch (Exception ex)
-                        {
-                            m_log.Debug(
-                                $"{LogHeader} CleanupDuplicateSessions: shutdown failed for viewer_session {candidate.Key}: {ex.Message}");
+                            try
+                            {
+                                OSDMap vreq = new()
+                                {
+                                    { "logout" , true},
+                                    { "viewer_session" , v.ViewerSessionID}
+                                };
+                                v.VoiceService.ProvisionVoiceAccountRequest(v, vreq , v.AgentId, v.RegionId);
+                            }
+                            catch (Exception ex)
+                            {
+                                m_log.Debug(
+                                    $"{LogHeader} CleanupDuplicateSessions: shutdown failed for viewer_session {v.ViewerSessionID}: {ex.Message}");
+                            }
                         }
                     });
                 }
             }
         }
-
 
         // <summary>
         // OnRegisterCaps is invoked via the scene.EventManager
@@ -357,7 +384,8 @@ namespace osWebRtcVoice
                                 IVoiceViewerSession v = kvp.Value;
                                 if(v is null)
                                     continue;
-                                vreq["viewer_session"] = v.VoiceServiceSessionId;
+                                vreq["viewer_session"] = v.ViewerSessionID;
+                                VoiceViewerSession.RemoveViewerSession(v.ViewerSessionID);
                                 v.VoiceService.ProvisionVoiceAccountRequest(v, vreq , agentID, scene.RegionInfo.RegionID);
                             }
                         }
@@ -367,18 +395,19 @@ namespace osWebRtcVoice
                         return ;
                     }
 
+                    OSDMap logoutresp = null;
                     if (VoiceViewerSession.TryGetViewerSession(viewerSessionId, out vSession))
                     {
                         VoiceViewerSession.RemoveViewerSession(viewerSessionId);
-                        OSDMap logoutresp = vSession.VoiceService.ProvisionVoiceAccountRequest(vSession, map, agentID, scene.RegionInfo.RegionID);
-                        logoutresp ??= new OSDMap() {
-                            { "response", "error" },
-                            { "message", "Logout session not found" } };
-
-                        response.RawBuffer = OSDParser.SerializeLLSDXmlBytes(logoutresp);
-                        response.StatusCode = (int)HttpStatusCode.OK;
-                        return ;
+                        logoutresp = vSession.VoiceService.ProvisionVoiceAccountRequest(vSession, map, agentID, scene.RegionInfo.RegionID);
                     }
+                    logoutresp ??= new OSDMap() {
+                        { "response", "error" },
+                        { "message", "Logout session not found" } };
+
+                    response.RawBuffer = OSDParser.SerializeLLSDXmlBytes(logoutresp);
+                    response.StatusCode = (int)HttpStatusCode.OK;
+                    return ;
                 }
 
                 // request has a viewer session. Use that to find the voice service
@@ -387,13 +416,22 @@ namespace osWebRtcVoice
                     CleanupDuplicateSessions(agentID, scene.RegionInfo.RegionID, viewerSessionId);
                 }
             }
-
             else
             {
                 //no session id.. new channel?
                 if (map.TryGetString("channel_type", out string channelType))
                 {
                     CleanupDuplicateSessions(agentID, scene.RegionInfo.RegionID, null);
+
+                    if(!scene.TryGetScenePresence(agentID, out ScenePresence sp))
+                    {
+                        m_log.Debug($"{LogHeader}[ProvisionVoice]:avatar not found");
+                        response.RawBuffer = llsdUndefAnswerBytes;
+                        response.StatusCode = (int)HttpStatusCode.NotFound;
+                        return;
+                    }
+
+                    IVoiceViewerSession.VFlags flags = IVoiceViewerSession.VFlags.None;
 
                     //do fully not trust viewers voice parcel requests
                     if (channelType == "local")
@@ -413,14 +451,6 @@ namespace osWebRtcVoice
                             return;
                         }
 
-                        if(!scene.TryGetScenePresence(agentID, out ScenePresence sp))
-                        {
-                            m_log.Debug($"{LogHeader}[ProvisionVoice]:avatar not found");
-                            response.RawBuffer = llsdUndefAnswerBytes;
-                            response.StatusCode = (int)HttpStatusCode.NotFound;
-                            return;
-                        }
-
                         if(map.TryGetInt("parcel_local_id", out int parcelID))
                         {
                             ILandObject parcel = scene.LandChannel.GetLandObject(parcelID);
@@ -430,7 +460,7 @@ namespace osWebRtcVoice
                                 response.StatusCode = (int)HttpStatusCode.NotFound;
                                 return;
                             }
-                        
+
                             LandData land = parcel.LandData;
                             if (land == null)
                             {
@@ -453,25 +483,57 @@ namespace osWebRtcVoice
                                 //    request and return the appropriate voice credentials for the estate channel
                                 //    instead of a parcel channel
                                 map.Remove("parcel_local_id"); // estate channel
+                                flags = IVoiceViewerSession.VFlags.IsEstate;
                             }
-                            else if(parcel.IsRestrictedFromLand(agentID) || parcel.IsBannedFromLand(agentID))
+                            else
                             {
-                                // check Z distance?
-                                m_log.Debug($"{LogHeader}[ProvisionVoice]:agent not allowed on parcel");
-                                response.RawBuffer = llsdUndefAnswerBytes;
-                                response.StatusCode = (int)HttpStatusCode.Forbidden;
-                                return;
+                                if(parcel.IsRestrictedFromLand(agentID) || parcel.IsBannedFromLand(agentID))
+                                {
+                                    // check Z distance?
+                                    m_log.Debug($"{LogHeader}[ProvisionVoice]:agent not allowed on parcel");
+                                    response.RawBuffer = llsdUndefAnswerBytes;
+                                    response.StatusCode = (int)HttpStatusCode.Forbidden;
+                                    return;
+                                }
+                                flags = parcel.OwnerID.Equals(agentID) ?
+                                        IVoiceViewerSession.VFlags.IsAdmin | IVoiceViewerSession.VFlags.IsParcel :
+                                         IVoiceViewerSession.VFlags.IsParcel;
                             }
                         }
+                        else
+                        {
+                             flags = IVoiceViewerSession.VFlags.IsEstate;
+                        }
+
                         // TODO: check if this userId is making a new session (case that user is reconnecting)
                         vSession = m_spatialVoiceService.CreateViewerSession(map, agentID, scene.RegionInfo.RegionID);
-                        if(vSession != null) VoiceViewerSession.AddViewerSession(vSession);
+                        if(vSession != null)
+                        {
+                            if(sp.IsChildAgent)
+                                flags |= IVoiceViewerSession.VFlags.IsChildAgent;
+                            else if(scene.Permissions.IsEstateManager(agentID))
+                                flags |= IVoiceViewerSession.VFlags.IsAdmin;
+                            vSession.Flags = flags;
+                            VoiceViewerSession.AddViewerSession(vSession);
+                        }
                     }
                     else
                     {
-                        // TODO: check if this userId is making a new session (case that user is reconnecting)
+                        if(sp.IsChildAgent)
+                        {
+                            // check Z distance?
+                            m_log.Debug($"{LogHeader}[ProvisionVoice]:child agent request non local voice");
+                            response.RawBuffer = llsdUndefAnswerBytes;
+                            response.StatusCode = (int)HttpStatusCode.Forbidden;
+                            return;
+                        }
+
                         vSession = m_nonSpatialVoiceService.CreateViewerSession(map, agentID, scene.RegionInfo.RegionID);
-                        if(vSession != null) VoiceViewerSession.AddViewerSession(vSession);
+                        if(vSession != null)
+                        {
+                            vSession.Flags = IVoiceViewerSession.VFlags.IsAdmin;
+                            VoiceViewerSession.AddViewerSession(vSession);
+                        }
                     }
                 }
             }
@@ -495,7 +557,6 @@ namespace osWebRtcVoice
             response.StatusCode = (int)HttpStatusCode.OK;
             return;
         }
-
 
         public void VoiceSignalingRequest(IOSHttpRequest request, IOSHttpResponse response, UUID agentID, Scene scene)
         {
@@ -602,6 +663,23 @@ namespace osWebRtcVoice
                 return;
             }
 
+            string servertype = null;
+            if(reqmap.TryGetOSDMap("alt_params", out OSDMap altparams))
+            {
+                if(!altparams.TryGetString("voice_server_type", out servertype))
+                    _ = altparams.TryGetString("preferred_voice_server_type", out servertype);
+            }
+
+            if(!string.IsNullOrEmpty(servertype))
+            {
+                if(!servertype.Equals("webrtc", StringComparison.OrdinalIgnoreCase))
+                {
+                    response.RawBuffer = llsdUndefAnswerBytes;
+                    response.StatusCode = (int)HttpStatusCode.OK;
+                    return;
+                }
+            }
+
             switch (method.ToLower())
             {
                 // Several different method requests that we don't know how to handle.
@@ -642,6 +720,10 @@ namespace osWebRtcVoice
 
                         response.StatusCode = (int)HttpStatusCode.OK;
                     }
+                    break;
+                case "call":
+                    m_log.Debug($"{LogHeader}: ChatSessionRequest call: {reqmap}");
+                    response.StatusCode = (int)HttpStatusCode.BadRequest;
                     break;
                 default:
                     response.StatusCode = (int)HttpStatusCode.BadRequest;

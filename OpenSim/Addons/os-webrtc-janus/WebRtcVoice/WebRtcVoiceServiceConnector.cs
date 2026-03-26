@@ -81,7 +81,7 @@ namespace osWebRtcVoice
         public IVoiceViewerSession CreateViewerSession(OSDMap pRequest, UUID pUserID, UUID pSceneID)
         {
             m_log.Debug($"{LogHeader} CreateViewerSession");
-            return new VoiceViewerSession(this, pSceneID, pUserID);   
+            return new VoiceViewerSession(this, pSceneID, pUserID);
         }
 
         public OSDMap ProvisionVoiceAccountRequest(OSDMap pRequest, UUID pUserID, UUID pSceneID)

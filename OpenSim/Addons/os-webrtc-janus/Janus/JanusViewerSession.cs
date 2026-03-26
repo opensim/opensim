@@ -53,6 +53,8 @@ namespace osWebRtcVoice
         // IVoiceViewerSession.AgentId
         public OMV.UUID AgentId { get; set; }
 
+        public IVoiceViewerSession.VFlags Flags { get; set; }
+
         // Janus keeps track of the user by this ID
         public long ParticipantId { get; set; }
 

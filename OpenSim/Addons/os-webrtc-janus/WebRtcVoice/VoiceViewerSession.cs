@@ -49,6 +49,7 @@ namespace osWebRtcVoice
         public string VoiceServiceSessionId { get; set; }
         public UUID RegionId { get; set; }
         public UUID AgentId { get; set; }
+        public IVoiceViewerSession.VFlags Flags { get; set; }
 
         // =====================================================================
         // ViewerSessions hold the connection information for the client connection through to the voice service.
