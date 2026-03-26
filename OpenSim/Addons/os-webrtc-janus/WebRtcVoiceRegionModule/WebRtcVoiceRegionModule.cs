@@ -130,6 +130,8 @@ namespace osWebRtcVoice
                             m_Enabled = false;
                         }
                     }
+                    else
+                        m_nonSpatialVoiceService = m_spatialVoiceService;
 
                     if (m_Enabled)
                     {
@@ -171,6 +173,8 @@ namespace osWebRtcVoice
                     OnRemovePresence(scene, agentID);
                 };
 
+                scene.EventManager.OnNewClient += OnNewClient;
+
                 ISimulatorFeaturesModule simFeatures = scene.RequestModuleInterface<ISimulatorFeaturesModule>();
                 simFeatures?.AddFeature("VoiceServerType", OSD.FromString("webrtc"));
             }
@@ -193,9 +197,54 @@ namespace osWebRtcVoice
             get { return null; }
         }
 
+        private void OnNewClient(IClientAPI client)
+        {
+            client.OnLogout += OnClientLogOut;
+        }
+
+        private void OnClientLogOut(IClientAPI client)
+        {
+            client.OnLogout -= OnClientLogOut;
+
+            if(client.SceneAgent is not ScenePresence sp)
+                return;
+
+            List<IVoiceViewerSession> toremove = [];
+            if (VoiceViewerSession.TryGetViewerSessionsByAgentAndRegion(sp.UUID, sp.Scene.ID, out IEnumerable<KeyValuePair<string, IVoiceViewerSession>> vSessions))
+            {
+                foreach(KeyValuePair<string, IVoiceViewerSession> v in vSessions)
+                {
+                    if((v.Value.Flags & IVoiceViewerSession.VFlags.IsParcel) != 0)
+                        toremove.Add(v.Value);
+                }
+
+                foreach(IVoiceViewerSession v in toremove)
+                    VoiceViewerSession.RemoveViewerSession(v.ViewerSessionID);
+            }
+
+            Util.FireAndForget( x =>
+            {
+                try
+                {
+                    OSDMap vreq = new()
+                    {
+                        { "logout" , true},
+                        { "viewer_session" , UUID.Zero}
+                    };
+
+                    m_spatialVoiceService?.ProvisionVoiceAccountRequest(vreq , sp.UUID, sp.Scene.ID);
+                    if(m_nonSpatialVoiceService != m_spatialVoiceService)
+                        m_nonSpatialVoiceService?.ProvisionVoiceAccountRequest(vreq , sp.UUID, sp.Scene.ID);
+                }
+                catch (Exception ex)
+                {
+                    m_log.Debug($"{LogHeader} OnClientLogOut exception: {ex.Message}");
+                }
+            });
+        }
+
         private static void OnRemovePresence(Scene pScene, UUID pAgentID)
         {
-            // When a presence is removed, remove the parcel viewer sessions for that agent
             List<IVoiceViewerSession> toremove = [];
             if (VoiceViewerSession.TryGetViewerSessionsByAgentAndRegion(pAgentID, pScene.RegionInfo.RegionID, out IEnumerable<KeyValuePair<string, IVoiceViewerSession>> vSessions))
             {
@@ -226,7 +275,7 @@ namespace osWebRtcVoice
                         catch (Exception ex)
                         {
                             m_log.Debug(
-                                $"{LogHeader} OnRemovePresence: shutdown failed for viewer_session {v.ViewerSessionID}: {ex.Message}");
+                                $"{LogHeader} OnRemovePresence: failed for viewer_session {v.ViewerSessionID}: {ex.Message}");
                         }
                     });
                 }
@@ -248,6 +297,7 @@ namespace osWebRtcVoice
                         $"{LogHeader} CleanupDuplicateSessions: removing stale viewer_session {candidate.Key} for agent {pAgentID}, scene {pSceneID}");
                     toremove.Add(candidate.Value);
                 }
+
                 foreach(IVoiceViewerSession v in toremove)
                     VoiceViewerSession.RemoveViewerSession(v.ViewerSessionID);
 
