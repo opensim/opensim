@@ -164,12 +164,12 @@ namespace osWebRtcVoice
                     // Requests through the capabilities will create rooms
     
                     janusSession.AddPlugin(audioBridge);
-                        
                     pViewerSession.VoiceServiceSessionId = janusSession.SessionId;
                     pViewerSession.Session = janusSession;
                     pViewerSession.AudioBridge = audioBridge;
                     janusSession.OnDisconnect += Handle_Hangup;
                     janusSession.OnHangup += Handle_Hangup;
+
                     return true;
                 }
                 _log.Error($"{LogHeader} JanusPluginHandle not created");
@@ -245,9 +245,9 @@ namespace osWebRtcVoice
                 _log.InfoFormat("{0} ProvisionVoiceAccountRequest: disconnected by {1}. agent={2}, scene={3}, room={4}, participant={5}, viewer_session={6}",
                         LogHeader, pReason, pViewerSession.AgentId, pViewerSession.RegionId, roomId, pViewerSession.ParticipantId, pViewerSession.ViewerSessionID);
  
+                VoiceViewerSession.RemoveViewerSession(pViewerSession.ViewerSessionID);
                 Task.Run(() =>
                 {
-                    VoiceViewerSession.RemoveViewerSession(pViewerSession.ViewerSessionID);
                     // No need to wait for the session to be shutdown
                     _ = pViewerSession.Shutdown();
                 });
@@ -265,23 +265,31 @@ namespace osWebRtcVoice
 
         public async Task<OSDMap> ProvisionVoiceAccountRequestBAD(IVoiceViewerSession pSession, OSDMap pRequest, UUID pUserID, UUID pSceneID)
         {
+            long flowId = Interlocked.Increment(ref _VoiceFlowCounter);
+            if(pRequest.TryGetString("voice_server_type", out string voice_server_type))
+            {
+                if(!"webrtc".Equals(voice_server_type,StringComparison. CurrentCultureIgnoreCase))
+                {
+                    _log.Error($"{LogHeader} ProvisionVoiceAccountRequest: invalid server type {voice_server_type ?? "null"}");
+                    return new OSDMap
+                    {
+                        { "response", "failed" },
+                        { "error", "Invalid server type" }
+                    };
+                }
+            }
+
             OSDMap ret = null;
             string errorMsg = null;
             JanusViewerSession viewerSession = pSession as JanusViewerSession;
-            long flowId = Interlocked.Increment(ref _VoiceFlowCounter);
+
             if (viewerSession is not null)
             {
-                if (viewerSession.Session is null)
-                {
-                    // This is a new session so we must create a new session and handle to the audio bridge
-                    await ConnectToSessionAndAudioBridge(viewerSession).ConfigureAwait(false);
-                }
-
                 // TODO: need to keep count of users in a room to know when to close a room
                 bool isLogout = pRequest.TryGetBool("logout", out bool lgout) && lgout;
                 if (isLogout)
                 {
-                    // The client is logging out. Exit the room.
+                    // Exit the room.
                     if (viewerSession.Room is not null)
                     {
                         _ = await viewerSession.Room.LeaveRoom(viewerSession).ConfigureAwait(false);
@@ -296,14 +304,20 @@ namespace osWebRtcVoice
                     };
                 }
 
+                if (viewerSession.Session is null)
+                {
+                    // This is a new session so we must create a new session and handle to the audio bridge
+                    await ConnectToSessionAndAudioBridge(viewerSession).ConfigureAwait(false);
+                }
+
                 // Get the parameters that select the room
                 // To get here, voice_server_type has already been checked to be 'webrtc' and channel_type='local'
                 int parcel_local_id = pRequest.TryGetInt("parcel_local_id", out int pli) ? pli : JanusAudioBridge.REGION_ROOM_ID;
                 string channel_id = pRequest.TryGetString("channel_id", out string cli) ? cli : string.Empty;
                 string channel_credentials = pRequest.TryGetString("credentials", out string cred) ? cred : string.Empty;
                 string channel_type = pRequest["channel_type"].AsString();
+                string gridHash = pRequest.TryGetString("gridhash", out string ghash) ? ghash : string.Empty;
                 bool isSpatial = channel_type == "local";
-                string voice_server_type = pRequest["voice_server_type"].AsString();
 
                 _log.DebugFormat("{0} ProvisionVoiceAccountRequest: parcel_id={1} channel_id={2} channel_type={3} voice_server_type={4}", LogHeader, parcel_local_id, channel_id, channel_type, voice_server_type); 
 
@@ -320,14 +334,15 @@ namespace osWebRtcVoice
                         {
                             // The client is sending an offer. Find the right room and join it.
                             // _log.DebugFormat("{0} ProvisionVoiceAccountRequest: jsep type={1} sdp={2}", LogHeader, jsepType, jsepSdp);
-                            viewerSession.Room = await viewerSession.AudioBridge.SelectRoom(pSceneID.ToString(),
-                                                                channel_type, isSpatial, parcel_local_id, channel_id).ConfigureAwait(false);
+                            viewerSession.Room = await viewerSession.AudioBridge.SelectRoom(pSceneID.ToString(), gridHash,
+                                                                channel_type, isSpatial, parcel_local_id, channel_id, channel_credentials).ConfigureAwait(false);
                             if (viewerSession.Room is null)
                             {
                                 errorMsg = "room selection failed";
                                 _log.Error($"{LogHeader} ProvisionVoiceAccountRequest: room selection failed");
                             }
-                            else {
+                            else
+                            {
                                 viewerSession.Offer = jsepSdp;
                                 viewerSession.OfferOrig = jsepSdp;
                                 viewerSession.AgentId = pUserID;
@@ -399,7 +414,7 @@ namespace osWebRtcVoice
             JanusViewerSession viewerSession = pSession as JanusViewerSession;
             JanusMessageResp resp = null;
             long flowId = Interlocked.Increment(ref _VoiceFlowCounter);
-            if (viewerSession is not null)
+            if (viewerSession is not null && viewerSession.Session is not null)
             {
                 // The request should be an array of candidates
                 if (pRequest.TryGetOSDMap("candidate", out OSDMap candidate))

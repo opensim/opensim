@@ -514,11 +514,11 @@ namespace osWebRtcVoice
     // ==============================================================
     public class AudioBridgeCreateRoomReq : PluginMsgReq
     {
-        public AudioBridgeCreateRoomReq(int pRoomId) : this(pRoomId, false, null)
+        public AudioBridgeCreateRoomReq(int pRoomId) : this(pRoomId, false, null, null)
         {
         }
 
-        public AudioBridgeCreateRoomReq(int pRoomId, bool pSpatial, string pDesc) : base(new OSDMap() {
+        public AudioBridgeCreateRoomReq(int pRoomId, bool pSpatial, string pDesc, string credentials) : base(new OSDMap() {
                                                 { "room", pRoomId },
                                                 { "request", "create" },
                                                 { "is_private", false },
@@ -531,6 +531,8 @@ namespace osWebRtcVoice
         {
             if (!string.IsNullOrEmpty(pDesc))
                 AddStringToBody("description", pDesc);
+            if (!string.IsNullOrEmpty(credentials))
+                AddStringToBody("pin", credentials);
         }
     }
 

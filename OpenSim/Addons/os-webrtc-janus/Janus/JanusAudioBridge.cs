@@ -84,12 +84,12 @@ namespace osWebRtcVoice
         /// <param name="pSpatial">boolean on whether room will be spatial or non-spatial</param>
         /// <param name="pRoomDesc">added as "description" to the created room</param>
         /// <returns></returns>
-        public async Task<JanusRoom> CreateRoom(int pRoomId, bool pSpatial, string pRoomDesc)
+        public async Task<JanusRoom> CreateRoom(int pRoomId, bool pSpatial, string pRoomDesc, string credentials)
         {
             JanusRoom ret = null;
             try
             {
-                JanusMessageResp resp = await SendPluginMsg(new AudioBridgeCreateRoomReq(pRoomId, pSpatial, pRoomDesc)).ConfigureAwait(false);
+                JanusMessageResp resp = await SendPluginMsg(new AudioBridgeCreateRoomReq(pRoomId, pSpatial, pRoomDesc, credentials)).ConfigureAwait(false);
                 AudioBridgeResp abResp = new(resp);
 
                 m_log.Debug($"{LogHeader} CreateRoom. ReturnCode: '{abResp.AudioBridgeReturnCode}'");
@@ -156,7 +156,7 @@ namespace osWebRtcVoice
         // The attempt is to deterministicly create a room number so all regions will generate the
         //     same room number across sessions and across the grid.
         // getHashCode() is not deterministic across sessions.
-        public static int CalcRoomNumber(string pRegionId, string pChannelType, int pParcelLocalID, string pChannelID)
+        public static int CalcRoomNumber(string regionID, string gridhash, string pChannelType, int pParcelLocalID, string pChannelID)
         {
             BHasherMdjb2 hasher = new();
             // If there is a channel specified it must be group 
@@ -164,13 +164,12 @@ namespace osWebRtcVoice
             {
                 case "local":
                     // A "local" channel is unique to the region and parcel
-                    hasher.Add(pRegionId);
+                    hasher.Add(regionID);
                     hasher.Add(pChannelType);
                     hasher.Add(pParcelLocalID);
                     break;
                 case "multiagent":
-                    // A "multiagent" channel is unique to the grid
-                    // should add a GridId here
+                    hasher.Add(gridhash);
                     hasher.Add(pChannelID);
                     hasher.Add(pChannelType);
                     break;
@@ -184,61 +183,61 @@ namespace osWebRtcVoice
             return roomNumber;
         }
 
-        public async Task<JanusRoom> SelectRoom(string pRegionId, string pChannelType, bool pSpatial, int pParcelLocalID, string pChannelID)
+        public async Task<JanusRoom> SelectRoom(string pRegionId, string pgridhash, string pChannelType, bool pSpatial, int pParcelLocalID, string pChannelID, string credentials)
         {
-            int roomNumber = CalcRoomNumber(pRegionId, pChannelType, pParcelLocalID, pChannelID);
+            int roomNumber = CalcRoomNumber(pRegionId, pgridhash, pChannelType, pParcelLocalID, pChannelID);
 
             // Should be unique for the given use and channel type
-            m_log.DebugFormat("{0} SelectRoom: roomNumber={1}", LogHeader, roomNumber);
+            m_log.Debug($"{LogHeader} SelectRoom: roomNumber={roomNumber}");
 
             // Check to see if the room has already been created
+            JanusRoom existingRoom;
             lock (_rooms)
             {
-                if (_rooms.ContainsKey(roomNumber))
+                if (_rooms.TryGetValue(roomNumber, out existingRoom))
                 {
-                    return _rooms[roomNumber];
+                    return existingRoom;
                 }
             }
 
             // The room doesn't exist. Create it.
-            string roomDesc = pRegionId + "/" + pChannelType + "/" + pParcelLocalID + "/" + pChannelID;
-            JanusRoom ret = await CreateRoom(roomNumber, pSpatial, roomDesc).ConfigureAwait(false);
+            string roomDesc;
+            if(pChannelType == "local")
+                roomDesc = $"{pRegionId}/{pChannelType}/{pParcelLocalID}";
+            else
+                roomDesc = $"{pgridhash}/{pChannelType}/{pChannelID}";
 
-            JanusRoom existingRoom = null;
+            JanusRoom ret = await CreateRoom(roomNumber, pSpatial, roomDesc, credentials).ConfigureAwait(false);
+
             if (ret is not null)
             {
                 lock (_rooms)
                 {
-                    if (_rooms.ContainsKey(roomNumber))
+                    if(!_rooms.TryGetValue(roomNumber, out existingRoom))
                     {
                         // If the room was created while we were waiting, 
-                        existingRoom = _rooms[roomNumber];
-                    }
-                    else
-                    {
-                        // Our room is the first one created. Save it.
                         _rooms[roomNumber] = ret;
                     }
                 }
             }
+
             if (existingRoom is not null)
             {
                 // The room we created was already created by someone else. Delete ours and use the existing one
-                await DestroyRoom(ret);
-                ret = existingRoom;
+                await DestroyRoom(ret).ConfigureAwait(false);
+                return existingRoom;
             }
+
             return ret;
         }
 
         // Return the room with the given room ID or 'null' if no such room
-        public JanusRoom GetRoom(int pRoomId)
+        public bool GetRoom(int pRoomId, out JanusRoom room)
         {
-            JanusRoom ret = null;
             lock (_rooms)
             {
-                _rooms.TryGetValue(pRoomId, out ret);
+                return _rooms.TryGetValue(pRoomId, out room);
             }
-            return ret;
         }
 
         public override void Handle_Event(JanusMessageResp pResp)
@@ -250,8 +249,8 @@ namespace osWebRtcVoice
                 // An audio bridge event!
                 m_log.DebugFormat("{0} Handle_Event. {1}", LogHeader, abResp.ToString());
             }
-
         }
+
         public override void Handle_Message(JanusMessageResp pResp)
         {
             base.Handle_Message(pResp);
@@ -261,7 +260,6 @@ namespace osWebRtcVoice
                 // An audio bridge event!
                 m_log.DebugFormat("{0} Handle_Event. {1}", LogHeader, abResp.ToString());
             }
-
         }
     }
 }

@@ -119,8 +119,11 @@ namespace osWebRtcVoice
             {
                 JanusSession s = Session;
                 Session = null;
-                _ = await s.DestroySession().ConfigureAwait(false);
-                s.Dispose();
+                if(s != null)
+                {
+                    _ = await s.DestroySession().ConfigureAwait(false);
+                    s.Dispose();
+                }
             }
         }
     }

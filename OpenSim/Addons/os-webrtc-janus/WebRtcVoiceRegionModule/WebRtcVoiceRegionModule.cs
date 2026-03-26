@@ -79,6 +79,8 @@ namespace osWebRtcVoice
         private IWebRtcVoiceService m_spatialVoiceService;
         private IWebRtcVoiceService m_nonSpatialVoiceService;
 
+        private UUID gridHash = UUID.Zero;
+
         // ISharedRegionModule.Initialize
         public void Initialise(IConfigSource config)
         {
@@ -174,6 +176,14 @@ namespace osWebRtcVoice
                 };
 
                 scene.EventManager.OnNewClient += OnNewClient;
+
+                if(gridHash.IsZero())
+                {
+                    if(!string.IsNullOrEmpty(scene.SceneGridInfo.GridUrl))
+                        gridHash = Util.ComputeShake128UUID(scene.SceneGridInfo.GridUrl + scene.SceneGridInfo.GridName);
+                    else if (!string.IsNullOrEmpty(scene.SceneGridInfo.HomeURL + scene.SceneGridInfo.GridName))
+                        gridHash = Util.ComputeShake128UUID(scene.SceneGridInfo.HomeURLNoEndSlash);
+                }
 
                 ISimulatorFeaturesModule simFeatures = scene.RequestModuleInterface<ISimulatorFeaturesModule>();
                 simFeatures?.AddFeature("VoiceServerType", OSD.FromString("webrtc"));
@@ -552,7 +562,7 @@ namespace osWebRtcVoice
                         }
                         else
                         {
-                             flags = IVoiceViewerSession.VFlags.IsEstate;
+                            flags = IVoiceViewerSession.VFlags.IsEstate;
                         }
 
                         // TODO: check if this userId is making a new session (case that user is reconnecting)
@@ -583,6 +593,7 @@ namespace osWebRtcVoice
                         {
                             vSession.Flags = IVoiceViewerSession.VFlags.IsAdmin;
                             VoiceViewerSession.AddViewerSession(vSession);
+                            map["gridhash"] = gridHash;
                         }
                     }
                 }
