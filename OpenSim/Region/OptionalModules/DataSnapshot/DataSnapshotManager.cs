@@ -30,7 +30,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Reflection;
 using System.Threading;
 using System.Text;
@@ -399,10 +398,8 @@ namespace OpenSim.Region.DataSnapshot
         private void NotifyDataServices(string servicesStr, string serviceName)
         {
             Stream reply = null;
-            string delimStr = ";";
-            char [] delimiter = delimStr.ToCharArray();
 
-            string[] services = servicesStr.Split(delimiter, StringSplitOptions.RemoveEmptyEntries);
+            string[] services = servicesStr.Split([';'], StringSplitOptions.RemoveEmptyEntries);
 
             for (int i = 0; i < services.Length; i++)
             {

@@ -316,7 +316,7 @@ namespace osWebRtcVoice
                 string channel_id = pRequest.TryGetString("channel_id", out string cli) ? cli : string.Empty;
                 string channel_credentials = pRequest.TryGetString("credentials", out string cred) ? cred : string.Empty;
                 string channel_type = pRequest["channel_type"].AsString();
-                string gridHash = pRequest.TryGetString("gridhash", out string ghash) ? ghash : string.Empty;
+                string gridHash = pRequest.TryGetValue("gridhash", out OSD ghash) ? ghash.AsString() : string.Empty;
                 bool isSpatial = channel_type == "local";
 
                 _log.DebugFormat("{0} ProvisionVoiceAccountRequest: parcel_id={1} channel_id={2} channel_type={3} voice_server_type={4}", LogHeader, parcel_local_id, channel_id, channel_type, voice_server_type); 
