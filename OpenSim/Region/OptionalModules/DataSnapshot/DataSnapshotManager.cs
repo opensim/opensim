@@ -293,7 +293,7 @@ namespace OpenSim.Region.DataSnapshot
         private void AddDataServicesVars(IConfig config)
         {
             // Make sure the services given this way aren't in m_dataServices already
-            List<string> servs = new List<string>(m_dataServices.Split(new char[] { ';' }));
+            List<string> servs = new(m_dataServices.Split(';'));
 
             StringBuilder sb = new StringBuilder();
             string[] keys = config.GetKeys();
@@ -305,7 +305,7 @@ namespace OpenSim.Region.DataSnapshot
                 {
                     string keyValue = config.GetString(serviceKey, string.Empty).Trim();
                     if (!servs.Contains(keyValue))
-                        sb.Append(keyValue).Append(";");
+                        sb.Append(keyValue).Append(';');
                 }
             }
 
@@ -399,7 +399,7 @@ namespace OpenSim.Region.DataSnapshot
         {
             Stream reply = null;
 
-            string[] services = servicesStr.Split([';'], StringSplitOptions.RemoveEmptyEntries);
+            string[] services = servicesStr.Split(';', StringSplitOptions.RemoveEmptyEntries);
 
             for (int i = 0; i < services.Length; i++)
             {
