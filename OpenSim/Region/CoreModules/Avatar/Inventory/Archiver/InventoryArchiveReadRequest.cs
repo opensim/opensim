@@ -323,11 +323,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             {
 //                m_log.DebugFormat("[INVENTORY ARCHIVER]: Trying to resolve destination folder {0}", archivePath);
 
-                if (resolvedFolders.ContainsKey(archivePath))
+                if (resolvedFolders.TryGetValue(archivePath, out InventoryFolderBase resolved))
                 {
 //                    m_log.DebugFormat(
 //                        "[INVENTORY ARCHIVER]: Found previously created folder from archive path {0}", archivePath);
-                    return resolvedFolders[archivePath];
+                    return resolved;
                 }
                 else
                 {
@@ -401,12 +401,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             {
 //                m_log.DebugFormat("[INVENTORY ARCHIVER]: Creating folder {0} from IAR", rawDirsToCreate[i]);
 
-                if (!rawDirsToCreate[i].Contains(ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR))
-                    continue;
-
                 int identicalNameIdentifierIndex
                     = rawDirsToCreate[i].LastIndexOf(
                         ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR);
+                if(identicalNameIdentifierIndex < 0)
+                    continue;
 
                 string newFolderName = rawDirsToCreate[i].Remove(identicalNameIdentifierIndex);
 

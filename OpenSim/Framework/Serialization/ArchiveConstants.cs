@@ -191,21 +191,16 @@ namespace OpenSim.Framework.Serialization
         /// <returns></returns>
         public static string ExtractPlainPathFromIarPath(string iarPath)
         {
-            List<string> plainDirs = new();
+            string[] iarDirs = iarPath.Split('/', StringSplitOptions.RemoveEmptyEntries);
 
-            string[] iarDirs = iarPath.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
-
-            foreach (string iarDir in iarDirs)
+            for(int i = 0 ; i < iarDirs.Length; i++)
             {
-                if (!iarDir.Contains(ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR))
-                    plainDirs.Add(iarDir);
-
-                int i = iarDir.LastIndexOf(ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR);
-
-                plainDirs.Add(iarDir.Remove(i));
+                int sep = iarDirs[i].LastIndexOf(ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR);
+                if (sep >= 0)
+                    iarDirs[i] = iarDirs[i][..sep];
             }
 
-            return string.Join("/", plainDirs.ToArray());
+            return string.Join('/', iarDirs);
         }
     }
 }
