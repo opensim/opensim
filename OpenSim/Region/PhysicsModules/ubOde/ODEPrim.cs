@@ -1982,7 +1982,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if(noInertiaOverride)
             {
                 UBOdeNative.MassTranslate(ref objdmass, -objdmass.c.X, -objdmass.c.Y, -objdmass.c.Z); // ode wants inertia at center of body
-                Quaternion mr = Quaternion.Conjugate(m_orientation);
+                Quaternion mr = Quaternion.Conjugate(in m_orientation);
 
                 UBOdeNative.RfromQ(ref mymat, ref mr);
                 UBOdeNative.MassRotate(ref objdmass, ref mymat);
