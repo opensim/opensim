@@ -2761,32 +2761,22 @@ namespace OpenSim.Framework
 
         public static byte ConvertMaturityToAccessLevel(uint maturity)
         {
-            byte retVal = 0;
-            switch (maturity)
+            return maturity switch
             {
-                case 0: //PG
-                    retVal = 13;
-                    break;
-                case 1: //Mature
-                    retVal = 21;
-                    break;
-                case 2: // Adult
-                    retVal = 42;
-                    break;
-            }
-
-            return retVal;
-
+               //0 => 13, //PG
+               1 =>  21, //Mature
+               2 => 42,  // Adult
+               _ => 13  // PG 
+            };
         }
 
         public static uint ConvertAccessLevelToMaturity(byte maturity)
         {
             if (maturity <= 13)
                 return 0;
-            else if (maturity <= 21)
+            if (maturity <= 21)
                 return 1;
-            else
-                return 2;
+            return 2;
         }
 
         /// <summary>

@@ -1050,30 +1050,31 @@ namespace OpenSim.Services.LLLoginService
             // Old style: get the service keys from the DB
             foreach (KeyValuePair<string, object> kvp in account.ServiceURLs)
             {
-                if (kvp.Value is not null)
+                if (kvp.Value is string svalue)
                 {
-                    aCircuit.ServiceURLs[kvp.Key] = kvp.Value;
-
-                    if (!aCircuit.ServiceURLs[kvp.Key].ToString().EndsWith("/"))
-                        aCircuit.ServiceURLs[kvp.Key] = aCircuit.ServiceURLs[kvp.Key] + "/";
+                    if (svalue.EndsWith('/'))
+                        aCircuit.ServiceURLs[kvp.Key] = kvp.Value;
+                    else
+                        aCircuit.ServiceURLs[kvp.Key] = svalue + '/';
                 }
             }
 
-            // New style: service keys  start with SRV_; override the previous
+            // New style: service keys start with SRV_; override the previous
             string[] keys = m_LoginServerConfig.GetKeys();
 
             if (keys.Length > 0)
             {
                 bool newUrls = false;
-                IEnumerable<string> serviceKeys = keys.Where(value => value.StartsWith("SRV_"));
-                foreach (string serviceKey in serviceKeys)
+                foreach (string serviceKey in keys)
                 {
-                    string keyName = serviceKey.Replace("SRV_", "");
+                    if(!serviceKey.StartsWith("SRV_"))
+                        continue;
+                    string keyName = serviceKey[4..];
                     string keyValue = m_LoginServerConfig.GetString(serviceKey, string.Empty);
-                    if (!keyValue.EndsWith("/"))
-                        keyValue += "/";
+                    if (!keyValue.EndsWith('/'))
+                        keyValue += '/';
 
-                    if (!account.ServiceURLs.ContainsKey(keyName) || (account.ServiceURLs.ContainsKey(keyName) && (string)account.ServiceURLs[keyName] != keyValue))
+                    if (!account.ServiceURLs.TryGetValue(keyName, out object oserv) || !keyValue.Equals((string)oserv))
                     {
                         account.ServiceURLs[keyName] = keyValue;
                         newUrls = true;
@@ -1083,9 +1084,9 @@ namespace OpenSim.Services.LLLoginService
 //                    m_log.DebugFormat("[LLLOGIN SERVICE]: found new key {0} {1}", keyName, aCircuit.ServiceURLs[keyName]);
                 }
 
-                if (!account.ServiceURLs.ContainsKey("GatekeeperURI") && !string.IsNullOrEmpty(m_GatekeeperURL))
+                if (!string.IsNullOrEmpty(m_GatekeeperURL) && (!account.ServiceURLs.TryGetValue("GatekeeperURI", out object ogate) || !m_GatekeeperURL.Equals((string)ogate)))
                 {
-                    m_log.DebugFormat("[LLLOGIN SERVICE]: adding gatekeeper uri {0}", m_GatekeeperURL);
+                    m_log.Debug($"[LLLOGIN SERVICE]: adding gatekeeper uri {m_GatekeeperURL}");
                     account.ServiceURLs["GatekeeperURI"] = m_GatekeeperURL;
                     newUrls = true;
                 }
@@ -1095,7 +1096,6 @@ namespace OpenSim.Services.LLLoginService
                 if (newUrls)
                     m_UserAccountService.StoreUserAccount(account);
             }
-
         }
 
         private bool LaunchAgentDirectly(ISimulationService simConnector, GridRegion region, AgentCircuitData aCircuit, TeleportFlags flags, out string reason)

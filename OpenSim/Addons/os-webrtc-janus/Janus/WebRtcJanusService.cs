@@ -260,6 +260,8 @@ namespace osWebRtcVoice
         // IWebRtcVoiceService.ProvisionVoiceAccountRequest
         public OSDMap ProvisionVoiceAccountRequest(IVoiceViewerSession pSession, OSDMap pRequest, UUID pUserID, UUID pSceneID)
         {
+            // the bad refers to use of .Result
+            // that should not be used and may deadlock, due to poor ms design of all this specially async/await crap
             return ProvisionVoiceAccountRequestBAD(pSession, pRequest, pUserID, pSceneID).Result;
         }
 

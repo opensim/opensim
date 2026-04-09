@@ -50,7 +50,7 @@ namespace osWebRtcVoice
         public string PluginId { get; private set; }
         public string PluginUri { get ; private set ; }
 
-        public bool IsConnected => !String.IsNullOrEmpty(PluginId);
+        public bool IsConnected => !string.IsNullOrEmpty(PluginId);
 
         // Wrapper around the session connection to Janus-gateway
         public JanusPlugin(JanusSession pSession, string pPluginName)

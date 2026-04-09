@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using OpenMetaverse;
 
 using OpenSim.Framework;
@@ -92,7 +93,7 @@ namespace OpenSim.Services.Interfaces
         public int UserFlags;
         public string UserTitle;
         public string UserCountry;
-        public Boolean LocalToGrid = true;
+        public bool LocalToGrid = true;
 
         public Dictionary<string, object> ServiceURLs;
 
@@ -105,40 +106,39 @@ namespace OpenSim.Services.Interfaces
 
         public UserAccount(Dictionary<string, object> kvp)
         {
-            if (kvp.ContainsKey("FirstName"))
-                FirstName = kvp["FirstName"].ToString();
-            if (kvp.ContainsKey("LastName"))
-                LastName = kvp["LastName"].ToString();
-            if (kvp.ContainsKey("Email"))
-                Email = kvp["Email"].ToString();
-            if (kvp.ContainsKey("PrincipalID"))
-                UUID.TryParse(kvp["PrincipalID"].ToString(), out PrincipalID);
-            if (kvp.ContainsKey("ScopeID"))
-                UUID.TryParse(kvp["ScopeID"].ToString(), out ScopeID);
-            if (kvp.ContainsKey("UserLevel"))
-                UserLevel = Convert.ToInt32(kvp["UserLevel"].ToString());
-            if (kvp.ContainsKey("UserFlags"))
-                UserFlags = Convert.ToInt32(kvp["UserFlags"].ToString());
-            if (kvp.ContainsKey("UserTitle"))
-                UserTitle = kvp["UserTitle"].ToString();
-            if (kvp.ContainsKey("UserCountry"))
-                UserCountry = kvp["UserCountry"].ToString();
-            if (kvp.ContainsKey("LocalToGrid"))
-                Boolean.TryParse(kvp["LocalToGrid"].ToString(), out LocalToGrid);
+            object otmp;
+            if (kvp.TryGetValue("FirstName", out otmp))
+                FirstName = otmp.ToString();
+            if (kvp.TryGetValue("LastName", out otmp))
+                LastName = otmp.ToString();
+            if (kvp.TryGetValue("Email", out otmp))
+                Email = otmp.ToString();
+            if (kvp.TryGetValue("PrincipalID", out otmp))
+                _ = UUID.TryParse(otmp.ToString(), out PrincipalID);
+            if (kvp.TryGetValue("ScopeID", out otmp))
+                UUID.TryParse(otmp.ToString(), out ScopeID);
+            if (kvp.TryGetValue("UserLevel", out otmp))
+                UserLevel = Convert.ToInt32(otmp.ToString());
+            if (kvp.TryGetValue("UserFlags", out otmp))
+                UserFlags = Convert.ToInt32(otmp.ToString());
+            if (kvp.TryGetValue("UserTitle", out otmp))
+                UserTitle = otmp.ToString();
+            if (kvp.TryGetValue("UserCountry", out otmp))
+                UserCountry = otmp.ToString();
+            if (kvp.TryGetValue("LocalToGrid", out otmp))
+                _ = bool.TryParse(otmp.ToString(), out LocalToGrid);
 
-            if (kvp.ContainsKey("Created"))
-                Created = Convert.ToInt32(kvp["Created"].ToString());
-            if (kvp.ContainsKey("ServiceURLs") && kvp["ServiceURLs"] != null)
+            if (kvp.TryGetValue("Created", out otmp))
+                Created = Convert.ToInt32(otmp.ToString());
+            if (kvp.TryGetValue("ServiceURLs", out otmp) && otmp is string str)
             {
                 ServiceURLs = new Dictionary<string, object>();
-                string str = kvp["ServiceURLs"].ToString();
-                if (str != string.Empty)
+                if (str.Length > 0)
                 {
-                    string[] parts = str.Split(new char[] { ';' });
-//                    Dictionary<string, object> dic = new Dictionary<string, object>();
+                    string[] parts = str.Split(';');
                     foreach (string s in parts)
                     {
-                        string[] parts2 = s.Split(new char[] { '*' });
+                        string[] parts2 = s.Split('*');
                         if (parts2.Length == 2)
                             ServiceURLs[parts2[0]] = parts2[1];
                     }
@@ -148,25 +148,35 @@ namespace OpenSim.Services.Interfaces
 
         public Dictionary<string, object> ToKeyValuePairs()
         {
-            Dictionary<string, object> result = new Dictionary<string, object>();
-            result["FirstName"] = FirstName;
-            result["LastName"] = LastName;
-            result["Email"] = Email;
-            result["PrincipalID"] = PrincipalID.ToString();
-            result["ScopeID"] = ScopeID.ToString();
-            result["Created"] = Created.ToString();
-            result["UserLevel"] = UserLevel.ToString();
-            result["UserFlags"] = UserFlags.ToString();
-            result["UserTitle"] = UserTitle;
-            result["UserCountry"] = UserCountry;
-            result["LocalToGrid"] = LocalToGrid.ToString();
-
-            string str = string.Empty;
-            foreach (KeyValuePair<string, object> kvp in ServiceURLs)
+            Dictionary<string, object> result = new()
             {
-                str += kvp.Key + "*" + (kvp.Value == null ? "" : kvp.Value) + ";";
+                ["FirstName"] = FirstName,
+                ["LastName"] = LastName,
+                ["Email"] = Email,
+                ["PrincipalID"] = PrincipalID.ToString(),
+                ["ScopeID"] = ScopeID.ToString(),
+                ["Created"] = Created.ToString(),
+                ["UserLevel"] = UserLevel.ToString(),
+                ["UserFlags"] = UserFlags.ToString(),
+                ["UserTitle"] = UserTitle,
+                ["UserCountry"] = UserCountry,
+                ["LocalToGrid"] = LocalToGrid.ToString()
+            };
+
+            if(ServiceURLs.Count == 0)
+                result["ServiceURLs"] = string.Empty;
+            else
+            {
+                StringBuilder sb = osStringBuilderCache.Acquire();
+                foreach (KeyValuePair<string, object> kvp in ServiceURLs)
+                {
+                    sb.Append(kvp.Key);
+                    sb.Append('*');
+                    sb.Append(kvp.Value ?? "");
+                    sb.Append(';');
+                }
+                result["ServiceURLs"] = osStringBuilderCache.GetStringAndRelease(sb);
             }
-            result["ServiceURLs"] = str;
 
             return result;
         }

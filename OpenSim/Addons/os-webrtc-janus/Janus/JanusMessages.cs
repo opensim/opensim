@@ -290,10 +290,6 @@ namespace osWebRtcVoice
         {
             get
             {
-                // The JSON response gives a long number (not a string)
-                //    and the ODMap conversion interprets it as a long (OSDLong).
-                // If one just does a "ToString()" on the OSD object, you
-                //    get an interpretation of the binary value.
                 return dataSection.TryGetValue("id", out OSD oid) ? oid.AsLong().ToString() : string.Empty;
             }
         }  
