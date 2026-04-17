@@ -8207,7 +8207,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             Quaternion oldrot = part.SitTargetOrientation;
             part.SitTargetPosition = offset;
             part.SitTargetOrientation = rot;
-            part.ParentGroup.HasGroupChanged = oldpos.NotEqual(part.SitTargetPosition) || oldrot.NotEqual(part.SitTargetOrientation);
+            if(oldpos.NotEqual(part.SitTargetPosition) || oldrot.NotEqual(part.SitTargetOrientation))
+                part.ParentGroup.HasGroupChanged = true;
         }
 
         public void llSitTarget(LSL_Vector offset, LSL_Rotation rot)
