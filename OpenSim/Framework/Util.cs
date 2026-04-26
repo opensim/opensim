@@ -246,6 +246,7 @@ namespace OpenSim.Framework
         /// <param name="b"></param>
         /// <param name="c"></param>
         /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double lerp(double a, double b, double c)
         {
             return (b * a) + (c * (1 - a));
@@ -424,6 +425,7 @@ namespace OpenSim.Framework
         // legacy, do not use
         public static Random RandomClass
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get {  return Random.Shared;}
         }
 

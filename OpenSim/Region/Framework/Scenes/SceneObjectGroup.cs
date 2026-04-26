@@ -253,7 +253,6 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
                 m_hasGroupChanged = value;
-
                 //m_log.DebugFormat(
                 //    "[SCENE OBJECT GROUP]: HasGroupChanged set to {0} for {1} {2}", m_hasGroupChanged, Name, LocalId);
             }
