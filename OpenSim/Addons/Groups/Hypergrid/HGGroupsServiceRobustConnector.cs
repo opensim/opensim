@@ -128,11 +128,10 @@ namespace OpenSim.Groups
                 Dictionary<string, object> request =
                         ServerUtils.ParseQueryString(body);
 
-                if (!request.ContainsKey("METHOD"))
+                if(!request.Remove("METHOD", out object omethod))
                     return FailureResult();
 
-                string method = request["METHOD"].ToString();
-                request.Remove("METHOD");
+                string method = omethod.ToString();
 
                 m_log.DebugFormat("[Groups.RobustHGConnector]: {0}", method);
                 switch (method)

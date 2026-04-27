@@ -450,9 +450,11 @@ namespace OpenSim.Services.LLLoginService
                 //
                 // Authenticate this user
                 //
-                if (!passwd.StartsWith("$1$"))
-                    passwd = "$1$" + Util.Md5Hash(passwd);
-                passwd = passwd.Remove(0, 3); //remove $1$
+                if (passwd.StartsWith("$1$"))
+                    passwd = passwd[3..];
+                else
+                    passwd = Util.Md5Hash(passwd);
+
                 string token = m_AuthenticationService.Authenticate(account.PrincipalID, passwd, 30, out UUID realID);
                 UUID secureSession = UUID.Zero;
                 if (string.IsNullOrWhiteSpace(token) || !UUID.TryParse(token, out secureSession))
