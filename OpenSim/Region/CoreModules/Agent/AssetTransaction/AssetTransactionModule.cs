@@ -51,17 +51,27 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         /// <summary>
         /// Each agent has its own singleton collection of transactions
         /// </summary>
-        private Dictionary<UUID, AgentAssetTransactions> AgentTransactions =
-            new Dictionary<UUID, AgentAssetTransactions>();
+        private Dictionary<UUID, AgentAssetTransactions> AgentTransactions = [];
 
         #region Region Module interface
 
         public void Initialise(IConfigSource source)
         {
-            IConfig sconfig = source.Configs["Permissions"];
-            if (sconfig != null)
+            if(source != null)
             {
-                m_levelUpload = sconfig.GetInt("LevelUpload", 0);
+                IConfig sconfig = source.Configs["Permissions"];
+                if (sconfig != null)
+                {
+                    m_levelUpload = sconfig.GetInt("LevelUpload", -9798);
+                }
+                if(m_levelUpload == -9798)
+                {
+                    sconfig = source.Configs["Startup"];
+                    if (sconfig is not null)
+                        m_levelUpload = sconfig.GetInt("LevelUpload", 0);
+                }
+                if(m_levelUpload == -9798)
+                    m_levelUpload = 0;
             }
         }
 
