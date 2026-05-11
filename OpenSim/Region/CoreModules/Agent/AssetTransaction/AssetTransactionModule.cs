@@ -58,7 +58,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 
         public void Initialise(IConfigSource source)
         {
-            IConfig sconfig = source.Configs["Startup"];
+            IConfig sconfig = source.Configs["Permissions"];
             if (sconfig != null)
             {
                 m_levelUpload = sconfig.GetInt("LevelUpload", 0);
