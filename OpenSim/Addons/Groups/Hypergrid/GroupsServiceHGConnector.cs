@@ -71,12 +71,13 @@ namespace OpenSim.Groups
             if (ret == null)
                 return false;
 
-            if (!ret.ContainsKey("RESULT"))
+            if (!ret.TryGetValue("RESULT", out object oresult))
                 return false;
 
-            if (ret["RESULT"].ToString().ToLower() != "true")
+            string result = oresult.ToString();
+            if (!result.Equals("true", StringComparison.OrdinalIgnoreCase))
             {
-                reason = ret["REASON"].ToString();
+                reason = result;
                 return false;
             }
 
@@ -112,13 +113,13 @@ namespace OpenSim.Groups
             if (ret == null)
                 return null;
 
-            if (!ret.ContainsKey("RESULT"))
+            if (!ret.TryGetValue("RESULT", out object oRESULT))
                 return null;
 
-            if (ret["RESULT"].ToString() == "NULL")
+            if (oRESULT is string sRESULT && sRESULT.Equals("NULL", StringComparison.OrdinalIgnoreCase))
                 return null;
 
-            return GroupsDataUtils.GroupRecord((Dictionary<string, object>)ret["RESULT"]);
+            return GroupsDataUtils.GroupRecord((Dictionary<string, object>)oRESULT);
         }
 
         public List<ExtendedGroupMembersData> GetGroupMembers(string RequestingAgentID, UUID GroupID, string token)
@@ -134,12 +135,13 @@ namespace OpenSim.Groups
             if (ret == null)
                 return members;
 
-            if (!ret.ContainsKey("RESULT"))
+            if (!ret.TryGetValue("RESULT", out object oRESULT))
                 return members;
 
-            if (ret["RESULT"].ToString() == "NULL")
+            if (oRESULT is string sRESULT && sRESULT.Equals("NULL", StringComparison.OrdinalIgnoreCase))
                 return members;
-            foreach (object v in ((Dictionary<string, object>)ret["RESULT"]).Values)
+
+            foreach (object v in ((Dictionary<string, object>)oRESULT).Values)
             {
                 ExtendedGroupMembersData m = GroupsDataUtils.GroupMembersData((Dictionary<string, object>)v);
                 members.Add(m);
@@ -161,12 +163,13 @@ namespace OpenSim.Groups
             if (ret == null)
                 return roles;
 
-            if (!ret.ContainsKey("RESULT"))
+            if (!ret.TryGetValue("RESULT", out object oRESULT))
                 return roles;
 
-            if (ret["RESULT"].ToString() == "NULL")
+            if (oRESULT is string sRESULT && sRESULT.Equals("NULL", StringComparison.OrdinalIgnoreCase))
                 return roles;
-            foreach (object v in ((Dictionary<string, object>)ret["RESULT"]).Values)
+
+            foreach (object v in ((Dictionary<string, object>)oRESULT).Values)
             {
                 GroupRolesData m = GroupsDataUtils.GroupRolesData((Dictionary<string, object>)v);
                 roles.Add(m);
@@ -188,13 +191,13 @@ namespace OpenSim.Groups
             if (ret == null)
                 return rmembers;
 
-            if (!ret.ContainsKey("RESULT"))
+            if (!ret.TryGetValue("RESULT", out object oRESULT))
                 return rmembers;
 
-            if (ret["RESULT"].ToString() == "NULL")
+            if (oRESULT is string sRESULT && sRESULT.Equals("NULL", StringComparison.OrdinalIgnoreCase))
                 return rmembers;
 
-            foreach (object v in ((Dictionary<string, object>)ret["RESULT"]).Values)
+            foreach (object v in ((Dictionary<string, object>)oRESULT).Values)
             {
                 ExtendedGroupRoleMembersData m = GroupsDataUtils.GroupRoleMembersData((Dictionary<string, object>)v);
                 rmembers.Add(m);
@@ -227,13 +230,10 @@ namespace OpenSim.Groups
             if (ret == null)
                 return false;
 
-            if (!ret.ContainsKey("RESULT"))
+            if (!ret.TryGetValue("RESULT", out object value))
                 return false;
 
-            if (ret["RESULT"].ToString().ToLower() != "true")
-                return false;
-
-            return true;
+             return value.ToString().Equals("true", StringComparison.OrdinalIgnoreCase);
         }
 
         public bool VerifyNotice(UUID noticeID, UUID groupID)
@@ -246,13 +246,10 @@ namespace OpenSim.Groups
             if (ret == null)
                 return false;
 
-            if (!ret.ContainsKey("RESULT"))
+            if (!ret.TryGetValue("RESULT", out object value))
                 return false;
 
-            if (ret["RESULT"].ToString().ToLower() != "true")
-                return false;
-
-            return true;
+            return value.ToString().Equals("true", StringComparison.CurrentCultureIgnoreCase);
         }
 
         //

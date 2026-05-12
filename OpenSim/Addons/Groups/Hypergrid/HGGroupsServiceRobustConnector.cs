@@ -168,24 +168,24 @@ namespace OpenSim.Groups
         {
             Dictionary<string, object> result = new Dictionary<string, object>();
 
-            if (!request.ContainsKey("RequestingAgentID") || !request.ContainsKey("GroupID")
-                || !request.ContainsKey("AgentID")
-                || !request.ContainsKey("AccessToken") || !request.ContainsKey("Location"))
+            if (!request.TryGetValue("RequestingAgentID", out object oRequestingAgentID) ||
+                    !request.TryGetValue("GroupID", out object oGroupID) ||
+                    !request.TryGetValue("AgentID", out object oAgentID) ||
+                    !request.TryGetValue("AccessToken", out object oAccessToken) ||
+                    !request.TryGetValue("Location", out object oLocation))
                 NullResult(result, "Bad network data");
-
             else
             {
-                string RequestingAgentID = request["RequestingAgentID"].ToString();
-                string agentID = request["AgentID"].ToString();
-                UUID groupID = new UUID(request["GroupID"].ToString());
-                string accessToken = request["AccessToken"].ToString();
-                string location = request["Location"].ToString();
+                string RequestingAgentID = oRequestingAgentID.ToString();
+                string agentID = oAgentID.ToString();
+                UUID groupID = new UUID(oGroupID.ToString());
+                string accessToken = oAccessToken.ToString();
+                string location = oLocation.ToString();
                 string name = string.Empty;
-                if (request.ContainsKey("Name"))
-                    name = request["Name"].ToString();
+                if (request.TryGetValue("Name", out object oName))
+                    name = oName.ToString();
 
-                string reason = string.Empty;
-                bool success = m_GroupsService.CreateGroupProxy(RequestingAgentID, agentID, accessToken, groupID, location, name, out reason);
+                bool success = m_GroupsService.CreateGroupProxy(RequestingAgentID, agentID, accessToken, groupID, location, name, out string reason);
                 result["REASON"] = reason;
                 result["RESULT"] = success.ToString();
             }
@@ -255,16 +255,18 @@ namespace OpenSim.Groups
         {
             Dictionary<string, object> result = new Dictionary<string, object>();
 
-            if (!request.ContainsKey("RequestingAgentID") || !request.ContainsKey("GroupID") || !request.ContainsKey("AccessToken"))
+            if (!request.TryGetValue("RequestingAgentID", out object oRequestingAgentID) ||
+                    !request.TryGetValue("GroupID", out object oGroupID) ||
+                    !request.TryGetValue("AccessToken", out object oAccessToken))
                 NullResult(result, "Bad network data");
             else
             {
-                UUID groupID = new UUID(request["GroupID"].ToString());
-                string requestingAgentID = request["RequestingAgentID"].ToString();
-                string token = request["AccessToken"].ToString();
+                UUID groupID = new UUID(oGroupID.ToString());
+                string requestingAgentID = oRequestingAgentID.ToString();
+                string token = oAccessToken.ToString();
 
                 List<ExtendedGroupMembersData> members = m_GroupsService.GetGroupMembers(requestingAgentID, groupID, token);
-                if (members == null || (members != null && members.Count == 0))
+                if (members == null || members.Count == 0)
                 {
                     NullResult(result, "No members");
                 }
@@ -291,16 +293,18 @@ namespace OpenSim.Groups
         {
             Dictionary<string, object> result = new Dictionary<string, object>();
 
-            if (!request.ContainsKey("RequestingAgentID") || !request.ContainsKey("GroupID") || !request.ContainsKey("AccessToken"))
+            if (!request.TryGetValue("RequestingAgentID", out object oRequestingAgentID) ||
+                    !request.TryGetValue("GroupID", out object oGroupID) ||
+                    !request.TryGetValue("AccessToken", out object oAccessToken))
                 NullResult(result, "Bad network data");
             else
             {
-                UUID groupID = new UUID(request["GroupID"].ToString());
-                string requestingAgentID = request["RequestingAgentID"].ToString();
-                string token = request["AccessToken"].ToString();
+                UUID groupID = new UUID(oGroupID.ToString());
+                string requestingAgentID = oRequestingAgentID.ToString();
+                string token = oAccessToken.ToString();
 
                 List<GroupRolesData> roles = m_GroupsService.GetGroupRoles(requestingAgentID, groupID, token);
-                if (roles == null || (roles != null && roles.Count == 0))
+                if (roles == null || roles.Count == 0)
                 {
                     NullResult(result, "No members");
                 }
@@ -325,16 +329,18 @@ namespace OpenSim.Groups
         {
             Dictionary<string, object> result = new Dictionary<string, object>();
 
-            if (!request.ContainsKey("RequestingAgentID") || !request.ContainsKey("GroupID") || !request.ContainsKey("AccessToken"))
+            if (!request.TryGetValue("RequestingAgentID", out object oRequestingAgentID) ||
+                    !request.TryGetValue("GroupID", out object oGroupID) ||
+                    !request.TryGetValue("AccessToken", out object oAccessToken))
                 NullResult(result, "Bad network data");
             else
             {
-                UUID groupID = new UUID(request["GroupID"].ToString());
-                string requestingAgentID = request["RequestingAgentID"].ToString();
-                string token = request["AccessToken"].ToString();
+                UUID groupID = new UUID(oGroupID.ToString());
+                string requestingAgentID = oRequestingAgentID.ToString();
+                string token = oAccessToken.ToString();
 
                 List<ExtendedGroupRoleMembersData> rmembers = m_GroupsService.GetGroupRoleMembers(requestingAgentID, groupID, token);
-                if (rmembers == null || (rmembers != null && rmembers.Count == 0))
+                if (rmembers == null || rmembers.Count == 0)
                 {
                     NullResult(result, "No members");
                 }
@@ -359,31 +365,35 @@ namespace OpenSim.Groups
         {
             Dictionary<string, object> result = new Dictionary<string, object>();
 
-            if (!request.ContainsKey("RequestingAgentID") || !request.ContainsKey("GroupID") || !request.ContainsKey("NoticeID") ||
-                !request.ContainsKey("FromName") || !request.ContainsKey("Subject") || !request.ContainsKey("Message") ||
-                !request.ContainsKey("HasAttachment"))
+            if (!request.TryGetValue("RequestingAgentID", out object oRequestingAgentID) ||
+                    !request.TryGetValue("GroupID", out object oGroupID) ||
+                    !request.TryGetValue("NoticeID", out object oNoticeID) ||
+                    !request.TryGetValue("FromName", out object oFromName) ||
+                    !request.TryGetValue("Subject", out object oSubject) ||
+                    !request.TryGetValue("Message", out object oMessage) ||
+                    !request.TryGetValue("HasAttachment", out object oHasAttachment))
                 NullResult(result, "Bad network data");
-
             else
             {
 
-                bool hasAtt = bool.Parse(request["HasAttachment"].ToString());
+                bool hasAtt = bool.Parse(oHasAttachment.ToString());
                 byte attType = 0;
                 string attName = string.Empty;
                 string attOwner = string.Empty;
                 UUID attItem = UUID.Zero;
-                if (request.ContainsKey("AttachmentType"))
-                    attType = byte.Parse(request["AttachmentType"].ToString());
-                if (request.ContainsKey("AttachmentName"))
-                    attName = request["AttachmentType"].ToString();
-                if (request.ContainsKey("AttachmentItemID"))
-                    attItem = new UUID(request["AttachmentItemID"].ToString());
-                if (request.ContainsKey("AttachmentOwnerID"))
-                    attOwner = request["AttachmentOwnerID"].ToString();
+                if (request.TryGetValue("AttachmentType", out object oAttachmentType))
+                    attType = byte.Parse(oAttachmentType.ToString());
 
-                bool success = m_GroupsService.AddNotice(request["RequestingAgentID"].ToString(), new UUID(request["GroupID"].ToString()),
-                        new UUID(request["NoticeID"].ToString()), request["FromName"].ToString(), request["Subject"].ToString(),
-                        request["Message"].ToString(), hasAtt, attType, attName, attItem, attOwner);
+                if (request.TryGetValue("AttachmentName", out object oAttachmentName))
+                    attName = oAttachmentName.ToString();
+                if (request.TryGetValue("AttachmentItemID", out object oAttachmentItemID))
+                    attItem = new UUID(oAttachmentItemID.ToString());
+                if (request.TryGetValue("AttachmentOwnerID", out object oAttachmentOwnerID))
+                    attOwner = oAttachmentOwnerID.ToString();
+
+                bool success = m_GroupsService.AddNotice(oRequestingAgentID.ToString(), new UUID(oGroupID.ToString()),
+                        new UUID(oNoticeID.ToString()), oFromName.ToString(), oSubject.ToString(),
+oMessage.ToString(), hasAtt, attType, attName, attItem, attOwner);
 
                 result["RESULT"] = success.ToString();
             }
