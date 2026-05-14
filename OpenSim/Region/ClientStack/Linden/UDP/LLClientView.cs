@@ -4438,8 +4438,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             data[pos++] = 0;
             // AppearanceHover vector 3
             data[pos++] = 1;
-            Utils.FloatToBytesSafepos(0, data, pos); pos += 4;
-            Utils.FloatToBytesSafepos(0, data, pos); pos += 4;
+            //Utils.FloatToBytesSafepos(0, data, pos); pos += 4;
+            //Utils.FloatToBytesSafepos(0, data, pos); pos += 4;
+            Utils.Int64ZeroToBytes(data, pos); pos += 8;
             Utils.FloatToBytesSafepos(hover, data, pos); pos += 4;
 
             buf.DataLength = pos;
@@ -6738,26 +6739,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         #endregion
 
         #region Helper Methods
-        private static void ClampVectorForUint(ref Vector3 v, float max)
-        {
-            float a, b;
-
-            a = MathF.Abs(v.X);
-            b = MathF.Abs(v.Y);
-            if (b > a)
-                a = b;
-            b = MathF.Abs(v.Z);
-            if (b > a)
-                a = b;
-
-            if (a > max)
-            {
-                a = max / a;
-                v.X *= a;
-                v.Y *= a;
-                v.Z *= a;
-            }
-        }
 
         protected static void CreateImprovedTerseBlock(ISceneEntity entity, byte[] data, ref int pos, bool includeTexture)
         {
@@ -6834,7 +6815,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 data[pos++] = 1;
 
                 //m_log.DebugFormat("CollisionPlane: {0}",collisionPlane);
-                if (collisionPlane == Vector4.Zero)
+                if (collisionPlane.IsZero())
                     Vector4.UnitW.ToBytes(data, pos);
                 else
                     collisionPlane.ToBytes(data, pos);
@@ -6846,33 +6827,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             // Position
-            position.ToBytes(data, pos);
-            pos += 12;
+            position.ToBytes(data, pos); pos += 12;
 
             // Velocity
-            ClampVectorForUint(ref velocity, 128f);
-            Utils.FloatToUInt16Bytes(velocity.X, 128.0f, data, pos); pos += 2;
-            Utils.FloatToUInt16Bytes(velocity.Y, 128.0f, data, pos); pos += 2;
-            Utils.FloatToUInt16Bytes(velocity.Z, 128.0f, data, pos); pos += 2;
+            velocity.ClampedToShortsBytes(128f,data,pos); pos += 6;
 
             // Acceleration
-            ClampVectorForUint(ref acceleration, 64f);
-            Utils.FloatToUInt16Bytes(acceleration.X, 64.0f, data, pos); pos += 2;
-            Utils.FloatToUInt16Bytes(acceleration.Y, 64.0f, data, pos); pos += 2;
-            Utils.FloatToUInt16Bytes(acceleration.Z, 64.0f, data, pos); pos += 2;
+            acceleration.ClampedToShortsBytes(64f, data, pos); pos += 6;
 
             // Rotation
-
-            Utils.FloatToUInt16Bytes(rotation.X, 1.0f, data, pos); pos += 2;
-            Utils.FloatToUInt16Bytes(rotation.Y, 1.0f, data, pos); pos += 2;
-            Utils.FloatToUInt16Bytes(rotation.Z, 1.0f, data, pos); pos += 2;
-            Utils.FloatToUInt16Bytes(rotation.W, 1.0f, data, pos); pos += 2;
+            rotation.ToShortsBytes(data, pos); pos += 8;
 
             // Angular Velocity
-            ClampVectorForUint(ref angularVelocity, 64f);
-            Utils.FloatToUInt16Bytes(angularVelocity.X, 64.0f, data, pos); pos += 2;
-            Utils.FloatToUInt16Bytes(angularVelocity.Y, 64.0f, data, pos); pos += 2;
-            Utils.FloatToUInt16Bytes(angularVelocity.Z, 64.0f, data, pos); pos += 2;
+            angularVelocity.ClampedToShortsBytes(64f, data, pos); pos += 6;
 
             // texture entry block size
             if (te is null)
