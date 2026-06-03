@@ -66,6 +66,12 @@ namespace OpenSim.Framework
         public bool InstallPlugin(int ndx, out Dictionary<string, object> result)
         {
             Dictionary<string, object> res = new Dictionary<string, object>();
+            if (ndx < 0 )
+            {
+                MainConsole.Instance.Output("Selection out of range");
+                result = res;
+                return false;
+            }
 
             PackageCollection pack = new PackageCollection();
             PackageCollection toUninstall;

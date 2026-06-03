@@ -42,6 +42,11 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
             get { return ".jpg"; }
         }
 
+        public int SupportedHeight
+        {
+            get { return 256; }
+        }
+
         public ITerrainChannel LoadFile(string filename)
         {
             throw new NotImplementedException();
@@ -94,6 +99,11 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
         {
             return false;
         }
+        public bool SupportsExtendedTileSave()
+        {
+            return false;
+        }
+
 
         private static Bitmap CreateBitmapFromMap(ITerrainChannel map)
         {
@@ -124,6 +134,11 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
                 }
             }
             return bmp;
+        }
+
+        public void SaveFile(ITerrainChannel map, string filename, int fileWidth, int fileHeight, int startX, int startY, int stopX, int stopY, int offsetX, int offsetY)
+        {
+            throw new NotImplementedException();
         }
     }
 }

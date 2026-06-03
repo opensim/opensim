@@ -661,10 +661,12 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_passTouches; }
             set
             {
-                m_passTouches = value;
-
-                if (ParentGroup != null)
-                    ParentGroup.HasGroupChanged = true;
+                if(m_passTouches != value)
+                {
+                    m_passTouches = value;
+                    if(ParentGroup != null)
+                        ParentGroup.HasGroupChanged = true;
+                }
             }
         }
 
@@ -674,10 +676,12 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_passCollisions; }
             set
             {
-                m_passCollisions = value;
-
-                if (ParentGroup != null)
-                    ParentGroup.HasGroupChanged = true;
+                if(m_passCollisions != value)
+                {
+                    m_passCollisions = value;
+                    if(ParentGroup != null)
+                        ParentGroup.HasGroupChanged = true;
+                }
             }
         }
 
@@ -992,9 +996,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>Update angular velocity and schedule terse update.</summary>
         public void UpdateAngularVelocity(Vector3 avel)
         {
-            AngularVelocity = avel;
-            ScheduleTerseUpdate();
-            ParentGroup.HasGroupChanged = true;
+            if(m_angularVelocity.NotEqual(avel))
+            {
+                AngularVelocity = avel;
+                ScheduleTerseUpdate();
+                ParentGroup.HasGroupChanged = true;
+            }
         }
 
         /// <summary>Get or set angular velocity. Does not schedule update.</summary>
@@ -1602,14 +1609,24 @@ namespace OpenSim.Region.Framework.Scenes
             }
             set
             {
-                if (ParentGroup != null && ParentGroup.RootPart != null && ParentGroup.RootPart != this)
+                if (ParentGroup != null)
                 {
-                    ParentGroup.RootPart.Buoyancy = value;
-                    return;
+                    if (ParentGroup.RootPart != null && ParentGroup.RootPart != this)
+                    {
+                        ParentGroup.RootPart.Buoyancy = value;
+                        return;
+                    }
+                    if (ParentGroup.IsAttachment)
+                    {
+                        ScenePresence avatar = m_scene.GetScenePresence(ParentGroup.AttachedAvatar);
+                        PhysicsActor pa = avatar?.PhysicsActor;
+                        if (pa != null)
+                            pa.Buoyancy = value;
+                    }
+                    else if (PhysActor != null)
+                        PhysActor.Buoyancy = value;
                 }
                 m_buoyancy = value;
-                if (PhysActor != null)
-                    PhysActor.Buoyancy = value;
             }
         }
 
@@ -1673,17 +1690,18 @@ namespace OpenSim.Region.Framework.Scenes
                         update = true;
                         m_material = (Material)value;
                     }
-
-                    if (m_friction != SOPMaterialData.friction(m_material))
+                    float newfriction = SOPMaterialData.friction(m_material);
+                    if (m_friction != newfriction)
                     {
                         update = true;
-                        m_friction = SOPMaterialData.friction(m_material);
+                        m_friction = newfriction;
                     }
 
-                    if (m_bounce != SOPMaterialData.bounce(m_material))
+                    float newbounce = SOPMaterialData.bounce(m_material);
+                    if (m_bounce != newbounce)
                     {
                         update = true;
-                        m_bounce = SOPMaterialData.bounce(m_material);
+                        m_bounce = newbounce;
                     }
 
                     if (update)
@@ -1831,10 +1849,9 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_density; }
             set
             {
-                if (value >=1 && value <= 22587.0)
+                if (value >=1 && value <= 22587.0 && value != m_density)
                 {
                     m_density = value;
-
 
                     if (ParentGroup != null)
                     {
@@ -1855,7 +1872,7 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_gravitymod; }
             set
             {
-                if( value >= -1 && value <=28.0f)
+                if(value >= -1f && value <= 28.0f && value != m_gravitymod)
                 {
                     m_gravitymod = value;
 
@@ -1878,7 +1895,7 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_friction; }
             set
             {
-                if (value >= 0 && value <= 255.0f)
+                if (value >= 0 && value <= 255.0f && value != m_friction)
                 {
                     m_friction = value;
 
@@ -1901,7 +1918,7 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_bounce; }
             set
             {
-                if (value >= 0 && value <= 1.0f)
+                if (value >= 0 && value <= 1.0f && value != m_bounce)
                 {
                     m_bounce = value;
 
@@ -4038,16 +4055,16 @@ namespace OpenSim.Region.Framework.Scenes
         /// Set the text displayed for this part.
         /// </summary>
         /// <param name="text"></param>
-        /// <param name="color"></param>
-        /// <param name="alpha"></param>
-        public void SetText(string text, Vector3 color, double alpha)
+        /// <param name="newcolor"></param>
+        /// <param name="newalpha"></param>
+        public void SetText(string text, Vector3 newcolor, double newalpha)
         {
             Color oldcolor = Color;
 
-            Color = Color.FromArgb((int) (alpha * 0xff),
-                                   (int) (color.X * 0xff),
-                                   (int) (color.Y * 0xff),
-                                   (int) (color.Z * 0xff));
+            Color = Color.FromArgb((int) (newalpha * 0xff),
+                                   (int) (newcolor.X * 0xff),
+                                   (int) (newcolor.Y * 0xff),
+                                   (int) (newcolor.Z * 0xff));
             osUTF8 old = osUTF8Text;
             if(string.IsNullOrEmpty(text))
             {
@@ -5056,7 +5073,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (newTex.FaceTextures[i] != null)
                     newFace = newTex.FaceTextures[i];
 
-                if (oldFace.TextureID != newFace.TextureID)
+                if (oldFace.TextureID.NotEqual(newFace.TextureID))
                     changeFlags |= Changed.TEXTURE;
 
                 Color4 oldRGBA = oldFace.RGBA;

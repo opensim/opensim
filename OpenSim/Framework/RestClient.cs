@@ -259,6 +259,7 @@ namespace OpenSim.Framework
                 HttpResponseMessage responseMessage = null;
                 HttpRequestMessage request = null;
                 HttpClient client = null;
+                bool bodyTimedOut = false;
                 try
                 {
                     client = WebUtil.GetNewGlobalHttpClient(DefaultTimeout);
@@ -286,14 +287,24 @@ namespace OpenSim.Framework
                     responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead);
                     responseMessage.EnsureSuccessStatusCode();
 
-                    Stream respStream = responseMessage.Content.ReadAsStream();
-                    int length = respStream.Read(_readbuf, 0, BufferSize);
-                    while (length > 0)
+                    using Stream respStream = responseMessage.Content.ReadAsStream();
+                    using(CancellationTokenSource cts = new(WebUtil.EstimatedReceiveTimeout(responseMessage.Content.Headers, true)))
                     {
-                        _resource.Write(_readbuf, 0, length);
-                        length = respStream.Read(_readbuf, 0, BufferSize);
+                         _ = cts.Token.Register(() =>
+                            {
+                                bodyTimedOut = true;
+                                respStream?.Close();
+                            });
+
+                        int length = respStream.Read(_readbuf, 0, BufferSize);
+                        while (length > 0)
+                        {
+                            _resource.Write(_readbuf, 0, length);
+                            length = respStream.Read(_readbuf, 0, BufferSize);
+                        }
                     }
                 }
+
                 catch (HttpRequestException e)
                 {
                     if(uri is not null)
@@ -334,6 +345,9 @@ namespace OpenSim.Framework
                     _resource.Seek(0, SeekOrigin.Begin);
                 }
 
+                if (bodyTimedOut)
+                    m_log.Error($"[REST CLIENT] Data receive timeout from: {uri}");
+
                 if (WebUtil.DebugLevel >= 5)
                     WebUtil.LogOutgoingDetail("[REST CLIENT]", _resource);
 
@@ -371,7 +385,7 @@ namespace OpenSim.Framework
                 request.Content.Headers.TryAddWithoutValidation("Content-Type", "application/xml");
                 request.Content.Headers.TryAddWithoutValidation("Content-Length", src.Length.ToString());
 
-                responseMessage = client.Send(request, HttpCompletionOption.ResponseContentRead);
+                responseMessage = client.Send(request, HttpCompletionOption.ResponseHeadersRead);
                 responseMessage.EnsureSuccessStatusCode();
             }
             catch (HttpRequestException e)

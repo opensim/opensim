@@ -209,7 +209,7 @@ namespace OSHttpServer
         /// </remarks>
         public virtual void Start()
         {
-            Task.Run(ReceiveLoop).ConfigureAwait(false);
+            _ = Task.Run(ReceiveLoop);
         }
 
         /// <summary>
@@ -343,7 +343,7 @@ namespace OSHttpServer
             }
         }
 
-        private async void ReceiveLoop()
+        private async Task ReceiveLoop()
         {
             try
             {

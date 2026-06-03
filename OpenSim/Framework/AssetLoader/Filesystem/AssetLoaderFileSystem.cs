@@ -41,8 +41,8 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
 {
     public class AssetLoaderFileSystem : IAssetLoader
     {
-        private static readonly UUID LIBRARY_OWNER_ID = new UUID("11111111-1111-0000-0000-000100bba000");
-        private static readonly string LIBRARY_OWNER_IDstr = "11111111-1111-0000-0000-000100bba000";
+        private const string LIBRARY_OWNER_IDstr = "11111111-1111-0000-0000-000100bba000";
+        private static readonly UUID LIBRARY_OWNER_ID = new UUID(LIBRARY_OWNER_IDstr);
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 

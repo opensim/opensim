@@ -195,11 +195,17 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         {
             // The act of gathering UUIDs downloads some assets from the remote server
             // but not all...
-            HGUuidGatherer uuidGatherer = new HGUuidGatherer(m_scene.AssetService, userAssetURL);
+            if(string.IsNullOrEmpty(userAssetURL))
+            {
+                m_log.Debug($"[HG ASSET MAPPER]: Problems getting item asset {assetID}. Asset server unknown");
+                return;
+            }
+
+            HGUuidGatherer uuidGatherer = new(m_scene.AssetService, userAssetURL);
             uuidGatherer.AddForInspection(assetID);
             uuidGatherer.GatherAll();
 
-            m_log.DebugFormat("[HG ASSET MAPPER]: Preparing to get {0} assets", uuidGatherer.GatheredUuids.Count);
+            m_log.Debug($"[HG ASSET MAPPER]: Preparing to get {uuidGatherer.GatheredUuids.Count} assets");
             bool success = true;
             foreach (UUID uuid in uuidGatherer.GatheredUuids.Keys)
             {
@@ -211,9 +217,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             // maybe all pieces got here...
             if (!success)
-                m_log.DebugFormat("[HG ASSET MAPPER]: Problems getting item {0} from asset server {1}", assetID, userAssetURL);
+                m_log.Debug($"[HG ASSET MAPPER]: Problems getting item asset {assetID} from asset server {userAssetURL}");
             else
-                m_log.DebugFormat("[HG ASSET MAPPER]: Successfully got item {0} from asset server {1}", assetID, userAssetURL);
+                m_log.Debug($"[HG ASSET MAPPER]: Successfully got item asset {assetID} from asset server {userAssetURL}");
         }
 
         public void Post(UUID assetID, UUID ownerID, string userAssetURL)
@@ -234,7 +240,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             // Check which assets already exist in the destination server
 
             string url = userAssetURL;
-            if (!url.EndsWith("/") && !url.EndsWith("="))
+            if (!url.EndsWith('/') && !url.EndsWith('='))
                 url = url + "/";
 
             string[] remoteAssetIDs = new string[uuidGatherer.GatheredUuids.Count];

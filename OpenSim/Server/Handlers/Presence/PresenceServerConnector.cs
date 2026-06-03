@@ -43,6 +43,7 @@ namespace OpenSim.Server.Handlers.Presence
         public PresenceServiceConnector(IConfigSource config, IHttpServer server, string configName) :
                 base(config, server, configName)
         {
+
             IConfig serverConfig = config.Configs[m_ConfigName];
             if (serverConfig == null)
                 throw new Exception(String.Format("No section {0} in config file", m_ConfigName));

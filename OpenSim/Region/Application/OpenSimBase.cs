@@ -617,8 +617,7 @@ namespace OpenSim
             }
 
             MainConsole.Instance.Output("Estate {0} has no owner set.", regionInfo.EstateSettings.EstateName);
-            List<char> excluded = new List<char>(new char[1]{' '});
-
+            List<char> excluded = new([' ']);
 
             if (estateOwnerFirstName == null || estateOwnerLastName == null)
             {

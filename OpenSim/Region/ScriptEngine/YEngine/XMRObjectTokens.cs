@@ -2942,7 +2942,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     if(obj is OTOpndBinOp)
                         sb.Append(')');
                     sb.Append('.');
-                    sb.Append(field.Name);
+                    sb.Append(this.field.Name);
                     return sb.ToString();
                 }
             }
@@ -3548,9 +3548,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                 get
                 {
-                    if(field.DeclaringType == typeof(ScriptBaseClass))
-                        return field.Name;
-                    return field.DeclaringType.Name + "." + field.Name;
+                    if(this.field.DeclaringType == typeof(ScriptBaseClass))
+                        return this.field.Name;
+                    return this.field.DeclaringType.Name + "." + this.field.Name;
                 }
             }
         }

@@ -51,9 +51,9 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private bool m_Enabled = false;
-        protected string m_MessageKey = String.Empty;
+        protected string m_MessageKey = string.Empty;
         protected List<Scene> m_Scenes = new List<Scene>();
-        protected Dictionary<UUID, UUID> m_UserRegionMap = new Dictionary<UUID, UUID>();
+        protected Dictionary<UUID, UUID> m_UserRegionMap = new();
 
         public event UndeliveredMessage OnUndeliveredMessage;
 
@@ -64,8 +64,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         {
             get
             {
-                if (m_PresenceService == null)
-                    m_PresenceService = m_Scenes[0].RequestModuleInterface<IPresenceService>();
+                m_PresenceService ??= m_Scenes[0].RequestModuleInterface<IPresenceService>();
                 return m_PresenceService;
             }
         }
@@ -80,7 +79,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                     return;
                 }
 
-                m_MessageKey = cnf.GetString("MessageKey", String.Empty);
+                m_MessageKey = cnf.GetString("MessageKey", string.Empty);
             }
             m_log.Debug("[MESSAGE TRANSFER]: Module enabled");
             m_Enabled = true;
@@ -138,7 +137,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             get { return null; }
         }
 
-        public virtual void SendInstantMessage(GridInstantMessage im, MessageResultNotification result)
+        public virtual void SendInstantMessage(GridInstantMessage im, MessageResultNotification result, bool ToRootOnly = false)
         {
             UUID toAgentID = new UUID(im.toAgentID);
             if (toAgentID.IsZero())
@@ -165,14 +164,13 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                     }
                 }
             }
-            if (achildsp != null)
+            if (!ToRootOnly && achildsp != null)
             {
                 // m_log.DebugFormat("[HG INSTANT MESSAGE]: Delivering IM to child agent {0} {1}", sp.Name, toAgentID);
                 achildsp.ControllingClient.SendInstantMessage(im);
                 result(true);
                 return;
             }
-
             //m_log.DebugFormat("[INSTANT MESSAGE]: Delivering IM to {0} via XMLRPC", im.toAgentID);
 
             SendGridInstantMessageViaXMLRPC(im, result);

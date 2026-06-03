@@ -47,8 +47,9 @@ namespace OpenSim.Region.Framework.Scenes
     /// </summary>
     public class TerrainChannel : ITerrainChannel
     {
+        const string LogHeader = "[TERRAIN CHANNEL]: ";
+
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private static string LogHeader = "[TERRAIN CHANNEL]";
 
         protected TerrainData m_terrainData;
 
@@ -175,12 +176,29 @@ namespace OpenSim.Region.Framework.Scenes
             return m_terrainData.IsTaintedAt(x, y);
         }
 
+        public int MaxHeight()
+        {
+            float max = float.MinValue;
+            for (int ii = 0; ii < Width; ii++)
+            {
+                for (int jj = 0; jj < Height; jj++)
+                {
+                    float cur = m_terrainData[ii, jj];
+                    if(cur > max)
+                        max = cur; 
+                }
+            }
+            return (int)max + 1;
+        }
+
         // ITerrainChannel.SaveToXmlString()
         public string SaveToXmlString()
         {
-            XmlWriterSettings settings = new XmlWriterSettings();
-            settings.Encoding = Util.UTF8;
-            using (StringWriter sw = new StringWriter())
+            XmlWriterSettings settings = new()
+            {
+                Encoding = Util.UTF8
+            };
+            using (StringWriter sw = new())
             {
                 using (XmlWriter writer = XmlWriter.Create(sw, settings))
                 {
@@ -194,9 +212,9 @@ namespace OpenSim.Region.Framework.Scenes
         // ITerrainChannel.LoadFromXmlString()
         public void LoadFromXmlString(string data)
         {
-            using(StringReader sr = new StringReader(data))
+            using(StringReader sr = new(data))
             {
-                using(XmlTextReader reader = new XmlTextReader(sr))
+                using(XmlTextReader reader = new(sr))
                 {
                     reader.DtdProcessing = DtdProcessing.Ignore;
                     ReadXml(reader);
@@ -207,7 +225,7 @@ namespace OpenSim.Region.Framework.Scenes
         // ITerrainChannel.Merge
         public void Merge(ITerrainChannel newTerrain, Vector3 displacement, float radianRotation, Vector2 rotationDisplacement)
         {
-            m_log.DebugFormat("{0} Merge. inSize=<{1},{2}>, disp={3}, rot={4}, rotDisp={5}, outSize=<{6},{7}>", LogHeader,
+            m_log.DebugFormat(LogHeader + "{0} Merge. inSize=<{1},{2}>, disp={3}, rot={4}, rotDisp={5}, outSize=<{6},{7}>", LogHeader,
                                         newTerrain.Width, newTerrain.Height,
                                         displacement, radianRotation, rotationDisplacement,
                                         m_terrainData.SizeX, m_terrainData.SizeY);
@@ -295,7 +313,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="boundingSize">&lt;x, y&gt;</param>
         public void MergeWithBounding(ITerrainChannel newTerrain, Vector3 displacement, float rotationDegrees, Vector2 boundingOrigin, Vector2 boundingSize)
         {
-            m_log.DebugFormat("{0} MergeWithBounding: inSize=<{1},{2}>, rot={3}, boundingOrigin={4}, boundingSize={5}, disp={6}, outSize=<{7},{8}>",
+            m_log.DebugFormat(LogHeader + "{0} MergeWithBounding: inSize=<{1},{2}>, rot={3}, boundingOrigin={4}, boundingSize={5}, disp={6}, outSize=<{7},{8}>",
                                 LogHeader, newTerrain.Width, newTerrain.Height, rotationDegrees, boundingOrigin.ToString(),
                                 boundingSize.ToString(), displacement, m_terrainData.SizeX, m_terrainData.SizeY);
 
@@ -310,7 +328,7 @@ namespace OpenSim.Region.Framework.Scenes
             int tmpY = baseY + baseY / 2;
             int centreX = tmpX / 2;
             int centreY = tmpY / 2;
-            TerrainData terrain_tmp = new TerrainData(tmpX, tmpY, (int)Constants.RegionHeight);
+            TerrainData terrain_tmp = new(tmpX, tmpY, (int)Constants.RegionHeight);
             for (int xx = 0; xx < tmpX; xx++)
                 for (int yy = 0; yy < tmpY; yy++)
                     terrain_tmp[xx, yy] = -65535f; //use this height like an 'alpha' mask channel
@@ -364,7 +382,7 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                         catch (Exception)   //just in case we've still not taken care of every way the arrays might go out of bounds! ;)
                         {
-                            m_log.DebugFormat("{0} MergeWithBounding - Rotate: Out of Bounds sx={1} sy={2} dx={3} dy={4}", sx, sy, x, y);
+                            m_log.DebugFormat(LogHeader + "{0} MergeWithBounding - Rotate: Out of Bounds sx={1} sy={2} dx={3} dy={4}", sx, sy, x, y);
                         }
                     }
                 }
@@ -413,7 +431,7 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                         catch (Exception)   //just in case we've still not taken care of every way the arrays might go out of bounds! ;)
                         {
-                            m_log.DebugFormat("{0} MergeWithBounding - Bound & Displace: Out of Bounds sx={1} sy={2} dx={3} dy={4}", x, y, dx, dy);
+                            m_log.DebugFormat(LogHeader + "{0} MergeWithBounding - Bound & Displace: Out of Bounds sx={1} sy={2} dx={3} dy={4}", x, y, dx, dy);
                         }
                     }
                 }
@@ -424,8 +442,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public TerrainChannel Copy()
         {
-            TerrainChannel copy = new TerrainChannel();
-            copy.m_terrainData = m_terrainData.Clone();
+            TerrainChannel copy = new()
+            {
+                m_terrainData = m_terrainData.Clone()
+            };
             return copy;
         }
 
@@ -473,14 +493,14 @@ namespace OpenSim.Region.Framework.Scenes
                 byte[] value = BitConverter.GetBytes(mapData[i]);
                 Array.Copy(value, 0, buffer, (i * 4), 4);
             }
-            XmlSerializer serializer = new XmlSerializer(typeof(byte[]));
+            XmlSerializer serializer = new(typeof(byte[]));
             serializer.Serialize(xmlWriter, buffer);
         }
 
         // Read legacy terrain map. Presumed to be 256x256 of data encoded as floats in a byte array.
         private void FromXml(XmlReader xmlReader)
         {
-            XmlSerializer serializer = new XmlSerializer(typeof(byte[]));
+            XmlSerializer serializer = new(typeof(byte[]));
             byte[] dataArray = (byte[])serializer.Deserialize(xmlReader);
             int index = 0;
 
@@ -520,16 +540,16 @@ namespace OpenSim.Region.Framework.Scenes
         // New terrain serialization format that includes the width and length.
         private void ToXml2(XmlWriter xmlWriter)
         {
-            TerrainChannelXMLPackage package = new TerrainChannelXMLPackage(Width, Height, Altitude, m_terrainData.CompressionFactor,
+            TerrainChannelXMLPackage package = new(Width, Height, Altitude, m_terrainData.CompressionFactor,
                                             m_terrainData.GetCompressedMap());
-            XmlSerializer serializer = new XmlSerializer(typeof(TerrainChannelXMLPackage));
+            XmlSerializer serializer = new(typeof(TerrainChannelXMLPackage));
             serializer.Serialize(xmlWriter, package);
         }
 
         // New terrain serialization format that includes the width and length.
         private void FromXml2(XmlReader xmlReader)
         {
-            XmlSerializer serializer = new XmlSerializer(typeof(TerrainChannelXMLPackage));
+            XmlSerializer serializer = new(typeof(TerrainChannelXMLPackage));
             TerrainChannelXMLPackage package = (TerrainChannelXMLPackage)serializer.Deserialize(xmlReader);
             m_terrainData = new TerrainData(package.Map, package.CompressionFactor, package.SizeX, package.SizeY, package.SizeZ);
         }

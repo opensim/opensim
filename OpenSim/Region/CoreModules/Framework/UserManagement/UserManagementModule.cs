@@ -958,7 +958,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
         {
             if (GetUser(userID, out UserData ud) && ud != null)
             {
-                if (ud.LastName.StartsWith("@"))
+                if (ud.LastName.StartsWith('@'))
                 {
                     string[] parts = ud.FirstName.Split('.');
                     if (parts.Length >= 2)

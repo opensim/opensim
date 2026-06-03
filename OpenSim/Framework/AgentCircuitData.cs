@@ -372,7 +372,7 @@ namespace OpenSim.Framework
                 OSDMap urls = (OSDMap)tmpOSD;
                 foreach (KeyValuePair<String, OSD> kvp in urls)
                 {
-                    ServiceURLs[kvp.Key] = kvp.Value;
+                    ServiceURLs[kvp.Key] = kvp.Value.AsString();
                     //System.Console.WriteLine("XXX " + kvp.Key + "=" + ServiceURLs[kvp.Key]);
                 }
             }

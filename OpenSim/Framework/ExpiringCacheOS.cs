@@ -67,10 +67,7 @@ namespace OpenSim.Framework
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         private void CheckTimer()
         {
-            if (m_purgeTimer == null)
-            {
-                m_purgeTimer = new Timer(Purge, null, m_expire, Timeout.Infinite);
-            }
+            m_purgeTimer ??= new Timer(Purge, null, m_expire, Timeout.Infinite);
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -106,17 +103,9 @@ namespace OpenSim.Framework
 
         private void Purge(object ignored)
         {
-            bool gotLock = false;
-
+            m_rwLock.EnterUpgradeableReadLock();
             try
             {
-                try { }
-                finally
-                {
-                    m_rwLock.EnterUpgradeableReadLock();
-                    gotLock = true;
-                }
-
                 if (m_expireControl.Count == 0)
                 {
                     DisposeTimer();
@@ -134,16 +123,9 @@ namespace OpenSim.Framework
 
                 if(expired.Count > 0)
                 {
-                    bool gotWriteLock = false;
+                    m_rwLock.EnterWriteLock();
                     try
                     {
-                        try { }
-                        finally
-                        {
-                            m_rwLock.EnterWriteLock();
-                            gotWriteLock = true;
-                        }
-
                         valuesArrayCache = null;
                         foreach (TKey1 key in expired)
                         {
@@ -151,11 +133,8 @@ namespace OpenSim.Framework
                             m_values.Remove(key);
                         }
                     }
-                    finally
-                    {
-                        if (gotWriteLock)
-                            m_rwLock.ExitWriteLock();
-                    }
+                    finally { m_rwLock.ExitWriteLock(); }
+
                     if (m_expireControl.Count == 0)
                         DisposeTimer();
                     else
@@ -164,11 +143,7 @@ namespace OpenSim.Framework
                 else
                     m_purgeTimer.Change(m_expire, Timeout.Infinite);
             }
-            finally
-            {
-                if (gotLock)
-                    m_rwLock.ExitUpgradeableReadLock();
-            }
+            finally { m_rwLock.ExitUpgradeableReadLock(); }
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -179,28 +154,17 @@ namespace OpenSim.Framework
 
         public void Add(TKey1 key, TValue1 val)
         {
-            bool gotLock = false;
             int now = (int)(Util.GetTimeStampMS() - m_startTS) + m_expire;
 
+            m_rwLock.EnterWriteLock();
             try
             {
-                try { }
-                finally
-                {
-                    m_rwLock.EnterWriteLock();
-                    gotLock = true;
-                }
-
                 m_expireControl[key] = now;
                 m_values[key] = val;
                 valuesArrayCache = null;
                 CheckTimer();
             }
-            finally
-            {
-                if (gotLock)
-                    m_rwLock.ExitWriteLock();
-            }
+            finally { m_rwLock.ExitWriteLock(); }
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -217,7 +181,6 @@ namespace OpenSim.Framework
 
         public void Add(TKey1 key, TValue1 val, int expireMS)
         {
-            bool gotLock = false;
             int now;
             if (expireMS > 0)
             {
@@ -227,78 +190,44 @@ namespace OpenSim.Framework
             else
                 now = int.MinValue;
 
+            m_rwLock.EnterWriteLock();
             try
             {
-                try { }
-                finally
-                {
-                    m_rwLock.EnterWriteLock();
-                    gotLock = true;
-                }
-
                 m_expireControl[key] = now;
                 m_values[key] = val;
                 valuesArrayCache = null;
                 CheckTimer();
             }
-            finally
-            {
-                if (gotLock)
-                    m_rwLock.ExitWriteLock();
-            }
+            finally { m_rwLock.ExitWriteLock(); }
         }
 
         public bool Remove(TKey1 key)
         {
-            bool success;
-            bool gotLock = false;
-
+            m_rwLock.EnterWriteLock();
             try
             {
-                try {}
-                finally
-                {
-                    m_rwLock.EnterWriteLock();
-                    gotLock = true;
-                }
-                success = m_expireControl.Remove(key);
+                bool success = m_expireControl.Remove(key);
                 success |= m_values.Remove(key);
                 if(success)
                     valuesArrayCache = null;
                 if (m_expireControl.Count == 0)
                     DisposeTimer();
+                return success;
             }
-            finally
-            {
-                if (gotLock)
-                    m_rwLock.ExitWriteLock();
-            }
-
-            return success;
+            finally { m_rwLock.ExitWriteLock(); }
         }
 
         public void Clear()
         {
-            bool gotLock = false;
-
+            m_rwLock.EnterWriteLock();
             try
             {
-                try {}
-                finally
-                {
-                    m_rwLock.EnterWriteLock();
-                    gotLock = true;
-                }
                 DisposeTimer();
                 m_expireControl.Clear();
                 m_values.Clear();
                 valuesArrayCache = null;
             }
-            finally
-            {
-                if (gotLock)
-                    m_rwLock.ExitWriteLock();
-            }
+            finally { m_rwLock.ExitWriteLock(); }
         }
 
         public int Count
@@ -314,22 +243,12 @@ namespace OpenSim.Framework
 
         public bool ContainsKey(TKey1 key)
         {
-            bool gotLock = false;
+            m_rwLock.EnterReadLock();
             try
             {
-                try { }
-                finally
-                {
-                    m_rwLock.EnterReadLock();
-                    gotLock = true;
-                }
                 return m_expireControl.ContainsKey(key);
             }
-            finally
-            {
-                if (gotLock)
-                    m_rwLock.ExitReadLock();
-            }
+            finally { m_rwLock.ExitReadLock(); }
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -340,26 +259,14 @@ namespace OpenSim.Framework
 
         public bool ContainsKey(TKey1 key, int expireMS)
         {
-            bool gotLock = false;
+            m_rwLock.EnterUpgradeableReadLock();
             try
             {
-                try { }
-                finally
-                {
-                    m_rwLock.EnterUpgradeableReadLock();
-                    gotLock = true;
-                }
                 if(m_expireControl.ContainsKey(key))
                 {
-                    bool gotWriteLock = false;
+                    m_rwLock.EnterWriteLock();
                     try
                     {
-                        try { }
-                        finally
-                        {
-                            m_rwLock.EnterWriteLock();
-                            gotWriteLock = true;
-                        }
                         int now;
                         if(expireMS > 0)
                         {
@@ -372,68 +279,33 @@ namespace OpenSim.Framework
                         m_expireControl[key] = now;
                         return true;
                     }
-                    finally
-                    {
-                        if (gotWriteLock)
-                            m_rwLock.ExitWriteLock();
-                    }
+                    finally { m_rwLock.ExitWriteLock(); }
                 }
                 return false;
             }
-            finally
-            {
-                if (gotLock)
-                    m_rwLock.ExitUpgradeableReadLock();
-            }
+            finally { m_rwLock.ExitUpgradeableReadLock(); }
         }
 
         public bool TryGetValue(TKey1 key, out TValue1 value)
         {
-            bool gotLock = false;
+            m_rwLock.EnterReadLock();
             try
             {
-                try {}
-                finally
-                {
-                    m_rwLock.EnterReadLock();
-                    gotLock = true;
-                }
-
                 return m_values.TryGetValue(key, out value);
             }
-            finally
-            {
-                if (gotLock)
-                    m_rwLock.ExitReadLock();
-            }
+            finally { m_rwLock.ExitReadLock(); }
         }
 
         public bool TryGetValue(TKey1 key, int expireMS, out TValue1 value)
         {
-            bool success;
-            bool gotLock = false;
-
+            m_rwLock.EnterUpgradeableReadLock();
             try
             {
-                try { }
-                finally
+                if(m_values.TryGetValue(key, out value))
                 {
-                    m_rwLock.EnterUpgradeableReadLock();
-                    gotLock = true;
-                }
-
-                success = m_values.TryGetValue(key, out value);
-                if(success)
-                {
-                    bool gotWriteLock = false;
+                    m_rwLock.EnterWriteLock();
                     try
                     {
-                        try { }
-                        finally
-                        {
-                            m_rwLock.EnterWriteLock();
-                            gotWriteLock = true;
-                        }
                         int now;
                         if(expireMS > 0)
                         {
@@ -444,56 +316,30 @@ namespace OpenSim.Framework
                             now = int.MinValue;
 
                         m_expireControl[key] = now;
+                        return true;
                     }
-                    finally
-                    {
-                        if (gotWriteLock)
-                            m_rwLock.ExitWriteLock();
-                    }
+                    finally { m_rwLock.ExitWriteLock(); }
                 }
+                return false;
             }
-            finally
-            {
-                if (gotLock)
-                    m_rwLock.ExitUpgradeableReadLock();
-            }
-
-            return success;
+            finally { m_rwLock.ExitUpgradeableReadLock(); }
         }
 
         public ref TValue1 TryGetOrDefaultValue(TKey1 key, out bool existed)
         {
-            bool gotLock = false;
+            m_rwLock.ExitUpgradeableReadLock();
             try
             {
-                try { }
-                finally
-                {
-                    m_rwLock.ExitUpgradeableReadLock();
-                    gotLock = true;
-                }
-
                 return ref CollectionsMarshal.GetValueRefOrAddDefault(m_values, key, out existed);
             }
-            finally
-            {
-                if (gotLock)
-                    m_rwLock.ExitUpgradeableReadLock();
-            }
+            finally { m_rwLock.ExitUpgradeableReadLock(); }
         }
 
         public ref TValue1 TryGetOrDefaultValue(TKey1 key, int expireMS, out bool existed)
         {
-            bool gotLock = false;
+            m_rwLock.EnterWriteLock();
             try
             {
-                try { }
-                finally
-                {
-                    m_rwLock.EnterWriteLock();
-                    gotLock = true;
-                }
-
                 ref TValue1 ret = ref CollectionsMarshal.GetValueRefOrAddDefault(m_values, key, out existed);
                 int now;
                 if (expireMS > 0)
@@ -507,26 +353,16 @@ namespace OpenSim.Framework
                 m_expireControl[key] = now;
                 return ref ret;
             }
-            finally
-            {
-                if (gotLock)
-                    m_rwLock.EnterWriteLock();
-            }
+            finally { m_rwLock.EnterWriteLock(); }
         }
 
         public TValue1[] Values
         {
             get
             {
-                bool gotLock = false;
+                m_rwLock.EnterUpgradeableReadLock();
                 try
                 {
-                    try { }
-                    finally
-                    {
-                        m_rwLock.EnterUpgradeableReadLock();
-                        gotLock = true;
-                    }
                     if(valuesArrayCache == null)
                     {
                         valuesArrayCache = new TValue1[m_values.Count];
@@ -534,11 +370,7 @@ namespace OpenSim.Framework
                     }
                     return valuesArrayCache;
                 }
-                finally
-                {
-                    if (gotLock)
-                        m_rwLock.ExitUpgradeableReadLock();
-                }
+                finally { m_rwLock.ExitUpgradeableReadLock(); }
             }
         }
 
@@ -547,22 +379,12 @@ namespace OpenSim.Framework
         {
             get
             {
-                bool gotLock = false;
+                m_rwLock.EnterUpgradeableReadLock();
                 try
                 {
-                    try { }
-                    finally
-                    {
-                        m_rwLock.EnterUpgradeableReadLock();
-                        gotLock = true;
-                    }
                     return m_values.Keys;
                 }
-                finally
-                {
-                    if (gotLock)
-                        m_rwLock.ExitUpgradeableReadLock();
-                }
+                finally { m_rwLock.ExitUpgradeableReadLock(); }
             }
         }
         */

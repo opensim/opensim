@@ -373,11 +373,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// </returns>
         protected internal bool AddNewSceneObject(SceneObjectGroup sceneObject, bool attachToBackup, bool sendClientUpdates)
         {
-
             bool ret = AddSceneObject(sceneObject, attachToBackup, sendClientUpdates);
 
-           // Ensure that we persist this new scene object if it's not an
-            // attachment
+           // Ensure that we persist this new scene object if it's not an attachment
 
             if (attachToBackup)
                 sceneObject.HasGroupChanged = true;
@@ -2124,6 +2122,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // from the database. They will be rewritten immediately,
                     // minus the rows for the unlinked child prims.
                     m_parentScene.SimulationDataService.RemoveObject(g.UUID, m_parentScene.RegionInfo.RegionID);
+                    g.SetPartsInventoryChanged(); // so we also need to force inventory save
                     g.InvalidatePartsLinkMaps();
                     g.TriggerScriptChangedEvent(Changed.LINK);
                     g.HasGroupChanged = true; // Persist

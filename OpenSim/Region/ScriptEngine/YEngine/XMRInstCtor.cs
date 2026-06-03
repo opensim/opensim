@@ -544,6 +544,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 MigrateInEventHandler(ms);
             }
 
+            XmlElement localHeapN = (XmlElement)scriptStateN.SelectSingleNode("LHeapUse");
+            if (localHeapN != null)
+                m_localsHeapUsed = int.Parse(localHeapN.InnerText);
+            //XmlElement stkN = (XmlElement)scriptStateN.SelectSingleNode("stkLft");
+            //if (stkN != null)
+            //    m_StackLeft = int.Parse(stkN.InnerText);
+
             XmlElement permissionsN = (XmlElement)scriptStateN.SelectSingleNode("Permissions");
             m_Item.PermsGranter = new UUID(permissionsN.GetAttribute("granter"));
             m_Item.PermsMask = Convert.ToInt32(permissionsN.GetAttribute("mask"));

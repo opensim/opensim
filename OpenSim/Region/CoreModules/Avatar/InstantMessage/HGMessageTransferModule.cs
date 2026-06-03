@@ -26,9 +26,7 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Net;
 using System.Reflection;
 using log4net;
 using Nini.Config;
@@ -54,10 +52,10 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected bool m_Enabled = false;
-        protected List<Scene> m_Scenes = new List<Scene>();
+        protected List<Scene> m_Scenes = [];
 
         protected IInstantMessage m_IMService;
-        protected Dictionary<UUID, object> m_UserLocationMap = new Dictionary<UUID, object>();
+        protected Dictionary<UUID, object> m_UserLocationMap = new();
 
         public event UndeliveredMessage OnUndeliveredMessage;
 
@@ -66,8 +64,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         {
             get
             {
-                if (m_uMan == null)
-                    m_uMan = m_Scenes[0].RequestModuleInterface<IUserManagement>();
+                m_uMan ??= m_Scenes[0].RequestModuleInterface<IUserManagement>();
                 return m_uMan;
             }
         }
@@ -81,7 +78,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 return;
             }
 
-            InstantMessageServerConnector imServer = new InstantMessageServerConnector(config, MainServer.Instance, this);
+            InstantMessageServerConnector imServer = new(config, MainServer.Instance, this);
             m_IMService = imServer.GetService();
             m_Enabled = true;
         }
@@ -93,7 +90,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
             lock (m_Scenes)
             {
-                m_log.DebugFormat("[HG MESSAGE TRANSFER]: Message transfer module {0} active", Name);
+                m_log.Debug($"[HG MESSAGE TRANSFER]: Message transfer module {Name} active");
                 scene.RegisterModuleInterface<IMessageTransferModule>(this);
                 m_Scenes.Add(scene);
             }
@@ -132,9 +129,9 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             get { return null; }
         }
 
-        public void SendInstantMessage(GridInstantMessage im, MessageResultNotification result)
+        public void SendInstantMessage(GridInstantMessage im, MessageResultNotification result, bool ToRootOnly = false)
         {
-            UUID toAgentID = new UUID(im.toAgentID);
+            UUID toAgentID = new(im.toAgentID);
             if (toAgentID.IsZero())
                 return;
 
@@ -159,7 +156,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                     }
                 }
             }
-            if(achildsp != null)
+            if (!ToRootOnly && achildsp != null)
             {
                 // m_log.DebugFormat("[HG INSTANT MESSAGE]: Delivering IM to child agent {0} {1}", user.Name, toAgentID);
                 achildsp.ControllingClient.SendInstantMessage(im);

@@ -31,11 +31,7 @@ using System.Collections.Generic;
 using System.Data;
 using OpenMetaverse;
 using OpenSim.Framework;
-#if CSharpSqlite
-    using Community.CsharpSqlite.Sqlite;
-#else
-    using Mono.Data.Sqlite;
-#endif
+using System.Data.SQLite;
 
 namespace OpenSim.Data.SQLite
 {
@@ -54,7 +50,7 @@ namespace OpenSim.Data.SQLite
 
         public bool Delete(UUID agentID, UUID muteID, string muteName)
         {
-            using (SqliteCommand cmd = new SqliteCommand())
+            using (SQLiteCommand cmd = new SQLiteCommand())
             {
                 cmd.CommandText = "delete from MuteList where `AgentID` = :AgentID and `MuteID` = :MuteID and `MuteName` = :MuteName";
 

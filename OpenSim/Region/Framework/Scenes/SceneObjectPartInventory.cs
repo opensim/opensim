@@ -66,7 +66,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Holds in memory prim inventory
         /// </summary>
-        protected TaskInventoryDictionary m_items = new TaskInventoryDictionary();
+        protected TaskInventoryDictionary m_items = [];
         protected Dictionary<UUID, TaskInventoryItem> m_scripts = null;
         /// <summary>
         /// Tracks whether inventory has changed since the last persistent backup
@@ -150,9 +150,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Force the task inventory of this prim to persist at the next update sweep
         /// </summary>
-        public void ForceInventoryPersistence()
+        public void ForceInventoryPersistence(bool force = true)
         {
-            HasInventoryChanged = true;
+            HasInventoryChanged = force || m_items.Count > 0;
         }
 
         /// <summary>
@@ -201,6 +201,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
             m_inventorySerial++;
+            HasInventoryChanged = true;
             m_items.LockItemsForWrite(false);
         }
 
@@ -224,6 +225,7 @@ namespace OpenSim.Region.Framework.Scenes
                 item.ParentID = partID;
             }
             m_inventorySerial++;
+            HasInventoryChanged = true;
             m_items.LockItemsForWrite(false);
         }
 
@@ -971,7 +973,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void AddInventoryItemExclusive(TaskInventoryItem item, bool allowedDrop)
         {
             m_items.LockItemsForRead(true);
-            List<TaskInventoryItem> il = new List<TaskInventoryItem>(m_items.Values);
+            List<TaskInventoryItem> il = [.. m_items.Values];
             m_items.LockItemsForRead(false);
             foreach (TaskInventoryItem i in il)
             {
@@ -1012,15 +1014,21 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_items.LockItemsForWrite(true);
 
-            m_items.Add(item.ItemID, item);
-            if (item.InvType == (int)InventoryType.LSL)
-            {
-                if (m_scripts == null)
-                    m_scripts = new Dictionary<UUID, TaskInventoryItem>();
-                m_scripts.Add(item.ItemID, item);
-            }
+            bool added = m_items.TryAdd(item.ItemID, item);
+            if(added)
+            { 
+                if (item.InvType == (int)InventoryType.LSL)
+                {
+                    m_scripts ??= new Dictionary<UUID, TaskInventoryItem>();
+                    m_scripts[item.ItemID] = item;
+                }
+                m_inventorySerial++;
+                HasInventoryChanged = true;
+            }   
 
             m_items.LockItemsForWrite(false);
+            if(!added)
+                return;
 
             if (allowedDrop)
                 m_part.TriggerScriptChangedEvent(Changed.ALLOWED_DROP, item.ItemID);
@@ -1028,8 +1036,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_part.TriggerScriptChangedEvent(Changed.INVENTORY);
 
             m_part.AggregateInnerPerms();
-            m_inventorySerial++;
-            HasInventoryChanged = true;
             m_part.ParentGroup.HasGroupChanged = true;
         }
 
@@ -1042,21 +1048,29 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="items"></param>
         public void RestoreInventoryItems(ICollection<TaskInventoryItem> items)
         {
-            m_items.LockItemsForWrite(true);
+            if (items == null || items.Count == 0)
+                return;
 
+            m_items.LockItemsForWrite(true);
+            int nchanges = 0;
             foreach (TaskInventoryItem item in items)
             {
-                m_items.Add(item.ItemID, item);
-                if (item.InvType == (int)InventoryType.LSL)
-                {
-                    if (m_scripts == null)
-                        m_scripts = new Dictionary<UUID, TaskInventoryItem>();
-                    m_scripts.Add(item.ItemID, item);
+                if(m_items.TryAdd(item.ItemID, item))
+                { 
+                    if (item.InvType == (int)InventoryType.LSL)
+                    {
+                        m_scripts ??= new Dictionary<UUID, TaskInventoryItem>();
+                        m_scripts[item.ItemID] = item;
+                    }
+                    nchanges++;
                 }
             }
             m_items.LockItemsForWrite(false);
-            m_part.AggregateInnerPerms();
-            m_inventorySerial++;
+            if(nchanges > 0)
+            {
+                m_part.AggregateInnerPerms();
+                m_inventorySerial++;
+            }
         }
 
         /// <summary>
@@ -1329,7 +1343,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_items.LockItemsForWrite(true);
 
-            if (m_items.ContainsKey(item.ItemID))
+            if (m_items.TryGetValue(item.ItemID, out TaskInventoryItem olditem))
             {
                 //m_log.DebugFormat("[PRIM INVENTORY]: Updating item {0} in {1}", item.Name, m_part.Name);
 
@@ -1345,13 +1359,12 @@ namespace OpenSim.Region.Framework.Scenes
                     item.OwnerID = item.GroupID; 
 
                 if (item.AssetID.IsZero())
-                    item.AssetID = m_items[item.ItemID].AssetID;
+                    item.AssetID = olditem.AssetID;
 
                 m_items[item.ItemID] = item;
                 if(item.InvType == (int)InventoryType.LSL)
                 {
-                    if(m_scripts == null)
-                        m_scripts = new Dictionary<UUID, TaskInventoryItem>();
+                    m_scripts ??= new Dictionary<UUID, TaskInventoryItem>();
                     m_scripts[item.ItemID] = item;
                 }
 
@@ -1390,50 +1403,45 @@ namespace OpenSim.Region.Framework.Scenes
         /// in this prim's inventory.</returns>
         public int RemoveInventoryItem(UUID itemID)
         {
-            m_items.LockItemsForRead(true);
-
-            if (m_items.ContainsKey(itemID))
+            m_items.LockItemsForWrite(true);
+            try
             {
-                int type = m_items[itemID].InvType;
-                m_items.LockItemsForRead(false);
-                if (type == (int)InventoryType.LSL) // Script
+                if (m_items.Remove(itemID, out TaskInventoryItem olditem))
                 {
-                    m_part.ParentGroup.Scene.EventManager.TriggerRemoveScript(m_part.LocalId, itemID);
+                    int type = olditem.InvType;
+                    if(m_scripts != null)
+                    {
+                        m_scripts.Remove(itemID);
+                        if(m_scripts.Count == 0)
+                            m_scripts = null;
+                    }
+                    if (m_scripts == null)
+                        m_part.RemFlag(PrimFlags.Scripted);
+
+                    m_part.ParentGroup.InvalidateDeepEffectivePerms();
+                    m_inventorySerial++;
+                    HasInventoryChanged = true;
+
+                    m_part.ParentGroup.HasGroupChanged = true;
+                    m_part.ScheduleFullUpdate();
+
+                    if (type == (int)InventoryType.LSL) // Script
+                        m_part.ParentGroup.Scene.EventManager.TriggerRemoveScript(m_part.LocalId, itemID);
+                    if (m_scripts != null)
+                        m_part.TriggerScriptChangedEvent(Changed.INVENTORY);
+                    return type;
                 }
-                m_items.LockItemsForWrite(true);
-                m_items.Remove(itemID);
-                if(m_scripts != null)
+                else
                 {
-                    m_scripts.Remove(itemID);
-                    if(m_scripts.Count == 0)
-                        m_scripts = null;
+                    m_log.Error(
+                        "[PRIM INVENTORY]: Tried to remove item ID " +
+                        $"{itemID} from prim {m_part.Name}, {m_part.UUID} but the item does not exist in this inventory");
                 }
-                if (m_scripts == null)
-                {
-                    m_part.RemFlag(PrimFlags.Scripted);
-                }
-                m_inventorySerial++;
+            }
+            finally
+            {
                 m_items.LockItemsForWrite(false);
-
-                m_part.ParentGroup.InvalidateDeepEffectivePerms();
-
-
-                HasInventoryChanged = true;
-                m_part.ParentGroup.HasGroupChanged = true;
-                m_part.ScheduleFullUpdate();
-
-                m_part.TriggerScriptChangedEvent(Changed.INVENTORY);
-                return type;
             }
-            else
-            {
-                m_items.LockItemsForRead(false);
-                m_log.ErrorFormat(
-                    "[PRIM INVENTORY]: " +
-                    "Tried to remove item ID {0} from prim {1}, {2} but the item does not exist in this inventory",
-                    itemID, m_part.Name, m_part.UUID);
-            }
-
             return -1;
         }
 
@@ -1603,23 +1611,27 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="datastore"></param>
         public void ProcessInventoryBackup(ISimulationDataService datastore)
         {
-                // Removed this because linking will cause an immediate delete of the new
-                // child prim from the database and the subsequent storing of the prim sees
-                // the inventory of it as unchanged and doesn't store it at all. The overhead
-                // of storing prim inventory needlessly is much less than the aggravation
-                // of prim inventory loss.
-                //if (HasInventoryChanged)
-                //    {
-                m_items.LockItemsForRead(true);
-                ICollection<TaskInventoryItem> itemsvalues = m_items.Values;
+            try
+            {
+                m_items.LockItemsForWrite(true);
+                if (!HasInventoryChanged)
+                    return;
                 HasInventoryChanged = false;
+            }
+            finally
+            {
+                m_items.LockItemsForWrite(false);
+            }
+
+            try
+            {
+                m_items.LockItemsForRead(true);
+                datastore.StorePrimInventory(m_part.UUID, m_items.Values);
+            }
+            finally
+            {
                 m_items.LockItemsForRead(false);
-                try
-                {
-                    datastore.StorePrimInventory(m_part.UUID, itemsvalues);
-                }
-                catch {}
-                //    }
+            }
         }
 
         public class InventoryStringBuilder

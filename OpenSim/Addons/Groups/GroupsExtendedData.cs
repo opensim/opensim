@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 using OpenSim.Framework;
 using OpenMetaverse;
@@ -96,14 +97,15 @@ namespace OpenSim.Groups
 
     public class GroupsDataUtils
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string Sanitize(string s)
         {
-            return s == null ? string.Empty : s;
+            return s ?? string.Empty;
         }
 
         public static Dictionary<string, object> GroupRecord(ExtendedGroupRecord grec)
         {
-            Dictionary<string, object> dict = new Dictionary<string, object>();
+            Dictionary<string, object> dict = [];
             if (grec == null)
                 return dict;
 
@@ -132,65 +134,66 @@ namespace OpenSim.Groups
                 return null;
 
             ExtendedGroupRecord grec = new ExtendedGroupRecord();
-            if (dict.ContainsKey("AllowPublish") && dict["AllowPublish"] != null)
-                grec.AllowPublish = bool.Parse(dict["AllowPublish"].ToString());
+            object otmp;
+            if (dict.TryGetValue("AllowPublish", out otmp) && otmp != null)
+                grec.AllowPublish = bool.Parse(otmp.ToString());
 
-            if (dict.ContainsKey("Charter") && dict["Charter"] != null)
-                grec.Charter = dict["Charter"].ToString();
+            if (dict.TryGetValue("Charter", out otmp) && otmp != null)
+                grec.Charter = otmp.ToString();
             else
                 grec.Charter = string.Empty;
 
-            if (dict.ContainsKey("FounderID") && dict["FounderID"] != null)
+            if (dict.TryGetValue("FounderID", out otmp) && otmp != null)
                 grec.FounderID = UUID.Parse(dict["FounderID"].ToString());
 
-            if (dict.ContainsKey("FounderUUI") && dict["FounderUUI"] != null)
-                grec.FounderUUI = dict["FounderUUI"].ToString();
+            if (dict.TryGetValue("FounderUUI", out otmp) && otmp != null)
+                grec.FounderUUI = otmp.ToString();
             else
                 grec.FounderUUI = string.Empty;
 
-            if (dict.ContainsKey("GroupID") && dict["GroupID"] != null)
-                grec.GroupID = UUID.Parse(dict["GroupID"].ToString());
+            if (dict.TryGetValue("GroupID", out otmp) && otmp != null)
+                grec.GroupID = UUID.Parse(otmp.ToString());
 
-            if (dict.ContainsKey("GroupName") && dict["GroupName"] != null)
-                grec.GroupName = dict["GroupName"].ToString();
+            if (dict.TryGetValue("GroupName", out otmp) && otmp != null)
+                grec.GroupName = otmp.ToString();
             else
                 grec.GroupName = string.Empty;
 
-            if (dict.ContainsKey("InsigniaID") && dict["InsigniaID"] != null)
-                grec.GroupPicture = UUID.Parse(dict["InsigniaID"].ToString());
+            if (dict.TryGetValue("InsigniaID", out otmp) && otmp != null)
+                grec.GroupPicture = UUID.Parse(otmp.ToString());
 
-            if (dict.ContainsKey("MaturePublish") && dict["MaturePublish"] != null)
-                grec.MaturePublish = bool.Parse(dict["MaturePublish"].ToString());
+            if (dict.TryGetValue("MaturePublish", out otmp) && otmp != null)
+                grec.MaturePublish = bool.Parse(otmp.ToString());
 
-            if (dict.ContainsKey("MembershipFee") && dict["MembershipFee"] != null)
-                grec.MembershipFee = Int32.Parse(dict["MembershipFee"].ToString());
+            if (dict.TryGetValue("MembershipFee", out otmp) && otmp != null)
+                grec.MembershipFee = int.Parse(otmp.ToString());
 
-            if (dict.ContainsKey("OpenEnrollment") && dict["OpenEnrollment"] != null)
-                grec.OpenEnrollment = bool.Parse(dict["OpenEnrollment"].ToString());
+            if (dict.TryGetValue("OpenEnrollment", out otmp) && otmp != null)
+                grec.OpenEnrollment = bool.Parse(otmp.ToString());
 
-            if (dict.ContainsKey("OwnerRoleID") && dict["OwnerRoleID"] != null)
-                grec.OwnerRoleID = UUID.Parse(dict["OwnerRoleID"].ToString());
+            if (dict.TryGetValue("OwnerRoleID", out otmp) && otmp != null)
+                grec.OwnerRoleID = UUID.Parse(otmp.ToString());
 
-            if (dict.ContainsKey("ServiceLocation") && dict["ServiceLocation"] != null)
-                grec.ServiceLocation = dict["ServiceLocation"].ToString();
+            if (dict.TryGetValue("ServiceLocation", out otmp) && otmp != null)
+                grec.ServiceLocation = otmp.ToString();
             else
                 grec.ServiceLocation = string.Empty;
 
-            if (dict.ContainsKey("ShownInList") && dict["ShownInList"] != null)
-                grec.ShowInList = bool.Parse(dict["ShownInList"].ToString());
+            if (dict.TryGetValue("ShownInList", out otmp) && otmp != null)
+                grec.ShowInList = bool.Parse(otmp.ToString());
 
-            if (dict.ContainsKey("MemberCount") && dict["MemberCount"] != null)
-                grec.MemberCount = Int32.Parse(dict["MemberCount"].ToString());
+            if (dict.TryGetValue("MemberCount", out otmp) && otmp != null)
+                grec.MemberCount = int.Parse(otmp.ToString());
 
-            if (dict.ContainsKey("RoleCount") && dict["RoleCount"] != null)
-                grec.RoleCount = Int32.Parse(dict["RoleCount"].ToString());
+            if (dict.TryGetValue("RoleCount", out otmp) && otmp != null)
+                grec.RoleCount = int.Parse(otmp.ToString());
 
             return grec;
         }
 
         public static Dictionary<string, object> GroupMembershipData(ExtendedGroupMembershipData membership)
         {
-            Dictionary<string, object> dict = new Dictionary<string, object>();
+            Dictionary<string, object> dict = [];
             if (membership == null)
                 return dict;
 
@@ -222,68 +225,68 @@ namespace OpenSim.Groups
                 return null;
 
             ExtendedGroupMembershipData membership = new ExtendedGroupMembershipData();
+            object otmp;
+            if (dict.TryGetValue("AcceptNotices", out otmp) && otmp != null)
+                membership.AcceptNotices = bool.Parse(otmp.ToString());
 
-            if (dict.ContainsKey("AcceptNotices") && dict["AcceptNotices"] != null)
-                membership.AcceptNotices = bool.Parse(dict["AcceptNotices"].ToString());
-
-            if (dict.ContainsKey("AccessToken") && dict["AccessToken"] != null)
-                membership.AccessToken = dict["AccessToken"].ToString();
+            if (dict.TryGetValue("AccessToken", out otmp) && otmp != null)
+                membership.AccessToken = otmp.ToString();
             else
                 membership.AccessToken = string.Empty;
 
-            if (dict.ContainsKey("Active") && dict["Active"] != null)
-                membership.Active = bool.Parse(dict["Active"].ToString());
+            if (dict.TryGetValue("Active", out otmp) && otmp != null)
+                membership.Active = bool.Parse(otmp.ToString());
 
-            if (dict.ContainsKey("ActiveRole") && dict["ActiveRole"] != null)
-                membership.ActiveRole = UUID.Parse(dict["ActiveRole"].ToString());
+            if (dict.TryGetValue("ActiveRole", out otmp) && otmp != null)
+                membership.ActiveRole = UUID.Parse(otmp.ToString());
 
-            if (dict.ContainsKey("AllowPublish") && dict["AllowPublish"] != null)
-                membership.AllowPublish = bool.Parse(dict["AllowPublish"].ToString());
+            if (dict.TryGetValue("AllowPublish", out otmp) && otmp != null)
+                membership.AllowPublish = bool.Parse(otmp.ToString());
 
-            if (dict.ContainsKey("Charter") && dict["Charter"] != null)
-                membership.Charter = dict["Charter"].ToString();
+            if (dict.TryGetValue("Charter", out otmp) && otmp != null)
+                membership.Charter = otmp.ToString();
             else
                 membership.Charter = string.Empty;
 
-            if (dict.ContainsKey("Contribution") && dict["Contribution"] != null)
-                membership.Contribution = Int32.Parse(dict["Contribution"].ToString());
+            if (dict.TryGetValue("Contribution", out otmp) && otmp != null)
+                membership.Contribution = int.Parse(otmp.ToString());
 
-            if (dict.ContainsKey("FounderID") && dict["FounderID"] != null)
-                membership.FounderID = UUID.Parse(dict["FounderID"].ToString());
+            if (dict.TryGetValue("FounderID", out otmp) && otmp != null)
+                membership.FounderID = UUID.Parse(otmp.ToString());
 
-            if (dict.ContainsKey("GroupID") && dict["GroupID"] != null)
-                membership.GroupID = UUID.Parse(dict["GroupID"].ToString());
+            if (dict.TryGetValue("GroupID", out otmp) && otmp != null)
+                membership.GroupID = UUID.Parse(otmp.ToString());
 
-            if (dict.ContainsKey("GroupName") && dict["GroupName"] != null)
-                membership.GroupName = dict["GroupName"].ToString();
+            if (dict.TryGetValue("GroupName", out otmp) && otmp != null)
+                membership.GroupName = otmp.ToString();
             else
                 membership.GroupName = string.Empty;
 
-            if (dict.ContainsKey("GroupPicture") && dict["GroupPicture"] != null)
-                membership.GroupPicture = UUID.Parse(dict["GroupPicture"].ToString());
+            if (dict.TryGetValue("GroupPicture", out otmp) && otmp != null)
+                membership.GroupPicture = UUID.Parse(otmp.ToString());
 
-            if (dict.ContainsKey("GroupPowers") && dict["GroupPowers"] != null)
-                membership.GroupPowers = UInt64.Parse(dict["GroupPowers"].ToString());
+            if (dict.TryGetValue("GroupPowers", out otmp) && otmp != null)
+                membership.GroupPowers = ulong.Parse(otmp.ToString());
 
-            if (dict.ContainsKey("GroupTitle") && dict["GroupTitle"] != null)
-                membership.GroupTitle = dict["GroupTitle"].ToString();
+            if (dict.TryGetValue("GroupTitle", out otmp) && otmp != null)
+                membership.GroupTitle = otmp.ToString();
             else
                 membership.GroupTitle = string.Empty;
 
-            if (dict.ContainsKey("ListInProfile") && dict["ListInProfile"] != null)
-                membership.ListInProfile = bool.Parse(dict["ListInProfile"].ToString());
+            if (dict.TryGetValue("ListInProfile", out otmp) && otmp != null)
+                membership.ListInProfile = bool.Parse(otmp.ToString());
 
-            if (dict.ContainsKey("MaturePublish") && dict["MaturePublish"] != null)
-                membership.MaturePublish = bool.Parse(dict["MaturePublish"].ToString());
+            if (dict.TryGetValue("MaturePublish", out otmp) && otmp != null)
+                membership.MaturePublish = bool.Parse(otmp.ToString());
 
-            if (dict.ContainsKey("MembershipFee") && dict["MembershipFee"] != null)
-                membership.MembershipFee = Int32.Parse(dict["MembershipFee"].ToString());
+            if (dict.TryGetValue("MembershipFee", out otmp) && otmp != null)
+                membership.MembershipFee = int.Parse(otmp.ToString());
 
-            if (dict.ContainsKey("OpenEnrollment") && dict["OpenEnrollment"] != null)
-                membership.OpenEnrollment = bool.Parse(dict["OpenEnrollment"].ToString());
+            if (dict.TryGetValue("OpenEnrollment", out otmp) && otmp != null)
+                membership.OpenEnrollment = bool.Parse(otmp.ToString());
 
-            if (dict.ContainsKey("ShowInList") && dict["ShowInList"] != null)
-                membership.ShowInList = bool.Parse(dict["ShowInList"].ToString());
+            if (dict.TryGetValue("ShowInList", out otmp) && otmp != null)
+                membership.ShowInList = bool.Parse(otmp.ToString());
 
             return membership;
         }
@@ -312,38 +315,39 @@ namespace OpenSim.Groups
             if (dict == null)
                 return member;
 
-            if (dict.ContainsKey("AcceptNotices") && dict["AcceptNotices"] != null)
-                member.AcceptNotices = bool.Parse(dict["AcceptNotices"].ToString());
+            object value;
+            if (dict.TryGetValue("AcceptNotices", out value) && value != null)
+                member.AcceptNotices = bool.Parse(value.ToString());
 
-            if (dict.ContainsKey("AccessToken") && dict["AccessToken"] != null)
-                member.AccessToken = Sanitize(dict["AccessToken"].ToString());
+            if (dict.TryGetValue("AccessToken", out value) && value != null)
+                member.AccessToken = value.ToString();
             else
                 member.AccessToken = string.Empty;
 
-            if (dict.ContainsKey("AgentID") && dict["AgentID"] != null)
-                member.AgentID = Sanitize(dict["AgentID"].ToString());
+            if (dict.TryGetValue("AgentID", out value) && value != null)
+                member.AgentID = value.ToString();
             else
-                member.AgentID = UUID.Zero.ToString();
+                member.AgentID = UUID.ZeroString;
 
-            if (dict.ContainsKey("AgentPowers") && dict["AgentPowers"] != null)
-                member.AgentPowers = UInt64.Parse(dict["AgentPowers"].ToString());
+            if (dict.TryGetValue("AgentPowers", out value) && value != null)
+                member.AgentPowers = ulong.Parse(value.ToString());
 
-            if (dict.ContainsKey("Contribution") && dict["Contribution"] != null)
-                member.Contribution = Int32.Parse(dict["Contribution"].ToString());
+            if (dict.TryGetValue("Contribution", out value) && value != null)
+                member.Contribution = int.Parse(value.ToString());
 
-            if (dict.ContainsKey("IsOwner") && dict["IsOwner"] != null)
-                member.IsOwner = bool.Parse(dict["IsOwner"].ToString());
+            if (dict.TryGetValue("IsOwner", out value) && value != null)
+                member.IsOwner = bool.Parse(value.ToString());
 
-            if (dict.ContainsKey("ListInProfile") && dict["ListInProfile"] != null)
-                member.ListInProfile = bool.Parse(dict["ListInProfile"].ToString());
+            if (dict.TryGetValue("ListInProfile", out value) && value != null)
+                member.ListInProfile = bool.Parse(value.ToString());
 
-            if (dict.ContainsKey("OnlineStatus") && dict["OnlineStatus"] != null)
-                member.OnlineStatus = Sanitize(dict["OnlineStatus"].ToString());
+            if (dict.TryGetValue("OnlineStatus", out value) && value != null)
+                member.OnlineStatus = value.ToString();
             else
                 member.OnlineStatus = string.Empty;
 
-            if (dict.ContainsKey("Title") && dict["Title"] != null)
-                member.Title = Sanitize(dict["Title"].ToString());
+            if (dict.TryGetValue("Title", out value) && value != null)
+                member.Title = value.ToString();
             else
                 member.Title = string.Empty;
 
@@ -371,123 +375,116 @@ namespace OpenSim.Groups
             if (dict == null)
                 return role;
 
-            if (dict.ContainsKey("Description") && dict["Description"] != null)
-                role.Description = Sanitize(dict["Description"].ToString());
+            object value;
+            if (dict.TryGetValue("Description", out value) && value != null)
+                role.Description = value.ToString();
             else
                 role.Description = string.Empty;
 
-            if (dict.ContainsKey("Members") && dict["Members"] != null)
-                role.Members = Int32.Parse(dict["Members"].ToString());
+            if (dict.TryGetValue("Members", out value) && value != null)
+                role.Members = int.Parse(value.ToString());
 
-            if (dict.ContainsKey("Name") && dict["Name"] != null)
-                role.Name = Sanitize(dict["Name"].ToString());
+            if (dict.TryGetValue("Name", out value) && value != null)
+                role.Name = value.ToString();
             else
                 role.Name = string.Empty;
 
-            if (dict.ContainsKey("Powers") && dict["Powers"] != null)
-                role.Powers = UInt64.Parse(dict["Powers"].ToString());
+            if (dict.TryGetValue("Powers", out value) && value != null)
+                role.Powers = ulong.Parse(value.ToString());
 
-            if (dict.ContainsKey("Title") && dict["Title"] != null)
-                role.Title = Sanitize(dict["Title"].ToString());
+            if (dict.TryGetValue("Title", out value) && value != null)
+                role.Title = value.ToString();
             else
                 role.Title = string.Empty;
 
-            if (dict.ContainsKey("RoleID") && dict["RoleID"] != null)
-                role.RoleID = UUID.Parse(dict["RoleID"].ToString());
+            if (dict.TryGetValue("RoleID", out value) && value != null)
+                role.RoleID = UUID.Parse(value.ToString());
 
             return role;
         }
 
         public static Dictionary<string, object> GroupRoleMembersData(ExtendedGroupRoleMembersData rmember)
         {
-            Dictionary<string, object> dict = new Dictionary<string, object>();
-
-            dict["RoleID"] = rmember.RoleID.ToString();
-            dict["MemberID"] = rmember.MemberID;
-            return dict;
+            return new Dictionary<string, object>()
+                {
+                    ["RoleID"] = rmember.RoleID.ToString(),
+                    ["MemberID"] = rmember.MemberID
+                };
         }
 
         public static ExtendedGroupRoleMembersData GroupRoleMembersData(Dictionary<string, object> dict)
         {
             ExtendedGroupRoleMembersData rmember = new ExtendedGroupRoleMembersData();
 
-            if (dict.ContainsKey("RoleID") && dict["RoleID"] != null)
-                rmember.RoleID = new UUID(dict["RoleID"].ToString());
+            object value;
+            if (dict.TryGetValue("RoleID", out value) && value != null)
+                rmember.RoleID = new UUID(value.ToString());
 
-            if (dict.ContainsKey("MemberID") && dict["MemberID"] != null)
-                rmember.MemberID = dict["MemberID"].ToString();
+            if (dict.TryGetValue("MemberID", out value) && value != null)
+                rmember.MemberID = value.ToString();
 
             return rmember;
         }
 
         public static Dictionary<string, object> GroupInviteInfo(GroupInviteInfo invite)
         {
-            Dictionary<string, object> dict = new Dictionary<string, object>();
-
-            dict["InviteID"] = invite.InviteID.ToString();
-            dict["GroupID"] = invite.GroupID.ToString();
-            dict["RoleID"] = invite.RoleID.ToString();
-            dict["AgentID"] = invite.AgentID;
-
-            return dict;
+            return new Dictionary<string, object>()
+            {
+                ["InviteID"] = invite.InviteID.ToString(),
+                ["GroupID"] = invite.GroupID.ToString(),
+                ["RoleID"] = invite.RoleID.ToString(),
+                ["AgentID"] = invite.AgentID
+            };
         }
 
         public static GroupInviteInfo GroupInviteInfo(Dictionary<string, object> dict)
         {
-            if (dict == null)
-                return null;
-
-            GroupInviteInfo invite = new GroupInviteInfo();
-
-            invite.InviteID = new UUID(dict["InviteID"].ToString());
-            invite.GroupID = new UUID(dict["GroupID"].ToString());
-            invite.RoleID = new UUID(dict["RoleID"].ToString());
-            invite.AgentID = Sanitize(dict["AgentID"].ToString());
-
-            return invite;
+            return dict == null ? null :
+                new GroupInviteInfo
+                {
+                    InviteID = new UUID(dict["InviteID"].ToString()),
+                    GroupID = new UUID(dict["GroupID"].ToString()),
+                    RoleID = new UUID(dict["RoleID"].ToString()),
+                    AgentID = Sanitize(dict["AgentID"].ToString())
+                };
         }
 
         public static Dictionary<string, object> GroupNoticeData(ExtendedGroupNoticeData notice)
         {
-            Dictionary<string, object> dict = new Dictionary<string, object>();
-
-            dict["NoticeID"] = notice.NoticeID.ToString();
-            dict["Timestamp"] = notice.Timestamp.ToString();
-            dict["FromName"] = Sanitize(notice.FromName);
-            dict["Subject"] = Sanitize(notice.Subject);
-            dict["HasAttachment"] = notice.HasAttachment.ToString();
-            dict["AttachmentItemID"] = notice.AttachmentItemID.ToString();
-            dict["AttachmentName"] = Sanitize(notice.AttachmentName);
-            dict["AttachmentType"] = notice.AttachmentType.ToString();
-            dict["AttachmentOwnerID"] = Sanitize(notice.AttachmentOwnerID);
-
-            return dict;
+            return new Dictionary<string, object>
+            {
+                ["NoticeID"] = notice.NoticeID.ToString(),
+                ["Timestamp"] = notice.Timestamp.ToString(),
+                ["FromName"] = Sanitize(notice.FromName),
+                ["Subject"] = Sanitize(notice.Subject),
+                ["HasAttachment"] = notice.HasAttachment.ToString(),
+                ["AttachmentItemID"] = notice.AttachmentItemID.ToString(),
+                ["AttachmentName"] = Sanitize(notice.AttachmentName),
+                ["AttachmentType"] = notice.AttachmentType.ToString(),
+                ["AttachmentOwnerID"] = Sanitize(notice.AttachmentOwnerID)
+            };
         }
 
         public static ExtendedGroupNoticeData GroupNoticeData(Dictionary<string, object> dict)
         {
-            ExtendedGroupNoticeData notice = new ExtendedGroupNoticeData();
-
-            if (dict == null)
-                return notice;
-
-            notice.NoticeID = new UUID(dict["NoticeID"].ToString());
-            notice.Timestamp = UInt32.Parse(dict["Timestamp"].ToString());
-            notice.FromName = Sanitize(dict["FromName"].ToString());
-            notice.Subject = Sanitize(dict["Subject"].ToString());
-            notice.HasAttachment = bool.Parse(dict["HasAttachment"].ToString());
-            notice.AttachmentItemID = new UUID(dict["AttachmentItemID"].ToString());
-            notice.AttachmentName = dict["AttachmentName"].ToString();
-            notice.AttachmentType = byte.Parse(dict["AttachmentType"].ToString());
-            notice.AttachmentOwnerID = dict["AttachmentOwnerID"].ToString();
-
-            return notice;
-        }
+            return dict == null ? new ExtendedGroupNoticeData() :
+                    new ExtendedGroupNoticeData()
+                    { 
+                        NoticeID = new UUID(dict["NoticeID"].ToString()),
+                        Timestamp = uint.Parse(dict["Timestamp"].ToString()),
+                        FromName = Sanitize(dict["FromName"].ToString()),
+                        Subject = Sanitize(dict["Subject"].ToString()),
+                        HasAttachment = bool.Parse(dict["HasAttachment"].ToString()),
+                        AttachmentItemID = new UUID(dict["AttachmentItemID"].ToString()),
+                        AttachmentName = dict["AttachmentName"].ToString(),
+                        AttachmentType = byte.Parse(dict["AttachmentType"].ToString()),
+                        AttachmentOwnerID = dict["AttachmentOwnerID"].ToString()
+                    };
+            }
 
         public static Dictionary<string, object> GroupNoticeInfo(GroupNoticeInfo notice)
         {
             Dictionary<string, object> dict = GroupNoticeData(notice.noticeData);
-
             dict["GroupID"] = notice.GroupID.ToString();
             dict["Message"] = Sanitize(notice.Message);
 
@@ -496,25 +493,23 @@ namespace OpenSim.Groups
 
         public static GroupNoticeInfo GroupNoticeInfo(Dictionary<string, object> dict)
         {
-            GroupNoticeInfo notice = new GroupNoticeInfo();
-
-            notice.noticeData = GroupNoticeData(dict);
-            notice.GroupID = new UUID(dict["GroupID"].ToString());
-            notice.Message = Sanitize(dict["Message"].ToString());
-
-            return notice;
+            return new GroupNoticeInfo
+            {
+                noticeData = GroupNoticeData(dict),
+                GroupID = new UUID(dict["GroupID"].ToString()),
+                Message = Sanitize(dict["Message"].ToString())
+            };
         }
 
         public static Dictionary<string, object> DirGroupsReplyData(DirGroupsReplyData g)
         {
-            Dictionary<string, object> dict = new Dictionary<string, object>();
-
-            dict["GroupID"] = g.groupID;
-            dict["Name"] = g.groupName;
-            dict["NMembers"] = g.members;
-            dict["SearchOrder"] = g.searchOrder;
-
-            return dict;
+            return new Dictionary<string, object>
+            {
+                ["GroupID"] = g.groupID,
+                ["Name"] = g.groupName,
+                ["NMembers"] = g.members,
+                ["SearchOrder"] = g.searchOrder
+            };
         }
 
         public static DirGroupsReplyData DirGroupsReplyData(Dictionary<string, object> dict)
@@ -523,7 +518,7 @@ namespace OpenSim.Groups
 
             g.groupID = new UUID(dict["GroupID"].ToString());
             g.groupName = dict["Name"].ToString();
-            Int32.TryParse(dict["NMembers"].ToString(), out g.members);
+            int.TryParse(dict["NMembers"].ToString(), out g.members);
             float.TryParse(dict["SearchOrder"].ToString(), out g.searchOrder);
 
             return g;

@@ -437,7 +437,7 @@ namespace OpenSim.Services.LLLoginService
                     + ","
                     + "r" + userProfile.homelookat.Z.ToString()
                     + "]}";
-            lookAt = "[r0.99949799999999999756,r0.03166859999999999814,r0]";
+            lookAt = "[r1,r0,r0]";
             RegionX = (uint) 255232;
             RegionY = (uint) 254976;
 

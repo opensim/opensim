@@ -26,42 +26,23 @@
  */
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Data;
 using OpenMetaverse;
-using OpenSim.Framework;
-using System.Reflection;
-using System.Text;
-using log4net;
 using Npgsql;
-using NpgsqlTypes;
 
 namespace OpenSim.Data.PGSQL
 {
     public class PGSQLXInventoryData : IXInventoryData
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(
-//                MethodBase.GetCurrentMethod().DeclaringType);
+        // private static readonly ILog m_log = LogManager.GetLogger(
+        //   MethodBase.GetCurrentMethod().DeclaringType);
 
         private PGSQLFolderHandler m_Folders;
         private PGSQLItemHandler m_Items;
 
         public PGSQLXInventoryData(string conn, string realm)
         {
-            m_Folders = new PGSQLFolderHandler(
-                    conn, "inventoryfolders", "InventoryStore");
-            m_Items = new PGSQLItemHandler(
-                    conn, "inventoryitems", String.Empty);
-        }
-
-        public static UUID str2UUID(string strUUID)
-        {
-            UUID newUUID = UUID.Zero;
-
-            UUID.TryParse(strUUID, out newUUID);
-
-            return newUUID;
+            m_Folders = new PGSQLFolderHandler(conn, "inventoryfolders", "InventoryStore");
+            m_Items = new PGSQLItemHandler(conn, "inventoryitems", string.Empty);
         }
 
         public XInventoryFolder[] GetFolder(string field, string val)
@@ -128,7 +109,7 @@ namespace OpenSim.Data.PGSQL
 
         public XInventoryItem[] GetActiveGestures(UUID principalID)
         {
-            return m_Items.GetActiveGestures(principalID.ToString());
+            return m_Items.GetActiveGestures(principalID);
         }
 
         public int GetAssetPermissions(UUID principalID, UUID assetID)
@@ -144,9 +125,14 @@ namespace OpenSim.Data.PGSQL
         {
         }
 
-        public bool MoveItem(string id, string newParent)
+        public bool MoveItem(string idstr, string newParentstr)
         {
-            XInventoryItem[] retrievedItems = Get(new string[] { "inventoryID" }, new string[] { id });
+            if(!UUID.TryParse(idstr, out UUID id))
+                return false;
+            if(!UUID.TryParse(newParentstr, out UUID newParent))
+                return false;
+
+            XInventoryItem[] retrievedItems = Get(["inventoryID"], [idstr]);
             if (retrievedItems.Length == 0)
                 return false;
 
@@ -156,7 +142,7 @@ namespace OpenSim.Data.PGSQL
             {
                 using (NpgsqlCommand cmd = new NpgsqlCommand())
                 {
-                    cmd.CommandText = String.Format(@"update {0} set ""parentFolderID"" = :ParentFolderID where ""inventoryID"" = :InventoryID", m_Realm);
+                    cmd.CommandText = $"update {m_Realm} set parentFolderID = :ParentFolderID where inventoryID = :InventoryID";
                     cmd.Parameters.Add(m_database.CreateParameter("ParentFolderID", newParent));
                     cmd.Parameters.Add(m_database.CreateParameter("InventoryID", id ));
                     cmd.Connection = conn;
@@ -172,19 +158,20 @@ namespace OpenSim.Data.PGSQL
 
             return true;
         }
-
         public XInventoryItem[] GetActiveGestures(string principalID)
+        {
+            return UUID.TryParse(principalID, out UUID princID) ? GetActiveGestures(princID) : [];
+        }
+
+        public XInventoryItem[] GetActiveGestures(UUID principalID)
         {
             using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
             {
                 using (NpgsqlCommand cmd = new NpgsqlCommand())
                 {
-//                    cmd.CommandText = String.Format(@"select * from inventoryitems where ""avatarID"" = :uuid and ""assetType"" = :type and ""flags"" = 1", m_Realm);
+                    // cmd.CommandText = String.Format(@"select * from inventoryitems where ""avatarID"" = :uuid and ""assetType"" = :type and ""flags"" = 1", m_Realm);
 
-                    cmd.CommandText = String.Format(@"select * from inventoryitems where ""avatarID"" = :uuid and ""assetType"" = :type and ""flags"" = 1");
-
-                    UUID princID = UUID.Zero;
-                    UUID.TryParse(principalID, out princID);
+                    cmd.CommandText = "select * from inventoryitems where avatarID = :uuid and assetType = :type and flags = 1";
 
                     cmd.Parameters.Add(m_database.CreateParameter("uuid", principalID));
                     cmd.Parameters.Add(m_database.CreateParameter("type", (int)AssetType.Gesture));
@@ -208,11 +195,11 @@ namespace OpenSim.Data.PGSQL
                                    and ""assetID"" = :AssetID
                                  group by ""assetID"" ", m_Realm);
 */
-                    cmd.CommandText = String.Format(@"select bit_or(""inventoryCurrentPermissions"") as ""inventoryCurrentPermissions""
+                    cmd.CommandText = @"select bit_or(inventoryCurrentPermissions) as inventoryCurrentPermissions
                                  from inventoryitems
-                                 where ""avatarID""::uuid = :PrincipalID
-                                   and ""assetID""::uuid = :AssetID
-                                 group by ""assetID"" ");
+                                 where avatarID::uuid = :PrincipalID
+                                   and assetID::uuid = :AssetID
+                                 group by assetID";
 
                     cmd.Parameters.Add(m_database.CreateParameter("PrincipalID", principalID));
                     cmd.Parameters.Add(m_database.CreateParameter("AssetID", assetID));
@@ -255,7 +242,13 @@ namespace OpenSim.Data.PGSQL
 
         public bool MoveFolder(string id, string newParentFolderID)
         {
-            XInventoryFolder[] folders = Get(new string[] { "folderID" }, new string[] { id });
+            if(!UUID.TryParse(id, out UUID foldID))
+                return false;
+
+            if(!UUID.TryParse(newParentFolderID, out UUID newPar))
+                return false;
+
+            XInventoryFolder[] folders = Get(["folderID"], [id]);
 
             if (folders.Length == 0)
                 return false;
@@ -266,13 +259,8 @@ namespace OpenSim.Data.PGSQL
             {
                 using (NpgsqlCommand cmd = new NpgsqlCommand())
                 {
-                    UUID foldID = UUID.Zero;
-                    UUID.TryParse(id, out foldID);
 
-                    UUID newPar = UUID.Zero;
-                    UUID.TryParse(newParentFolderID, out newPar);
-
-                    cmd.CommandText = String.Format(@"update {0} set ""parentFolderID"" = :ParentFolderID where ""folderID"" = :folderID", m_Realm);
+                    cmd.CommandText = $"update {m_Realm} set parentFolderID = :ParentFolderID where folderID = :folderID";
                     cmd.Parameters.Add(m_database.CreateParameter("ParentFolderID", newPar));
                     cmd.Parameters.Add(m_database.CreateParameter("folderID", foldID));
                     cmd.Connection = conn;
@@ -311,20 +299,19 @@ namespace OpenSim.Data.PGSQL
 
         protected bool IncrementFolderVersion(string folderID)
         {
-//            m_log.DebugFormat("[PGSQL ITEM HANDLER]: Incrementing version on folder {0}", folderID);
-//            Util.PrintCallStack();
+            //m_log.DebugFormat("[PGSQL ITEM HANDLER]: Incrementing version on folder {0}", folderID);
+            //Util.PrintCallStack();
 
-            string sql = @"update inventoryfolders set version=version+1 where ""folderID"" = :folderID";
+            if(!UUID.TryParse(folderID, out UUID foldID))
+                return false;
+
+            string sql = @"update inventoryfolders set version=version+1 where folderID = :folderID";
 
             using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
             {
                 using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
                 {
-                    UUID foldID = UUID.Zero;
-                    UUID.TryParse(folderID, out foldID);
-
                     conn.Open();
-
                     cmd.Parameters.Add( m_database.CreateParameter("folderID", foldID) );
 
                     try

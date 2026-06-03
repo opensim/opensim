@@ -29,7 +29,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Xml;
@@ -39,13 +38,11 @@ using OpenSim.Framework;
 using OpenSim.Framework.Monitoring;
 using OpenSim.Framework.Serialization;
 using OpenSim.Framework.Serialization.External;
-using OpenSim.Region.CoreModules.World.Terrain;
 using OpenSim.Region.CoreModules.World.Land;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Services.Interfaces;
-using System.Threading;
 
 namespace OpenSim.Region.CoreModules.World.Archiver
 {
@@ -1242,7 +1239,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                                 $"The OAR you are trying to load has major version number of {majorVersion} but this version can only load OARs with major version number {MAX_MAJOR_VERSION} and below");
                         }
 
-                        m_log.InfoFormat($"[ARCHIVER]: Loading OAR with version {version}");
+                        m_log.Info($"[ARCHIVER]: Loading OAR with version {version}");
                     }
                     else if (xtr.Name.ToString() == "datetime")
                     {

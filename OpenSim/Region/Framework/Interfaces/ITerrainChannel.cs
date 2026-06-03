@@ -68,5 +68,6 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="boundingOrigin">&lt;x, y&gt;</param>
         /// <param name="boundingSize">&lt;x, y&gt;</param>
         void MergeWithBounding(ITerrainChannel newTerrain, Vector3 displacement, float rotationDegrees, Vector2 boundingOrigin, Vector2 boundingSize);
+        int MaxHeight();
     }
 }

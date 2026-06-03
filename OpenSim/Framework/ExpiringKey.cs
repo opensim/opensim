@@ -60,10 +60,7 @@ namespace OpenSim.Framework
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         private void CheckTimer()
         {
-            if (m_purgeTimer == null)
-            {
-                m_purgeTimer = new Timer(Purge, null, m_expire, Timeout.Infinite);
-            }
+            m_purgeTimer ??= new Timer(Purge, null, m_expire, Timeout.Infinite);
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -99,17 +96,9 @@ namespace OpenSim.Framework
 
         private void Purge(object ignored)
         {
-            bool gotLock = false;
-
+            m_rwLock.EnterUpgradeableReadLock();
             try
             {
-                try { }
-                finally
-                {
-                    m_rwLock.EnterUpgradeableReadLock();
-                    gotLock = true;
-                }
-
                 if (m_dictionary.Count == 0)
                 {
                     DisposeTimer();
@@ -127,24 +116,14 @@ namespace OpenSim.Framework
 
                 if (expired.Count > 0)
                 {
-                    bool gotWriteLock = false;
+                    m_rwLock.EnterWriteLock();
                     try
                     {
-                        try { }
-                        finally
-                        {
-                            m_rwLock.EnterWriteLock();
-                            gotWriteLock = true;
-                        }
-
                         foreach (Tkey1 key in expired)
                             m_dictionary.Remove(key);
                     }
-                    finally
-                    {
-                        if (gotWriteLock)
-                            m_rwLock.ExitWriteLock();
-                    }
+                    finally { m_rwLock.ExitWriteLock(); }
+
                     if (m_dictionary.Count == 0)
                         DisposeTimer();
                     else
@@ -153,40 +132,24 @@ namespace OpenSim.Framework
                 else
                     m_purgeTimer.Change(m_expire, Timeout.Infinite);
             }
-            finally
-            {
-                if (gotLock)
-                    m_rwLock.ExitUpgradeableReadLock();
-            }
+            finally { m_rwLock.ExitUpgradeableReadLock(); }
         }
 
         public void Add(Tkey1 key)
         {
-            bool gotLock = false;
             int now = (int)(Util.GetTimeStampMS() - m_startTS) + m_expire;
 
+            m_rwLock.EnterWriteLock();
             try
             {
-                try { }
-                finally
-                {
-                    m_rwLock.EnterWriteLock();
-                    gotLock = true;
-                }
-
                 m_dictionary[key] = now;
                 CheckTimer();
             }
-            finally
-            {
-                if (gotLock)
-                    m_rwLock.ExitWriteLock();
-            }
+            finally { m_rwLock.ExitWriteLock(); }
         }
 
         public void Add(Tkey1 key, int expireMS)
         {
-            bool gotLock = false;
             int now;
             if (expireMS > 0)
             {
@@ -196,71 +159,38 @@ namespace OpenSim.Framework
             else
                 now = int.MinValue;
 
+            m_rwLock.EnterWriteLock();
             try
             {
-                try { }
-                finally
-                {
-                    m_rwLock.EnterWriteLock();
-                    gotLock = true;
-                }
-
                 m_dictionary[key] = now;
                 CheckTimer();
             }
-            finally
-            {
-                if (gotLock)
-                    m_rwLock.ExitWriteLock();
-            }
+            finally { m_rwLock.ExitWriteLock(); }
         }
 
         public bool Remove(Tkey1 key)
         {
-            bool success;
-            bool gotLock = false;
-
+            m_rwLock.EnterWriteLock();
             try
             {
-                try {}
-                finally
-                {
-                    m_rwLock.EnterWriteLock();
-                    gotLock = true;
-                }
-                success = m_dictionary.Remove(key);
+                bool success = m_dictionary.Remove(key);
                 if(m_dictionary.Count == 0)
                     DisposeTimer();
+                return success;
             }
-            finally
-            {
-                if (gotLock)
-                    m_rwLock.ExitWriteLock();
-            }
+            finally { m_rwLock.ExitWriteLock(); }
 
-            return success;
         }
 
         public void Clear()
         {
-            bool gotLock = false;
-
+            m_rwLock.EnterWriteLock();
             try
             {
-                try {}
-                finally
-                {
-                    m_rwLock.EnterWriteLock();
-                    gotLock = true;
-                }
                 m_dictionary.Clear();
                 DisposeTimer();
             }
-            finally
-            {
-                if (gotLock)
-                    m_rwLock.ExitWriteLock();
-            }
+            finally { m_rwLock.ExitWriteLock(); }
         }
 
         public int Count
@@ -270,46 +200,24 @@ namespace OpenSim.Framework
 
         public bool ContainsKey(Tkey1 key)
         {
-            bool gotLock = false;
+            m_rwLock.EnterReadLock();
             try
             {
-                try { }
-                finally
-                {
-                    m_rwLock.EnterReadLock();
-                    gotLock = true;
-                }
                 return m_dictionary.ContainsKey(key);
             }
-            finally
-            {
-                if (gotLock)
-                    m_rwLock.ExitReadLock();
-            }
+            finally { m_rwLock.ExitReadLock(); }
         }
 
         public bool ContainsKey(Tkey1 key, int expireMS)
         {
-            bool gotLock = false;
+            m_rwLock.EnterUpgradeableReadLock();
             try
             {
-                try { }
-                finally
-                {
-                    m_rwLock.EnterUpgradeableReadLock();
-                    gotLock = true;
-                }
                 if (m_dictionary.ContainsKey(key))
                 {
-                    bool gotWriteLock = false;
+                    m_rwLock.EnterWriteLock();
                     try
                     {
-                        try { }
-                        finally
-                        {
-                            m_rwLock.EnterWriteLock();
-                            gotWriteLock = true;
-                        }
                         int now;
                         if (expireMS > 0)
                         {
@@ -322,44 +230,21 @@ namespace OpenSim.Framework
                         m_dictionary[key] = now;
                         return true;
                     }
-                    finally
-                    {
-                        if (gotWriteLock)
-                            m_rwLock.ExitWriteLock();
-                    }
+                    finally { m_rwLock.ExitWriteLock(); }
                 }
                 return false;
             }
-            finally
-            {
-                if (gotLock)
-                    m_rwLock.EnterUpgradeableReadLock();
-            }
+            finally { m_rwLock.EnterUpgradeableReadLock(); }
         }
 
         public bool TryGetValue(Tkey1 key, out int value)
         {
-            bool success;
-            bool gotLock = false;
-
+            m_rwLock.EnterReadLock();
             try
             {
-                try {}
-                finally
-                {
-                    m_rwLock.EnterReadLock();
-                    gotLock = true;
-                }
-
-                success = m_dictionary.TryGetValue(key, out value);
+                return m_dictionary.TryGetValue(key, out value);
             }
-            finally
-            {
-                if (gotLock)
-                    m_rwLock.ExitReadLock();
-            }
-
-            return success;
+            finally { m_rwLock.ExitReadLock(); }
         }
     }
 }

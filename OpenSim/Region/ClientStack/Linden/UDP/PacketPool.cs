@@ -32,6 +32,7 @@ using OpenMetaverse;
 using OpenMetaverse.Packets;
 using log4net;
 using OpenSim.Framework.Monitoring;
+using System.Runtime.InteropServices;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
@@ -114,29 +115,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public Packet GetPacket(PacketType type)
         {
             PacketsRequested++;
-
-            Packet packet;
-
             if (!RecyclePackets)
                 return Packet.BuildPacket(type);
 
+            Packet packet;
             lock (pool)
             {
-                if (!pool.ContainsKey(type) || pool[type] == null || (pool[type]).Count == 0)
+                if (!pool.TryGetValue(type, out Stack<Packet> typePacketsStack) || typePacketsStack == null || typePacketsStack.Count == 0)
                 {
-//                    m_log.DebugFormat("[PACKETPOOL]: Building {0} packet", type);
-
-                    // Creating a new packet if we cannot reuse an old package
+                    //m_log.DebugFormat("[PACKETPOOL]: Building {0} packet", type);
                     packet = Packet.BuildPacket(type);
                 }
                 else
                 {
-//                    m_log.DebugFormat("[PACKETPOOL]: Pulling {0} packet", type);
+                    //m_log.DebugFormat("[PACKETPOOL]: Pulling {0} packet", type);
 
                     // Recycle old packages
                     PacketsReused++;
-
-                    packet = pool[type].Pop();
+                    packet = typePacketsStack.Pop();
                 }
             }
 
@@ -199,7 +195,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (!RecyclePackets)
                 return;
 
-            bool trypool = false;
             PacketType type = packet.Type;
 
             switch (type)
@@ -207,83 +202,33 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 case PacketType.ObjectUpdate:
                     ObjectUpdatePacket oup = (ObjectUpdatePacket)packet;
                     oup.ObjectData = null;
-                    trypool = true;
                     break;
 
                 case PacketType.ImprovedTerseObjectUpdate:
                     ImprovedTerseObjectUpdatePacket itoup = (ImprovedTerseObjectUpdatePacket)packet;
                     itoup.ObjectData = null;
-                    trypool = true;
                     break;
 
                 case PacketType.PacketAck:
                     PacketAckPacket ackup = (PacketAckPacket)packet;
                     ackup.Packets = null;
-                    trypool = true;
                     break;
 
-                case PacketType.AgentUpdate:
-                    trypool = true;
-                    break;
                 default:
                     return;
             }
 
-            if(!trypool)
-                return;
-
             lock (pool)
             {
-                if (!pool.ContainsKey(type))
+                ref Stack<Packet> spkt = ref CollectionsMarshal.GetValueRefOrAddDefault(pool, type, out bool exists);
+                if (exists && spkt.Count < 50)
                 {
-                    pool[type] = new Stack<Packet>();
+                    spkt.Push(packet);
+                    return;
                 }
 
-                if ((pool[type]).Count < 50)
-                {
-//                  m_log.DebugFormat("[PACKETPOOL]: Pushing {0} packet", type);
-                    pool[type].Push(packet);
-                }
-            }
-        }
-
-        public T GetDataBlock<T>() where T: new()
-        {
-            lock (DataBlocks)
-            {
-                BlocksRequested++;
-
-                Stack<Object> s;
-
-                if (DataBlocks.TryGetValue(typeof(T), out s))
-                {
-                    if (s.Count > 0)
-                    {
-                        BlocksReused++;
-                        return (T)s.Pop();
-                    }
-                }
-                else
-                {
-                    DataBlocks[typeof(T)] = new Stack<Object>();
-                }
-
-                return new T();
-            }
-        }
-
-        public void ReturnDataBlock<T>(T block) where T: new()
-        {
-            if (block == null)
-                return;
-
-            lock (DataBlocks)
-            {
-                if (!DataBlocks.ContainsKey(typeof(T)))
-                    DataBlocks[typeof(T)] = new Stack<Object>();
-
-                if (DataBlocks[typeof(T)].Count < 50)
-                    DataBlocks[typeof(T)].Push(block);
+                spkt = new Stack<Packet>();
+                spkt.Push(packet);
             }
         }
     }

@@ -35,6 +35,7 @@ using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using Mono.Addins;
+using System.Runtime.InteropServices;
 
 namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 {
@@ -51,18 +52,14 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         /// <summary>
         /// Each agent has its own singleton collection of transactions
         /// </summary>
-        private Dictionary<UUID, AgentAssetTransactions> AgentTransactions =
-            new Dictionary<UUID, AgentAssetTransactions>();
+        private Dictionary<UUID, AgentAssetTransactions> AgentTransactions = [];
 
         #region Region Module interface
 
         public void Initialise(IConfigSource source)
         {
-            IConfig sconfig = source.Configs["Startup"];
-            if (sconfig != null)
-            {
-                m_levelUpload = sconfig.GetInt("LevelUpload", 0);
-            }
+            if(source != null)
+               m_levelUpload = Util.GetFirstConfigVarFromSections<int>(source,"LevelUpload",["Permissions", "Startup"],  0);
         }
 
         public void AddRegion(Scene scene)
@@ -113,16 +110,11 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         {
             lock (AgentTransactions)
             {
-                if (!AgentTransactions.ContainsKey(userID))
-                {
-                    AgentAssetTransactions transactions =
-                            new AgentAssetTransactions(userID, m_Scene,
-                            m_dumpAssetsToFile);
+                ref AgentAssetTransactions value = ref CollectionsMarshal.GetValueRefOrAddDefault(AgentTransactions, userID, out bool exists);
+                if (!exists)
+                    value = new AgentAssetTransactions(userID, m_Scene, m_dumpAssetsToFile);
 
-                    AgentTransactions.Add(userID, transactions);
-                }
-
-                return AgentTransactions[userID];
+                return value;
             }
         }
 
@@ -217,8 +209,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 //                "[ASSET TRANSACTION MODULE]: Called HandleTaskItemUpdateFromTransaction with item {0} in {1} for {2} in {3}",
 //                item.Name, part.Name, remoteClient.Name, m_Scene.RegionInfo.RegionName);
 
-            AgentAssetTransactions transactions =
-                    GetUserTransactions(remoteClient.AgentId);
+            AgentAssetTransactions transactions = GetUserTransactions(remoteClient.AgentId);
 
             transactions.RequestUpdateTaskInventoryItem(remoteClient, part,
                     transactionID, item);
@@ -247,9 +238,8 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 (AssetType)type == AssetType.Animation) &&
                 tempFile == false)
             {
-                ScenePresence avatar = null;
                 Scene scene = (Scene)remoteClient.Scene;
-                scene.TryGetScenePresence(remoteClient.AgentId, out avatar);
+                scene.TryGetScenePresence(remoteClient.AgentId, out ScenePresence avatar);
 
                 // check user level
                 if (avatar != null)

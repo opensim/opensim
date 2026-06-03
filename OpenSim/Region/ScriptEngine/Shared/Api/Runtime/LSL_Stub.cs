@@ -1407,6 +1407,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void llMapBeacon(string simname, LSL_Vector pos, LSL_List loptions)
+        {
+            m_LSL_Functions.llMapBeacon(simname, pos, loptions);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void llMapDestination(string simname, LSL_Vector pos, LSL_Vector look_at)
         {
             m_LSL_Functions.llMapDestination(simname, pos, look_at);
@@ -2876,5 +2882,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llComputeHash(message, algo);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_String llGetRenderMaterial(LSL_Integer face)
+        {
+            return m_LSL_Functions.llGetRenderMaterial(face);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_Integer llIsLinkGLTFMaterial(LSL_Integer linknum, LSL_Integer face)
+        {
+            return m_LSL_Functions.llIsLinkGLTFMaterial(linknum, face);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LSL_Vector llWorldPosToHUD(LSL_Vector WorldPosition)
+        {
+            return m_LSL_Functions.llWorldPosToHUD(WorldPosition);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void llSetRenderMaterial(LSL_String material, LSL_Integer face)
+        {
+            m_LSL_Functions.llSetRenderMaterial(material, face);
+        }
     }
 }

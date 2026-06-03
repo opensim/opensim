@@ -100,16 +100,7 @@ namespace OpenSim.Region.ClientStack.Linden
             IConfigSource config = m_Scene.Config;
             if (config is not null)
             {
-                IConfig sconfig = config.Configs["Startup"];
-                if (sconfig is not null)
-                    ConfigOptions.levelUpload = sconfig.GetInt("LevelUpload", 0);
-
-                if (ConfigOptions.levelUpload == 0)
-                {
-                    IConfig pconfig = config.Configs["Permissions"];
-                    if (pconfig is not null)
-                        ConfigOptions.levelUpload = pconfig.GetInt("LevelUpload", 0);
-                }
+                ConfigOptions.levelUpload = Util.GetFirstConfigVarFromSections<int>(config,"LevelUpload",["Permissions", "Startup"],  0);
 
                 IConfig appearanceConfig = config.Configs["Appearance"];
                 if (appearanceConfig is not null)

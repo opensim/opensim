@@ -26,10 +26,10 @@
  */
 
 using System;
-using System.Collections;
 using System.IO;
 using System.IO.Compression;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 using log4net;
 
@@ -100,6 +100,7 @@ namespace OpenSim.Framework
 
         public float this[int x, int y]
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return m_heightmap[x, y]; }
             set
             {
@@ -114,7 +115,9 @@ namespace OpenSim.Framework
 
         public float this[int x, int y, int z]
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return this[x, y]; }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set { this[x, y] = value; }
         }
 
@@ -241,7 +244,7 @@ namespace OpenSim.Framework
                     m_heightmap[xx, yy] = pHeight;
         }
 
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsTainted()
         {
             return m_taints.IsTaited();
@@ -250,7 +253,7 @@ namespace OpenSim.Framework
         // Return 'true' of the patch that contains these region coordinates has been modified.
         // Note that checking the taint clears it.
         // There is existing code that relies on this feature.
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsTaintedAt(int xx, int yy, bool clearOnTest)
         {
             yy /= Constants.TerrainPatchSize;
@@ -258,45 +261,45 @@ namespace OpenSim.Framework
             return m_taints.Get(indx, clearOnTest);
         }
 
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsTaintedAt(int xx, int yy)
         {
             yy /= Constants.TerrainPatchSize;
             return m_taints.Get(xx / Constants.TerrainPatchSize + yy * m_taintSizeX);
         }
 
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsTaintedAtPatch(int xx, int yy, bool clearOnTest)
         {
             int indx = xx + yy * m_taintSizeX;
             return m_taints.Get(indx, clearOnTest);
         }
 
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+       [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsTaintedAtPatch(int xx, int yy)
         {
             return m_taints.Get(xx + yy * m_taintSizeX);
         }
 
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+       [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsTaintedAtPatch(int indx, bool clearOnTest)
         {
             return m_taints.Get(indx, clearOnTest);
         }
 
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsTaintedAtPatchWithClear(int indx)
         {
             return m_taints.GetAndClear(indx);
         }
 
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsTaintedAtPatch(int indx)
         {
             return m_taints.Get(indx);
         }
 
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetAndClearNextTaint(int startIndex)
         {
             return m_taints.GetAndClearNextTrue(startIndex);

@@ -116,16 +116,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if (rinfo == null)
                 return false;
 
-            bool gotLock = false;
+            m_rwLock.EnterWriteLock();
             try
             {
-                try { }
-                finally
-                {
-                    m_rwLock.EnterWriteLock();
-                    gotLock = true;
-                }
-
                 int newexpire = (int)(Util.GetTimeStamp() - starttimeS) + expire;
 
                 ulong handle = rinfo.RegionHandle & HANDLEMASK;
@@ -148,11 +141,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 m_byUUID[rinfo.RegionID] = rinfo;
                 return true;
             }
-            finally
-            {
-                if (gotLock)
-                    m_rwLock.ExitWriteLock();
-            }
+            finally { m_rwLock.ExitWriteLock(); }
         }
 
         public void Cache(GridRegion rinfo)
@@ -200,27 +189,16 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             //if (disposed)
             //    return;
 
-            bool gotLock = false;
+            m_rwLock.EnterWriteLock();
             try
             {
-                try { }
-                finally
-                {
-                    m_rwLock.EnterWriteLock();
-                    gotLock = true;
-                }
-
                 m_expireControl.Clear();
                 m_byHandler.Clear();
                 m_byName.Clear();
                 m_byUUID.Clear();
                 m_innerHandles.Clear();
             }
-            finally
-            {
-                if (gotLock)
-                    m_rwLock.ExitWriteLock();
-            }
+            finally { m_rwLock.ExitWriteLock(); }
         }
 
         public bool Contains(ulong handle)
@@ -228,23 +206,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             //if (disposed)
             //    return false;
 
-            bool gotLock = false;
+            m_rwLock.EnterReadLock();
             try
             {
-                try { }
-                finally
-                {
-                    m_rwLock.EnterReadLock();
-                    gotLock = true;
-                }
-
                 return m_byHandler.ContainsKey(handle & HANDLEMASK);
             }
-            finally
-            {
-                if (gotLock)
-                    m_rwLock.ExitReadLock();
-            }
+            finally { m_rwLock.ExitReadLock(); }
         }
 
         public bool Contains(GridRegion rinfo)
@@ -252,16 +219,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             //if (disposed)
             //    return false;
 
-            bool gotLock = false;
+            m_rwLock.EnterReadLock();
             try
             {
-                try { }
-                finally
-                {
-                    m_rwLock.EnterReadLock();
-                    gotLock = true;
-                }
-
                 if(!m_byHandler.TryGetValue(rinfo.RegionHandle & HANDLEMASK, out GridRegion rcur))
                     return false;
 
@@ -269,11 +229,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                     rcur.RegionSizeX == rinfo.RegionSizeX &&
                     rcur.RegionSizeY == rinfo.RegionSizeY;
             }
-            finally
-            {
-                if (gotLock)
-                    m_rwLock.ExitReadLock();
-            }
+            finally { m_rwLock.ExitReadLock(); }
         }
 
         public bool Contains(UUID scope, ulong handle)
@@ -291,23 +247,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             //if (disposed)
             //    return 0;
 
-            bool gotLock = false;
+            m_rwLock.EnterReadLock();
             try
             {
-                try { }
-                finally
-                {
-                    m_rwLock.EnterReadLock();
-                    gotLock = true;
-                }
-
                 return m_byName.Count;
             }
-            finally
-            {
-                if (gotLock)
-                    m_rwLock.ExitReadLock();
-            }
+            finally { m_rwLock.ExitReadLock(); }
         }
 
         public void Remove(GridRegion rinfo)
@@ -315,16 +260,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if (rinfo == null)
                 return;
 
-            bool gotLock = false;
+            m_rwLock.EnterWriteLock();
             try
             {
-                try { }
-                finally
-                {
-                    m_rwLock.EnterWriteLock();
-                    gotLock = true;
-                }
-
                 m_byName.Remove(rinfo.RegionName.ToLowerInvariant());
                 m_byUUID.Remove(rinfo.RegionID);
 
@@ -343,11 +281,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                     }
                 }
             }
-            finally
-            {
-                if (gotLock)
-                    m_rwLock.ExitWriteLock();
-            }
+            finally { m_rwLock.ExitWriteLock(); }
         }
 
         public void Remove(ulong regionHandle)
@@ -355,16 +289,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             //if(disposed)
             //    return;
 
-            bool gotLock = false;
+            m_rwLock.EnterWriteLock();
             try
             {
-                try { }
-                finally
-                {
-                    m_rwLock.EnterWriteLock();
-                    gotLock = true;
-                }
-
                 regionHandle &= HANDLEMASK;
 
                 if (m_byHandler.TryGetValue(regionHandle, out GridRegion r))
@@ -387,11 +314,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                     }
                 }
             }
-            finally
-            {
-                if (gotLock)
-                    m_rwLock.ExitWriteLock();
-            }
+            finally { m_rwLock.ExitWriteLock(); }
         }
 
         public void Remove(UUID scopeID, GridRegion rinfo)
@@ -438,23 +361,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             }
             */
 
-            bool gotLock = false;
+            m_rwLock.EnterReadLock();
             try
             {
-                try { }
-                finally
-                {
-                    m_rwLock.EnterReadLock();
-                    gotLock = true;
-                }
-
                 return m_byUUID.TryGetValue(regionID, out rinfo);
             }
-            finally
-            {
-                if (gotLock)
-                    m_rwLock.ExitReadLock();
-            }
+            finally { m_rwLock.ExitReadLock(); }
         }
 
         public bool TryGet(ulong handle, out GridRegion rinfo)
@@ -467,27 +379,16 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             }
             */
 
-            bool gotLock = false;
+            m_rwLock.EnterReadLock();
             try
             {
-                try { }
-                finally
-                {
-                    m_rwLock.EnterReadLock();
-                    gotLock = true;
-                }
-
                 handle &= HANDLEMASK;
                 if (m_byHandler.TryGetValue(handle, out rinfo))
                     return true;
 
                 return m_innerHandles.TryGetValue(handle, out rinfo);
             }
-            finally
-            {
-                if (gotLock)
-                    m_rwLock.ExitReadLock();
-            }
+            finally { m_rwLock.ExitReadLock(); }
         }
 
         public bool TryGet(string name, out GridRegion rinfo)
@@ -500,23 +401,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             }
             */
 
-            bool gotLock = false;
+            m_rwLock.EnterReadLock();
             try
             {
-                try { }
-                finally
-                {
-                    m_rwLock.EnterReadLock();
-                    gotLock = true;
-                }
-
-                return m_byName.TryGetValue(name.ToLowerInvariant(), out rinfo);
+                  return m_byName.TryGetValue(name.ToLowerInvariant(), out rinfo);
             }
-            finally
-            {
-                if (gotLock)
-                    m_rwLock.ExitReadLock();
-            }
+            finally { m_rwLock.ExitReadLock(); }
         }
 
         public bool TryGet(uint x, uint y, out GridRegion rinfo)
@@ -529,16 +419,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             }
             */
 
-            bool gotLock = false;
+            m_rwLock.EnterReadLock();
             try
             {
-                try { }
-                finally
-                {
-                    m_rwLock.EnterReadLock();
-                    gotLock = true;
-                }
-
                 ulong handle = x & HANDLECOORDMASK;
                 handle <<= 32;
                 handle |= y & HANDLECOORDMASK;
@@ -575,11 +458,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 rinfo = null;
                 return false;
             }
-            finally
-            {
-                if (gotLock)
-                    m_rwLock.ExitReadLock();
-            }
+            finally { m_rwLock.ExitReadLock(); }
         }
 
         private void PurgeCache(object ignored)
@@ -588,16 +467,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if (m_expireControl.Count == 0)
                 return;
 
-            bool gotLock = false;
+            m_rwLock.EnterWriteLock();
             try
             {
-                try { }
-                finally
-                {
-                    m_rwLock.EnterWriteLock();
-                    gotLock = true;
-                }
-
                 int now = (int)(Util.GetTimeStamp() - starttimeS);
                 List<ulong> toexpire = new List<ulong>(m_expireControl.Count);
                 foreach (KeyValuePair<ulong, int> kvp in m_expireControl)
@@ -625,10 +497,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             }
             finally
             {
-                if (gotLock)
-                    m_rwLock.ExitWriteLock();
-                if (m_timer != null)
-                    m_timer.Change(CACHE_PURGE_TIME, Timeout.Infinite);
+                m_rwLock.ExitWriteLock();
+                m_timer?.Change(CACHE_PURGE_TIME, Timeout.Infinite);
             }
         }
 

@@ -316,7 +316,7 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.DebugFormat($"[ESTATE CONNECTOR]: Exception when contacting estate server at {uri}: {e.Message}");
+                m_log.Debug($"[ESTATE CONNECTOR]: Exception when contacting estate server at {uri}: {e.Message}");
             }
 
             return null;

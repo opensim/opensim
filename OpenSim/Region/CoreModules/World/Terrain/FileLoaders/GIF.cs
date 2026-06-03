@@ -34,6 +34,10 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
 {
     internal class GIF : GenericSystemDrawing
     {
+        public override int SupportedHeight
+        {
+            get { return 256; }
+        }
         public override void SaveFile(string filename, ITerrainChannel map)
         {
             using(Bitmap colours = CreateGrayscaleBitmapFromMap(map))
@@ -58,6 +62,11 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
 
         //Returns true if this extension is supported for terrain save-tile
         public override bool SupportsTileSave()
+        {
+            return false;
+        }
+
+        public override bool SupportsExtendedTileSave()
         {
             return false;
         }

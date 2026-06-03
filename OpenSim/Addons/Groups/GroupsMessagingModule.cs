@@ -623,8 +623,7 @@ namespace OpenSim.Groups
                             , OpenMetaverse.Utils.StringToBytes(groupInfo.GroupName)
                             );
 
-                        var update = new GroupChatListAgentUpdateData(AgentID);
-                        var updates = new List<GroupChatListAgentUpdateData> { update };
+                        List<GroupChatListAgentUpdateData> updates = [new GroupChatListAgentUpdateData(AgentID)];
                         eq.ChatterBoxSessionAgentListUpdates(GroupID, new UUID(msg.toAgentID), updates);
                     }
                 }
@@ -663,8 +662,7 @@ namespace OpenSim.Groups
                     IEventQueue queue = remoteClient.Scene.RequestModuleInterface<IEventQueue>();
                     if (queue != null)
                     {
-                        var update = new GroupChatListAgentUpdateData(AgentID);
-                        var updates = new List<GroupChatListAgentUpdateData> { update };
+                        List<GroupChatListAgentUpdateData> updates = [new GroupChatListAgentUpdateData(AgentID)];
                         queue.ChatterBoxSessionAgentListUpdates(GroupID, remoteClient.AgentId, updates);
                     }
                 }
@@ -673,8 +671,8 @@ namespace OpenSim.Groups
             // Send a message from locally connected client to a group
             if ((im.dialog == (byte)InstantMessageDialog.SessionSend))
             {
-                UUID GroupID = new UUID(im.imSessionID);
-                UUID AgentID = new UUID(im.fromAgentID);
+                UUID GroupID = new(im.imSessionID);
+                UUID AgentID = new(im.fromAgentID);
 
                 if (m_debugEnabled)
                     m_log.DebugFormat("[Groups.Messaging]: Send message to session for group {0} with session ID {1}", GroupID, im.imSessionID.ToString());

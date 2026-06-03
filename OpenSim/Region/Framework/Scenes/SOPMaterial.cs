@@ -25,13 +25,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Text;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography; // for computing md5 hash
-using OpenSim.Framework;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography; // for computing md5 hash
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -60,15 +59,15 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        private static MaterialData[] m_materialdata = {
-            new MaterialData(0.8f,0.4f), // Stone
-            new MaterialData(0.3f,0.4f), // Metal
-            new MaterialData(0.2f,0.7f), // Glass
-            new MaterialData(0.6f,0.5f), // Wood
-            new MaterialData(0.9f,0.3f), // Flesh
-            new MaterialData(0.4f,0.7f), // Plastic
-            new MaterialData(0.9f,0.95f), // Rubber
-            new MaterialData(0.0f,0.0f) // light ??
+        private static readonly MaterialData[] m_materialdata = {
+            new(0.8f,0.4f), // Stone
+            new(0.3f,0.4f), // Metal
+            new(0.2f,0.7f), // Glass
+            new(0.6f,0.5f), // Wood
+            new(0.9f,0.3f), // Flesh
+            new(0.4f,0.7f), // Plastic
+            new(0.9f,0.95f), // Rubber
+            new(0.0f,0.0f) // light ??
         };
 
         public static Material MaxMaterial
@@ -78,20 +77,24 @@ namespace OpenSim.Region.Framework.Scenes
 
         public static float friction(Material material)
         {
-            int indx = (int)material;
-            if (indx < m_materialdata.Length)
-                return (m_materialdata[indx].friction);
-            else
-                return 0;
+            if((int)material < m_materialdata.Length)
+            {
+                ref MaterialData m = ref MemoryMarshal.GetArrayDataReference(m_materialdata);
+                m = ref Unsafe.Add(ref m, (int)material);
+                return m.friction;
+            }
+            return 0;
         }
 
         public static float bounce(Material material)
         {
-            int indx = (int)material;
-            if (indx < m_materialdata.Length)
-                return (m_materialdata[indx].bounce);
-            else
-                return 0;
+            if((int)material < m_materialdata.Length)
+            {
+                ref MaterialData m = ref MemoryMarshal.GetArrayDataReference(m_materialdata);
+                m = ref Unsafe.Add(ref m, (int)material);
+                return m.bounce;
+            }
+            return 0;
         }
     }
 

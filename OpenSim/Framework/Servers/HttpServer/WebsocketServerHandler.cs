@@ -355,7 +355,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// <param name="pMessage">Textual reason for the upgrade fail</param>
         private void FailUpgrade(HttpStatusCode pCode, string pMessage )
         {
-            string handshakeResponse = string.Format(HandshakeDeclineText, (int)pCode, pMessage.Replace("\n", string.Empty).Replace("\r", string.Empty));
+            string handshakeResponse = string.Format(HandshakeDeclineText, (int)pCode, pMessage.ReplaceLineEndings(string.Empty));
             byte[] bhandshakeResponse = Encoding.UTF8.GetBytes(handshakeResponse);
             _networkContext.Stream.Write(bhandshakeResponse, 0, bhandshakeResponse.Length);
             _networkContext.Stream.Flush();

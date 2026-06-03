@@ -981,7 +981,7 @@ namespace OpenSim.Data.PGSQL
                          "TerrainPBR4" = :TerrainPBR4
                          """;
 
-            using (var connection = new NpgsqlConnection(m_connectionString))
+            using (NpgsqlConnection connection = new(m_connectionString))
             {
                 connection.Open();
                 NpgsqlCommand command = new NpgsqlCommand(queryString, connection, connection.BeginTransaction());
@@ -1984,7 +1984,7 @@ namespace OpenSim.Data.PGSQL
                 {
                     while (reader.Read())
                     {
-                        var sp = new SpawnPoint
+                        SpawnPoint sp = new() 
                         {
                             Yaw = Convert.ToSingle(reader["Yaw"]),
                             Pitch = Convert.ToSingle(reader["Pitch"]),
@@ -2033,9 +2033,9 @@ namespace OpenSim.Data.PGSQL
                                        INSERT INTO regionextra ("RegionID", "Name", "value")
                                        VALUES (:RegionID, :Name, :Value)
                                        """;
-            using var connection = new NpgsqlConnection(m_connectionString);
+            using NpgsqlConnection connection = new(m_connectionString);
             connection.Open();
-            using var command = new NpgsqlCommand(queryString, connection, connection.BeginTransaction());
+            using NpgsqlCommand command = new(queryString, connection, connection.BeginTransaction());
             try
             {
                 command.Parameters.AddWithValue("RegionID", regionID.ToString());
@@ -2054,9 +2054,9 @@ namespace OpenSim.Data.PGSQL
         public void RemoveExtra(UUID regionID, string name)
         {
             const string queryString = """DELETE FROM regionextra WHERE "RegionID"=:RegionID AND "Name"=:Name""";
-            using var connection = new NpgsqlConnection(m_connectionString);
+            using NpgsqlConnection connection = new(m_connectionString);
             connection.Open();
-            using var command = new NpgsqlCommand(queryString, connection, connection.BeginTransaction());
+            using NpgsqlCommand command = new(queryString, connection, connection.BeginTransaction());
             try
             {
                 command.Parameters.AddWithValue("RegionID", regionID.ToString());

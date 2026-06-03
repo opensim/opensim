@@ -55,7 +55,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// The maximum major version of archive that we can read.  Minor versions shouldn't need a max number since version
         /// bumps here should be compatible.
         /// </summary>
-        public static int MAX_MAJOR_VERSION = 1;
+        public static readonly int MAX_MAJOR_VERSION = 1;
 
         protected TarArchiveReader archive;
 
@@ -207,13 +207,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 m_rootDestinationFolder = folderCandidates[0];
                 archive = new TarArchiveReader(m_loadStream);
                 byte[] data;
-                TarArchiveReader.TarEntryType entryType;
 
-                while ((data = archive.ReadEntry(out filePath, out entryType)) != null)
+                while ((data = archive.ReadEntry(out filePath, out TarArchiveReader.TarEntryType entryType)) != null)
                 {
                     if (filePath == ArchiveConstants.CONTROL_FILE_PATH)
                     {
-                        LoadControlFile(filePath, data);
+                        LoadControlFile(data);
                     }
                     else if (filePath.StartsWith(ArchiveConstants.ASSETS_PATH))
                     {
@@ -233,16 +232,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     m_successfulAssetRestores, m_failedAssetRestores);
 
                 //Alicia: When this is called by LibraryModule or Tests, m_module will be null as event is not required
-                if(m_module != null)
-                    m_module.TriggerInventoryArchiveLoaded(m_id, true, m_userInfo, m_invPath, m_loadStream, reportedException, m_successfulItemRestores);
+                m_module?.TriggerInventoryArchiveLoaded(m_id, true, m_userInfo, m_invPath, m_loadStream, reportedException, m_successfulItemRestores);
 
                 return m_loadedNodes;
             }
             catch(Exception Ex)
             {
                 // Trigger saved event with failed result and exception data
-                if (m_module != null)
-                    m_module.TriggerInventoryArchiveLoaded(m_id, false, m_userInfo, m_invPath, m_loadStream, Ex, 0);
+                m_module?.TriggerInventoryArchiveLoaded(m_id, false, m_userInfo, m_invPath, m_loadStream, Ex, 0);
 
                 return m_loadedNodes;
             }
@@ -326,11 +323,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             {
 //                m_log.DebugFormat("[INVENTORY ARCHIVER]: Trying to resolve destination folder {0}", archivePath);
 
-                if (resolvedFolders.ContainsKey(archivePath))
+                if (resolvedFolders.TryGetValue(archivePath, out InventoryFolderBase resolved))
                 {
 //                    m_log.DebugFormat(
 //                        "[INVENTORY ARCHIVER]: Found previously created folder from archive path {0}", archivePath);
-                    return resolvedFolders[archivePath];
+                    return resolved;
                 }
                 else
                 {
@@ -352,7 +349,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     }
 
                     // Don't include the last slash so find the penultimate one
-                    int penultimateSlashIndex = archivePath.LastIndexOf("/", archivePath.Length - 2);
+                    int penultimateSlashIndex = archivePath.LastIndexOf('/', archivePath.Length - 2);
 
                     if (penultimateSlashIndex >= 0)
                     {
@@ -398,18 +395,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             Dictionary <string, InventoryFolderBase> resolvedFolders,
             Dictionary<UUID, InventoryNodeBase> loadedNodes)
         {
-            string[] rawDirsToCreate = iarPathToReplicate.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] rawDirsToCreate = iarPathToReplicate.Split('/', StringSplitOptions.RemoveEmptyEntries);
 
             for (int i = 0; i < rawDirsToCreate.Length; i++)
             {
 //                m_log.DebugFormat("[INVENTORY ARCHIVER]: Creating folder {0} from IAR", rawDirsToCreate[i]);
 
-                if (!rawDirsToCreate[i].Contains(ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR))
-                    continue;
-
                 int identicalNameIdentifierIndex
                     = rawDirsToCreate[i].LastIndexOf(
                         ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR);
+                if(identicalNameIdentifierIndex < 0)
+                    continue;
 
                 string newFolderName = rawDirsToCreate[i].Remove(identicalNameIdentifierIndex);
 
@@ -449,7 +445,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             m_itemIDs[oldID] = item.ID;
 
             UUID ospResolvedId = OspResolver.ResolveOspa(item.CreatorId, m_UserAccountService);
-            if (UUID.Zero != ospResolvedId) // The user exists in this grid
+            if (ospResolvedId.IsNotZero()) // The user exists in this grid
             {
 //                m_log.DebugFormat("[INVENTORY ARCHIVER]: Found creator {0} via OSPA resolution", ospResolvedId);
 
@@ -523,7 +519,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 return false;
             }
 
-            string rawUuid = filename.Remove(indx);
+            string rawUuid = filename[..indx];
             if (!UUID.TryParse(rawUuid, out UUID assetId))
                 return false;
 
@@ -563,8 +559,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             //m_log.DebugFormat("[INVENTORY ARCHIVER]: Importing asset {0}, type {1}", uuid, assetType);
 
-            AssetBase asset = new AssetBase(assetId, "From IAR", assetType, UUID.Zero.ToString());
-            asset.Data = data;
+            AssetBase asset = new(assetId, "From IAR", assetType, UUID.ZeroString)
+            {
+                Data = data
+            };
 
             m_AssetService.Store(asset);
 
@@ -576,7 +574,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// </summary>
         /// <param name="path"></param>
         /// <param name="data"></param>
-        public void LoadControlFile(string path, byte[] data)
+        public void LoadControlFile(byte[] data)
         {
             XDocument doc = XDocument.Parse(Encoding.ASCII.GetString(data));
             XElement archiveElement = doc.Element("archive");

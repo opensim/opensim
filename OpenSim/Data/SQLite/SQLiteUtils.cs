@@ -27,11 +27,7 @@
 
 using System;
 using System.Data;
-#if CSharpSqlite
-    using Community.CsharpSqlite.Sqlite;
-#else
-    using Mono.Data.Sqlite;
-#endif
+using System.Data.SQLite;
 
 namespace OpenSim.Data.SQLite
 {
@@ -85,7 +81,7 @@ namespace OpenSim.Data.SQLite
         /// front.  If we just have a list of b, c, etc... we can
         /// generate these strings instead of typing them out.
         /// </remarks>
-        public static SqliteCommand createInsertCommand(string table, DataTable dt)
+        public static SQLiteCommand createInsertCommand(string table, DataTable dt)
         {
 
             string[] cols = new string[dt.Columns.Count];
@@ -101,13 +97,13 @@ namespace OpenSim.Data.SQLite
             sql += ") values (:";
             sql += String.Join(", :", cols);
             sql += ")";
-            SqliteCommand cmd = new SqliteCommand(sql);
+            SQLiteCommand cmd = new SQLiteCommand(sql);
 
             // this provides the binding for all our parameters, so
             // much less code than it used to be
             foreach (DataColumn col in dt.Columns)
             {
-                cmd.Parameters.Add(createSqliteParameter(col.ColumnName, col.DataType));
+                cmd.Parameters.Add(createSQLiteParameter(col.ColumnName, col.DataType));
             }
             return cmd;
         }
@@ -119,7 +115,7 @@ namespace OpenSim.Data.SQLite
         /// <param name="pk"></param>
         /// <param name="dt"></param>
         /// <returns>the created command</returns>
-        public static SqliteCommand createUpdateCommand(string table, string pk, DataTable dt)
+        public static SQLiteCommand createUpdateCommand(string table, string pk, DataTable dt)
         {
             string sql = "update " + table + " set ";
             string subsql = String.Empty;
@@ -134,14 +130,14 @@ namespace OpenSim.Data.SQLite
             }
             sql += subsql;
             sql += " where " + pk;
-            SqliteCommand cmd = new SqliteCommand(sql);
+            SQLiteCommand cmd = new SQLiteCommand(sql);
 
             // this provides the binding for all our parameters, so
             // much less code than it used to be
 
             foreach (DataColumn col in dt.Columns)
             {
-                cmd.Parameters.Add(createSqliteParameter(col.ColumnName, col.DataType));
+                cmd.Parameters.Add(createSQLiteParameter(col.ColumnName, col.DataType));
             }
             return cmd;
         }
@@ -188,7 +184,7 @@ namespace OpenSim.Data.SQLite
         ///<summary>
         /// <para>
         /// This is a convenience function that collapses 5 repetitive
-        /// lines for defining SqliteParameters to 2 parameters:
+        /// lines for defining SQLiteParameters to 2 parameters:
         /// column name and database type.
         /// </para>
         ///
@@ -202,9 +198,9 @@ namespace OpenSim.Data.SQLite
         /// <param name="name"></param>
         /// <param name="type"></param>
         ///<returns>a built sqlite parameter</returns>
-        public static SqliteParameter createSqliteParameter(string name, Type type)
+        public static SQLiteParameter createSQLiteParameter(string name, Type type)
         {
-            SqliteParameter param = new SqliteParameter();
+            SQLiteParameter param = new SQLiteParameter();
             param.ParameterName = ":" + name;
             param.DbType = dbtypeFromType(type);
             param.SourceColumn = name;

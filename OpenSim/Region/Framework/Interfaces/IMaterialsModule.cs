@@ -25,8 +25,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using OpenSim.Region.Framework.Scenes;
 using OpenMetaverse;
+using OpenSim.Region.Framework.Scenes;
+using static OpenMetaverse.Primitive.RenderMaterials;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
@@ -36,5 +37,7 @@ namespace OpenSim.Region.Framework.Interfaces
         FaceMaterial GetMaterialCopy(UUID ID);
         UUID AddNewMaterial(FaceMaterial fm);
         void RemoveMaterial(UUID id);
+        bool CleanMaterialOverrides(ref RenderMaterialOverrideEntry[] overrides, int side, bool removeTransforms = false);
+        bool RemoveMaterialEntry(ref RenderMaterialEntry[] entries, int side);
     }
 }

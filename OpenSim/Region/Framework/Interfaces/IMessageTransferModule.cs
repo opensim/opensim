@@ -46,7 +46,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </remarks>
         /// <param name="im"></param>
         /// <param name="result"></param>
-        void SendInstantMessage(GridInstantMessage im, MessageResultNotification result);
+        void SendInstantMessage(GridInstantMessage im, MessageResultNotification result, bool ToRootOnly = false);
 
         /// <summary>
         /// Appropriately handle a known undeliverable message without attempting a send.

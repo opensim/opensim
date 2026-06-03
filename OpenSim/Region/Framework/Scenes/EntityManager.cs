@@ -39,8 +39,7 @@ namespace OpenSim.Region.Framework.Scenes
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private readonly DoubleDictionaryThreadAbortSafe<UUID, uint, EntityBase> m_entities
-            = new DoubleDictionaryThreadAbortSafe<UUID, uint, EntityBase>();
+        private readonly DoubleDictionaryThreadAbortSafe<UUID, uint, EntityBase> m_entities= new();
 
         public int Count
         {

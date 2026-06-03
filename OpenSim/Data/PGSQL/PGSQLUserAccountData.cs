@@ -26,11 +26,9 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using OpenMetaverse;
-using OpenSim.Framework;
 using System.Text;
 using Npgsql;
 using log4net;
@@ -107,21 +105,20 @@ namespace OpenSim.Data.PGSQL
             return retUA;
         }
         */
-        /*
         public UserAccountData Get(UUID principalID, UUID scopeID)
         {
             UserAccountData ret = new UserAccountData();
             ret.Data = new Dictionary<string, string>();
 
-            string sql = string.Format(@"select * from {0} where ""PrincipalID"" = :principalID", m_Realm);
+            string sql = string.Format(@"select * from {0} where ""PrincipalID"" = :PrincipalID", m_Realm);
             if (scopeID != UUID.Zero)
-                sql += @" and ""ScopeID"" = :scopeID";
+                sql += @" and ""ScopeID"" = :ScopeID";
 
             using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
             using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
             {
-                cmd.Parameters.Add(m_database.CreateParameter("principalID", principalID));
-                cmd.Parameters.Add(m_database.CreateParameter("scopeID", scopeID));
+                cmd.Parameters.Add(m_database.CreateParameter("PrincipalID", principalID));
+                cmd.Parameters.Add(m_database.CreateParameter("ScopeID", scopeID));
 
                 conn.Open();
                 using (NpgsqlDataReader result = cmd.ExecuteReader())
@@ -158,7 +155,6 @@ namespace OpenSim.Data.PGSQL
             }
             return null;
         }
-
 
         public override bool Store(UserAccountData data)
         {
@@ -269,7 +265,6 @@ namespace OpenSim.Data.PGSQL
             }
             return false;
         }
-        */
         /*
         public UserAccountData[] Get(string[] keys, string[] vals)
         {
@@ -298,26 +293,23 @@ namespace OpenSim.Data.PGSQL
                 return new UserAccountData[0];
 
             string sql = "";
-            UUID scope_id;
-            UUID.TryParse(scopeID.ToString(), out scope_id);
-
             using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
             using (NpgsqlCommand cmd = new NpgsqlCommand())
             {
                 if (words.Length == 1)
                 {
-                    sql = String.Format(@"select * from {0} where (""ScopeID""=:ScopeID or ""ScopeID""=:UUIDZero) and (""FirstName"" ilike :search or ""LastName"" ilike :search)", m_Realm);
-                    cmd.Parameters.Add(m_database.CreateParameter("scopeID", (UUID)scope_id));
-                    cmd.Parameters.Add (m_database.CreateParameter("UUIDZero", (UUID)UUID.Zero));
+                    sql = String.Format(@"select * from {0} where (""ScopeID""=:ScopeID or ""ScopeID""=:UUIDZero) and (LOWER(""FirstName"" COLLATE ""en_US.utf8"") like LOWER(:search) or LOWER(""LastName"" COLLATE ""en_US.utf8"") like LOWER(:search))", m_Realm);
+                    cmd.Parameters.Add(m_database.CreateParameter("ScopeID", scopeID));
+                    cmd.Parameters.Add (m_database.CreateParameter("UUIDZero", UUID.Zero));
                     cmd.Parameters.Add(m_database.CreateParameter("search", "%" + words[0] + "%"));
                 }
                 else
                 {
-                    sql = String.Format(@"select * from {0} where (""ScopeID""=:ScopeID or ""ScopeID""=:UUIDZero) and (""FirstName"" ilike :searchFirst or ""LastName"" ilike :searchLast)", m_Realm);
+                    sql = String.Format(@"select * from {0} where (""ScopeID""=:ScopeID or ""ScopeID""=:UUIDZero) and (LOWER(""FirstName"" COLLATE ""en_US.utf8"") like LOWER(:searchFirst) or LOWER(""LastName"" COLLATE ""en_US.utf8"") like LOWER(:searchLast))", m_Realm);
                     cmd.Parameters.Add(m_database.CreateParameter("searchFirst", "%" + words[0] + "%"));
                     cmd.Parameters.Add(m_database.CreateParameter("searchLast", "%" + words[1] + "%"));
-                    cmd.Parameters.Add (m_database.CreateParameter("UUIDZero", (UUID)UUID.Zero));
-                    cmd.Parameters.Add(m_database.CreateParameter("ScopeID", (UUID)scope_id));
+                    cmd.Parameters.Add (m_database.CreateParameter("UUIDZero", UUID.Zero));
+                    cmd.Parameters.Add(m_database.CreateParameter("ScopeID", scopeID));
                 }
                 cmd.Connection = conn;
                 cmd.CommandText = sql;
@@ -328,7 +320,27 @@ namespace OpenSim.Data.PGSQL
 
         public UserAccountData[] GetUsersWhere(UUID scopeID, string where)
         {
-            return null;
+            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
+            using (NpgsqlCommand cmd = new NpgsqlCommand())
+            {
+                // Fix case sensitivity for PostgreSQL column names
+                where = where.Replace("PrincipalID", "\"PrincipalID\"")
+                            .Replace("ScopeID", "\"ScopeID\"")
+                            .Replace("FirstName", "\"FirstName\"")
+                            .Replace("LastName", "\"LastName\"");
+                            
+                if (!scopeID.IsZero())
+                {
+                    where = "(\"ScopeID\"=:ScopeID or \"ScopeID\"='00000000-0000-0000-0000-000000000000') and (" + where + ")";
+                    cmd.Parameters.Add(m_database.CreateParameter("ScopeID", scopeID));
+                }
+
+                cmd.CommandText = String.Format("select * from {0} where " + where, m_Realm);
+                cmd.Connection = conn;
+                
+                conn.Open();
+                return DoQuery(cmd);
+            }
         }
     }
 }

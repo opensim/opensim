@@ -123,25 +123,55 @@ namespace OSHttpServer
         /// </summary>
         public bool UseTraceLogs { get; set; }
 
-        private async void AcceptLoop()
+        private async Task AcceptLoop()
         {
-            try
+            while (true)
             {
-                while (true)
+                if (m_shutdown)
                 {
-                    if (m_shutdown)
-                    {
-                        m_shutdownEvent.Set();
-                        break;
-                    }
+                    m_shutdownEvent?.Set();
+                    break;
+                }
 
-                    Socket socket = await m_listener.AcceptSocketAsync(m_CancellationSource.Token).ConfigureAwait(false); ;
+                Socket socket = null;
+                try
+                {
+                    socket = await m_listener.AcceptSocketAsync(m_CancellationSource.Token).ConfigureAwait(false);
                     if (!socket.Connected)
                     {
                         socket.Dispose();
                         continue;
                     }
+                }
+                catch (OperationCanceledException)
+                {
+                    m_shutdownEvent?.Set();
+                    break;
+                }
+                catch (SocketException snssErr)
+                {
+                    m_logWriter.Write(this, LogPrio.Debug, "OSHTTP Accept wait ignoring error: " + snssErr.Message);
+                    socket?.Dispose();
+                    continue;
+                }
+                catch (Exception err)
+                {
+                    m_logWriter.Write(this, LogPrio.Debug, "OSHTTP Accept wait fatal error: " + err.Message);
+                    ExceptionThrown?.Invoke(this, err);
+                }
 
+                if (m_shutdown)
+                {
+                    m_shutdownEvent?.Set();
+                    socket?.Dispose();
+                    break;
+                }
+
+                if(socket == null)
+                    continue;
+
+                try
+                {
                     socket.NoDelay = true;
 
                     if (!OnAcceptingSocket(socket))
@@ -149,6 +179,7 @@ namespace OSHttpServer
                         socket.Disconnect(true);
                         continue;
                     }
+
                     if (socket.Connected)
                     {
                         m_logWriter.Write(this, LogPrio.Debug, $"Accepted connection from: {socket.RemoteEndPoint}");
@@ -159,17 +190,24 @@ namespace OSHttpServer
                             m_contextFactory.CreateContext(socket);
                     }
                     else
-                        socket.Dispose();
+                        socket?.Dispose();
                 }
-            }
-            catch (OperationCanceledException)
-            {
-                m_shutdownEvent.Set();
-            }
-            catch (Exception err)
-            {
-                m_logWriter.Write(this, LogPrio.Debug, err.Message);
-                ExceptionThrown?.Invoke(this, err);
+                catch (OperationCanceledException)
+                {
+                    m_shutdownEvent?.Set();
+                    break;
+                }
+                catch (SocketException snssErr)
+                {
+                    m_logWriter.Write(this, LogPrio.Debug, "OSHTTP Accept processing ignoring error: " + snssErr.Message);
+                    socket?.Dispose();
+                    continue;
+                }
+                catch (Exception err)
+                {
+                    m_logWriter.Write(this, LogPrio.Debug, "OSHTTP Accept processing fatal error: " + err.Message);
+                    ExceptionThrown?.Invoke(this, err);
+                }
             }
         }
 
@@ -201,7 +239,7 @@ namespace OSHttpServer
 
             m_listener = new TcpListener(m_address, m_port);
             m_listener.Start(backlog);
-            Task.Run(AcceptLoop).ConfigureAwait(false);
+            _ = Task.Run(AcceptLoop);
         }
 
         /// <summary>

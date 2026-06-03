@@ -26,22 +26,20 @@
  */
 
 using log4net;
+using Nini.Config;
+using OpenMetaverse;
+using OpenSim.Framework;
+using OpenSim.Framework.Monitoring;
+using OpenSim.Server.Base;
+using OpenSim.Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
 using System.Net.Http;
 using System.Reflection;
-using Nini.Config;
-
-using OpenSim.Framework;
-using OpenSim.Framework.Monitoring;
-using OpenSim.Framework.ServiceAuth;
-using OpenSim.Services.Interfaces;
-using OpenSim.Server.Base;
-using OpenMetaverse;
 using System.Text;
 using System.Threading;
+using System.Web;
 
 namespace OpenSim.Services.Connectors
 {
@@ -157,19 +155,18 @@ namespace OpenSim.Services.Connectors
 
         public List<InventoryFolderBase> GetInventorySkeleton(UUID principalID)
         {
-            Dictionary<string,object> ret = MakeRequest(
-                $"METHOD=GETINVENTORYSKELETON&PRINCIPAL={principalID}");
+            Dictionary<string,object> ret = MakeRequest($"METHOD=GETINVENTORYSKELETON&PRINCIPAL={principalID}");
 
             if (!CheckReturn(ret))
                 return null;
 
             Dictionary<string, object> folders = (Dictionary<string, object>)ret["FOLDERS"];
 
-            List<InventoryFolderBase> fldrs = new();
+            List<InventoryFolderBase> fldrs = [];
 
             try
             {
-                foreach (Object o in folders.Values)
+                foreach (object o in folders.Values)
                     fldrs.Add(BuildFolder((Dictionary<string, object>)o));
             }
             catch (Exception e)
@@ -205,8 +202,8 @@ namespace OpenSim.Services.Connectors
         {
             InventoryCollection inventory = new()
             {
-                Folders = new(),
-                Items = new(),
+                Folders = [],
+                Items = [],
                 OwnerID = principalID
             };
 
@@ -233,7 +230,7 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.WarnFormat("[XINVENTORY SERVICES CONNECTOR]: Exception in GetFolderContent: {0}", e.Message);
+                m_log.Warn("[XINVENTORY SERVICES CONNECTOR]: Exception in GetFolderContent: " + e.Message);
             }
 
             return inventory;
@@ -285,8 +282,8 @@ namespace OpenSim.Services.Connectors
                         {
                             FolderID = inventoryFolderID,
                             OwnerID = inventoryOwnerID,
-                            Folders = new List<InventoryFolderBase>(),
-                            Items = new List<InventoryItemBase>()
+                            Folders = [],
+                            Items = []
                         };
 
                         if (!ret.TryGetValue("VERSION", out object retVer) ||
@@ -322,7 +319,7 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.WarnFormat("[XINVENTORY SERVICES CONNECTOR]: Exception in GetMultipleFoldersContent: {0}", e.Message);
+                m_log.Warn("[XINVENTORY SERVICES CONNECTOR]: Exception in GetMultipleFoldersContent: {0}" + e.Message);
             }
 
             return inventoryArr;
@@ -363,7 +360,7 @@ namespace OpenSim.Services.Connectors
         public bool UpdateFolder(InventoryFolderBase folder)
         {
             Dictionary<string,object> ret = MakeRequest(
-                $"METHOD=UPDATEFOLDER&ParentID={folder.ParentID}&Type={folder.Type}&Version={folder.Version}&Name={folder.Name}&Owner={folder.Owner}&ID={folder.ID}");
+                $"METHOD=UPDATEFOLDER&ParentID={folder.ParentID}&Type={folder.Type}&Version={folder.Version}&Name={HttpUtility.UrlEncode(folder.Name)}&Owner={folder.Owner}&ID={folder.ID}");
 
             return CheckReturn(ret);
         }
@@ -377,7 +374,7 @@ namespace OpenSim.Services.Connectors
 
         public bool DeleteFolders(UUID principalID, List<UUID> folderIDs)
         {
-            List<string> slist = new();
+            List<string> slist = [];
 
             foreach (UUID f in folderIDs)
                 slist.Add(f.ToString());
@@ -752,7 +749,7 @@ namespace OpenSim.Services.Connectors
             if (string.IsNullOrEmpty(obj))
             {
                 m_log.Warn($"[XInventory]: empty post data");
-                return new Dictionary<string, object>();
+                return [];
             }
 
             Dictionary<string, object> respDic = null;
@@ -762,6 +759,8 @@ namespace OpenSim.Services.Connectors
             HttpResponseMessage responseMessage = null;
             HttpRequestMessage request = null;
             HttpClient client = null;
+            bool bodyTimedOut = false;
+
             try
             {
                 client = WebUtil.GetNewGlobalHttpClient(m_requestTimeout);
@@ -794,13 +793,26 @@ namespace OpenSim.Services.Connectors
 
                 if ((responseMessage.Content.Headers.ContentLength is long contentLength) && contentLength != 0)
                 {
-                    rcvlen = (int)contentLength;
-                    respDic = ServerUtils.ParseXmlResponse(responseMessage.Content.ReadAsStream());
+                    using Stream respStream = responseMessage.Content.ReadAsStream();
+                    using (CancellationTokenSource cts = new(WebUtil.EstimatedReceiveTimeout(responseMessage.Content.Headers, true)))
+                    {
+                        _ = cts.Token.Register(() =>
+                           {
+                               bodyTimedOut = true;
+                               respStream?.Close();
+                           });
+
+                        rcvlen = (int)contentLength;
+                        respDic = ServerUtils.ParseXmlResponse(respStream);
+                    }
                 }
             }
             catch (Exception e)
             {
-                m_log.Info($"[XInventory]: Error receiving response from {m_InventoryURL}: {e.Message}");
+                if(bodyTimedOut)
+                    m_log.Info($"[XInventory]: TImeout on receiving POST response from {m_InventoryURL}");
+                else
+                    m_log.Info($"[XInventory]: Error receiving response from {m_InventoryURL}: {e.Message}");
                 throw;
             }
             finally
@@ -811,7 +823,11 @@ namespace OpenSim.Services.Connectors
             }
 
             ticks = Util.EnvironmentTickCountSubtract(ticks);
-            if (ticks > WebUtil.LongCallTime)
+            if(bodyTimedOut)
+            {
+                m_log.Info($"[XInventory]: POST receive timeout {m_InventoryURL} ({ticks}ms)");
+            }
+            else if (ticks > WebUtil.LongCallTime)
             {
                 m_log.Info($"[XInventory]: POST {m_InventoryURL} took {ticks}ms {sendlen}/{rcvlen}bytes");
             }

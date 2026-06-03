@@ -246,7 +246,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_IsRunningInbound = true;
 
                 // kick start the receiver tasks dance.
-                Task.Run(AsyncBeginReceive).ConfigureAwait(false);
+                _ = Task.Run(AsyncBeginReceive);
             }
         }
 
@@ -280,7 +280,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_IsRunningOutbound = false;
         }
 
-        private async void AsyncBeginReceive()
+        private async Task AsyncBeginReceive()
         {
             SocketAddress workSktAddress = new(m_udpSocket.AddressFamily);
             while (m_IsRunningInbound)

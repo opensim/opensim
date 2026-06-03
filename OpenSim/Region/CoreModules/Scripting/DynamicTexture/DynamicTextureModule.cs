@@ -421,6 +421,9 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
             {
                 UUID oldID;
 
+                if( Face == -9999)
+                    return UUID.Zero;
+
                 lock (part)
                 {
                     // mostly keep the values from before
@@ -525,7 +528,7 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
 
                 // Create a new asset for user
                 AssetBase asset = new AssetBase(
-                        UUID.Random(), "DynamicImage" + Util.RandomClass.Next(1, 10000), (sbyte)AssetType.Texture,
+                        UUID.Random(), "DynamicImage" + Random.Shared.Next(1, 10000), (sbyte)AssetType.Texture,
                         part.OwnerID.ToString());
                 asset.Data = assetData;
                 asset.Description = string.Format("URL image : {0}", Url);
@@ -538,11 +541,9 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
 
                 UUID oldID = UpdatePart(part, asset.FullID);
 
-                if (!oldID.IsZero() && ((Disp & DISP_EXPIRE) != 0))
+                if ((Disp & DISP_EXPIRE) != 0 && oldID.IsNotZero() )
                 {
-                    if (oldAsset == null)
-                        oldAsset = scene.AssetService.Get(oldID.ToString());
-
+                    oldAsset ??= scene.AssetService.Get(oldID.ToString());
                     if (oldAsset != null)
                     {
                         if (oldAsset.Temporary)

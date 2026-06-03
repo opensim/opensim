@@ -233,7 +233,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         // this has to be called with a lock on m_scene
         protected virtual void AddHandlers()
         {
-            myMapImageJPEG = Array.Empty<byte>();
+            myMapImageJPEG = [];
 
             string regionimage = "regionImage" + m_scene.RegionInfo.RegionID.ToString();
             regionimage = regionimage.Replace("-", "");
@@ -1574,19 +1574,17 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             bool needRegionSave = false;
 
             // remove old assets
-            UUID lastID = m_scene.RegionInfo.RegionSettings.TerrainImageID;
-            if (!lastID.IsZero())
+            if (m_scene.RegionInfo.RegionSettings.TerrainImageID.IsNotZero())
             {
-                m_scene.AssetService.Delete(lastID.ToString());
+                m_scene.AssetService.Delete(m_scene.RegionInfo.RegionSettings.TerrainImageID.ToString());
                 m_scene.RegionInfo.RegionSettings.TerrainImageID = UUID.Zero;
-                myMapImageJPEG = Array.Empty<byte>();
+                myMapImageJPEG = [];
                 needRegionSave = true;
             }
 
-            lastID = m_scene.RegionInfo.RegionSettings.ParcelImageID;
-            if (!lastID.IsZero())
+            if (m_scene.RegionInfo.RegionSettings.ParcelImageID.IsNotZero())
             {
-                m_scene.AssetService.Delete(lastID.ToString());
+                m_scene.AssetService.Delete(m_scene.RegionInfo.RegionSettings.ParcelImageID.ToString());
                 m_scene.RegionInfo.RegionSettings.ParcelImageID = UUID.Zero;
                 needRegionSave = true;
             }

@@ -524,8 +524,8 @@ namespace OpenSim
             {
                 RegionInfo regionInfo = presence.Scene.RegionInfo;
 
-                if (presence.Firstname.ToLower().Equals(mainParams[2].ToLower()) &&
-                    presence.Lastname.ToLower().Equals(mainParams[3].ToLower()))
+                if (presence.Firstname.Equals(mainParams[2], StringComparison.OrdinalIgnoreCase) &&
+                    presence.Lastname.Equals(mainParams[3],StringComparison.OrdinalIgnoreCase))
                 {
                     MainConsole.Instance.Output(
                             "Kicking user: {0,-16} {1,-16} {2,-37} in region: {3,-16}",

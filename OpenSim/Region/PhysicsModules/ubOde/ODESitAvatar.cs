@@ -77,7 +77,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             //Vector3 geopos = actor.Position;
             //Quaternion geomOri = actor.Orientation;
 
-            Quaternion geomInvOri = Quaternion.Conjugate(geomOri);
+            Quaternion geomInvOri = Quaternion.Conjugate(in geomOri);
             Quaternion ori = Quaternion.Identity;
 
             Vector3 rayDir = geopos + offset - avCameraPosition;

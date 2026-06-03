@@ -1284,7 +1284,7 @@
       <Reference name="OpenMetaverseTypes"/>
       <Reference name="OpenMetaverse"/>
       <Reference name="OpenMetaverse.StructuredData"/>
-      <Reference name="Mono.Data.Sqlite"/>
+      <Reference name="System.Data.SQLite"/>
       <Reference name="Mono.Addins"/>
       <Reference name="log4net"/>
 
@@ -1382,7 +1382,7 @@
       <Reference name="OpenMetaverseTypes"/>
       <Reference name="OpenMetaverse.StructuredData"/>
       <Reference name="OpenMetaverse"/>
-      <Reference name="Mono.Data.SqliteClient"/>
+      <Reference name="System.Data.SQLite"/>
       <Reference name="netcd"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Capabilities"/>
@@ -2037,6 +2037,196 @@
 
     </Project>
 
+    <Project
+            name="WebRtcVoice"
+            path="OpenSim/Addons/os-webrtc-janus/WebRtcVoice"
+            type="Library">
+
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+          <AllowUnsafe>true</AllowUnsafe>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+          <AllowUnsafe>true</AllowUnsafe>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../bin/</ReferencePath>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
+      <Reference name="OpenSim.Services.Interfaces"/>
+      <Reference name="OpenSim.Services.Connectors"/>
+      <Reference name="OpenSim.Services.Base"/>
+      <Reference name="OpenSim.Server.Base"/>
+      <Reference name="OpenSim.Server.Handlers"/>
+      <Reference name="OpenSim.Data"/>
+
+      <Reference name="OpenMetaverse"/>
+      <Reference name="OpenMetaverseTypes"/>
+      <Reference name="OpenMetaverse.StructuredData"/>
+
+      <Reference name="Mono.Addins" path ="../../../../bin"/>
+
+      <Reference name="Nini"/>
+      <Reference name="log4net"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true">
+          <Exclude name="Tests" pattern="Tests"/>
+          <Exclude name="Object" pattern="obj"/>
+        </Match>
+      </Files>
+
+    </Project>
+
+    <Project
+            name="WebRtcVoiceRegionModule"
+            path="OpenSim/Addons/os-webrtc-janus/WebRtcVoiceRegionModule"
+            type="Library">
+
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+          <AllowUnsafe>true</AllowUnsafe>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+          <AllowUnsafe>true</AllowUnsafe>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../bin/</ReferencePath>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
+      <Reference name="OpenSim.Services.Interfaces"/>
+      <Reference name="OpenSim.Services.Connectors"/>
+      <Reference name="OpenSim.Services.Base"/>
+      <Reference name="OpenSim.Server.Base"/>
+      <Reference name="OpenSim.Data"/>
+
+      <Reference name="OpenMetaverse"/>
+      <Reference name="OpenMetaverseTypes"/>
+      <Reference name="OpenMetaverse.StructuredData"/>
+
+      <Reference name="WebRtcVoice"/>
+
+      <Reference name="Mono.Addins" path ="../../../../bin"/>
+
+      <Reference name="Nini"/>
+      <Reference name="log4net"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true">
+          <Exclude name="Tests" pattern="Tests"/>
+          <Exclude name="Object" pattern="obj"/>
+        </Match>
+      </Files>
+
+    </Project>
+
+
+    <Project
+            name="WebRtcJanusService"
+            path="OpenSim/Addons/os-webrtc-janus/Janus"
+            type="Library">
+
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+          <AllowUnsafe>true</AllowUnsafe>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+          <AllowUnsafe>true</AllowUnsafe>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../bin/</ReferencePath>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
+      <Reference name="OpenSim.Services.Interfaces"/>
+      <Reference name="OpenSim.Services.Connectors"/>
+      <Reference name="OpenSim.Services.Base"/>
+      <Reference name="OpenSim.Server.Base"/>
+      <Reference name="OpenSim.Data"/>
+
+      <Reference name="OpenMetaverse"/>
+      <Reference name="OpenMetaverseTypes"/>
+      <Reference name="OpenMetaverse.StructuredData"/>
+
+      <Reference name="WebRtcVoice"/>
+
+      <Reference name="Mono.Addins" path ="../../../../bin"/>
+
+      <Reference name="Nini"/>
+      <Reference name="log4net"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true">
+          <Exclude name="Tests" pattern="Tests"/>
+          <Exclude name="Object" pattern="obj"/>
+        </Match>
+      </Files>
+
+    </Project>
+
+    <Project
+            name="WebRtcVoiceServiceModule"
+            path="OpenSim/Addons/os-webrtc-janus/WebRtcVoiceServiceModule"
+            type="Library">
+
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../bin/</ReferencePath>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
+      <Reference name="OpenSim.Services.Interfaces"/>
+      <Reference name="OpenSim.Services.Connectors"/>
+      <Reference name="OpenSim.Services.Base"/>
+      <Reference name="OpenSim.Server.Base"/>
+      <Reference name="OpenSim.Data"/>
+
+      <Reference name="OpenMetaverse"/>
+      <Reference name="OpenMetaverseTypes"/>
+      <Reference name="OpenMetaverse.StructuredData"/>
+
+      <Reference name="WebRtcVoice"/>
+
+      <Reference name="Mono.Addins" path ="../../../../bin"/>
+
+      <Reference name="Nini"/>
+      <Reference name="log4net"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true">
+          <Exclude name="Tests" pattern="Tests"/>
+          <Exclude name="Object" pattern="obj"/>
+        </Match>
+      </Files>
+
+    </Project>
+
     <!-- Test Clients -->
 	<!--
     <Project name="OpenSim.Tests.Clients.AssetClient" path="OpenSim/Tests/Clients/Assets" type="Exe">
@@ -2294,7 +2484,7 @@
       <Reference name="OpenSim.Data.SQLite"/>
 
       <Reference name="MySql.Data"/>
-      <Reference name="Mono.Data.Sqlite"/>
+      <Reference name="System.Data.SQLite"/>
       <Files>
         <Match pattern="*.cs" recurse="true">
          <Exclude name="obj" pattern="obj"/>

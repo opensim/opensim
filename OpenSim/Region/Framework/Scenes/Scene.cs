@@ -1293,6 +1293,12 @@ namespace OpenSim.Region.Framework.Scenes
                         if (!string.IsNullOrEmpty(SceneGridInfo.EconomyURL))
                             fm.AddOpenSimExtraFeature("currency-base-uri", SceneGridInfo.EconomyURL);
                     }
+
+                    if (SceneGridInfo.StunServers is not null)
+                    {
+                        string stuns = string.Join(',', SceneGridInfo.StunServers);
+                        fm.AddFeature("stun-servers", stuns);
+                    }
                 }
             }
         }
@@ -1876,7 +1882,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // sleep if we can
                 if (nowMS > 0)
-                    {
+                {
                     Thread.Sleep((int)(nowMS + 0.5));
 
                     nowMS = Util.GetTimeStampMS();
@@ -1884,14 +1890,14 @@ namespace OpenSim.Region.Framework.Scenes
                     sleepError = sleepMS - frameMS;
                     sleepError = Math.Clamp(sleepError, 0.0f, 20f);
                     frameMS = (float)(nowMS - framestart);
-                    }
+                }
                 else
-                    {
+                {
                     nowMS = Util.GetTimeStampMS();
                     frameMS = (float)(nowMS - framestart);
                     sleepMS = 0.0f;
                     sleepError = 0.0f;
-                    }
+                }
 
                 // script time is not scene frame time, but is displayed per frame
                 float scriptTimeMS = GetAndResetScriptExecutionTime();
@@ -3099,9 +3105,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
              */
                 UserAccount uac = UserAccountService.GetUserAccount(RegionInfo.ScopeID, user);
-                if (uac is null)
-                    return 0;
-                return uac.UserFlags;
+                return uac is null ? 0 : uac.UserFlags;
             //}
         }
 

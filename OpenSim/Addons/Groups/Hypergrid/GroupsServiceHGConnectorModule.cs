@@ -42,6 +42,7 @@ using OpenMetaverse;
 using Mono.Addins;
 using log4net;
 using Nini.Config;
+using System.Runtime.InteropServices;
 
 namespace OpenSim.Groups
 {
@@ -680,14 +681,11 @@ namespace OpenSim.Groups
         {
             lock (m_NetworkConnectors)
             {
-                if (m_NetworkConnectors.ContainsKey(url))
-                    return m_NetworkConnectors[url];
-
-                GroupsServiceHGConnector c = new GroupsServiceHGConnector(url);
-                m_NetworkConnectors[url] = c;
+                ref GroupsServiceHGConnector connector = ref CollectionsMarshal.GetValueRefOrAddDefault(m_NetworkConnectors,url, out bool exists);
+                if(!exists)
+                    connector = new GroupsServiceHGConnector(url);
+                return connector;
             }
-
-            return m_NetworkConnectors[url];
         }
         #endregion
     }

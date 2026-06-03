@@ -1025,7 +1025,8 @@ namespace OpenSim.Region.OptionalModules.Materials
 
         public static readonly byte[] XMLkeyMaterialSucess = osUTF8.GetASCIIBytes("<llsd><map><key>success</key><integer>1</integer></map></llsd>\r\n");
         public static readonly byte[] XMLkeyMaterialFail = osUTF8.GetASCIIBytes("<llsd><map><key>success</key><integer>0</integer></map></llsd>\r\n");
-        private static bool RemoveMaterialEntry(ref RenderMaterialEntry[] entries, int side)
+
+        public bool RemoveMaterialEntry(ref RenderMaterialEntry[] entries, int side)
         {
             if (entries is null || entries.Length == 0)
                 return false;
@@ -1385,6 +1386,91 @@ namespace OpenSim.Region.OptionalModules.Materials
             overrides[indx].te_index = (byte)side;
             overrides[indx].data = data;
             return true;
+        }
+
+        public static bool ClearOverrideData(OSDMap facemat, out OSDMap changedmat)
+        {
+            if(facemat is not null && facemat.TryGetOSDArray("ti", out OSDArray transforms))
+            {
+                changedmat = new OSDMap()
+                {
+                    ["ti"] = transforms
+                };
+                return facemat.Count > 1;
+            }
+
+            changedmat = null;
+            return facemat is not null;
+        }
+
+        public bool CleanMaterialOverrides(ref RenderMaterialOverrideEntry[] overrides, int side, bool removeTransforms = false)
+        {
+            if (overrides is null || overrides.Length == 0)
+                return false;
+
+            bool changed = false;
+            if(removeTransforms && side < 0)
+            {
+                overrides = null;
+                return true;
+            }
+
+            List<RenderMaterialOverrideEntry> newoverrides = new(overrides.Length);
+
+            for(int indx = 0; indx < overrides.Length; indx++)
+            {
+                if(side >= 0 && side != overrides[indx].te_index)
+                {
+                    newoverrides.Add(overrides[indx]);
+                }
+                else if (removeTransforms)
+                {
+                    changed = true;
+                }
+                else
+                {
+                    if(string.IsNullOrEmpty(overrides[indx].data))
+                    { 
+                        changed = true;
+                        continue;
+                    }
+
+                    int tiindx = overrides[indx].data.IndexOf("ti");
+                    if(tiindx < 0)
+                    { 
+                        changed = true;
+                        continue;
+                    }
+
+                    StringBuilder sb = osStringBuilderCache.Acquire();
+                    sb.Append("{'");
+                    int brk = 0;
+                    do
+                    {
+                        char c = overrides[indx].data[tiindx];
+                        sb.Append(c);
+                        if(c=='[')
+                            brk++;
+                        else if(c==']')
+                        {
+                            brk--;
+                            if(brk == 0)
+                                break;
+                        }
+                        tiindx++;
+                    }
+                    while (tiindx < overrides[indx].data.Length);
+
+                    sb.Append('}');
+                    string newdata = osStringBuilderCache.GetStringAndRelease(sb);
+                    changed = !newdata.Equals(overrides[indx].data);
+                    overrides[indx].data = newdata;
+                    newoverrides.Add(overrides[indx]);
+                }
+            }
+
+            overrides = newoverrides.Count > 0 ? [.. newoverrides] : null;
+            return changed;
         }
     }
 }

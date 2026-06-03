@@ -93,7 +93,7 @@ namespace OpenSim.Capabilities.Handlers
 
             response.StatusCode = (int)HttpStatusCode.BadRequest;
 
-            var queries = req.QueryAsDictionary;
+            Dictionary<string, string> queries = req.QueryAsDictionary;
             if(queries.Count == 0)
                 return;
 

@@ -305,11 +305,8 @@ namespace OpenSim.Region.ClientStack.Linden
                 {
                     lock(dropedResponses)
                     {
-                        if(dropedResponses.Contains(requestID))
-                        {
-                            dropedResponses.Remove(requestID);
+                        if(dropedResponses.Remove(requestID))
                             return;
-                        }
                     }
                 }
 
@@ -321,9 +318,8 @@ namespace OpenSim.Region.ClientStack.Linden
                 {
                     lock(dropedResponses)
                     {
-                        if(dropedResponses.Contains(requestID))
+                        if(dropedResponses.Remove(requestID))
                         {
-                            dropedResponses.Remove(requestID);
                             ProcessedRequestsCount++;
                             return;
                         }

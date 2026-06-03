@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -147,15 +148,14 @@ namespace OpenSim.Region.DataSnapshot
         #region Response storage
         public XmlNode GetScene(Scene scene, XmlDocument factory)
         {
-            m_log.Debug("[DATASNAPSHOT]: Data requested for scene " + scene.RegionInfo.RegionName);
+            m_log.Debug("[DATASNAPSHOT]: Data requested for scene " + scene.Name);
 
-            if (!m_scenes.ContainsKey(scene)) {
-                m_scenes.Add(scene, true); //stale by default
-            }
+            ref bool sceneStale = ref CollectionsMarshal.GetValueRefOrAddDefault(m_scenes, scene, out bool exists);
+            sceneStale |= !exists;
 
             XmlNode regionElement = null;
 
-            if (!m_scenes[scene])
+            if (!sceneStale)
             {
                 m_log.Debug("[DATASNAPSHOT]: Attempting to retrieve snapshot from cache.");
                 //get snapshot from cache
@@ -212,7 +212,7 @@ namespace OpenSim.Region.DataSnapshot
                     m_log.WarnFormat("[DATASNAPSHOT]: Exception on writing to file {0}: {1}", path, e.Message);
                 }
 
-                m_scenes[scene] = false;
+                sceneStale = false;
 
                 m_log.Debug("[DATASNAPSHOT]: Generated new snapshot for " + scene.RegionInfo.RegionName);
             }
@@ -257,7 +257,6 @@ namespace OpenSim.Region.DataSnapshot
             //attr = basedoc.CreateAttribute("parcels");
             //attr.Value = scene.LandManager.landList.Count.ToString();
             //docElement.Attributes.Append(attr);
-
 
             XmlNode infoblock = basedoc.CreateNode(XmlNodeType.Element, "info", "");
 

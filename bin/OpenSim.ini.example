@@ -76,6 +76,8 @@
     ; from outside their networks, using firewalls
     PrivatePort = "8003"
 
+
+
 [Startup]
     ;# {ConsolePrompt} {} {ConsolePrompt} {} "Region (\R) "
     ;; Console prompt
@@ -241,28 +243,22 @@
 
     ;; Select a mesher here.
     ;;
-    ;# {meshing} {} {Select mesher} {Meshmerizer ZeroMesher} Meshmerizer
+    ;# {meshing} {} {Select mesher} {Meshmerizer ZeroMesher} ubODEMeshmerizer
     ;; ZeroMesher is faster but leaves the physics engine to model the mesh
     ;; using the basic shapes that it supports.
-    ;; Usually this is only a box.
-    ;; Default is Meshmerizer
+    ;; Usually this is only a box or a sphere
+    ;; Default is ubODEMeshmerizer
     ; meshing = Meshmerizer
     ; meshing = ZeroMesher
-    ;; select ubODEMeshmerizer only with ubOde physics engine
+    ;; With ubOde physics engine you must select ubODEMeshmerizer
     ; meshing = ubODEMeshmerizer
 
     ;; Choose one of the physics engines below
-    ;# {physics} {} {Select physics engine} {OpenDynamicsEngine BulletSim basicphysics POS} BulletSim
-    ;; BulletSim is the default physics engine.  It provides the best performance and most functionality.
-    ;; BulletSim supports varregions.
-    ;; OpenDynamicsEngine was the previous default physics engine in OpenSimulator 0.7.6.1 and before.
-    ;; It continues to provide a workable physics implementation.  It does not currently support varregions.
-    ;; basicphysics effectively does not model physics at all, making all objects phantom.
-    ;; Default is BulletSim
+    ;# {physics} {} {Select physics engine} {OpenDynamicsEngine BulletSim basicphysics POS} ubODE
+    ;; Default is ubODE
     ; physics = BulletSim
     ; physics = basicphysics
     ; physics = POS
-    ;; alternative OpenDynamicsEngine engine. ubODEMeshmerizer meshing above MUST be selected also
     ; physics = ubODE
 
     ; ubODE does allocate a lot of memory on stack. On linux you may need to increase its limit
@@ -368,9 +364,12 @@
     ;; you can also bypass the hostname or domain verification
     ;# {NoVerifyCertHostname} {} {do not verify SSL Cert name versus peer name} {true false} true
     ; NoVerifyCertHostname = true
-    ;; having both options true does provide encryption but with low security
+    ;; having both options true does provide encryption but with lower security
     ;; set both true if you don't care to use SSL, they are needed to contact regions or grids that do use it.
-    
+
+    ;; comma separated list of stun servers (in host:port format), for webrtc support, possible other uses in future
+    StunServers = stun.l.google.com:19302, stun.cloudflare.com:3478
+
 [AccessControl]
     ;# {AllowedClients} {} {Bar (|) separated list of allowed clients} {}
     ;; Bar (|) separated list of viewers which may gain access to the regions.

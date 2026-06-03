@@ -71,7 +71,7 @@ namespace OpenSim.Framework
             Flags = OSHTTPURIFlags.None;
             try
             {
-                Uri m_checkuri = new Uri(uri);
+                Uri m_checkuri = new(uri);
 
                 if(m_checkuri.Scheme != Uri.UriSchemeHttp && m_checkuri.Scheme != Uri.UriSchemeHttps)
                     return;
@@ -368,10 +368,11 @@ namespace OpenSim.Framework
         private string m_SearchURL = string.Empty;
         private string m_DestinationGuideURL = string.Empty;
         private string m_economyURL = string.Empty;
+        private string[] m_StunServers = null;
 
         public GridInfo (IConfigSource config, string defaultURI = "")
         {
-            string[] sections = new string[] {"Const", "Startup", "Hypergrid"};
+            string[] sections = ["Const", "Startup", "Hypergrid"];
 
             string gatekeeper = Util.GetConfigVarFromSections<string>(config, "GatekeeperURI", sections, string.Empty);
             if (string.IsNullOrEmpty(gatekeeper))
@@ -416,8 +417,7 @@ namespace OpenSim.Framework
                     OSHHTPHost tmp = new OSHHTPHost(alias[i].Trim(), false);
                     if (tmp.IsValidHost)
                     {
-                        if (m_gateKeeperAlias == null)
-                            m_gateKeeperAlias = new HashSet<OSHHTPHost>();
+                        m_gateKeeperAlias ??= new HashSet<OSHHTPHost>();
                         m_gateKeeperAlias.Add(tmp);
                     }
                 }
@@ -430,6 +430,7 @@ namespace OpenSim.Framework
                 foreach (OSHHTPHost a in m_gateKeeperAlias)
                     m_gridUrlAlias[i++] = a.URI;
             }
+
 
             string home = Util.GetConfigVarFromSections<string>(config, "HomeURI", sections, string.Empty);
 
@@ -458,14 +459,13 @@ namespace OpenSim.Framework
                     OSHHTPHost tmp = new OSHHTPHost(alias[i].Trim(), false);
                     if (tmp.IsValidHost)
                     {
-                        if (m_homeURLAlias == null)
-                            m_homeURLAlias = new HashSet<OSHHTPHost>();
+                        m_homeURLAlias ??= new HashSet<OSHHTPHost>();
                         m_homeURLAlias.Add(tmp);
                     }
                 }
             }
 
-            string[] namessections = new string[] { "Const", "GridInfo", "SimulatorFeatures" };
+            string[] namessections = ["Const", "GridInfo", "SimulatorFeatures"];
             m_GridName = Util.GetConfigVarFromSections<string>(config, "GridName", namessections, string.Empty);
             if (string.IsNullOrEmpty(m_GridName))
                 m_GridName = Util.GetConfigVarFromSections<string>(config, "gridname", namessections, string.Empty);
@@ -504,7 +504,8 @@ namespace OpenSim.Framework
                 m_DestinationGuideURL = tmpuri.URI;
             }
 
-            m_economyURL = Util.GetConfigVarFromSections<string>(config, "economy", new string[] { "Economy", "GridInfo" });
+
+            m_economyURL = Util.GetConfigVarFromSections<string>(config, "economy", ["Economy", "GridInfo"]);
             if (!string.IsNullOrEmpty(m_economyURL))
             {
                 tmpuri = new OSHTTPURI(m_economyURL.Trim(), true);
@@ -514,6 +515,20 @@ namespace OpenSim.Framework
                     throw new Exception("economyURL configuration error");
                 }
                 m_economyURL = tmpuri.URI;
+            }
+
+            string stunservers = Util.GetConfigVarFromSections<string>(config, "StunServers", ["Const", "Startup", "GridInfo", "SimulatorFeatures"], string.Empty);
+            if (!string.IsNullOrWhiteSpace(stunservers))
+            {
+                string[] stuns = stunservers.Split(',');
+                List<string> stunsarr = new List<string>(stuns.Length);
+                for (int i = 0; i < stuns.Length; ++i)
+                {
+                    OSHHTPHost tmp = new OSHHTPHost(stuns[i].Trim(), false);
+                    if (tmp.IsValidHost)
+                        stunsarr.Add("stun:" + tmp.HostAndPort);
+                }
+                m_StunServers = stunsarr.Count > 0 ? stunsarr.ToArray() : null;
             }
         }
 
@@ -685,6 +700,7 @@ namespace OpenSim.Framework
             }
         }
 
+
         public string GridName
         {
             get { return m_GridName; }
@@ -756,5 +772,27 @@ namespace OpenSim.Framework
                     m_log.Error((tmp.IsValidHost ? "Could not resolve EconomyURL" : "EconomyURL is a invalid host ") + value ?? "");
             }
         }
+
+        public string[] StunServers
+        {
+            get { return m_StunServers; }
+            set
+            {
+                if(value.Length > 0)
+                {
+                    List<string> values = new List<string>(value.Length);
+                    for (int i = 0; i < value.Length; ++i)
+                    {
+                        OSHHTPHost tmp = new OSHHTPHost(value[i].Trim(), false);
+                        if (tmp.IsValidHost)
+                            values.Add("stun:" + tmp.HostAndPort);
+                    }
+                    m_StunServers = values.Count > 0 ? values.ToArray() : null;
+                }
+                else
+                    m_StunServers = null;
+            }
+        }
+
     }
 }
