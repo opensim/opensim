@@ -78,7 +78,7 @@ namespace OpenSim.Services.HypergridService
                 if (configName != String.Empty)
                     m_ConfigName = configName;
 
-                Object[] args = new Object[] { config };
+                Object[] args = [ config ];
 
                 IConfig serverConfig = config.Configs[m_ConfigName];
                 if (serverConfig == null)
@@ -309,7 +309,7 @@ namespace OpenSim.Services.HypergridService
             // But now we need to confirm that the requester is who he says he is
             // before we act on the friendship request.
 
-            if (!fromName.Contains("@"))
+            if (!fromName.Contains('@'))
                 return;
 
             string[] parts = fromName.Split(new char[] {'@'});
