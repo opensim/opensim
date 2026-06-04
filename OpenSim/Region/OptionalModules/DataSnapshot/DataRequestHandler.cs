@@ -52,9 +52,9 @@ namespace OpenSim.Region.DataSnapshot
             m_externalData = externalData;
 
             //Register HTTP handler
-            MainServer.Instance.AddGloblaMethodHandler("collector", OnGetSnapshot);
+            MainServer.UnSecureInstance.AddGloblaMethodHandler("collector", OnGetSnapshot);
             // Register validation callback handler
-            MainServer.Instance.AddGloblaMethodHandler("validate", OnValidate);
+            MainServer.UnSecureInstance.AddGloblaMethodHandler("validate", OnValidate);
 
             m_log.Info("[DATASNAPSHOT]: Set up snapshot service");
         }
