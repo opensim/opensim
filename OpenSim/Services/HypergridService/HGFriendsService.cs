@@ -316,22 +316,32 @@ namespace OpenSim.Services.HypergridService
             if (parts.Length != 2)
                 return;
 
-            string uriStr = "http://" + parts[1];
-            try
+            string uriStr = "http://" + parts[1].ToLower();
+            string SSLuriStr = "https://" + parts[1].ToLower();
+            if(!Uri.TryCreate(uriStr, UriKind.Absolute, out _))
             {
-                new Uri(uriStr);
-            }
-            catch (UriFormatException)
-            {
+                m_log.DebugFormat("[HGFRIENDS SERVICE]: Malformed address {0}", parts[1].ToLower());
                 return;
             }
 
-            UserAgentServiceConnector uasConn = new UserAgentServiceConnector(uriStr);
+            UserAgentServiceConnector uasConn = new(uriStr);
+            // If fail to connect with http... try with https...
+            if (uasConn is null)
+            {
+                uasConn = new UserAgentServiceConnector(SSLuriStr);
+                if (uasConn is null)
+                {
+                    m_log.DebugFormat("[HGFRIENDS SERVICE]: UserAgentServiceConnector failed to connect to {0}", parts[1].ToLower());
+                    return;
+                }
+                uriStr = SSLuriStr;
+            }
+            
             Dictionary<string, object> servers = uasConn.GetServerURLs(fromID);
-            if (!servers.ContainsKey("FriendsServerURI"))
+            if (!servers.TryGetValue("FriendsServerURI", out object friendsServerURI))
                 return;
 
-            HGFriendsServicesConnector friendsConn = new HGFriendsServicesConnector(servers["FriendsServerURI"].ToString());
+            HGFriendsServicesConnector friendsConn = new(friendsServerURI.ToString());
             if (!friendsConn.ValidateFriendshipOffered(fromID, toID))
             {
                 m_log.WarnFormat("[HGFRIENDS SERVICE]: Friendship request from {0} to {1} is invalid. Impersonations?", fromID, toID);
