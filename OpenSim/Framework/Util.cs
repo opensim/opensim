@@ -567,7 +567,7 @@ namespace OpenSim.Framework
 
             inputName = inputName.Trim();
 
-            if (!inputName.StartsWith("http") && !inputName.StartsWith("https"))
+            if (!inputName.StartsWith("http") || !inputName.StartsWith("https"))
             {
                 // Formats: grid.example.com:8002:region name
                 //          grid.example.com:region name

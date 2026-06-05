@@ -573,12 +573,18 @@ namespace OpenSim.Services.GridService
             serverURI = cmdparams[2];
             if (cmdparams.Length > 3)
                 remoteName = string.Join(" ", cmdparams, 3, cmdparams.Length - 3);
-            string reason = string.Empty;
-            GridRegion regInfo;
-            if (TryCreateLink(UUID.Zero, xloc, yloc, remoteName, 0, null, serverURI, UUID.Zero, out regInfo, out reason))
+            
+            if (TryCreateLink(UUID.Zero, xloc, yloc, remoteName, 0, null, serverURI, UUID.Zero, out _, out _))
                 MainConsole.Instance.Output("Hyperlink established");
             else
-                MainConsole.Instance.Output("Failed to link region: " + reason);
+            {
+                // TryCreateLink return false if serverURI start with http and the destination is under TLS/SSL... so...
+                serverURI = serverURI.Replace("http://", "https://");
+                if (TryCreateLink(UUID.Zero, xloc, yloc, remoteName, 0, null, serverURI, UUID.Zero, out _, out string reason))
+                    MainConsole.Instance.Output("Hyperlink established");
+                else
+                    MainConsole.Instance.Output("Failed to link region: " + reason);
+            }
         }
 
         private void RunHGCommand(string command, string[] cmdparams)
@@ -617,7 +623,7 @@ namespace OpenSim.Services.GridService
                 }
 
                 //this should be the prefererred way of setting up hg links now
-                if (cmdparams[2].StartsWith("http"))
+                if (cmdparams[2].StartsWith("http://") || cmdparams[2].StartsWith("https://"))
                 {
                     RunLinkRegionCommand(cmdparams);
                 }

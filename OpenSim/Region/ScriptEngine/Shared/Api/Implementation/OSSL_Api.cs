@@ -2487,6 +2487,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             return userID.ToString();
                         }
                     }
+                    else
+                    {
+                        // If fail with http... replace the hardcoded http in Util.ParseForeignAvatarName and try with https...
+                        serverURI =  serverURI.Replace("http://", "https://");
+                        userConnection = new UserAgentServiceConnector(serverURI);
+                        if (userConnection is not null)
+                        {
+                            userID = userConnection.GetUUID(realFirstName, realLastName);
+                            if (!userID.IsZero())
+                            {
+                                userManager?.AddUser(userID, realFirstName, realLastName, serverURI);
+                                return userID.ToString();
+                            }
+                        }
+                    }
                 }
                 catch (Exception /*e*/)
                 {

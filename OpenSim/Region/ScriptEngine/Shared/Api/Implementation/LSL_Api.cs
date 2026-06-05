@@ -7164,6 +7164,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                         reply = userID.ToString();
                                     }
                                 }
+                                else
+                                {
+                                    url =  "https://" + server;
+                                    userConnection = new UserAgentServiceConnector(url);
+                                    if (userConnection is not null)
+                                    {
+                                        userID = userConnection.GetUUID(firstName, lastName);
+                                        if (!userID.IsZero())
+                                        {
+                                            userManager?.AddUser(userID, firstName, lastName, url);
+                                            reply = userID.ToString();
+                                        }
+                                    }
+                                }
                             }
                             catch
                             {

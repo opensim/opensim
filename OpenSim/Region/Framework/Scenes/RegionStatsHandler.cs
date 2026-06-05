@@ -81,7 +81,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             OSDMap args = new OSDMap(30);
             //int time = Util.ToUnixTime(DateTime.Now);
-            args["OSStatsURI"] = OSD.FromString("http://" + regionInfo.ExternalHostName + ":" + regionInfo.HttpPort + "/" + osXStatsURI + "/");
+            args["OSStatsURI"] = OSD.FromString(regionInfo.ServerURI.StartsWith("https://") ? "https://" : "http://" + regionInfo.ExternalHostName + ":" + regionInfo.HttpPort + "/" + osXStatsURI + "/");
             args["TimeZoneName"] = OSD.FromString(localZone);
             args["TimeZoneOffs"] = OSD.FromReal(utcOffset.TotalHours);
             args["UxTime"] = OSD.FromInteger(Util.ToUnixTime(DateTime.Now));
@@ -128,7 +128,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             OSDMap args = new OSDMap(30);
             //int time = Util.ToUnixTime(DateTime.Now);
-            args["OSStatsURI"] = OSD.FromString("http://" + regionInfo.ExternalHostName + ":" + regionInfo.HttpPort + "/" + osXStatsURI + "/");
+            args["OSStatsURI"] = OSD.FromString(regionInfo.ServerURI.StartsWith("https://") ? "https://" : "http://" + regionInfo.ExternalHostName + ":" + regionInfo.HttpPort + "/" + osXStatsURI + "/");
             args["TimeZoneName"] = OSD.FromString(localZone);
             args["TimeZoneOffs"] = OSD.FromReal(utcOffset.TotalHours);
             args["UxTime"] = OSD.FromInteger(Util.ToUnixTime(DateTime.Now));

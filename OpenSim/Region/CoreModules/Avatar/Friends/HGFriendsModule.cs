@@ -835,16 +835,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         {
             if (base.LocalFriendshipOffered(toID, im))
             {
-                if (im.fromAgentName.Contains("@"))
+                if (im.fromAgentName.Contains('@'))
                 {
-                    string[] parts = im.fromAgentName.Split(new char[] { '@' });
+                    string[] parts = im.fromAgentName.Split(['@']);
                     if (parts.Length == 2)
                     {
                         string[] fl = parts[0].Trim().Split(Util.SplitDotArray);
                         if (fl.Length == 2)
-                            m_uMan.AddUser(new UUID(im.fromAgentID), fl[0], fl[1], "http://" + parts[1]);
+                            m_uMan.AddUser(new UUID(im.fromAgentID), fl[0], fl[1], m_uMan.GetUserHomeURL(new UUID(im.fromAgentID)));
                         else
-                            m_uMan.AddUser(new UUID(im.fromAgentID), fl[0], "", "http://" + parts[1]);
+                            m_uMan.AddUser(new UUID(im.fromAgentID), fl[0], "", m_uMan.GetUserHomeURL(new UUID(im.fromAgentID)));
                     }
                 }
                 return true;
