@@ -417,7 +417,7 @@ namespace osWebRtcVoice
                         m_log.Warn($"{LogHeader}[ProvisionVoice]: Request detail: {map}");
 
                     response.RawBuffer = llsdUndefAnswerBytes;
-                    response.StatusCode = (int)HttpStatusCode.OK;
+                    response.StatusCode = 0;
                     return;
                 }
             }
