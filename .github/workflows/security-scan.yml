@@ -1,0 +1,48 @@
+name: Security & Vulnerability Scan
+
+on:
+  push:
+    branches: [ "master", "main", "develop" ]
+  pull_request:
+    branches: [ "master", "main" ]
+  schedule:
+    - cron: '0 0 * * 1'
+
+jobs:
+  dotnet-audit:
+    name: .NET Dependency Audit
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore Dependencies
+      run: dotnet restore
+
+    - name: Check NuGet Vulnerabilities
+      run: |
+        dotnet list package --vulnerable --include-transitive
+        
+  trivy-scan:
+    name: Software Composition Analysis (SCA)
+    runs-on: ubuntu-latest
+    needs: dotnet-audit
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'table'
+        exit-code: '1'
+        severity: 'CRITICAL,HIGH'
