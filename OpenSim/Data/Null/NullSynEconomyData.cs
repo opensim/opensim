@@ -71,27 +71,27 @@ namespace OpenSim.Data.Null
             newBalance = 0;
             if (amount < 0) return false;
 
-            // Atomic compare-and-debit loop. AddOrUpdate's
-            // factory may be called multiple times under
-            // contention, but only one outcome wins.
-            int winner = 0;
-            bool ok = false;
-            m_balances.AddOrUpdate(principal,
-                _ => { winner = 0; ok = false; return 0; },
-                (_, cur) =>
+            // Retry loop with TryUpdate to avoid the AddOrUpdate
+            // factory side-effect bug (captured locals can reflect
+            // a discarded invocation under contention).
+            int oldValue;
+            do
+            {
+                if (!m_balances.TryGetValue(principal, out oldValue))
                 {
-                    if (cur >= amount)
-                    {
-                        winner = cur - amount;
-                        ok = true;
-                        return winner;
-                    }
-                    winner = cur;
-                    ok = false;
-                    return cur;
-                });
-            newBalance = winner;
-            return ok;
+                    newBalance = 0;
+                    return false;
+                }
+                if (oldValue < amount)
+                {
+                    newBalance = oldValue;
+                    return false;
+                }
+                newBalance = oldValue - amount;
+            }
+            while (!m_balances.TryUpdate(principal, newBalance, oldValue));
+
+            return true;
         }
 
         public bool TryTransfer(UUID from, UUID to, int amount, out string reason)

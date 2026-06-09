@@ -117,7 +117,6 @@ namespace OpenSim.Addons.SynEconomy
             scene.EventManager.OnNewClient += OnNewClient;
             scene.EventManager.OnClientClosed += OnClientClosed;
             scene.EventManager.OnMoneyTransfer += OnMoneyTransferEvent;
-            scene.EventManager.OnValidateLandBuy += OnValidateLandBuy;
             scene.EventManager.OnLandBuy += OnLandBuy;
             // Fires exactly once per "agent becomes root agent in a scene":
             //   - initial login
@@ -139,7 +138,6 @@ namespace OpenSim.Addons.SynEconomy
                     m_scenes.Remove(scene.RegionInfo.RegionHandle);
             }
             scene.EventManager.OnMoneyTransfer -= OnMoneyTransferEvent;
-            scene.EventManager.OnValidateLandBuy -= OnValidateLandBuy;
             scene.EventManager.OnLandBuy -= OnLandBuy;
             scene.EventManager.OnSetRootAgentScene -= OnSetRootAgentScene;
         }
@@ -294,6 +292,8 @@ namespace OpenSim.Addons.SynEconomy
         private void ClientLoggedOut(IClientAPI client)
         {
             if (client == null) return;
+            client.OnMoneyBalanceRequest -= SendMoneyBalance;
+            client.OnEconomyDataRequest -= EconomyDataRequestHandler;
             client.OnObjectBuy -= OnObjectBuy;
             client.OnRequestPayPrice -= OnRequestPayPrice;
         }
@@ -538,14 +538,6 @@ namespace OpenSim.Addons.SynEconomy
             }
         }
 
-        private void OnValidateLandBuy(Object osender, EventManager.LandBuyArgs e)
-        {
-            lock (e)
-            {
-                e.economyValidated = true;
-            }
-        }
-
         private void OnLandBuy(Object osender, EventManager.LandBuyArgs e)
         {
             if (m_store == null) return;
@@ -783,13 +775,19 @@ namespace OpenSim.Addons.SynEconomy
                 StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length == 2)
             {
-                Scene scene = GetAnyScene();
-                if (scene == null || scene.UserAccountService == null)
+                Scene scene = GetSceneWithUserAccount();
+                if (scene == null)
                 {
                     m_log.Warn("[SYN ECONOMY]: No scene/UserAccountService available for name lookup");
                     return false;
                 }
-                UserAccount acct = scene.UserAccountService.GetUserAccount(
+                IUserAccountService uas = scene.RequestModuleInterface<IUserAccountService>();
+                if (uas == null)
+                {
+                    m_log.Warn("[SYN ECONOMY]: UserAccountService interface not registered on scene");
+                    return false;
+                }
+                UserAccount acct = uas.GetUserAccount(
                     scene.RegionInfo.ScopeID, parts[0], parts[1]);
                 if (acct == null) return false;
                 id = acct.PrincipalID;
@@ -801,9 +799,11 @@ namespace OpenSim.Addons.SynEconomy
 
         private string ResolveName(UUID id)
         {
-            Scene scene = GetAnyScene();
-            if (scene == null || scene.UserAccountService == null) return id.ToString();
-            UserAccount acct = scene.UserAccountService.GetUserAccount(
+            Scene scene = GetSceneWithUserAccount();
+            if (scene == null) return id.ToString();
+            IUserAccountService uas = scene.RequestModuleInterface<IUserAccountService>();
+            if (uas == null) return id.ToString();
+            UserAccount acct = uas.GetUserAccount(
                 scene.RegionInfo.ScopeID, id);
             return acct != null
                 ? string.Format("{0} {1}", acct.FirstName, acct.LastName)
@@ -815,6 +815,22 @@ namespace OpenSim.Addons.SynEconomy
             lock (m_scenes)
             {
                 foreach (var s in m_scenes.Values) return s;
+            }
+            return null;
+        }
+
+        private Scene GetSceneWithUserAccount()
+        {
+            lock (m_scenes)
+            {
+                foreach (var s in m_scenes.Values)
+                {
+                    // Use RequestModuleInterface directly instead of the property.
+                    // Scene.UserAccountService caches the first result via ??=, so if
+                    // the connector isn't registered yet it caches null permanently.
+                    if (s?.RequestModuleInterface<IUserAccountService>() != null)
+                        return s;
+                }
             }
             return null;
         }
