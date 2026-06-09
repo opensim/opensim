@@ -2004,6 +2004,34 @@ namespace OpenSim.Region.CoreModules.World.Land
             try
             {
                 args = (OSDMap)OSDParser.DeserializeLLSDXml(request.InputStream);
+
+                // Normalize OSDBinary fields to OSDInteger.
+                // Latest Firestorm viewers send `flags` and `parcel_flags` as OSDBinary
+                // instead of OSDInteger. libomv's ParcelPropertiesUpdateMessage.Deserialize
+                // cannot handle OSDBinary for these fields and enters an infinite loop.
+                if (args.TryGetValue("flags", out OSD flagVal) && flagVal is OSDBinary flagBin)
+                {
+                    byte[] bin = flagBin.AsBinary();
+                    if (bin != null)
+                    {
+                        uint val = 0;
+                        for (int i = 0; i < bin.Length && i < 4; i++)
+                            val = (val << 8) | bin[i];
+                        args["flags"] = new OSDInteger((int)val);
+                    }
+                }
+                if (args.TryGetValue("parcel_flags", out OSD pfVal) && pfVal is OSDBinary pfBin)
+                {
+                    byte[] bin = pfBin.AsBinary();
+                    if (bin != null)
+                    {
+                        uint val = 0;
+                        for (int i = 0; i < bin.Length && i < 4; i++)
+                            val = (val << 8) | bin[i];
+                        args["parcel_flags"] = new OSDInteger((int)val);
+                    }
+                }
+
                 properties = new ParcelPropertiesUpdateMessage();
                 properties.Deserialize(args);
             }
