@@ -120,3 +120,5 @@ doc/doxygen.error.log
 bin/OpenSim.ini
 
 *.patch
+
+.clinerules

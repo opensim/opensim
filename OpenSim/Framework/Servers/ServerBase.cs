@@ -748,53 +748,10 @@ namespace OpenSim.Framework.Servers
         /// </summary>
         protected void EnhanceVersionInformation()
         {
-            const string manualVersionFileName = ".version";
-            string buildVersion = string.Empty;
-
-            if (File.Exists(manualVersionFileName))
-            {
-                using (StreamReader CommitFile = File.OpenText(manualVersionFileName))
-                    buildVersion = CommitFile.ReadLine();
-
-                if (!string.IsNullOrEmpty(buildVersion))
-                {
-                    m_version += buildVersion;
-                    return;
-                }
-            }
-
-            string gitDir = Path.Combine("..", ".git");
-            string gitRefPointerPath = Path.Combine(gitDir, "HEAD");
-            if (File.Exists(gitRefPointerPath))
-            {
-                //m_log.DebugFormat("[SERVER BASE]: Found {0}", gitRefPointerPath);
-
-                string rawPointer = "";
-
-                using (StreamReader pointerFile = File.OpenText(gitRefPointerPath))
-                    rawPointer = pointerFile.ReadLine();
-
-                //m_log.DebugFormat("[SERVER BASE]: rawPointer [{0}]", rawPointer);
-
-                Match m = Regex.Match(rawPointer, "^ref: (.+)$");
-
-                if (m.Success)
-                {
-                    //m_log.DebugFormat("[SERVER BASE]: Matched [{0}]", m.Groups[1].Value);
-
-                    string gitRef = m.Groups[1].Value;
-                    string gitRefPath = Path.Combine(gitDir, gitRef);
-                    if (File.Exists(gitRefPath))
-                    {
-                        //m_log.DebugFormat("[SERVER BASE]: Found gitRefPath [{0}]", gitRefPath);
-                        using (StreamReader refFile = File.OpenText(gitRefPath))
-                            buildVersion = refFile.ReadLine();
-
-                        if (!string.IsNullOrEmpty(buildVersion))
-                            m_version += buildVersion[..7];
-                    }
-                }
-            }
+            // Hash injection disabled for SynGrid.
+            // The version string is built entirely from VersionInfo.cs
+            // (OpenSim <version> SynGrid <flavour>).
+            return;
         }
 
         public string GetVersionText()
