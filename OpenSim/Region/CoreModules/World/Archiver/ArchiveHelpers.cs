@@ -28,7 +28,9 @@
 using System;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 using OpenMetaverse;
+using OpenSim.Framework;
 using OpenSim.Framework.Serialization;
 using OpenSim.Region.Framework.Scenes;
 
@@ -104,24 +106,22 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         public static Stream URIFetch(Uri uri)
         {
-            HttpWebRequest request  = (HttpWebRequest)WebRequest.Create(uri);
+            HttpClient httpClient = WebUtil.GetNewGlobalHttpClient(30000);
+            httpClient.DefaultRequestHeaders.ConnectionClose = true;
 
-            // request.Credentials = credentials;
+            HttpResponseMessage response = httpClient.Send(new HttpRequestMessage(HttpMethod.Get, uri), HttpCompletionOption.ResponseHeadersRead);
+            response.EnsureSuccessStatusCode();
 
-            request.ContentLength = 0;
-            request.KeepAlive     = false;
+            long? contentLength = response.Content.Headers.ContentLength;
 
-            WebResponse response = request.GetResponse();
-            Stream file = response.GetResponseStream();
+            if (contentLength.HasValue && contentLength.Value == 0)
+            {
+                response.Dispose();
+                httpClient.Dispose();
+                throw new Exception(string.Format("{0} returned an empty file", uri.ToString()));
+            }
 
-            // justincc: gonna ignore the content type for now and just try anything
-            //if (response.ContentType != "application/x-oar")
-            //    throw new Exception(String.Format("{0} does not identify an OAR file", uri.ToString()));
-
-            if (response.ContentLength == 0)
-                throw new Exception(String.Format("{0} returned an empty file", uri.ToString()));
-
-            // return new BufferedStream(file, (int) response.ContentLength);
+            Stream file = response.Content.ReadAsStream();
             return new BufferedStream(file, 1000000);
         }
     }
