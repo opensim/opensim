@@ -96,7 +96,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
         private const int SCRIPTED = 8;
 
         private readonly float maximumRange = 96.0f;
-        private readonly int maximumToReturn = 16;
+        private readonly int maximumToReturn = 32;
 
         //
         // Sensed entity

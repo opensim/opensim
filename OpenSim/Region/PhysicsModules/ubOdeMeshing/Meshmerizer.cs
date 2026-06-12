@@ -75,8 +75,8 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
         private bool doConvexPrims = true;
         private bool doConvexSculpts = true;
 
-        private readonly Dictionary<AMeshKey, Mesh> m_uniqueMeshes = new();
-        private readonly Dictionary<AMeshKey, Mesh> m_uniqueReleasedMeshes = new ();
+        private readonly Dictionary<AMeshKey, Mesh> m_uniqueMeshes = [];
+        private readonly Dictionary<AMeshKey, Mesh> m_uniqueReleasedMeshes = [];
 
        #region INonSharedRegionModule
         public string Name
@@ -173,7 +173,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
         /// <param name="size">Size of entire object</param>
         /// <param name="coords"></param>
         /// <param name="faces"></param>
-        private unsafe void  AddSubMesh(OSDMap subMeshData, List<Vector3> coords, List<Face> faces)
+        private unsafe void AddSubMesh(OSDMap subMeshData, List<Vector3> coords, List<Face> faces)
         {
             // Console.WriteLine("subMeshMap for {0} - {1}", primName, Util.GetFormattedXml((OSD)subMeshMap));
 
@@ -209,7 +209,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
             int faceIndexOffset = coords.Count;
 
             fixed (byte* ptrstart = posBytes)
-            { 
+            {
                 byte* end = ptrstart + posBytes.Length;
                 byte* ptr = ptrstart;
                 while (ptr < end)

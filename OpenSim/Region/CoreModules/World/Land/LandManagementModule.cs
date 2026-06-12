@@ -2117,7 +2117,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     {
                         // if you do a "About Landmark" on a landmark a second time, the viewer sends the
                         // region_handle it got earlier via RegionHandleRequest
-                        ulong regionHandle = Util.BytesToUInt64Big((byte[])tmp);
+                        ulong regionHandle = tmp.AsULong();
                         if(regionHandle == myHandle)
                         {
                             ILandObject l = GetLandObjectClippedXY(x, y);
