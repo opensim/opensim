@@ -352,12 +352,12 @@ namespace OpenSim.Data.PGSQL
 
                     //Insert after
                     cmd.CommandText = "insert into estateban (\"EstateID\", \"bannedUUID\",\"bannedIp\", \"bannedIpHostMask\", \"bannedNameMask\", \"banningUUID\",\"banTime\" ) values ( :EstateID, :bannedUUID, '','','', :banningUUID, :banTime )";
-                    cmd.Parameters.AddWithValue("bannedUUID", Guid.Empty);
                     foreach (EstateBan b in es.EstateBans)
                     {
+                        cmd.Parameters.Clear();
                         cmd.Parameters["EstateID"].Value = b.EstateID;
-                        cmd.Parameters["bannedUUID"].Value = b.BannedUserID.Guid;
-                        cmd.Parameters["banningUUID"].Value = b.BanningUserID.Guid;
+                        cmd.Parameters["bannedUUID"].Value = _Database.CreateParameter("bannedUUID", b.BannedUserID).Value;
+                        cmd.Parameters["banningUUID"].Value = _Database.CreateParameter("banningUUID", b.BanningUserID).Value;
                         cmd.Parameters["banTime"].Value = b.BanTime;
 
                         cmd.ExecuteNonQuery();
@@ -378,10 +378,10 @@ namespace OpenSim.Data.PGSQL
                     cmd.ExecuteNonQuery();
 
                     cmd.CommandText = string.Format("insert into {0} (\"EstateID\", uuid) values ( :EstateID, :uuid )", table);
-                    cmd.Parameters.AddWithValue("uuid", Guid.Empty);
                     foreach (UUID uuid in data)
                     {
-                        cmd.Parameters["uuid"].Value = uuid.Guid; //.ToString(); //TODO check if this works
+                        cmd.Parameters.Clear();
+                        cmd.Parameters.Add(_Database.CreateParameter("uuid", uuid));
                         cmd.ExecuteNonQuery();
                     }
                 }

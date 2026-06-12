@@ -134,10 +134,13 @@ namespace OpenSim.Data.PGSQL
 
             foreach (DataRow row in schemaTable.Rows)
             {
-                if (row["ColumnName"] != null &&
-                        (!m_Fields.ContainsKey(row["ColumnName"].ToString())))
-                    m_ColumnNames.Add(row["ColumnName"].ToString());
+                if (row["ColumnName"] == null)
+                    continue;
 
+                string col = row["ColumnName"].ToString();
+
+                if (!m_Fields.ContainsKey(col))
+                    m_ColumnNames.Add(col);
             }
         }
 

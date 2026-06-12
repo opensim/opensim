@@ -171,7 +171,7 @@ namespace OpenSim.Data.PGSQL
                 {
                     // cmd.CommandText = String.Format(@"select * from inventoryitems where ""avatarID"" = :uuid and ""assetType"" = :type and ""flags"" = 1", m_Realm);
 
-                    cmd.CommandText = "select * from inventoryitems where avatarID = :uuid and assetType = :type and flags = 1";
+                    cmd.CommandText = "select * from inventoryitems where \"avatarID\" = :uuid and \"assetType\" = :type and \"flags\" = 1";
 
                     cmd.Parameters.Add(m_database.CreateParameter("uuid", principalID));
                     cmd.Parameters.Add(m_database.CreateParameter("type", (int)AssetType.Gesture));
