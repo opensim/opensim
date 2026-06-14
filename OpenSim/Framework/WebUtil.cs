@@ -50,6 +50,7 @@ using log4net;
 using Nwc.XmlRpc;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework.ServiceAuth;
+using System.Threading.Tasks;
 
 namespace OpenSim.Framework
 {
@@ -993,8 +994,8 @@ namespace OpenSim.Framework
         /// then the default(TResponse) is returned.
         /// </returns>
         public static void MakeRequest<TRequest, TResponse>(string verb,
-                string requestUrl, TRequest obj, Action<TResponse> action,
-                int maxConnections, IServiceAuth auth)
+        string requestUrl, TRequest obj, Action<TResponse> action,
+        int maxConnections, IServiceAuth auth)
         {
             int reqnum = WebUtil.RequestNumber++;
 
@@ -1006,32 +1007,14 @@ namespace OpenSim.Framework
             int tickdiff = 0;
 
             Type type = typeof(TRequest);
-
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(requestUrl);
-
-            if (auth != null)
-                auth.AddAuthorization(request.Headers);
-
-            request.AllowWriteStreamBuffering = false;
-
-            if (maxConnections > 0 && request.ServicePoint.ConnectionLimit < maxConnections)
-                request.ServicePoint.ConnectionLimit = maxConnections;
-
             TResponse deserial = default;
-
-            request.Method = verb;
-
             byte[] data = null;
+
             try
             {
                 if (verb == "POST")
                 {
-                    request.ContentType = "text/xml";
-
-                    XmlWriterSettings settings = new()
-                    {
-                        Encoding = Encoding.UTF8
-                    };
+                    XmlWriterSettings settings = new() { Encoding = Encoding.UTF8 };
                     using (MemoryStream buffer = new())
                     using (XmlWriter writer = XmlWriter.Create(buffer, settings))
                     {
@@ -1041,125 +1024,120 @@ namespace OpenSim.Framework
                         data = buffer.ToArray();
                     }
 
-                    int length = data.Length;
-                    request.ContentLength = length;
-
                     if (WebUtil.DebugLevel >= 5)
-                        WebUtil.LogOutgoingDetail("SEND", reqnum, System.Text.Encoding.UTF8.GetString(data));
-
-                    request.BeginGetRequestStream(delegate(IAsyncResult res)
-                    {
-                        using (Stream requestStream = request.EndGetRequestStream(res))
-                            requestStream.Write(data, 0, length);
-
-                        // capture how much time was spent writing
-                        tickdata = Util.EnvironmentTickCountSubtract(tickstart);
-
-                        request.BeginGetResponse(delegate(IAsyncResult ar)
-                        {
-                            using (WebResponse response = request.EndGetResponse(ar))
-                            {
-                                try
-                                {
-                                    using Stream respStream = response.GetResponseStream();
-                                    deserial = XMLResponseHelper.LogAndDeserialize<TResponse>(
-                                        reqnum, respStream, response.ContentLength);
-                                }
-                                catch (System.InvalidOperationException)
-                                {
-                                }
-                            }
-
-                            action(deserial);
-
-                        }, null);
-                    }, null);
+                        WebUtil.LogOutgoingDetail("SEND", reqnum, Encoding.UTF8.GetString(data));
                 }
-                else
+
+                HttpClient httpClient = WebUtil.GetNewGlobalHttpClient(30000);
+                // Setting maxConnections...
+                if (maxConnections > 0 && WebUtil.SharedSocketsHttpHandler != null)
                 {
-                    request.BeginGetResponse(delegate(IAsyncResult res2)
+                    if (WebUtil.SharedSocketsHttpHandler.MaxConnectionsPerServer < maxConnections)
                     {
-                        try
+                        WebUtil.SharedSocketsHttpHandler.MaxConnectionsPerServer = maxConnections;
+                    }
+                }
+
+                // Non-blocking async... (Simulate BeginGetResponse)
+                Task.Run(async () =>
+                {
+                    HttpRequestMessage request = new(new HttpMethod(verb), requestUrl);
+
+                    if (auth != null)
+                    {
+                        WebHeaderCollection legacyHeaders = [];
+                        auth.AddAuthorization(legacyHeaders);
+                        foreach (string key in legacyHeaders.AllKeys)
                         {
-                            // If the server returns a 404, this appears to trigger a System.Net.WebException even though that isn't
-                            // documented in MSDN
-                            using WebResponse response = request.EndGetResponse(res2);
+                            request.Headers.TryAddWithoutValidation(key, legacyHeaders[key]);
+                        }
+                    }
+
+                    request.Headers.TryAddWithoutValidation(WebUtil.OSHeaderRequestID, reqnum.ToString());
+
+                    if (verb == "POST" && data != null)
+                    {
+                        int tickWriteStart = Util.EnvironmentTickCount();
+                        
+                        request.Content = new ByteArrayContent(data);
+                        request.Content.Headers.ContentType = new MediaTypeHeaderValue("text/xml");
+                        
+                        tickdata = Util.EnvironmentTickCountSubtract(tickWriteStart);
+                    }
+
+                    try
+                    {
+                        HttpResponseMessage response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+                        if (response.IsSuccessStatusCode)
+                        {
                             try
                             {
-                                using Stream respStream = response.GetResponseStream();
-                                deserial = XMLResponseHelper.LogAndDeserialize<TResponse>(
-                                    reqnum, respStream, response.ContentLength);
+                                Stream respStream = await response.Content.ReadAsStreamAsync();
+                                long contentLength = response.Content.Headers.ContentLength ?? -1;
+                                deserial = XMLResponseHelper.LogAndDeserialize<TResponse>(reqnum, respStream, contentLength);
                             }
-                            catch (System.InvalidOperationException)
+                            catch (InvalidOperationException)
                             {
                                 try
                                 {
-                                    using Stream respStream = response.GetResponseStream();
-                                    deserial = XMLResponseHelper.LogAndDeserialize<TResponse>(
-                                        reqnum, respStream, response.ContentLength);
+                                    Stream respStream = await response.Content.ReadAsStreamAsync();
+                                    long contentLength = response.Content.Headers.ContentLength ?? -1;
+                                    deserial = XMLResponseHelper.LogAndDeserialize<TResponse>(reqnum, respStream, contentLength);
                                 }
-                                catch (System.InvalidOperationException)
-                                {
-                                }
+                                catch (InvalidOperationException) { }
                             }
                         }
-                        catch (WebException e)
+                        else
                         {
-                            if (e.Status == WebExceptionStatus.ProtocolError)
+                            if (response.StatusCode != HttpStatusCode.NotFound)
                             {
-                                if (e.Response is HttpWebResponse httpResponse)
-                                {
-                                    if (httpResponse.StatusCode != HttpStatusCode.NotFound)
-                                    {
-                                        // We don't appear to be handling any other status codes, so log these feailures to that
-                                        // people don't spend unnecessary hours hunting phantom bugs.
-                                        m_log.Debug(
-                                            $"[ASYNC REQUEST]: Request {verb} {requestUrl} failed with unexpected status code {httpResponse.StatusCode}");
-                                    }
-                                    httpResponse.Dispose();
-                                }
+                                m_log.Debug($"[ASYNC REQUEST]: Request {verb} {requestUrl} failed with unexpected status code {response.StatusCode}");
                             }
-                            else
+                        }
+                    }
+                    catch (HttpRequestException e)
+                    {
+                        if (e.StatusCode.HasValue)
+                        {
+                            if (e.StatusCode.Value != HttpStatusCode.NotFound)
                             {
-                                m_log.Error(
-                                    $"[ASYNC REQUEST]: Request {verb} {requestUrl} failed with status {e.Status} and message {e.Message}");
+                                m_log.Debug($"[ASYNC REQUEST]: Request {verb} {requestUrl} failed with unexpected status code {e.StatusCode.Value}");
                             }
                         }
-                        catch (Exception e)
+                        else
                         {
-                            m_log.Error($"[ASYNC REQUEST]: Request {verb} {requestUrl} failed with exception {e.Message}");
+                            m_log.Error($"[ASYNC REQUEST]: Request {verb} {requestUrl} failed with message {e.Message}");
                         }
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.Error($"[ASYNC REQUEST]: Request {verb} {requestUrl} failed with exception {e.Message}");
+                    }
 
-                        //m_log.DebugFormat("[ASYNC REQUEST]: Received {0}", deserial.ToString());
-
-                        try
-                        {
-                            action(deserial);
-                        }
-                        catch (Exception e)
-                        {
-                            m_log.Error($"[ASYNC REQUEST]: Request {verb} {requestUrl} callback failed with exception {e.Message}");
-                        }
-
-                    }, null);
-                }
+                    try
+                    {
+                        action(deserial);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.Error($"[ASYNC REQUEST]: Request {verb} {requestUrl} callback failed with exception {e.Message}");
+                    }
+                });
 
                 tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
                 if (tickdiff > WebUtil.LongCallTime)
                 {
                     string originalRequest = null;
-
                     if (data != null)
                     {
                         originalRequest = Encoding.UTF8.GetString(data);
-
                         if (originalRequest.Length > WebUtil.MaxRequestDiagLength)
                             originalRequest = originalRequest.Remove(WebUtil.MaxRequestDiagLength);
                     }
-                     m_log.InfoFormat(
+                    m_log.InfoFormat(
                         "[LOGHTTP]: Slow AsynchronousRequestObject request {0} {1} to {2} took {3}ms, {4}ms writing, {5}",
-                        reqnum, verb, requestUrl, tickdiff, tickdata,
-                        originalRequest);
+                        reqnum, verb, requestUrl, tickdiff, tickdata, originalRequest);
                 }
                 else if (WebUtil.DebugLevel >= 4)
                 {
