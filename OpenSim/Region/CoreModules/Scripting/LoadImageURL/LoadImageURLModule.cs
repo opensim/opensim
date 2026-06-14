@@ -38,6 +38,8 @@ using OpenSim.Region.Framework.Scenes;
 using log4net;
 using System.Reflection;
 using Mono.Addins;
+using System.Threading.Tasks;
+using System.Net.Http;
 
 namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
 {
@@ -163,7 +165,6 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
         }
 
         #endregion
-
         private bool MakeHttpRequest(string url, UUID requestID)
         {
             if (m_textureManager is null)
@@ -175,64 +176,75 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
             if (!m_outboundUrlFilter.CheckAllowed(new Uri(url)))
                 return false;
 
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-            request.AllowAutoRedirect = false;
+            RequestState state = new(url, requestID);
 
-            if(m_proxy is not null)
-                request.Proxy = m_proxy;
-
-            RequestState state = new RequestState(request, requestID);
-            // IAsyncResult result = request.BeginGetResponse(new AsyncCallback(HttpRequestReturn), state);
-            request.BeginGetResponse(HttpRequestReturn, state);
-            return true;
-        }
-
-        private void HttpRequestReturn(IAsyncResult result)
-        {
-            if (m_textureManager == null)
-                return;
-
-            RequestState state = (RequestState) result.AsyncState;
-            WebRequest request = (WebRequest) state.Request;
-            Stream stream = null;
-            byte[] imageJ2000 = Array.Empty<byte>();
-            Size newSize = new Size(0, 0);
-            HttpWebResponse response = null;
-
-            try
+            /*- Load and handle as non-blocking async task.
+              - The initial separation between MakeHttpRequest and the HttpRequestReturn callback (made necessary by the old APM asynchronous model) has been grouped into the following Task.Run block. The code gains readability while retaining its asynchronous behavior with respect to the simulator's main thread...
+            */
+            Task.Run(async () =>
             {
-                response = (HttpWebResponse)request.EndGetResponse(result);
-                if (response != null && response.StatusCode == HttpStatusCode.OK)
+                HttpClient httpClient = null;
+                HttpResponseMessage response = null;
+                Stream stream = null;
+                byte[] imageJ2000 = [];
+                Size newSize = new(0, 0);
+                HttpStatusCode statusCode = HttpStatusCode.OK;
+                string redirectedUrl = null;
+
+                try
                 {
-                    stream = response.GetResponseStream();
-                    if (stream != null)
+
+                    httpClient = WebUtil.GetNewGlobalHttpClient(30000);
+
+                    // Disabling automatic redirects (AllowAutoRedirect = false)
+                    // With SocketsHttpHandler / SharedSocketsHttpHandler, HttpClient does not offer a direct switch per request, but using ResponseHeadersRead and inspecting 3xx statuses simulates this behavior.
+                    HttpRequestMessage request = new(HttpMethod.Get, url);
+                    
+                    response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+                    statusCode = response.StatusCode;
+
+                    // Inspecting (301, 302, 303, 307) statuses...
+                    if (statusCode == HttpStatusCode.MovedPermanently ||
+                        statusCode == HttpStatusCode.Found ||
+                        statusCode == HttpStatusCode.SeeOther ||
+                        statusCode == HttpStatusCode.TemporaryRedirect)
                     {
-                        try
+                        if (response.Headers.Location != null)
                         {
-                            using(Bitmap image = new Bitmap(stream))
+                            redirectedUrl = response.Headers.Location.IsAbsoluteUri 
+                                ? response.Headers.Location.ToString() 
+                                : new Uri(new Uri(url), response.Headers.Location).ToString();
+                        }
+                    }
+                    else if (statusCode == HttpStatusCode.OK)
+                    {
+                        stream = await response.Content.ReadAsStreamAsync();
+                        if (stream != null)
+                        {
+                            try
                             {
-                                // TODO: make this a bit less hard coded
-                                if((image.Height < 64) && (image.Width < 64))
+                                Bitmap image = new(stream);
+                                if (image.Height < 64 && image.Width < 64)
                                 {
                                     newSize.Width = 32;
                                     newSize.Height = 32;
                                 }
-                                else if((image.Height < 128) && (image.Width < 128))
+                                else if (image.Height < 128 && image.Width < 128)
                                 {
                                     newSize.Width = 64;
                                     newSize.Height = 64;
                                 }
-                                else if((image.Height < 256) && (image.Width < 256))
+                                else if (image.Height < 256 && image.Width < 256)
                                 {
                                     newSize.Width = 128;
                                     newSize.Height = 128;
                                 }
-                                else if((image.Height < 512 && image.Width < 512))
+                                else if (image.Height < 512 && image.Width < 512)
                                 {
                                     newSize.Width = 256;
                                     newSize.Height = 256;
                                 }
-                                else if((image.Height < 1024 && image.Width < 1024))
+                                else if (image.Height < 1024 && image.Width < 1024)
                                 {
                                     newSize.Width = 512;
                                     newSize.Height = 512;
@@ -243,75 +255,77 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
                                     newSize.Height = 1024;
                                 }
 
-                                if(newSize.Width != image.Width || newSize.Height != image.Height)
+                                if (newSize.Width != image.Width || newSize.Height != image.Height)
                                 {
-                                    using(Bitmap resize = new Bitmap(image, newSize))
-                                     imageJ2000 = OpenJPEG.EncodeFromImage(resize, false);
+                                    Bitmap resize = new(image, newSize);
+                                    imageJ2000 = OpenJPEG.EncodeFromImage(resize, false);
                                 }
                                 else
+                                {
                                     imageJ2000 = OpenJPEG.EncodeFromImage(image, false);
+                                }
+                            }
+                            catch (Exception)
+                            {
+                                m_log.Error("[LOADIMAGEURLMODULE]: OpenJpeg Conversion Failed. Empty byte data returned!");
                             }
                         }
-                        catch (Exception)
+                        else
                         {
-                            m_log.Error("[LOADIMAGEURLMODULE]: OpenJpeg Conversion Failed.  Empty byte data returned!");
+                            m_log.WarnFormat("[LOADIMAGEURLMODULE] No data returned");
                         }
                     }
-                    else
-                    {
-                        m_log.WarnFormat("[LOADIMAGEURLMODULE] No data returned");
-                    }
+                }                
+                catch (HttpRequestException e)
+                { 
+                    // In case...
+                    m_log.ErrorFormat("[LOADIMAGEURLMODULE]: unexpected Http Request Exception {0}", e.Message); 
                 }
-            }
-            catch (WebException)
-            {
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[LOADIMAGEURLMODULE]: unexpected exception {0}", e.Message);
-            }
-            finally
-            {
-                if (stream != null)
-                    stream.Close();
-
-                if (response != null)
+                catch (Exception e)
                 {
-                    if (response.StatusCode == HttpStatusCode.MovedPermanently
-                            || response.StatusCode == HttpStatusCode.Found
-                            || response.StatusCode == HttpStatusCode.SeeOther
-                            || response.StatusCode == HttpStatusCode.TemporaryRedirect)
-                    {
-                        string redirectedUrl = response.Headers["Location"];
-
-                        MakeHttpRequest(redirectedUrl, state.RequestID);
-                    }
-                    else
-                    {
-                        m_log.DebugFormat("[LOADIMAGEURLMODULE]: Returning {0} bytes of image data for request {1}",
-                                          imageJ2000.Length, state.RequestID);
-
-                        m_textureManager.ReturnData(
-                            state.RequestID,
-                            new OpenSim.Region.CoreModules.Scripting.DynamicTexture.DynamicTexture(
-                            request.RequestUri, null, imageJ2000, newSize, false));
-                    }
-                    response.Close();
+                    m_log.ErrorFormat("[LOADIMAGEURLMODULE]: unexpected exception {0}", e.Message);
                 }
-            }
+                finally
+                {
+                    // Dispose resources...
+                    stream?.Dispose();
+                    response?.Dispose();
+                    httpClient?.Dispose();
+
+                    if (m_textureManager != null)
+                    {
+                        if (!string.IsNullOrEmpty(redirectedUrl))
+                        {
+                            MakeHttpRequest(redirectedUrl, state.RequestID);
+                        }
+                        else
+                        {
+                            m_log.DebugFormat("[LOADIMAGEURLMODULE]: Returning {0} bytes of image data for request {1}",
+                                            imageJ2000.Length, state.RequestID);
+
+                            m_textureManager.ReturnData(
+                                state.RequestID,
+                                new DynamicTexture.DynamicTexture(
+                                new Uri(state.RequestUrl), null, imageJ2000, newSize, false));
+                        }
+                    }
+                }
+            });
+
+            return true;
         }
 
         #region Nested type: RequestState
 
         public class RequestState
         {
-            public HttpWebRequest Request = null;
+            public string RequestUrl;
             public UUID RequestID = UUID.Zero;
             public int TimeOfRequest = 0;
 
-            public RequestState(HttpWebRequest request, UUID requestID)
+            public RequestState(string url, UUID requestID)
             {
-                Request = request;
+                RequestUrl = url;
                 RequestID = requestID;
                 TimeOfRequest = Util.UnixTimeSinceEpoch();
             }
