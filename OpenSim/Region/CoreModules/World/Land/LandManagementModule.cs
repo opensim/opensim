@@ -2117,7 +2117,33 @@ namespace OpenSim.Region.CoreModules.World.Land
                     {
                         // if you do a "About Landmark" on a landmark a second time, the viewer sends the
                         // region_handle it got earlier via RegionHandleRequest
-                        ulong regionHandle = tmp.AsULong();
+                        
+                        //ulong regionHandle = tmp.AsULong();
+
+                        byte[] handleBytes = tmp.AsBinary();
+
+                        if (handleBytes == null || handleBytes.Length != 8)
+                        {
+                            m_log.WarnFormat(
+                                "[LAND MANAGEMENT MODULE]: Bad RemoteParcelRequest region_handle length={0}",
+                                handleBytes == null ? -1 : handleBytes.Length
+                            );
+
+                            response.StatusCode = (int)HttpStatusCode.BadRequest;
+                            return;
+                        }
+
+                        ulong regionHandle =
+                            ((ulong)handleBytes[0] << 56) |
+                            ((ulong)handleBytes[1] << 48) |
+                            ((ulong)handleBytes[2] << 40) |
+                            ((ulong)handleBytes[3] << 32) |
+                            ((ulong)handleBytes[4] << 24) |
+                            ((ulong)handleBytes[5] << 16) |
+                            ((ulong)handleBytes[6] << 8) |
+                            handleBytes[7];
+
+
                         if(regionHandle == myHandle)
                         {
                             ILandObject l = GetLandObjectClippedXY(x, y);
