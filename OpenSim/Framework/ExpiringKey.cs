@@ -28,6 +28,7 @@ using System;
 using System.Threading;
 using System.Collections.Generic;
 using Timer = System.Threading.Timer ;
+using System.Runtime.InteropServices;
 
 namespace OpenSim.Framework
 {
@@ -164,6 +165,28 @@ namespace OpenSim.Framework
             {
                 m_dictionary[key] = now;
                 CheckTimer();
+            }
+            finally { m_rwLock.ExitWriteLock(); }
+        }
+
+        public bool AddOrUpdate(Tkey1 key, int expireMS)
+        {
+            int now;
+            if (expireMS > 0)
+            {
+                expireMS = (expireMS > m_expire) ? expireMS : m_expire;
+                now = (int)(Util.GetTimeStampMS() - m_startTS) + expireMS;
+            }
+            else
+                now = int.MinValue;
+
+            m_rwLock.EnterWriteLock();
+            try
+            {
+                ref int entry = ref CollectionsMarshal.GetValueRefOrAddDefault(m_dictionary, key, out bool exists);
+                entry = now;
+                CheckTimer();
+                return exists;
             }
             finally { m_rwLock.ExitWriteLock(); }
         }
