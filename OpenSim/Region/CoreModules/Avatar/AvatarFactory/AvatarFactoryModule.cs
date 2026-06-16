@@ -68,8 +68,8 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         private object m_setAppearanceLock = new object();
 
         // add throttle
-        private ConcurrentDictionary<string, long> m_rebakeThrottle = new ConcurrentDictionary<string, long>();
         private const int REBAKE_THROTTLE_SECONDS = 30;
+        readonly ExpiringKey<string> m_rebakeThrottle = new(500 * REBAKE_THROTTLE_SECONDS);
         
         #region Region Module interface
 
@@ -456,28 +456,17 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             sp.Appearance.WearableCacheItems = wearableCache;
 
             // throttle rebake requests
-
             if (missing.Count > 0)
             {
-                long now = DateTime.UtcNow.Ticks;
-
+                string spuuidstr = sp.UUID.ToString();
                 foreach (UUID id in missing)
                 {
-                    string key = sp.UUID.ToString() + ":" + id.ToString();
+                    string key = spuuidstr + id.ToString();
 
-                    long last;
-                    if (m_rebakeThrottle.TryGetValue(key, out last))
-                    {
-                        TimeSpan age = new TimeSpan(now - last);
-                        if (age.TotalSeconds < REBAKE_THROTTLE_SECONDS)
-                            continue;
-                    }
+                    if(m_rebakeThrottle.AddOrUpdate(key, 1000 * REBAKE_THROTTLE_SECONDS))
+                        continue;
 
-                    m_rebakeThrottle[key] = now;
-
-                    m_log.DebugFormat(
-                        "[AVFACTORY]: Missing baked texture {0} for {1}, requesting rebake",
-                        id, sp.Name);
+                    m_log.Debug($"[AVFACTORY]: Missing baked texture {id} for {sp.Name}, requesting rebake");
 
                     sp.ControllingClient.SendRebakeAvatarTextures(id);
                 }
