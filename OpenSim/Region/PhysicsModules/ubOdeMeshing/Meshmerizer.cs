@@ -1331,8 +1331,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                 }
                 finally
                 {
-                    if(stream != null)
-                        stream.Dispose();
+                    stream?.Dispose();
                 }
 
                 if (!ok && File.Exists(filename))

@@ -1535,10 +1535,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 catch (Exception ex)
                 {
                     m_log.Error($"Packet statistics gathering failed: {ex.Message}");
-                    if (PacketLog.Log != null)
-                    {
-                        PacketLog.Log.Close();
-                    }
+                    PacketLog?.Log?.Close();
                     PacketLog = null;
                 }
             }

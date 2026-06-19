@@ -105,11 +105,9 @@ namespace OpenSim.Region.CoreModules
             }
 
             // Check for desired plugin
-            if (m_availableWindPlugins.ContainsKey(m_dWindPluginName))
+            if (m_availableWindPlugins.TryGetValue(m_dWindPluginName, out m_activeWindPlugin))
             {
-                m_activeWindPlugin = m_availableWindPlugins[m_dWindPluginName];
-
-                m_log.InfoFormat("[WIND] {0} plugin found, initializing.", m_dWindPluginName);
+                 m_log.InfoFormat("[WIND] {0} plugin found, initializing.", m_dWindPluginName);
 
                 if (m_windConfig != null)
                 {

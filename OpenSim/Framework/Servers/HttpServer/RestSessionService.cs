@@ -79,8 +79,10 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             using (MemoryStream buffer = new MemoryStream())
             {
-                XmlWriterSettings settings = new XmlWriterSettings();
-                settings.Encoding = Encoding.UTF8;
+                XmlWriterSettings settings = new()
+                {
+                    Encoding = Encoding.UTF8
+                };
 
                 using (XmlWriter writer = XmlWriter.Create(buffer, settings))
                 {
@@ -134,8 +136,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             using (MemoryStream buffer = new MemoryStream())
             {
-                XmlWriterSettings settings = new XmlWriterSettings();
-                settings.Encoding = Encoding.UTF8;
+                XmlWriterSettings settings = new() { Encoding = Encoding.UTF8 };
 
                 using (XmlWriter writer = XmlWriter.Create(buffer, settings))
                 {
@@ -169,8 +170,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 //                m_log.DebugFormat("[REST OBJECT POSTER RESPONSE]: Received {0}", reader.ReadToEnd());
 
                 deserial = (TResponse)deserializer.Deserialize(stream);
-                if (stream != null)
-                    stream.Close();
+                stream?.Close();
 
                 if (deserial != null && ResponseCallback != null)
                 {

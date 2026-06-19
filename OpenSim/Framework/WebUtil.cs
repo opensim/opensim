@@ -1009,8 +1009,7 @@ namespace OpenSim.Framework
 
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(requestUrl);
 
-            if (auth != null)
-                auth.AddAuthorization(request.Headers);
+            auth?.AddAuthorization(request.Headers);
 
             request.AllowWriteStreamBuffering = false;
 

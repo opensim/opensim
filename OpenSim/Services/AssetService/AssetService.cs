@@ -61,8 +61,7 @@ namespace OpenSim.Services.AssetService
                     if (assetConfig == null)
                         throw new Exception("No " + m_ConfigName + " configuration");
 
-                    string loaderArgs = assetConfig.GetString("AssetLoaderArgs",
-                            String.Empty);
+                    string loaderArgs = assetConfig.GetString("AssetLoaderArgs", string.Empty);
 
                     bool assetLoaderEnabled = assetConfig.GetBoolean("AssetLoaderEnabled", true);
 
@@ -92,11 +91,8 @@ namespace OpenSim.Services.AssetService
 
         public virtual AssetBase Get(string id)
         {
-//            m_log.DebugFormat("[ASSET SERVICE]: Get asset for {0}", id);
-
-            UUID assetID;
-
-            if (!UUID.TryParse(id, out assetID))
+            //            m_log.DebugFormat("[ASSET SERVICE]: Get asset for {0}", id);
+            if (!UUID.TryParse(id, out UUID assetID))
             {
                 m_log.WarnFormat("[ASSET SERVICE]: Could not parse requested asset id {0}", id);
                 return null;

@@ -22,7 +22,7 @@ namespace OSHttpServer
         public RequestCookie(string id, string content)
         {
             if (string.IsNullOrEmpty(id)) throw new ArgumentNullException("id");
-            if (content == null) throw new ArgumentNullException("content");
+            ArgumentNullException.ThrowIfNull(content);
 
             _name = id;
             _value = content;

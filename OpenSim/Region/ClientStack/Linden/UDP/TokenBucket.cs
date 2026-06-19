@@ -226,8 +226,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             // Pass the new values up to the parent
-            if (m_parent != null)
-                m_parent.RegisterRequest(this, Math.Min(RequestedDripRate, TotalDripRequest));
+            m_parent?.RegisterRequest(this, Math.Min(RequestedDripRate, TotalDripRequest));
         }
 
         /// <summary>
@@ -246,8 +245,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             // Pass the new values up to the parent
-            if (Parent != null)
-                Parent.RegisterRequest(this,Math.Min(RequestedDripRate, TotalDripRequest));
+            Parent?.RegisterRequest(this,Math.Min(RequestedDripRate, TotalDripRequest));
         }
 
         /// <summary>
@@ -351,8 +349,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 m_dripRate = Math.Clamp(value, m_minimumFlow, MaxDripRate);
 
-                if (m_parent != null)
-                    m_parent.RegisterRequest(this, m_dripRate);
+                m_parent?.RegisterRequest(this, m_dripRate);
             }
         }
 
@@ -371,8 +368,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_dripRate = m_maxDripRate * .5f;
             else
                 m_dripRate = m_maxDripRate;
-            if (m_parent != null)
-                m_parent.RegisterRequest(this, m_dripRate);
+            m_parent?.RegisterRequest(this, m_dripRate);
         }
 
         /// <summary>
@@ -392,7 +388,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void AcknowledgePackets(Int32 count)
         {
             if (m_enabled)
-                AdjustedDripRate = AdjustedDripRate + count;
+                AdjustedDripRate += count;
         }
     }
 }

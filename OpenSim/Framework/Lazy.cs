@@ -81,8 +81,7 @@ namespace OpenSim.Framework
 
         public Lazy(Func<T> valueFactory, LazyThreadSafetyMode mode)
         {
-            if (valueFactory == null)
-                throw new ArgumentNullException("valueFactory");
+            ArgumentNullException.ThrowIfNull(valueFactory);
             this.factory = valueFactory;
             if (mode != LazyThreadSafetyMode.None)
                 monitor = new object();

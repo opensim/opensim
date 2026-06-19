@@ -916,18 +916,17 @@ namespace OpenSim.Framework
             {
                 // Wearables
                 OSD tmpOSD8;
-                OSDArray wears8 = null;
                 int wears8Count = 0;
 
-                if (data.TryGetValue("wrbls8", out tmpOSD8) && (tmpOSD8 is OSDArray))
+                if (data.TryGetValue("wrbls8", out tmpOSD8) && (tmpOSD8 is OSDArray wears8))
                 {
-                    wears8 = (OSDArray)tmpOSD8;
                     wears8Count = wears8.Count;
                 }
+                else
+                    wears8 = null;
 
-                if (data.TryGetValue("wearables", out tmpOSD) && (tmpOSD is OSDArray))
+                if (data.TryGetValue("wearables", out tmpOSD) && (tmpOSD is OSDArray wears))
                 {
-                    OSDArray wears = (OSDArray)tmpOSD;
                     if(wears.Count + wears8Count > 0)
                     {
                         m_wearables = new AvatarWearable[wears.Count + wears8Count];
@@ -948,9 +947,8 @@ namespace OpenSim.Framework
                     Primitive.TextureEntry te = new Primitive.TextureEntry(teb, 0, teb.Length);
                     m_texture = te;
                 }
-                else if (data.TryGetValue("textures", out tmpOSD) && (tmpOSD is OSDArray))
+                else if (data.TryGetValue("textures", out tmpOSD) && (tmpOSD is OSDArray textures))
                 {
-                    OSDArray textures = (OSDArray)tmpOSD;
                     for (int i = 0; i < textures.Count && i < TEXTURE_COUNT_PV7; ++i)
                     {
                         tmpOSD = textures[i];
@@ -959,26 +957,12 @@ namespace OpenSim.Framework
                     }
                 }
 
-                if (data.TryGetValue("bakedcache", out tmpOSD) && (tmpOSD is OSDArray))
+                if (data.TryGetValue("bakedcache", out tmpOSD) && (tmpOSD is OSDArray bakedOSDArray))
                 {
-                    OSDArray bakedOSDArray = (OSDArray)tmpOSD;
                     m_cacheitems = WearableCacheItem.GetDefaultCacheItem();
-
-                    bakedOSDArray = (OSDArray)tmpOSD;
-                    foreach (OSDMap item in bakedOSDArray)
+                    foreach (OSD oitem in bakedOSDArray)
                     {
-                        int idx = item["textureindex"].AsInteger();
-                        if (idx < 0 || idx >= m_cacheitems.Length)
-                            continue;
-                        m_cacheitems[idx].CacheId = item["cacheid"].AsUUID();
-                        m_cacheitems[idx].TextureID = item["textureid"].AsUUID();
-                        m_cacheitems[idx].TextureAsset = null;
-                    }
-
-                    if (data.TryGetValue("bc8", out tmpOSD) && (tmpOSD is OSDArray))
-                    {
-                        bakedOSDArray = (OSDArray)tmpOSD;
-                        foreach (OSDMap item in bakedOSDArray)
+                        if(oitem is OSDMap item)
                         {
                             int idx = item["textureindex"].AsInteger();
                             if (idx < 0 || idx >= m_cacheitems.Length)
@@ -986,6 +970,22 @@ namespace OpenSim.Framework
                             m_cacheitems[idx].CacheId = item["cacheid"].AsUUID();
                             m_cacheitems[idx].TextureID = item["textureid"].AsUUID();
                             m_cacheitems[idx].TextureAsset = null;
+                        }
+                    }
+
+                    if (data.TryGetValue("bc8", out tmpOSD) && (tmpOSD is OSDArray))
+                    {
+                        foreach (OSD oitem in bakedOSDArray)
+                        {
+                            if(oitem is OSDMap item)
+                            {
+                                int idx = item["textureindex"].AsInteger();
+                                if (idx < 0 || idx >= m_cacheitems.Length)
+                                    continue;
+                                m_cacheitems[idx].CacheId = item["cacheid"].AsUUID();
+                                m_cacheitems[idx].TextureID = item["textureid"].AsUUID();
+                                m_cacheitems[idx].TextureAsset = null;
+                            }
                         }
                     }
                 }
@@ -1002,9 +1002,8 @@ namespace OpenSim.Framework
                 }
 
                 // Attachments
-                if (data.TryGetValue("attachments", out tmpOSD) && tmpOSD is OSDArray)
+                if (data.TryGetValue("attachments", out tmpOSD) && tmpOSD is OSDArray attachs)
                 {
-                    OSDArray attachs = (OSDArray)tmpOSD;
                     for (int i = 0; i < attachs.Count; i++)
                     {
                         AvatarAttachment att = new AvatarAttachment((OSDMap)attachs[i]);

@@ -212,6 +212,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             set { m_certificateValidationCallback = value; }
         }
+        private static readonly char[] LineSeparators = ['\n','\r'];
 
         private void load_cert(string CPath, string CPass)
         {
@@ -223,13 +224,13 @@ namespace OpenSim.Framework.Servers.HttpServer
                 {
                     AsnEncodedData asndata = new AsnEncodedData(ext.Oid, ext.RawData);
                     string datastr = asndata.Format(true);
-                    string[] lines = datastr.Split(new char[] {'\n','\r'});
+                    string[] lines = datastr.Split(LineSeparators);
                     foreach(string s in lines)
                     {
-                        if(String.IsNullOrEmpty(s))
+                        if(string.IsNullOrEmpty(s))
                             continue;
-                        string[] parts = s.Split(new char[] {'='});
-                        if(String.IsNullOrEmpty(parts[0]))
+                        string[] parts = s.Split('=');
+                        if(string.IsNullOrEmpty(parts[0]))
                             continue;
                         string entryName = parts[0].Replace(" ","");
                         if(entryName == "DNSName")
@@ -1015,8 +1016,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
             finally
             {
-                if (innerStream != null)
-                    innerStream.Dispose();
+                innerStream?.Dispose();
                 inputStream.Dispose();
             }
         }
