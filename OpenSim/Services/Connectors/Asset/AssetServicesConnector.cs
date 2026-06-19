@@ -359,7 +359,7 @@ namespace OpenSim.Services.Connectors
             string newID;
             try
             {
-                newID = SynchronousRestObjectRequester.MakeRequest<AssetBase, string>("POST", uri, asset, 10000, m_Auth);
+                newID = SynchronousRestObjectRequester.MakeRequest<AssetBase, string>("POST", uri, asset, 30000, m_Auth);
             }
             catch
             {
