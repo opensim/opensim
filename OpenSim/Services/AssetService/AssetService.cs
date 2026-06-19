@@ -168,15 +168,13 @@ namespace OpenSim.Services.AssetService
 
         public virtual string Store(AssetBase asset)
         {
-            bool exists = m_Database.AssetsExist(new[] { asset.FullID })[0];
-            if (!exists)
+            bool[] assetsexist = m_Database.AssetsExist([ asset.FullID ] );
+            if (assetsexist.Length == 0 || !assetsexist[0])
             {
 //                m_log.DebugFormat(
 //                    "[ASSET SERVICE]: Storing asset {0} {1}, bytes {2}", asset.Name, asset.FullID, asset.Data.Length);
                if (!m_Database.StoreAsset(asset))
-                {
-                return UUID.Zero.ToString();
-                }
+                    return UUID.Zero.ToString();
             }
 //            else
 //            {

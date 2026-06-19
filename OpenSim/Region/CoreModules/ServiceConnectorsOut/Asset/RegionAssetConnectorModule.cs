@@ -512,7 +512,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
                 return m_localConnector.AssetsExist(ids);
             else if (m_HGConnector != null)
                 return m_HGConnector.AssetsExist(ids);
-            return null;
+            return [];
         }
 
         public string Store(AssetBase asset)
@@ -524,12 +524,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
                     return null;
 
                 id = StoreForeign(asset);
-                if (m_Cache != null)
-                {
-                    if (!string.IsNullOrEmpty(id) && !id.Equals(UUID.ZeroString))
-                        m_Cache.Cache(asset);
+                if (!string.IsNullOrEmpty(id) && !id.Equals(UUID.ZeroString))
+                { 
+                    m_Cache?.Cache(asset);
+                    return id;
                 }
-                return id;
+                else
+                    return string.Empty;
             }
 
             if (m_Cache != null)
@@ -541,10 +542,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
             id = StoreLocal(asset);
 
-            if (string.IsNullOrEmpty(id))
-                return string.Empty;
-
-            return id;
+            return string.IsNullOrEmpty(id) || id.Equals(UUID.ZeroString) ? string.Empty : id;
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]

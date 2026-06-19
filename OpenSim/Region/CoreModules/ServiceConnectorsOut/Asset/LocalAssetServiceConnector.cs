@@ -314,8 +314,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
         public string Store(AssetBase asset)
         {
-            if (m_Cache != null)
-                m_Cache.Cache(asset);
+            m_Cache?.Cache(asset);
 
             if (asset.Local)
             {

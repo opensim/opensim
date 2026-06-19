@@ -239,7 +239,7 @@ namespace OpenSim.Data.PGSQL
         public override bool[] AssetsExist(UUID[] uuids)
         {
             if (uuids.Length == 0)
-                return new bool[0];
+                return [];
 
             HashSet<UUID> exist = new HashSet<UUID>();
 

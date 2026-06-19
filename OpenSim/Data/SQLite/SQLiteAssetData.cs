@@ -147,7 +147,8 @@ namespace OpenSim.Data.SQLite
             }
 
             //m_log.Info("[ASSET DB]: Creating Asset " + asset.FullID.ToString());
-            if (AssetsExist(new[] { asset.FullID })[0])
+            bool[] assetsExist = AssetsExist([ asset.FullID ]);
+            if (assetsExist.Length > 0 && assetsExist[0])
             {
                 //LogAssetLoad(asset);
 
@@ -218,7 +219,7 @@ namespace OpenSim.Data.SQLite
         public override bool[] AssetsExist(UUID[] uuids)
         {
             if (uuids.Length == 0)
-                return new bool[0];
+                return [];
 
             HashSet<UUID> exist = new HashSet<UUID>();
 
