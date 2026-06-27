@@ -61,6 +61,7 @@ namespace OpenSim
         /// Grid Service Information.  This refers to classes and addresses of the grid service
         /// </summary>
         protected NetworkServersInfo m_networkServersInfo;
+        private static readonly char[] anyOfWildCardsChars = ['*', '?'];
 
         /// <summary>
         /// Loads the region configuration
@@ -164,7 +165,7 @@ namespace OpenSim
                 string[] fileEntries = Directory.GetFiles(iniDirName);
                 foreach (string filePath in fileEntries)
                 {
-                    if (Path.GetExtension(filePath).ToLower() == ".ini")
+                    if (".ini".Equals(Path.GetExtension(filePath), StringComparison.OrdinalIgnoreCase))
                     {
                         if (!sources.Contains(Path.GetFullPath(filePath)))
                         {
@@ -247,7 +248,7 @@ namespace OpenSim
                             // Resolve relative paths with wildcards
                             string chunkWithoutWildcards = file;
                             string chunkWithWildcards = string.Empty;
-                            int wildcardIndex = file.IndexOfAny(new char[] { '*', '?' });
+                            int wildcardIndex = file.IndexOfAny(anyOfWildCardsChars);
                             if (wildcardIndex != -1)
                             {
                                 chunkWithoutWildcards = file.Substring(0, wildcardIndex);
@@ -278,14 +279,12 @@ namespace OpenSim
         /// <summary>
         /// Check if we can convert the string to a URI
         /// </summary>
-        /// <param name="file">String uri to the remote resource</param>
+        /// <param name="testUri">String uri to the remote resource</param>
         /// <returns>true if we can convert the string to a Uri object</returns>
-        bool IsUri(string file)
+        static bool IsUri(string testUri)
         {
-            Uri configUri;
-
-            return Uri.TryCreate(file, UriKind.Absolute,
-                    out configUri) && (configUri.Scheme == Uri.UriSchemeHttp || configUri.Scheme == Uri.UriSchemeHttps);
+            return Uri.TryCreate(testUri, UriKind.Absolute,
+                    out Uri configUri) && (configUri.Scheme == Uri.UriSchemeHttp || configUri.Scheme == Uri.UriSchemeHttps);
         }
 
         /// <summary>
@@ -312,15 +311,16 @@ namespace OpenSim
                 // Try to read it
                 try
                 {
-                    XmlReader r = XmlReader.Create(iniPath);
-                    XmlConfigSource cs = new XmlConfigSource(r);
+                    XmlReaderSettings xmlConfigReaderSettings = new(){ DtdProcessing = DtdProcessing.Ignore };
+                    XmlReader r = XmlReader.Create(iniPath, xmlConfigReaderSettings);
+                    XmlConfigSource cs = new(r);
                     configSource.Source.Merge(cs);
 
                     success = true;
                 }
                 catch (Exception e)
                 {
-                    m_log.FatalFormat("[CONFIG]: Exception reading config from URI {0}\n" + e.ToString(), iniPath);
+                    m_log.Fatal($"[CONFIG]: Exception reading config from URI {iniPath}\n {e.Message}");
                     Environment.Exit(1);
                 }
             }

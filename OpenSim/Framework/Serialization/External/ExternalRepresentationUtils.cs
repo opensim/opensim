@@ -88,15 +88,11 @@ namespace OpenSim.Framework.Serialization.External
             Stopwatch timer = new Stopwatch();
             timer.Start();
 
-            string nodeName = string.Empty;
             while (xtr.NodeType != XmlNodeType.EndElement)
             {
-                nodeName = xtr.Name;
-
                 // m_log.DebugFormat("[ExternalRepresentationUtils]: Processing node: {0}", nodeName);
 
-                Action<NodeType, XmlReader> p = null;
-                if (processors.TryGetValue(xtr.Name, out p))
+                if (processors.TryGetValue(xtr.Name, out Action<NodeType, XmlReader> p))
                 {
                     // m_log.DebugFormat("[ExternalRepresentationUtils]: Found processor for {0}", nodeName);
 
@@ -107,7 +103,7 @@ namespace OpenSim.Framework.Serialization.External
                     catch (Exception e)
                     {
                         errors = true;
-                        parseExceptionAction(nodeToFill, nodeName, e);
+                        parseExceptionAction(nodeToFill, xtr.Name, e);
 
                         if (xtr.EOF)
                         {
@@ -171,13 +167,11 @@ namespace OpenSim.Framework.Serialization.External
                 {
                     if (node.Name == "CreatorID")
                     {
-                        UUID uuid = UUID.Zero;
-                        UUID.TryParse(node.InnerText, out uuid);
-                        creator = userService.GetUserAccount(scopeID, uuid);
+                        if(!string.IsNullOrEmpty(node.InnerText) && UUID.TryParse(node.InnerText, out UUID uuid))
+                            creator = userService.GetUserAccount(scopeID, uuid);
                     }
-
-                    if (node.Name == "CreatorData" && node.InnerText != null && node.InnerText != string.Empty)
-                        hasCreatorData = true;
+                    else if (node.Name == "CreatorData")
+                        hasCreatorData = !string.IsNullOrEmpty(node.InnerText);
 
                     //if (node.Name == "OwnerID")
                     //{
@@ -194,11 +188,9 @@ namespace OpenSim.Framework.Serialization.External
                 }
             }
 
-            using (StringWriter wr = new StringWriter())
-            {
-                doc.Save(wr);
-                return wr.ToString();
-            }
+            using StringWriter wr = new StringWriter();
+            doc.Save(wr);
+            return wr.ToString();
         }
 
         /// <summary>
@@ -220,17 +212,16 @@ namespace OpenSim.Framework.Serialization.External
             // Deal with bug introduced in Oct. 20 2014 (1eb3e6cc43e2a7b4053bc1185c7c88e22356c5e8)
             // Fix bad assets before sending them elsewhere
             xmlData = SanitizeXml(xmlData);
-            using (StringWriter sw = new StringWriter())
-            using (XmlTextWriter writer = new XmlTextWriter(sw))
-            using (XmlTextReader wrappedReader = new XmlTextReader(xmlData, XmlNodeType.Element, null))
-            using (XmlReader reader = XmlReader.Create(wrappedReader, Util.SharedXmlReaderSettings))
-            {
-                TransformXml(reader, writer, sceneName, homeURL, userService, scopeID);
+            using StringWriter sw = new StringWriter();
+            using XmlTextWriter writer = new XmlTextWriter(sw);
+            using XmlTextReader wrappedReader = new XmlTextReader(xmlData, XmlNodeType.Element, null);
+            using XmlReader reader = XmlReader.Create(wrappedReader, Util.SharedXmlReaderSettings);
 
-                // Console.WriteLine("Output: [{0}]", sw.ToString());
+            TransformXml(reader, writer, sceneName, homeURL, userService, scopeID);
 
-                return sw.ToString();
-            }
+            // Console.WriteLine("Output: [{0}]", sw.ToString());
+
+            return sw.ToString();
         }
 
         protected static void TransformXml(XmlReader reader, XmlWriter writer, string sceneName, string homeURI, IUserAccountService userAccountService, UUID scopeID)
@@ -298,9 +289,8 @@ namespace OpenSim.Framework.Serialization.External
 
                                         if (reader.NodeType == XmlNodeType.Text)
                                         {
-                                            UUID uuid = UUID.Zero;
-                                            UUID.TryParse(reader.Value, out uuid);
-                                            creator = userAccountService.GetUserAccount(scopeID, uuid);
+                                            if(UUID.TryParse(reader.Value, out UUID uuid))
+                                                creator = userAccountService.GetUserAccount(scopeID, uuid);
                                             writer.WriteElementString("UUID", reader.Value);
                                             reader.Read();
                                         }
@@ -411,7 +401,7 @@ namespace OpenSim.Framework.Serialization.External
                     while(xmlData[indx2 + 5] == ':')
                         indx2 += 6;
 
-                    string bad = xmlData.Substring(indx, indx2 - indx);
+                    string bad = xmlData[indx..indx2];
                     xmlData = xmlData.Replace(bad, "xmlns:");
                 }
             }

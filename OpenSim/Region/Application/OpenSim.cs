@@ -79,6 +79,7 @@ namespace OpenSim
         private string m_timedScript = "disabled";
         private int m_timeInterval = 1200;
         private System.Timers.Timer m_scriptTimer;
+        private static readonly string[] selecteRootRegionParams = ["change", "region", "root"];
 
         public OpenSim(IConfigSource configSource) : base(configSource)
         {
@@ -198,9 +199,9 @@ namespace OpenSim
             if (mi != null)
             {
                 if (m_consolePort == 0)
-                    mi.Invoke(m_console, new object[] { m_httpServer });
+                    mi.Invoke(m_console, [m_httpServer]);
                 else
-                    mi.Invoke(m_console, new object[] { MainServer.GetHttpServer(m_consolePort) });
+                    mi.Invoke(m_console, [MainServer.GetHttpServer(m_consolePort)]);
             }
 
             // Hook up to the watchdog timer
@@ -213,7 +214,7 @@ namespace OpenSim
                 ChangeSelectedRegion("region",
                                      new string[] {"change", "region", SceneManager.Scenes[0].RegionInfo.RegionName});
             else
-                ChangeSelectedRegion("region", new string[] {"change", "region", "root"});
+                ChangeSelectedRegion("region", selecteRootRegionParams);
 
             //Run Startup Commands
             if (String.IsNullOrEmpty(m_startupCommandsFile))
@@ -563,13 +564,12 @@ namespace OpenSim
         {
             if (File.Exists(fileName))
             {
-                using(StreamReader readFile = File.OpenText(fileName))
+                using StreamReader readFile = File.OpenText(fileName);
+
+                string currentLine;
+                while ((currentLine = readFile.ReadLine()) != null)
                 {
-                    string currentLine;
-                    while ((currentLine = readFile.ReadLine()) != null)
-                    {
-                        m_log.Info("[!]" + currentLine);
-                    }
+                    m_log.Info("[!]" + currentLine);
                 }
             }
         }
@@ -807,8 +807,7 @@ namespace OpenSim
                 case "remove-region":
                     string regRemoveName = CombineParams(cmdparams, 0);
 
-                    Scene removeScene;
-                    if (SceneManager.TryGetScene(regRemoveName, out removeScene))
+                    if (SceneManager.TryGetScene(regRemoveName, out Scene removeScene))
                         RemoveRegion(removeScene, false);
                     else
                         MainConsole.Instance.Output("No region with that name");
@@ -817,8 +816,7 @@ namespace OpenSim
                 case "delete-region":
                     string regDeleteName = CombineParams(cmdparams, 0);
 
-                    Scene killScene;
-                    if (SceneManager.TryGetScene(regDeleteName, out killScene))
+                    if (SceneManager.TryGetScene(regDeleteName, out Scene killScene))
                         RemoveRegion(killScene, true);
                     else
                         MainConsole.Instance.Output("no region with that name");
@@ -1074,11 +1072,10 @@ namespace OpenSim
             SceneManager.ForEachScene(
                 s =>
                 {
-                    ICollection<AgentCircuitData> circuits = s.AuthenticateHandler.GetAgentCircuits().Values;
-                    int n = circuits.Count;
+                    Dictionary<UUID, AgentCircuitData> circuits = s.AuthenticateHandler.GetAgentCircuits();
 
-                    MainConsole.Instance.Output("- Circuits in region {0}: {1}", s.Name, n);
-                    if(n > 0)
+                    MainConsole.Instance.Output($"- Circuits in region {s.Name}: {circuits.Count}");
+                    if(circuits.Count > 0)
                     {
                         ConsoleDisplayTable cdt = new ConsoleDisplayTable();
                         cdt.AddColumn("Avatar name", 24);
@@ -1088,7 +1085,7 @@ namespace OpenSim
                         cdt.AddColumn("Viewer Name", 24);
                         cdt.AddColumn("Svc Urls", 8);
 
-                        foreach (AgentCircuitData aCircuit in circuits)
+                        foreach (AgentCircuitData aCircuit in circuits.Values)
                             cdt.AddRow(
                             aCircuit.Name,
                             aCircuit.child ? "child" : "root",
@@ -1291,7 +1288,7 @@ namespace OpenSim
 
         protected void CreateEstateCommand(string module, string[] args)
         {
-            string response = null;
+            string response;
             if (args.Length == 2)
             {
                 response = "No user specified.";
@@ -1412,7 +1409,7 @@ namespace OpenSim
 
         protected void SetEstateNameCommand(string module, string[] args)
         {
-            string response = null;
+            string response;
 
             Scene scene = SceneManager.CurrentOrFirstScene;
             IEstateModule estateModule = scene.RequestModuleInterface<IEstateModule>();
