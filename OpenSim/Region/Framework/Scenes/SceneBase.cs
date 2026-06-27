@@ -582,7 +582,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="callback"></param>
         public void AddCommand(IRegionModuleBase module, string command, string shorthelp, string longhelp, string descriptivehelp, CommandDelegate callback)
         {
-            string moduleName = (module is null) ? module.Name : string.Empty;
+            string moduleName = (module is not null) ? module.Name : string.Empty;
             AddCommand(moduleName, module, command, shorthelp, longhelp, descriptivehelp, callback);
         }
 

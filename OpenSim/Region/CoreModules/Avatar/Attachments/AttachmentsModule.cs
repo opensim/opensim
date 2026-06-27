@@ -1352,9 +1352,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 return null;
             }
 
-            if (lastattPoint != objatt.AttachmentPoint ||
-                    !lastPos.Equals(objatt.RootPart.OffsetPosition) ||
-                    !lastAttPos.Equals(objatt.RootPart.AttachedPos))
+            if(lastattPoint != objatt.AttachmentPoint ||
+                    lastPos.NotEqual(objatt.RootPart.OffsetPosition) ||
+                    lastAttPos.NotEqual(objatt.RootPart.AttachedPos))
                 objatt.HasGroupChanged = true;
 
             return objatt;
