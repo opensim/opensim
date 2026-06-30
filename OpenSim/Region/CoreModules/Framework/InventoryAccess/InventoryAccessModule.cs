@@ -412,12 +412,25 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             AssetBase asset = CreateAsset(item.Name, item.Description, (sbyte)item.AssetType, data, remoteClient.AgentId.ToString());
             item.AssetID = asset.FullID;
-            m_Scene.AssetService.Store(asset);
-
-            m_Scene.InventoryService.UpdateItem(item);
-
-            // remoteClient.SendInventoryItemCreateUpdate(item);
-            return (asset.FullID);
+            if (m_Scene.AssetService.Store(asset).Equals(string.Empty))
+            {
+                m_log.WarnFormat("[INVENTORY ACCESS MODULE]: Asset with id {0} failed to store, retrying...", asset.ID.ToString());
+                if (m_Scene.AssetService.Store(asset).Equals(string.Empty))
+                {
+                    m_log.ErrorFormat("[INVENTORY ACCESS MODULE]: Asset with id {0} failed to store!", asset.ID.ToString());
+                    return UUID.Zero;
+                }
+                else
+                {
+                    m_Scene.InventoryService.UpdateItem(item);
+                    return (asset.FullID);
+                }
+            }
+            else
+            {
+                m_Scene.InventoryService.UpdateItem(item);
+                return UUID.Zero;
+            }
         }
 
         public virtual bool UpdateInventoryItemAsset(UUID ownerID, InventoryItemBase item, AssetBase asset)
@@ -428,9 +441,25 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 //    "[INVENTORY ACCESS MODULE]: Updating item {0} {1} with new asset {2}",
                 //    item.Name, item.ID, asset.ID);
 
-                m_Scene.AssetService.Store(asset);
-                m_Scene.InventoryService.UpdateItem(item);
-                return true;
+                if (m_Scene.AssetService.Store(asset).Equals(string.Empty))
+                {
+                    m_log.WarnFormat("[INVENTORY ACCESS MODULE]: Asset with id {0} failed to store, retrying...", asset.ID.ToString());
+                    if (m_Scene.AssetService.Store(asset).Equals(string.Empty))
+                    {
+                        m_log.ErrorFormat("[INVENTORY ACCESS MODULE]: Asset with id {0} failed to store!", asset.ID.ToString());
+                        return false;
+                    }
+                    else
+                    {
+                        m_Scene.InventoryService.UpdateItem(item);
+                        return true;
+                    }
+                }
+                else
+                {
+                    m_Scene.InventoryService.UpdateItem(item);
+                    return true;
+                }
             }
             else
             {
