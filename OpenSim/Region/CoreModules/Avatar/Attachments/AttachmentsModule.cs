@@ -381,7 +381,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 ad.AttachmentObjectStates = null;
 
                 if (attachments.Count > 0)
-                    m_scene.IncomingAttechments(sp, attachments);
+                    m_scene.IncomingAttachments(sp, attachments);
                 else
                     sp.GotAttachmentsData = true;
             }
