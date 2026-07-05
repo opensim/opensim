@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Prebuild version="1.10" xmlns="http://dnpb.sourceforge.net/schemas/prebuild-1.10.xsd">
   <!-- <Solution activeConfig="Debug" name="OpenSim" path="./" version="0.5.0-$Rev$" forceFrameworkVersion="v4_6"> -->
-  <Solution activeConfig="Release" name="OpenSim" path="./" version="0.5.0-$Rev$" frameworkVersion="net8_0">
+  <Solution activeConfig="Release" name="OpenSim" path="./" version="0.5.0-$Rev$" frameworkVersion="net9_0">
   <Configuration name="Debug" >
       <Options>
         <CompilerDefines>TRACE</CompilerDefines>
@@ -1463,6 +1463,38 @@
       </Files>
     </Project>
 
+    <!-- ECS Data-Oriented Architecture -->
+    <Project name="OpenSim.Region.ECS" path="OpenSim/Region/ECS" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="OpenMetaverseTypes" path="../../../bin/"/>
+      <Reference name="OpenMetaverse" path="../../../bin/"/>
+      <Reference name="OpenMetaverse.StructuredData" path="../../../bin/"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Region.Framework"/>
+      <Reference name="OpenSim.Region.PhysicsModules.SharedBase"/>
+      <Reference name="Friflo.Engine.ECS" path="../../../bin/"/>
+      <Reference name="Nini" path="../../../bin/"/>
+      <Reference name="log4net" path="../../../bin/"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true">
+          <Exclude name="obj" pattern="obj"/>
+          <Exclude name="Tests" pattern="Tests"/>
+        </Match>
+      </Files>
+    </Project>
+
     <Project name="OpenSim.Region.PhysicsModule.Meshing" path="OpenSim/Region/PhysicsModules/Meshing" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -1558,6 +1590,40 @@
       <Reference name="OpenSim.Region.PhysicsModules.SharedBase"/>
       <Reference name="OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet"/>
 	  <Reference name="Mono.Addins" path="../../../../bin/"/>
+      <Reference name="log4net" path="../../../../bin/"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true">
+          <Exclude name="obj" pattern="obj"/>
+          <Exclude name="Tests" pattern="Tests"/>
+        </Match>
+      </Files>
+    </Project>
+
+    <!-- BepuPhysics v2 (Apache 2.0) — replacement physics engine -->
+    <Project name="OpenSim.Region.PhysicsModule.Bepu" path="OpenSim/Region/PhysicsModules/Bepu" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../bin/</ReferencePath>
+      <Reference name="OpenMetaverse" path="../../../../bin/"/>
+      <Reference name="OpenMetaverseTypes" path="../../../../bin/"/>
+      <Reference name="Nini" path="../../../../bin/"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Region.Framework"/>
+      <Reference name="OpenSim.Region.PhysicsModules.SharedBase"/>
+      <Reference name="BepuPhysics" path="../../../../bin/"/>
+      <Reference name="BepuUtilities" path="../../../../bin/"/>
+      <Reference name="Mono.Addins" path="../../../../bin/"/>
       <Reference name="log4net" path="../../../../bin/"/>
 
       <Files>

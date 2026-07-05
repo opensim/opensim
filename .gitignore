@@ -120,3 +120,19 @@ doc/doxygen.error.log
 bin/OpenSim.ini
 
 *.patch
+
+# Tooling and IDE artifacts
+.codegraph/
+.atl/
+.idea/
+.vs/
+
+# Generated build scripts
+compile.sh
+install_deps.sh
+
+# Local databases
+mydatabase.db
+
+# SDD spec artifacts (optional - remove if sharing specs)
+openspec/
