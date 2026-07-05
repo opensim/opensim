@@ -53,6 +53,7 @@ namespace OpenSim.Region.PhysicsModule.Bepu
         private float _friction = 0.5f;
         private float _restitution = 0.1f;
         private float _simulationSuspended;
+        private int _angularLockAxes; // bitmask: 1=X, 2=Y, 4=Z
 
         // PID / MoveTo
         private Vector3 _pidTarget;
@@ -183,10 +184,10 @@ namespace OpenSim.Region.PhysicsModule.Bepu
             set => _vehicleType = value;
         }
 
-        public override void VehicleFloatParam(int param, float value) { }
-        public override void VehicleVectorParam(int param, Vector3 value) { }
-        public override void VehicleRotationParam(int param, Quaternion rotation) { }
-        public override void VehicleFlags(int param, bool remove) { }
+        public override void VehicleFloatParam(int param, float value) { } // Vehicle physics implemented in Phase 7
+        public override void VehicleVectorParam(int param, Vector3 value) { } // Vehicle physics implemented in Phase 7
+        public override void VehicleRotationParam(int param, Quaternion rotation) { } // Vehicle physics implemented in Phase 7
+        public override void VehicleFlags(int param, bool remove) { } // Vehicle physics implemented in Phase 7
 
         public override Vector3 Velocity
         {
@@ -311,23 +312,36 @@ namespace OpenSim.Region.PhysicsModule.Bepu
 
         public override bool FloatOnWater
         {
+            get => _floatOnWater;
             set => _floatOnWater = value;
         }
 
         public override Vector3 PIDTarget
         {
-            set => _pidTarget = value;
+            set
+            {
+                _pidTarget = value;
+                SyncPidToScene();
+            }
         }
 
         public override bool PIDActive
         {
             get => _pidActive;
-            set => _pidActive = value;
+            set
+            {
+                _pidActive = value;
+                SyncPidToScene();
+            }
         }
 
         public override float PIDTau
         {
-            set => _pidTau = value;
+            set
+            {
+                _pidTau = value;
+                SyncPidToScene();
+            }
         }
 
         public override bool PIDHoverActive
@@ -459,7 +473,9 @@ namespace OpenSim.Region.PhysicsModule.Bepu
 
         public override void LockAngularMotion(byte axislocks)
         {
-            // Bepu can constrain angular axes per-body — implement when needed
+            _angularLockAxes = axislocks;
+            if (_hasBody)
+                _scene.ScheduleAngularLockUpdate(this, axislocks);
         }
 
         public override void CrossingFailure()
@@ -497,6 +513,37 @@ namespace OpenSim.Region.PhysicsModule.Bepu
         internal void SubscribeCollisionEvents(int ms)
         {
             _collisionSubscribed = true;
+        }
+
+        /// <summary>
+        /// Get per-actor material properties for collision response.
+        /// Called from BepuScene.ResolveCollidableMaterial during narrow phase.
+        /// </summary>
+        internal (float friction, float restitution) GetMaterialProperties()
+            => (_friction, _restitution);
+
+        /// <summary>
+        /// Build a PidState snapshot from current PID values.
+        /// Called before syncing to BepuScene's PID tracking dictionary.
+        /// </summary>
+        internal PidState GetPidState() => new()
+        {
+            Target = _pidTarget,
+            Tau = _pidTau,
+            Active = _pidActive,
+            HoverHeight = _pidHoverHeight,
+            HoverType = _pidHoverType,
+            HoverTau = _pidHoverTau
+        };
+
+        /// <summary>
+        /// Sync the current PID state to BepuScene's tracking dictionary.
+        /// Called from PID property setters to keep the scene informed.
+        /// </summary>
+        private void SyncPidToScene()
+        {
+            if (_hasBody && _scene != null)
+                _scene.SyncPidState(LocalID, GetPidState());
         }
 
         /// <summary>

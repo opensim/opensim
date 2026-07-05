@@ -28,9 +28,17 @@ Replace BulletSim/ubOde with BepuPhysics v2 (Apache 2.0) as the physics engine f
 - Collision subscription with throttle (100ms)
 - Terrain collision filtering
 
-### 🔲 Phase 5 — Body Management
-- Complete remaining BepuActor methods
-- Vehicle type support, AddForce, Locked, etc.
+### ✅ Phase 5 — Per-Actor Properties & Control
+- `MaterialResolver` delegate in `BepuNarrowPhaseCallbacks` for per-actor Friction/Restitution
+- `ResolveMaterialProperties()` in BepuScene reads `GetMaterialProperties()` per collidable
+- Wired up in `InitializePhysics` — narrow phase uses per-actor materials
+- `Gravity` field exposed in `BepuPoseIntegratorCallbacks` with per-frame re-broadcast
+- PID control system: `PidState` struct, `_pidStates` tracking, `ProcessPidControls()` spring controller
+- `BepuActor.SyncPidToScene()` called from `PIDTarget`/`PIDActive`/`PIDTau` setters
+- `ProcessBuoyancy()` — reads `_waterLevel`, applies upward force proportional to submerged depth
+- `LockAngularMotion(byte)` — stores axis bitmask, calls `ScheduleAngularLockUpdate()` which zeroes angular velocity per-axis via scheduled update
+- `FloatOnWater` now has a getter for ProcessBuoyancy reads
+- VehicleFloatParam/VehicleVectorParam/VehicleRotationParam/VehicleFlags left as no-ops with Phase 7 comment
 
 ### 🔲 Phase 6 — Terrain Mesh
 - Build real Mesh from heightmap instead of flat box
@@ -55,6 +63,6 @@ dotnet build -c Release OpenSim.sln
 ## Files
 | File | Lines | Role |
 |------|-------|------|
-| `BepuScene.cs` | 1006 | Main scene: simulation, terrain, raycasts, collisions |
-| `BepuActor.cs` | 596 | Actor: all PhysicsActor members, collision events |
+| `BepuScene.cs` | 1184 | Main scene: simulation, terrain, raycasts, collisions, PID, buoyancy |
+| `BepuActor.cs` | 643 | Actor: all PhysicsActor members, collision events, material/PID helpers |
 | `BepuUtil.cs` | 65 | Type conversion utilities |

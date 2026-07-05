@@ -50,10 +50,14 @@ namespace OpenSim.Region.PhysicsModule.Bepu
         private readonly Dictionary<uint, Dictionary<uint, ContactPoint>> _activeCollisions = new();
         private readonly List<BufferedContact> _contactBuffer = new();
 
+        // PID / MoveTo tracking (Phase 5)
+        private readonly Dictionary<uint, PidState> _pidStates = new();
+
         // Terrain
         private float[] _terrainHeightMap;
         private float _waterLevel;
         private StaticHandle _terrainStaticHandle;
+        private TypedIndex _terrainShapeIndex;
         private bool _hasTerrain;
 
         // World constants
@@ -79,6 +83,7 @@ namespace OpenSim.Region.PhysicsModule.Bepu
 
             var narrowPhase = new BepuNarrowPhaseCallbacks();
             narrowPhase.Contacts = _contactBuffer;
+            narrowPhase.MaterialResolver = ResolveMaterialProperties;
 
             _simulation = Simulation.Create(
                 _bufferPool,
@@ -215,6 +220,10 @@ namespace OpenSim.Region.PhysicsModule.Bepu
             // Process collisions
             ProcessCollisions();
 
+            // Process per-actor control systems (Phase 5)
+            ProcessPidControls();
+            ProcessBuoyancy();
+
             // Return simulated frames (always 1 for Bepu)
             return 1.0f;
         }
@@ -225,25 +234,67 @@ namespace OpenSim.Region.PhysicsModule.Bepu
 
             if (!_initialized) return;
 
-            // Remove previous terrain if any
+            // Remove previous terrain static and shape
             if (_hasTerrain)
             {
                 _simulation.Statics.Remove(_terrainStaticHandle);
+                _simulation.Shapes.Remove(_terrainShapeIndex);
                 _hasTerrain = false;
             }
 
             if (heightMap == null || heightMap.Length == 0)
                 return;
 
-            // Bepu terrain: use a Mesh from the heightmap
-            // For simplicity in Phase 2, use a ground plane + basic mesh
-            // Full heightmap mesh implementation comes in Phase 4
-            var quad = new Box(256f, 256f, 1f);
-            var shapeIndex = _simulation.Shapes.Add(quad);
+            int sizeX = (int)Math.Sqrt(heightMap.Length);
+            int sizeY = sizeX; // OpenSim regions are square
+
+            // Build mesh triangles from heightmap
+            // Standard grid triangulation: each cell becomes two triangles
+            int triCount = (sizeX - 1) * (sizeY - 1) * 2;
+            _bufferPool.TakeAtLeast(triCount, out Buffer<Triangle> triangles);
+
+            int triIdx = 0;
+            for (int y = 0; y < sizeY - 1; y++)
+            {
+                for (int x = 0; x < sizeX - 1; x++)
+                {
+                    float h00 = heightMap[y * sizeY + x];
+                    float h10 = heightMap[y * sizeY + x + 1];
+                    float h01 = heightMap[(y + 1) * sizeY + x];
+                    float h11 = heightMap[(y + 1) * sizeY + x + 1];
+
+                    triangles[triIdx++] = new Triangle
+                    {
+                        A = new System.Numerics.Vector3(x, y, h00),
+                        B = new System.Numerics.Vector3(x + 1, y, h10),
+                        C = new System.Numerics.Vector3(x, y + 1, h01)
+                    };
+                    triangles[triIdx++] = new Triangle
+                    {
+                        A = new System.Numerics.Vector3(x + 1, y, h10),
+                        B = new System.Numerics.Vector3(x + 1, y + 1, h11),
+                        C = new System.Numerics.Vector3(x, y + 1, h01)
+                    };
+                }
+            }
+
+            // Mesh constructor takes ownership of the triangle buffer.
+            // Shapes.Add copies the Mesh struct (sharing the buffer reference).
+            // Shapes.Remove later will call Mesh.Dispose to return the buffer.
+            var mesh = new Mesh(triangles, System.Numerics.Vector3.One, _bufferPool);
+            _terrainShapeIndex = _simulation.Shapes.Add(mesh);
+
+            // Center the mesh terrain at half the region size.
+            // Vertices use exact world coordinates (0..sizeX-1, 0..sizeY-1),
+            // so the static body is positioned at the center.
+            float centerX = (sizeX - 1) * 0.5f;
+            float centerY = (sizeY - 1) * 0.5f;
+
             var staticPose = new RigidPose(
-                new System.Numerics.Vector3(128f, 128f, -0.5f),
+                new System.Numerics.Vector3(centerX, centerY, 0f),
                 System.Numerics.Quaternion.Identity);
-            _terrainStaticHandle = _simulation.Statics.Add(new StaticDescription(staticPose, shapeIndex));
+
+            _terrainStaticHandle = _simulation.Statics.Add(new StaticDescription(staticPose, _terrainShapeIndex));
             _hasTerrain = true;
         }
 
@@ -257,9 +308,44 @@ namespace OpenSim.Region.PhysicsModule.Bepu
             if (_hasTerrain && _initialized)
             {
                 _simulation.Statics.Remove(_terrainStaticHandle);
+                _simulation.Shapes.Remove(_terrainShapeIndex);
                 _hasTerrain = false;
             }
             _terrainHeightMap = null;
+        }
+
+        /// <summary>
+        /// Get the terrain height at the given world position.
+        /// Bilinear interpolation over the heightmap grid.
+        /// Returns 0 if no terrain is loaded.
+        /// </summary>
+        public float GetTerrainHeightAtXYZ(Vector3 pos)
+        {
+            if (_terrainHeightMap == null || _terrainHeightMap.Length == 0)
+                return 0f;
+
+            int maxX = (int)Math.Sqrt(_terrainHeightMap.Length);
+            int maxY = maxX;
+
+            int baseX = (int)pos.X;
+            int baseY = (int)pos.Y;
+
+            // Clamp to valid range
+            if (baseX < 0 || baseX >= maxX - 1 || baseY < 0 || baseY >= maxY - 1)
+                return 0f;
+
+            float diffX = pos.X - baseX;
+            float diffY = pos.Y - baseY;
+
+            float h00 = _terrainHeightMap[baseY * maxY + baseX];
+            float h10 = _terrainHeightMap[baseY * maxY + Math.Min(baseX + 1, maxX - 1)];
+            float h01 = _terrainHeightMap[Math.Min(baseY + 1, maxY - 1) * maxY + baseX];
+            float h11 = _terrainHeightMap[Math.Min(baseY + 1, maxY - 1) * maxY + Math.Min(baseX + 1, maxX - 1)];
+
+            // Bilinear interpolation
+            float xLerp = h00 + (h10 - h00) * diffX;
+            float yLerp = h01 + (h11 - h01) * diffX;
+            return xLerp + (yLerp - xLerp) * diffY;
         }
 
         public override void Dispose()
@@ -692,6 +778,135 @@ namespace OpenSim.Region.PhysicsModule.Bepu
 
         #endregion
 
+        #region Phase 5: Per-actor material, PID, buoyancy, angular lock
+
+        /// <summary>
+        /// Resolve combined pair material properties from the two collidables.
+        /// Called from the narrow phase worker threads via MaterialResolver delegate.
+        /// </summary>
+        private PairMaterialProperties ResolveMaterialProperties(CollidableReference a, CollidableReference b)
+        {
+            float frictionA = 0.5f, restitutionA = 0.1f;
+            float frictionB = 0.5f, restitutionB = 0.1f;
+
+            lock (_actorsLock)
+            {
+                ResolveCollidableMaterial(a, ref frictionA, ref restitutionA);
+                ResolveCollidableMaterial(b, ref frictionB, ref restitutionB);
+            }
+
+            return new PairMaterialProperties
+            {
+                // Use the maximum friction and restitution of the pair
+                FrictionCoefficient = Math.Max(frictionA, frictionB),
+                MaximumRecoveryVelocity = 2f,
+                SpringSettings = new SpringSettings(30f, 1f)
+            };
+        }
+
+        private void ResolveCollidableMaterial(CollidableReference collidable, ref float friction, ref float restitution)
+        {
+            if (collidable.Mobility == CollidableMobility.Dynamic || collidable.Mobility == CollidableMobility.Kinematic)
+            {
+                if (_bodyHandleToActor.TryGetValue(new BodyHandle(collidable.Handle), out var actor))
+                    (friction, restitution) = actor.GetMaterialProperties();
+            }
+            // Statics keep the default values passed in
+        }
+
+        /// <summary>
+        /// Register or unregister a PID (MoveTo) state for an actor.
+        /// Called from BepuActor property setters.
+        /// </summary>
+        internal void SyncPidState(uint localId, PidState state)
+        {
+            lock (_actorsLock)
+            {
+                if (state.Active)
+                    _pidStates[localId] = state;
+                else
+                    _pidStates.Remove(localId);
+            }
+        }
+
+        /// <summary>
+        /// Process all active PID (MoveTo) controllers.
+        /// Drives physical bodies toward their PID targets using a simple spring.
+        /// </summary>
+        private void ProcessPidControls()
+        {
+            if (_pidStates.Count == 0)
+                return;
+
+            lock (_actorsLock)
+            {
+                foreach (var kvp in _pidStates)
+                {
+                    if (!_actors.TryGetValue(kvp.Key, out var actor) || !actor.HasBody)
+                        continue;
+
+                    var pid = kvp.Value;
+                    if (!pid.Active) continue;
+
+                    ref var body = ref _simulation.Bodies.GetBodyReference(actor.BodyHandle);
+                    var currentPos = body.Pose.Position;
+                    var targetPos = BepuUtil.ToSN(pid.Target);
+
+                    // Simple proportional controller: error / tau = velocity
+                    var error = targetPos - currentPos;
+                    var force = error / Math.Max(pid.Tau, 0.001f);
+                    body.Velocity.Linear = force;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Apply buoyancy forces to actors that are in water.
+        /// </summary>
+        private void ProcessBuoyancy()
+        {
+            float waterLevel = _waterLevel;
+            if (waterLevel <= 0) return;
+
+            lock (_actorsLock)
+            {
+                foreach (var kvp in _actors)
+                {
+                    var actor = kvp.Value;
+                    if (!actor.HasBody || !actor.FloatOnWater || actor.Buoyancy <= 0)
+                        continue;
+
+                    ref var body = ref _simulation.Bodies.GetBodyReference(actor.BodyHandle);
+                    float submergedDepth = waterLevel - body.Pose.Position.Z;
+                    if (submergedDepth <= 0) continue;
+
+                    // Simple buoyancy: upward force proportional to submerged depth
+                    float buoyantForce = submergedDepth * actor.Buoyancy * 9.81f;
+                    body.Velocity.Linear.Z += buoyantForce * 0.01f;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Zero angular velocity components based on the axis lock bitmask.
+        /// Bitmask: 1=X, 2=Y, 4=Z. Applied each frame via scheduled update.
+        /// </summary>
+        internal void ScheduleAngularLockUpdate(BepuActor actor, int axislocks)
+        {
+            _scheduledUpdates.Enqueue(() =>
+            {
+                if (!actor.HasBody) return;
+                ref var body = ref _simulation.Bodies.GetBodyReference(actor.BodyHandle);
+                var angularVelocity = body.Velocity.Angular;
+                if ((axislocks & 1) != 0) angularVelocity.X = 0;
+                if ((axislocks & 2) != 0) angularVelocity.Y = 0;
+                if ((axislocks & 4) != 0) angularVelocity.Z = 0;
+                body.Velocity.Angular = angularVelocity;
+            });
+        }
+
+        #endregion
+
         #region Raycasting
 
         public override bool SupportsRayCast() => true;
@@ -708,7 +923,7 @@ namespace OpenSim.Region.PhysicsModule.Bepu
             var rayDir = BepuUtil.ToSN(direction);
 
             var hitHandler = new RayHitHandler();
-            _simulation.RayCast(rayOrigin, rayDir, length, ref hitHandler);
+            _simulation.RayCast(rayOrigin, rayDir, length, _bufferPool, ref hitHandler);
 
             if (retMethod != null)
             {
@@ -767,7 +982,7 @@ namespace OpenSim.Region.PhysicsModule.Bepu
                 Filter = filter
             };
 
-            _simulation.RayCast(rayOrigin, rayDir, length, ref hitHandler);
+            _simulation.RayCast(rayOrigin, rayDir, length, _bufferPool, ref hitHandler);
             return hitHandler.Results;
         }
 
@@ -810,6 +1025,24 @@ namespace OpenSim.Region.PhysicsModule.Bepu
         #endregion
     }
 
+    #region Phase 5 types
+
+    /// <summary>
+    /// Per-actor PID (MoveTo) state tracked by BepuScene.
+    /// Updated from BepuActor property setters via SyncPidState.
+    /// </summary>
+    internal struct PidState
+    {
+        public Vector3 Target; // OM Vector3 (from PIDTarget setter)
+        public float Tau;
+        public bool Active;
+        public float HoverHeight;
+        public PIDHoverType HoverType;
+        public float HoverTau;
+    }
+
+    #endregion
+
     #region Bepu callbacks
 
     /// <summary>
@@ -838,6 +1071,13 @@ namespace OpenSim.Region.PhysicsModule.Bepu
         /// </summary>
         public List<BufferedContact> Contacts;
 
+        /// <summary>
+        /// Optional delegate to resolve per-actor pair material properties (friction, restitution).
+        /// Set by BepuScene during initialization.
+        /// Called from worker threads during the narrow phase — must be thread-safe.
+        /// </summary>
+        public Func<CollidableReference, CollidableReference, PairMaterialProperties> MaterialResolver;
+
         public void Initialize(Simulation simulation) { }
 
         public bool AllowContactGeneration(int workerIndex, CollidableReference a, CollidableReference b, ref float speculativeMargin)
@@ -849,12 +1089,17 @@ namespace OpenSim.Region.PhysicsModule.Bepu
         public bool ConfigureContactManifold<TManifold>(int workerIndex, CollidablePair pair, ref TManifold manifold, out PairMaterialProperties pairMaterial)
             where TManifold : unmanaged, IContactManifold<TManifold>
         {
-            pairMaterial = new PairMaterialProperties
+            if (MaterialResolver != null)
+                pairMaterial = MaterialResolver(pair.A, pair.B);
+            else
             {
-                FrictionCoefficient = 0.5f,
-                MaximumRecoveryVelocity = 2f,
-                SpringSettings = new SpringSettings(30f, 1f)
-            };
+                pairMaterial = new PairMaterialProperties
+                {
+                    FrictionCoefficient = 0.5f,
+                    MaximumRecoveryVelocity = 2f,
+                    SpringSettings = new SpringSettings(30f, 1f)
+                };
+            }
 
             if (Contacts == null)
                 return true;
@@ -907,6 +1152,12 @@ namespace OpenSim.Region.PhysicsModule.Bepu
     {
         private Vector3Wide _gravityWide;
 
+        /// <summary>
+        /// Current gravity vector. BepuScene can modify this between timesteps.
+        /// Re-broadcast to SIMD wide on each PrepareForIntegration call.
+        /// </summary>
+        public System.Numerics.Vector3 Gravity;
+
         public AngularIntegrationMode AngularIntegrationMode => AngularIntegrationMode.Nonconserving;
 
         public bool AllowSubstepsForUnconstrainedBodies => true;
@@ -915,12 +1166,17 @@ namespace OpenSim.Region.PhysicsModule.Bepu
 
         public BepuPoseIntegratorCallbacks(System.Numerics.Vector3 gravity) : this()
         {
+            Gravity = gravity;
             Vector3Wide.Broadcast(gravity, out _gravityWide);
         }
 
         public void Initialize(Simulation simulation) { }
 
-        public void PrepareForIntegration(float dt) { }
+        public void PrepareForIntegration(float dt)
+        {
+            // Re-broadcast gravity each frame so external changes take effect
+            Vector3Wide.Broadcast(Gravity, out _gravityWide);
+        }
 
         public void IntegrateVelocity(
             Vector<int> bodyIndices, Vector3Wide position, QuaternionWide orientation, BodyInertiaWide localInertia,
@@ -942,17 +1198,19 @@ namespace OpenSim.Region.PhysicsModule.Bepu
             return true;
         }
 
-        public bool AllowHit(CollidableReference collidable, ref float t)
+        public bool AllowTest(CollidableReference collidable, int childIndex)
         {
             return true;
         }
 
-        public void OnRayHit(in RayData ray, ref float t, in System.Numerics.Vector3 normal, CollidableReference collidable)
+        public void OnRayHit(in RayData ray, ref float maximumT, float t, System.Numerics.Vector3 normal, CollidableReference collidable, int childIndex)
         {
             Hit = true;
             T = t;
             Normal = normal;
             HitCollidable = collidable;
+            // Narrow search to only find closer hits (we want the closest one)
+            maximumT = t;
         }
     }
 
@@ -979,15 +1237,12 @@ namespace OpenSim.Region.PhysicsModule.Bepu
             }
         }
 
-        public bool AllowHit(CollidableReference collidable, ref float t)
+        public bool AllowTest(CollidableReference collidable, int childIndex)
         {
-            // Reject every hit in AllowHit so Bepu continues returning
-            // all hits through OnRayHit, where MultiHitHandler collects
-            // up to MaxHits results.
-            return false;
+            return true;
         }
 
-        public void OnRayHit(in RayData ray, ref float t, in System.Numerics.Vector3 normal, CollidableReference collidable)
+        public void OnRayHit(in RayData ray, ref float maximumT, float t, System.Numerics.Vector3 normal, CollidableReference collidable, int childIndex)
         {
             if (Results.Count >= MaxHits) return;
 
