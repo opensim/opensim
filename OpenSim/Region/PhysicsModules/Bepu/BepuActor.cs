@@ -310,7 +310,7 @@ namespace OpenSim.Region.PhysicsModule.Bepu
             set => _buoyancy = value;
         }
 
-        public override bool FloatOnWater
+        public new bool FloatOnWater
         {
             get => _floatOnWater;
             set => _floatOnWater = value;
@@ -574,9 +574,9 @@ namespace OpenSim.Region.PhysicsModule.Bepu
             _stopped = velocity.LengthSquared() < 0.0001f;
 
             if (posChanged)
-                OnPositionUpdate?.Invoke(position);
+                RaisePositionUpdate(position);
             if (rotChanged)
-                OnOrientationUpdate?.Invoke(orientation);
+                RaiseOrientationUpdate(orientation);
 
             if ((posChanged || rotChanged) && _subscribed)
                 RequestPhysicsterseUpdate();

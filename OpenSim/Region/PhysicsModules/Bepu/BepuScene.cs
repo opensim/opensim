@@ -10,6 +10,7 @@ using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuPhysics.CollisionDetection;
 using BepuPhysics.Constraints;
+using BepuPhysics.Trees;
 using BepuUtilities;
 using BepuUtilities.Memory;
 using log4net;
@@ -20,7 +21,7 @@ using Vector3 = OpenMetaverse.Vector3;
 
 namespace OpenSim.Region.PhysicsModule.Bepu
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "BepuPhysicsScene")]
+    [Mono.Addins.Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "BepuPhysicsScene")]
     public sealed class BepuScene : PhysicsScene
     {
         private static readonly ILog m_log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -89,7 +90,7 @@ namespace OpenSim.Region.PhysicsModule.Bepu
                 _bufferPool,
                 narrowPhase,
                 new BepuPoseIntegratorCallbacks(new System.Numerics.Vector3(0, 0, DefaultGravityZ)),
-                new BepuSolveDescription()
+                new SolveDescription()
             );
 
             _threadDispatcher = new ThreadDispatcher(Environment.ProcessorCount > 1 ? Environment.ProcessorCount - 1 : 1);
@@ -410,7 +411,7 @@ namespace OpenSim.Region.PhysicsModule.Bepu
             {
                 if (actor.HasBody)
                 {
-                    ref var body = ref _simulation.Bodies.GetBodyReference(actor.BodyHandle);
+                    var body = _simulation.Bodies.GetBodyReference(actor.BodyHandle);
                     var pose = body.Pose;
                     pose.Position = snPos;
                     body.Pose = pose;
@@ -425,7 +426,7 @@ namespace OpenSim.Region.PhysicsModule.Bepu
             {
                 if (actor.HasBody)
                 {
-                    ref var body = ref _simulation.Bodies.GetBodyReference(actor.BodyHandle);
+                    var body = _simulation.Bodies.GetBodyReference(actor.BodyHandle);
                     var pose = body.Pose;
                     pose.Orientation = snRot;
                     body.Pose = pose;
@@ -440,7 +441,7 @@ namespace OpenSim.Region.PhysicsModule.Bepu
             {
                 if (actor.HasBody)
                 {
-                    ref var body = ref _simulation.Bodies.GetBodyReference(actor.BodyHandle);
+                    var body = _simulation.Bodies.GetBodyReference(actor.BodyHandle);
                     body.Velocity.Linear = snVel;
                 }
             });
@@ -453,7 +454,7 @@ namespace OpenSim.Region.PhysicsModule.Bepu
             {
                 if (actor.HasBody)
                 {
-                    ref var body = ref _simulation.Bodies.GetBodyReference(actor.BodyHandle);
+                    var body = _simulation.Bodies.GetBodyReference(actor.BodyHandle);
                     body.Velocity.Angular = snAngVel;
                 }
             });
@@ -465,10 +466,10 @@ namespace OpenSim.Region.PhysicsModule.Bepu
             {
                 if (actor.HasBody)
                 {
-                    ref var body = ref _simulation.Bodies.GetBodyReference(actor.BodyHandle);
+                    var body = _simulation.Bodies.GetBodyReference(actor.BodyHandle);
                     if (isPhysical)
                     {
-                        body.Activity = new BodyActivityDescription { SleepThreshold = 0.01f };
+                        body.Activity.SleepThreshold = 0.01f;
                     }
                     else
                     {
@@ -485,7 +486,7 @@ namespace OpenSim.Region.PhysicsModule.Bepu
             {
                 if (actor.HasBody)
                 {
-                    ref var body = ref _simulation.Bodies.GetBodyReference(actor.BodyHandle);
+                    var body = _simulation.Bodies.GetBodyReference(actor.BodyHandle);
                     if (kinematic)
                     {
                         body.SetLocalInertia(default);
@@ -506,7 +507,7 @@ namespace OpenSim.Region.PhysicsModule.Bepu
                 if (!actor.HasBody) return;
 
                 var snSize = BepuUtil.ToSN(actor.Size);
-                ref var body = ref _simulation.Bodies.GetBodyReference(actor.BodyHandle);
+                var body = _simulation.Bodies.GetBodyReference(actor.BodyHandle);
 
                 // Remove old shape, add new box
                 // TODO: support arbitrary shapes in Phase 4
@@ -577,7 +578,7 @@ namespace OpenSim.Region.PhysicsModule.Bepu
                     var actor = kvp.Value;
                     if (!actor.HasBody) continue;
 
-                    ref var body = ref _simulation.Bodies.GetBodyReference(actor.BodyHandle);
+                    var body = _simulation.Bodies.GetBodyReference(actor.BodyHandle);
 
                     var pos = BepuUtil.ToOM(body.Pose.Position);
                     var rot = BepuUtil.ToOM(body.Pose.Orientation);
@@ -688,7 +689,7 @@ namespace OpenSim.Region.PhysicsModule.Bepu
             }
 
             // For dynamic/kinematic bodies, look up by BodyHandle
-            if (_bodyHandleToActor.TryGetValue(new BodyHandle(collidable.Handle), out var actor))
+            if (_bodyHandleToActor.TryGetValue(new BodyHandle(collidable.BodyHandle.Value), out var actor))
             {
                 localID = actor.LocalID;
                 return true;
@@ -714,14 +715,14 @@ namespace OpenSim.Region.PhysicsModule.Bepu
         {
             if (contact.CollidableA.Mobility == CollidableMobility.Static)
             {
-                ref var staticRef = ref _simulation.Statics.GetStaticReference(
-                    new StaticHandle(contact.CollidableA.Handle));
+                var staticRef = _simulation.Statics.GetStaticReference(
+                    new StaticHandle(contact.CollidableA.StaticHandle.Value));
                 return staticRef.Pose.Position + contact.Offset;
             }
             else
             {
-                ref var bodyRef = ref _simulation.Bodies.GetBodyReference(
-                    new BodyHandle(contact.CollidableA.Handle));
+                var bodyRef = _simulation.Bodies.GetBodyReference(
+                    new BodyHandle(contact.CollidableA.BodyHandle.Value));
                 return bodyRef.Pose.Position + contact.Offset;
             }
         }
@@ -749,23 +750,25 @@ namespace OpenSim.Region.PhysicsModule.Bepu
 
         private BodyDescription CreateBodyDescription(
             ref System.Numerics.Vector3 position,
-            ref System.Numerics.Vector3 rotation,
+            ref System.Numerics.Quaternion rotation,
             ref System.Numerics.Vector3 size,
             float mass, bool isPhysical, uint localID)
         {
             var box = new Box(size.X, size.Y, size.Z);
             var shapeIndex = _simulation.Shapes.Add(box);
 
-            var pose = new RigidPose(position, System.Numerics.Quaternion.Identity);
+            var pose = new RigidPose(position, rotation);
+            var collidableDesc = new CollidableDescription(shapeIndex, 0.01f);
+            var activityDesc = new BodyActivityDescription { SleepThreshold = 0.01f, MinimumTimestepCountUnderThreshold = 0 };
 
             if (isPhysical && mass > 0)
             {
                 var inertia = box.ComputeInertia(mass);
-                return BodyDescription.CreateDynamic(pose, inertia, shapeIndex, 0.01f);
+                return BodyDescription.CreateDynamic(pose, inertia, collidableDesc, activityDesc);
             }
             else
             {
-                return BodyDescription.CreateKinematic(pose, shapeIndex, 0.01f);
+                return BodyDescription.CreateKinematic(pose, collidableDesc, activityDesc);
             }
         }
 
@@ -808,7 +811,7 @@ namespace OpenSim.Region.PhysicsModule.Bepu
         {
             if (collidable.Mobility == CollidableMobility.Dynamic || collidable.Mobility == CollidableMobility.Kinematic)
             {
-                if (_bodyHandleToActor.TryGetValue(new BodyHandle(collidable.Handle), out var actor))
+                if (_bodyHandleToActor.TryGetValue(new BodyHandle(collidable.BodyHandle.Value), out var actor))
                     (friction, restitution) = actor.GetMaterialProperties();
             }
             // Statics keep the default values passed in
@@ -848,7 +851,7 @@ namespace OpenSim.Region.PhysicsModule.Bepu
                     var pid = kvp.Value;
                     if (!pid.Active) continue;
 
-                    ref var body = ref _simulation.Bodies.GetBodyReference(actor.BodyHandle);
+                    var body = _simulation.Bodies.GetBodyReference(actor.BodyHandle);
                     var currentPos = body.Pose.Position;
                     var targetPos = BepuUtil.ToSN(pid.Target);
 
@@ -876,7 +879,7 @@ namespace OpenSim.Region.PhysicsModule.Bepu
                     if (!actor.HasBody || !actor.FloatOnWater || actor.Buoyancy <= 0)
                         continue;
 
-                    ref var body = ref _simulation.Bodies.GetBodyReference(actor.BodyHandle);
+                    var body = _simulation.Bodies.GetBodyReference(actor.BodyHandle);
                     float submergedDepth = waterLevel - body.Pose.Position.Z;
                     if (submergedDepth <= 0) continue;
 
@@ -896,7 +899,7 @@ namespace OpenSim.Region.PhysicsModule.Bepu
             _scheduledUpdates.Enqueue(() =>
             {
                 if (!actor.HasBody) return;
-                ref var body = ref _simulation.Bodies.GetBodyReference(actor.BodyHandle);
+                var body = _simulation.Bodies.GetBodyReference(actor.BodyHandle);
                 var angularVelocity = body.Velocity.Angular;
                 if ((axislocks & 1) != 0) angularVelocity.X = 0;
                 if ((axislocks & 2) != 0) angularVelocity.Y = 0;
@@ -923,7 +926,7 @@ namespace OpenSim.Region.PhysicsModule.Bepu
             var rayDir = BepuUtil.ToSN(direction);
 
             var hitHandler = new RayHitHandler();
-            _simulation.RayCast(rayOrigin, rayDir, length, _bufferPool, ref hitHandler);
+            _simulation.RayCast(rayOrigin, rayDir, length, ref hitHandler, 0);
 
             if (retMethod != null)
             {
@@ -982,7 +985,7 @@ namespace OpenSim.Region.PhysicsModule.Bepu
                 Filter = filter
             };
 
-            _simulation.RayCast(rayOrigin, rayDir, length, _bufferPool, ref hitHandler);
+            _simulation.RayCast(rayOrigin, rayDir, length, ref hitHandler, 0);
             return hitHandler.Results;
         }
 
@@ -1014,7 +1017,7 @@ namespace OpenSim.Region.PhysicsModule.Bepu
         {
             var stats = new Dictionary<string, float>
             {
-                ["BepuBodyCount"] = _simulation.Bodies.CountBodies(),
+                ["BepuBodyCount"] = _simulation.Bodies.ActiveSet.Count,
                 ["BepuActiveBodyCount"] = _simulation.Bodies.ActiveSet.Count,
                 ["BepuStaticCount"] = _simulation.Statics.Count,
                 ["BepuConstraintCount"] = _simulation.Solver.CountConstraints(),
@@ -1203,7 +1206,7 @@ namespace OpenSim.Region.PhysicsModule.Bepu
             return true;
         }
 
-        public void OnRayHit(in RayData ray, ref float maximumT, float t, System.Numerics.Vector3 normal, CollidableReference collidable, int childIndex)
+        public void OnRayHit(in RayData ray, ref float maximumT, float t, in System.Numerics.Vector3 normal, CollidableReference collidable, int childIndex)
         {
             Hit = true;
             T = t;
@@ -1242,7 +1245,7 @@ namespace OpenSim.Region.PhysicsModule.Bepu
             return true;
         }
 
-        public void OnRayHit(in RayData ray, ref float maximumT, float t, System.Numerics.Vector3 normal, CollidableReference collidable, int childIndex)
+        public void OnRayHit(in RayData ray, ref float maximumT, float t, in System.Numerics.Vector3 normal, CollidableReference collidable, int childIndex)
         {
             if (Results.Count >= MaxHits) return;
 

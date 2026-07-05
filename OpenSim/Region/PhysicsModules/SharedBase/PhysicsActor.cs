@@ -284,6 +284,16 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
             OnCollisionUpdate?.Invoke(e);
         }
 
+        protected void RaisePositionUpdate(Vector3 position)
+        {
+            OnPositionUpdate?.Invoke(position);
+        }
+
+        protected void RaiseOrientationUpdate(Quaternion orientation)
+        {
+            OnOrientationUpdate?.Invoke(orientation);
+        }
+
         public virtual void SetMaterial (int material) { }
         public virtual float Density { get; set; }
         public virtual float GravModifier { get; set; }
