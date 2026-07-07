@@ -2242,7 +2242,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     foreach (UserData ud in names)
                     {
                         // dont tell about unknown users, we can't send them back on Bad either
-                        if (string.IsNullOrEmpty(ud.FirstName) || ud.FirstName.Equals("Unkown"))
+                        if (string.IsNullOrEmpty(ud.FirstName) || ud.FirstName.Equals("Unknown"))
                             continue;
 
                         string fullname = ud.FirstName + " " + ud.LastName;

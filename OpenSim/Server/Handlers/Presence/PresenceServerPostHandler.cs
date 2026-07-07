@@ -83,7 +83,7 @@ namespace OpenSim.Server.Handlers.Presence
                             if (request.TryGetValue("UserID", out object uo) && uo is string user)
                                 m_log.Debug($"[PRESENCE HANDLER]: ilegal login try from {httpRequest.RemoteIPEndPoint} for userID {user}");
                             else
-                                m_log.Debug($"[PRESENCE HANDLER]: ilegal login try from {httpRequest.RemoteIPEndPoint} for unkown user");
+                                m_log.Debug($"[PRESENCE HANDLER]: ilegal login try from {httpRequest.RemoteIPEndPoint} for unknown user");
 
                             return FailureResult();
                         }

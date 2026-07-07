@@ -216,7 +216,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
 
             if(!m_scenes.Contains(scene))
             {
-                m_log.WarnFormat("[CHAT]: message from unkown scene {0} ignored",
+                m_log.WarnFormat("[CHAT]: message from unknown scene {0} ignored",
                                      scene.RegionInfo.RegionName);
                 return;
             }

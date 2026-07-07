@@ -318,7 +318,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected Vector3 m_acceleration;
         protected Vector3 m_angularVelocity;
 
-        //unkown if this will be kept, added as a way of removing the group position from the group class
+        //Unknown if this will be kept, added as a way of removing the group position from the group class
         protected Vector3 m_groupPosition;
         protected Material m_material = OpenMetaverse.Material.Wood;
         protected Vector3 m_offsetPosition;

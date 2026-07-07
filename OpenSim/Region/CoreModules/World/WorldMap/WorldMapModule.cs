@@ -530,7 +530,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         break;
 
                     default:
-                        // unkown map item type
+                        // Unknown map item type
                         m_log.DebugFormat("[WORLD MAP]: Unknown MapItem type {0}", itemtype);
                         break;
                 }
