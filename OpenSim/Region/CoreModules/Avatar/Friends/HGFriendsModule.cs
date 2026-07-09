@@ -52,6 +52,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private int m_levelHGFriends = 0;
+        private string m_ThisGridURL = string.Empty;
 
         IUserManagement m_uMan;
         public IUserManagement UserManagementModule
@@ -92,6 +93,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         protected override void InitModule(IConfigSource config)
         {
             base.InitModule(config);
+
+            // our own grid's HGFriendsService lives at the HomeURI base; used to
+            // deliver status changes to local friends traveling on foreign grids
+            m_ThisGridURL = Util.GetConfigVarFromSections<string>(config, "HomeURI",
+                new string[] { "Startup", "Hypergrid", "HGFriendsModule" }, string.Empty);
 
             // Additionally to the base method
             IConfig friendsConfig = config.Configs["HGFriendsModule"];
@@ -220,7 +226,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             return false;
         }
 
-        protected override void GetOnlineFriends(UUID userID, List<string> friendList, /*collector*/ List<UUID> online)
+        protected override void GetOnlineFriends(UUID userID, UUID sessionID, List<string> friendList, /*collector*/ List<UUID> online)
         {
             //m_log.DebugFormat("[HGFRIENDS MODULE]: Entering GetOnlineFriends for {0}", userID);
 
@@ -238,8 +244,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             // FIXME: also query the presence status of friends in other grids (like in HGStatusNotifier.Notify())
 
             PresenceInfo[] presence = PresenceService.GetAgents(fList.ToArray());
-            if (presence.Length == 0)
-                return;
 
             if (!m_OnlineFriendsCache.TryGetValue(userID, out HashSet<UUID> friends))
             {
@@ -247,19 +251,40 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 m_OnlineFriendsCache[userID] = friends;
             }
 
+            HashSet<string> foundAtHome = new();
             foreach (PresenceInfo pi in presence)
             {
                 if (UUID.TryParse(pi.UserID, out UUID presenceID))
                 {
                     online.Add(presenceID);
                     friends.Add(presenceID);
+                    foundAtHome.Add(pi.UserID);
+                }
+            }
+
+            // Local friends with no home presence may be traveling on a foreign grid
+            // (their home presence row is deleted while abroad). Ask our own grid's
+            // HGFriendsService, which filters by travel record, so they show as
+            // online in the login snapshot too.
+            if (foundAtHome.Count < fList.Count && !string.IsNullOrEmpty(m_ThisGridURL))
+            {
+                List<string> candidates = new(fList.Count - foundAtHome.Count);
+                foreach (string s in fList)
+                    if (!foundAtHome.Contains(s))
+                        candidates.Add(s);
+
+                HGFriendsServicesConnector conn = new(m_ThisGridURL);
+                foreach (UUID id in conn.GetTravelingFriends(userID, sessionID, candidates))
+                {
+                    online.Add(id);
+                    friends.Add(id);
                 }
             }
 
             //m_log.DebugFormat("[HGFRIENDS MODULE]: Exiting GetOnlineFriends for {0}", userID);
         }
 
-        protected override void StatusNotify(List<FriendInfo> friendList, UUID userID, bool online)
+        protected override List<string> StatusNotify(List<FriendInfo> friendList, UUID userID, UUID sessionID, bool online)
         {
             //m_log.DebugFormat("[HGFRIENDS MODULE]: Entering StatusNotify for {0}", userID);
 
@@ -296,13 +321,29 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
             // For the local friends, just call the base method
             // Let's do this first of all
+            List<string> undelivered = new();
             if (locallst.Count > 0)
-                base.StatusNotify(locallst, userID, online);
+                undelivered = base.StatusNotify(locallst, userID, sessionID, online);
+
+            // Local friends with no presence here may be traveling on a foreign grid
+            // (their home presence row is deleted while abroad, so they look exactly
+            // like offline friends). Hand them to our own grid's HGFriendsService,
+            // which filters by travel record and delivers via the visited grid.
+            if (undelivered.Count > 0 && !string.IsNullOrEmpty(m_ThisGridURL))
+            {
+                List<string> candidates = undelivered;
+                Util.FireAndForget(o =>
+                {
+                    HGFriendsServicesConnector conn = new(m_ThisGridURL);
+                    conn.StatusNotifyTraveling(candidates, userID, sessionID, online);
+                }, null, "HGFriendsModule.StatusNotifyTraveling");
+            }
 
             if(friendsPerDomain.Count > 0)
                 m_StatusNotifier.Notify(userID, friendsPerDomain, online);
 
             //m_log.DebugFormat("[HGFRIENDS MODULE]: Exiting StatusNotify for {0}", userID);
+            return undelivered;
         }
 
         protected override bool GetAgentInfo(UUID scopeID, string fid, out UUID agentID, out string first, out string last)

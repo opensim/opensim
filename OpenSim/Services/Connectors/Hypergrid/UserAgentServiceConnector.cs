@@ -50,7 +50,17 @@ namespace OpenSim.Services.Connectors.Hypergrid
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private string m_ServerURL;
-        private GridRegion m_Gatekeeper;
+        // PackData needs the gatekeeper and the real target region, but only
+        // receives the synthetic home region built in LoginAgentToGrid.
+        // They ride on that per-call object rather than on instance fields:
+        // this connector is cached and shared (LLLoginService,
+        // HGEntityTransferModule), so instance fields would race between
+        // concurrent logins.
+        private sealed class LoginContextRegion : GridRegion
+        {
+            public GridRegion Gatekeeper;
+            public GridRegion Destination;
+        }
 
         public UserAgentServiceConnector(string url)
         {
@@ -115,15 +125,15 @@ namespace OpenSim.Services.Connectors.Hypergrid
                 return false;
             }
 
-            GridRegion home = new GridRegion()
+            GridRegion home = new LoginContextRegion()
             {
                 ServerURI = m_ServerURL,
                 RegionID = destination.RegionID,
                 RegionLocX = destination.RegionLocX,
-                RegionLocY = destination.RegionLocY
+                RegionLocY = destination.RegionLocY,
+                Gatekeeper = gatekeeper,
+                Destination = destination
             };
-
-            m_Gatekeeper = gatekeeper;
 
             //Console.WriteLine("   >>> LoginAgentToGrid <<< " + home.ServerURI);
 
@@ -141,10 +151,27 @@ namespace OpenSim.Services.Connectors.Hypergrid
         protected override void PackData(OSDMap args, GridRegion source, AgentCircuitData aCircuit, GridRegion destination, uint flags)
         {
             base.PackData(args, source, aCircuit, destination, flags);
-            args["gatekeeper_serveruri"] = OSD.FromString(m_Gatekeeper.ServerURI);
-            args["gatekeeper_host"] = OSD.FromString(m_Gatekeeper.ExternalHostName);
-            args["gatekeeper_port"] = OSD.FromString(m_Gatekeeper.HttpPort.ToString());
-            args["destination_serveruri"] = OSD.FromString(destination.ServerURI);
+            if (destination is LoginContextRegion ctx)
+            {
+                args["gatekeeper_serveruri"] = OSD.FromString(ctx.Gatekeeper.ServerURI);
+                args["gatekeeper_host"] = OSD.FromString(ctx.Gatekeeper.ExternalHostName);
+                args["gatekeeper_port"] = OSD.FromString(ctx.Gatekeeper.HttpPort.ToString());
+                // the "destination" param here is the synthetic home region built
+                // in LoginAgentToGrid (its ServerURI is this connector's own URL);
+                // send the real target region's URI so the user agent service can
+                // record where the traveler actually lands.
+                args["destination_serveruri"] = OSD.FromString(ctx.Destination.ServerURI);
+            }
+            else
+            {
+                // CreateAgent on this connector is only ever expected to be reached
+                // via LoginAgentToGrid, which always builds a LoginContextRegion.
+                // Warn rather than silently sending a foreignagent post with no
+                // gatekeeper/destination info, which the receiving HG handler needs.
+                m_log.WarnFormat("[USER AGENT CONNECTOR]: PackData called with a plain destination ({0}); " +
+                    "gatekeeper and destination_serveruri fields will be missing from this request",
+                    destination?.RegionName ?? "null");
+            }
         }
 
         public void SetClientToken(UUID sessionID, string token)
@@ -515,6 +542,14 @@ namespace OpenSim.Services.Connectors.Hypergrid
                 url = hash["URL"].ToString();
 
             return url;
+        }
+
+        // Remote user agent services do not expose an endpoint for this; delivery
+        // to travelers is only possible when HGFriendsService and UserAgentService
+        // share the same Robust process (local implementation).
+        public bool StatusNotifyTravelingAgent(UUID userID, UUID friendID, bool online)
+        {
+            return false;
         }
 
         public string GetUUI(UUID userID, UUID targetUserID)

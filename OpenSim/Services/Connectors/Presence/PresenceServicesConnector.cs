@@ -367,6 +367,13 @@ namespace OpenSim.Services.Connectors
             return rinfos.ToArray();
         }
 
+        // Not wired to a remote call: only Robust-local callers (e.g.
+        // HGFriendsService, which loads PresenceService in-process) need this
+        // post-logout auth capability today.
+        public bool WasRecentlyLoggedOut(UUID sessionID, UUID userID)
+        {
+            return false;
+        }
 
         #endregion
 

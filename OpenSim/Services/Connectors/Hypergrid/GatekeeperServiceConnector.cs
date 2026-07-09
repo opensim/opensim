@@ -340,5 +340,78 @@ namespace OpenSim.Services.Connectors.Hypergrid
 
             return null;
         }
+
+        /// <summary>
+        /// Ask a foreign grid's gatekeeper to deliver a friend status notification to
+        /// one of our users traveling there. The remote grid resolves the traveler's
+        /// current sim from its own presence data and forwards grid-internally, so
+        /// the notification arrives even after intra-grid teleports we never see.
+        /// </summary>
+        /// <param name="gatekeeperURI">The foreign grid's gatekeeper URI</param>
+        /// <param name="sessionID">The traveler's session ID as stored in HGTravelingData</param>
+        /// <param name="userID">The traveler's User ID (the recipient)</param>
+        /// <param name="friendID">The friend whose status changed</param>
+        /// <param name="online">true = came online, false = went offline</param>
+        /// <param name="notSupported">[out] true if the remote grid answered but doesn't
+        /// implement status_notify (older OpenSim); the caller should stop asking it</param>
+        /// <returns>true if the remote grid found the traveler and forwarded the
+        /// notification; false if the traveler isn't there or the call failed</returns>
+        public bool StatusNotify(string gatekeeperURI, UUID sessionID, UUID userID, UUID friendID, bool online, out bool notSupported)
+        {
+            notSupported = false;
+
+            Hashtable hash = new Hashtable();
+            hash["session_id"] = sessionID.ToString();
+            hash["user_id"] = userID.ToString();
+            hash["friend_id"] = friendID.ToString();
+            hash["online"] = online.ToString();
+
+            IList paramList = new ArrayList();
+            paramList.Add(hash);
+
+            XmlRpcRequest request = new XmlRpcRequest("status_notify", paramList);
+            XmlRpcResponse response = null;
+            try
+            {
+                using HttpClient hclient = WebUtil.GetNewGlobalHttpClient(10000);
+                response = request.Send(gatekeeperURI, hclient);
+            }
+            catch (Exception e)
+            {
+                // transport failure: the grid may just be unreachable right now
+                m_log.DebugFormat("[GATEKEEPER SERVICE CONNECTOR]: StatusNotify exception contacting {0}: {1}", gatekeeperURI, e.Message);
+                return false;
+            }
+
+            if (response.IsFault)
+            {
+                // Only an explicit unknown-method fault marks the grid as not
+                // supporting status_notify (older OpenSim). Other faults (e.g. a
+                // handler exception on the remote) are transient and must not
+                // get the grid cached as unsupported.
+                if (response.FaultCode == XmlRpcErrorCodes.SERVER_ERROR_METHOD)
+                {
+                    m_log.DebugFormat("[GATEKEEPER SERVICE CONNECTOR]: status_notify not supported by {0}: {1}", gatekeeperURI, response.FaultString);
+                    notSupported = true;
+                }
+                else
+                    m_log.DebugFormat("[GATEKEEPER SERVICE CONNECTOR]: status_notify fault from {0}: {1} ({2})", gatekeeperURI, response.FaultString, response.FaultCode);
+                return false;
+            }
+
+            try
+            {
+                hash = (Hashtable)response.Value;
+                bool delivered = false;
+                Boolean.TryParse((string)hash["result"], out delivered);
+                return delivered;
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[GATEKEEPER SERVICE CONNECTOR]: Got exception while parsing status_notify response: {0}", e.Message);
+            }
+
+            return false;
+        }
     }
 }

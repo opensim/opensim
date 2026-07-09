@@ -291,7 +291,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             }
         }
 
-        public virtual void CacheFriendOnline(UUID userID, UUID friendID, bool online)
+        /// <returns>true if the cached online state actually changed</returns>
+        public virtual bool CacheFriendOnline(UUID userID, UUID friendID, bool online)
         {
             if (!m_OnlineFriendsCache.TryGetValue(userID, out HashSet<UUID> friends))
             {
@@ -299,9 +300,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 m_OnlineFriendsCache[userID] = friends;
             }
             if (online)
-                friends.Add(friendID);
+                return friends.Add(friendID);
             else
-                friends.Remove(friendID);
+                return friends.Remove(friendID);
         }
         public virtual List<UUID> GetCachedFriendsOnline(UUID userID)
         {
@@ -446,7 +447,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             }
 
             // Send the friends online
-            List<UUID> online = GetOnlineFriends(client.AgentId);
+            List<UUID> online = GetOnlineFriends(client.AgentId, client.SessionId);
 
             if (online.Count > 0)
                 client.SendAgentOnline(online.ToArray());
@@ -504,7 +505,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             return true;
         }
 
-        List<UUID> GetOnlineFriends(UUID userID)
+        List<UUID> GetOnlineFriends(UUID userID, UUID sessionID)
         {
             List<UUID> online = new();
             FriendInfo[] friends = GetFriendsFromCache(userID);
@@ -519,7 +520,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             }
 
             if (friendList.Count > 0)
-                GetOnlineFriends(userID, friendList, online);
+                GetOnlineFriends(userID, sessionID, friendList, online);
 
             //m_log.DebugFormat(
             //    "[FRIENDS MODULE]: User {0} has {1} friends online", userID, online.Count);
@@ -527,7 +528,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             return online;
         }
 
-        protected virtual void GetOnlineFriends(UUID userID, List<string> friendList, List<UUID> online)
+        /// <param name="sessionID">userID's own live session on this grid (the caller's,
+        /// i.e. client.SessionId at login) — unused here, but threaded through so the
+        /// HG override can present it to the grid's own HGFriendsService as a capability
+        /// proving the query genuinely originates from userID's connected session.</param>
+        protected virtual void GetOnlineFriends(UUID userID, UUID sessionID, List<string> friendList, List<UUID> online)
         {
             //m_log.DebugFormat(
             //    "[FRIENDS MODULE]: Looking for online presence of {0} users for {1}", friendList.Count, userID);
@@ -590,6 +595,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
             if(friendList.Count > 0)
             {
+                // resolved here, before the async hop, so it reflects the live client
+                // at the moment of the status change; threaded through to the HG
+                // override as a capability proving the call genuinely originates from
+                // agentID's own connected session (see StatusNotify's sessionID param)
+                UUID sessionID = LocateClientObject(agentID)?.SessionId ?? UUID.Zero;
+                if (sessionID.IsZero())
+                    // downstream this means the HG traveling-friends delivery will be
+                    // rejected server-side; make that visible instead of a silent drop
+                    m_log.DebugFormat("[FRIENDS MODULE]: StatusChange({0}) for {1}: client object no longer " +
+                        "resolvable, notifying without a session capability", online ? "online" : "offline", agentID);
                 Util.FireAndForget(
                     delegate
                     {
@@ -598,13 +613,21 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                         //    friendList.Count, agentID, online);
 
                         // Notify about this user status
-                        StatusNotify(friendList, agentID, online);
+                        StatusNotify(friendList, agentID, sessionID, online);
                     }, null, "FriendsModule.StatusChange"
                 );
             }
         }
 
-        protected virtual void StatusNotify(List<FriendInfo> friendList, UUID userID, bool online)
+        /// <param name="sessionID">userID's own live session on this grid — unused here,
+        /// but threaded through so the HG override can present it to the grid's own
+        /// HGFriendsService as a capability proving the notification genuinely
+        /// originates from userID's connected session.</param>
+        /// <returns>The friend IDs that could not be delivered to because they have no
+        /// usable presence session on this grid — they are either offline or traveling
+        /// on a foreign grid (the home presence row is deleted while abroad); the two
+        /// are indistinguishable here. HGFriendsModule follows up on these.</returns>
+        protected virtual List<string> StatusNotify(List<FriendInfo> friendList, UUID userID, UUID sessionID, bool online)
         {
             //m_log.DebugFormat("[FRIENDS]: Entering StatusNotify for {0}", userID);
             List<string> remoteFriendStringIds = new(friendList.Count);
@@ -623,29 +646,34 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             }
 
             if (remoteFriendStringIds.Count == 0)
-                return;
+                return remoteFriendStringIds;
+
+            HashSet<string> undelivered = new(remoteFriendStringIds);
 
             // We do this regrouping so that we can efficiently send a single request rather than one for each
             // friend in what may be a very large friends list.
             PresenceInfo[] friendSessions = PresenceService.GetAgents(remoteFriendStringIds.ToArray());
-            if(friendSessions is null)
-                return;
-
-            foreach (PresenceInfo friendSession in friendSessions)
+            if (friendSessions is not null)
             {
-                // let's guard against sessions-gone-bad
-                if (friendSession is not null && friendSession.RegionID.IsNotZero())
+                foreach (PresenceInfo friendSession in friendSessions)
                 {
-                    //m_log.DebugFormat("[FRIENDS]: Get region {0}", friendSession.RegionID);
-                    GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
-                    if (region is not null)
+                    // let's guard against sessions-gone-bad
+                    if (friendSession is not null && friendSession.RegionID.IsNotZero())
                     {
-                        m_FriendsSimConnector.StatusNotify(region, userID, friendSession.UserID, online);
+                        //m_log.DebugFormat("[FRIENDS]: Get region {0}", friendSession.RegionID);
+                        GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
+                        if (region is not null)
+                        {
+                            m_FriendsSimConnector.StatusNotify(region, userID, friendSession.UserID, online);
+                            undelivered.Remove(friendSession.UserID);
+                        }
                     }
+                    //else
+                    //    m_log.DebugFormat("[FRIENDS]: friend session is null or the region is UUID.Zero");
                 }
-                //else
-                //    m_log.DebugFormat("[FRIENDS]: friend session is null or the region is UUID.Zero");
             }
+
+            return new List<string>(undelivered);
         }
 
         protected virtual void OnInstantMessage(IClientAPI client, GridInstantMessage im)
@@ -738,6 +766,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             // Try Local
             if (LocalFriendshipApproved(client.AgentId, client.Name, friendID))
             {
+                // keep the online cache in sync with what the viewer is told,
+                // so the state-change gate in LocalStatusNotification doesn't
+                // later swallow this friend's status changes
+                CacheFriendOnline(client.AgentId, friendID, true);
                 client.SendAgentOnline(new UUID[] { friendID });
                 return;
             }
@@ -751,6 +783,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 {
                     GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
                     m_FriendsSimConnector.FriendshipApproved(region, client.AgentId, client.Name, friendID);
+                    CacheFriendOnline(client.AgentId, friendID, true);
                     client.SendAgentOnline(new UUID[] { friendID });
                 }
             }
@@ -1018,10 +1051,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 bool onlineBitChanged = (changedRights & (int)FriendRights.CanSeeOnline) != 0;
                 if (onlineBitChanged)
                 {
+                    // keep the online cache in sync with what the viewer is told
                     if ((newRights & (int)FriendRights.CanSeeOnline) == 1)
+                    {
+                        CacheFriendOnline(friendID, userID, true);
                         friendClient.SendAgentOnline(new UUID[] { userID });
+                    }
                     else
+                    {
+                        CacheFriendOnline(friendID, userID, false);
                         friendClient.SendAgentOffline(new UUID[] { userID });
+                    }
                 }
 
                 if(changedRights != 0)
@@ -1043,10 +1083,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             IClientAPI friendClient = LocateClientObject(friendID);
             if (friendClient is not null)
             {
-                CacheFriendOnline(friendID, userID, online);
-                // the friend in this sim as root agent
+                bool changed = CacheFriendOnline(friendID, userID, online);
+                // the friend in this sim as root agent.
+                // Suppress only repeated "online" notifications (e.g. an HG
+                // traveler returning home triggers a fresh "online" that would
+                // pop a redundant toast). "offline" is always delivered: the
+                // cache may lack entries the viewer was told about directly
+                // (mid-session friendships, rights changes), and a suppressed
+                // offline would leave a ghost online friend until relog.
                 if (online)
-                    friendClient.SendAgentOnline(new UUID[] { userID });
+                {
+                    if (changed)
+                        friendClient.SendAgentOnline(new UUID[] { userID });
+                }
                 else
                     friendClient.SendAgentOffline(new UUID[] { userID });
                 // we're done

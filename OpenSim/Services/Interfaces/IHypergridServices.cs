@@ -54,6 +54,22 @@ namespace OpenSim.Services.Interfaces
 
         bool LoginAgent(GridRegion source, AgentCircuitData aCircuit, GridRegion destination, out string reason);
 
+        /// <summary>
+        /// Delivers a friend status notification to a Hypergrid visitor currently on
+        /// this grid: resolves the visitor's current sim from this grid's presence
+        /// data and forwards the event grid-internally, so it reaches the visitor
+        /// even after intra-grid teleports the home grid never sees. The caller must
+        /// present the visitor's session ID, which only the visitor's viewer and
+        /// their home grid know, so third parties can't probe user locations or
+        /// spoof status events. The friendship itself is validated by the caller
+        /// (the visitor's home grid); this grid only checks the session capability.
+        /// </summary>
+        /// <param name="sessionID">The visitor's session ID, as stored by the home grid at HG login</param>
+        /// <param name="userID">The visitor's User ID; must match the session</param>
+        /// <param name="friendID">The friend whose status changed</param>
+        /// <param name="online">true = came online, false = went offline</param>
+        /// <returns>true if the visitor was found and the notification was forwarded to their sim</returns>
+        bool StatusNotify(UUID sessionID, UUID userID, UUID friendID, bool online);
     }
 
     public interface IUserAgentService
@@ -86,9 +102,22 @@ namespace OpenSim.Services.Interfaces
         /// <summary>
         /// Returns the current location of a remote user.
         /// </summary>
-        /// <returns>On success: the user's Server URLs. If the user doesn't exist: "".</returns>
+        /// <returns>On success: the external grid URL where the user is traveling. If the user doesn't exist or is at home: "".</returns>
         /// <remarks>Throws an exception if an error occurs (e.g., can't contact the server).</remarks>
         string LocateUser(UUID userID);
+
+        /// <summary>
+        /// Sends a friend status notification to a local user who is traveling on a
+        /// foreign grid. Prefers handing delivery to the visited grid's gatekeeper
+        /// (status_notify), which resolves the traveler's current sim from its own
+        /// presence data; falls back to the sim URI recorded at grid entry when the
+        /// visited grid is an older OpenSim. Does network I/O; call from a worker thread.
+        /// </summary>
+        /// <param name="userID">The traveling local user (the recipient)</param>
+        /// <param name="friendID">The friend whose status changed</param>
+        /// <param name="online">true = came online, false = went offline</param>
+        /// <returns>true if a delivery attempt was made</returns>
+        bool StatusNotifyTravelingAgent(UUID userID, UUID friendID, bool online);
 
         /// <summary>
         /// Returns the Universal User Identifier for 'targetUserID' on behalf of 'userID'.
@@ -134,6 +163,45 @@ namespace OpenSim.Services.Interfaces
         bool ValidateFriendshipOffered(UUID fromID, UUID toID);
         // Returns the local friends online
         List<UUID> StatusNotification(List<string> friends, UUID userID, bool online);
+
+        /// <summary>
+        /// A local user's status changed at home; deliver it to those of their local
+        /// friends who are traveling on a foreign grid. Called by this grid's own sims
+        /// with the friends that had no home presence (travelers and offline friends
+        /// look identical there — the home presence row is deleted while abroad).
+        /// Friends without a travel record (simply offline) are filtered out by one
+        /// cheap indexed read; only exact local (plain UUID) friendships are delivered,
+        /// foreign friends flow through StatusNotification with their secrets instead.
+        /// This method (like GetTravelingFriends) is reachable on the same publicly
+        /// exposed port as StatusNotification, so sessionID acts as the auth
+        /// capability in place of a per-friendship secret — see its own doc.
+        /// </summary>
+        /// <param name="userID">The local user whose status changed</param>
+        /// <param name="sessionID">userID's own live session on this grid, as held by
+        /// their connected sim. Verified against Presence before anything is delivered:
+        /// only userID's own sim (or their viewer) can know this value, so it proves
+        /// the request is genuine rather than an arbitrary caller who merely knows two
+        /// account UUIDs — this endpoint is otherwise unauthenticated.</param>
+        /// <param name="friends">Candidate local friend IDs with no home presence</param>
+        /// <param name="online">true = came online, false = went offline</param>
+        void StatusNotifyTravelingFriends(UUID userID, UUID sessionID, List<string> friends, bool online);
+
+        /// <summary>
+        /// Returns which of the given candidates are local friends of userID currently
+        /// traveling on a foreign grid. Used by the sims to include travelers in the
+        /// login-time online-friends snapshot (they have no home presence row while
+        /// abroad, so presence alone reports them offline). Candidates without a
+        /// travel record are filtered by one cheap indexed read; only exact local
+        /// (plain UUID) friendships are reported.
+        /// </summary>
+        /// <param name="userID">The local user logging in</param>
+        /// <param name="sessionID">userID's own live session on this grid — same auth
+        /// capability role as on StatusNotifyTravelingFriends; this is a public,
+        /// otherwise-unauthenticated endpoint and must not answer for an arbitrary
+        /// caller who only knows userID.</param>
+        /// <param name="friends">Candidate local friend IDs with no home presence</param>
+        /// <returns>The subset of candidates that are friends and traveling</returns>
+        List<UUID> GetTravelingFriends(UUID userID, UUID sessionID, List<string> friends);
     }
 
     public interface IInstantMessageSimConnector

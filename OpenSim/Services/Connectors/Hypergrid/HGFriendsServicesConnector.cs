@@ -256,6 +256,109 @@ namespace OpenSim.Services.Connectors.Hypergrid
 
         }
 
+        /// <summary>
+        /// Tell the (own) grid's HGFriendsService that a local user's status changed,
+        /// so it can deliver to local friends traveling on foreign grids. Fire-and-forget:
+        /// the reply carries no data. Older services log an unknown-method warning and
+        /// return failure, which is silently ignored — pre-fix behavior.
+        /// </summary>
+        /// <param name="sessionID">userID's own live session on this grid — the auth
+        /// capability for this call, since /hgfriends is a publicly reachable endpoint
+        /// (other grids call statusnotification on the same port); only userID's own
+        /// connected sim knows this value, so it proves the call is genuine and not a
+        /// spoofed/probing request from an arbitrary caller who merely knows two UUIDs.</param>
+        public void StatusNotifyTraveling(List<string> friends, UUID userID, UUID sessionID, bool online)
+        {
+            Dictionary<string, object> sendData = new Dictionary<string, object>();
+
+            sendData["METHOD"] = "statusnotify_traveling";
+            sendData["userID"] = userID.ToString();
+            sendData["sessionID"] = sessionID.ToString();
+            sendData["online"] = online.ToString();
+            int i = 0;
+            foreach (string s in friends)
+            {
+                sendData["friend_" + i.ToString()] = s;
+                i++;
+            }
+
+            string uri = m_ServerURI + "/hgfriends";
+            try
+            {
+                SynchronousRestFormsRequester.MakeRequest("POST",
+                        uri,
+                        ServerUtils.BuildQueryString(sendData),
+                        15,
+                        null,
+                        false);
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[HGFRIENDS CONNECTOR]: Exception when contacting friends server at {0}: {1}", uri, e.Message);
+            }
+        }
+
+        /// <summary>
+        /// Ask the (own) grid's HGFriendsService which of the given local friends are
+        /// currently traveling on a foreign grid, for the login-time online snapshot.
+        /// Older services log an unknown-method warning and return failure, which
+        /// parses to an empty list — pre-fix behavior.
+        /// </summary>
+        /// <param name="sessionID">userID's own live session on this grid — see the
+        /// same auth-capability note on StatusNotifyTraveling.</param>
+        public List<UUID> GetTravelingFriends(UUID userID, UUID sessionID, List<string> friends)
+        {
+            Dictionary<string, object> sendData = new Dictionary<string, object>();
+            List<UUID> traveling = new List<UUID>();
+
+            sendData["METHOD"] = "gettravelingfriends";
+            sendData["userID"] = userID.ToString();
+            sendData["sessionID"] = sessionID.ToString();
+            int i = 0;
+            foreach (string s in friends)
+            {
+                sendData["friend_" + i.ToString()] = s;
+                i++;
+            }
+
+            string reply = string.Empty;
+            string uri = m_ServerURI + "/hgfriends";
+            try
+            {
+                // Short timeout: this call sits on the login path (GetOnlineFriends),
+                // unlike the fire-and-forget StatusNotifyTraveling above, so a wedged
+                // own-grid Robust must not stall every login by up to the connector's
+                // usual 15s ceiling.
+                reply = SynchronousRestFormsRequester.MakeRequest("POST",
+                        uri,
+                        ServerUtils.BuildQueryString(sendData),
+                        3,
+                        null,
+                        false);
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[HGFRIENDS CONNECTOR]: Exception when contacting friends server at {0}: {1}", uri, e.Message);
+                return traveling;
+            }
+
+            if (reply != string.Empty)
+            {
+                Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
+
+                foreach (string key in replyData.Keys)
+                {
+                    if (key.StartsWith("friend_") && replyData[key] != null)
+                    {
+                        if (UUID.TryParse(replyData[key].ToString(), out UUID uuid))
+                            traveling.Add(uuid);
+                    }
+                }
+            }
+
+            return traveling;
+        }
+
         public List<UUID> StatusNotification(List<string> friends, UUID userID, bool online)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();

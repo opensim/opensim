@@ -22,3 +22,11 @@ ALTER TABLE `hg_traveling_data` MODIFY `TMStamp` timestamp NOT NULL default CURR
 
 COMMIT;
 
+:VERSION 3         # --------------------------
+
+BEGIN;
+
+ALTER TABLE `hg_traveling_data` ADD COLUMN `RegionURI` VARCHAR(255) NOT NULL DEFAULT '';
+
+COMMIT;
+

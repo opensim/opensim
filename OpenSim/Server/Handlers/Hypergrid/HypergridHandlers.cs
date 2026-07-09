@@ -131,5 +131,39 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
         }
 
+        /// <summary>
+        /// A visitor's home grid asks this grid to deliver a friend status
+        /// notification to that visitor, wherever they currently are on this grid.
+        /// The session ID acts as the auth capability; see GatekeeperService.StatusNotify.
+        /// </summary>
+        public XmlRpcResponse StatusNotify(XmlRpcRequest request, IPEndPoint remoteClient)
+        {
+            Hashtable requestData = (Hashtable)request.Params[0];
+
+            UUID sessionID = UUID.Zero;
+            UUID userID = UUID.Zero;
+            UUID friendID = UUID.Zero;
+            bool online = false;
+            if (requestData.ContainsKey("session_id"))
+                UUID.TryParse((string)requestData["session_id"], out sessionID);
+            if (requestData.ContainsKey("user_id"))
+                UUID.TryParse((string)requestData["user_id"], out userID);
+            if (requestData.ContainsKey("friend_id"))
+                UUID.TryParse((string)requestData["friend_id"], out friendID);
+            if (requestData.ContainsKey("online"))
+                Boolean.TryParse((string)requestData["online"], out online);
+
+            bool delivered = false;
+            if (!sessionID.IsZero() && !userID.IsZero() && !friendID.IsZero())
+                delivered = m_GatekeeperService.StatusNotify(sessionID, userID, friendID, online);
+
+            Hashtable hash = new Hashtable();
+            hash["result"] = delivered ? "true" : "false";
+
+            XmlRpcResponse response = new XmlRpcResponse();
+            response.Value = hash;
+            return response;
+        }
+
     }
 }

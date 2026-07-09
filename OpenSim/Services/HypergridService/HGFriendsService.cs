@@ -61,6 +61,7 @@ namespace OpenSim.Services.HypergridService
         protected static IFriendsService m_FriendsService;
         protected static IPresenceService m_PresenceService;
         protected static IUserAccountService m_UserAccountService;
+        protected static IUserAgentService m_UserAgentService; // optional; enables notifications for traveling friends
         protected static IFriendsSimConnector m_FriendsLocalSimConnector; // standalone, points to HGFriendsModule
         protected static FriendsSimConnector m_FriendsSimConnector; // grid
 
@@ -105,6 +106,17 @@ namespace OpenSim.Services.HypergridService
                 m_PresenceService = ServerUtils.LoadPlugin<IPresenceService>(theService, args);
 
                 m_FriendsSimConnector = new FriendsSimConnector();
+
+                // Enables status notifications for friends traveling on foreign grids.
+                // This is the same UserAgentService key HGFriendServerConnector already
+                // requires in [HGFriendsService], so it is present on standard HG setups.
+                theService = serverConfig.GetString("UserAgentService", string.Empty);
+                if (theService.Length > 0)
+                {
+                    m_UserAgentService = ServerUtils.LoadPlugin<IUserAgentService>(theService, args);
+                    if (m_UserAgentService == null)
+                        m_log.WarnFormat("[HGFRIENDS SERVICE]: Could not load UserAgentService '{0}'. Traveling friend notifications disabled.", theService);
+                }
 
                 m_log.DebugFormat("[HGFRIENDS SERVICE]: Starting...");
 
@@ -290,13 +302,89 @@ namespace OpenSim.Services.HypergridService
 //                //m_log.WarnFormat("[HGFRIENDS SERVICE]: User {0} is visiting another grid. HG Status notifications still not implemented.", user);
 //            }
 
+            // Notify local friends who are currently traveling on foreign grids.
+            // Friendship was already confirmed above via the per-friend secret,
+            // so no extra verification is needed here.
+            if (m_UserAgentService != null && usersToBeNotified.Count > 0)
+            {
+                localFriendsOnline.AddRange(
+                    TravelingFriendsNotifier.DeliverStatusToTravelers(
+                        m_UserAgentService, usersToBeNotified, foreignUserID, online));
+            }
+
             // and finally, let's send the online friends
             if (online)
-            {
                 return localFriendsOnline;
-            }
-            else
+
+            return new List<UUID>();
+        }
+
+        public void StatusNotifyTravelingFriends(UUID userID, UUID sessionID, List<string> friends, bool online)
+        {
+            if (m_FriendsService == null || m_UserAgentService == null)
+                return;
+
+            // auth capability: without this, anyone who knows two account UUIDs could
+            // call this public endpoint directly to confirm a friendship + traveling
+            // status, or inject spoofed online/offline events
+            if (!IsOwnLiveSession(userID, sessionID, "statusnotify_traveling"))
+                return;
+
+            // public, unauthenticated-by-session-key endpoint: confirm the claimed
+            // friendship before delivering anything
+            TravelingFriendsNotifier.DeliverStatusToTravelers(
+                m_UserAgentService, friends, userID, online,
+                id => TravelingFriendsNotifier.IsLocalFriend(m_FriendsService, id, userID));
+        }
+
+        public List<UUID> GetTravelingFriends(UUID userID, UUID sessionID, List<string> friends)
+        {
+            if (m_FriendsService == null || m_UserAgentService == null)
                 return new List<UUID>();
+
+            if (!IsOwnLiveSession(userID, sessionID, "gettravelingfriends"))
+                return new List<UUID>();
+
+            return TravelingFriendsNotifier.FilterTraveling(
+                m_UserAgentService, friends,
+                id => TravelingFriendsNotifier.IsLocalFriend(m_FriendsService, id, userID));
+        }
+
+        /// <summary>
+        /// Confirms sessionID is a currently live Presence session belonging to userID
+        /// on this grid — the auth capability for the two wire methods above. Only
+        /// userID's own connected sim (or their viewer) can know this value, so it
+        /// proves the caller is genuine rather than an arbitrary third party who only
+        /// knows the account UUIDs involved.
+        /// </summary>
+        private static bool IsOwnLiveSession(UUID userID, UUID sessionID, string caller)
+        {
+            if (sessionID.IsZero())
+            {
+                m_log.DebugFormat("[HGFRIENDS SERVICE]: {0} for user {1} rejected: no session ID presented",
+                    caller, userID);
+                return false;
+            }
+
+            PresenceInfo p = m_PresenceService.GetAgent(sessionID);
+            if (p != null && p.UserID == userID.ToString())
+                return true;
+
+            // Offline notifications are sent right after logout, and
+            // PresenceService.LogoutAgent already deletes the session
+            // synchronously on the sim's connection-close path — well before
+            // this async request can arrive. Fall back to the short post-logout
+            // grace window so genuine "I just went offline" calls still pass.
+            if (m_PresenceService.WasRecentlyLoggedOut(sessionID, userID))
+                return true;
+
+            // rejections must be visible: a silent drop here looks identical to
+            // "friend is offline" and is very hard to diagnose from the outside
+            m_log.DebugFormat("[HGFRIENDS SERVICE]: {0} for user {1} rejected: session {2} is {3}",
+                caller, userID, sessionID,
+                p == null ? "not a live session nor a recent logout (split presence service, expired grace window, or a spoofed request)"
+                          : "live but belongs to another user");
+            return false;
         }
 
         #endregion IHGFriendsService

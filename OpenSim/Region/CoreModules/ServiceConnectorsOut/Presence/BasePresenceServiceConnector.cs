@@ -132,6 +132,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
             return m_PresenceService.GetAgents(userIDs);
         }
 
+        public bool WasRecentlyLoggedOut(UUID sessionID, UUID userID)
+        {
+            return m_PresenceService.WasRecentlyLoggedOut(sessionID, userID);
+        }
+
         #endregion
     }
 }

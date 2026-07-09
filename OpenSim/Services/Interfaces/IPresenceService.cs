@@ -105,5 +105,14 @@ namespace OpenSim.Services.Interfaces
         /// <returns>Session information for the users.</returns>
         /// <param name='userIDs'></param>
         PresenceInfo[] GetAgents(string[] userIDs);
+
+        /// <summary>
+        /// Whether sessionID was a live session belonging to userID until just
+        /// recently (a short grace window after LogoutAgent deleted it). Lets
+        /// callers authenticate "this user just logged out" requests, whose
+        /// session is by definition already gone from GetAgent by the time an
+        /// async caller can check it.
+        /// </summary>
+        bool WasRecentlyLoggedOut(UUID sessionID, UUID userID);
     }
 }

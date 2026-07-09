@@ -109,6 +109,12 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
                     case "statusnotification":
                         return StatusNotification(request);
+
+                    case "statusnotify_traveling":
+                        return StatusNotifyTraveling(request);
+
+                    case "gettravelingfriends":
+                        return GetTravelingFriends(request);
                     /*
                     case "friendship_approved":
                         return FriendshipApproved(request);
@@ -214,6 +220,104 @@ namespace OpenSim.Server.Handlers.Hypergrid
             bool success = m_TheService.ValidateFriendshipOffered(friend.PrincipalID, friendID);
 
             return BoolResult(success);
+        }
+
+        byte[] GetTravelingFriends(Dictionary<string, object> request)
+        {
+            object tmpObj;
+            UUID principalID = UUID.Zero;
+            if (request.TryGetValue("userID", out tmpObj))
+                UUID.TryParse(tmpObj.ToString(), out principalID);
+            if (principalID.IsZero())
+            {
+                m_log.WarnFormat("[HGFRIENDS HANDLER]: no userID in gettravelingfriends request");
+                return FailureResult();
+            }
+
+            // auth capability: proves the caller genuinely holds principalID's own
+            // live session on this grid (checked against Presence in the service),
+            // since this endpoint is reachable from the public internet
+            UUID sessionID = UUID.Zero;
+            if (request.TryGetValue("sessionID", out tmpObj))
+                UUID.TryParse(tmpObj.ToString(), out sessionID);
+            if (sessionID.IsZero())
+            {
+                m_log.WarnFormat("[HGFRIENDS HANDLER]: no sessionID in gettravelingfriends request");
+                return FailureResult();
+            }
+
+            List<string> friends = new List<string>();
+            int i = 0;
+            foreach (KeyValuePair<string, object> kvp in request)
+            {
+                if (kvp.Key.Equals("friend_" + i.ToString()))
+                {
+                    friends.Add(kvp.Value.ToString());
+                    i++;
+                }
+            }
+
+            List<UUID> traveling = m_TheService.GetTravelingFriends(principalID, sessionID, friends);
+
+            Dictionary<string, object> result = new Dictionary<string, object>();
+            if (traveling == null || traveling.Count == 0)
+                result["RESULT"] = "NULL";
+            else
+            {
+                i = 0;
+                foreach (UUID f in traveling)
+                {
+                    result["friend_" + i] = f.ToString();
+                    i++;
+                }
+            }
+
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
+        }
+
+        byte[] StatusNotifyTraveling(Dictionary<string, object> request)
+        {
+            object tmpObj;
+            UUID principalID = UUID.Zero;
+            if (request.TryGetValue("userID", out tmpObj))
+                UUID.TryParse(tmpObj.ToString(), out principalID);
+            if (principalID.IsZero())
+            {
+                m_log.WarnFormat("[HGFRIENDS HANDLER]: no userID in statusnotify_traveling request");
+                return FailureResult();
+            }
+
+            // auth capability: proves the caller genuinely holds principalID's own
+            // live session on this grid (checked against Presence in the service),
+            // since this endpoint is reachable from the public internet
+            UUID sessionID = UUID.Zero;
+            if (request.TryGetValue("sessionID", out tmpObj))
+                UUID.TryParse(tmpObj.ToString(), out sessionID);
+            if (sessionID.IsZero())
+            {
+                m_log.WarnFormat("[HGFRIENDS HANDLER]: no sessionID in statusnotify_traveling request");
+                return FailureResult();
+            }
+
+            bool online = true;
+            if (request.TryGetValue("online", out tmpObj))
+                bool.TryParse(tmpObj.ToString(), out online);
+
+            List<string> friends = new List<string>();
+            int i = 0;
+            foreach (KeyValuePair<string, object> kvp in request)
+            {
+                if (kvp.Key.Equals("friend_" + i.ToString()))
+                {
+                    friends.Add(kvp.Value.ToString());
+                    i++;
+                }
+            }
+
+            m_TheService.StatusNotifyTravelingFriends(principalID, sessionID, friends, online);
+
+            return SuccessResult();
         }
 
         byte[] StatusNotification(Dictionary<string, object> request)

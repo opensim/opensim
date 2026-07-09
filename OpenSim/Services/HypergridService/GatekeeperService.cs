@@ -35,6 +35,7 @@ using OpenSim.Framework;
 using OpenSim.Services.Interfaces;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using OpenSim.Server.Base;
+using OpenSim.Services.Connectors.Friends;
 using OpenSim.Services.Connectors.InstantMessage;
 using OpenSim.Services.Connectors.Hypergrid;
 using OpenMetaverse;
@@ -52,6 +53,7 @@ namespace OpenSim.Services.HypergridService
 
         private static IGridService m_GridService;
         private static IPresenceService m_PresenceService;
+        private static readonly FriendsSimConnector m_FriendsSimConnector = new();
         private static IUserAccountService m_UserAccountService;
         private static IUserAgentService m_UserAgentService;
         private static ISimulationService m_SimulationService;
@@ -312,6 +314,40 @@ namespace OpenSim.Services.HypergridService
                 agentHomeURI is null ? "" : " @ " + agentHomeURI);
 
             return region;
+        }
+
+        public bool StatusNotify(UUID sessionID, UUID userID, UUID friendID, bool online)
+        {
+            // The session ID is the auth capability here: only the visitor's viewer and
+            // their home grid (via HGTravelingData) know it, so this can't be used by
+            // third parties to probe user locations or spoof status events. The
+            // friendship was validated by the home grid before it called us.
+            PresenceInfo presence = m_PresenceService.GetAgent(sessionID);
+            if (presence is null || presence.RegionID.IsZero() || presence.UserID != userID.ToString())
+            {
+                // visible refusal rather than a silent false: a null presence is normal
+                // (visitor not arrived yet or already gone — the home grid falls back to
+                // the stored sim URI), but a user mismatch means a bad or spoofed capability
+                m_log.DebugFormat("[GATEKEEPER SERVICE]: StatusNotify for visitor {0} not deliverable: {1}",
+                    userID,
+                    presence is null ? "no presence for the presented session"
+                        : presence.RegionID.IsZero() ? "presence has no region"
+                        : "session belongs to another user");
+                return false;
+            }
+
+            GridRegion region = m_GridService.GetRegionByUUID(m_ScopeID, presence.RegionID);
+            if (region is null)
+            {
+                m_log.DebugFormat("[GATEKEEPER SERVICE]: StatusNotify for visitor {0} not deliverable: region {1} not found",
+                    userID, presence.RegionID);
+                return false;
+            }
+
+            m_log.DebugFormat("[GATEKEEPER SERVICE]: StatusNotify: visitor {0} is at {1}; forwarding status of {2}",
+                userID, region.RegionName, friendID);
+
+            return m_FriendsSimConnector.StatusNotify(region, friendID, userID.ToString(), online);
         }
 
         #region Login Agent

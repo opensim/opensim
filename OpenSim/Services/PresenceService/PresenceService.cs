@@ -48,6 +48,11 @@ namespace OpenSim.Services.PresenceService
         static ExpiringCacheOS<UUID, PresenceData> BySessionCache = new ExpiringCacheOS<UUID, PresenceData>(60000);
         static ExpiringCacheOS<string, PresenceData> ByUserCache = new ExpiringCacheOS<string, PresenceData>(60000);
 
+        // short post-logout grace window so a session that just closed can still
+        // authenticate its own "I went offline" notifications (see WasRecentlyLoggedOut)
+        const int RECENT_LOGOUT_GRACE_MS = 60000;
+        static ExpiringCacheOS<UUID, string> RecentlyLoggedOut = new ExpiringCacheOS<UUID, string>(RECENT_LOGOUT_GRACE_MS);
+
         public PresenceService(IConfigSource config)
             : base(config)
         {
@@ -112,6 +117,9 @@ namespace OpenSim.Services.PresenceService
                 sessionID,
                 (presence == null) ? null : presence.UserID,
                 (presence == null) ? null : presence.RegionID.ToString());
+
+            if (presence is not null)
+                RecentlyLoggedOut.Add(sessionID, presence.UserID, RECENT_LOGOUT_GRACE_MS);
 
             bool ret = m_Database.Delete("SessionID", sessionID.ToString());
             if(inCache)
@@ -202,6 +210,11 @@ namespace OpenSim.Services.PresenceService
                 RegionID = data.RegionID
             };
             return ret;
+        }
+
+        public bool WasRecentlyLoggedOut(UUID sessionID, UUID userID)
+        {
+            return RecentlyLoggedOut.TryGetValue(sessionID, out string uid) && uid == userID.ToString();
         }
 
         public PresenceInfo[] GetAgents(string[] userIDs)

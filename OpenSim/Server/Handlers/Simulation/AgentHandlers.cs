@@ -115,6 +115,8 @@ namespace OpenSim.Server.Handlers.Simulation
             destination.RegionLocX = data.x;
             destination.RegionLocY = data.y;
             destination.RegionName = data.name;
+            if (!string.IsNullOrEmpty(data.destinationServerURI))
+                destination.ServerURI = data.destinationServerURI;
 
             GridRegion gatekeeper = ExtractGatekeeper(data);
 
@@ -687,5 +689,6 @@ namespace OpenSim.Server.Handlers.Simulation
         public UUID uuid;
         public uint flags;
         public bool fromLogin;
+        public string destinationServerURI; // sim ServerURI; sent on HG logins ("destination_serveruri")
     }
 }

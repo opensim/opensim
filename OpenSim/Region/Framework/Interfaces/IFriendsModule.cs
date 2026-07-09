@@ -98,7 +98,8 @@ namespace OpenSim.Region.Framework.Interfaces
         bool SendFriendsOnlineIfNeeded(IClientAPI client);
         bool IsFriendOnline(UUID userID, UUID friendID);
         void CacheFriendsOnline(UUID userID, List<UUID> friendsOnline, bool online);
-        void CacheFriendOnline(UUID userID, UUID friendOnline, bool online);
+        /// <returns>true if the cached online state actually changed</returns>
+        bool CacheFriendOnline(UUID userID, UUID friendOnline, bool online);
         List<UUID> GetCachedFriendsOnline(UUID userID);
         bool IsFriend(UUID userID, UUID friendID);
     }

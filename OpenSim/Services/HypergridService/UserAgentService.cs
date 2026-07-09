@@ -82,6 +82,11 @@ namespace OpenSim.Services.HypergridService
         private static readonly Dictionary<int, List<string>> m_TripsAllowedExceptions = new();
         private static readonly Dictionary<int, List<string>> m_TripsDisallowedExceptions = new();
 
+        // grids known to not implement status_notify (older OpenSim), so we don't
+        // keep sending them a request that will fail; re-probed after expiry
+        private const int STATUS_NOTIFY_UNSUPPORTED_MS = 3600 * 1000;
+        private static readonly ExpiringCacheOS<string, bool> m_StatusNotifyUnsupported = new(60000);
+
         public UserAgentService(IConfigSource config) : this(config, null)
         {
         }
@@ -279,7 +284,7 @@ namespace OpenSim.Services.HypergridService
 
             // Generate a new service session
             agentCircuit.ServiceSessionID = region.ServerURI + ";" + UUID.Random();
-            TravelingAgentInfo travel = CreateTravelInfo(agentCircuit, region, fromLogin, out TravelingAgentInfo old);
+            TravelingAgentInfo travel = CreateTravelInfo(agentCircuit, region, fromLogin, finalDestination.ServerURI, out TravelingAgentInfo old);
 
             if(!fromLogin && old is not null && !string.IsNullOrEmpty(old.ClientIPAddress))
             {
@@ -327,7 +332,7 @@ namespace OpenSim.Services.HypergridService
             return LoginAgentToGrid(source, agentCircuit, gatekeeper, finalDestination, false, out reason);
         }
 
-        TravelingAgentInfo CreateTravelInfo(AgentCircuitData agentCircuit, GridRegion region, bool fromLogin, out TravelingAgentInfo existing)
+        TravelingAgentInfo CreateTravelInfo(AgentCircuitData agentCircuit, GridRegion region, bool fromLogin, string regionServerURI, out TravelingAgentInfo existing)
         {
             HGTravelingData hgt = m_Database.Get(agentCircuit.SessionID);
             existing = null;
@@ -346,7 +351,8 @@ namespace OpenSim.Services.HypergridService
                 SessionID = agentCircuit.SessionID,
                 UserID = agentCircuit.AgentID,
                 GridExternalName = region.ServerURI,
-                ServiceToken = agentCircuit.ServiceSessionID
+                ServiceToken = agentCircuit.ServiceSessionID,
+                RegionServerURI = regionServerURI
             };
 
             if (fromLogin)
@@ -361,11 +367,114 @@ namespace OpenSim.Services.HypergridService
         {
             m_log.DebugFormat("[USER AGENT SERVICE]: User {0} logged out", userID);
 
+            // Capture whether this session was a stay on a foreign grid before
+            // deleting it. This method is also called for ordinary local
+            // logouts (the local sim notifies friends itself in that case).
+            // m_GridName is lowercased in the constructor while GridExternalName
+            // is stored raw, so the comparison must ignore case
+            HGTravelingData hgt = m_Database.Get(sessionID);
+            bool wasTravelingAbroad = hgt is not null && hgt.Data is not null
+                && hgt.Data.TryGetValue("GridExternalName", out string gridName)
+                && !m_GridName.Equals(gridName, StringComparison.InvariantCultureIgnoreCase);
+
             m_Database.Delete(sessionID);
 
             GridUserInfo guinfo = m_GridUserService.GetGridUserInfo(userID.ToString());
             if (guinfo is not null)
                 m_GridUserService.LoggedOut(userID.ToString(), sessionID, guinfo.LastRegionID, guinfo.LastPosition, guinfo.LastLookAt);
+
+            // A user logging out on a foreign grid has no sim on this grid to
+            // send the offline status to their friends, and the foreign sim
+            // doesn't know the visitor's friends; notify them from here.
+            if (wasTravelingAbroad)
+                Util.FireAndForget(o => NotifyFriendsOfStatus(userID, false), null, "UserAgentService.NotifyFriendsLoggedOut");
+        }
+
+        /// <summary>
+        /// Send a status notification to all friends of this (local) user.
+        /// Used when the status change happens on a foreign grid, where no sim
+        /// of this grid is involved that could notify them.
+        /// </summary>
+        protected void NotifyFriendsOfStatus(UUID userID, bool online)
+        {
+            if (m_FriendsService is null)
+                return;
+
+            FriendInfo[] friends = m_FriendsService.GetFriends(userID);
+            if (friends is null || friends.Length == 0)
+                return;
+
+            List<string> localFriends = new();
+            Dictionary<string, List<string>> foreignFriendsPerDomain = new();
+            foreach (FriendInfo fi in friends)
+            {
+                // same filter the sim-side FriendsModule.StatusChange applies
+                if (fi.TheirFlags == -1 || (fi.MyFlags & (int)FriendRights.CanSeeOnline) == 0)
+                    continue;
+
+                if (UUID.TryParse(fi.Friend, out _))
+                    localFriends.Add(fi.Friend);
+                else if (Util.ParseUniversalUserIdentifier(fi.Friend, out _, out string url, out _, out _, out _))
+                {
+                    // foreign friend: group per grid, notified below
+                    if (!foreignFriendsPerDomain.TryGetValue(url, out List<string> lst))
+                    {
+                        lst = new List<string>();
+                        foreignFriendsPerDomain[url] = lst;
+                    }
+                    lst.Add(fi.Friend);
+                }
+            }
+
+            if (localFriends.Count > 0)
+            {
+                // one batched presence lookup for all local friends instead of
+                // one query per friend
+                Dictionary<string, PresenceInfo> homeSessions = new();
+                PresenceInfo[] sessions = m_PresenceService?.GetAgents(localFriends.ToArray());
+                if (sessions is not null)
+                    foreach (PresenceInfo p in sessions)
+                        if (!p.RegionID.IsZero() && !homeSessions.ContainsKey(p.UserID)) // guard against traveling agents
+                            homeSessions[p.UserID] = p;
+
+                List<string> notAtHome = new(localFriends.Count);
+                foreach (string friend in localFriends)
+                {
+                    // local friend: if online at home, notify their sim...
+                    if (homeSessions.TryGetValue(friend, out PresenceInfo session))
+                    {
+                        NotifyLocalSimOfStatus(session.RegionID, userID, friend, online);
+                        continue;
+                    }
+
+                    // ...or, if they are traveling abroad themselves, deliver via the
+                    // visited grid below.
+                    notAtHome.Add(friend);
+                }
+
+                // This is our own authoritative friend list for userID, already
+                // filtered to local (plain-UUID) friends above, so no verifyFriend
+                // callback is needed. The helper fires off one worker per candidate
+                // internally, so one unreachable grid's request timeout can't stall
+                // the notifications to the others.
+                if (notAtHome.Count > 0)
+                    TravelingFriendsNotifier.DeliverStatusToTravelers(this, notAtHome, userID, online);
+            }
+
+            foreach (KeyValuePair<string, List<string>> kvp in foreignFriendsPerDomain)
+            {
+                m_log.DebugFormat("[USER AGENT SERVICE]: Notifying {0} friends in {1} that user {2} is {3}",
+                    kvp.Value.Count, kvp.Key, userID, online ? "online" : "offline");
+                // each domain gets its own worker so one unreachable grid's
+                // request timeout can't stall notifications to the others
+                string domain = kvp.Key;
+                List<string> ids = kvp.Value;
+                Util.FireAndForget(o =>
+                {
+                    HGFriendsServicesConnector fConn = new HGFriendsServicesConnector(domain);
+                    fConn.StatusNotification(ids, userID, online);
+                }, null, "UserAgentService.NotifyForeignFriendsOfStatus");
+            }
         }
 
         // We need to prevent foreign users with the same UUID as a local user
@@ -499,6 +608,14 @@ namespace OpenSim.Services.HypergridService
         [Obsolete]
         protected void ForwardStatusNotificationToSim(UUID regionID, UUID foreignUserID, string user, bool online)
         {
+            NotifyLocalSimOfStatus(regionID, foreignUserID, user, online);
+        }
+
+        // Same local-sim-vs-remote-REST dispatch as the obsolete method above
+        // (and HGFriendsService's copy of it), kept non-obsolete so new code
+        // (NotifyFriendsOfStatus) doesn't have to call deprecated API.
+        private void NotifyLocalSimOfStatus(UUID regionID, UUID foreignUserID, string user, bool online)
+        {
             if (UUID.TryParse(user, out UUID userID))
             {
                 if (m_FriendsLocalSimConnector is not null)
@@ -625,10 +742,67 @@ namespace OpenSim.Services.HypergridService
                 return string.Empty;
 
             foreach (HGTravelingData t in hgts)
-                if (t.Data.ContainsKey("GridExternalName") && !m_GridName.Equals(t.Data["GridExternalName"]))
-                    return t.Data["GridExternalName"];
+                // case-insensitive: m_GridName is lowercased, GridExternalName is stored raw
+                if (t.Data.TryGetValue("GridExternalName", out string gridName)
+                    && !m_GridName.Equals(gridName, StringComparison.InvariantCultureIgnoreCase))
+                    return gridName;
 
             return string.Empty;
+        }
+
+        public bool StatusNotifyTravelingAgent(UUID userID, UUID friendID, bool online)
+        {
+            HGTravelingData[] hgts = m_Database.GetSessions(userID);
+            if (hgts == null)
+                return false;
+
+            foreach (HGTravelingData t in hgts)
+            {
+                // case-insensitive: m_GridName is lowercased, GridExternalName is stored raw
+                if (!t.Data.TryGetValue("GridExternalName", out string gridName)
+                    || m_GridName.Equals(gridName, StringComparison.InvariantCultureIgnoreCase))
+                    continue;
+
+                // Preferred: hand the notification to the visited grid's gatekeeper,
+                // which resolves the traveler's current sim from its own presence
+                // data and forwards grid-internally. This reaches the traveler even
+                // after intra-grid teleports we never see. Note this does network
+                // I/O; call from a worker thread.
+                if (!m_StatusNotifyUnsupported.ContainsKey(gridName))
+                {
+                    bool delivered = m_GatekeeperConnector.StatusNotify(gridName, t.SessionID, userID, friendID, online, out bool notSupported);
+                    if (delivered)
+                    {
+                        m_log.DebugFormat("[USER AGENT SERVICE]: {0} is traveling in {1}; status of {2} delivered via its gatekeeper",
+                            userID, gridName, friendID);
+                        return true;
+                    }
+                    if (notSupported)
+                    {
+                        // older grid without status_notify: stop asking it for a while
+                        m_StatusNotifyUnsupported.Add(gridName, true, STATUS_NOTIFY_UNSUPPORTED_MS);
+                    }
+                    // else: the grid is unreachable, or it couldn't deliver (which is
+                    // also the case in the short window after arrival before the
+                    // destination sim reports the agent to presence); fall through to
+                    // the stored sim URI as best effort
+                }
+
+                // Fallback: send directly to the sim recorded when the user entered
+                // the grid. Only written at grid crossings, so it goes stale after
+                // intra-grid teleports there — the pre-status_notify behavior.
+                if (t.Data.TryGetValue("RegionURI", out string storedURI) && !string.IsNullOrEmpty(storedURI))
+                {
+                    m_log.DebugFormat("[USER AGENT SERVICE]: {0} is traveling in {1}; forwarding status of {2} to sim {3}",
+                        userID, gridName, friendID, storedURI);
+                    GridRegion region = new GridRegion { ServerURI = storedURI };
+                    m_FriendsSimConnector.StatusNotify(region, friendID, userID.ToString(), online);
+                    return true;
+                }
+                // no usable route in this record; a newer session row may have one
+            }
+
+            return false;
         }
 
         public string GetUUI(UUID userID, UUID targetUserID)
@@ -708,7 +882,8 @@ namespace OpenSim.Services.HypergridService
                 {
                     ["GridExternalName"] = travel.GridExternalName,
                     ["ServiceToken"] = travel.ServiceToken,
-                    ["ClientIPAddress"] = travel.ClientIPAddress
+                    ["ClientIPAddress"] = travel.ClientIPAddress,
+                    ["RegionURI"] = travel.RegionServerURI
                 }
             };
 
@@ -725,6 +900,7 @@ namespace OpenSim.Services.HypergridService
         public string GridExternalName = string.Empty;
         public string ServiceToken = string.Empty;
         public string ClientIPAddress = string.Empty; // as seen from this user agent service
+        public string RegionServerURI = string.Empty; // ServerURI of the specific sim region the user landed in
 
         public TravelingAgentInfo(HGTravelingData t)
         {
@@ -735,6 +911,8 @@ namespace OpenSim.Services.HypergridService
                 GridExternalName = t.Data["GridExternalName"];
                 ServiceToken = t.Data["ServiceToken"];
                 ClientIPAddress = t.Data["ClientIPAddress"];
+                if (t.Data.ContainsKey("RegionURI"))
+                    RegionServerURI = t.Data["RegionURI"];
             }
         }
 
@@ -747,6 +925,7 @@ namespace OpenSim.Services.HypergridService
                 GridExternalName = old.GridExternalName;
                 ServiceToken = old.ServiceToken;
                 ClientIPAddress = old.ClientIPAddress;
+                RegionServerURI = old.RegionServerURI;
             }
         }
     }
