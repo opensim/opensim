@@ -1042,7 +1042,7 @@ namespace OpenSim.Data.PGSQL
                         cmd.Parameters.Add(m_database.CreateParameter("UserId", props.UserId.ToString()));
                         cmd.Parameters.Add(m_database.CreateParameter("TagId", props.TagId.ToString()));
                         cmd.Parameters.Add(m_database.CreateParameter("DataKey", props.DataKey.ToString()));
-                        cmd.Parameters.Add(m_database.CreateParameter("DataVal", props.DataKey.ToString()));
+                        cmd.Parameters.Add(m_database.CreateParameter("DataVal", props.DataVal.ToString()));
 
                         cmd.ExecuteNonQuery();
                     }

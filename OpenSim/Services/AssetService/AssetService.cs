@@ -156,8 +156,8 @@ namespace OpenSim.Services.AssetService
         {
             try
             {
-                UUID[] uuid = Array.ConvertAll(ids, id => UUID.Parse(id));
-                return m_Database.AssetsExist(uuid);
+                UUID[] uuids = Array.ConvertAll(ids, id => UUID.Parse(id));
+                return m_Database.AssetsExist(uuids);
             }
             catch (Exception e)
             {
@@ -192,13 +192,12 @@ namespace OpenSim.Services.AssetService
 
         public virtual bool Delete(string id)
         {
-//            m_log.DebugFormat("[ASSET SERVICE]: Deleting asset {0}", id);
+            //m_log.DebugFormat("[ASSET SERVICE]: Deleting asset {0}", id);
 
-            UUID assetID;
-            if (!UUID.TryParse(id, out assetID))
-                return false;
+            if (UUID.TryParse(id, out _))
+                return m_Database.Delete(id);
 
-            return m_Database.Delete(id);
+            return false;
         }
 
         public void Get(string id, string ForeignAssetService, bool StoreOnLocalGrid, SimpleAssetRetrieved callBack)

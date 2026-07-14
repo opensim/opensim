@@ -250,15 +250,16 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         /// <param name="uuidss">The assets' IDs</param>
         /// <returns>For each asset: true if it exists, false otherwise</returns>
+
+        // caller needs to handle exceptions
         public override bool[] AssetsExist(UUID[] uuids)
         {
             if (uuids.Length == 0)
                 return [];
 
-            HashSet<UUID> exist = new HashSet<UUID>();
-
+            HashSet<UUID> exist = [];
             string ids = "'" + string.Join("','", uuids) + "'";
-            string sql = string.Format("SELECT id FROM assets WHERE id IN ({0})", ids);
+            string sql = $"SELECT id FROM assets WHERE id IN ({ids})";
 
             using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
@@ -274,9 +275,7 @@ namespace OpenSim.Data.MySQL
                         }
                     }
                 }
-                dbcon.Close();
             }
-
             bool[] results = new bool[uuids.Length];
             for (int i = 0; i < uuids.Length; i++)
                 results[i] = exist.Contains(uuids[i]);
@@ -294,22 +293,20 @@ namespace OpenSim.Data.MySQL
         /// <returns>A list of AssetMetadata objects.</returns>
         public override List<AssetMetadata> FetchAssetMetadataSet(int start, int count)
         {
-            List<AssetMetadata> retList = new List<AssetMetadata>(count);
-
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            List<AssetMetadata> retList = new(count);
+            try
             {
-                dbcon.Open();
-
-                using (MySqlCommand cmd
-                    = new MySqlCommand(
-                        "SELECT name,description,assetType,temporary,id,asset_flags,CreatorID FROM assets LIMIT ?start, ?count",
-                        dbcon))
+                using (MySqlConnection dbcon = new(m_connectionString))
                 {
-                    cmd.Parameters.AddWithValue("?start", start);
-                    cmd.Parameters.AddWithValue("?count", count);
+                    dbcon.Open();
 
-                    try
+                    using (MySqlCommand cmd = new(
+                            "SELECT name,description,assetType,temporary,id,asset_flags,CreatorID FROM assets LIMIT ?start, ?count",
+                            dbcon))
                     {
+                        cmd.Parameters.AddWithValue("?start", start);
+                        cmd.Parameters.AddWithValue("?count", count);
+
                         using (MySqlDataReader dbReader = cmd.ExecuteReader())
                         {
                             while (dbReader.Read())
@@ -330,36 +327,39 @@ namespace OpenSim.Data.MySQL
                             }
                         }
                     }
-                    catch (Exception e)
-                    {
-                        m_log.Error(
-                            string.Format(
-                                "[ASSETS DB]: MySql failure fetching asset set from {0}, count {1}.  Exception  ",
-                                start, count),
-                            e);
-                    }
+                    return retList;
                 }
-                dbcon.Close();
+            }
+            catch (Exception e)
+            {
+                m_log.Error($"[ASSETS DB]: MySql failure fetching asset set from {start}, count {1}. Exception ", e);
             }
 
-            return retList;
+            return [];
         }
 
         public override bool Delete(string id)
         {
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            try
             {
-                dbcon.Open();
-
-                using (MySqlCommand cmd = new MySqlCommand("delete from assets where id=?id", dbcon))
+                using (MySqlConnection dbcon = new(m_connectionString))
                 {
-                    cmd.Parameters.AddWithValue("?id", id);
-                    cmd.ExecuteNonQuery();
+                    dbcon.Open();
+
+                    using (MySqlCommand cmd = new("delete from assets where id=?id", dbcon))
+                    {
+                        cmd.Parameters.AddWithValue("?id", id);
+                        cmd.ExecuteNonQuery();
+                    }
                 }
-                dbcon.Close();
+                return true;
+            }
+            catch (Exception e)
+            {
+                m_log.Error($"[ASSETS DB]: MySql failure on delete asset {id}", e);
             }
 
-            return true;
+            return false;
         }
 
         #endregion

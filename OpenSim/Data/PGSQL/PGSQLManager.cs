@@ -224,7 +224,7 @@ namespace OpenSim.Data.PGSQL
             }
             if (PGFieldType == "boolean" || PGFieldType == "bit")
             {
-                return (value.ToString() == "true");
+                return "true".Equals(value.ToString(), StringComparison.OrdinalIgnoreCase);
             }
             if (PGFieldType == "timestamp with time zone")
             {
@@ -307,7 +307,7 @@ namespace OpenSim.Data.PGSQL
         internal NpgsqlParameter CreateParameter(string parameterName, object parameterObject, string PGFieldType)
         {
             //Tweak so we dont always have to add : sign
-            if (parameterName.StartsWith(":")) parameterName = parameterName.Replace(":", "");
+            if (parameterName.StartsWith(':')) parameterName = parameterName[1..];
 
             //HACK if object is null, it is turned into a string, there are no nullable type till now
             if (parameterObject == null) parameterObject = "";
