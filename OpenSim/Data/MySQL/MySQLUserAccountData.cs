@@ -44,7 +44,7 @@ namespace OpenSim.Data.MySQL
 
         public UserAccountData[] GetUsers(UUID scopeID, string query)
         {
-            string[] words = query.Split();
+            string[] words = query.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
             bool valid = false;
 
@@ -52,19 +52,10 @@ namespace OpenSim.Data.MySQL
             {
                 if (words[i].Length > 2)
                     valid = true;
-//                if (words[i].Length < 3)
-//                {
-//                    if (i != words.Length - 1)
-//                        Array.Copy(words, i + 1, words, i, words.Length - i - 1);
-//                    Array.Resize(ref words, words.Length - 1);
-//                }
             }
 
-            if ((!valid) || words.Length == 0)
-                return new UserAccountData[0];
-
-            if (words.Length > 2)
-                return new UserAccountData[0];
+            if ((!valid) || words.Length == 0 || words.Length > 2)
+                return [];
 
             using (MySqlCommand cmd = new MySqlCommand())
             {

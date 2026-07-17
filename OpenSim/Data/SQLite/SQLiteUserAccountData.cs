@@ -44,7 +44,7 @@ namespace OpenSim.Data.SQLite
 
         public UserAccountData[] GetUsers(UUID scopeID, string query)
         {
-            string[] words = query.Split();
+            string[] words = query.Split(' ', StringSplitOptions.RemoveEmptyEntries);;
 
             for (int i = 0 ; i < words.Length ; i++)
             {
@@ -56,11 +56,8 @@ namespace OpenSim.Data.SQLite
                 }
             }
 
-            if (words.Length == 0)
-                return new UserAccountData[0];
-
-            if (words.Length > 2)
-                return new UserAccountData[0];
+            if (words.Length == 0 || words.Length > 2)
+                return [];
 
             using (SQLiteCommand cmd = new SQLiteCommand())
             {

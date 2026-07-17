@@ -784,6 +784,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Constructors
 
+
         public Scene(RegionInfo regInfo, AgentCircuitManager authen,
                      ISimulationDataService simDataService, IEstateDataService estateDataService,
                      IConfigSource config, string simulatorVersion)
@@ -1004,7 +1005,8 @@ namespace OpenSim.Region.Framework.Scenes
                 m_strictAccessControl = startupConfig.GetBoolean("StrictAccessControl", m_strictAccessControl);
                 m_seeIntoBannedRegion = startupConfig.GetBoolean("SeeIntoBannedRegion", m_seeIntoBannedRegion);
 
-                string[] possibleMapConfigSections = new string[] { "Map", "Startup" };
+
+                string[] possibleMapConfigSections = ["Map", "Startup"];
 
                 m_generateMaptiles
                     = Util.GetConfigVarFromSections<bool>(config, "GenerateMaptiles", possibleMapConfigSections, true);
@@ -1037,7 +1039,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                string[] possibleAccessControlConfigSections = new string[] { "Startup", "AccessControl"};
+                string[] possibleAccessControlConfigSections = ["Startup", "AccessControl"];
 
                 string grant = Util.GetConfigVarFromSections<string>(
                     config, "AllowedClients", possibleAccessControlConfigSections, string.Empty);
@@ -1078,7 +1080,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_update_terrain          = startupConfig.GetInt("UpdateTerrainEveryNFrames",         m_update_terrain);
                 m_update_temp_cleaning    = startupConfig.GetInt("UpdateTempCleaningEveryNSeconds",   m_update_temp_cleaning);
 
-                string[] possibleScriptConfigSections = new string[] { "YEngine", "Xengine", "Scripts" };
+                string[] possibleScriptConfigSections = ["YEngine", "Xengine", "Scripts"];
                 m_LinkSetDataLimit = Util.GetConfigVarFromSections<int>(config, "LinksetDataLimit", possibleScriptConfigSections, m_LinkSetDataLimit);
             }
 
