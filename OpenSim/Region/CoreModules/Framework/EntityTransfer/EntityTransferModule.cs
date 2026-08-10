@@ -2851,6 +2851,23 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
 
             sp.GotAttachmentsData = true;
+
+
+            // On HG login, and cross-grid HG teleport (HG entry), `CompleteMovement` has run already with an empty asset list.
+            // HG login attaches after async asset gather.
+            
+            // If the agent is root now, start scripts here (same as CompleteMovement for local teleports).
+            // If still a child (sim-crossing or local TP) then CompleteMovement will start the scripts.
+            if (!sp.IsChildAgent && !m_scene.RegionInfo.RegionSettings.DisableScripts)
+            {
+                int stateSource = sp.GetStateSource();
+                foreach (SceneObjectGroup sog in sp.GetAttachments())
+                {
+                    sog.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, stateSource);
+                    sog.ResumeScripts();
+                }
+            }
+
             return true;
         }
 
