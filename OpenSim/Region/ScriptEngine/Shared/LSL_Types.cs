@@ -2963,7 +2963,26 @@ namespace OpenSim.Region.ScriptEngine.Shared
             public LSLFloat(ReadOnlySpan<char> s)
             {
                 if (!double.TryParse(s, NumberStyles.Float, Culture.NumberFormatInfo, out value))
+                {
+                    if(s.Length >= 3)
+                    {
+                        ReadOnlySpan<char> ts = s.TrimStart();
+                        bool neg = ts[0] == '-';
+
+                        if(neg)
+                            ts = ts[1..].TrimStart();
+
+                        if(ts.StartsWith("nan", StringComparison.InvariantCultureIgnoreCase))
+                            value = double.NaN;
+                        else if(ts.StartsWith("inf", StringComparison.InvariantCultureIgnoreCase))
+                            value = neg ? double.NegativeInfinity : double.PositiveInfinity;
+                        else
+                            value = 0;
+
+                        return;
+                    }
                     value = 0;
+                }
             }
 
             #endregion
