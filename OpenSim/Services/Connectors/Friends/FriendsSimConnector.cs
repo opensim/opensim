@@ -150,10 +150,8 @@ namespace OpenSim.Services.Connectors.Friends
                 if (region == null)
                     return;
 
-                string path = ServicePath();
-                if (!region.ServerURI.EndsWith("/"))
-                    path = "/" + path;
-                string uri = region.ServerURI + path;
+                string uri = region.ServerURI + ServicePath();
+
                 // m_log.DebugFormat("[FRIENDS SIM CONNECTOR]: calling {0}", uri);
 
                 try

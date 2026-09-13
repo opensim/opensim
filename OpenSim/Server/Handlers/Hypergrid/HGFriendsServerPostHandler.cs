@@ -219,46 +219,39 @@ namespace OpenSim.Server.Handlers.Hypergrid
         byte[] StatusNotification(Dictionary<string, object> request)
         {
             object tmpObj;
-            UUID principalID = UUID.Zero;
-            if (request.TryGetValue("userID", out tmpObj))
-                UUID.TryParse(tmpObj.ToString(), out principalID);
-            else
+            if (!request.TryGetValue("userID", out tmpObj) || !UUID.TryParse(tmpObj.ToString(), out UUID principalID))
             {
-                m_log.WarnFormat("[HGFRIENDS HANDLER]: no userID in request to notify");
+                m_log.WarnFormat("[HGFRIENDS HANDLER]: no userID in StatusNotification request");
                 return FailureResult();
             }
 
-            bool online = true;
-            if (request.TryGetValue("online", out tmpObj))
-                bool.TryParse(tmpObj.ToString(), out online);
-            else
+            if (!request.TryGetValue("online", out tmpObj) || !bool.TryParse(tmpObj.ToString(), out bool online))
             {
-                m_log.WarnFormat("[HGFRIENDS HANDLER]: no online in request to notify");
+                m_log.WarnFormat("[HGFRIENDS HANDLER]: no online value in StatusNotification request");
                 return FailureResult();
             }
 
-            List<string> friends = new List<string>();
-            int i = 0;
+            List<string> friends = [];
+            // order is irrelevant
             foreach (KeyValuePair<string, object> kvp in request)
             {
-                if (kvp.Key.Equals("friend_" + i.ToString()))
-                {
+                if (kvp.Key.StartsWith("friend_"))
                     friends.Add(kvp.Value.ToString());
-                    i++;
-                }
             }
 
-            List<UUID> onlineFriends = m_TheService.StatusNotification(friends, principalID, online);
+            List<UUID> onlineFriends = friends.Count > 0 ? 
+                        m_TheService.StatusNotification(friends, principalID, online):
+                        null;
 
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
             if (onlineFriends == null || onlineFriends.Count == 0)
                 result["RESULT"] = "NULL";
             else
             {
-                i = 0;
+                int i = 0;
                 foreach (UUID f in onlineFriends)
                 {
-                    result["friend_" + i] = f.ToString();
+                    result["friend_" + i.ToString()] = f.ToString();
                     i++;
                 }
             }

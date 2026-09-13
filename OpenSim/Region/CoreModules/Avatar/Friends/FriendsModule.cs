@@ -1046,9 +1046,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 CacheFriendOnline(friendID, userID, online);
                 // the friend in this sim as root agent
                 if (online)
-                    friendClient.SendAgentOnline(new UUID[] { userID });
+                    friendClient.SendAgentOnline([userID]);
                 else
-                    friendClient.SendAgentOffline(new UUID[] { userID });
+                    friendClient.SendAgentOffline([userID]);
                 // we're done
                 return true;
             }

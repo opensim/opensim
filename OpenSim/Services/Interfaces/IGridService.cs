@@ -154,32 +154,25 @@ namespace OpenSim.Services.Interfaces
         /// </summary>
         public string ServerURI
         {
-            get {
-                if (!String.IsNullOrEmpty(m_serverURI)) {
+            get
+            {
+                if (!string.IsNullOrEmpty(m_serverURI))
+                {
                     return m_serverURI;
-                } else {
-                    if (HttpPort == 0)
-                        return "http://" + m_externalHostName + "/";
-                    else
-                        return "http://" + m_externalHostName + ":" + HttpPort + "/";
-                }
-            }
-            set {
-                if ( value == null)
-                {
-                    m_serverURI = String.Empty;
-                    return;
-                }
-
-                if ( value.EndsWith("/") )
-                {
-
-                    m_serverURI = value;
                 }
                 else
                 {
-                    m_serverURI = value + '/';
+                    return HttpPort == 0 ?
+                        "http://" + m_externalHostName + "/" :
+                        "http://" + m_externalHostName + ":" + HttpPort + "/";
                 }
+            }
+            set
+            {
+                if (value == null)
+                    m_serverURI = string.Empty;
+                else
+                    m_serverURI = value.EndsWith('/') ? value : value + "/";
             }
         }
 
@@ -200,7 +193,7 @@ namespace OpenSim.Services.Interfaces
             get { return m_regionName; }
             set { m_regionName = value; }
         }
-        protected string m_regionName = String.Empty;
+        protected string m_regionName = string.Empty;
 
         /// <summary>
         /// Region flags.
