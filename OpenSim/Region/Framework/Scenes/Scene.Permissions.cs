@@ -27,12 +27,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Reflection;
-using System.Text;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Region.Framework.Interfaces;
+
+#pragma warning disable IDE0220  // shutu[ Add explicit cast on the loops on Delegates
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -204,7 +203,7 @@ namespace OpenSim.Region.Framework.Scenes
             GenerateClientFlagsHandler handlerGenerateClientFlags = OnGenerateClientFlags;
             if (handlerGenerateClientFlags is not null)
             {
-                foreach (GenerateClientFlagsHandler check in handlerGenerateClientFlags.GetInvocationList().AsSpan())
+                foreach (GenerateClientFlagsHandler check in handlerGenerateClientFlags.GetInvocationList())
                 {
                     perms &= check(part, sp, perms);
                 }
@@ -222,7 +221,7 @@ namespace OpenSim.Region.Framework.Scenes
             BypassPermissionsHandler handler = OnBypassPermissions;
             if (handler is not null)
             {
-                foreach (BypassPermissionsHandler h in handler.GetInvocationList().AsSpan())
+                foreach (BypassPermissionsHandler h in handler.GetInvocationList())
                 {
                     if (h() == false)
                         return false;
@@ -236,7 +235,7 @@ namespace OpenSim.Region.Framework.Scenes
             PropagatePermissionsHandler handler = OnPropagatePermissions;
             if (handler is not null)
             {
-                foreach (PropagatePermissionsHandler h in handler.GetInvocationList().AsSpan())
+                foreach (PropagatePermissionsHandler h in handler.GetInvocationList())
                 {
                     if (h() == false)
                         return false;
@@ -251,7 +250,7 @@ namespace OpenSim.Region.Framework.Scenes
             RezObjectHandler handler = OnRezObject;
             if (handler is not null)
             {
-                foreach (RezObjectHandler h in handler.GetInvocationList().AsSpan())
+                foreach (RezObjectHandler h in handler.GetInvocationList())
                 {
                     if (h(objectCount, owner,objectPosition) == false)
                         return false;
@@ -265,21 +264,16 @@ namespace OpenSim.Region.Framework.Scenes
         #region DELETE OBJECT
         public bool CanDeleteObject(UUID objectID, UUID deleter)
         {
-            bool result = true;
-
             DeleteObjectHandlerByIDs handler = OnDeleteObjectByIDs;
             if (handler is not null)
             {
-                foreach (DeleteObjectHandlerByIDs h in handler.GetInvocationList().AsSpan())
+                foreach (DeleteObjectHandlerByIDs h in handler.GetInvocationList())
                 {
                     if (h(objectID, deleter) == false)
-                    {
-                        result = false;
-                        break;
-                    }
+                        return false;
                 }
             }
-            return result;
+            return true;
         }
 
         public bool CanDeleteObject(SceneObjectGroup sog, IClientAPI client)
@@ -287,11 +281,10 @@ namespace OpenSim.Region.Framework.Scenes
             DeleteObjectHandler handler = OnDeleteObject;
             if (handler is not null)
             {
-               if(sog is null || client is null || client.SceneAgent is null)
+                if(sog is null || client is null || client.SceneAgent is not ScenePresence sp)
                     return false;
 
-                ScenePresence sp = client.SceneAgent as ScenePresence;
-                foreach (DeleteObjectHandler h in handler.GetInvocationList().AsSpan())
+                foreach (DeleteObjectHandler h in handler.GetInvocationList())
                 {
                     if (h(sog, sp) == false)
                         return false;
@@ -306,7 +299,7 @@ namespace OpenSim.Region.Framework.Scenes
             TransferObjectHandler handler = OnTransferObject;
             if (handler is not null)
             {
-                foreach (TransferObjectHandler h in handler.GetInvocationList().AsSpan())
+                foreach (TransferObjectHandler h in handler.GetInvocationList())
                 {
                     if (h(objectID, recipient) == false)
                         return false;
@@ -325,7 +318,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if(sog is null || sp is null)
                     return false;
-                foreach (TakeObjectHandler h in handler.GetInvocationList().AsSpan())
+                foreach (TakeObjectHandler h in handler.GetInvocationList())
                 {
                     if (h(sog, sp) == false)
                         return false;
@@ -345,7 +338,7 @@ namespace OpenSim.Region.Framework.Scenes
             SellGroupObjectHandler handler = OnSellGroupObject;
             if (handler is not null)
             {
-                foreach (SellGroupObjectHandler h in handler.GetInvocationList().AsSpan())
+                foreach (SellGroupObjectHandler h in handler.GetInvocationList())
                 {
                     if (h(userID, groupID) == false)
                         return false;
@@ -369,7 +362,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return false;
 
                 ScenePresence sp = client.SceneAgent as ScenePresence;
-                foreach (SellObjectHandler h in handler.GetInvocationList().AsSpan())
+                foreach (SellObjectHandler h in handler.GetInvocationList())
                 {
                     if (h(sog, sp, saleType) == false)
                         return false;
@@ -385,7 +378,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if(sog is null)
                     return false;
-                foreach (SellObjectHandlerByUserID h in handler.GetInvocationList().AsSpan())
+                foreach (SellObjectHandlerByUserID h in handler.GetInvocationList())
                 {
                     if (h(sog, userID, saleType) == false)
                         return false;
@@ -406,7 +399,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if(sog is null || sp is null)
                     return false;
 
-                foreach (TakeCopyObjectHandler h in handler.GetInvocationList().AsSpan())
+                foreach (TakeCopyObjectHandler h in handler.GetInvocationList())
                 {
                     if (h(sog, sp) == false)
                         return false;
@@ -431,7 +424,7 @@ namespace OpenSim.Region.Framework.Scenes
                 ScenePresence sp = m_scene.GetScenePresence(agentID);
                 if(sp is null || sp.IsDeleted)
                     return false;
-                foreach (DuplicateObjectHandler h in handler.GetInvocationList().AsSpan())
+                foreach (DuplicateObjectHandler h in handler.GetInvocationList())
                 {
                     if (h(sog, sp) == false)
                         return false;
@@ -462,7 +455,7 @@ namespace OpenSim.Region.Framework.Scenes
             EditObjectByIDsHandler handler = OnEditObjectByIDs;
             if (handler is not null)
             {
-                foreach (EditObjectByIDsHandler h in handler.GetInvocationList().AsSpan())
+                foreach (EditObjectByIDsHandler h in handler.GetInvocationList())
                 {
                     if (h(objectID, editorID) == false)
                         return false;
@@ -481,7 +474,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 ScenePresence sp = client.SceneAgent as ScenePresence;
 
-                foreach (EditObjectHandler h in handler.GetInvocationList().AsSpan())
+                foreach (EditObjectHandler h in handler.GetInvocationList())
                 {
                     if (h(sog, sp) == false)
                         return false;
@@ -497,7 +490,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if(sog is null)
                     return false;
-                foreach (EditObjectPermsHandler h in handler.GetInvocationList().AsSpan())
+                foreach (EditObjectPermsHandler h in handler.GetInvocationList())
                 {
                     if (h(sog, editorID) == false)
                         return false;
@@ -512,7 +505,7 @@ namespace OpenSim.Region.Framework.Scenes
             EditObjectInventoryHandler handler = OnEditObjectInventory;
             if (handler is not null)
             {
-                foreach (EditObjectInventoryHandler h in handler.GetInvocationList().AsSpan())
+                foreach (EditObjectInventoryHandler h in handler.GetInvocationList())
                 {
                     if (h(objectID, editorID) == false)
                         return false;
@@ -534,7 +527,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 ScenePresence sp = client.SceneAgent as ScenePresence;
 
-                foreach (MoveObjectHandler h in handler.GetInvocationList().AsSpan())
+                foreach (MoveObjectHandler h in handler.GetInvocationList())
                 {
                     if (h(sog, sp) == false)
                         return false;
@@ -551,7 +544,7 @@ namespace OpenSim.Region.Framework.Scenes
             ObjectEntryHandler handler = OnObjectEntry;
             if (handler is not null)
             {
-                foreach (ObjectEntryHandler h in handler.GetInvocationList().AsSpan())
+                foreach (ObjectEntryHandler h in handler.GetInvocationList())
                 {
                     if (h(sog, enteringRegion, newPoint) == false)
                         return false;
@@ -565,7 +558,7 @@ namespace OpenSim.Region.Framework.Scenes
             ObjectEnterWithScriptsHandler handler =  OnObjectEnterWithScripts;
             if (handler is not null)
             {
-                foreach (ObjectEnterWithScriptsHandler h in handler.GetInvocationList().AsSpan())
+                foreach (ObjectEnterWithScriptsHandler h in handler.GetInvocationList())
                 {
                     if (h(sog, land) == false)
                         return false;
@@ -589,7 +582,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if(client is not null && client.SceneAgent is not null)
                     sp = client.SceneAgent as ScenePresence;
 
-                foreach (ReturnObjectsHandler h in handler.GetInvocationList().AsSpan())
+                foreach (ReturnObjectsHandler h in handler.GetInvocationList())
                 {
                     if (h(land, sp, objects) == false)
                         return false;
@@ -610,7 +603,7 @@ namespace OpenSim.Region.Framework.Scenes
             InstantMessageHandler handler = OnInstantMessage;
             if (handler is not null)
             {
-                foreach (InstantMessageHandler h in handler.GetInvocationList().AsSpan())
+                foreach (InstantMessageHandler h in handler.GetInvocationList())
                 {
                     if (h(user, target) == false)
                         return false;
@@ -627,7 +620,7 @@ namespace OpenSim.Region.Framework.Scenes
             InventoryTransferHandler handler = OnInventoryTransfer;
             if (handler is not null)
             {
-                foreach (InventoryTransferHandler h in handler.GetInvocationList().AsSpan())
+                foreach (InventoryTransferHandler h in handler.GetInvocationList())
                 {
                     if (h(user, target) == false)
                         return false;
@@ -644,7 +637,7 @@ namespace OpenSim.Region.Framework.Scenes
             ViewScriptHandler handler = OnViewScript;
             if (handler is not null)
             {
-                foreach (ViewScriptHandler h in handler.GetInvocationList().AsSpan())
+                foreach (ViewScriptHandler h in handler.GetInvocationList())
                 {
                     if (h(script, objectID, user) == false)
                         return false;
@@ -658,7 +651,7 @@ namespace OpenSim.Region.Framework.Scenes
             ViewNotecardHandler handler = OnViewNotecard;
             if (handler is not null)
             {
-                foreach (ViewNotecardHandler h in handler.GetInvocationList().AsSpan())
+                foreach (ViewNotecardHandler h in handler.GetInvocationList())
                 {
                     if (h(script, objectID, user) == false)
                         return false;
@@ -675,7 +668,7 @@ namespace OpenSim.Region.Framework.Scenes
             EditScriptHandler handler = OnEditScript;
             if (handler is not null)
             {
-                foreach (EditScriptHandler h in handler.GetInvocationList().AsSpan())
+                foreach (EditScriptHandler h in handler.GetInvocationList())
                 {
                     if (h(script, objectID, user) == false)
                         return false;
@@ -689,7 +682,7 @@ namespace OpenSim.Region.Framework.Scenes
             EditNotecardHandler handler = OnEditNotecard;
             if (handler is not null)
             {
-                foreach (EditNotecardHandler h in handler.GetInvocationList().AsSpan())
+                foreach (EditNotecardHandler h in handler.GetInvocationList())
                 {
                     if (h(script, objectID, user) == false)
                         return false;
@@ -706,7 +699,7 @@ namespace OpenSim.Region.Framework.Scenes
             RunScriptHandlerByIDs handler = OnRunScriptByIDs;
             if (handler is not null)
             {
-                foreach (RunScriptHandlerByIDs h in handler.GetInvocationList().AsSpan())
+                foreach (RunScriptHandlerByIDs h in handler.GetInvocationList())
                 {
                     if (h(script, objectID, user) == false)
                         return false;
@@ -722,7 +715,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if(item is null || part is null)
                     return false;
-                foreach (RunScriptHandler h in handler.GetInvocationList().AsSpan())
+                foreach (RunScriptHandler h in handler.GetInvocationList())
                 {
                     if (h(item, part) == false)
                         return false;
@@ -740,7 +733,7 @@ namespace OpenSim.Region.Framework.Scenes
             CompileScriptHandler handler = OnCompileScript;
             if (handler is not null)
             {
-                foreach (CompileScriptHandler h in handler.GetInvocationList().AsSpan())
+                foreach (CompileScriptHandler h in handler.GetInvocationList())
                 {
                     if (h(ownerUUID, scriptType) == false)
                         return false;
@@ -757,7 +750,7 @@ namespace OpenSim.Region.Framework.Scenes
             StartScriptHandler handler = OnStartScript;
             if (handler is not null)
             {
-                foreach (StartScriptHandler h in handler.GetInvocationList().AsSpan())
+                foreach (StartScriptHandler h in handler.GetInvocationList())
                 {
                     if (h(script, user) == false)
                         return false;
@@ -774,7 +767,7 @@ namespace OpenSim.Region.Framework.Scenes
             StopScriptHandler handler = OnStopScript;
             if (handler is not null)
             {
-                foreach (StopScriptHandler h in handler.GetInvocationList().AsSpan())
+                foreach (StopScriptHandler h in handler.GetInvocationList())
                 {
                     if (h(script, user) == false)
                         return false;
@@ -791,7 +784,7 @@ namespace OpenSim.Region.Framework.Scenes
             ResetScriptHandler handler = OnResetScript;
             if (handler is not null)
             {
-                foreach (ResetScriptHandler h in handler.GetInvocationList().AsSpan())
+                foreach (ResetScriptHandler h in handler.GetInvocationList())
                 {
                     if (h(prim, script, user) == false)
                         return false;
@@ -810,7 +803,7 @@ namespace OpenSim.Region.Framework.Scenes
             TerraformLandHandler handler = OnTerraformLand;
             if (handler is not null)
             {
-                foreach (TerraformLandHandler h in handler.GetInvocationList().AsSpan())
+                foreach (TerraformLandHandler h in handler.GetInvocationList())
                 {
                     if (h(user, pos) == false)
                         return false;
@@ -827,7 +820,7 @@ namespace OpenSim.Region.Framework.Scenes
             RunConsoleCommandHandler handler = OnRunConsoleCommand;
             if (handler is not null)
             {
-                foreach (RunConsoleCommandHandler h in handler.GetInvocationList().AsSpan())
+                foreach (RunConsoleCommandHandler h in handler.GetInvocationList())
                 {
                     if (h(user) == false)
                         return false;
@@ -844,7 +837,7 @@ namespace OpenSim.Region.Framework.Scenes
             IssueEstateCommandHandler handler = OnIssueEstateCommand;
             if (handler is not null)
             {
-                foreach (IssueEstateCommandHandler h in handler.GetInvocationList().AsSpan())
+                foreach (IssueEstateCommandHandler h in handler.GetInvocationList())
                 {
                     if (h(user, ownerCommand) == false)
                         return false;
@@ -860,7 +853,7 @@ namespace OpenSim.Region.Framework.Scenes
             IsAdministratorHandler handler = OnIsAdministrator;
             if (handler is not null)
             {
-                foreach (IsAdministratorHandler h in handler.GetInvocationList().AsSpan())
+                foreach (IsAdministratorHandler h in handler.GetInvocationList())
                 {
                     if (h(user) == false)
                         return false;
@@ -874,7 +867,7 @@ namespace OpenSim.Region.Framework.Scenes
             IsGridGodHandler handler = OnIsGridGod;
             if (handler is not null)
             {
-                foreach (IsGridGodHandler h in handler.GetInvocationList().AsSpan())
+                foreach (IsGridGodHandler h in handler.GetInvocationList())
                 {
                     if (h(user) == false)
                         return false;
@@ -888,7 +881,7 @@ namespace OpenSim.Region.Framework.Scenes
             IsAdministratorHandler handler = OnIsAdministrator;
             if (handler is not null)
             {
-                foreach (IsAdministratorHandler h in handler.GetInvocationList().AsSpan())
+                foreach (IsAdministratorHandler h in handler.GetInvocationList())
                 {
                     if (h(user) == false)
                         return false;
@@ -903,7 +896,7 @@ namespace OpenSim.Region.Framework.Scenes
             IsEstateManagerHandler handler = OnIsEstateManager;
             if (handler is not null)
             {
-                foreach (IsEstateManagerHandler h in handler.GetInvocationList().AsSpan())
+                foreach (IsEstateManagerHandler h in handler.GetInvocationList())
                 {
                     if (h(user) == false)
                         return false;
@@ -919,7 +912,7 @@ namespace OpenSim.Region.Framework.Scenes
             EditParcelPropertiesHandler handler = OnEditParcelProperties;
             if (handler is not null)
             {
-                foreach (EditParcelPropertiesHandler h in handler.GetInvocationList().AsSpan())
+                foreach (EditParcelPropertiesHandler h in handler.GetInvocationList())
                 {
                     if (h(user, parcel, p, allowManager) == false)
                         return false;
@@ -935,7 +928,7 @@ namespace OpenSim.Region.Framework.Scenes
             SellParcelHandler handler = OnSellParcel;
             if (handler is not null)
             {
-                foreach (SellParcelHandler h in handler.GetInvocationList().AsSpan())
+                foreach (SellParcelHandler h in handler.GetInvocationList())
                 {
                     if (h(user, parcel) == false)
                         return false;
@@ -951,7 +944,7 @@ namespace OpenSim.Region.Framework.Scenes
             AbandonParcelHandler handler = OnAbandonParcel;
             if (handler is not null)
             {
-                foreach (AbandonParcelHandler h in handler.GetInvocationList().AsSpan())
+                foreach (AbandonParcelHandler h in handler.GetInvocationList())
                 {
                     if (h(user, parcel) == false)
                         return false;
@@ -966,9 +959,9 @@ namespace OpenSim.Region.Framework.Scenes
             ReclaimParcelHandler handler = OnReclaimParcel;
             if (handler is not null)
             {
-                foreach (ReclaimParcelHandler h in handler.GetInvocationList().AsSpan())
+                foreach (Delegate h in handler.GetInvocationList())
                 {
-                    if (h(user, parcel) == false)
+                    if (((ReclaimParcelHandler)h)(user, parcel) == false)
                         return false;
                 }
             }
@@ -980,7 +973,7 @@ namespace OpenSim.Region.Framework.Scenes
             DeedParcelHandler handler = OnDeedParcel;
             if (handler is not null)
             {
-                foreach (DeedParcelHandler h in handler.GetInvocationList().AsSpan())
+                foreach (DeedParcelHandler h in handler.GetInvocationList())
                 {
                     if (h(user, parcel) == false)
                         return false;
@@ -998,7 +991,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return false;
 
                 ScenePresence sp = client.SceneAgent as ScenePresence;
-                foreach (DeedObjectHandler h in handler.GetInvocationList().AsSpan())
+                foreach (DeedObjectHandler h in handler.GetInvocationList())
                 {
                     if (h(sp, sog, targetGroupID) == false)
                         return false;
@@ -1012,7 +1005,7 @@ namespace OpenSim.Region.Framework.Scenes
             BuyLandHandler handler = OnBuyLand;
             if (handler is not null)
             {
-                foreach (BuyLandHandler h in handler.GetInvocationList().AsSpan())
+                foreach (BuyLandHandler h in handler.GetInvocationList())
                 {
                     if (h(user, parcel) == false)
                         return false;
@@ -1026,7 +1019,7 @@ namespace OpenSim.Region.Framework.Scenes
             LinkObjectHandler handler = OnLinkObject;
             if (handler is not null)
             {
-                foreach (LinkObjectHandler h in handler.GetInvocationList().AsSpan())
+                foreach (LinkObjectHandler h in handler.GetInvocationList())
                 {
                     if (h(user, objectID) == false)
                         return false;
@@ -1040,7 +1033,7 @@ namespace OpenSim.Region.Framework.Scenes
             DelinkObjectHandler handler = OnDelinkObject;
             if (handler is not null)
             {
-                foreach (DelinkObjectHandler h in handler.GetInvocationList().AsSpan())
+                foreach (DelinkObjectHandler h in handler.GetInvocationList())
                 {
                     if (h(user, objectID) == false)
                         return false;
@@ -1063,7 +1056,7 @@ namespace OpenSim.Region.Framework.Scenes
             CreateObjectInventoryHandler handler = OnCreateObjectInventory;
             if (handler is not null)
             {
-                foreach (CreateObjectInventoryHandler h in handler.GetInvocationList().AsSpan())
+                foreach (CreateObjectInventoryHandler h in handler.GetInvocationList())
                 {
                     if (h(invType, objectID, userID) == false)
                         return false;
@@ -1077,7 +1070,7 @@ namespace OpenSim.Region.Framework.Scenes
             CopyObjectInventoryHandler handler = OnCopyObjectInventory;
             if (handler is not null)
             {
-                foreach (CopyObjectInventoryHandler h in handler.GetInvocationList().AsSpan())
+                foreach (CopyObjectInventoryHandler h in handler.GetInvocationList())
                 {
                     if (h(itemID, objectID, userID) == false)
                         return false;
@@ -1093,7 +1086,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (sourcePart is null || destPart is null || item is null)
                     return false;
-                foreach (DoObjectInvToObjectInv h in handler.GetInvocationList().AsSpan())
+                foreach (DoObjectInvToObjectInv h in handler.GetInvocationList())
                 {
                     if (h(item, sourcePart, destPart) == false)
                         return false;
@@ -1128,7 +1121,7 @@ namespace OpenSim.Region.Framework.Scenes
             DeleteObjectInventoryHandler handler = OnDeleteObjectInventory;
             if (handler is not null)
             {
-                foreach (DeleteObjectInventoryHandler h in handler.GetInvocationList().AsSpan())
+                foreach (DeleteObjectInventoryHandler h in handler.GetInvocationList())
                 {
                     if (h(itemID, objectID, userID) == false)
                         return false;
@@ -1142,7 +1135,7 @@ namespace OpenSim.Region.Framework.Scenes
             TransferObjectInventoryHandler handler = OnTransferObjectInventory;
             if (handler is not null)
             {
-                foreach (TransferObjectInventoryHandler h in handler.GetInvocationList().AsSpan())
+                foreach (TransferObjectInventoryHandler h in handler.GetInvocationList())
                 {
                     if (h(itemID, objectID, userID) == false)
                         return false;
@@ -1162,7 +1155,7 @@ namespace OpenSim.Region.Framework.Scenes
             CreateUserInventoryHandler handler = OnCreateUserInventory;
             if (handler is not null)
             {
-                foreach (CreateUserInventoryHandler h in handler.GetInvocationList().AsSpan())
+                foreach (CreateUserInventoryHandler h in handler.GetInvocationList())
                 {
                     if (h(invType, userID) == false)
                         return false;
@@ -1182,7 +1175,7 @@ namespace OpenSim.Region.Framework.Scenes
             EditUserInventoryHandler handler = OnEditUserInventory;
             if (handler is not null)
             {
-                foreach (EditUserInventoryHandler h in handler.GetInvocationList().AsSpan())
+                foreach (EditUserInventoryHandler h in handler.GetInvocationList())
                 {
                     if (h(itemID, userID) == false)
                         return false;
@@ -1202,7 +1195,7 @@ namespace OpenSim.Region.Framework.Scenes
             CopyUserInventoryHandler handler = OnCopyUserInventory;
             if (handler is not null)
             {
-                foreach (CopyUserInventoryHandler h in handler.GetInvocationList().AsSpan())
+                foreach (CopyUserInventoryHandler h in handler.GetInvocationList())
                 {
                     if (h(itemID, userID) == false)
                         return false;
@@ -1222,7 +1215,7 @@ namespace OpenSim.Region.Framework.Scenes
             DeleteUserInventoryHandler handler = OnDeleteUserInventory;
             if (handler is not null)
             {
-                foreach (DeleteUserInventoryHandler h in handler.GetInvocationList().AsSpan())
+                foreach (DeleteUserInventoryHandler h in handler.GetInvocationList())
                 {
                     if (h(itemID, userID) == false)
                         return false;
@@ -1236,7 +1229,7 @@ namespace OpenSim.Region.Framework.Scenes
             TransferUserInventoryHandler handler = OnTransferUserInventory;
             if (handler is not null)
             {
-                foreach (TransferUserInventoryHandler h in handler.GetInvocationList().AsSpan())
+                foreach (TransferUserInventoryHandler h in handler.GetInvocationList())
                 {
                     if (h(itemID, userID, recipientID) == false)
                         return false;
@@ -1250,7 +1243,7 @@ namespace OpenSim.Region.Framework.Scenes
             TeleportHandler handler = OnTeleport;
             if (handler is not null)
             {
-                foreach (TeleportHandler h in handler.GetInvocationList().AsSpan())
+                foreach (TeleportHandler h in handler.GetInvocationList())
                 {
                     if (h(userID, m_scene) == false)
                         return false;
@@ -1264,7 +1257,7 @@ namespace OpenSim.Region.Framework.Scenes
             ControlPrimMediaHandler handler = OnControlPrimMedia;
             if (handler is not null)
             {
-                foreach (ControlPrimMediaHandler h in handler.GetInvocationList().AsSpan())
+                foreach (ControlPrimMediaHandler h in handler.GetInvocationList())
                 {
                     if (h(userID, primID, face) == false)
                         return false;
@@ -1278,7 +1271,7 @@ namespace OpenSim.Region.Framework.Scenes
             InteractWithPrimMediaHandler handler = OnInteractWithPrimMedia;
             if (handler is not null)
             {
-                foreach (InteractWithPrimMediaHandler h in handler.GetInvocationList().AsSpan())
+                foreach (InteractWithPrimMediaHandler h in handler.GetInvocationList())
                 {
                     if (h(userID, primID, face) == false)
                         return false;
@@ -1287,4 +1280,5 @@ namespace OpenSim.Region.Framework.Scenes
             return true;
         }
     }
+#pragma warning restore IDE0220 // Add explicit cast
 }

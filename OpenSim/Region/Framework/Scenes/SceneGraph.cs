@@ -464,8 +464,8 @@ namespace OpenSim.Region.Framework.Scenes
             //    "[SCENEGRAPH]: Adding scene object {0} {1}, with {2} parts on {3}",
             //    sceneObject.Name, sceneObject.UUID, sceneObject.Parts.Length, m_parentScene.RegionInfo.RegionName);
 
-            ReadOnlySpan<SceneObjectPart> parts = sceneObject.Parts.AsSpan();
             SceneObjectPart part;
+            SceneObjectPart[] parts = sceneObject.Parts;
 
             // Clamp the sizes (scales) of the child prims and add the child prims to the count of all primitives
             // (meshes and geometric primitives) in the scene; add child prims to m_numTotalPrim count
@@ -1179,7 +1179,7 @@ namespace OpenSim.Region.Framework.Scenes
             float closestDistance = 280f;
             EntityIntersection result = new();
             EntityBase[] EntityList = GetEntities();
-            foreach (EntityBase ent in EntityList.AsSpan())
+            foreach (EntityBase ent in EntityList)
             {
                 if (ent is SceneObjectGroup reportingG)
                 {
@@ -1205,7 +1205,7 @@ namespace OpenSim.Region.Framework.Scenes
             EntityBase[] entities = Entities.GetEntities();
             List<SceneObjectGroup> ret = new(entities.Length);
 
-            foreach(EntityBase et in entities.AsSpan())
+            foreach(EntityBase et in entities)
             {
                 if(et is SceneObjectGroup sog)
                     ret.Add(sog);
@@ -1246,7 +1246,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>null if the part was not found</returns>
         protected internal SceneObjectGroup GetSceneObjectGroup(string name)
         {
-            foreach(EntityBase entity in Entities.GetEntities().AsSpan())
+            foreach(EntityBase entity in Entities.GetEntities())
             {
                 if (entity is SceneObjectGroup sog && sog.Name.Equals(name))
                     return sog;
@@ -1419,7 +1419,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal void ForEachSOG(Action<SceneObjectGroup> action)
         {
             EntityBase[] entities = Entities.GetEntities();
-            foreach (EntityBase entity in entities.AsSpan())
+            foreach (EntityBase entity in entities)
             {
                 if (entity is SceneObjectGroup sog)
                 {
@@ -2195,7 +2195,7 @@ namespace OpenSim.Region.Framework.Scenes
                     copy.RootPart.Rezzed = DateTime.UtcNow;
                     copy.RootPart.RezzerID = AgentID;
 
-                    ReadOnlySpan<SceneObjectPart> parts = copy.Parts.AsSpan();
+                    SceneObjectPart[] parts = copy.Parts;
 
                     if (original.OwnerID.NotEqual(AgentID))
                     {

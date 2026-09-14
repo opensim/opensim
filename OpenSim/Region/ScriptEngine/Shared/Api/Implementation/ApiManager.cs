@@ -48,7 +48,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 Type[] types = a.GetExportedTypes();
 
-                foreach (Type t in types.AsSpan())
+                foreach (Type t in types)
                 {
                     var name = t.ToString().AsSpan();
                     int idx = name.LastIndexOf('.');

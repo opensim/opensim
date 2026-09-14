@@ -39,7 +39,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public ScriptBaseClass()
         {
             MethodInfo[] myArrayMethodInfo = GetType().GetMethods(BindingFlags.Public | BindingFlags.Instance);
-            foreach (MethodInfo mi in myArrayMethodInfo.AsSpan())
+            foreach (MethodInfo mi in myArrayMethodInfo)
             {
                 var name = mi.Name.AsSpan();
                 if (name.StartsWith("ApiType"))

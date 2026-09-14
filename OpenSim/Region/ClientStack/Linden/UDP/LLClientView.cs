@@ -5669,7 +5669,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             List<SceneObjectGroup> kills = new();
 
             EntityBase[] entities = m_scene.Entities.GetEntities();
-            foreach (EntityBase e in entities.AsSpan())
+            foreach (EntityBase e in entities)
             {
                 if (!IsActive)
                     return;
