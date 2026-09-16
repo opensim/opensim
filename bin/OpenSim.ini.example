@@ -821,6 +821,10 @@
     ;; Or, alternatively, use this one, which works for both standalones and grids
     ; OfflineMessageModule = "Offline Message Module V2"
 
+    ;; Required on Hypergrid standalone (InGatekeeper) so incoming IMs to
+    ;; offline local users are stored. Robust.HG.ini.example has the same key.
+    ; OfflineIMService = "OpenSim.Addons.OfflineIM.dll:OfflineIMService"
+
     ;# {OfflineMessageURL} {OfflineMessageModule:OfflineMessageModule Offline Message Module V2:Offline Message Module V2} {URL of offline messaging service} {}
     ;; URL of web service for offline message storage. Leave it commented if your service is local to the sim.
     ; OfflineMessageURL = ${Const|BaseURL}/Offline.php

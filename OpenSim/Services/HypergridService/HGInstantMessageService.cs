@@ -136,6 +136,9 @@ namespace OpenSim.Services.HypergridService
                     string offlineIMService = cnf.GetString("OfflineIMService", string.Empty);
                     if (offlineIMService != string.Empty)
                         m_OfflineIMService = ServerUtils.LoadPlugin<IOfflineIMService>(offlineIMService, args);
+                    
+                    if (m_OfflineIMService is null)
+                        m_log.Warn("[HG IM SERVICE]: InGatekeeper is true but [Messaging] OfflineIMService is missing or failed to load; incoming IMs to offline users will not be stored");
                 }
                 else
                     m_log.Debug("[HG IM SERVICE]: Starting");
