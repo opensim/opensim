@@ -1,0 +1,5 @@
+# Changelog
+
+## Unreleased
+### Fixed
+- Fixed a memory leak in the BulletSim physics module (`BSShapes.cs`). Temporary native shapes (`BSShapeMesh`, `BSShapeHull`, `BSShapeConvexHull`, `BSShapeGImpact`) are now correctly freed when their reference count drops to 0 using `physicsScene.PE.DeleteCollisionShape`.
