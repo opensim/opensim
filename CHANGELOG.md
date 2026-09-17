@@ -14,3 +14,6 @@ All notable changes made in this branch (`jules-12566837975670410540-57bce191`) 
 
 ### 🧪 Tests & Benchmarks
 - Added `MySQLEstateDataBenchmarkTests` in `OpenSim/Data/Tests/MySQLEstateDataBenchmarkTests.cs` to test `EstateSettings` ban list structures and verify `MySQLEstateData` list save logic.
+## Unreleased
+### Fixed
+- Fixed a memory leak in the BulletSim physics module (`BSShapes.cs`). Temporary native shapes (`BSShapeMesh`, `BSShapeHull`, `BSShapeConvexHull`, `BSShapeGImpact`) are now correctly freed when their reference count drops to 0 using `physicsScene.PE.DeleteCollisionShape`.
