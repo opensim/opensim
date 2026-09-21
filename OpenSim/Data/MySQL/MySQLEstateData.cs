@@ -319,40 +319,28 @@ namespace OpenSim.Data.MySQL
             {
                 dbcon.Open();
 
-                using (MySqlTransaction transaction = dbcon.BeginTransaction())
+                using (MySqlCommand cmd = dbcon.CreateCommand())
                 {
-                    using (MySqlCommand cmd = dbcon.CreateCommand())
+                    cmd.CommandText = "delete from estateban where EstateID = ?EstateID";
+                    cmd.Parameters.AddWithValue("?EstateID", es.EstateID.ToString());
+
+                    cmd.ExecuteNonQuery();
+
+                    cmd.Parameters.Clear();
+
+                    cmd.CommandText = "insert into estateban (EstateID, bannedUUID, bannedIp, bannedIpHostMask, bannedNameMask, banningUUID, banTime) values ( ?EstateID, ?bannedUUID, '', '', '', ?banningUUID, ?banTime)";
+
+                    foreach (EstateBan b in es.EstateBans)
                     {
-                        cmd.Transaction = transaction;
-                        cmd.CommandText = "delete from estateban where EstateID = ?EstateID";
                         cmd.Parameters.AddWithValue("?EstateID", es.EstateID.ToString());
+                        cmd.Parameters.AddWithValue("?bannedUUID", b.BannedUserID.ToString());
+                        cmd.Parameters.AddWithValue("?banningUUID", b.BanningUserID.ToString());
+                        cmd.Parameters.AddWithValue("?banTime", b.BanTime);
+
                         cmd.ExecuteNonQuery();
-
-                        if (es.EstateBans != null && es.EstateBans.Length > 0)
-                        {
-                            cmd.Parameters.Clear();
-                            cmd.CommandText = "insert into estateban (EstateID, bannedUUID, bannedIp, bannedIpHostMask, bannedNameMask, banningUUID, banTime) values ( ?EstateID, ?bannedUUID, '', '', '', ?banningUUID, ?banTime)";
-
-                            cmd.Parameters.Add("?EstateID", MySqlDbType.String);
-                            cmd.Parameters.Add("?bannedUUID", MySqlDbType.String);
-                            cmd.Parameters.Add("?banningUUID", MySqlDbType.String);
-                            cmd.Parameters.Add("?banTime", MySqlDbType.Int32);
-
-                            foreach (EstateBan b in es.EstateBans)
-                            {
-                                cmd.Parameters["?EstateID"].Value = es.EstateID.ToString();
-                                cmd.Parameters["?bannedUUID"].Value = b.BannedUserID.ToString();
-                                cmd.Parameters["?banningUUID"].Value = b.BanningUserID.ToString();
-                                cmd.Parameters["?banTime"].Value = b.BanTime;
-
-                                cmd.ExecuteNonQuery();
-                            }
-                        }
+                        cmd.Parameters.Clear();
                     }
-
-                    transaction.Commit();
                 }
-
                 dbcon.Close();
             }
         }
@@ -363,36 +351,26 @@ namespace OpenSim.Data.MySQL
             {
                 dbcon.Open();
 
-                using (MySqlTransaction transaction = dbcon.BeginTransaction())
+                using (MySqlCommand cmd = dbcon.CreateCommand())
                 {
-                    using (MySqlCommand cmd = dbcon.CreateCommand())
+                    cmd.CommandText = "delete from " + table + " where EstateID = ?EstateID";
+                    cmd.Parameters.AddWithValue("?EstateID", EstateID.ToString());
+
+                    cmd.ExecuteNonQuery();
+
+                    cmd.Parameters.Clear();
+
+                    cmd.CommandText = "insert into " + table + " (EstateID, uuid) values ( ?EstateID, ?uuid )";
+
+                    foreach (UUID uuid in data)
                     {
-                        cmd.Transaction = transaction;
-                        cmd.CommandText = "delete from " + table + " where EstateID = ?EstateID";
                         cmd.Parameters.AddWithValue("?EstateID", EstateID.ToString());
+                        cmd.Parameters.AddWithValue("?uuid", uuid.ToString());
+
                         cmd.ExecuteNonQuery();
-
-                        if (data != null && data.Length > 0)
-                        {
-                            cmd.Parameters.Clear();
-                            cmd.CommandText = "insert into " + table + " (EstateID, uuid) values ( ?EstateID, ?uuid )";
-
-                            cmd.Parameters.Add("?EstateID", MySqlDbType.String);
-                            cmd.Parameters.Add("?uuid", MySqlDbType.String);
-
-                            foreach (UUID uuid in data)
-                            {
-                                cmd.Parameters["?EstateID"].Value = EstateID.ToString();
-                                cmd.Parameters["?uuid"].Value = uuid.ToString();
-
-                                cmd.ExecuteNonQuery();
-                            }
-                        }
+                        cmd.Parameters.Clear();
                     }
-
-                    transaction.Commit();
                 }
-
                 dbcon.Close();
             }
         }
