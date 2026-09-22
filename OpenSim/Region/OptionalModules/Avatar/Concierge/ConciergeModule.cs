@@ -30,7 +30,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -40,6 +39,7 @@ using Mono.Addins;
 using Nini.Config;
 using Nwc.XmlRpc;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Framework.Interfaces;
@@ -53,7 +53,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-//        private const int DEBUG_CHANNEL = 2147483647; use base value
+        //private const int DEBUG_CHANNEL = 2147483647; use base value
 
         private new List<IScene> m_scenes = new List<IScene>();
         private List<IScene> m_conciergedScenes = new List<IScene>();
@@ -137,8 +137,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
         {
             if (!m_enabled) return;
 
-            MainServer.Instance.AddXmlRPCHandler("concierge_update_welcome", XmlRpcUpdateWelcomeMethod, false);
-
             lock (m_syncy)
             {
                 if (!m_scenes.Contains(scene))
@@ -168,8 +166,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
         public override void RemoveRegion(Scene scene)
         {
             if (!m_enabled) return;
-
-            MainServer.Instance.RemoveXmlRPCHandler("concierge_update_welcome");
 
             lock (m_syncy)
             {
@@ -201,16 +197,31 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
 
         public override void PostInitialise()
         {
+            if (m_enabled)
+                MainServer.Instance.AddXmlRPCHandler("concierge_update_welcome", XmlRpcUpdateWelcomeMethod, false);
         }
 
         public override void RegionLoaded(Scene scene)
         {
-            //if (!m_enabled)
-            //    return;
+            if (!m_enabled)
+                return;
+
+            if(m_replacingChatModule)
+            {
+                ISimulatorFeaturesModule featuresModule = scene.RequestModuleInterface<ISimulatorFeaturesModule>();
+                if (featuresModule != null)
+                {
+                    featuresModule.AddOpenSimExtraFeature("say-range", new OSDInteger(9999));
+                    featuresModule.AddOpenSimExtraFeature("whisper-range", new OSDInteger(10));
+                    featuresModule.AddOpenSimExtraFeature("shout-range", new OSDInteger(9999));
+                }
+            }
         }
 
         public override void Close()
         {
+            if (m_enabled)
+                MainServer.Instance.RemoveXmlRPCHandler("concierge_update_welcome");
         }
 
         new public Type ReplaceableInterface
@@ -238,24 +249,23 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
             return;
         }
 
-        public override void OnChatFromClient(Object sender, OSChatMessage c)
+        public override void OnChatFromClient(object sender, OSChatMessage c)
         {
-            if (m_replacingChatModule)
+            if (m_replacingChatModule && c is not null && c.Scene is Scene scene)
             {
                 // replacing ChatModule: need to redistribute
                 // ChatFromClient to interested subscribers
-                Scene scene = (Scene)c.Scene;
                 scene.EventManager.TriggerOnChatFromClient(sender, c);
 
-                if (m_conciergedScenes.Contains(c.Scene))
+                // when we are replacing ChatModule, we treat
+                // OnChatFromClient like OnChatBroadcast for
+                // concierged regions, effectively extending the
+                // range of chat to cover the whole
+                // region. however, we don't do this for whisper
+                // (got to have some privacy)
+                if (c.Type != ChatTypeEnum.Whisper)
                 {
-                    // when we are replacing ChatModule, we treat
-                    // OnChatFromClient like OnChatBroadcast for
-                    // concierged regions, effectively extending the
-                    // range of chat to cover the whole
-                    // region. however, we don't do this for whisper
-                    // (got to have some privacy)
-                    if (c.Type != ChatTypeEnum.Whisper)
+                    if (m_conciergedScenes.Contains(scene))
                     {
                         base.OnChatBroadcast(sender, c);
                         return;
@@ -266,7 +276,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
                 base.OnChatFromClient(sender, c);
             }
 
-            // TODO: capture chat
             return;
         }
 
@@ -274,16 +283,16 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
         {
             if (m_replacingChatModule)
             {
-                if (m_conciergedScenes.Contains(c.Scene))
+                if (c.Type != ChatTypeEnum.Whisper)
                 {
-                    // when we are replacing ChatModule, we treat
-                    // OnChatFromClient like OnChatBroadcast for
-                    // concierged regions, effectively extending the
-                    // range of chat to cover the whole
-                    // region. however, we don't do this for whisper
-                    // (got to have some privacy)
-                    if (c.Type != ChatTypeEnum.Whisper)
+                    if (m_conciergedScenes.Contains(c.Scene))
                     {
+                        // when we are replacing ChatModule, we treat
+                        // OnChatFromClient like OnChatBroadcast for
+                        // concierged regions, effectively extending the
+                        // range of chat to cover the whole
+                        // region. however, we don't do this for whisper
+                        // (got to have some privacy)
                         base.OnChatBroadcast(sender, c);
                         return;
                     }
@@ -512,20 +521,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
 
         static private Vector3 PosOfGod = new Vector3(128, 128, 9999);
 
-        // protected void AnnounceToAgentsRegion(Scene scene, string msg)
-        // {
-        //     ScenePresence agent = null;
-        //     if ((client.Scene is Scene) && (client.Scene as Scene).TryGetScenePresence(client.AgentId, out agent))
-        //         AnnounceToAgentsRegion(agent, msg);
-        //     else
-        //         m_log.DebugFormat("[Concierge]: could not find an agent for client {0}", client.Name);
-        // }
-
         protected void AnnounceToAgentsRegion(IScene scene, string msg)
         {
-            if(scene is Scene)
+            if(scene is Scene targetScene)
             {
-                OSChatMessage c = new OSChatMessage()
+                OSChatMessage c = new()
                 {
                     Message = msg,
                     Type = ChatTypeEnum.Say,
@@ -534,13 +534,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
                     From = m_whoami,
                     Scene = scene
                 };
-                (scene as Scene)?.EventManager.TriggerOnChatBroadcast(this, c);
+                targetScene?.EventManager.TriggerOnChatBroadcast(this, c);
             }
         }
 
         protected void AnnounceToAgent(ScenePresence agent, string msg)
         {
-            OSChatMessage c = new OSChatMessage
+            OSChatMessage c = new()
             {
                 Message = msg,
                 Type = ChatTypeEnum.Say,
