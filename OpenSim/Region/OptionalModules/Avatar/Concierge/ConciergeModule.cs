@@ -203,6 +203,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
         {
         }
 
+        public override void RegionLoaded(Scene scene)
+        {
+            //if (!m_enabled)
+            //    return;
+        }
+
         public override void Close()
         {
         }
