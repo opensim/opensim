@@ -109,7 +109,7 @@ namespace OpenSim.Services.Connectors.Simulation
                 return false;
             }
 
-            m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: Creating agent at {0}", destination.ServerURI);
+            m_log.Debug($"[REMOTE SIMULATION CONNECTOR]: Creating agent at {destination.ServerURI}");
 
             string uri = destination.ServerURI + AgentPath() + aCircuit.AgentID + "/";
             OSD tmpOSD;

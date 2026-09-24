@@ -175,7 +175,7 @@ namespace OpenSim.Services.LLLoginService
                     using (WebClient client = new())
                         m_WelcomeMessage = client.DownloadString(m_MessageUrl);
                 }
-                catch               
+                catch
                 {
                     m_WelcomeMessage = null;
                 }
@@ -204,7 +204,7 @@ namespace OpenSim.Services.LLLoginService
             if (!string.IsNullOrWhiteSpace(m_MapTileURL))
             {
                 m_MapTileURL = m_MapTileURL.Trim();
-                if (!m_MapTileURL.EndsWith("/"))
+                if (!m_MapTileURL.EndsWith('/'))
                     m_MapTileURL += "/";
             }
 
@@ -218,7 +218,7 @@ namespace OpenSim.Services.LLLoginService
             object[] args = [config];
             m_UserAccountService = ServerUtils.LoadPlugin<IUserAccountService>(accountService, args);
             m_GridUserService = ServerUtils.LoadPlugin<IGridUserService>(gridUserService, args);
-            object[] authArgs = new object[] { config, m_UserAccountService };
+            object[] authArgs = [config, m_UserAccountService];
             m_AuthenticationService = ServerUtils.LoadPlugin<IAuthenticationService>(authService, authArgs);
             m_InventoryService = ServerUtils.LoadPlugin<IInventoryService>(invService, args);
 

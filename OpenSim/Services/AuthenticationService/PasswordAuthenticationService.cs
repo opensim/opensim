@@ -34,7 +34,6 @@ using Nini.Config;
 using System.Reflection;
 using OpenSim.Data;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
 
 namespace OpenSim.Services.AuthenticationService
 {
@@ -44,12 +43,9 @@ namespace OpenSim.Services.AuthenticationService
     // or any other components that need
     // verifiable identification.
     //
-    public class PasswordAuthenticationService :
-            AuthenticationServiceBase, IAuthenticationService
+    public class PasswordAuthenticationService : AuthenticationServiceBase, IAuthenticationService
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public PasswordAuthenticationService(IConfigSource config, IUserAccountService userService) :
                 base(config, userService)
@@ -57,15 +53,13 @@ namespace OpenSim.Services.AuthenticationService
             m_log.Debug("[AUTH SERVICE]: Started with User Account access");
         }
 
-        public PasswordAuthenticationService(IConfigSource config) :
-                base(config)
+        public PasswordAuthenticationService(IConfigSource config) : base(config)
         {
         }
 
         public string Authenticate(UUID principalID, string password, int lifetime)
         {
-            UUID realID;
-            return Authenticate(principalID, password, lifetime, out realID);
+            return Authenticate(principalID, password, lifetime, out _);
         }
 
         public string Authenticate(UUID principalID, string password, int lifetime, out UUID realID)
@@ -74,69 +68,66 @@ namespace OpenSim.Services.AuthenticationService
 
             m_log.DebugFormat("[AUTH SERVICE]: Authenticating for {0}, user account service present: {1}", principalID, m_UserAccountService != null);
             AuthenticationData data = m_Database.Get(principalID);
-            UserAccount user = null;
-            if (m_UserAccountService != null)
-                user = m_UserAccountService.GetUserAccount(UUID.Zero, principalID);
 
             if (data == null || data.Data == null)
             {
-                m_log.DebugFormat("[AUTH SERVICE]: PrincipalID {0} or its data not found", principalID);
-                return String.Empty;
+                m_log.Debug($"[AUTH SERVICE]: PrincipalID {principalID} or its data not found");
+                return string.Empty;
             }
 
-            if (!data.Data.ContainsKey("passwordHash") ||
-                !data.Data.ContainsKey("passwordSalt"))
+            if(!data.Data.TryGetValue("passwordHash", out object passwordHashobj ) ||
+                !data.Data.TryGetValue("passwordSalt", out object passwordSaltObj))
             {
-                return String.Empty;
+                return string.Empty;
             }
 
-            string hashed = Util.Md5Hash(password + ":" +
-                    data.Data["passwordSalt"].ToString());
+            string hashed = Util.Md5Hash(password + ":" + passwordSaltObj.ToString());
 
-//            m_log.DebugFormat("[PASS AUTH]: got {0}; hashed = {1}; stored = {2}", password, hashed, data.Data["passwordHash"].ToString());
+            //m_log.DebugFormat("[PASS AUTH]: got {0}; hashed = {1}; stored = {2}", password, hashed, data.Data["passwordHash"].ToString());
 
-            if (data.Data["passwordHash"].ToString() == hashed)
+            if (passwordHashobj.ToString() == hashed)
             {
                 return GetToken(principalID, lifetime);
             }
 
+            UserAccount user = m_UserAccountService?.GetUserAccount(UUID.Zero, principalID);
+
             if (user == null)
             {
-                m_log.DebugFormat("[PASS AUTH]: No user record for {0}", principalID);
-                return String.Empty;
+                m_log.Debug($"[AUTH SERVICE]: PrincipalID {principalID} or its data not found");
+                return string.Empty;
             }
 
-            int impersonateFlag = 1 << 6;
+            const int impersonateFlag = 1 << 6;
 
             if ((user.UserFlags & impersonateFlag) == 0)
-                return String.Empty;
+                return string.Empty;
 
-            m_log.DebugFormat("[PASS AUTH]: Attempting impersonation");
+            m_log.Debug("[PASS AUTH]: Attempting impersonation");
 
             List<UserAccount> accounts = m_UserAccountService.GetUserAccountsWhere(UUID.Zero, "UserLevel >= 200");
             if (accounts == null || accounts.Count == 0)
             {
-                m_log.DebugFormat("[PASS AUTH]: No suitable gods found");
-                return String.Empty;
+                m_log.Debug("[PASS AUTH]: No suitable gods found");
+                return string.Empty;
             }
 
             foreach (UserAccount a in accounts)
             {
                 data = m_Database.Get(a.PrincipalID);
                 if (data == null || data.Data == null ||
-                    !data.Data.ContainsKey("passwordHash") ||
-                    !data.Data.ContainsKey("passwordSalt"))
+                    !data.Data.TryGetValue("passwordHash", out object pHashObj) ||
+                    !data.Data.TryGetValue("passwordSalt", out object pSaltObj))
                 {
                     m_log.DebugFormat("[PASS AUTH]: {0} {1} has no suitable password set", a.FirstName, a.LastName);
                     continue;
                 }
 
-//                m_log.DebugFormat("[PASS AUTH]: Trying {0}", data.PrincipalID);
+                //m_log.DebugFormat("[PASS AUTH]: Trying {0}", data.PrincipalID);
 
-                hashed = Util.Md5Hash(password + ":" +
-                        data.Data["passwordSalt"].ToString());
+                hashed = Util.Md5Hash(password + ":" + pSaltObj.ToString());
 
-                if (data.Data["passwordHash"].ToString() == hashed)
+                if (pHashObj.ToString() == hashed)
                 {
                     m_log.DebugFormat("[PASS AUTH]: {0} {1} impersonating {2}, proceeding with login", a.FirstName, a.LastName, principalID);
                     realID = a.PrincipalID;
@@ -150,8 +141,8 @@ namespace OpenSim.Services.AuthenticationService
                 }
             }
 
-            m_log.DebugFormat("[PASS AUTH]: Impersonation of {0} failed", principalID);
-            return String.Empty;
+            m_log.Debug($"[AUTH SERVICE]: PrincipalID {principalID} or its data not found");
+            return string.Empty;
         }
     }
 }
