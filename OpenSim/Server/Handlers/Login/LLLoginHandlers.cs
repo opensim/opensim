@@ -104,7 +104,7 @@ namespace OpenSim.Server.Handlers.Login
                     else if (requestData.ContainsKey("web_login_key"))
                     {
                         passwd = "$1$" + requestData["web_login_key"].ToString();
-                        m_log.InfoFormat("[LOGIN]: XMLRPC Login Req key {0}", passwd);
+                        //m_log.InfoFormat("[LOGIN]: XMLRPC Login Req key {0}", passwd);
                     }
                     string startLocation = string.Empty;
                     UUID scopeID = UUID.Zero;
