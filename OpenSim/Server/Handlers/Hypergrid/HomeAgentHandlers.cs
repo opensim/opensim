@@ -56,12 +56,11 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
         private string m_LoginServerIP;
 
-        public HomeAgentHandler(IUserAgentService userAgentService, string loginServerIP, bool proxy) :
+        public HomeAgentHandler(IUserAgentService userAgentService, string loginServerIP) :
             base("/homeagent")
         {
             m_UserAgentService = userAgentService;
             m_LoginServerIP = loginServerIP;
-            m_Proxy = proxy;
         }
 
         protected override AgentDestinationData CreateAgentDestinationData()

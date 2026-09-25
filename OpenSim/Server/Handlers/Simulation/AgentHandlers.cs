@@ -51,8 +51,6 @@ namespace OpenSim.Server.Handlers.Simulation
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected bool m_Proxy = false;
-
         public AgentPostHandler(string path) : base(path)
         {
         }

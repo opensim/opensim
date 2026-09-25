@@ -43,7 +43,6 @@ namespace OpenSim.Server.Handlers.Login
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private ILoginService m_LoginService;
-        private bool m_Proxy;
         private BasicDosProtectorOptions m_DosProtectionOptions;
 
         public LLLoginServiceInConnector(IConfigSource config, IHttpServer server, IScene scene) :
@@ -88,7 +87,6 @@ namespace OpenSim.Server.Handlers.Login
             if (loginService.Length == 0)
                 throw new Exception(String.Format("No LocalServiceModule for LoginService in config file"));
 
-            m_Proxy = serverConfig.GetBoolean("HasProxy", false);
             m_DosProtectionOptions = new BasicDosProtectorOptions();
             // Dos Protection Options
             m_DosProtectionOptions.AllowXForwardedFor = serverConfig.GetBoolean("DOSAllowXForwardedForHeader", false);
@@ -105,7 +103,7 @@ namespace OpenSim.Server.Handlers.Login
 
         private void InitializeHandlers(IHttpServer server)
         {
-            LLLoginHandlers loginHandlers = new LLLoginHandlers(m_LoginService, m_Proxy);
+            LLLoginHandlers loginHandlers = new LLLoginHandlers(m_LoginService);
 //            server.AddXmlRPCHandler("login_to_simulator",
 //                new XmlRpcBasicDOSProtector(loginHandlers.HandleXMLRPCLogin, loginHandlers.HandleXMLRPCLoginBlocked,
 //                    m_DosProtectionOptions).Process, false);

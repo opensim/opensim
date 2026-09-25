@@ -78,9 +78,8 @@ namespace OpenSim.Server.Handlers.MapImage
             else
                 m_log.InfoFormat("[MAP IMAGE HANDLER]: GridService check is OFF");
 
-            bool proxy = serverConfig.GetBoolean("HasProxy", false);
             IServiceAuth auth = ServiceAuth.Create(config, m_ConfigName);
-            server.AddSimpleStreamHandler(new MapServerPostHandler(m_MapService, m_GridService, proxy, auth));
+            server.AddSimpleStreamHandler(new MapServerPostHandler(m_MapService, m_GridService, auth));
         }
     }
 
@@ -89,14 +88,12 @@ namespace OpenSim.Server.Handlers.MapImage
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private IMapImageService m_MapService;
         private IGridService m_GridService;
-        bool m_Proxy;
 
-        public MapServerPostHandler(IMapImageService service, IGridService grid, bool proxy, IServiceAuth auth) :
+        public MapServerPostHandler(IMapImageService service, IGridService grid, IServiceAuth auth) :
             base("/map", auth)
         {
             m_MapService = service;
             m_GridService = grid;
-            m_Proxy = proxy;
         }
 
         protected override void ProcessRequest(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)

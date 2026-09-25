@@ -45,8 +45,8 @@ namespace OpenSim.Framework
         public bool ssl_listener = false;
         public bool ssl_external = false;
         public uint https_port = 0;
-        public string cert_path = String.Empty;
-        public string cert_pass = String.Empty;
+        public string cert_path = string.Empty;
+        public string cert_pass = string.Empty;
 
         public NetworkServersInfo()
         {
@@ -58,23 +58,24 @@ namespace OpenSim.Framework
 
         public void loadFromConfiguration(IConfigSource config)
         {
-            HttpListenerPort =
-                (uint) config.Configs["Network"].GetInt("http_listener_port", (int) ConfigSettings.DefaultRegionHttpPort);
-            httpSSLPort =
-                (uint)config.Configs["Network"].GetInt("http_listener_sslport", ((int)ConfigSettings.DefaultRegionHttpPort+1));
-            HttpUsesSSL = config.Configs["Network"].GetBoolean("http_listener_ssl", false);
-            HttpSSLCN = config.Configs["Network"].GetString("http_listener_cn", "localhost");
-            HttpSSLCertPath = config.Configs["Network"].GetString("http_listener_cert_path", HttpSSLCertPath);
-            HttpSSLCNCertPass = config.Configs["Network"].GetString("http_listener_cert_pass", HttpSSLCNCertPass);
+            IConfig netConfig =config.Configs["Network"];
+            if (netConfig == null)
+                return;
+            HttpListenerPort = (uint) netConfig.GetInt("http_listener_port", (int) ConfigSettings.DefaultRegionHttpPort);
+            httpSSLPort = (uint)netConfig.GetInt("http_listener_sslport", (int)ConfigSettings.DefaultRegionHttpPort + 1);
+            HttpUsesSSL = netConfig.GetBoolean("http_listener_ssl", false);
+            HttpSSLCN = netConfig.GetString("http_listener_cn", "localhost");
+            HttpSSLCertPath = netConfig.GetString("http_listener_cert_path", HttpSSLCertPath);
+            HttpSSLCNCertPass = netConfig.GetString("http_listener_cert_pass", HttpSSLCNCertPass);
 
             // "Out of band management https"
-            ssl_listener = config.Configs["Network"].GetBoolean("https_listener",false);
-            ssl_external = config.Configs["Network"].GetBoolean("https_external",false);
+            ssl_listener = netConfig.GetBoolean("https_listener", false);
+            ssl_external = netConfig.GetBoolean("https_external", false);
             if( ssl_listener)
             {
-                cert_path = config.Configs["Network"].GetString("cert_path",String.Empty);
-                cert_pass = config.Configs["Network"].GetString("cert_pass",String.Empty);
-                https_port = (uint)config.Configs["Network"].GetInt("https_port", 0);
+                cert_path = netConfig.GetString("cert_path", string.Empty);
+                cert_pass = netConfig.GetString("cert_pass", string.Empty);
+                https_port = (uint)netConfig.GetInt("https_port", 0);
             }
         }
     }
