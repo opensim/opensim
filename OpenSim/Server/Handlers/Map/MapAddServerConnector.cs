@@ -118,7 +118,7 @@ namespace OpenSim.Server.Handlers.MapImage
                 x = Int32.Parse(request["X"].ToString());
                 y = Int32.Parse(request["Y"].ToString());
                 if (request.TryGetValue("SCOPE", out object o))
-                    UUID.TryParse(o.ToString(), out scopeID);
+                    _ = UUID.TryParse(o.ToString(), out scopeID);
                 if(request.TryGetValue("DATA", out object od))
                 {
                     data = Convert.FromBase64String(od.ToString());
