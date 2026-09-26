@@ -133,7 +133,7 @@
     SRV_IMServerURI = "${Const|BaseURL}:${Const|PublicPort}"
 
     ;; For Viewer 2
-    MapTileURL = "${Const|BaseURL}:${Const|PublicPort}/"
+    MapTileURL = "${Const|BaseURL}:${Const|PublicPort}/map/"
 
     ; Url to search service
     ; SearchURL = "${Const|BaseURL}:${Const|PublicPort}";

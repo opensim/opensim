@@ -557,7 +557,7 @@
     AllowRemoteSetLoginLevel = "false"
 
     ; For V2 map
-    MapTileURL = "${Const|BaseURL}:${Const|PublicPort}/";
+    MapTileURL = "${Const|BaseURL}:${Const|PublicPort}/map/";
 
     ; Url to search service
     ; SearchURL = "${Const|BaseURL}:${Const|PublicPort}/";
