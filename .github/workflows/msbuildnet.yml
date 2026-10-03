@@ -28,7 +28,6 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
-        cache: true
 
     - name: preBuild
       run: bash ${GITHUB_WORKSPACE}/runprebuild.sh
