@@ -1,5 +1,8 @@
 name: .msbuildnet6
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [ "master" ]
