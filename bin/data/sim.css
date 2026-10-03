@@ -34,9 +34,35 @@ pre {
 :visited {
  color: #d0d0d0;
 }
-.SimSectionHeader {
+button.SimSectionHeader {
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    font-family: inherit;
     font-size: 120%;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 4px 8px;
+    text-align: left;
+    display: inline-block;
 }
+
+button.SimSectionHeader:hover {
+    text-decoration: underline;
+}
+
+button.SimSectionHeader:focus-visible {
+    outline: 2px solid #EEEAD6;
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
+div.SimSectionContainer h3 {
+    margin: 0;
+    padding: 0;
+    font-size: 100%;
+}
+
 div.SimSectionContainer {
     padding: 10px 0px 0px 20px;
 }
