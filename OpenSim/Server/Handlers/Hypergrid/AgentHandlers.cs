@@ -40,10 +40,9 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
         private IGatekeeperService m_GatekeeperService;
 
-        public GatekeeperAgentHandler(IGatekeeperService gatekeeper, bool proxy) : base("/foreignagent")
+        public GatekeeperAgentHandler(IGatekeeperService gatekeeper) : base("/foreignagent")
         {
             m_GatekeeperService = gatekeeper;
-            m_Proxy = proxy;
         }
 
         protected override bool CreateAgent(GridRegion source, GridRegion gatekeeper, GridRegion destination,

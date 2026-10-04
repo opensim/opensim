@@ -54,6 +54,10 @@ jobs:
     needs: validate
     if: github.event_name == 'push' && github.repository == 'opensim/opensim'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -69,14 +73,25 @@ jobs:
         path: bin
 
     - name: release
-      run: zip -r LastDotNetBuild.zip bin ThirdPartyLicenses README.md CONTRIBUTORS.txt LICENSE.txt
+      run: |
+        zip -r LastDotNetBuild.zip bin ThirdPartyLicenses README.md CONTRIBUTORS.txt LICENSE.txt
+        sha256sum LastDotNetBuild.zip > SHA256SUMS
+
+    - name: Attest Build Provenance
+      uses: actions/attest-build-provenance@v1
+      with:
+        subject-path: |
+          LastDotNetBuild.zip
+          SHA256SUMS
 
     - name: Publish Release
       uses: softprops/action-gh-release@v1
       with:
         tag_name: r${{ steps.vars.outputs.sha_short }}
         name: LastDotNetAutoBuild
-        files: LastDotNetBuild.zip
+        files: |
+          LastDotNetBuild.zip
+          SHA256SUMS
 
   notify:
     needs: validate

@@ -61,7 +61,7 @@ namespace OpenSim.Server.Handlers.MapImage
             if (string.IsNullOrWhiteSpace(gridService))
                 throw new Exception("No LocalServiceModule in config file");
 
-            object[] args = new object[] { config };
+            object[] args = [config];
             m_MapService = ServerUtils.LoadPlugin<IMapImageService>(gridService, args);
 
             server.AddStreamHandler(new MapServerGetHandler(m_MapService));
@@ -70,7 +70,7 @@ namespace OpenSim.Server.Handlers.MapImage
 
     class MapServerGetHandler : BaseStreamHandler
     {
-        public static readonly object ev = new object();
+        public static readonly object ev = new();
 
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -88,58 +88,54 @@ namespace OpenSim.Server.Handlers.MapImage
             {
                 httpResponse.StatusCode = (int)HttpStatusCode.ServiceUnavailable;
                 httpResponse.AddHeader("Retry-After", "10");
-                return Array.Empty<byte>();
+                return [];
             }
 
-            byte[] result = Array.Empty<byte>();
-            string format = string.Empty;
-
-            //UUID scopeID = new UUID("07f8d88e-cd5e-4239-a0ed-843f75d09992");
-            UUID scopeID = UUID.Zero;
-
-            // This will be map/tilefile.ext, but on multitenancy it will be
-            // map/scope/teilefile.ext
-            path = path.Trim('/');
-            string[] bits = path.Split(new char[] {'/'});
-            if (bits.Length > 2)
+            try
             {
-                try
-                {
-                    scopeID = new UUID(bits[1]);
-                }
-                catch
-                {
-                    return new byte[9];
-                }
-                path = bits[2];
+                UUID scopeID = UUID.Zero;
                 path = path.Trim('/');
-            }
+                string[] pathParts = path.Split(['/']);
+                if (pathParts.Length > 2)
+                {
+                    if(string.IsNullOrEmpty(pathParts[1]) || !UUID.TryParse(pathParts[1], out scopeID))
+                    {
+                        httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
+                        httpResponse.ContentType = "text/plain";
+                        return [];
+                    }
+                    path = pathParts[2];
+                }
+                else if(pathParts.Length == 2)
+                    path = pathParts[1];
 
-            if(path.Length == 0)
+                if(path.Length == 0)
+                {
+                    httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
+                    httpResponse.ContentType = "text/plain";
+                    return [];
+                }
+
+                byte[] result = m_MapService.GetMapTile(path, scopeID, out string format);
+                if (result.Length > 0)
+                {
+                    httpResponse.StatusCode = (int)HttpStatusCode.OK;
+                    if (format.Equals(".png"))
+                        httpResponse.ContentType = "image/png";
+                    else if (format.Equals(".jpg") || format.Equals(".jpeg"))
+                        httpResponse.ContentType = "image/jpeg";
+                }
+                else
+                {
+                    httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
+                    httpResponse.ContentType = "text/plain";
+                }
+                return result;
+            }
+            finally
             {
-                httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
-                httpResponse.ContentType = "text/plain";
-                return Array.Empty<byte>();
+                Monitor.Exit(ev);
             }
-
-            result = m_MapService.GetMapTile(path, scopeID, out format);
-            if (result.Length > 0)
-            {
-                httpResponse.StatusCode = (int)HttpStatusCode.OK;
-                if (format.Equals(".png"))
-                    httpResponse.ContentType = "image/png";
-                else if (format.Equals(".jpg") || format.Equals(".jpeg"))
-                    httpResponse.ContentType = "image/jpeg";
-            }
-            else
-            {
-                httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
-                httpResponse.ContentType = "text/plain";
-            }
-
-            Monitor.Exit(ev);
-
-            return result;
         }
     }
 }
