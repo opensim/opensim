@@ -56,12 +56,11 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
         private string m_LoginServerIP;
 
-        public HomeAgentHandler(IUserAgentService userAgentService, string loginServerIP, bool proxy) :
+        public HomeAgentHandler(IUserAgentService userAgentService, string loginServerIP) :
             base("/homeagent")
         {
             m_UserAgentService = userAgentService;
             m_LoginServerIP = loginServerIP;
-            m_Proxy = proxy;
         }
 
         protected override AgentDestinationData CreateAgentDestinationData()
@@ -75,19 +74,19 @@ namespace OpenSim.Server.Handlers.Hypergrid
             ExtendedAgentDestinationData data = (ExtendedAgentDestinationData)d;
             try
             {
-                if (args.ContainsKey("gatekeeper_host") && args["gatekeeper_host"] != null)
-                    data.host = args["gatekeeper_host"].AsString();
-                if (args.ContainsKey("gatekeeper_port") && args["gatekeeper_port"] != null)
-                    Int32.TryParse(args["gatekeeper_port"].AsString(), out data.port);
-                if (args.ContainsKey("gatekeeper_serveruri") && args["gatekeeper_serveruri"] != null)
-                    data.gatekeeperServerURI = args["gatekeeper_serveruri"];
-                if (args.ContainsKey("destination_serveruri") && args["destination_serveruri"] != null)
-                    data.destinationServerURI = args["destination_serveruri"];
-
+                if (args.TryGetString("gatekeeper_host", out string host) && !string.IsNullOrEmpty(host))
+                    data.host = host;
+                if (args.TryGetString("gatekeeper_port", out string argsGatekeeper_port) &&
+                        Int32.TryParse(argsGatekeeper_port, out int port))
+                    data.port = port;
+                if (args.TryGetString("gatekeeper_serveruri", out string gateserveruri) && !string.IsNullOrEmpty(gateserveruri))
+                    data.gatekeeperServerURI = gateserveruri;
+                if (args.TryGetString("destination_serveruri", out string destserveruri) && !string.IsNullOrEmpty(destserveruri))
+                    data.destinationServerURI = destserveruri;
             }
-            catch (InvalidCastException)
+            catch
             {
-                m_log.ErrorFormat("[HOME AGENT HANDLER]: Bad cast in UnpackData");
+                m_log.ErrorFormat("[HOME AGENT HANDLER]: Problem in UnpackData");
             }
 
             // Verify if this call came from the login server

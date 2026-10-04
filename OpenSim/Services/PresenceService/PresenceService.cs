@@ -80,12 +80,13 @@ namespace OpenSim.Services.PresenceService
                 }
             }
 
-            PresenceData data = new PresenceData();
-
-            data.UserID = userID;
-            data.RegionID = UUID.Zero;
-            data.SessionID = sessionID;
-            data.Data = new Dictionary<string, string>();
+            PresenceData data = new PresenceData
+            {
+                UserID = userID,
+                RegionID = UUID.Zero,
+                SessionID = sessionID,
+                Data = []
+            };
             data.Data["SecureSessionID"] = secureSessionID.ToString();
 
             m_Database.Store(data);
@@ -96,8 +97,10 @@ namespace OpenSim.Services.PresenceService
             if (prevUser != null)
                 prevUserStr = string.Format(". This user was already logged-in: session {0}, region {1}", prevUser.SessionID, prevUser.RegionID);
 
-            m_log.DebugFormat("[PRESENCE SERVICE]: LoginAgent: session {0}, user {1}, region {2}, secure session {3}{4}",
-                data.SessionID, data.UserID, data.RegionID, secureSessionID, prevUserStr);
+            //m_log.DebugFormat("[PRESENCE SERVICE]: LoginAgent: session {0}, user {1}, region {2}, secure session {3}{4}",
+            //    data.SessionID, data.UserID, data.RegionID, secureSessionID, prevUserStr);
+            m_log.DebugFormat("[PRESENCE SERVICE]: LoginAgent: session {0}, user {1}, region {2}, {4}",
+                data.SessionID, data.UserID, data.RegionID, prevUserStr);
 
             return true;
         }

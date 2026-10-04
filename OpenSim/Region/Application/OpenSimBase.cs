@@ -83,9 +83,6 @@ namespace OpenSim
         /// <remarks>For tests/debugging</remarks>
         public bool LoadEstateDataService { get; set; }
 
-        protected string proxyUrl;
-        protected int proxyOffset = 0;
-
         public string userStatsURI = String.Empty;
         public string managedStatsURI = String.Empty;
         public string managedStatsPassword = String.Empty;
@@ -160,12 +157,7 @@ namespace OpenSim
 
         protected virtual void ReadExtraConfigSettings()
         {
-            IConfig networkConfig = Config.Configs["Network"];
-            if (networkConfig != null)
-            {
-                proxyUrl = networkConfig.GetString("proxy_url", "");
-                proxyOffset = Int32.Parse(networkConfig.GetString("proxy_offset", "0"));
-            }
+            //IConfig networkConfig = Config.Configs["Network"];
 
             IConfig startupConfig = Config.Configs["Startup"];
             if (startupConfig != null)
@@ -462,15 +454,7 @@ namespace OpenSim
 
             regionInfo.osSecret = m_osSecret;
 
-            if ((proxyUrl.Length > 0) && (portadd_flag))
-            {
-                // set proxy url to RegionInfo
-                regionInfo.proxyUrl = proxyUrl;
-                regionInfo.ProxyOffset = proxyOffset;
-                Util.XmlRpcCommand(proxyUrl, "AddPort", port, port + proxyOffset, regionInfo.ExternalHostName);
-            }
-
-            Scene scene = SetupScene(regionInfo, proxyOffset, Config);
+            Scene scene = SetupScene(regionInfo, Config);
 
             m_log.Info("[REGIONMODULES]: Loading Region's modules");
 
@@ -799,18 +783,17 @@ namespace OpenSim
         /// <returns></returns>
         protected Scene SetupScene(RegionInfo regionInfo)
         {
-            return SetupScene(regionInfo, 0, null);
+            return SetupScene(regionInfo, null);
         }
 
         /// <summary>
         /// Create a scene and its initial base structures.
         /// </summary>
         /// <param name="regionInfo"></param>
-        /// <param name="proxyOffset"></param>
         /// <param name="configSource"></param>
         /// <param name="clientServer"> </param>
         /// <returns></returns>
-        protected Scene SetupScene(RegionInfo regionInfo, int proxyOffset, IConfigSource configSource)
+        protected Scene SetupScene(RegionInfo regionInfo, IConfigSource configSource)
         {
             //List<IClientNetworkServer> clientNetworkServers = null;
 
@@ -950,11 +933,6 @@ namespace OpenSim
         /// </summary>
         protected override void ShutdownSpecific()
         {
-            if (proxyUrl.Length > 0)
-            {
-                Util.XmlRpcCommand(proxyUrl, "Stop");
-            }
-
             m_log.Info("[SHUTDOWN]: Closing all threads");
             m_log.Info("[SHUTDOWN]: Killing listener thread");
             m_log.Info("[SHUTDOWN]: Killing clients");

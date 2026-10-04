@@ -38,9 +38,7 @@ namespace OpenSim.Server.Handlers.Authentication
 {
     public class OpenIdServerConnector : ServiceConnector
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IAuthenticationService m_AuthenticationService;
         private IUserAccountService m_UserAccountService;
@@ -53,10 +51,8 @@ namespace OpenSim.Server.Handlers.Authentication
             if (serverConfig == null)
                 throw new Exception(String.Format("No section {0} in config file", m_ConfigName));
 
-            string authService = serverConfig.GetString("AuthenticationServiceModule",
-                    String.Empty);
-            string userService = serverConfig.GetString("UserAccountServiceModule",
-                    String.Empty);
+            string authService = serverConfig.GetString("AuthenticationServiceModule", string.Empty);
+            string userService = serverConfig.GetString("UserAccountServiceModule", string.Empty);
 
             if (authService.Length == 0 || userService.Length == 0)
                 throw new Exception("No AuthenticationServiceModule or no UserAccountServiceModule in config file for OpenId authentication");

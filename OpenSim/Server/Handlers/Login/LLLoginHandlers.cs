@@ -52,13 +52,10 @@ namespace OpenSim.Server.Handlers.Login
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private ILoginService m_LocalService;
-        private bool m_Proxy;
 
-
-        public LLLoginHandlers(ILoginService service, bool hasProxy)
+        public LLLoginHandlers(ILoginService service)
         {
             m_LocalService = service;
-            m_Proxy = hasProxy;
         }
 
         public XmlRpcResponse HandleXMLRPCLogin(XmlRpcRequest request, IPEndPoint remoteClient)
@@ -104,7 +101,7 @@ namespace OpenSim.Server.Handlers.Login
                     else if (requestData.ContainsKey("web_login_key"))
                     {
                         passwd = "$1$" + requestData["web_login_key"].ToString();
-                        m_log.InfoFormat("[LOGIN]: XMLRPC Login Req key {0}", passwd);
+                        //m_log.InfoFormat("[LOGIN]: XMLRPC Login Req key {0}", passwd);
                     }
                     string startLocation = string.Empty;
                     UUID scopeID = UUID.Zero;

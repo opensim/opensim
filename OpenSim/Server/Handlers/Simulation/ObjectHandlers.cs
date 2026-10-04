@@ -98,36 +98,24 @@ namespace OpenSim.Server.Handlers.Simulation
         protected void DoObjectPost(OSDMap args, IOSHttpResponse httpResponse)
         {
             // retrieve the input arguments
-            int x = 0, y = 0;
-            UUID uuid = UUID.Zero;
-            string regionname = string.Empty;
-            Vector3 newPosition = Vector3.Zero;
+            if(!args.TryGetUUID("destination_uuid", out UUID uuid))
+                return;
 
-            if (args.ContainsKey("destination_x") && args["destination_x"] != null)
-                Int32.TryParse(args["destination_x"].AsString(), out x);
-            if (args.ContainsKey("destination_y") && args["destination_y"] != null)
-                Int32.TryParse(args["destination_y"].AsString(), out y);
-            if (args.ContainsKey("destination_uuid") && args["destination_uuid"] != null)
-                UUID.TryParse(args["destination_uuid"].AsString(), out uuid);
-            if (args.ContainsKey("destination_name") && args["destination_name"] != null)
-                regionname = args["destination_name"].ToString();
-            if (args.ContainsKey("new_position") && args["new_position"] != null)
-                Vector3.TryParse(args["new_position"], out newPosition);
+            IScene s = m_SimulationService.GetScene(uuid);
+            if (s == null)
+                return;
 
-            GridRegion destination = new GridRegion();
-            destination.RegionID = uuid;
-            destination.RegionLocX = x;
-            destination.RegionLocY = y;
-            destination.RegionName = regionname;
+            if (!args.TryGetString("sog", out string sogXmlStr) || sogXmlStr.Length == 0 )
+                return;
 
-            string sogXmlStr = "", extraStr = "", stateXmlStr = "";
-            if (args.ContainsKey("sog") && args["sog"] != null)
-                sogXmlStr = args["sog"].AsString();
-            if (args.ContainsKey("extra") && args["extra"] != null)
-                extraStr = args["extra"].AsString();
+            args.TryGetInt("destination_x", out int x);
+            args.TryGetInt("destination_y", out int y);
+            args.TryGetString("destination_name" , out string regionname);
+            args.TryGetVector3("new_position", out Vector3 newPosition);
 
-            IScene s = m_SimulationService.GetScene(destination.RegionID);
-            ISceneObject sog = null;
+            args.TryGetString("extra", out string extraStr);
+
+            ISceneObject sog;
             try
             {
                 //m_log.DebugFormat("[OBJECT HANDLER]: received {0}", sogXmlStr);
@@ -141,15 +129,11 @@ namespace OpenSim.Server.Handlers.Simulation
                 return;
             }
 
-            if (args.ContainsKey("modified"))
-                sog.HasGroupChanged = args["modified"].AsBoolean();
-            else
-                sog.HasGroupChanged = false;
+            sog.HasGroupChanged = args.TryGetBool("modified", out bool sogMod) && sogMod;
 
-            if ((args["state"] != null) && s.AllowScriptCrossings)
+            if (args.TryGetString("state", out string stateXmlStr) && s.AllowScriptCrossings)
             {
-                stateXmlStr = args["state"].AsString();
-                if (stateXmlStr != "")
+                if (stateXmlStr.Length > 0)
                 {
                     try
                     {
@@ -163,7 +147,15 @@ namespace OpenSim.Server.Handlers.Simulation
                 }
             }
 
-            bool result = false;
+            GridRegion destination = new()
+            {
+                RegionID = uuid,
+                RegionLocX = x,
+                RegionLocY = y,
+                RegionName = regionname
+            };
+
+            bool result;
             try
             {
                 // This is the meaning of POST object

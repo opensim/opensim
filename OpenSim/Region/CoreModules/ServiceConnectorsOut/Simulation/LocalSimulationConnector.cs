@@ -209,13 +209,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             if (destination == null)
                 return false;
 
-            if (m_scenes.ContainsKey(destination.RegionID))
+            if (m_scenes.TryGetValue(destination.RegionID, out Scene s))
             {
 //                    m_log.DebugFormat(
 //                        "[LOCAL SIMULATION CONNECTOR]: Found region {0} {1} to send AgentUpdate",
 //                        destination.RegionName, destination.RegionID);
 
-                return m_scenes[destination.RegionID].IncomingUpdateChildAgent(cAgentData);
+                return s.IncomingUpdateChildAgent(cAgentData);
             }
 
 //            m_log.DebugFormat(
@@ -250,13 +250,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             if (destination == null)
                 return false;
 
-            if (m_scenes.ContainsKey(destination.RegionID))
+            if (m_scenes.TryGetValue(destination.RegionID, out Scene s))
             {
 //                    m_log.DebugFormat(
 //                        "[LOCAL SIMULATION CONNECTOR]: Found region {0} {1} to send AgentUpdate",
 //                        s.RegionInfo.RegionName, destination.RegionHandle);
-                uint sizeX = m_scenes[destination.RegionID].RegionInfo.RegionSizeX;
-                uint sizeY = m_scenes[destination.RegionID].RegionInfo.RegionSizeY;
+                uint sizeX = s.RegionInfo.RegionSizeX;
+                uint sizeY = s.RegionInfo.RegionSizeY;
 
                 // Var regions here, and the requesting simulator is in an older version.
                 // We will forbide this, because it crashes the viewers
@@ -268,7 +268,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
 
                 }
 
-                return m_scenes[destination.RegionID].QueryAccess(agentID, agentHomeURI, viaTeleport, position, features, out reason);
+                return s.QueryAccess(agentID, agentHomeURI, viaTeleport, position, features, out reason);
             }
 
             //m_log.Debug("[LOCAL COMMS]: region not found for QueryAccess");
@@ -277,13 +277,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
 
         public bool ReleaseAgent(UUID originId, UUID agentId, string uri)
         {
-            if (m_scenes.ContainsKey(originId))
+            if (m_scenes.TryGetValue(originId, out Scene s))
             {
 //                    m_log.DebugFormat(
 //                        "[LOCAL SIMULATION CONNECTOR]: Found region {0} {1} to send AgentUpdate",
 //                        s.RegionInfo.RegionName, destination.RegionHandle);
 
-                m_scenes[originId].EntityTransferModule.AgentArrivedAtDestination(agentId);
+                s.EntityTransferModule.AgentArrivedAtDestination(agentId);
                 return true;
             }
 
@@ -296,13 +296,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             if (destination == null)
                 return false;
 
-            if (m_scenes.ContainsKey(destination.RegionID))
+            if (m_scenes.TryGetValue(destination.RegionID, out Scene s))
             {
 //                    m_log.DebugFormat(
 //                        "[LOCAL SIMULATION CONNECTOR]: Found region {0} {1} to send AgentUpdate",
 //                        s.RegionInfo.RegionName, destination.RegionHandle);
 
-                m_scenes[destination.RegionID].CloseAgent(id, false, auth_token);
+                s.CloseAgent(id, false, auth_token);
                 return true;
             }
             //m_log.Debug("[LOCAL COMMS]: region not found in SendCloseAgent");
@@ -318,13 +318,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             if (destination == null)
                 return false;
 
-            if (m_scenes.ContainsKey(destination.RegionID))
+            if (m_scenes.TryGetValue(destination.RegionID, out Scene s))
             {
 //                    m_log.DebugFormat(
 //                        "[LOCAL SIMULATION CONNECTOR]: Found region {0} {1} to send AgentUpdate",
 //                        s.RegionInfo.RegionName, destination.RegionHandle);
-
-                Scene s = m_scenes[destination.RegionID];
 
                 if (isLocalCall)
                 {

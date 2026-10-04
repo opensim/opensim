@@ -178,16 +178,20 @@ namespace OpenSim.Server.Handlers
         #region Picks
         public bool AvatarPicksRequest(OSDMap json, ref JsonRpcResponse response)
         {
-            OSD tmpParams;
-            if (!json.TryGetValue("params", out tmpParams) || !(tmpParams is OSDMap))
+            if (!json.TryGetValue("params", out OSD tmpParams) || tmpParams is not OSDMap request)
             {
                 response.Error.Code = ErrorCode.ParseError;
                 m_log.DebugFormat ("Avatar Picks Request");
                 return false;
             }
 
-            OSDMap request = (OSDMap)tmpParams;
-            UUID creatorId = new UUID(request["creatorId"].AsString());
+            if(!request.TryGetUUID("CreatorId", out UUID creatorId))
+            {
+                response.Error.Code = ErrorCode.ParseError;
+                response.Error.Message = "missing parameters";
+                m_log.Debug ("Avatar Picks Request missing Parameters");
+                return false;
+            }
 
             OSDArray data = (OSDArray) Service.AvatarPicksRequest(creatorId);
             response.Result = data;
@@ -197,19 +201,30 @@ namespace OpenSim.Server.Handlers
 
         public bool PickInfoRequest(OSDMap json, ref JsonRpcResponse response)
         {
-            OSD tmpParams;
-            if (!json.TryGetValue("params", out tmpParams) || !(tmpParams is OSDMap))
+            if (!json.TryGetValue("params", out OSD tmpParams) || tmpParams is not OSDMap request)
             {
                 response.Error.Code = ErrorCode.ParseError;
                 response.Error.Message = "no parameters supplied";
-                m_log.DebugFormat ("Avatar Picks Info Request");
+                m_log.Debug ("Avatar Picks Info Request Invalid Parameters");
+                return false;
+            }
+
+            if(!request.TryGetUUID("PickId", out UUID PickId) ||
+               !request.TryGetUUID("CreatorId", out UUID CreatorId))
+            {
+                response.Error.Code = ErrorCode.ParseError;
+                response.Error.Message = "missing parameters";
+                m_log.Debug ("Avatar Picks Info Request missing Parameters");
                 return false;
             }
 
             string result = string.Empty;
-            UserProfilePick pick = new UserProfilePick();
-            object Pick = (object)pick;
-            OSD.DeserializeMembers(ref Pick, (OSDMap)tmpParams);
+            UserProfilePick pick = new()
+            {
+                PickId = PickId,
+                CreatorId = CreatorId
+            };
+
             if(Service.PickInfoRequest(ref pick, ref result))
             {
                 response.Result = OSD.SerializeMembers(pick);
@@ -217,14 +232,13 @@ namespace OpenSim.Server.Handlers
             }
 
             response.Error.Code = ErrorCode.InternalError;
-            response.Error.Message = string.Format("{0}", result);
+            response.Error.Message = result;
             return false;
         }
 
         public bool PicksUpdate(OSDMap json, ref JsonRpcResponse response)
         {
-            OSD tmpParams;
-            if (!json.TryGetValue("params", out tmpParams) || !(tmpParams is OSDMap))
+            if (!json.TryGetValue("params", out OSD tmpParams) || tmpParams is not OSDMap request)
             {
                 response.Error.Code = ErrorCode.ParseError;
                 response.Error.Message = "no parameters supplied";
@@ -235,7 +249,7 @@ namespace OpenSim.Server.Handlers
             string result = string.Empty;
             UserProfilePick pick = new UserProfilePick();
             object Pick = (object)pick;
-            OSD.DeserializeMembers(ref Pick, (OSDMap)tmpParams);
+            OSD.DeserializeMembers(ref Pick, request);
             if(Service.PicksUpdate(ref pick, ref result))
             {
                 response.Result = OSD.SerializeMembers(pick);
@@ -251,16 +265,22 @@ namespace OpenSim.Server.Handlers
         public bool PicksDelete(OSDMap json, ref JsonRpcResponse response)
         {
             OSD tmpParams;
-            if (!json.TryGetValue("params", out tmpParams) || !(tmpParams is OSDMap))
+            if (!json.TryGetValue("params", out tmpParams) || (tmpParams is not OSDMap request))
             {
                 response.Error.Code = ErrorCode.ParseError;
                 m_log.DebugFormat ("Avatar Picks Delete Request");
                 return false;
             }
 
-            OSDMap request = tmpParams as OSDMap;
-            UUID pickId = new UUID(request["pickId"].AsString());
-            if(Service.PicksDelete(pickId))
+            if(!request.TryGetUUID("PickId", out UUID PickId))
+            {
+                response.Error.Code = ErrorCode.ParseError;
+                response.Error.Message = "missing parameters";
+                m_log.Debug ("Avatar Pick Delete missing Parameter");
+                return false;
+            }
+
+            if(Service.PicksDelete(PickId))
                 return true;
 
             response.Error.Code = ErrorCode.InternalError;
