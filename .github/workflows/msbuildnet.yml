@@ -49,8 +49,6 @@ jobs:
         path: bin/
 
   release:
-    permissions:
-      contents: write
     needs: validate
     if: github.event_name == 'push' && github.repository == 'opensim/opensim'
     runs-on: ubuntu-latest
