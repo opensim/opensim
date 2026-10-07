@@ -272,7 +272,7 @@ namespace OpenSim.Server.Handlers
                 return false;
             }
 
-            if(!request.TryGetUUID("PickId", out UUID PickId))
+            if(!request.TryGetUUID("pickId", out UUID PickId))
             {
                 response.Error.Code = ErrorCode.ParseError;
                 response.Error.Message = "missing parameters";
