@@ -504,6 +504,11 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             {
                 this.DecrementReference();
                 physicsScene.DetailLog("{0},BSShapeMesh.Dereference,shape={1}", BSScene.DetailLogZero, this);
+                if (referenceCount <= 0 && physShapeInfo != null && physShapeInfo.HasPhysicalShape && physShapeInfo.isNativeShape)
+                {
+                    physicsScene.PE.DeleteCollisionShape(physicsScene.World, physShapeInfo);
+                    physShapeInfo.Clear();
+                }
                 // TODO: schedule aging and destruction of unused meshes.
             }
         }
@@ -699,6 +704,11 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             {
                 this.DecrementReference();
                 physicsScene.DetailLog("{0},BSShapeHull.Dereference,shape={1}", BSScene.DetailLogZero, this);
+                if (referenceCount <= 0 && physShapeInfo != null && physShapeInfo.HasPhysicalShape && physShapeInfo.isNativeShape)
+                {
+                    physicsScene.PE.DeleteCollisionShape(physicsScene.World, physShapeInfo);
+                    physShapeInfo.Clear();
+                }
                 // TODO: schedule aging and destruction of unused meshes.
             }
         }
@@ -1174,6 +1184,11 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             {
                 this.DecrementReference();
                 physicsScene.DetailLog("{0},BSShapeConvexHull.Dereference,shape={1}", BSScene.DetailLogZero, this);
+                if (referenceCount <= 0 && physShapeInfo != null && physShapeInfo.HasPhysicalShape && physShapeInfo.isNativeShape)
+                {
+                    physicsScene.PE.DeleteCollisionShape(physicsScene.World, physShapeInfo);
+                    physShapeInfo.Clear();
+                }
                 // TODO: schedule aging and destruction of unused meshes.
             }
         }
@@ -1288,6 +1303,11 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             {
                 this.DecrementReference();
                 physicsScene.DetailLog("{0},BSShapeGImpact.Dereference,shape={1}", BSScene.DetailLogZero, this);
+                if (referenceCount <= 0 && physShapeInfo != null && physShapeInfo.HasPhysicalShape && physShapeInfo.isNativeShape)
+                {
+                    physicsScene.PE.DeleteCollisionShape(physicsScene.World, physShapeInfo);
+                    physShapeInfo.Clear();
+                }
                 // TODO: schedule aging and destruction of unused meshes.
             }
         }
