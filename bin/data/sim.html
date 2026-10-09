@@ -1,6 +1,5 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
-    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <title>Simulator statistics</title>
 <link rel="stylesheet" href="sim.css" type="text/css"/>
@@ -17,9 +16,16 @@ Your browser does not support Javascript. This won't work for you.
 $(document).ready(function() {
     // Major divisions in the content accordioning
     $('.SimSection').show('slow');
-    $('.SimSectionHeader').click(function() {
-        $(this).next().slideToggle('slow');
-        return false;
+    $('.SimSectionHeader').click(function(e) {
+        e.preventDefault();
+        var $button = $(this);
+        var $targetPanel = $button.parent().next('.SimSection');
+        var isCurrentlyHidden = $targetPanel.is(':hidden');
+        $button.attr('aria-expanded', isCurrentlyHidden ? 'true' : 'false');
+        $targetPanel.slideToggle('slow', function() {
+            var isVisible = $targetPanel.is(':visible');
+            $button.attr('aria-expanded', isVisible ? 'true' : 'false');
+        });
     });
 
     // Start the timed functions
@@ -257,30 +263,74 @@ StringBuffer.prototype.toString = function() {
 
 <!-- ============================================== -->
 <div class="SimSectionContainer">
-<a class="SimSectionHeader" href="#">Simulator Stats</a>
-<div id="SimSimStats" class="SimSection">
-</div>  <!-- SimSimStats -->
+  <h3>
+    <button type="button" 
+            class="SimSectionHeader" 
+            id="SimSimStatsHeader" 
+            aria-expanded="true" 
+            aria-controls="SimSimStats">
+      Simulator Stats
+    </button>
+  </h3>
+  <div id="SimSimStats" 
+       class="SimSection" 
+       role="region" 
+       aria-labelledby="SimSimStatsHeader">
+  </div>  <!-- SimSimStats -->
 </div>  <!-- SimSectionContainer -->
 
 <!-- ============================================== -->
 <div class="SimSectionContainer">
-<a class="SimSectionHeader" href="#">Region Stats</a>
-<div id="SimRegionStats" class="SimSection">
-</div>  <!-- SimRegionStats -->
+  <h3>
+    <button type="button" 
+            class="SimSectionHeader" 
+            id="SimRegionStatsHeader" 
+            aria-expanded="true" 
+            aria-controls="SimRegionStats">
+      Region Stats
+    </button>
+  </h3>
+  <div id="SimRegionStats" 
+       class="SimSection" 
+       role="region" 
+       aria-labelledby="SimRegionStatsHeader">
+  </div>  <!-- SimRegionStats -->
 </div>  <!-- SimSectionContainer -->
 
 <!-- ============================================== -->
 <div class="SimSectionContainer">
-<a class="SimSectionHeader" href="#">Sessions</a>
-<div id="SimSessionStats" class="SimSection">
-</div>  <!-- SimSessionStats -->
+  <h3>
+    <button type="button" 
+            class="SimSectionHeader" 
+            id="SimSessionStatsHeader" 
+            aria-expanded="true" 
+            aria-controls="SimSessionStats">
+      Sessions
+    </button>
+  </h3>
+  <div id="SimSessionStats" 
+       class="SimSection" 
+       role="region" 
+       aria-labelledby="SimSessionStatsHeader">
+  </div>  <!-- SimSessionStats -->
 </div>  <!-- SimSectionContainer -->
 
 <!-- ============================================== -->
 <div class="SimSectionContainer">
-<a class="SimSectionHeader" href="#">Log File</a>
-<div id="SimLogFile" class="SimSection">
-</div>  <!-- SimLogFile -->
+  <h3>
+    <button type="button" 
+            class="SimSectionHeader" 
+            id="SimLogFileHeader" 
+            aria-expanded="true" 
+            aria-controls="SimLogFile">
+      Log File
+    </button>
+  </h3>
+  <div id="SimLogFile" 
+       class="SimSection" 
+       role="region" 
+       aria-labelledby="SimLogFileHeader">
+  </div>  <!-- SimLogFile -->
 </div>  <!-- SimSectionContainer -->
 
 <!-- ============================================== -->
