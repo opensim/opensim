@@ -15252,6 +15252,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             SceneObjectPart obj = World.GetSceneObjectPart(key);
             if (obj is not null)
             {
+                SceneObjectGroup sog;
+                SceneObjectPart root;
                 foreach (object o in args.Data)
                 {
                     switch (int.Parse(o.ToString()))
