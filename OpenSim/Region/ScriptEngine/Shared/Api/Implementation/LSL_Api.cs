@@ -15228,6 +15228,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         case ScriptBaseClass.OBJECT_TEXT_ALPHA:
                             ret.Add(new LSL_Float(1.0f));
                             break;
+                        case ScriptBaseClass.OBJECT_PERMS:
+                        case ScriptBaseClass.OBJECT_PERMS_COMBINED:
+                            ret.Add(LSL_Integer.Zero);
+                            ret.Add(LSL_Integer.Zero);
+                            ret.Add(LSL_Integer.Zero);
+                            ret.Add(LSL_Integer.Zero);
+                            ret.Add(LSL_Integer.Zero);
+                            break;
                         case ScriptBaseClass.OBJECT_LOCKED:
                         case ScriptBaseClass.OBJECT_VOLUME_DETECT:
                             ret.Add(LSL_Integer.Zero);
@@ -15477,12 +15485,37 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         case ScriptBaseClass.OBJECT_TEXT_ALPHA:
                             ret.Add(new LSL_Float(obj.GetTextAlpha()));
                             break;
+                        case ScriptBaseClass.OBJECT_PERMS:
+                            sog = obj.ParentGroup;
+                            if(sog is null || sog.IsDeleted)
+                            {
+                                ret.Add(LSL_Integer.Zero);
+                                ret.Add(LSL_Integer.Zero);
+                                ret.Add(LSL_Integer.Zero);
+                                ret.Add(LSL_Integer.Zero);
+                                ret.Add(LSL_Integer.Zero);
+                            }
+                            else
+                            {
+                                root = sog.RootPart;
+                                int baseperm = PermissionMaskToLSLPerm(root.BaseMask);
+                                ret.Add(new LSL_Integer(baseperm));
+                                int ownerperm = PermissionMaskToLSLPerm(root.OwnerMask);
+                                ret.Add(new LSL_Integer(ownerperm));
+                                int groupperm = PermissionMaskToLSLPerm(root.GroupMask);
+                                ret.Add(new LSL_Integer(groupperm));
+                                int everyperm = PermissionMaskToLSLPerm(root.EveryoneMask);
+                                ret.Add(new LSL_Integer(everyperm));
+                                int nextperm = PermissionMaskToLSLPerm(root.NextOwnerMask);
+                                ret.Add(new LSL_Integer(nextperm));
+                            }
+                            break;
                         case ScriptBaseClass.OBJECT_LOCKED:
-                            if(m_host.ParentGroup is null || m_host.ParentGroup.IsDeleted)
+                            if(obj.ParentGroup is null || obj.ParentGroup.IsDeleted)
                                 ret.Add(LSL_Integer.Zero);
                             else
                             {
-                                uint perms = m_host.ParentGroup.EffectiveOwnerPerms;
+                                uint perms = obj.ParentGroup.EffectiveOwnerPerms;
                                 //const uint mask = (uint)(PermissionMask.Move | PermissionMask.Modify);
                                 const uint mask = (uint)(PermissionMask.Move);
                                 perms &= mask;
@@ -15490,7 +15523,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             }
                             break;
                         case ScriptBaseClass.OBJECT_VOLUME_DETECT:
-                            bool vdtc = !m_host.ParentGroup.IsDeleted && m_host.ParentGroup.IsVolumeDetect;
+                            bool vdtc = !obj.ParentGroup.IsDeleted && obj.ParentGroup.IsVolumeDetect;
                             ret.Add(vdtc ? LSL_Integer.One : LSL_Integer.Zero);
                             break;
                         default:
