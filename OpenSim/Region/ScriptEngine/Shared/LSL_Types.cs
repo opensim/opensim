@@ -2937,6 +2937,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
             }
 
             public static readonly LSLInteger Zero = new(0);
+            public static readonly LSLInteger One = new(1);
             #endregion
         }
 
