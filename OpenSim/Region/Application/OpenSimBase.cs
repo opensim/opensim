@@ -491,10 +491,10 @@ namespace OpenSim
             while (regionInfo.EstateSettings.EstateOwner.IsZero() && MainConsole.Instance != null)
                 SetUpEstateOwner(scene);
 
-            scene.loadAllLandObjectsFromStorage(regionInfo.originRegionID);
+            scene.loadAllLandObjectsFromStorage(regionInfo.RegionID);
 
             // Prims have to be loaded after module configuration since some modules may be invoked during the load
-            scene.LoadPrimsFromStorage(regionInfo.originRegionID);
+            scene.LoadPrimsFromStorage(regionInfo.RegionID);
 
             // TODO : Try setting resource for region xstats here on scene
             MainServer.Instance.AddSimpleStreamHandler(new RegionStatsSimpleHandler(regionInfo));
