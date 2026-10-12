@@ -304,6 +304,11 @@
     ; Realm = "regions"
     ; AllowDuplicateNames = "True"
 
+    ;; by default a unknown region is automatically added to the grid when it starts
+	;; uncomment and set this to false to disable that
+	;; in that case you will need to add regions to gridservice db by other means
+    ; RegionsAutoRegistration = true
+	
     ;; Next, we can specify properties of regions, including default and fallback regions
     ;; The syntax is: Region_<RegionName> = "<flags>"
     ;; or:            Region_<RegionID> = "<flags>"

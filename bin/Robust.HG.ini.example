@@ -344,9 +344,14 @@
 ; *
 [GridService]
     LocalServiceModule = "OpenSim.Services.GridService.dll:GridService"
-
+	
     ; Realm = "regions"
     ; AllowDuplicateNames = ""
+
+    ;; by default a unknown region is automatically added to the grid when it starts
+	;; uncomment and set this to false to disable that
+	;; in that case you will need to add regions to gridservice db by other means
+    ; RegionsAutoRegistration = true
 
     ;; Perform distance check for the creation of a linked region
     ; Check4096 = "True"
