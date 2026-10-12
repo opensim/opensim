@@ -28,7 +28,6 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
-using System.Net.Sockets;
 using System.Reflection;
 using System.Xml;
 using System.IO;
@@ -46,19 +45,15 @@ namespace OpenSim.Framework
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static readonly string LogHeader = "[REGION INFO]";
 
-        public bool commFailTF = false;
         public ConfigurationMember configMember;
-        public string DataStore = String.Empty;
 
-        public string RegionFile = String.Empty;
+        public string RegionFile = string.Empty;
         public bool isSandbox = false;
         public bool Persistent = true;
 
         private EstateSettings m_estateSettings;
         private RegionSettings m_regionSettings;
-        // private IConfigSource m_configSource = null;
 
-        public UUID originRegionID = UUID.Zero;
         public string regionSecret = UUID.Random().ToString();
 
         public string osSecret;
@@ -497,8 +492,6 @@ namespace OpenSim.Framework
                 config.Set("RegionUUID", regionUUID);
             }
 
-            originRegionID = RegionID; // What IS this?! (Needed for RegionCombinerModule?)
-
             // Location
             //
             allKeys.Remove("Location");
@@ -790,9 +783,6 @@ namespace OpenSim.Framework
             string location = String.Format("{0},{1}", RegionLocX, RegionLocY);
             config.Set("Location", location);
 
-            if (DataStore != String.Empty)
-                config.Set("Datastore", DataStore);
-
             if (RegionSizeX != Constants.RegionSize || RegionSizeY != Constants.RegionSize)
             {
                 config.Set("SizeX", RegionSizeX);
@@ -1005,7 +995,6 @@ namespace OpenSim.Framework
             {
                 case "sim_UUID":
                     RegionID = (UUID) configuration_result;
-                    originRegionID = (UUID) configuration_result;
                     break;
                 case "sim_name":
                     RegionName = (string) configuration_result;
@@ -1024,9 +1013,6 @@ namespace OpenSim.Framework
                     break;
                 case "sim_size_z":
                     RegionSizeZ = (uint) configuration_result;
-                    break;
-                case "datastore":
-                    DataStore = (string) configuration_result;
                     break;
                 case "internal_ip_address":
                     IPAddress address = (IPAddress) configuration_result;

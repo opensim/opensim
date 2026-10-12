@@ -668,7 +668,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
             {
                 foreach (Scene rs in m_scenes.Values)
                 {
-                    if (rs.RegionInfo.originRegionID == RegionID)
+                    if (rs.RegionInfo.RegionID.Equals(RegionID))
                     {
                         return rs;
                     }

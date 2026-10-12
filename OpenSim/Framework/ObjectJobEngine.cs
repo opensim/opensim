@@ -41,7 +41,7 @@ namespace OpenSim.Framework
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private readonly object m_mainLock = new object();
+        private readonly object m_mainLock = new();
         private readonly string m_name;
         private readonly int m_threadsHoldtime;
         private readonly int m_concurrency = 1;

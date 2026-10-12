@@ -766,7 +766,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 RegionInfo region = new RegionInfo();
 
                 region.RegionID = regionID;
-                region.originRegionID = regionID;
                 region.RegionName = (string) requestData["region_name"];
                 region.RegionLocX = Convert.ToUInt32(requestData["region_x"]);
                 region.RegionLocY = Convert.ToUInt32(requestData["region_y"]);

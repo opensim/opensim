@@ -3970,7 +3970,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SendCoarseLocations(List<Vector3> coarseLocations, List<UUID> avatarUUIDs)
         {
-            m_sendCoarseLocationsMethod?.Invoke(m_scene.RegionInfo.originRegionID, this, coarseLocations, avatarUUIDs);
+            m_sendCoarseLocationsMethod?.Invoke(m_scene.RegionInfo.RegionID, this, coarseLocations, avatarUUIDs);
         }
 
         public void SendCoarseLocationsDefault(UUID sceneId, ScenePresence p, List<Vector3> coarseLocations, List<UUID> avatarUUIDs)

@@ -31,7 +31,7 @@ using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
 
-#pragma warning disable IDE0220  // shutu[ Add explicit cast on the loops on Delegates
+#pragma warning disable IDE0220  // shutup Add explicit cast on the loops on Delegates
 
 namespace OpenSim.Region.Framework.Scenes
 {

@@ -410,7 +410,7 @@ namespace OpenSim.Region.Framework.Scenes
                         ReportingRegion.RegionSizeX, ReportingRegion.RegionSizeY,
                         regionFlags, (uint)m_objectCapacity,
                         newvalues,
-                        m_scene.RegionInfo.originRegionID,
+                        m_scene.RegionInfo.RegionID,
                         m_scene.RegionInfo.RegionName)
                     );
 

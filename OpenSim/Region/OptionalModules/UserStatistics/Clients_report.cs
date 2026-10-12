@@ -294,7 +294,7 @@ TD.align_top { vertical-align: top; }
             string returnstring = string.Empty;
             foreach (Scene sn in scenes)
             {
-                if (region_id == sn.RegionInfo.originRegionID)
+                if (region_id.Equals(sn.RegionInfo.RegionID))
                 {
                     returnstring = sn.RegionInfo.RegionName;
                     break;
