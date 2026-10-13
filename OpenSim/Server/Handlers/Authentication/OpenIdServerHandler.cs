@@ -153,7 +153,7 @@ namespace OpenSim.Server.Handlers.Authentication
 
         /// <summary>Login form used to authenticate OpenID requests</summary>
         const string LOGIN_PAGE =
-@"<html>
+@"<html lang=""en"">
 <head><title>OpenSim OpenID Login</title></head>
 <body>
 <h3>OpenSim Login</h3>
@@ -168,7 +168,7 @@ namespace OpenSim.Server.Handlers.Authentication
 
         /// <summary>Page shown for a valid OpenID identity</summary>
         const string OPENID_PAGE =
-@"<html>
+@"<html lang=""en"">
 <head>
 <title>{2} {3}</title>
 <link rel=""openid2.provider openid.server"" href=""{0}://{1}/openid/server/""/>
@@ -179,12 +179,12 @@ namespace OpenSim.Server.Handlers.Authentication
 
         /// <summary>Page shown for an invalid OpenID identity</summary>
         const string INVALID_OPENID_PAGE =
-@"<html><head><title>Identity not found</title></head>
+@"<html lang=""en""><head><title>Identity not found</title></head>
 <body>Invalid OpenID identity</body></html>";
 
         /// <summary>Page shown if the OpenID endpoint is requested directly</summary>
         const string ENDPOINT_PAGE =
-@"<html><head><title>OpenID Endpoint</title></head><body>
+@"<html lang=""en""><head><title>OpenID Endpoint</title></head><body>
 This is an OpenID server endpoint, not a human-readable resource.
 For more information, see <a href='http://openid.net/'>http://openid.net/</a>.
 </body></html>";

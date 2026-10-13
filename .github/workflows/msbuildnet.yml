@@ -1,45 +1,106 @@
 name: .msbuildnet6
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [ "master" ]
     paths:
       - '**.cs'
+      - 'prebuild.xml'
+      - '**.sh'
+      - '.github/workflows/**'
+  pull_request:
+    branches: [ "master" ]
+    paths:
+      - '**.cs'
+      - 'prebuild.xml'
+      - '**.sh'
+      - '.github/workflows/**'
   workflow_dispatch:
 
-jobs:
-  build:
+permissions:
+  contents: read
 
-    if: github.repository == 'opensim/opensim'
+jobs:
+  validate:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: shortsha
-      id: vars
-      run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"   
-    - name: preBuild
-      run: bash ${GITHUB_WORKSPACE}/runprebuild.sh
+    - name: Checkout
+      uses: actions/checkout@v4
 
     - name: Setup dotnet
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
+
+    - name: preBuild
+      run: bash ${GITHUB_WORKSPACE}/runprebuild.sh
+
     - name: Build
       id: build
       run: dotnet build --configuration Release OpenSim.sln
 
-    - name: release
-      if: success()
-      run: zip -r LastDotNetBuild.zip bin ThirdPartyLicenses README.md CONTRIBUTORS.txt LICENSE.txt 
-    - uses: softprops/action-gh-release@v1
-      if: success()
-      with:
-          tag_name: r${{ steps.vars.outputs.sha_short }}
-          name: LastDotNetAutoBuild
-          files: LastDotNetBuild.zip
+    - name: Test
+      run: dotnet test --configuration Release OpenSim.sln --no-build
 
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: opensim-bin
+        path: bin/
+
+  release:
+    needs: validate
+    if: github.event_name == 'push' && github.repository == 'opensim/opensim'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: shortsha
+      id: vars
+      run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: opensim-bin
+        path: bin
+
+    - name: release
+      run: |
+        zip -r LastDotNetBuild.zip bin ThirdPartyLicenses README.md CONTRIBUTORS.txt LICENSE.txt
+        sha256sum LastDotNetBuild.zip > SHA256SUMS
+
+    - name: Attest Build Provenance
+      uses: actions/attest-build-provenance@v1
+      with:
+        subject-path: |
+          LastDotNetBuild.zip
+          SHA256SUMS
+
+    - name: Publish Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: r${{ steps.vars.outputs.sha_short }}
+        name: LastDotNetAutoBuild
+        files: |
+          LastDotNetBuild.zip
+          SHA256SUMS
+
+  notify:
+    needs: validate
+    if: github.repository == 'opensim/opensim' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    steps:
     - name: report push to irc if from main OpenSim repository
-      if: github.event_name == 'push' && github.repository_owner == 'opensim'
+      if: github.event_name == 'push'
       uses: rectalogic/notify-irc@v1
       with:
         channel: "#opensim-dev"
@@ -48,10 +109,10 @@ jobs:
         message: |
           ${{ github.actor }} pushed to ${{ github.repository }}
           ${{ join(github.event.commits.*.message, '\n') }}
-          dotnet compile: ${{ steps.build.conclusion }}
+          dotnet compile: ${{ needs.validate.result }}
 
     - name: manual report to irc if from main OpenSim repository
-      if: github.event_name == 'workflow_dispatch' && github.repository_owner == 'opensim'
+      if: github.event_name == 'workflow_dispatch'
       uses: rectalogic/notify-irc@v1
       with:
         channel: "#opensim-dev"
@@ -59,4 +120,4 @@ jobs:
         nickname: osgithub
         message: |
           ${{ github.repository }}
-          dotnet compile: ${{ steps.build.conclusion }}
+          dotnet compile: ${{ needs.validate.result }}

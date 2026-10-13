@@ -418,7 +418,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                                         {
                                             // wrap the html escaped response if the target client is IE
                                             // It ignores "text/plain" if the body is html
-                                            responseBody = "<html>" + System.Web.HttpUtility.HtmlEncode(body) + "</html>";
+                                            responseBody = "<html lang=\"en\">" + System.Web.HttpUtility.HtmlEncode(body) + "</html>";
                                         }
                                     }
                                 }
