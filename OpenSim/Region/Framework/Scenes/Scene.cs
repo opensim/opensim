@@ -482,13 +482,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Properties
 
-        /* Used by the loadbalancer plugin on GForge */
-        public int SplitRegionID
-        {
-            get { return m_splitRegionID; }
-            set { m_splitRegionID = value; }
-        }
-
         public new float TimeDilation
         {
             get { return m_sceneGraph.PhysicsScene.TimeDilation; }

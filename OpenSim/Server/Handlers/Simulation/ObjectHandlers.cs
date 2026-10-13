@@ -63,6 +63,12 @@ namespace OpenSim.Server.Handlers.Simulation
                 return;
             }
 
+            if(httpRequest.Headers["X-SecondLife-Shard"] != null)
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.NotAcceptable;
+                httpResponse.RawBuffer = Utils.falseStrBytes;
+            }
+
             /*this things are ignored
             if (!Utils.GetParams(httpRequest.UriPath, out UUID objectID, out UUID regionID, out string action))
             {

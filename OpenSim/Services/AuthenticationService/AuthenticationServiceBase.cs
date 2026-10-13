@@ -46,9 +46,7 @@ namespace OpenSim.Services.AuthenticationService
     //
     public class AuthenticationServiceBase : ServiceBase
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger( MethodBase.GetCurrentMethod().DeclaringType);
 
         protected IAuthenticationData m_Database;
         protected IUserAccountService m_UserAccountService = null;
@@ -82,9 +80,9 @@ namespace OpenSim.Services.AuthenticationService
             if (dbConfig != null)
             {
                 if (dllName.Length == 0)
-                    dllName = dbConfig.GetString("StorageProvider", String.Empty);
+                    dllName = dbConfig.GetString("StorageProvider", string.Empty);
                 if (connString.Length == 0)
-                    connString = dbConfig.GetString("ConnectionString", String.Empty);
+                    connString = dbConfig.GetString("ConnectionString", string.Empty);
             }
 
             //
@@ -93,8 +91,7 @@ namespace OpenSim.Services.AuthenticationService
             if (dllName.Length == 0 || realm.Length == 0)
                 throw new Exception("No StorageProvider configured");
 
-            m_Database = LoadPlugin<IAuthenticationData>(dllName,
-                    new Object[] {connString, realm});
+            m_Database = LoadPlugin<IAuthenticationData>(dllName, [connString, realm]);
             if (m_Database == null)
                 throw new Exception(string.Format("Could not find a storage interface in module {0}", dllName));
         }

@@ -77,9 +77,9 @@ namespace OpenSim.Services.AuthenticationService
                 AuthenticationData data = m_Database.Get(principalID);
                 if (data != null && data.Data != null)
                 {
-                    if (data.Data.ContainsKey("webLoginKey"))
+                    if (data.Data.TryGetValue("webLoginKey", out object okey ))
                     {
-                        string key = data.Data["webLoginKey"].ToString();
+                        string key = okey.ToString();
                         if (key == password)
                         {
                             data.Data["webLoginKey"] = UUID.Zero.ToString();

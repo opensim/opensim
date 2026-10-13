@@ -81,6 +81,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 return;
             }
 
+            if(httpRequest.Headers["X-SecondLife-Shard"] != null)
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.NotAcceptable;
+            }
+
             httpResponse.KeepAlive = false;
             httpResponse.StatusCode = (int)HttpStatusCode.OK;
             httpResponse.ContentType = "text/xml";

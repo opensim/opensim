@@ -68,6 +68,11 @@ namespace OpenSim.Server.Handlers.Neighbour
                 return;
             }
 
+            if(httpRequest.Headers["X-SecondLife-Shard"] != null)
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.NotAcceptable;
+            }
+
             switch (httpRequest.HttpMethod)
             {
                 case "POST":
