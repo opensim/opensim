@@ -58,10 +58,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Profile
             get; private set;
         }
 
-         public bool Enabled
-        {
-            get; private set;
-        }
+         public bool Enabled { get; private set; } = false;
 
         public string Name
         {

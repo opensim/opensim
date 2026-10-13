@@ -393,10 +393,13 @@ namespace OpenSim.Region.Framework.Scenes
                 // recover modify and move
                 rootGroupPerms &= movemodmask;
                 group |= rootGroupPerms;
-                if(noBaseTransfer)
-                    group &=~(uint)PermissionMask.Copy;
-                else
-                    group |= ownertransfermask;
+                if((group & (uint)PermissionMask.Copy) != 0)
+                {
+                    if(noBaseTransfer)
+                        group &=~(uint)PermissionMask.Copy;
+                    else 
+                        group |= ownertransfermask;
+                }
 
                 uint groupOrEveryone = group;
                 uint tmpPerms = group & owner;
@@ -410,10 +413,13 @@ namespace OpenSim.Region.Framework.Scenes
                 rootEveryonePerms &= (uint)PermissionMask.Move;
                 everyone |= rootEveryonePerms;
                 everyone &= ~(uint)PermissionMask.Modify;
-                if(noBaseTransfer)
-                    everyone &=~(uint)PermissionMask.Copy;
-                else
-                    everyone |= ownertransfermask;
+                if ((everyone & (uint)PermissionMask.Copy) != 0)
+                {
+                    if (noBaseTransfer)
+                        everyone &= ~(uint)PermissionMask.Copy;
+                    else
+                        everyone |= ownertransfermask;
+                }
 
                 groupOrEveryone |= everyone;
 

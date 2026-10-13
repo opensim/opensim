@@ -62,7 +62,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         /// <summary>
         /// Are attachments enabled?
         /// </summary>
-        public bool Enabled { get; private set; }
+        public bool Enabled { get; private set; } = false;
 
         public string Name { get { return "Attachments Module"; } }
         public Type ReplaceableInterface { get { return null; } }
