@@ -161,10 +161,8 @@
 
     ; Basic Login Service Dos Protection Tweaks
 
-    ;; Some Grids/Users use a transparent proxy that makes use of the X-Forwarded-For HTTP Header, If you do, set this to true
-    ;; If you set this to true and you don't have a transparent proxy, it may allow attackers to put random things in the X-Forwarded-For header to
-    ;;     get around this basic DOS protection.
-    ; DOSAllowXForwardedForHeader = false
+    ;; Some Grids/Users use a transparent proxy that makes use of the X-Forwarded-For HTTP Header, If you do
+    ;; fix option XFFTrustedProxies in OpenSim.ini [Network] section
 
     ;; The protector adds up requests during this rolling period of time, default 10 seconds
     ; DOSRequestTimeFrameMS = 10000
