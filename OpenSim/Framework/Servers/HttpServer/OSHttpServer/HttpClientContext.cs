@@ -192,8 +192,6 @@ namespace OSHttpServer
             m_currentRequest.Method = e.HttpMethod.ToString();
             m_currentRequest.HttpVersion = e.HttpVersion.ToString();
             m_currentRequest.UriPath = e.UriPath.ToString();
-            m_currentRequest.AddHeader("remote_addr", LocalIPEndPoint.Address.ToString());
-            m_currentRequest.AddHeader("remote_port", LocalIPEndPoint.Port.ToString());
             m_currentRequest.ArrivalTS = ContextTimeoutManager.GetTimeStamp();
 
             FirstRequestLineReceived = true;
@@ -492,6 +490,9 @@ namespace OSHttpServer
                 else
                     m_currentRequest.Headers.Remove("x-forwarded-for");
             }
+
+            m_currentRequest.AddHeader("remote_addr", m_currentRequest.RemoteIPEndPoint.Address.ToString());
+            m_currentRequest.AddHeader("remote_port", LocalIPEndPoint.Port.ToString());
 
             m_currentRequest.Body.Seek(0, SeekOrigin.Begin);
 

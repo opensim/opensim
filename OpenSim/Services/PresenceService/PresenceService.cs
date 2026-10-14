@@ -99,7 +99,7 @@ namespace OpenSim.Services.PresenceService
 
             //m_log.DebugFormat("[PRESENCE SERVICE]: LoginAgent: session {0}, user {1}, region {2}, secure session {3}{4}",
             //    data.SessionID, data.UserID, data.RegionID, secureSessionID, prevUserStr);
-            m_log.DebugFormat("[PRESENCE SERVICE]: LoginAgent: session {0}, user {1}, region {2}, {4}",
+            m_log.DebugFormat("[PRESENCE SERVICE]: LoginAgent: session {0}, user {1}, region {2}, {3}",
                 data.SessionID, data.UserID, data.RegionID, prevUserStr);
 
             return true;
