@@ -125,6 +125,10 @@ namespace OpenSim.Server
 
             registryLocation = serverConfig.GetString("RegistryLocation",".");
 
+            IConfig networkConfig = m_Server.Config.Configs["Network"];
+            if (networkConfig != null)
+                NetworkXffUtil.Initialize(networkConfig);
+
             IConfig servicesConfig = m_Server.Config.Configs["ServiceList"];
             if (servicesConfig != null)
             {

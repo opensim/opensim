@@ -1945,6 +1945,22 @@ namespace OpenSim.Framework
             return getEndPoint(ia, port);
         }
 
+        public static bool IsPrivateNetwork(IPAddress ip)
+        {
+            if(ip.AddressFamily == AddressFamily.InterNetworkV6)
+                 return ip.IsIPv6UniqueLocal;
+
+            byte[] b = ip.GetAddressBytes();
+            return b[0] switch
+            {
+                10 => true,
+                127 => true,
+                172 => b[1] >= 16 && b[1] < 32,
+                192 => b[1] == 168,
+                _ => false,
+            };
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Uri GetURI(string protocol, string hostname, int port, string path)
         {
