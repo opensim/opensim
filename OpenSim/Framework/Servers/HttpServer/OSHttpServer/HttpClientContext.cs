@@ -10,6 +10,7 @@ using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using OpenMetaverse;
 using System.Threading.Tasks;
+using OpenSim.Framework;
 
 namespace OSHttpServer
 {
@@ -480,6 +481,17 @@ namespace OSHttpServer
             // load cookies if they exist
             if(m_currentRequest.Headers["cookie"] is not null)
                 m_currentRequest.SetCookies(new RequestCookies(m_currentRequest.Headers["cookie"]));
+            string xff = m_currentRequest.Headers["x-forwarded-for"];
+            if(!string.IsNullOrEmpty(xff))
+            {
+                if(NetworkXffUtil.CheckXFF(m_currentRequest.LocalIPEndPoint, xff, out IPEndPoint xffremote, out string header))
+                {
+                    m_currentRequest.Headers["x-forwarded-for"] = header;
+                    m_currentRequest.RemoteIPEndPoint = xffremote;
+                }
+                else
+                    m_currentRequest.Headers.Remove("x-forwarded-for");
+            }
 
             m_currentRequest.Body.Seek(0, SeekOrigin.Begin);
 

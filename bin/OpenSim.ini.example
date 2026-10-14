@@ -719,6 +719,12 @@
     ;;
     ;; Any of these 3 variables above can be overriden in any of the service sections.
 
+    ;; If you have a transparent proxy or proxies, you need to configure them to process http header X-Forwarded-For in a secure way
+    ;; In order for OpenSim to trust them add the proxy addresses to this setting
+    ;; You can specify multiple addresses by separating them with a bar
+    ;; Each address can be a hostname (heavier), an IP address or a network range in CIDR format
+    ;; example
+    ;XFFTrustedProxies = 194.32.21.0/24|194.32.100.2|myproxy.org
 
 [XMLRPC]
     ;# {XmlRpcRouterModule} {} {Module used to route incoming llRemoteData calls} {XmlRpcRouterModule XmlRpcGridRouterModule} XmlRpcRouterModule

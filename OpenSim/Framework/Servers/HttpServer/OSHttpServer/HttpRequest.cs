@@ -2,7 +2,6 @@ using System;
 using System.Collections.Specialized;
 using System.IO;
 using System.Net;
-using System.Text;
 using System.Web;
 using OpenSim.Framework;
 using OSHttpServer.Exceptions;
@@ -19,7 +18,6 @@ namespace OSHttpServer
         /// <summary>
         /// Chars used to split an URL path into multiple parts.
         /// </summary>
-        public static readonly char[] UriSplitters = new[] { '/' };
         public static uint baseID = 0;
 
         private readonly NameValueCollection m_headers = new();
@@ -284,25 +282,13 @@ namespace OSHttpServer
         {
             get
             {
-                if(m_remoteIPEndPoint == null)
-                {
-                    string addr = m_headers["x-forwarded-for"];
-                    if(!string.IsNullOrEmpty(addr))
-                    {
-                        int port = m_context.LocalIPEndPoint.Port;
-                        try
-                        {
-                            m_remoteIPEndPoint = new IPEndPoint(IPAddress.Parse(addr), port);
-                        }
-                        catch
-                        {
-                            m_remoteIPEndPoint = null;
-                        }
-                    }
-                }
                 m_remoteIPEndPoint ??= m_context.LocalIPEndPoint;
 
                 return m_remoteIPEndPoint;
+            }
+            set
+            {
+                m_remoteIPEndPoint = value;
             }
         }
         /*
@@ -382,19 +368,19 @@ namespace OSHttpServer
                             addr = s.Trim();
                         }
                     }
-                    if(addr.Length > 7)
+                    if(addr.Length >= 7)
                     {
                         m_headers.Add("x-forwarded-for", addr);
                     }
                     break;
                 case "x-forwarded-for":
-                    if (value.Length > 7)
+                    if (value.Length >= 7)
                     {
                         string[] xparts = value.Split(Util.SplitCommaArray);
                         if(xparts.Length > 0)
                         {
                             string xs = xparts[0].Trim();
-                            if(xs.Length > 7)
+                            if(xs.Length >= 7)
                                 m_headers.Add("x-forwarded-for", xs);
                         }
                     }
