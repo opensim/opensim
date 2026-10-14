@@ -89,7 +89,6 @@ namespace OpenSim.Server.Handlers.Login
 
             m_DosProtectionOptions = new BasicDosProtectorOptions();
             // Dos Protection Options
-            m_DosProtectionOptions.AllowXForwardedFor = serverConfig.GetBoolean("DOSAllowXForwardedForHeader", false);
             m_DosProtectionOptions.RequestTimeSpan =
                 TimeSpan.FromMilliseconds(serverConfig.GetInt("DOSRequestTimeFrameMS", 10000));
             m_DosProtectionOptions.MaxRequestsInTimeframe = serverConfig.GetInt("DOSMaxRequestsInTimeFrame", 5);
