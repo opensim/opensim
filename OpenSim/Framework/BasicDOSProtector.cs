@@ -156,7 +156,7 @@ namespace OpenSim.Framework
                                              Util.EnvironmentTickCount() +
                                              (int) _options.ForgetTimeSpan.TotalMilliseconds);
                             _forgetTimer.Enabled = true;
-                            m_log.Warn($"[{_options.ReportingName}]: client: {clientstring} is blocked for {_options.ForgetTimeSpan.TotalMilliseconds}ms based on concurrency, X-ForwardedForAllowed status is {_options.AllowXForwardedFor}, endpoint:{_options.AllowXForwardedFor}");
+                            m_log.Warn($"[{_options.ReportingName}]: client: {clientstring} is blocked for {_options.ForgetTimeSpan.TotalMilliseconds}ms based on concurrency, endpoint: {endpoint}");
 
                         }
                         else
@@ -237,7 +237,7 @@ namespace OpenSim.Framework
                             _tempBlocked[clientstring] = Util.EnvironmentTickCount() + (int)_options.ForgetTimeSpan.TotalMilliseconds;
                         _blockLockSlim.ExitWriteLock();
 
-                        m_log.Warn($"[{_options.ReportingName}]: client: {clientstring} is blocked for {_options.ForgetTimeSpan.TotalMilliseconds}ms, X-ForwardedForAllowed status is {_options.AllowXForwardedFor}, endpoint:{endpoint}");
+                        m_log.Warn($"[{_options.ReportingName}]: client: {clientstring} is blocked for {_options.ForgetTimeSpan.TotalMilliseconds}ms, endpoint:{endpoint}");
                         return false;
                     }
                     //else
@@ -262,7 +262,6 @@ namespace OpenSim.Framework
         public int MaxRequestsInTimeframe;
         public TimeSpan RequestTimeSpan;
         public TimeSpan ForgetTimeSpan;
-        public bool AllowXForwardedFor;
         public string ReportingName = "BASICDOSPROTECTOR";
         public BasicDOSProtector.ThrottleAction ThrottledAction = BasicDOSProtector.ThrottleAction.DoThrottledMethod;
         public int MaxConcurrentSessions;

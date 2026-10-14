@@ -88,17 +88,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                 return clientstring;
 
             Hashtable requestinfo = (Hashtable)request["headers"];
-            if (_options.AllowXForwardedFor && requestinfo.ContainsKey("x-forwarded-for"))
-            {
-                object str = requestinfo["x-forwarded-for"];
-                if (str != null)
-                {
-                    if (!string.IsNullOrEmpty(str.ToString()))
-                    {
-                        return str.ToString();
-                    }
-                }
-            }
             if (!requestinfo.ContainsKey("remote_addr"))
                 return clientstring;
 

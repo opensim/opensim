@@ -1218,18 +1218,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             {
                 xmlRprcRequest.Params.Add(request.RemoteIPEndPoint); // Param[1]
                 xmlRprcRequest.Params.Add(request.Url); // Param[2]
-
-                string xff = "X-Forwarded-For";
-                string xfflower = xff.ToLower();
-                foreach (string s in request.Headers.AllKeys)
-                {
-                    if (s is not null && s.Equals(xfflower))
-                    {
-                        xff = xfflower;
-                        break;
-                    }
-                }
-                xmlRprcRequest.Params.Add(request.Headers.Get(xff)); // Param[3]
+                xmlRprcRequest.Params.Add(request.Headers["x-forwarded-for"]); // Param[3]
 
                 // reserve this for
                 // ... by Fumi.Iseki for DTLNSLMoneyServer
@@ -1357,8 +1346,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 xmlRprcRequest.Params.Add(request.RemoteIPEndPoint); // Param[1]
                 xmlRprcRequest.Params.Add(request.Url); // Param[2]
 
-                if (request.Headers["x-forwarded-for"] != null)
-                        xmlRprcRequest.Params.Add(request.Headers["x-forwarded-for"]); // Param[3]
+                xmlRprcRequest.Params.Add(request.Headers["x-forwarded-for"]); // Param[3]
 
                 // reserve this for
                 // ... by Fumi.Iseki for DTLNSLMoneyServer

@@ -94,15 +94,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         private string GetClientString(IOSHttpRequest httpRequest)
         {
-            string clientstring = string.Empty;
-
-            if (_options.AllowXForwardedFor && httpRequest.Headers["x-forwarded-for"] != null)
-                clientstring = httpRequest.Headers["x-forwarded-for"];
-            else
-                clientstring = GetRemoteAddr(httpRequest);
-
-            return clientstring;
-
+            return GetRemoteAddr(httpRequest);
         }
     }
 }

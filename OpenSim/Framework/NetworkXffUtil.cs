@@ -51,7 +51,7 @@ namespace OpenSim.Framework
 
             lock (mainlock)
             {
-                if (m_TrustedProxies == null )
+                if (m_TrustedProxies == null ) //only read once
                 {
                     m_TrustedProxies = [];
                     string proxiesconfig = netconfig.GetString("XFFTrustedProxies", string.Empty);

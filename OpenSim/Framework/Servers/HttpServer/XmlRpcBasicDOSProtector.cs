@@ -67,11 +67,11 @@ namespace OpenSim.Framework.Servers.HttpServer
         private string GetClientString(XmlRpcRequest request, IPEndPoint client)
         {
             string clientstring;
-            if (_options.AllowXForwardedFor && request.Params.Count > 3)
+            if (request.Params.Count > 3)
             {
                 object headerstr = request.Params[3];
                 if (headerstr != null && !string.IsNullOrEmpty(headerstr.ToString()))
-                    clientstring = request.Params[3].ToString();
+                    clientstring = headerstr.ToString();
                 else
                     clientstring = client.Address.ToString();
             }
