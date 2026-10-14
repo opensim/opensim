@@ -31,6 +31,7 @@ using System.Net;
 using System.Reflection;
 using System.Xml;
 using System.IO;
+using System.Runtime.CompilerServices;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
@@ -208,13 +209,10 @@ namespace OpenSim.Framework
 
         public EstateSettings EstateSettings
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                if (m_estateSettings == null)
-                {
-                    m_estateSettings = new EstateSettings();
-                }
-
+                m_estateSettings ??= new EstateSettings();
                 return m_estateSettings;
             }
 
@@ -223,13 +221,10 @@ namespace OpenSim.Framework
 
         public RegionSettings RegionSettings
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                if (m_regionSettings == null)
-                {
-                    m_regionSettings = new RegionSettings();
-                }
-
+                m_regionSettings ??= new RegionSettings();
                 return m_regionSettings;
             }
 
@@ -238,41 +233,49 @@ namespace OpenSim.Framework
 
         public float NonphysPrimMin
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return m_nonphysPrimMin; }
         }
 
         public int NonphysPrimMax
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return m_nonphysPrimMax; }
         }
 
         public float PhysPrimMin
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return m_physPrimMin; }
         }
 
         public int PhysPrimMax
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return m_physPrimMax; }
         }
 
         public bool ClampPrimSize
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return m_clampPrimSize; }
         }
 
         public int ObjectCapacity
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return m_objectCapacity; }
         }
 
         public int MaxPrimsPerUser
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return m_maxPrimsPerUser; }
         }
 
         public int LinksetCapacity
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return m_linksetCapacity; }
         }
 
@@ -318,7 +321,7 @@ namespace OpenSim.Framework
                 }
             }
             set {
-                if ( value.EndsWith("/") ) {
+                if ( value.EndsWith('/') ) {
                     m_serverURI = value;
                 } else {
                     m_serverURI = value + '/';
@@ -338,7 +341,7 @@ namespace OpenSim.Framework
             set { m_remotingPort = value; }
         }
 
-        
+
         /// <value>
         /// This accessor can throw all the exceptions that Dns.GetHostAddresses can throw.
         ///
@@ -400,6 +403,14 @@ namespace OpenSim.Framework
         public ulong RegionHandle
         {
             get { return Util.UIntsToLong(WorldLocX, WorldLocY); }
+        }
+
+        //for legacy modules only
+        [Obsolete]
+        public UUID originRegionID
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return RegionID; }
         }
 
         public void SetEndPoint(string ipaddr, int port)
