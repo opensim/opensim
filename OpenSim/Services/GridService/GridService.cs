@@ -71,7 +71,7 @@ namespace OpenSim.Services.GridService
             if (gridConfig != null)
             {
                 m_RegionsAutoRegistration = gridConfig.GetBoolean("RegionsAutoRegistration", true);
-                m_DeleteOnUnregister = !m_RegionsAutoRegistration &&
+                m_DeleteOnUnregister = m_RegionsAutoRegistration &&
                     gridConfig.GetBoolean("DeleteOnUnregister", true);
 
                 string authService = gridConfig.GetString("AuthenticationService", string.Empty);

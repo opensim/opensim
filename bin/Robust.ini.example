@@ -309,13 +309,22 @@
 [GridService]
     LocalServiceModule = "OpenSim.Services.GridService.dll:GridService"
     ; Realm = "regions"
-    ; AllowDuplicateNames = "True"
+	
+    ; AllowDuplicateNames = false
 
     ;; by default a unknown region is automatically added to the grid when it starts
-	;; uncomment and set this to false to disable that
-	;; in that case you will need to add regions to gridservice db by other means
-    ; RegionsAutoRegistration = true
-	
+    ;; uncomment and set this to false to disable that
+    ;; in that case you will need to add regions to gridservice db by other means
+    ;; see warning on DeleteOnUnregister before changing.
+    ;RegionsAutoRegistration = false
+
+    ;; By default regions are forgotten when they shutdown
+    ;; Set this to false to remember them
+    ;; WARNING: on older grids you need to set this to false and let all valid regions restart
+    ;; before setting RegionsAutoRegistration to false
+    ;; or you will need to add the regions to database by other means.
+    ;; DeleteOnUnregister = false
+
     ;; Next, we can specify properties of regions, including default and fallback regions
     ;; The syntax is: Region_<RegionName> = "<flags>"
     ;; or:            Region_<RegionID> = "<flags>"
