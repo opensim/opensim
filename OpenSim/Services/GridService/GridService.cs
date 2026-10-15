@@ -71,7 +71,8 @@ namespace OpenSim.Services.GridService
             if (gridConfig != null)
             {
                 m_RegionsAutoRegistration = gridConfig.GetBoolean("RegionsAutoRegistration", true);
-                m_DeleteOnUnregister = gridConfig.GetBoolean("DeleteOnUnregister", true);
+                m_DeleteOnUnregister = !m_RegionsAutoRegistration &&
+                    gridConfig.GetBoolean("DeleteOnUnregister", true);
 
                 string authService = gridConfig.GetString("AuthenticationService", string.Empty);
 
@@ -173,33 +174,33 @@ namespace OpenSim.Services.GridService
                 m_ExtraFeatures["destination-guide-url"] = configVal;
 
             configVal = Util.GetConfigVarFromSections<string>(
-                    config, "GatekeeperURI", new string[] { "Startup", "Hypergrid" }, string.Empty);
+                    config, "GatekeeperURI", ["Startup", "Hypergrid"], string.Empty);
             if (!string.IsNullOrEmpty(configVal))
                 m_ExtraFeatures["GridURL"] = configVal;
 
             configVal = Util.GetConfigVarFromSections<string>(
-                config, "GridName", new string[] { "Const", "Hypergrid" }, string.Empty);
+                config, "GridName", ["Const", "Hypergrid"], string.Empty);
             if (string.IsNullOrEmpty(configVal))
                 configVal = Util.GetConfigVarFromSections<string>(
-                    config, "gridname", new string[] { "GridInfo", "GridInfoService" }, string.Empty);
+                    config, "gridname", ["GridInfo", "GridInfoService"], string.Empty);
             if (!string.IsNullOrEmpty(configVal))
                 m_ExtraFeatures["GridName"] = configVal;
 
             configVal = Util.GetConfigVarFromSections<string>(
-                config, "GridNick", new string[] { "Const", "Hypergrid" }, string.Empty);
+                config, "GridNick", ["Const", "Hypergrid"], string.Empty);
             if (string.IsNullOrEmpty(configVal))
                 configVal = Util.GetConfigVarFromSections<string>(
-                    config, "gridnick", new string[] { "GridInfo", "GridInfoService" }, string.Empty);
+                    config, "gridnick", ["GridInfo", "GridInfoService"], string.Empty);
             if (!string.IsNullOrEmpty(configVal))
                 m_ExtraFeatures["GridNick"] = configVal;
 
             configVal = Util.GetConfigVarFromSections<string>(
-                config, "GridStatus", new string[] { "GridInfo", "GridInfoService" }, string.Empty);
+                config, "GridStatus", ["GridInfo", "GridInfoService"], string.Empty);
             if (!string.IsNullOrEmpty(configVal))
                 m_ExtraFeatures["GridStatus"] = configVal;
 
             configVal = Util.GetConfigVarFromSections<string>(
-                config, "GridStatusRSS", new string[] { "GridInfo", "GridInfoService" }, string.Empty);
+                config, "GridStatusRSS", ["GridInfo", "GridInfoService"], string.Empty);
             if (!string.IsNullOrEmpty(configVal))
                 m_ExtraFeatures["GridStatusRSS"] = configVal;
 
