@@ -482,13 +482,13 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
 
                 if (part == null || data == null || data.Length <= 1)
                 {
-                    string msg = string.Format("DynamicTextureModule: Error preparing image using URL {0}", Url);
+                    string msg = $"DynamicTextureModule: Error preparing image using URL {Url}";
                     // avoid null reference 
                     if (part != null)
                         scene.SimChat(Utils.StringToBytes(msg), ChatTypeEnum.Say,
                                       0, part.ParentGroup.RootPart.AbsolutePosition, part.Name, part.UUID, false);
                     else
-                        m_log.WarnFormat("[DYNAMICTEXTUREMODULE]: {0}; prim {1} no longer exists", msg, PrimID);
+                        m_log.Warn($"[DYNAMICTEXTUREMODULE]: {msg}; prim {PrimID} no longer exists");
 
                     return UUID.Zero;
                 }

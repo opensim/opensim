@@ -288,8 +288,8 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
                     }
                     else
                     {
-                        m_log.DebugFormat("[LOADIMAGEURLMODULE]: Returning {0} bytes of image data for request {1}",
-                                          imageJ2000.Length, state.RequestID);
+                        //m_log.DebugFormat("[LOADIMAGEURLMODULE]: Returning {0} bytes of image data for request {1}",
+                        //                  imageJ2000.Length, state.RequestID);
 
                         m_textureManager.ReturnData(
                             state.RequestID,
