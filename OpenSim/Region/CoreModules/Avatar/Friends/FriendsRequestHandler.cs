@@ -54,7 +54,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         public FriendsRequestHandler(FriendsModule fmodule)
                 : base("POST", "/friends", new BasicDosProtectorOptions()
                                             {
-                                                AllowXForwardedFor = true,
                                                 ForgetTimeSpan = TimeSpan.FromMinutes(2),
                                                 MaxRequestsInTimeframe = 20,
                                                 ReportingName = "FRIENDSDOSPROTECTOR",

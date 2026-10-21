@@ -87,15 +87,20 @@ namespace OpenSim.Framework
 
         public static IPAddress TryParseIP(string address)
         {
-            IPAddress ip = Util.TryParseIP(address);
-            if (ip == null)
-            {
-                //m_log.Error($"[NetworkXffUtil] failed to parse host entry {address}");
+            if(string.IsNullOrEmpty(address))
                 return null;
+            int indx = address.IndexOf(':');
+            if (indx > -1)
+                address = address[..indx];
+            if (IPAddress.TryParse(address, out IPAddress ip))
+            {
+                if (ip.Equals(IPAddress.Any) || ip.Equals(IPAddress.IPv6Any))
+                    return null;
+                if (ip.IsIPv4MappedToIPv6)
+                    ip = ip.MapToIPv4();
+                return ip;
             }
-            if (ip.IsIPv4MappedToIPv6)
-                ip = ip.MapToIPv4();
-            return ip;
+            return null;
         }
 
         public static void AddImpl(string entry)

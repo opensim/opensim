@@ -1884,7 +1884,11 @@ namespace OpenSim.Framework
         {
             if (string.IsNullOrWhiteSpace(Address))
                 return null;
-
+            if(string.IsNullOrEmpty(Address))
+                return null;
+            int indx = Address.IndexOf(':');
+            if (indx > -1)
+                Address = Address[..indx];
             if (dnscache.TryGetValue(Address, 300000, out IPAddress ia) && ia != null)
                 return ia;
 
