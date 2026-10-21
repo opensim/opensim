@@ -1843,7 +1843,7 @@ namespace OpenSim.Framework
                 return ia;
 
             // If it is already an IP, don't let GetHostEntry see it
-            if (IPAddress.TryParse(dnsAddress, out ia) && ia != null)
+            if (IPAddress.TryParse(dnsAddress, out ia))
             {
                 if (ia.Equals(IPAddress.Any) || ia.Equals(IPAddress.IPv6Any))
                     return null;
@@ -1878,6 +1878,24 @@ namespace OpenSim.Framework
             if (ia != null)
                 dnscache.AddOrUpdate(dnsAddress, ia, 300);
             return ia;
+        }
+
+        public static IPAddress TryParseIP(string Address)
+        {
+            if (string.IsNullOrWhiteSpace(Address))
+                return null;
+
+            if (dnscache.TryGetValue(Address, 300000, out IPAddress ia) && ia != null)
+                return ia;
+
+            if (IPAddress.TryParse(Address, out ia))
+            {
+                if (ia.Equals(IPAddress.Any) || ia.Equals(IPAddress.IPv6Any))
+                    return null;
+                dnscache.AddOrUpdate(Address, ia, 300);
+                return ia;
+            }
+            return null;
         }
 
         public static IPEndPoint getEndPoint(IPAddress ia, int port)
