@@ -361,9 +361,10 @@ namespace OSHttpServer
                             continue;
                         if(s.StartsWith("for", StringComparison.InvariantCultureIgnoreCase))
                         {
-                            int indx = s.IndexOf("=", 3);
-                            if(indx < 0 || indx >= s.Length - 1)
+                            int indx = s.IndexOf('=', 3);
+                            if(indx < 0 || indx >= s.Length - 8)
                                 continue;
+                            indx++;
                             s = s[indx..];
                             addr = s.Trim();
                         }
@@ -376,13 +377,7 @@ namespace OSHttpServer
                 case "x-forwarded-for":
                     if (value.Length >= 7)
                     {
-                        string[] xparts = value.Split(Util.SplitCommaArray);
-                        if(xparts.Length > 0)
-                        {
-                            string xs = xparts[0].Trim();
-                            if(xs.Length >= 7)
-                                m_headers.Add("x-forwarded-for", xs);
-                        }
+                        m_headers.Add("x-forwarded-for", value);
                     }
                     break;
                 case "connection":

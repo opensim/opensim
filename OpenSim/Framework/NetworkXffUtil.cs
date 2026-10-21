@@ -181,7 +181,7 @@ namespace OpenSim.Framework
                         i--;
                     }
                     // TODO private ips
-                    if(addrip != null && (!Util.IsPrivateNetwork(addrip) || Util.IsPrivateNetwork(lastproxy)))
+                    if(i >= 0 && addrip != null && (!Util.IsPrivateNetwork(addrip) || Util.IsPrivateNetwork(lastproxy)))
                     {
                         xffremote = new IPEndPoint(addrip, LocalIPEndPoint.Port);
                         shortheader = addrs[i];

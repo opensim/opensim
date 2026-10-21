@@ -491,8 +491,8 @@ namespace OSHttpServer
                     m_currentRequest.Headers.Remove("x-forwarded-for");
             }
 
-            m_currentRequest.AddHeader("remote_addr", m_currentRequest.RemoteIPEndPoint.Address.ToString());
-            m_currentRequest.AddHeader("remote_port", LocalIPEndPoint.Port.ToString());
+            m_currentRequest.Headers["remote_addr"] = m_currentRequest.RemoteIPEndPoint.Address.ToString();
+            m_currentRequest.Headers["remote_port"] = LocalIPEndPoint.Port.ToString();
 
             m_currentRequest.Body.Seek(0, SeekOrigin.Begin);
 
