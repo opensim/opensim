@@ -174,7 +174,8 @@ namespace OpenSim.Framework
         {
             if (ip == null)
                 return false;
-
+            if (ip.IsIPv4MappedToIPv6)
+                ip = ip.MapToIPv4();
             lock (mainlock)
             {
                 if (m_TrustedProxies == null || m_TrustedProxies.Count == 0)
@@ -193,6 +194,8 @@ namespace OpenSim.Framework
             if(!string.IsNullOrEmpty(header) && Contains(LocalIPEndPoint.Address))
             {
                 IPAddress lastproxy = LocalIPEndPoint.Address;
+                if (lastproxy.IsIPv4MappedToIPv6)
+                    lastproxy = lastproxy.MapToIPv4();
                 string[] addrs = header.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                 if(addrs.Length > 0)
                 {
