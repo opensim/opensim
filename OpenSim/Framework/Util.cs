@@ -1880,28 +1880,6 @@ namespace OpenSim.Framework
             return ia;
         }
 
-        public static IPAddress TryParseIP(string Address)
-        {
-            if (string.IsNullOrWhiteSpace(Address))
-                return null;
-            if(string.IsNullOrEmpty(Address))
-                return null;
-            int indx = Address.IndexOf(':');
-            if (indx > -1)
-                Address = Address[..indx];
-            if (dnscache.TryGetValue(Address, 300000, out IPAddress ia) && ia != null)
-                return ia;
-
-            if (IPAddress.TryParse(Address, out ia))
-            {
-                if (ia.Equals(IPAddress.Any) || ia.Equals(IPAddress.IPv6Any))
-                    return null;
-                dnscache.AddOrUpdate(Address, ia, 300);
-                return ia;
-            }
-            return null;
-        }
-
         public static IPEndPoint getEndPoint(IPAddress ia, int port)
         {
             if (ia == null)

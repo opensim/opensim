@@ -89,9 +89,17 @@ namespace OpenSim.Framework
         {
             if(string.IsNullOrEmpty(address))
                 return null;
-            int indx = address.IndexOf(':');
-            if (indx > -1)
-                address = address[..indx];
+            int dotindx = address.LastIndexOf('.');
+            if(dotindx > 4)
+            { 
+                dotindx += 3;
+                if(dotindx < address.Length - 1)
+                {
+                    int indx = address.IndexOf(':', dotindx);
+                    if (indx > -1)
+                        address = address[..indx];
+                }
+            }
             if (IPAddress.TryParse(address, out IPAddress ip))
             {
                 if (ip.Equals(IPAddress.Any) || ip.Equals(IPAddress.IPv6Any))
