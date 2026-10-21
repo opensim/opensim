@@ -85,6 +85,19 @@ namespace OpenSim.Framework
             return ip;
         }
 
+        public static IPAddress TryParseIP(string address)
+        {
+            IPAddress ip = Util.TryParseIP(address);
+            if (ip == null)
+            {
+                //m_log.Error($"[NetworkXffUtil] failed to parse host entry {address}");
+                return null;
+            }
+            if (ip.IsIPv4MappedToIPv6)
+                ip = ip.MapToIPv4();
+            return ip;
+        }
+
         public static void AddImpl(string entry)
         {
             if (entry.Contains('/'))
@@ -174,7 +187,7 @@ namespace OpenSim.Framework
                     int i = addrs.Length - 1;
                     while (i >= 0)
                     {
-                        addrip = GetIP(addrs[i]);
+                        addrip = TryParseIP(addrs[i]);
                         if(!Contains(addrip))
                             break;
                         lastproxy = addrip;

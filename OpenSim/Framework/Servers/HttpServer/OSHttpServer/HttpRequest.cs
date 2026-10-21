@@ -347,11 +347,12 @@ namespace OSHttpServer
                     }
                     break;
                 case "remote_addr":
-                    if (m_headers[name] == null)
-                        m_headers.Add(name, value);
+                    //if (m_headers[name] == null)
+                    //    m_headers.Add(name, value);
                     break;
 
                 case "forwarded":
+                    /*
                     string[] parts = value.Split(Util.SplitSemicolonArray);
                     string addr = string.Empty;
                     for(int i = 0; i < parts.Length; ++i)
@@ -373,6 +374,7 @@ namespace OSHttpServer
                     {
                         m_headers.Add("x-forwarded-for", addr);
                     }
+                    */
                     break;
                 case "x-forwarded-for":
                     if (value.Length >= 7)
