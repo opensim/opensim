@@ -71,7 +71,7 @@ namespace OpenSim.Framework
             m_metadata = new AssetMetadata
             {
                 FullID = UUID.Zero,
-                ID = UUID.Zero.ToString(),
+                ID = UUID.ZeroString,
                 Type = (sbyte)AssetType.Unknown,
                 CreatorID = string.Empty
             };
@@ -255,6 +255,67 @@ namespace OpenSim.Framework
         public override string ToString()
         {
             return FullID.ToString();
+        }
+
+        /// <summary>
+        /// Decode a AssetBase from a NRBF (BinaryFormatter) payload, without using BinaryFormatter
+        /// </summary>
+        /// <returns>false if data is not a valid AssetBase NRBF payload</returns>
+        public static bool DecodeFromNRBF(ReadOnlySpan<byte> data, out AssetBase asset)
+        {
+            //AI code
+            asset = null;
+            if (!NrbfReader.TryRead(data, out NrbfPayload p))
+                return false;
+
+            if (p.Root is not NrbfObject root || root.TypeName != "OpenSim.Framework.AssetBase")
+                return false;
+            if (p.Get(root, "m_metadata") is not NrbfObject meta || meta.TypeName != "OpenSim.Framework.AssetMetadata")
+                return false;
+
+            try
+            {
+                AssetBase a = new();
+                a.m_data = p.Get(root, "m_data") as byte[];
+
+                //if (root.Get("m_uploadAttempts") is int uploadAttempts)
+                //    a.UploadAttempts = uploadAttempts;
+
+                AssetMetadata m = a.Metadata;
+                if (p.TryGetUUID(meta.Get("m_fullid"), out UUID fullID))
+                    m.FullID = fullID;
+
+                if (p.Get(meta, "m_id") is string id)
+                    m.ID = id;
+
+                m.Name = p.Get(meta, "m_name") as string;
+                m.Description = p.Get(meta, "m_description") as string;
+                if (meta.Get("m_creation_date") is DateTime creationDate)
+                    m.CreationDate = creationDate;
+                // content type setter also changes type, so type must be set after it
+                if (p.Get(meta, "m_content_type") is string contentType)
+                    m.ContentType = contentType;
+                if (meta.Get("m_type") is sbyte type)
+                    m.Type = type;
+                //m.SHA1 = p.Get(meta, "m_sha1") as byte[];
+                if (meta.Get("m_local") is bool local)
+                    m.Local = local;
+                if (meta.Get("m_temporary") is bool temporary)
+                    m.Temporary = temporary;
+                m.CreatorID = p.Get(meta, "m_creatorid") as string;
+                object flags = p.Get(meta, "m_flags");
+                if (flags is NrbfObject flagsObj)
+                    flags = flagsObj.Get("value__");
+                if (flags is int iflags)
+                    m.Flags = (AssetFlags)iflags;
+
+                asset = a;
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 
