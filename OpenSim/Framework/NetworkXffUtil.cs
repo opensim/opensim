@@ -92,7 +92,7 @@ namespace OpenSim.Framework
             int dotindx = address.LastIndexOf('.');
             if(dotindx > 4)
             { 
-                dotindx += 3;
+                dotindx += 2;
                 if(dotindx < address.Length - 1)
                 {
                     int indx = address.IndexOf(':', dotindx);
