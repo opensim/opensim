@@ -1954,7 +1954,9 @@ namespace OpenSim.Framework
             return b[0] switch
             {
                 10 => true,
+                100 => b[1] >= 64 && b[1] < 128,
                 127 => true,
+                169 => b[1] == 254,
                 172 => b[1] >= 16 && b[1] < 32,
                 192 => b[1] == 168,
                 _ => false,
@@ -2562,35 +2564,6 @@ namespace OpenSim.Framework
             {
                 return "";
             }
-        }
-
-        public static void SerializeToFile(string filename, Object obj)
-        {
-            var formatter = new BinaryFormatter();
-            try
-            {
-                using Stream stream = new FileStream(filename, FileMode.Create,FileAccess.Write, FileShare.None);
-                formatter.Serialize(stream, obj);
-            }
-            catch (Exception e)
-            {
-                m_log.Error(e.ToString());
-            }
-        }
-
-        public static Object DeserializeFromFile(string filename)
-        {
-            try
-            {
-                using Stream stream = new FileStream(filename, FileMode.Open,FileAccess.Read, FileShare.None);
-                var formatter = new BinaryFormatter();
-                return formatter.Deserialize(stream);
-            }
-            catch (Exception e)
-            {
-                m_log.Error(e.ToString());
-            }
-            return null;
         }
 
         public static string Compress(string text)
