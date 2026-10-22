@@ -26,11 +26,8 @@
  */
 
 using System;
-using System.Reflection;
 using Nini.Config;
-using OpenSim.Framework;
 using OpenSim.Data;
-using OpenSim.Services.Interfaces;
 using OpenSim.Services.Base;
 
 namespace OpenSim.Services.GridService
@@ -42,8 +39,8 @@ namespace OpenSim.Services.GridService
         public GridServiceBase(IConfigSource config)
             : base(config)
         {
-            string dllName = String.Empty;
-            string connString = String.Empty;
+            string dllName = string.Empty;
+            string connString = string.Empty;
             string realm = "regions";
 
             //
@@ -53,9 +50,9 @@ namespace OpenSim.Services.GridService
             if (dbConfig != null)
             {
                 if (dllName.Length == 0)
-                    dllName = dbConfig.GetString("StorageProvider", String.Empty);
+                    dllName = dbConfig.GetString("StorageProvider", string.Empty);
                 if (connString.Length == 0)
-                    connString = dbConfig.GetString("ConnectionString", String.Empty);
+                    connString = dbConfig.GetString("ConnectionString", string.Empty);
             }
 
             //
@@ -74,8 +71,10 @@ namespace OpenSim.Services.GridService
             //
             if (string.IsNullOrEmpty(dllName))
                 throw new Exception("No StorageProvider configured");
+            if (string.IsNullOrEmpty(connString))
+                throw new Exception("Missing StorageProvider ConnectionString");
 
-            m_Database = LoadPlugin<IRegionData>(dllName, new Object[] { connString, realm });
+            m_Database = LoadPlugin<IRegionData>(dllName, [connString, realm]);
             if (m_Database == null)
                 throw new Exception("Could not find a storage interface in the given module");
 

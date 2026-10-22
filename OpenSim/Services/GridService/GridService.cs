@@ -56,6 +56,8 @@ namespace OpenSim.Services.GridService
         protected bool m_AllowDuplicateNames = false;
         protected bool m_AllowHypergridMapSearch = false;
 
+        protected GridInfo m_ThisGridInfo;
+
         private static Dictionary<string,object> m_ExtraFeatures = new Dictionary<string, object>();
 
         public GridService(IConfigSource config)
@@ -64,6 +66,8 @@ namespace OpenSim.Services.GridService
             m_log.DebugFormat("[GRID SERVICE]: Starting...");
 
             m_config = config;
+            m_ThisGridInfo = new(config);
+
             IConfig gridConfig = config.Configs["GridService"];
 
             bool suppressConsoleCommands = false;
@@ -92,6 +96,9 @@ namespace OpenSim.Services.GridService
             if (m_RootInstance == null)
             {
                 m_RootInstance = this;
+
+                if(m_ThisGridInfo.HasHGConfig)
+                    m_HypergridLinker = new HypergridLinker(m_config, this, m_Database);
 
                 if (!suppressConsoleCommands && MainConsole.Instance != null)
                 {
@@ -140,8 +147,6 @@ namespace OpenSim.Services.GridService
 
                 if (!suppressConsoleCommands)
                     SetExtraServiceURLs(config);
-
-                m_HypergridLinker = new HypergridLinker(m_config, this, m_Database);
             }
         }
 
@@ -493,6 +498,11 @@ namespace OpenSim.Services.GridService
             return rinfos;
         }
 
+        public bool IsLocalGrid(string UriHost)
+        {
+           return m_ThisGridInfo.IsLocalGrid(UriHost) == 1;
+        }
+
         public GridRegion GetRegionByUUID(UUID scopeID, UUID regionID)
         {
             RegionData rdata = m_Database.Get(regionID, scopeID);
@@ -555,7 +565,7 @@ namespace OpenSim.Services.GridService
             {
                 if (!uri.ResolveDNS())
                     return null;
-                localGrid = m_HypergridLinker.IsLocalGrid(uri.HostUrl);
+                localGrid = IsLocalGrid(uri.HostUrl);
                 uri.IsLocalGrid = localGrid;
             }
 
@@ -594,7 +604,7 @@ namespace OpenSim.Services.GridService
                 }
             }
 
-            GridRegion r = m_HypergridLinker.LinkRegion(scopeID, uri);
+            GridRegion r = m_HypergridLinker?.LinkRegion(scopeID, uri);
             return r;
         }
 
@@ -613,7 +623,7 @@ namespace OpenSim.Services.GridService
             {
                 if (!uri.ResolveDNS())
                     return null;
-                if(!m_HypergridLinker.IsLocalGrid(uri.HostUrl))
+                if(!IsLocalGrid(uri.HostUrl))
                     return null;
             }
 
@@ -654,7 +664,7 @@ namespace OpenSim.Services.GridService
             {
                 if (!nameURI.ResolveDNS())
                     return new List<GridRegion>();
-                localGrid = m_HypergridLinker.IsLocalGrid(nameURI.HostUrl);
+                localGrid = IsLocalGrid(nameURI.HostUrl);
                 nameURI.IsLocalGrid = localGrid;
                 if (!nameURI.IsValid)
                     return new List<GridRegion>();
@@ -725,7 +735,7 @@ namespace OpenSim.Services.GridService
                     return rinfos;
             }
 
-            GridRegion r = m_HypergridLinker.LinkRegion(scopeID, nameURI);
+            GridRegion r = m_HypergridLinker?.LinkRegion(scopeID, nameURI);
             if (r != null)
             {
                 if (count == maxNumber)
