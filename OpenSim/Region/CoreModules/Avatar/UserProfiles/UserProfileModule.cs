@@ -1068,16 +1068,14 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 return;
             }
             pick = (UserProfilePick)Pick;
-            if(foreign)
-                cacheForeignImage(targetID, pick.SnapshotId);
 
             if(!Vector3d.TryParse(pick.GlobalPos, out Vector3d globalPos))
                 return;
 
-            if (m_thisGridInfo.IsLocalGrid(pick.Gatekeeper, true) == 0)
+            if (m_thisGridInfo.HasHGConfig && m_thisGridInfo.IsLocalGrid(pick.Gatekeeper, true) == 0)
             {
                 // Setup the illusion
-                string region = string.Format("{0} {1}",pick.Gatekeeper,pick.SimName);
+                string region = $"{pick.Gatekeeper} {pick.SimName}";
                 GridRegion target = Scene.GridService.GetRegionByName(Scene.RegionInfo.ScopeID, region);
 
                 if(target is null)
@@ -1108,6 +1106,8 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                         globalPos.X += target.RegionLocX;
                         globalPos.Y += target.RegionLocY;
                         pick.GlobalPos = globalPos.ToString();
+
+                        cacheForeignImage(targetID, pick.SnapshotId);
                     }
                 }
             }
@@ -1157,13 +1157,11 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             }
 
             pick = (UserProfilePick)Pick;
-            if(foreign)
-                cacheForeignImage(targetID, pick.SnapshotId);
 
             if(!Vector3d.TryParse(pick.GlobalPos, out Vector3d globalPos))
                 return null;
 
-            if (m_thisGridInfo.IsLocalGrid(pick.Gatekeeper, true) == 0)
+            if (m_thisGridInfo.HasHGConfig && m_thisGridInfo.IsLocalGrid(pick.Gatekeeper, true) == 0)
             {
                 // Setup the illusion
                 string region = string.Format("{0} {1}",pick.Gatekeeper,pick.SimName);
@@ -1198,8 +1196,8 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                         globalPos.Y += target.RegionLocY;
                         pick.GlobalPos = globalPos.ToString();
                     }
-                }
-            }
+                cacheForeignImage(targetID, pick.SnapshotId);
+}            }
             return pick;
         }
 
@@ -1237,9 +1235,15 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         {
             //m_log.DebugFormat("[PROFILES]: Start PickInfoUpdate Name: {0} PickId: {1} SnapshotId: {2}", name, pickID.ToString(), snapshotID.ToString());
 
-            GetUserProfileServerURI(remoteClient.AgentId, out string serverURI);
+            bool alien = GetUserProfileServerURI(remoteClient.AgentId, out string serverURI);
             if(string.IsNullOrWhiteSpace(serverURI))
                 return;
+
+            if (alien && !m_thisGridInfo.HasHGConfig)
+            {
+                remoteClient.SendAgentAlertMessage("Not possible to update that pick in this region", false);
+                return;
+            }
 
             ScenePresence p = FindPresence(remoteClient.AgentId);
             if(p is null)
@@ -1889,9 +1893,14 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         {
             if (!m_userManagementModule.IsLocalGridUser(userID))
             {
-                serverURI = m_userManagementModule.GetUserServerURL(userID, "ProfileServerURI", out bool failed);
-                if(failed)
+                if(!m_thisGridInfo.HasHGConfig)
                     serverURI = string.Empty;
+                else
+                {
+                    serverURI = m_userManagementModule.GetUserServerURL(userID, "ProfileServerURI", out bool failed);
+                    if(failed)
+                        serverURI = string.Empty;
+                }
                 // Is Foreign
                 return true;
             }

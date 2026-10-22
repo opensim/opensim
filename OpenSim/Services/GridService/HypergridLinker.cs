@@ -68,6 +68,10 @@ namespace OpenSim.Services.GridService
 
         public HypergridLinker(IConfigSource config, GridService gridService, IRegionData db)
         {
+            m_ThisGridInfo = new GridInfo(config);
+            if(!m_ThisGridInfo.HasHGConfig)
+                throw new Exception("missing HyperGrid configuration");
+
             IConfig gridConfig = config.Configs["GridService"];
             if (gridConfig == null)
                 return;
@@ -93,10 +97,6 @@ namespace OpenSim.Services.GridService
             //m_Check4096 = gridConfig.GetBoolean("Check4096", true);
 
             m_MapTileDirectory = gridConfig.GetString("MapTileDirectory", "maptiles");
-
-            m_ThisGridInfo = new GridInfo(config);
-            if(!m_ThisGridInfo.HasHGConfig)
-                throw new Exception("missing HyperGrid configuration");
 
             m_log.DebugFormat("[HYPERGRID LINKER]: Local Gatekeeper: {0}", m_ThisGridInfo.GateKeeperURL);
 
