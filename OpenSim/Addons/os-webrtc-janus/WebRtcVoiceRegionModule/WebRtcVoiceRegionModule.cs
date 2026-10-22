@@ -69,6 +69,7 @@ namespace osWebRtcVoice
         private static readonly string LogHeader = "[REGION WEBRTC VOICE]";
 
         private static byte[] llsdUndefAnswerBytes = Util.UTF8.GetBytes("<llsd><undef /></llsd>");
+        private static byte[] llsdEmpyAnswerBytes = Util.UTF8.GetBytes("<llsd><array /></llsd>");
         private bool _MessageDetails = false;
 
         // Control info
@@ -755,20 +756,19 @@ namespace osWebRtcVoice
                     response.StatusCode = (int)HttpStatusCode.OK;
                     break;
 
-                // chatterBoxHistoryCoro (llimview.cpp) only does anything if the response body
+                // viewer only does anything if the response body
                 // is an ARRAY, and merely logs otherwise. Answer an explicit empty array: this
                 // is fired automatically after every successful "start p2p voice" when the
                 // viewer's FetchGroupChatHistory setting is on, so it is a hot path.
                 case "fetch history":
                     response.StatusCode = (int)HttpStatusCode.OK;
-                    response.RawBuffer = Util.UTF8.GetBytes("<llsd><array /></llsd>");
+                    response.RawBuffer = llsdEmpyAnswerBytes;
                     break;
 
                 // Ad-hoc/conference chat is not supported here. Returning a bare OK leaves the
                 // viewer waiting out its full 30s SESSION_INITIALIZATION_TIMEOUT before it
                 // reports anything, so reply with an explicit failure instead and let it fail
-                // fast. NOTE the error field is a strings.xml KEY, resolved through
-                // LLTrans::getString (llimview.cpp LLIMMgr::showSessionStartError) - an
+                // fast. NOTE the error field is a strings.xml KEY, an
                 // arbitrary string renders as a missing-string placeholder, so use a real one.
                 case "start conference":
                     IEventQueue confQueue = scene.RequestModuleInterface<IEventQueue>();
@@ -789,12 +789,12 @@ namespace osWebRtcVoice
                 //     it to the client in a ChatterBoxSessionStartReply event.
                 case "start p2p voice":
                     // The viewer's P2P session id is the XOR of the two agent ids
-                    // (llimview.cpp LLIMMgr::computeSessionID), and that same id is what
-                    // inbound UDP ImprovedInstantMessage traffic is filed under. So it must be
-                    // reproduced exactly. A random id here would be worse than an error: the
+                    // and that same id is what inbound UDP ImprovedInstantMessage
+                    // traffic is filed under. So it must be reproduced exactly.
+                    // A random id here would be worse than an error: the
                     // viewer re-keys its floater to whatever we return
-                    // (processSessionInitializedReply -> setKey), after which arriving IMs land
-                    // in a different session than the one the user is typing into. If "params"
+                    // after which arriving IMs land in a different session than
+                    // the one the user is typing into. If "params"
                     // is absent we cannot compute it, so refuse rather than invent one.
                     if (!reqmap.TryGetUUID("params", out UUID otherID))
                     {
