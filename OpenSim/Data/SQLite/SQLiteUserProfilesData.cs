@@ -358,8 +358,9 @@ namespace OpenSim.Data.SQLite
                             UUID.TryParse((string)reader["parceluuid"], out pick.ParcelId);
                             UUID.TryParse((string)reader["snapshotuuid"], out pick.SnapshotId);
                             pick.GlobalPos = (string)reader["posglobal"];
-                            bool.TryParse((string)reader["toppick"].ToString(), out pick.TopPick);
-                            bool.TryParse((string)reader["enabled"].ToString(), out pick.Enabled);
+                            pick.Gatekeeper = (string)reader["gatekeeper"];
+                            bool.TryParse(reader["toppick"].ToString(), out pick.TopPick);
+                            bool.TryParse(reader["enabled"].ToString(), out pick.Enabled);
                             pick.Name = (string)reader["name"];
                             pick.Desc = description;
                             pick.ParcelName = (string)reader["user"];
@@ -394,6 +395,7 @@ namespace OpenSim.Data.SQLite
             query += "originalname, ";
             query += "simname, ";
             query += "posglobal, ";
+            query += "gatekeeper, ";
             query += "sortorder, ";
             query += "enabled ) ";
             query += "VALUES (";
@@ -408,6 +410,7 @@ namespace OpenSim.Data.SQLite
             query += ":Original,";
             query += ":SimName,";
             query += ":GlobalPos,";
+            query += ":Gatekeeper,";
             query += ":SortOrder,";
             query += ":Enabled) ";
 
@@ -432,6 +435,7 @@ namespace OpenSim.Data.SQLite
                     cmd.Parameters.AddWithValue(":Original", pick.OriginalName.ToString());
                     cmd.Parameters.AddWithValue(":SimName",pick.SimName.ToString());
                     cmd.Parameters.AddWithValue(":GlobalPos", pick.GlobalPos);
+                    cmd.Parameters.AddWithValue(":Gatekeeper", pick.Gatekeeper);
                     cmd.Parameters.AddWithValue(":SortOrder", pick.SortOrder.ToString ());
                     cmd.Parameters.AddWithValue(":Enabled", enabled);
 
@@ -441,7 +445,7 @@ namespace OpenSim.Data.SQLite
             catch (Exception e)
             {
                 m_log.ErrorFormat("[PROFILES_DATA]" +
-                                  ": UpdateAvatarNotes exception {0}", e.Message);
+                                  ": UpdateAvatarPicks exception {0}", e.Message);
                 return false;
             }
             return true;
