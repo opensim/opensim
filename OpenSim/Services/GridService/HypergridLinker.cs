@@ -113,8 +113,6 @@ namespace OpenSim.Services.GridService
                 MainConsole.Instance.Commands.AddCommand("Hypergrid", false, "unlink-region",
                     "unlink-region <local name>",
                     "Unlink a hypergrid region", RunCommand);
-                MainConsole.Instance.Commands.AddCommand("Hypergrid", false, "link-mapping", "link-mapping [<x> <y>]",
-                    "Set local coordinate to map HG regions to", HandleLinkMappingCommand);
                 MainConsole.Instance.Commands.AddCommand("Hypergrid", false, "show hyperlinks", "show hyperlinks",
                     "List the HG regions", HandleShow);
             }
