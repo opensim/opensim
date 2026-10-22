@@ -66,7 +66,7 @@ namespace OpenSim.Services.GridService
             m_log.DebugFormat("[GRID SERVICE]: Starting...");
 
             m_config = config;
-            m_ThisGridInfo = new(config);
+            m_ThisGridInfo = new(config, null);
 
             IConfig gridConfig = config.Configs["GridService"];
 

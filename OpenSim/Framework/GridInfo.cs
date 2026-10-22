@@ -374,6 +374,8 @@ namespace OpenSim.Framework
         {
             string[] sections = ["Const", "Startup", "Hypergrid"];
 
+            bool ignoreMissingHG = false;
+
             string gatekeeper = Util.GetConfigVarFromSections<string>(config, "GatekeeperURI", sections, string.Empty);
             if (string.IsNullOrEmpty(gatekeeper))
             {
@@ -390,7 +392,10 @@ namespace OpenSim.Framework
             if (string.IsNullOrEmpty(gatekeeper))
             {
                 m_hasHGconfig = false;
-                if (!string.IsNullOrEmpty(defaultURI))
+                if (defaultURI == null)
+                    ignoreMissingHG = true;
+
+                else if(defaultURI.Length > 0)
                     m_gateKeeperURL = new OSHHTPHost(defaultURI, true);
             }
             else
@@ -399,7 +404,7 @@ namespace OpenSim.Framework
                 m_hasHGconfig = true;
             }
 
-            if (!m_gateKeeperURL.IsResolvedHost)
+            if (!ignoreMissingHG && !m_gateKeeperURL.IsResolvedHost)
             {
                 m_log.Error(m_gateKeeperURL.IsValidHost ?  "Could not resolve GatekeeperURI" : "GatekeeperURI is a invalid host");
                 throw new Exception("GatekeeperURI configuration error");
@@ -446,8 +451,19 @@ namespace OpenSim.Framework
 
             if (!m_homeURL.IsResolvedHost)
             {
-                m_log.Error(m_homeURL.IsValidHost ?  "Could not resolve HomeURI" : "HomeURI is a invalid host");
-                throw new Exception("HomeURI configuration error");
+                if(!ignoreMissingHG)
+                {
+                    m_log.Error(m_homeURL.IsValidHost ?  "Could not resolve HomeURI" : "HomeURI is a invalid host");
+                    throw new Exception("HomeURI configuration error");
+                }
+            }
+            else
+            {
+                if(ignoreMissingHG)
+                {
+                    m_gateKeeperURL = m_homeURL;
+                    m_gridUrl = m_gateKeeperURL.URI;
+                }
             }
 
             string homeAlias = Util.GetConfigVarFromSections<string>(config, "HomeURIAlias", sections, string.Empty);
