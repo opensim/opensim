@@ -793,7 +793,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             else if (sp.Flying)
                 teleportFlags |= (uint)TeleportFlags.IsFlying;
 
-            sp.IsInLocalTransit = reg.RegionLocY != 0; // HG
+            // Hyperlinks are normally placed at Y=0, but explicit links can be
+            // placed anywhere on the map. Use the region flag when available;
+            // falling back to Y=0 preserves compatibility with old grid data.
+            sp.IsInLocalTransit = !IsHypergridRegion(reg);
             sp.IsInTransit = true;
 
 
@@ -1331,6 +1334,18 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 sp.Scene.EventManager.TriggerTeleportStart(sp.ControllingClient, reg, finalDestination, teleportFlags, logout);
 
             return success;
+        }
+
+        private bool IsHypergridRegion(GridRegion region)
+        {
+            if (region.RegionFlags.HasValue)
+                return (region.RegionFlags.Value & OpenSim.Framework.RegionFlags.Hyperlink) != 0;
+
+            int flags = m_scene.GridService.GetRegionFlags(m_sceneRegionInfo.ScopeID, region.RegionID);
+            if (flags >= 0)
+                return (flags & (int)OpenSim.Framework.RegionFlags.Hyperlink) != 0;
+
+            return region.RegionLocY == 0;
         }
 
         protected virtual bool UpdateAgent(GridRegion reg, GridRegion finalDestination, AgentData agent, ScenePresence sp, EntityTransferContext ctx)
