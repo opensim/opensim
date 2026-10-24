@@ -1,11 +1,21 @@
-<html>
-
-<form name="input" action="http://127.0.0.1:8002/grid" method="post">
-xmin:<input type="text" name="XMIN" value="0">
-xmax:<input type="text" name="XMAX" value="0">
-ymin:<input type="text" name="YMIN" value="0">
-ymax:<input type="text" name="YMAX" value="0">
-<input type="hidden" name="METHOD" value="get_region_range">
-<input type="submit" value="Submit" />
-</form>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Grid Administration Form</title>
+</head>
+<body>
+    <form name="input" action="http://127.0.0.1:8002/grid" method="post">
+        <label for="xmin">xmin:</label>
+        <input type="text" id="xmin" name="XMIN" value="0" aria-label="Minimum X coordinate">
+        <label for="xmax">xmax:</label>
+        <input type="text" id="xmax" name="XMAX" value="0" aria-label="Maximum X coordinate">
+        <label for="ymin">ymin:</label>
+        <input type="text" id="ymin" name="YMIN" value="0" aria-label="Minimum Y coordinate">
+        <label for="ymax">ymax:</label>
+        <input type="text" id="ymax" name="YMAX" value="0" aria-label="Maximum Y coordinate">
+        <input type="hidden" name="METHOD" value="get_region_range">
+        <input type="submit" value="Submit" />
+    </form>
+</body>
 </html>
