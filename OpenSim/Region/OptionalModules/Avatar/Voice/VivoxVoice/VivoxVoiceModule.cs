@@ -456,7 +456,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                 return;
             }
 
-            response.StatusCode = (int)HttpStatusCode.OK;
+            response.StatusCode = (int)HttpStatusCode.NotFound;
             try
             {
                 Stream inputStream = request.InputStream;
@@ -617,6 +617,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                 LLSDxmlEncode2.AddElem("voice_account_server_name", m_vivoxVoiceAccountApi, lsl);
                 LLSDxmlEncode2.AddEndMap(lsl);
 
+                response.StatusCode = (int)HttpStatusCode.OK;
                 response.RawBuffer = LLSDxmlEncode2.EndToBytes(lsl);
                 return;
             }
@@ -645,7 +646,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                 return;
             }
 
-            response.StatusCode = (int)HttpStatusCode.OK;
+            response.StatusCode = (int)HttpStatusCode.NotFound;
 
             ScenePresence avatar = scene.GetScenePresence(agentID);
             if(avatar == null)
@@ -719,6 +720,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                 LLSDxmlEncode2.AddEndMap(lsl);
                 LLSDxmlEncode2.AddEndMap(lsl);
 
+                response.StatusCode = (int)HttpStatusCode.OK;
                 response.RawBuffer = LLSDxmlEncode2.EndToBytes(lsl);
                 return;
             }
