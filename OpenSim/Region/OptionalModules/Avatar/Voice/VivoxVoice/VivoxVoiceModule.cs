@@ -111,6 +111,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
 
         private object m_Lock;
 
+        public static byte[] llsdUndefAnswerBytes = Util.UTF8.GetBytes("<llsd><undef /></llsd>");
+
         public void Initialise(IConfigSource config)
         {
             MainConsole.Instance.Commands.AddCommand("vivox", false, "vivox debug", "vivox debug <on>|<off>", "Set vivox debugging", HandleDebug);
@@ -314,7 +316,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
 
         public void RegionLoaded(Scene scene)
         {
-            // Do nothing.
+            if (m_pluginEnabled)
+            { 
+                ISimulatorFeaturesModule simFeatures = scene.RequestModuleInterface<ISimulatorFeaturesModule>();
+                simFeatures?.AddFeature("VoiceServerType", OSD.FromString("vivox"));
+            }
         }
 
         public void RemoveRegion(Scene scene)
@@ -471,7 +477,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                         {
                             if (vstosd is OSDString vst && !((string)vst).Equals("vivox", StringComparison.OrdinalIgnoreCase))
                             {
-                                response.RawBuffer = Util.UTF8.GetBytes("<llsd><undef /></llsd>");
+                                response.RawBuffer = llsdUndefAnswerBytes;
                                 return;
                             }
                         }
@@ -483,7 +489,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
 
                 if (scene == null)
                 {
-                    response.RawBuffer = Util.UTF8.GetBytes("<llsd><undef /></llsd>");
+                    response.RawBuffer = llsdUndefAnswerBytes;
                     return;
                 }
 
@@ -497,7 +503,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
 
                 if(avatar == null)
                 {
-                    response.RawBuffer = Util.UTF8.GetBytes("<llsd><undef /></llsd>");
+                    response.RawBuffer = llsdUndefAnswerBytes;
                     return;
                 }
 
@@ -601,7 +607,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                 if (code != "OK")
                 {
                     m_log.DebugFormat("[VivoxVoice][PROVISIONVOICE]: Get Account Request failed for \"{0}\"", avatarName);
-                    response.RawBuffer = Util.UTF8.GetBytes("<llsd><undef /></llsd>");
+                    response.RawBuffer = llsdUndefAnswerBytes;
                     return;
                 }
 
@@ -625,7 +631,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
             {
                 m_log.DebugFormat("[VivoxVoice][PROVISIONVOICE]: : {0} failed", e.ToString());
             }
-            response.RawBuffer = osUTF8.GetASCIIBytes("<llsd><undef /></llsd>");
+            response.RawBuffer = llsdUndefAnswerBytes;
         }
 
         /// <summary>
@@ -651,7 +657,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
             ScenePresence avatar = scene.GetScenePresence(agentID);
             if(avatar == null)
             {
-                response.RawBuffer = Util.UTF8.GetBytes("<llsd><undef /></llsd>");
+                response.RawBuffer = llsdUndefAnswerBytes;
                 return;
             }
 
@@ -670,7 +676,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                 {
                     m_log.ErrorFormat("region \"{0}\": avatar \"{1}\": land data not yet available",
                                                       scene.RegionInfo.RegionName, avatarName);
-                    response.RawBuffer = Util.UTF8.GetBytes("<llsd><undef /></llsd>");
+                    response.RawBuffer = llsdUndefAnswerBytes;
                     return;
                 }
 
@@ -681,7 +687,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                 LandData land = scene.GetLandData(avatar.AbsolutePosition);
                 if (land == null)
                 {
-                    response.RawBuffer = Util.UTF8.GetBytes("<llsd><undef /></llsd>");
+                    response.RawBuffer = llsdUndefAnswerBytes;
                     return;
                 }
 
@@ -729,7 +735,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                 m_log.ErrorFormat("[VivoxVoice][PARCELVOICE]: region \"{0}\": avatar \"{1}\": {2}, retry later",
                                   scene.RegionInfo.RegionName, avatarName, e.Message);
             }
-            response.RawBuffer = Util.UTF8.GetBytes("<llsd><undef /></llsd>");
+            response.RawBuffer = llsdUndefAnswerBytes;
         }
 
         /*
@@ -755,7 +761,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
 
             //            m_log.DebugFormat("[VivoxVoice][CHATSESSION]: avatar \"{0}\": request: {1}, path: {2}, param: {3}",
             //                              avatarName, request, path, param);
-            response.RawBuffer = Util.UTF8.GetBytes("<llsd>true</llsd>");
+            response.RawBuffer = llsdUndefAnswerBytes;
             response.StatusCode = (int)HttpStatusCode.OK;
         }
         */
