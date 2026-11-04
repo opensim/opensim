@@ -10,6 +10,7 @@ on:
       - '**.cs'
       - 'prebuild.xml'
       - '**.sh'
+      - '**.bat'
       - '.github/workflows/**'
   pull_request:
     branches: [ "master" ]
@@ -17,11 +18,9 @@ on:
       - '**.cs'
       - 'prebuild.xml'
       - '**.sh'
+      - '**.bat'
       - '.github/workflows/**'
   workflow_dispatch:
-
-permissions:
-  contents: read
 
 jobs:
   validate:
