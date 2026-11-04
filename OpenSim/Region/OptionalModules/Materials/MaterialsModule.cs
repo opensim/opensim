@@ -1031,11 +1031,8 @@ namespace OpenSim.Region.OptionalModules.Materials
             if (entries is null || entries.Length == 0)
                 return false;
 
-            // check the bound before indexing: with no entry for this side this threw IndexOutOfRangeException,
-            // which ModifyMaterialParams swallowed and answered with a failure
             int indx = 0;
-            while (indx < entries.Length && entries[indx].te_index != side)
-                indx++;
+            while (entries[indx].te_index != side && ++indx < entries.Length);
 
             if (indx >= entries.Length)
                 return false;

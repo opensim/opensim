@@ -5536,11 +5536,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         };
                         OSDArray sides = new();
                         OSDArray sidesdata = new();
-                   
+
                         foreach (Primitive.RenderMaterials.RenderMaterialOverrideEntry ovr in sop.Shape.RenderMaterials.overrides)
                         {
                             sides.Add(ovr.te_index);
-                            sidesdata.Add(string.IsNullOrEmpty(ovr.data) ? new OSD() : CompactMaterialOverride(ovr.data));
+                            sidesdata.Add(string.IsNullOrEmpty(ovr.data) ? new OSD() : new OSDllsdxml(ovr.data));
                         }
 
                         data["te"] = sides;
@@ -5606,56 +5606,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             #endregion
         }
 
-        // send stored overrides as compact as the LL viewer writes them (LLGLTFMaterial::getOverrideLLSD): no null texture
-        // ids, no default transforms. Firestorm sends four null texture ids per side, which made a cube with repeats
-        // set on all sides more than 2 KB.
-        private static OSD CompactMaterialOverride(string data)
-        {
-            try
-            {
-                if (OSDParser.DeserializeLLSDNotation(data) is not OSDMap m)
-                    return new OSDllsdxml(data);
-                if (m.TryGetValue("tex", out OSD tex) && tex is OSDArray texa)
-                {
-                    bool empty = true;
-                    for (int i = 0; i < texa.Count; i++)
-                    {
-                        if (texa[i].Type == OSDType.UUID && texa[i].AsUUID().IsNotZero())
-                            empty = false;
-                        else
-                            texa[i] = new OSD();
-                    }
-                    if (empty)
-                        m.Remove("tex");
-                }
-                if (m.TryGetValue("ti", out OSD ti) && ti is OSDArray tia)
-                {
-                    bool empty = true;
-                    for (int i = 0; i < tia.Count; i++)
-                    {
-                        if (tia[i] is not OSDMap tm)
-                            continue;
-                        if (tm.TryGetValue("o", out OSD o) && o is OSDArray oa && oa.Count == 2 && oa[0].AsReal() == 0 && oa[1].AsReal() == 0)
-                            tm.Remove("o");
-                        if (tm.TryGetValue("s", out OSD s) && s is OSDArray sa && sa.Count == 2 && sa[0].AsReal() == 1 && sa[1].AsReal() == 1)
-                            tm.Remove("s");
-                        if (tm.TryGetValue("r", out OSD r) && r.AsReal() == 0)
-                            tm.Remove("r");
-                        if (tm.Count == 0)
-                            tia[i] = new OSD();
-                        else
-                            empty = false;
-                    }
-                    if (empty)
-                        m.Remove("ti");
-                }
-                return m;
-            }
-            catch
-            {
-                return new OSDllsdxml(data);
-            }
-        }
 
         static private readonly byte[] GenericStreamingMessageHeader = new byte[] {
                 Helpers.MSG_RELIABLE,
