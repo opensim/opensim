@@ -5540,7 +5540,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         foreach (Primitive.RenderMaterials.RenderMaterialOverrideEntry ovr in sop.Shape.RenderMaterials.overrides)
                         {
                             sides.Add(ovr.te_index);
-                            sidesdata.Add(string.IsNullOrEmpty(ovr.data) ? new OSD() : new OSDllsdxml(ovr.data));
+                            sidesdata.Add(string.IsNullOrEmpty(ovr.data) ? new OSD() : CompactMaterialOverride(ovr.data));
                         }
 
                         data["te"] = sides;
@@ -5554,6 +5554,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         inner = $"{{'id':i{sop.LocalId},'od':[],'te':[]}}";
 
                     byte[] innerB = Util.UTF8NBGetbytes(inner);
+                    // all sides of an object travel in one GenericStreamingMessage and cannot be split (the viewer clears
+                    // the sides that are missing). Above ~1400 bytes the datagram gets IP-fragmented; many home routers
+                    // drop fragments, the viewer never acks, and the reliable packet is resent over and over with stale data.
+                    if (innerB.Length + 11 > 1400)
+                        m_log.Warn($"[LLCLIENTVIEW]: material override for {sop.Name} ({sop.UUID}) is {innerB.Length + 11} bytes, the packet will be fragmented");
                     if (innerB.Length > UDPPacketBuffer.BUFFER_SIZE - 16)
                     {
                         m_log.Debug($"[LLCLIENTVIEW]: GenericStreamingMessage packet too large ({innerB.Length})");
@@ -5599,6 +5604,57 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             #endregion
+        }
+
+        // send stored overrides as compact as the LL viewer writes them (LLGLTFMaterial::getOverrideLLSD): no null texture
+        // ids, no default transforms. Firestorm sends four null texture ids per side, which made a cube with repeats
+        // set on all sides more than 2 KB.
+        private static OSD CompactMaterialOverride(string data)
+        {
+            try
+            {
+                if (OSDParser.DeserializeLLSDNotation(data) is not OSDMap m)
+                    return new OSDllsdxml(data);
+                if (m.TryGetValue("tex", out OSD tex) && tex is OSDArray texa)
+                {
+                    bool empty = true;
+                    for (int i = 0; i < texa.Count; i++)
+                    {
+                        if (texa[i].Type == OSDType.UUID && texa[i].AsUUID().IsNotZero())
+                            empty = false;
+                        else
+                            texa[i] = new OSD();
+                    }
+                    if (empty)
+                        m.Remove("tex");
+                }
+                if (m.TryGetValue("ti", out OSD ti) && ti is OSDArray tia)
+                {
+                    bool empty = true;
+                    for (int i = 0; i < tia.Count; i++)
+                    {
+                        if (tia[i] is not OSDMap tm)
+                            continue;
+                        if (tm.TryGetValue("o", out OSD o) && o is OSDArray oa && oa.Count == 2 && oa[0].AsReal() == 0 && oa[1].AsReal() == 0)
+                            tm.Remove("o");
+                        if (tm.TryGetValue("s", out OSD s) && s is OSDArray sa && sa.Count == 2 && sa[0].AsReal() == 1 && sa[1].AsReal() == 1)
+                            tm.Remove("s");
+                        if (tm.TryGetValue("r", out OSD r) && r.AsReal() == 0)
+                            tm.Remove("r");
+                        if (tm.Count == 0)
+                            tia[i] = new OSD();
+                        else
+                            empty = false;
+                    }
+                    if (empty)
+                        m.Remove("ti");
+                }
+                return m;
+            }
+            catch
+            {
+                return new OSDllsdxml(data);
+            }
         }
 
         static private readonly byte[] GenericStreamingMessageHeader = new byte[] {
