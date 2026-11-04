@@ -1560,6 +1560,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (IsClientAuthorized(uccp, out AuthenticateResponse sessionInfo))
                 {
                     AgentCircuitData aCircuit = m_circuitManager.GetAgentCircuitData(uccp.CircuitCode.Code);
+                    // This will be true if the client is new, e.g. not
+                    // an existing child agent, and there is no circuit data
+                    if (aCircuit == null)
+                    {
+                        lock (m_pendingCache)
+                            m_pendingCache.Remove(endPoint);
+                        return;
+                    }
+
                     if(!string.IsNullOrEmpty(aCircuit.IPAddress))
                     {
                         try
@@ -1589,24 +1598,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         return;
                     }
 
-                    // This will be true if the client is new, e.g. not
-                    // an existing child agent, and there is no circuit data
-                    if (aCircuit == null)
-                    {
-                        Scene.CloseAgent(client.AgentId, true);
-                        lock (m_pendingCache)
-                            m_pendingCache.Remove(endPoint);
-                        return;
-                    }
 
                     m_log.Debug("[LLUDPSERVER]: Client created");
 
                     Queue<UDPPacketBuffer> queue = null;
                     lock (m_pendingCache)
                     {
-                        if (m_pendingCache.TryGetValue(endPoint, out queue))
-                            m_pendingCache.Remove(endPoint);
-                        else
+                        if (!m_pendingCache.Remove(endPoint, out queue))
                             m_log.Debug("[LLUDPSERVER]: HandleUseCircuitCode with no pending queue present");
                     }
 

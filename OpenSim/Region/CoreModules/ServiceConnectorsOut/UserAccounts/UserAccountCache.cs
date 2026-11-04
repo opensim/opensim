@@ -134,9 +134,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
         {
             lock(accessLock)
             {
-                if (m_UUIDCache.TryGetValue(id, out UserAccount account))
+                if (m_UUIDCache.Remove(id, out UserAccount account))
                 {
-                    m_UUIDCache.Remove(id);
                     if (account != null)
                         m_NameCache.Remove(account.Name.ToLowerInvariant());
                 }
@@ -147,9 +146,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
         {
             lock(accessLock)
             {
-                if (m_NameCache.TryGetValue(name.ToLowerInvariant(), out UserAccount account))
+                if (m_NameCache.Remove(name.ToLowerInvariant(), out UserAccount account))
                 {
-                    m_NameCache.Remove(name);
                     if (account != null)
                         m_UUIDCache.Remove(account.PrincipalID);
                 }

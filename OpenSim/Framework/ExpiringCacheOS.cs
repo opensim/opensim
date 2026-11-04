@@ -217,6 +217,22 @@ namespace OpenSim.Framework
             finally { m_rwLock.ExitWriteLock(); }
         }
 
+        public bool Remove(TKey1 key, out TValue1 oldvalue)
+        {
+            m_rwLock.EnterWriteLock();
+            try
+            {
+                bool success = m_expireControl.Remove(key);
+                success |= m_values.Remove(key, out oldvalue);
+                if(success)
+                    valuesArrayCache = null;
+                if (m_expireControl.Count == 0)
+                    DisposeTimer();
+                return success;
+            }
+            finally { m_rwLock.ExitWriteLock(); }
+        }
+
         public void Clear()
         {
             m_rwLock.EnterWriteLock();
