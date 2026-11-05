@@ -10,6 +10,10 @@ C#, and can run under Mono or the Microsoft .NET runtimes.
 This is considered an alpha release.  Some stuff works, a lot doesn't.
 If it breaks, you get to keep *both* pieces.
 
+# Client & Companion UI Reference Frame
+
+For web, mobile, and companion grid utility interfaces connecting to OpenSimulator, UI design tokens and layout packs align with **[Linkpoint Design](https://github.com/Kaleaon/linkpoint-design)** (`docs/DESIGN_LANGUAGE.md`).
+
 # Compiling OpenSim
 
 Please see BUILDING.md
