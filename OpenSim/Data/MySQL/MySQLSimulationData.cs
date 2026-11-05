@@ -2031,27 +2031,33 @@ namespace OpenSim.Data.MySQL
                 {
                     dbcon.Open();
 
-                    using (MySqlCommand cmd = dbcon.CreateCommand())
+                    using (MySqlTransaction transaction = dbcon.BeginTransaction())
                     {
-                        cmd.CommandText = "delete from spawn_points where RegionID = ?RegionID";
-                        cmd.Parameters.AddWithValue("?RegionID", rs.RegionUUID.ToString());
-
-                        cmd.ExecuteNonQuery();
-
-                        cmd.Parameters.Clear();
-
-                        cmd.CommandText = "insert into spawn_points (RegionID, Yaw, Pitch, Distance) values ( ?RegionID, ?Yaw, ?Pitch, ?Distance)";
-
-                        foreach (SpawnPoint p in rs.SpawnPoints())
+                        using (MySqlCommand cmd = dbcon.CreateCommand())
                         {
+                            cmd.Transaction = transaction;
+
+                            cmd.CommandText = "delete from spawn_points where RegionID = ?RegionID";
                             cmd.Parameters.AddWithValue("?RegionID", rs.RegionUUID.ToString());
-                            cmd.Parameters.AddWithValue("?Yaw", p.Yaw);
-                            cmd.Parameters.AddWithValue("?Pitch", p.Pitch);
-                            cmd.Parameters.AddWithValue("?Distance", p.Distance);
 
                             cmd.ExecuteNonQuery();
+
                             cmd.Parameters.Clear();
+
+                            cmd.CommandText = "insert into spawn_points (RegionID, Yaw, Pitch, Distance) values ( ?RegionID, ?Yaw, ?Pitch, ?Distance)";
+
+                            foreach (SpawnPoint p in rs.SpawnPoints())
+                            {
+                                cmd.Parameters.AddWithValue("?RegionID", rs.RegionUUID.ToString());
+                                cmd.Parameters.AddWithValue("?Yaw", p.Yaw);
+                                cmd.Parameters.AddWithValue("?Pitch", p.Pitch);
+                                cmd.Parameters.AddWithValue("?Distance", p.Distance);
+
+                                cmd.ExecuteNonQuery();
+                                cmd.Parameters.Clear();
+                            }
                         }
+                        transaction.Commit();
                     }
                     dbcon.Close();
                 }
