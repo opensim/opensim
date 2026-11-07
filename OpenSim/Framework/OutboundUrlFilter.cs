@@ -101,7 +101,7 @@ namespace OpenSim.Framework
         {
             // Parse blacklist
             string[] configBlacklistEntries
-                = fullConfigEntry.Split(['|'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.RemoveEmptyEntries);
+                = fullConfigEntry.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.RemoveEmptyEntries);
 
             networks = new List<IPNetwork>();
             endPoints = new List<IPEndPoint>();
