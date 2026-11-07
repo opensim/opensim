@@ -134,15 +134,13 @@ namespace OpenSim.Server.Handlers.Presence
 
         byte[] LogoutAgent(Dictionary<string, object> request)
         {
-            UUID session = UUID.Zero;
-
-            if (!request.ContainsKey("SessionID"))
+            if (!request.TryGetValue("SessionID", out object sessionIDobj))
                 return FailureResult();
 
-            if (!UUID.TryParse(request["SessionID"].ToString(), out session))
+            if (!UUID.TryParse(sessionIDobj.ToString(), out UUID sessionID))
                 return FailureResult();
 
-            if (m_PresenceService.LogoutAgent(session))
+            if (m_PresenceService.LogoutAgent(sessionID))
                 return SuccessResult();
 
             return FailureResult();
@@ -150,15 +148,13 @@ namespace OpenSim.Server.Handlers.Presence
 
         byte[] LogoutRegionAgents(Dictionary<string, object> request)
         {
-            UUID region = UUID.Zero;
-
-            if (!request.ContainsKey("RegionID"))
+            if (!request.TryGetValue("RegionID", out object regionIDobj))
                 return FailureResult();
 
-            if (!UUID.TryParse(request["RegionID"].ToString(), out region))
+            if (!UUID.TryParse(regionIDobj.ToString(), out UUID regionID))
                 return FailureResult();
 
-            if (m_PresenceService.LogoutRegionAgents(region))
+            if (m_PresenceService.LogoutRegionAgents(regionID))
                 return SuccessResult();
 
             return FailureResult();

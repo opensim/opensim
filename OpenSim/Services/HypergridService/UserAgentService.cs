@@ -245,8 +245,10 @@ namespace OpenSim.Services.HypergridService
                 return false;
             }
 
+            bool sameGrid = m_GridName.Equals(gridName, StringComparison.InvariantCultureIgnoreCase);
+
             // Is this user allowed to go there?
-            if (m_GridName != gridName)
+            if (!sameGrid)
             {
                 if (m_ForeignTripsAllowed.ContainsKey(account.UserLevel))
                 {
@@ -293,7 +295,7 @@ namespace OpenSim.Services.HypergridService
 
             m_log.DebugFormat("[USER AGENT SERVICE]: this grid: {0}, desired grid: {1}, desired region: {2}", m_GridName, gridName, region.RegionID);
 
-            if (m_GridName.Equals(gridName, StringComparison.InvariantCultureIgnoreCase))
+            if (sameGrid)
             {
                 success = m_GatekeeperService.LoginAgent(source, agentCircuit, finalDestination, out reason);
             }

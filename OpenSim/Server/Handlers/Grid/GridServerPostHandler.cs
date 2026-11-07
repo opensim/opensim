@@ -77,10 +77,10 @@ namespace OpenSim.Server.Handlers.Grid
                 Dictionary<string, object> request =
                         ServerUtils.ParseQueryString(body);
 
-                if (!request.ContainsKey("METHOD"))
+                if (!request.TryGetValue("METHOD", out object methodobj))
                     return FailureResult();
 
-                string method = request["METHOD"].ToString();
+                string method = methodobj.ToString();
 
                 switch (method)
                 {

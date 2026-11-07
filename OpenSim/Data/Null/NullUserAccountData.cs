@@ -117,7 +117,7 @@ namespace OpenSim.Data.Null
             //m_log.DebugFormat(
             //   "[NULL USER ACCOUNT DATA]: Called GetUsers with scope [{0}], query [{1}]", scopeID, query);
 
-            string[] words = query.Split();
+            string[] words = query.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
             for (int i = 0; i < words.Length; i++)
             {
@@ -129,11 +129,8 @@ namespace OpenSim.Data.Null
                 }
             }
 
-            if (words.Length == 0)
-                return new UserAccountData[0];
-
-            if (words.Length > 2)
-                return new UserAccountData[0];
+            if (words.Length == 0 || words.Length > 2)
+                return [];
 
             List<string> lst = new List<string>(m_DataByName.Keys);
             if (words.Length == 1)

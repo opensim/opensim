@@ -134,7 +134,7 @@ namespace OpenSim.Services.HypergridService
                     m_log.Debug("[HG IM SERVICE]: Starting In Robust GateKeeper");
 
                     string offlineIMService = cnf.GetString("OfflineIMService", string.Empty);
-                    if (offlineIMService != string.Empty)
+                    if (!string.IsNullOrEmpty(offlineIMService))
                         m_OfflineIMService = ServerUtils.LoadPlugin<IOfflineIMService>(offlineIMService, args);
                 }
                 else

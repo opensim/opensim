@@ -164,7 +164,7 @@ namespace OpenSim.Services.PresenceService
 
                 m_log.DebugFormat("[PRESENCE SERVICE]: ReportAgent{0}: session {1}, user {2}, region {3}. Previously: {4}",
                     success ? "" : " failed",
-                    sessionID, (presence == null) ? null : presence.UserID, regionID,
+                    sessionID, presence?.UserID, regionID,
                     (presence == null) ? "not logged-in" : "region " + presence.RegionID);
 
                 if (success)
