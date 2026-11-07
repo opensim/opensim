@@ -905,10 +905,8 @@ namespace OpenSim.Data.PGSQL
                                 bool.TryParse((string)reader["visible"], out pref.Visible);
                                 pref.EMail = (string)reader["email"];
                             }
-                        
-                            else { needInsert = true;}
 
-                            
+                            else { needInsert = true;}
                         }
 
                         if (needInsert)
