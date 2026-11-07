@@ -193,11 +193,11 @@ namespace OpenSim.Data.PGSQL
                                    and ""assetID"" = :AssetID
                                  group by ""assetID"" ", m_Realm);
 */
-                    cmd.CommandText = @"select bit_or(inventoryCurrentPermissions) as inventoryCurrentPermissions
+                    cmd.CommandText = @"select bit_or(""inventoryCurrentPermissions"") as ""inventoryCurrentPermissions""
                                  from inventoryitems
-                                 where avatarID::uuid = :PrincipalID
-                                   and assetID::uuid = :AssetID
-                                 group by assetID";
+                                 where ""avatarID""::uuid = :PrincipalID
+                                   and ""assetID""::uuid = :AssetID
+                                 group by ""assetID""";
 
                     cmd.Parameters.Add(m_database.CreateParameter("PrincipalID", principalID));
                     cmd.Parameters.Add(m_database.CreateParameter("AssetID", assetID));
