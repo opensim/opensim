@@ -394,9 +394,17 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 if (physShapeInfo.HasPhysicalShape)
                 {
                     physicsScene.DetailLog("{0},BSShapeNative.Dereference,deleteNativeShape,shape={1}", BSScene.DetailLogZero, this);
-                    physicsScene.PE.DeleteCollisionShape(physicsScene.World, physShapeInfo);
+                    BulletShape shapeToDelete = physShapeInfo;
+                    physicsScene.PostTaintObject("DeleteCollisionShape-" + shapeToDelete.AddrString, 0, delegate()
+                    {
+                        physicsScene.PE.DeleteCollisionShape(physicsScene.World, shapeToDelete);
+                        shapeToDelete.Clear();
+                    });
                 }
-                physShapeInfo.Clear();
+                else
+                {
+                    physShapeInfo.Clear();
+                }
                 // Garbage collection will free up this instance.
             }
         }
@@ -504,6 +512,15 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             {
                 this.DecrementReference();
                 physicsScene.DetailLog("{0},BSShapeMesh.Dereference,shape={1}", BSScene.DetailLogZero, this);
+                if (referenceCount <= 0 && physShapeInfo != null && physShapeInfo.HasPhysicalShape && physShapeInfo.isNativeShape)
+                {
+                    BulletShape shapeToDelete = physShapeInfo;
+                    physicsScene.PostTaintObject("DeleteCollisionShape-" + shapeToDelete.AddrString, 0, delegate()
+                    {
+                        physicsScene.PE.DeleteCollisionShape(physicsScene.World, shapeToDelete);
+                        shapeToDelete.Clear();
+                    });
+                }
                 // TODO: schedule aging and destruction of unused meshes.
             }
         }
@@ -699,6 +716,15 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             {
                 this.DecrementReference();
                 physicsScene.DetailLog("{0},BSShapeHull.Dereference,shape={1}", BSScene.DetailLogZero, this);
+                if (referenceCount <= 0 && physShapeInfo != null && physShapeInfo.HasPhysicalShape && physShapeInfo.isNativeShape)
+                {
+                    BulletShape shapeToDelete = physShapeInfo;
+                    physicsScene.PostTaintObject("DeleteCollisionShape-" + shapeToDelete.AddrString, 0, delegate()
+                    {
+                        physicsScene.PE.DeleteCollisionShape(physicsScene.World, shapeToDelete);
+                        shapeToDelete.Clear();
+                    });
+                }
                 // TODO: schedule aging and destruction of unused meshes.
             }
         }
@@ -1011,7 +1037,12 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
                     lock (CompoundShapes)
                         CompoundShapes.Remove(physShapeInfo.AddrString);
-                    physicsScene.PE.DeleteCollisionShape(physicsScene.World, physShapeInfo);
+                    BulletShape shapeToDelete = physShapeInfo;
+                    physicsScene.PostTaintObject("DeleteCollisionShape-" + shapeToDelete.AddrString, 0, delegate()
+                    {
+                        physicsScene.PE.DeleteCollisionShape(physicsScene.World, shapeToDelete);
+                        shapeToDelete.Clear();
+                    });
                 }
             }
         }
@@ -1174,6 +1205,15 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             {
                 this.DecrementReference();
                 physicsScene.DetailLog("{0},BSShapeConvexHull.Dereference,shape={1}", BSScene.DetailLogZero, this);
+                if (referenceCount <= 0 && physShapeInfo != null && physShapeInfo.HasPhysicalShape && physShapeInfo.isNativeShape)
+                {
+                    BulletShape shapeToDelete = physShapeInfo;
+                    physicsScene.PostTaintObject("DeleteCollisionShape-" + shapeToDelete.AddrString, 0, delegate()
+                    {
+                        physicsScene.PE.DeleteCollisionShape(physicsScene.World, shapeToDelete);
+                        shapeToDelete.Clear();
+                    });
+                }
                 // TODO: schedule aging and destruction of unused meshes.
             }
         }
@@ -1288,6 +1328,15 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             {
                 this.DecrementReference();
                 physicsScene.DetailLog("{0},BSShapeGImpact.Dereference,shape={1}", BSScene.DetailLogZero, this);
+                if (referenceCount <= 0 && physShapeInfo != null && physShapeInfo.HasPhysicalShape && physShapeInfo.isNativeShape)
+                {
+                    BulletShape shapeToDelete = physShapeInfo;
+                    physicsScene.PostTaintObject("DeleteCollisionShape-" + shapeToDelete.AddrString, 0, delegate()
+                    {
+                        physicsScene.PE.DeleteCollisionShape(physicsScene.World, shapeToDelete);
+                        shapeToDelete.Clear();
+                    });
+                }
                 // TODO: schedule aging and destruction of unused meshes.
             }
         }
