@@ -435,7 +435,7 @@ namespace OpenSim.Data.PGSQL
 
             using (NpgsqlCommand cmd = new NpgsqlCommand())
             {
-                cmd.CommandText = String.Format("delete from {0} where \"TMStamp\"< now() - INTERVAL '2 week'", m_Realm);
+                cmd.CommandText = String.Format("delete from {0} where \"TMStamp\" < now() - INTERVAL '2 week'", m_Realm);
 
                 ExecuteNonQuery(cmd);
             }
@@ -458,14 +458,16 @@ namespace OpenSim.Data.PGSQL
 
         public void DeleteOld()
         {
-
             using (NpgsqlCommand cmd = new NpgsqlCommand())
             {
-                cmd.CommandText = String.Format("delete from {0} where \"TMStamp\" < now() - INTERVAL '2 week'", m_Realm);
+                // os_groups_notices.TMStamp is an integer (Unix epoch seconds),
+                // unlike the other tables, which use real timestamps
+                cmd.CommandText = String.Format(
+                    "delete from {0} where \"TMStamp\" < extract(epoch from (now() - INTERVAL '2 week'))::integer",
+                    m_Realm);
 
                 ExecuteNonQuery(cmd);
             }
-
         }
     }
 
