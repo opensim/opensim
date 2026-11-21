@@ -1639,7 +1639,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                         uint cflags = uce.flags;
 
                         if (IsFriendOnline(remoteClient, avatarID))
-                            cflags = (uint)ProfileFlags.Online;
+                            cflags |= (uint)ProfileFlags.Online;
                         else
                             cflags &= (uint)~ProfileFlags.Online;
 
