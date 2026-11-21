@@ -278,11 +278,9 @@ namespace OpenSim.Groups
                 return members;
 
             List<RoleData> rolesList = new List<RoleData>(roles);
-            // Let's find the "real" ownerRoleID
-            string OwnerPowersstr = ((long)OwnerPowers).ToString();
-            RoleData ownerRole = rolesList.Find(r => OwnerPowersstr.Equals(r.Data["Powers"]));
-            if (ownerRole != null)
-                ownerRoleID = ownerRole.RoleID;
+            // The owners role is the one the group names, whatever its stored powers.
+            ownerRoleID = OwnerRoleOf(m_Database.RetrieveGroup(GroupID));
+            List<RoleData> allRoles = new List<RoleData>(roles);
 
             // Check visibility?
             // When we don't want to check visibility, we pass it "all" as the requestingAgentID
@@ -315,10 +313,9 @@ namespace OpenSim.Groups
                 RoleData selected = rolesList.Find(r => r.RoleID == selectedRole);
 
                 if (selected != null)
-                {
                     m.Title = selected.Data["Title"];
-                    m.AgentPowers = UInt64.Parse(selected.Data["Powers"]);
-                }
+                // A member's powers are those of every role they hold, not only the one whose title they show.
+                m.AgentPowers = PowersOf(rolemembershipsList, allRoles, ownerRoleID);
 
                 m.AgentID = d.PrincipalID;
                 m.AcceptNotices = d.Data["AcceptNotices"] == "1";
@@ -370,6 +367,20 @@ namespace OpenSim.Groups
             {
                 m_log.Debug($"[Groups]: ({RequestingAgentID}) Attempt at changing role in group {groupID} denied because of lack of permission");
                 return false;
+            }
+
+            // SL (wiki Group): "Owners always have all available abilities in the group", and "Owner and Everyone role are
+            // the only two roles which can't be renamed".
+            RoleData current = m_Database.RetrieveRole(groupID, roleID);
+            if (current != null)
+            {
+                if (roleID == OwnerRoleOf(m_Database.RetrieveGroup(groupID)))
+                {
+                    powers = UInt64.Parse(current.Data["Powers"]);
+                    name = current.Data["Name"];
+                }
+                else if (roleID.IsZero())
+                    name = current.Data["Name"];
             }
 
             return _AddOrUpdateGroupRole(RequestingAgentID, groupID, roleID, name, description, title, powers, false);
@@ -427,6 +438,43 @@ namespace OpenSim.Groups
         {
             reason = string.Empty;
 
+            GroupData group = m_Database.RetrieveGroup(GroupID);
+            if (group == null)
+            {
+                reason = "No such group";
+                return false;
+            }
+
+            if (!RoleID.IsZero() && m_Database.RetrieveRole(GroupID, RoleID) == null)
+            {
+                reason = "No such role";
+                return false;
+            }
+
+            // An agent joins through an invitation (to the role it names), or into the
+            // Everyone role of a group open to enrollment. Adding someone else needs the power to invite and to assign
+            // the role.
+            InvitationData invite = FindInvitation(GroupID, AgentID);
+            bool invited = invite != null && invite.RoleID == RoleID;
+            if (!invited)
+            {
+                if (SameAgent(RequestingAgentID, AgentID))
+                {
+                    if (!RoleID.IsZero() || !group.Data.TryGetValue("OpenEnrollment", out string open) || open != "1")
+                    {
+                        m_log.DebugFormat("[Groups]: ({0}) Attempt at joining group {1} denied: not open to enrollment and no invitation", AgentID, GroupID);
+                        reason = "This group is not open to enrollment";
+                        return false;
+                    }
+                }
+                else if (!HasPower(RequestingAgentID, GroupID, GroupPowers.Invite) || !CanAssignRole(RequestingAgentID, GroupID, RoleID))
+                {
+                    m_log.DebugFormat("[Groups]: ({0}) Attempt at adding {1} to group {2} denied because of lack of permission", RequestingAgentID, AgentID, GroupID);
+                    reason = "Insufficient permission";
+                    return false;
+                }
+            }
+
             _AddAgentToGroup(RequestingAgentID, AgentID, GroupID, RoleID, token);
 
             return true;
@@ -434,9 +482,20 @@ namespace OpenSim.Groups
 
         public bool RemoveAgentFromGroup(string RequestingAgentID, string AgentID, UUID GroupID)
         {
-            // check perms
-            if (RequestingAgentID != AgentID && !HasPower(RequestingAgentID, GroupID, GroupPowers.Eject))
-                return false;
+            // check perms. Anyone may leave. SL (wiki Group): "An Owner can eject anyone except another Owner", and "a
+            // Member can be ejected from a group if, and only if, they're only in the Everyone Role" by anyone else.
+            if (!SameAgent(RequestingAgentID, AgentID))
+            {
+                if (!HasPower(RequestingAgentID, GroupID, GroupPowers.Eject) || IsOwner(AgentID, GroupID))
+                    return false;
+
+                if (!IsOwner(RequestingAgentID, GroupID))
+                {
+                    RoleMembershipData[] held = m_Database.RetrieveMemberRoles(GroupID, AgentID);
+                    if (held != null && Array.Exists(held, r => r != null && !r.RoleID.IsZero()))
+                        return false;
+                }
+            }
 
             _RemoveAgentFromGroup(RequestingAgentID, AgentID, GroupID);
 
@@ -450,8 +509,8 @@ namespace OpenSim.Groups
             if (m != null)
                 return false;
 
-            // Check permission to invite
-            if (!HasPower(RequestingAgentID, groupID, GroupPowers.Invite))
+            // Check permission to invite, and to assign the role the invitation is for
+            if (!HasPower(RequestingAgentID, groupID, GroupPowers.Invite) || !CanAssignRole(RequestingAgentID, groupID, roleID))
             {
                 m_log.DebugFormat("[Groups]: ({0}) Attempt at inviting to group {1} denied because of lack of permission", RequestingAgentID, groupID);
                 return false;
@@ -495,35 +554,19 @@ namespace OpenSim.Groups
 
         public bool AddAgentToGroupRole(string RequestingAgentID, string AgentID, UUID GroupID, UUID RoleID)
         {
-            // check permissions
-            bool limited = false;
-            bool unlimited = IsOwner(RequestingAgentID, GroupID);
-            if(!unlimited)
-            { 
-                ulong upowers =(ulong)GetAgentGroupPowers(RequestingAgentID, GroupID);
-                limited = (upowers & (ulong)GroupPowers.AssignMemberLimited) != 0;
-                unlimited = (upowers & (ulong)GroupPowers.AssignMember) != 0;
-            }
-
-            if (!limited && !unlimited)
+            // check permissions (only owners assign the owners role)
+            if (!CanAssignRole(RequestingAgentID, GroupID, RoleID))
             {
                 m_log.Debug($"[Groups]: ({RequestingAgentID}) Attempt at assigning {AgentID} to role {RoleID} denied because of lack of permission");
                 return false;
             }
 
-            // AssignMemberLimited means that the person can assign another person to the same roles that she has in the group
-            if (!unlimited && limited)
-            {
-                // check whether person's has this role
-                RoleMembershipData rolemembership = m_Database.RetrieveRoleMember(GroupID, RoleID, RequestingAgentID);
-                if (rolemembership == null)
-                {
-                    m_log.Debug($"[Groups]: ({RequestingAgentID}) Attempt at assigning {AgentID} to role {RoleID} denied because of limited permission");
-                    return false;
-                }
-            }
+            // only a member of the group can hold one of its roles
+            if (m_Database.RetrieveMember(GroupID, AgentID) == null || m_Database.RetrieveRole(GroupID, RoleID) == null)
+                return false;
 
-            _AddAgentToGroupRole(RequestingAgentID, AgentID, GroupID, RoleID);
+            // A new role does not change the title the member shows.
+            _AddAgentToGroupRole(RequestingAgentID, AgentID, GroupID, RoleID, false);
 
             return true;
         }
@@ -534,25 +577,20 @@ namespace OpenSim.Groups
             if (RoleID.IsZero())
                 return false;
 
-            // check permissions
-            bool limited = HasPower(RequestingAgentID, GroupID, GroupPowers.AssignMemberLimited);
-            bool unlimited = HasPower(RequestingAgentID, GroupID, GroupPowers.AssignMember) || IsOwner(RequestingAgentID, GroupID);
-            if (!limited && !unlimited)
+            // check permissions. SL (wiki Group): "Owners can't be removed"; the founder, like any owner, may leave the
+            // owners role. Removing members from other roles is the "Remove Members from Roles" ability (RemoveMember).
+            if (RoleID == OwnerRoleOf(m_Database.RetrieveGroup(GroupID)))
+            {
+                if (!SameAgent(RequestingAgentID, AgentID))
+                {
+                    m_log.DebugFormat("[Groups]: ({0}) Attempt at removing owner {1} from the owners role denied", RequestingAgentID, AgentID);
+                    return false;
+                }
+            }
+            else if (!HasPower(RequestingAgentID, GroupID, GroupPowers.RemoveMember))
             {
                 m_log.DebugFormat("[Groups]: ({0}) Attempt at removing {1} from role {2} denied because of lack of permission", RequestingAgentID, AgentID, RoleID);
                 return false;
-            }
-
-            // AssignMemberLimited means that the person can assign another person to the same roles that she has in the group
-            if (!unlimited && limited)
-            {
-                // check whether person's has this role
-                RoleMembershipData rolemembership = m_Database.RetrieveRoleMember(GroupID, RoleID, RequestingAgentID);
-                if (rolemembership == null)
-                {
-                    m_log.DebugFormat("[Groups]: ({0}) Attempt at removing {1} from role {2} denied because of limited permission", RequestingAgentID, AgentID, RoleID);
-                    return false;
-                }
             }
 
             RoleMembershipData rolemember = m_Database.RetrieveRoleMember(GroupID, RoleID, AgentID);
@@ -562,22 +600,22 @@ namespace OpenSim.Groups
 
             m_Database.DeleteRoleMember(rolemember);
 
-            // Find another role for this person
-            UUID newRoleID = UUID.Zero; // Everyone
-            RoleMembershipData[] rdata = m_Database.RetrieveMemberRoles(GroupID, AgentID);
-            if (rdata != null)
-                foreach (RoleMembershipData r in rdata)
-                {
-                    if (!r.RoleID.IsZero())
-                    {
-                        newRoleID = r.RoleID;
-                        break;
-                    }
-                }
-
+            // The member keeps the title they show, unless it was this role's: then another role they hold, or Everyone.
             MembershipData member = m_Database.RetrieveMember(GroupID, AgentID);
-            if (member != null)
+            if (member != null && member.Data.TryGetValue("SelectedRoleID", out string selected) && selected == RoleID.ToString())
             {
+                UUID newRoleID = UUID.Zero; // Everyone
+                RoleMembershipData[] rdata = m_Database.RetrieveMemberRoles(GroupID, AgentID);
+                if (rdata != null)
+                    foreach (RoleMembershipData r in rdata)
+                    {
+                        if (r != null && !r.RoleID.IsZero())
+                        {
+                            newRoleID = r.RoleID;
+                            break;
+                        }
+                    }
+
                 member.Data["SelectedRoleID"] = newRoleID.ToString();
                 m_Database.StoreMember(member);
             }
@@ -672,10 +710,9 @@ namespace OpenSim.Groups
             data.GroupName = group.Data["Name"];
             data.GroupPicture = new UUID(group.Data["InsigniaID"]);
             if (role != null)
-            {
-                data.GroupPowers = UInt64.Parse(role.Data["Powers"]);
                 data.GroupTitle = role.Data["Title"];
-            }
+            // A member's powers are those of every role they hold, not only the one whose title they show; owners have all.
+            data.GroupPowers = MemberPowers(group.GroupID, AgentID, OwnerRoleOf(group));
             data.ListInProfile = membership.Data["ListInProfile"] == "1" ? true : false;
             data.MaturePublish = group.Data["MaturePublish"] == "1" ? true : false;
             data.MembershipFee = Int32.Parse(group.Data["MembershipFee"]);
@@ -711,9 +748,19 @@ namespace OpenSim.Groups
 
         public void SetAgentActiveGroupRole(string RequestingAgentID, string AgentID, UUID GroupID, UUID RoleID)
         {
+            // A member chooses their own title, from the roles they hold.
+            if (!SameAgent(RequestingAgentID, AgentID))
+                return;
+
             MembershipData data = m_Database.RetrieveMember(GroupID, AgentID);
             if (data == null)
                 return;
+
+            if (!RoleID.IsZero() && m_Database.RetrieveRoleMember(GroupID, RoleID, AgentID) == null)
+            {
+                m_log.DebugFormat("[Groups]: ({0}) Attempt at showing the title of role {1} in group {2}, which they do not hold, denied", AgentID, RoleID, GroupID);
+                return;
+            }
 
             data.Data["SelectedRoleID"] = RoleID.ToString();
             m_Database.StoreMember(data);
@@ -891,6 +938,12 @@ namespace OpenSim.Groups
 
         protected void _AddAgentToGroupRole(string RequestingAgentID, string AgentID, UUID GroupID, UUID RoleID)
         {
+            _AddAgentToGroupRole(RequestingAgentID, AgentID, GroupID, RoleID, true);
+        }
+
+        /// <param name="select">Whether the role becomes the one whose title the member shows (when they join).</param>
+        protected void _AddAgentToGroupRole(string RequestingAgentID, string AgentID, UUID GroupID, UUID RoleID, bool select)
+        {
             RoleMembershipData data = m_Database.RetrieveRoleMember(GroupID, RoleID, AgentID);
             if (data != null)
                 return;
@@ -900,6 +953,9 @@ namespace OpenSim.Groups
             data.PrincipalID = AgentID;
             data.RoleID = RoleID;
             m_Database.StoreRoleMember(data);
+
+            if (!select)
+                return;
 
             // Make it the SelectedRoleID
             MembershipData membership = m_Database.RetrieveMember(GroupID, AgentID);
@@ -1061,73 +1117,100 @@ namespace OpenSim.Groups
 
         #region permissions
 
+        // A member's powers are the union of every role they hold, and an owner has
+        // every power. They used to come from one role at a time, and "owner" from a matching powers value.
+
+        /// <summary>The viewer's GP_ALL_POWERS: every ability, which owners always have.</summary>
+        public const ulong AllPowers = ulong.MaxValue;
+
         public GroupPowers GetAgentGroupPowers(string agentID, UUID groupID)
         {
-            RoleMembershipData[] rmembership = m_Database.RetrieveMemberRoles(groupID, agentID);
-            if (rmembership is null || rmembership.Length == 0)
+            return (GroupPowers)MemberPowers(groupID, agentID, OwnerRoleOf(m_Database.RetrieveGroup(groupID)));
+        }
+
+        private static UUID OwnerRoleOf(GroupData group)
+        {
+            if (group != null && group.Data != null && group.Data.TryGetValue("OwnerRoleID", out string id) && UUID.TryParse(id, out UUID ownerRoleID))
+                return ownerRoleID;
+            return UUID.Zero;
+        }
+
+        /// <summary>
+        /// The pending invitation of <paramref name="agentID"/> to the group. A hypergrid visitor may be named by a
+        /// universal identifier (uuid;url;name) on one side and by the bare UUID on the other, so the UUID is tried too.
+        /// </summary>
+        private InvitationData FindInvitation(UUID groupID, string agentID)
+        {
+            InvitationData invite = m_Database.RetrieveInvitation(groupID, agentID);
+            if (invite == null && agentID != null && agentID.Contains(';')
+                && Util.ParseUniversalUserIdentifier(agentID, out UUID id))
+                invite = m_Database.RetrieveInvitation(groupID, id.ToString());
+            return invite;
+        }
+
+        private static bool SameAgent(string a, string b)
+            => string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// A member's abilities: those of every role they hold, the Everyone role included; every ability for an owner.
+        /// </summary>
+        private ulong MemberPowers(UUID groupID, string agentID, UUID ownerRoleID)
+        {
+            RoleMembershipData[] held = m_Database.RetrieveMemberRoles(groupID, agentID);
+            if (held == null || held.Length == 0)
                 return 0;
 
-            ulong powers = 0;
-            foreach (RoleMembershipData rdata in rmembership)
-            {
-                if(rdata is null)
-                {
-                    m_log.Warn($"[GROUPSERVICE] null membership  data entry in group {groupID} for agent {agentID}");
-                    continue;
-                }
-                RoleData role = m_Database.RetrieveRole(groupID, rdata.RoleID);
-                if (role is null)
-                {
-                    m_log.Warn($"[GROUPSERVICE] role with id {rdata.RoleID} is null");
-                    continue;
-                }
+            RoleData[] roles = m_Database.RetrieveRoles(groupID);
+            return PowersOf(held, roles == null ? new List<RoleData>() : new List<RoleData>(roles), ownerRoleID);
+        }
 
-                if (role.Data.TryGetValue("Powers", out string psrt) &&
-                        ulong.TryParse(psrt, out ulong ut))
-                    powers |= ut;
+        private static ulong PowersOf(IEnumerable<RoleMembershipData> held, List<RoleData> roles, UUID ownerRoleID)
+        {
+            ulong powers = 0;
+            foreach (RoleMembershipData r in held)
+            {
+                if (r == null)
+                    continue;
+                if (!ownerRoleID.IsZero() && r.RoleID == ownerRoleID)
+                    return AllPowers;
+                RoleData role = roles.Find(x => x.RoleID == r.RoleID);
+                if (role != null && role.Data.TryGetValue("Powers", out string ps) && UInt64.TryParse(ps, out ulong p))
+                    powers |= p;
             }
-            return (GroupPowers)powers;
+            return powers;
         }
 
         private bool HasPower(string agentID, UUID groupID, GroupPowers power)
         {
-            RoleMembershipData[] rmembership = m_Database.RetrieveMemberRoles(groupID, agentID);
-            if (rmembership is null || rmembership.Length == 0)
-                return false;
-
-            ulong upower = (ulong)power;
-            foreach (RoleMembershipData rdata in rmembership)
-            {
-                if(rdata is null)
-                {
-                    m_log.Warn($"[GROUPSERVICE] null membership  data entry in group {groupID} for agent {agentID}");
-                    continue;
-                }
-                RoleData role = m_Database.RetrieveRole(groupID, rdata.RoleID);
-                if (role is null)
-                {
-                    m_log.Warn($"[GROUPSERVICE] role with id {rdata.RoleID} is null");
-                    continue;
-                }
-                
-                if (role.Data.TryGetValue("Powers", out string psrt) &&
-                        ulong.TryParse(psrt, out ulong ut) && (ut & upower) != 0)
-                    return true;
-            }
-            return false;
+            ulong p = MemberPowers(groupID, agentID, OwnerRoleOf(m_Database.RetrieveGroup(groupID)));
+            return (p & (ulong)power) == (ulong)power;
         }
 
         private bool IsOwner(string agentID, UUID groupID)
         {
-            GroupData group = m_Database.RetrieveGroup(groupID);
-            if (group is null)
-                return false;
+            UUID ownerRoleID = OwnerRoleOf(m_Database.RetrieveGroup(groupID));
+            return !ownerRoleID.IsZero() && m_Database.RetrieveRoleMember(groupID, ownerRoleID, agentID) != null;
+        }
 
-            if(!UUID.TryParse(group.Data["OwnerRoleID"], out UUID ownerRoleID))
-                return false;
+        /// <summary>
+        /// Whether <paramref name="agentID"/> may put a member in <paramref name="roleID"/>: anyone may for Everyone; only
+        /// an owner for the owners role (SL: "Assign Members to Any Role" reaches non-Owner roles); otherwise "Assign
+        /// Members to Any Role" (AssignMember), or "Assign Members to Assigner's Roles" (AssignMemberLimited) for a role
+        /// the assigner holds.
+        /// </summary>
+        private bool CanAssignRole(string agentID, UUID groupID, UUID roleID)
+        {
+            if (roleID.IsZero())
+                return true;
 
-            RoleMembershipData rmembership = m_Database.RetrieveRoleMember(groupID, ownerRoleID, agentID);
-            return rmembership is not null;
+            UUID ownerRoleID = OwnerRoleOf(m_Database.RetrieveGroup(groupID));
+            if (roleID == ownerRoleID)
+                return IsOwner(agentID, groupID);
+
+            ulong p = MemberPowers(groupID, agentID, ownerRoleID);
+            if ((p & (ulong)GroupPowers.AssignMember) != 0)
+                return true;
+            return (p & (ulong)GroupPowers.AssignMemberLimited) != 0 && m_Database.RetrieveRoleMember(groupID, roleID, agentID) != null;
         }
         #endregion
 

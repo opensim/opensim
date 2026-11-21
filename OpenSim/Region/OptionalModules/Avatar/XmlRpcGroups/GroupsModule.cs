@@ -878,7 +878,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         {
             if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
-            List<GroupRolesData> data = m_groupData.GetGroupRoles(agentID, groupID);
+            // The roles the agent holds, not every role of the group (which gave every
+            // member every role's powers).
+            List<GroupRolesData> data = m_groupData.GetAgentGroupRoles(agentID, agentID, groupID);
             if (data == null || data.Count == 0)
                 return 0;
 
