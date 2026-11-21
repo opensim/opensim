@@ -724,19 +724,25 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
 
         private void ValidateLandBuy(Object osender, EventManager.LandBuyArgs e)
         {
-
+            // SellEnabled = false refuses sales for a price, as it does for objects; free transfers always pass.
+            if (!m_sellEnabled && e.parcelPrice > 0)
+                return;
 
             lock (e)
             {
                 e.economyValidated = true;
             }
-
-
         }
 
         private void processLandBuy(Object osender, EventManager.LandBuyArgs e)
         {
-
+            // This module keeps no money, so a purchase it validated is paid. The land module hands the parcel over only
+            // when amountDebited covers the price (LandManagementModule.EventManagerOnLandBuy).
+            lock (e)
+            {
+                if (e.economyValidated)
+                    e.amountDebited = e.parcelPrice;
+            }
         }
 
         /// <summary>
