@@ -289,7 +289,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         public IntPtr StaticSpace; // space for the static things around
 
         public readonly object OdeLock = new();
-        public static readonly object SimulationLock = new();
+        public static readonly object SharedSimulationLock = new();
+        public readonly object SimulationLock;
+
         public IMesher mesher;
 
         public IConfigSource m_config;
@@ -314,8 +316,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         IConfig physicsconfig = null;
 
-        public ODEScene(Scene pscene, IConfigSource psourceconfig, string pname, string pversion)
+        public ODEScene(Scene pscene, IConfigSource psourceconfig, string pname, string pversion, bool EXTWorldThreadingLib)
         {
+            SimulationLock = EXTWorldThreadingLib ? new object() : SharedSimulationLock;
             EngineType = pname;
             PhysicsSceneName = EngineType + "/" + pscene.RegionInfo.RegionName;
             EngineName = pname + " " + pversion;

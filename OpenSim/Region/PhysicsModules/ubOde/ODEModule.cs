@@ -20,6 +20,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         private IConfigSource m_config;
         private string m_libVersion = string.Empty;
+        private bool m_EXTWorldThreadingLib = false;
         private bool m_Enabled = false;
 
         #region INonSharedRegionModule
@@ -89,6 +90,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     if(m_libVersion.StartsWith("OS"))
                         m_libVersion = m_libVersion.Substring(2);
 
+                    indx = ode_config.IndexOf("ODE_EXT_world_threading");
+                    m_EXTWorldThreadingLib = indx >= 0;
+
                     m_log.InfoFormat("[ubODE] ode library configuration: {0}", ode_config);
                     m_Enabled = true;
                 }
@@ -104,7 +108,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (!m_Enabled)
                 return;
 
-            m_odeScene = new ODEScene(scene, m_config, Name, Version + "-" + m_libVersion);
+            m_odeScene = new ODEScene(scene, m_config, Name, Version + "-" + m_libVersion, m_EXTWorldThreadingLib);
         }
 
         public void RemoveRegion(Scene scene)
