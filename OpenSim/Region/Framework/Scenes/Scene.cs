@@ -4652,36 +4652,19 @@ Label_GroupsDone:
         /// <returns>true if we handled it.</returns>
         public virtual bool IncomingUpdateChildAgent(AgentPosition cAgentData)
         {
-//            m_log.DebugFormat(
-//                "[SCENE PRESENCE]: IncomingChildAgentDataUpdate POSITION for {0} in {1}, position {2}",
-//                cAgentData.AgentID, Name, cAgentData.Position);
+            //m_log.DebugFormat(
+            //    "[SCENE PRESENCE]: IncomingChildAgentDataUpdate POSITION for {0} in {1}, position {2}",
+            //    cAgentData.AgentID, Name, cAgentData.Position);
 
-            ScenePresence childAgentUpdate = GetScenePresence(cAgentData.AgentID);
-            if (childAgentUpdate is not null)
+            if (TryGetSceneChildPresence(cAgentData.AgentID, out ScenePresence targetChild))
             {
-                // PUT /agent/ answers any caller. The session id is what shows the update comes from the region the
-                // agent is in: without the check, anyone who knew an avatar's and a region's ids could set the child
-                // agent's position, camera, draw distance, throttles and capability seeds here. Every sender
-                // (ScenePresence and EntityTransferModule) has long set it.
-                if (childAgentUpdate.ControllingClient.SessionId.NotEqual(cAgentData.SessionID))
+                if (targetChild.ControllingClient.SessionId.Equals(cAgentData.SessionID))
                 {
-                    m_log.WarnFormat(
-                        "[SCENE]: Ignoring a position update for agent {0} in {1}: its session id {2} is not the agent's",
-                        childAgentUpdate.UUID, Name, cAgentData.SessionID);
-                    return false;
+                    targetChild.UpdateChildAgent(cAgentData);
+                    return true;
                 }
-
-                // I can't imagine *yet* why we would get an update if the agent is a root agent..
-                // however to avoid a race condition crossing borders..
-                if (childAgentUpdate.IsChildAgent)
-                {
-                    //Send Data to ScenePresence
-                    childAgentUpdate.UpdateChildAgent(cAgentData);
-                    // Not Implemented:
-                    //TODO: Do we need to pass the message on to one of our neighbors?
-                }
-
-                return true;
+                else
+                    m_log.Warn($"[SCENE]: Ignoring a child position update for agent {targetChild.UUID} in {Name} due to SessionID mismatch");
             }
 
             return false;
