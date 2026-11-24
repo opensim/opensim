@@ -227,7 +227,24 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
         {
             if (m_HGConnector == null || string.IsNullOrEmpty(ForeignAssetService))
                 return null;
-            return m_HGConnector.Get(id , ForeignAssetService, true);
+            AssetBase asset = m_HGConnector.Get(id , ForeignAssetService, true);
+
+            // The answer is cached and stored under the id it carries, so it must be the asset asked for: another
+            // grid answering with a different id would have its asset cached and stored over a local one.
+            if (asset is not null && !IsAssetAskedFor(asset, id))
+            {
+                m_log.WarnFormat("[REGIONASSETCONNECTOR]: {0} answered a request for asset {1} with asset {2}; refused",
+                    ForeignAssetService, id, asset.ID);
+                return null;
+            }
+            return asset;
+        }
+
+        private static bool IsAssetAskedFor(AssetBase asset, string id)
+        {
+            // FullID and ID are separate fields of the answer; both must name the asset asked for
+            return UUID.TryParse(id, out UUID asked) && asset.FullID.Equals(asked) &&
+                UUID.TryParse(asset.ID, out UUID answered) && answered.Equals(asked);
         }
 
         public AssetBase GetForeign(string id)
