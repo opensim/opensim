@@ -5212,6 +5212,13 @@ Label_GroupsDone:
         {
             return m_sceneGraph.TryGetSceneRootPresence(agentID, out presence);
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetSceneChildPresence(UUID agentID, out ScenePresence presence)
+        {
+            return m_sceneGraph.TryGetSceneChildPresence(agentID, out presence);
+        }
+
         /// <summary>
         /// Request the scene presence by name.
         /// </summary>
