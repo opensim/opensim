@@ -1215,6 +1215,9 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// <returns>Returns true if successful</returns>
         public void Subdivide(int start_x, int start_y, int end_x, int end_y, UUID attempting_user_id)
         {
+            if (!JoinDivideAllowed(attempting_user_id))
+                return;
+
             //First, lets loop through the points and make sure they are all in the same peice of land
             //Get the land object at start
 
@@ -1301,6 +1304,18 @@ namespace OpenSim.Region.CoreModules.World.Land
         }
 
         /// <summary>
+        /// The region's Allow Land Join/Divide (RegionSettings.AllowLandJoinDivide): when it is off, only the estate's
+        /// managers may join or divide parcels, as on Second Life. The viewer only greys its buttons out; scripts
+        /// (osParcelJoin, osParcelSubdivide) and other clients do not.
+        /// </summary>
+        private bool JoinDivideAllowed(UUID user)
+        {
+            if (m_scene.RegionInfo.RegionSettings.AllowLandJoinDivide)
+                return true;
+            return m_scene.Permissions.IsEstateManager(user) || m_scene.Permissions.IsAdministrator(user);
+        }
+
+        /// <summary>
         /// Join 2 land objects together
         /// </summary>
         /// <param name="start_x">start x of selection area</param>
@@ -1311,6 +1326,9 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// <returns>Returns true if successful</returns>
         public void Join(int start_x, int start_y, int end_x, int end_y, UUID attempting_user_id)
         {
+            if (!JoinDivideAllowed(attempting_user_id))
+                return;
+
             int index = 0;
             int maxindex = -1;
             int maxArea = 0;

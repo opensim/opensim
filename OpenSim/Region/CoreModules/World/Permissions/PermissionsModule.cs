@@ -2034,6 +2034,11 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (GenericEstatePermission(userID))
                 return true;
 
+            // The region's Block Terraform: no one but the estate's managers, whatever the parcel allows (as on
+            // Second Life). The viewer only greys its tools out; scripts (llModifyLand) and other clients do not.
+            if (m_scene.RegionInfo.RegionSettings.BlockTerraform)
+                return false;
+
             float X = position.X;
             float Y = position.Y;
             int id = (int)position.Z;
