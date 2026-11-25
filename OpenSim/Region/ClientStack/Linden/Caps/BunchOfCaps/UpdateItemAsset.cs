@@ -101,6 +101,19 @@ namespace OpenSim.Region.ClientStack.Linden
                 }
             }
 
+            // Each of these caps saves one type of item: the notecard cap a notecard, the script cap a script, and so
+            // on. The permission checks after the upload are chosen by the item's own type, so an item of another
+            // type is refused here.
+            int itemType = ItemAssetType(itemID, objectID);
+            if (itemType != atype)
+            {
+                LLSDAssetUploadError error = new LLSDAssetUploadError();
+                error.message = itemType < 0 ? "item not found" : "item is not of this type";
+                error.identifier = UUID.Zero;
+                httpResponse.RawBuffer = Util.UTF8NBGetbytes(LLSDHelpers.SerialiseLLSDReply(error));
+                return;
+            }
+
             string uploaderPath = GetNewCapPath();
 
             string protocol = m_HostCapsObj.SSLCaps ? "https://" : "http://";
@@ -124,6 +137,22 @@ namespace OpenSim.Region.ClientStack.Linden
             //                             LLSDHelpers.SerialiseLLSDReply(uploadResponse)));
 
             httpResponse.RawBuffer = Util.UTF8NBGetbytes(LLSDHelpers.SerialiseLLSDReply(uploadResponse));
+        }
+
+        /// <summary>
+        /// The asset type of the item the caller names: in their inventory, or in the object's when
+        /// <paramref name="objectID"/> is set. -1 when there is no such item.
+        /// </summary>
+        private int ItemAssetType(UUID itemID, UUID objectID)
+        {
+            if (objectID.IsZero())
+            {
+                InventoryItemBase item = m_Scene.InventoryService.GetItem(m_AgentID, itemID);
+                return item is null || item.Owner.NotEqual(m_AgentID) ? -1 : item.AssetType;
+            }
+
+            TaskInventoryItem taskItem = m_Scene.GetSceneObjectPart(objectID)?.Inventory.GetInventoryItem(itemID);
+            return taskItem is null ? -1 : taskItem.Type;
         }
 
         /// <summary>
