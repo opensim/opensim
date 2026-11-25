@@ -41,6 +41,7 @@ using OpenSim.Region.CoreModules.Framework;
 using OpenSim.Region.CoreModules.Framework.EntityTransfer;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation;
 using OpenSim.Region.CoreModules.World.Permissions;
+using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common;
 
 namespace OpenSim.Region.Framework.Scenes.Tests
@@ -689,6 +690,30 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 //            Assert.That(sp.Lookat, Is.EqualTo(teleportLookAt));
 
 //            TestHelpers.DisableLogging();
+        }
+
+        [Test]
+        public void TestHypergridTeleportClosesChildrenForNonZeroDestinationY()
+        {
+            TestHelpers.InMethod();
+
+            Scene scene = new SceneHelpers().SetupScene(
+                "source", TestHelpers.ParseTail(0x100), 1006, 1004, 512, 512, new IniConfigSource());
+            ScenePresence sp = SceneHelpers.AddScenePresence(scene, TestHelpers.ParseTail(0x1));
+
+            GridRegion child = new GridRegion(1006, 1003);
+            sp.AddNeighbourRegion(child, "caps");
+
+            ulong destinationHandle = Util.RegionWorldLocToHandle(
+                Util.RegionToWorldLoc(1004), Util.RegionToWorldLoc(1000));
+
+            sp.IsInLocalTransit = false;
+            List<ulong> childrenToClose = sp.GetChildAgentsToClose(destinationHandle, 1024, 1024);
+            Assert.Contains(child.RegionHandle, childrenToClose);
+
+            sp.IsInLocalTransit = true;
+            childrenToClose = sp.GetChildAgentsToClose(destinationHandle, 1024, 1024);
+            Assert.That(childrenToClose, Does.Not.Contain(child.RegionHandle));
         }
     }
 }

@@ -4656,7 +4656,11 @@ namespace OpenSim.Region.Framework.Scenes
 
             foreach (ulong handle in knownRegions)
             {
-                if(newRegionY == 0) // HG
+                // HG destinations use their real grid coordinates in the
+                // destination handle. Therefore Y=0 is not a reliable HG
+                // marker; IsInLocalTransit is set by EntityTransferModule
+                // before this method is called.
+                if(!IsInLocalTransit || newRegionY == 0) // HG
                     byebyeRegions.Add(handle);
                 else if(handle == curRegionHandle)
                 {
