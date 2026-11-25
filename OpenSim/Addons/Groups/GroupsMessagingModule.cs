@@ -258,6 +258,13 @@ namespace OpenSim.Groups
         /// <summary>
         /// Not really needed, but does confirm that the group exists.
         /// </summary>
+        /// <summary>Whether <paramref name="agentID"/> is a member of the group whose roles give "Join group chat".</summary>
+        private bool MayChat(UUID agentID, UUID groupID)
+        {
+            GroupMembershipData membership = m_groupData.GetAgentGroupMembership(UUID.Zero.ToString(), agentID.ToString(), groupID);
+            return membership != null && (membership.GroupPowers & (ulong)GroupPowers.JoinChat) != 0;
+        }
+
         public bool StartGroupChatSession(UUID agentID, UUID groupID)
         {
             if (m_debugEnabled)
@@ -362,6 +369,11 @@ namespace OpenSim.Groups
 
                         continue;
                     }
+                }
+                else if ((member.AgentPowers & (ulong)GroupPowers.JoinChat) == 0)
+                {
+                    // group chat reaches only the members whose roles give "Join group chat"
+                    continue;
                 }
                 else if (hasAgentDroppedGroupChatSession(member.AgentID.ToString(), groupID))
                 {
@@ -653,7 +665,7 @@ namespace OpenSim.Groups
 
                 GroupRecord groupInfo = m_groupData.GetGroupRecord(UUID.Zero.ToString(), GroupID, null);
 
-                if (groupInfo != null)
+                if (groupInfo != null && MayChat(AgentID, GroupID))
                 {
                     AgentInvitedToGroupChatSession(AgentID.ToString(), GroupID);
 
@@ -676,6 +688,14 @@ namespace OpenSim.Groups
 
                 if (m_debugEnabled)
                     m_log.DebugFormat("[Groups.Messaging]: Send message to session for group {0} with session ID {1}", GroupID, im.imSessionID.ToString());
+
+                // Only a member whose roles give "Join group chat" (JoinChat) talks in it.
+                if (!MayChat(AgentID, GroupID))
+                {
+                    if (m_debugEnabled)
+                        m_log.DebugFormat("[Groups.Messaging]: {0} may not join group chat {1}; dropped", AgentID, GroupID);
+                    return;
+                }
 
                 //If this agent is sending a message, then they want to be in the session
                 AgentInvitedToGroupChatSession(AgentID.ToString(), GroupID);

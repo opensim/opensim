@@ -506,7 +506,8 @@ namespace OpenSim.Groups
                     foreach (GroupMembersData member in m_groupData.GetGroupMembers(remoteAgentIDstr, GroupID))
                     {
                         GridInstantMessage msg = CreateGroupNoticeIM(UUID.Zero, NoticeID, (byte)InstantMessageDialog.GroupNotice);
-                        if (member.AcceptNotices)
+                        // to the members who take notices and whose roles give "Receive notices"
+                        if (member.AcceptNotices && (member.AgentPowers & (ulong)GroupPowers.ReceiveNotices) != 0)
                         {
                             // Build notice IIM, one of reach, because the sending may be async
                             msg.toAgentID = member.AgentID.Guid;
@@ -763,16 +764,10 @@ namespace OpenSim.Groups
         {
             if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
-            List<GroupRolesData> data = m_groupData.GetGroupRoles(agentID.ToString(), groupID);
-            if (data == null || data.Count == 0)
-                return 0;
-
-            ulong powers = 0;
-            for (int i = 0; i < data.Count; ++i)
-            {
-                powers |= data[i].Powers;
-            }
-            return powers;
+            // The agent's own abilities, every role they hold (all for an owner), as the
+            // groups service computes them. Not the roles of the whole group, which gave every member every role's powers.
+            GroupMembershipData membership = m_groupData.GetAgentGroupMembership(UUID.Zero.ToString(), agentID.ToString(), groupID);
+            return membership == null ? 0 : membership.GroupPowers;
         }
 
         public List<GroupRolesData> GroupRoleDataRequest(UUID agentID, UUID groupID)
@@ -1027,8 +1022,9 @@ namespace OpenSim.Groups
 
             }
 
-            // TODO: This update really should send out updates for everyone in the role that just got changed.
+            // A role's powers reach every member who holds it.
             SendDataUpdate(remoteClient, true);
+            RefreshMembersInRegion(groupID);
         }
 
         public void GroupRoleChanges(IClientAPI remoteClient, UUID groupID, UUID roleID, UUID memberID, uint changes)
@@ -1053,8 +1049,12 @@ namespace OpenSim.Groups
                     break;
             }
 
-            // TODO: This update really should send out updates for everyone in the role that just got changed.
             SendDataUpdate(remoteClient, true);
+
+            // The member's powers changed with their roles.
+            IClientAPI memberClient = GetActiveRootClient(memberID);
+            if (memberClient != null && memberClient != remoteClient)
+                SendAgentGroupDataUpdate(memberClient, true);
         }
 
         public void GroupNoticeRequest(IClientAPI remoteClient, UUID groupNoticeID)
@@ -1160,7 +1160,11 @@ namespace OpenSim.Groups
                     remoteClient.SendAlertMessage("Warning: " + reason);
             }
             else
+            {
+                if (!string.IsNullOrEmpty(reason))
+                    remoteClient.SendAlertMessage("Unable to join the group: " + reason);
                 remoteClient.SendJoinGroupReply(groupID, false);
+            }
         }
 
         public void LeaveGroupRequest(IClientAPI remoteClient, UUID groupID)
@@ -1566,9 +1570,21 @@ namespace OpenSim.Groups
 
         public void NotifyChange(UUID groupID)
         {
-            // Notify all group members of a chnge in group roles and/or
-            // permissions
-            //
+            // Notify the group's members in this region of a change in group roles and/or permissions
+            RefreshMembersInRegion(groupID);
+        }
+
+        /// <summary>Send fresh group data (powers, titles) to every root agent in this region who is in the group.</summary>
+        private void RefreshMembersInRegion(UUID groupID)
+        {
+            foreach (Scene scene in m_sceneList.ToArray())
+            {
+                scene.ForEachRootClient(client =>
+                {
+                    if (client.IsGroupMember(groupID))
+                        SendAgentGroupDataUpdate(client, true);
+                });
+            }
         }
 
         #endregion
