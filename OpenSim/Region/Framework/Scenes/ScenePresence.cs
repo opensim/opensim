@@ -2374,8 +2374,19 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         foreach (SceneObjectGroup sog in m_attachments)
                         {
-                            sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
-                            sog.ResumeScripts();
+                            // HG gather starts scripts after assets arrive (fast or slow).
+                            // Starting them here as well double-inits timer/listen/sensor scripts.
+                            // On HGLogin script may or may not have been downloaded yet, may or may not be in cache.
+                            
+                            bool localUser = m_scene.UserManagementModule.IsLocalGridUser(UUID);
+                            bool hgEntry = (m_teleportFlags & TeleportFlags.ViaHGLogin) != 0;
+
+                            // Only foreign HG visitors wait on gather. Local homecoming does not.
+                            if (!hgEntry || localUser)
+                            {
+                                sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
+                                sog.ResumeScripts();
+                            }
                         }
 
                         foreach (ScenePresence p in allpresences)
