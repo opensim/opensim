@@ -560,27 +560,36 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             if (m_scenePermissions.CanEditParcelProperties(remote_client.AgentId, this, GroupPowers.LandSetSale, true))
             {
-                if (args.AuthBuyerID != newData.AuthBuyerID ||
-                    args.SalePrice != newData.SalePrice)
+                // Without the estate's "allow land resell" only the estate owner, its managers and administrators put land
+                // up for sale; the viewer only hides its sell button.
+                if (CanResell(remote_client.AgentId))
                 {
-                    snap_selection = true;
-                }
+                    if (args.AuthBuyerID != newData.AuthBuyerID ||
+                        args.SalePrice != newData.SalePrice)
+                    {
+                        snap_selection = true;
+                    }
 
-                newData.AuthBuyerID = args.AuthBuyerID;
-                newData.SalePrice = args.SalePrice;
+                    newData.AuthBuyerID = args.AuthBuyerID;
+                    newData.SalePrice = args.SalePrice;
+                    allowedDelta |= (uint)ParcelFlags.ForSale;
+                }
 
                 if (!LandData.IsGroupOwned)
                 {
-                    newData.GroupID = args.GroupID;
-                    if(newData.GroupID != LandData.GroupID)
-                        m_groupMemberCache.Clear();
+                    // The parcel's group must be one the user is in (any group, or none, for an administrator).
+                    if (args.GroupID.IsZero() || args.GroupID.Equals(LandData.GroupID) ||
+                        m_scenePermissions.IsAdministrator(remote_client.AgentId) || IsMemberOf(args.GroupID, remote_client.AgentId))
+                    {
+                        newData.GroupID = args.GroupID;
+                        if(newData.GroupID != LandData.GroupID)
+                            m_groupMemberCache.Clear();
+                    }
 
                     allowedDelta |= (uint)(ParcelFlags.AllowDeedToGroup |
                             ParcelFlags.ContributeWithDeed |
                             ParcelFlags.SellParcelObjects);
                 }
-
-                allowedDelta |= (uint)ParcelFlags.ForSale;
             }
 
             if (m_scenePermissions.CanEditParcelProperties(remote_client.AgentId,this, GroupPowers.FindPlaces, false))
@@ -684,10 +693,22 @@ namespace OpenSim.Region.CoreModules.World.Land
             return false;
         }
 
+        /// <summary>Whether <paramref name="user"/> may sell land here (the estate's "allow land resell").</summary>
+        private bool CanResell(UUID user)
+        {
+            return m_scene.RegionInfo.RegionSettings.AllowLandResell
+                || m_scene.RegionInfo.EstateSettings.IsEstateManagerOrOwner(user)
+                || m_scenePermissions.IsAdministrator(user);
+        }
+
+        private bool IsMemberOf(UUID group, UUID user)
+            => m_scene.RequestModuleInterface<IGroupsModule>()?.GetMembershipData(group, user) is not null;
+
         public void UpdateLandSold(UUID avatarID, UUID groupID, bool groupOwned, uint AuctionID, int claimprice, int area)
         {
             LandData newData = LandData.Copy();
-            newData.OwnerID = avatarID;
+            // Land bought for a group belongs to the group, as land deeded to it does (DeedToGroup).
+            newData.OwnerID = groupOwned ? groupID : avatarID;
             newData.GroupID = groupID;
             newData.IsGroupOwned = groupOwned;
             //newData.auctionID = AuctionID;

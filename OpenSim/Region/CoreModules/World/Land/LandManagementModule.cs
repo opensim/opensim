@@ -174,7 +174,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             m_scene.EventManager.OnAvatarEnteringNewParcel += EventManagerOnAvatarEnteringNewParcel;
             m_scene.EventManager.OnClientMovement += EventManagerOnClientMovement;
             m_scene.EventManager.OnValidateLandBuy += EventManagerOnValidateLandBuy;
-            m_scene.EventManager.OnLandBuy += EventManagerOnLandBuy;
+            m_scene.EventManager.OnLandBuyTransfer += EventManagerOnLandBuy;
             m_scene.EventManager.OnNewClient += EventManagerOnNewClient;
             m_scene.EventManager.OnMakeChildAgent += EventMakeChildAgent;
             m_scene.EventManager.OnSignificantClientMovement += EventManagerOnSignificantClientMovement;
@@ -1697,6 +1697,9 @@ namespace OpenSim.Region.CoreModules.World.Land
                 land.LandData.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
                 land.LandData.GroupID = UUID.Zero;
                 land.LandData.IsGroupOwned = false;
+                // An abandoned parcel kept its sale price and authorised buyer
+                land.LandData.SalePrice = 0;
+                land.LandData.AuthBuyerID = UUID.Zero;
                 land.LandData.Flags &= ~(uint) (ParcelFlags.ForSale | ParcelFlags.ForSaleObjects | ParcelFlags.SellParcelObjects | ParcelFlags.ShowDirectory);
 
                 UpdateLandObject(land.LandData.LocalID, land.LandData);
@@ -1733,13 +1736,14 @@ namespace OpenSim.Region.CoreModules.World.Land
         }
         #endregion
 
-        // If the economy has been validated by the economy module,
-        // and land has been validated as well, this method transfers
-        // the land ownership
+        // If the economy has been validated by the economy module, the land has been validated as well, and the money
+        // module reports the price as paid, this method transfers the land ownership. It runs on OnLandBuyTransfer, after
+        // every OnLandBuy handler, so a money module that charges in OnLandBuy has set amountDebited by then.
+        // The land used to go once validated, whether or not the money module charged.
 
         public void EventManagerOnLandBuy(Object o, EventManager.LandBuyArgs e)
         {
-            if (e.economyValidated && e.landValidated)
+            if (e.economyValidated && e.landValidated && (e.parcelPrice <= 0 || e.amountDebited >= e.parcelPrice))
             {
                 ILandObject land;
                 lock (m_landList)
@@ -1773,8 +1777,18 @@ namespace OpenSim.Region.CoreModules.World.Land
                 int saleprice = land.LandData.SalePrice;
                 UUID pOwnerID = land.LandData.OwnerID;
 
-                bool landforsale = ((land.LandData.Flags &
-                                        (uint)(ParcelFlags.ForSale | ParcelFlags.ForSaleObjects | ParcelFlags.SellParcelObjects)) != 0);
+                // Only ForSale puts a parcel up for sale. "Sell objects with land"
+                // (SellParcelObjects) says what goes with a sale, and the viewer's "Cancel land sale" leaves it set:
+                // taken alone it would let anyone buy the parcel, and the owner's objects on it, for nothing.
+                bool landforsale = (land.LandData.Flags & (uint)ParcelFlags.ForSale) != 0;
+
+                if (landforsale && !CanResell(pOwnerID))
+                    landforsale = false;
+
+                // A purchase for a group needs the buyer's "Deed land and buy land for group" ability in that group.
+                if (e.groupOwned && (e.groupId.IsZero() || !HasGroupPowers(e.groupId, e.agentId, (ulong)GroupPowers.LandDeed)))
+                    landforsale = false;
+
                 if ((AuthorizedID.IsZero() || AuthorizedID.Equals(e.agentId)) && e.parcelPrice >= saleprice && landforsale)
                 {
                     // TODO I don't think we have to lock it here, no?
@@ -1787,7 +1801,26 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
         }
 
-        void ClientOnParcelDeedToGroup(int parcelLocalID, UUID groupID, IClientAPI remote_client)
+        /// <summary>
+        /// Whether land owned by <paramref name="owner"/> may be sold. Without the estate's
+        /// "allow land resell" only the estate owner, its managers and administrators sell land (the setting used to only
+        /// hide the viewer's sell button).
+        /// </summary>
+        public bool CanResell(UUID owner)
+        {
+            return m_scene.RegionInfo.RegionSettings.AllowLandResell
+                || m_scene.RegionInfo.EstateSettings.IsEstateManagerOrOwner(owner)
+                || m_scene.Permissions.IsAdministrator(owner);
+        }
+
+        /// <summary>Whether <paramref name="user"/> belongs to <paramref name="group"/> with every one of <paramref name="powers"/>.</summary>
+        private bool HasGroupPowers(UUID group, UUID user, ulong powers)
+        {
+            GroupMembershipData membership = m_scene.RequestModuleInterface<IGroupsModule>()?.GetMembershipData(group, user);
+            return membership is not null && (membership.GroupPowers & powers) == powers;
+        }
+
+        public void ClientOnParcelDeedToGroup(int parcelLocalID, UUID groupID, IClientAPI remote_client)
         {
             ILandObject land;
             lock (m_landList)
@@ -1796,6 +1829,10 @@ namespace OpenSim.Region.CoreModules.World.Land
                     return;
             }
 
+            // CanDeedParcel checks the deed power in the parcel's group, so the deed may
+            // only go to that group (it went to whichever group the viewer named).
+            if (groupID.IsZero() || groupID.NotEqual(land.LandData.GroupID))
+                return;
             if (!m_scene.Permissions.CanDeedParcel(remote_client.AgentId, land))
                 return;
             land.DeedToGroup(groupID);
