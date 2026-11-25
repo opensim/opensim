@@ -1305,14 +1305,14 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         /// <summary>
         /// The region's Allow Land Join/Divide (RegionSettings.AllowLandJoinDivide): when it is off, only the estate's
-        /// managers may join or divide parcels, as on Second Life. The viewer only greys its buttons out; scripts
+        /// managers may join or divide parcels, The viewer only greys its buttons out; scripts
         /// (osParcelJoin, osParcelSubdivide) and other clients do not.
         /// </summary>
         private bool JoinDivideAllowed(UUID user)
         {
-            if (m_scene.RegionInfo.RegionSettings.AllowLandJoinDivide)
-                return true;
-            return m_scene.Permissions.IsEstateManager(user) || m_scene.Permissions.IsAdministrator(user);
+            return m_scene.RegionInfo.RegionSettings.AllowLandJoinDivide || 
+                   m_scene.Permissions.IsAdministrator(user) ||
+                   m_scene.Permissions.IsEstateManager(user);
         }
 
         /// <summary>
