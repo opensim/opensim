@@ -948,7 +948,7 @@ namespace OpenSim.Region.Framework.Scenes
             int suffix=1;
             while (suffix < 256)
             {
-                string tryName=String.Format("{0} {1}", name, suffix);
+                string tryName=$"{name} {suffix}";
                 if (!InventoryContainsName(tryName))
                     return tryName;
                 suffix++;

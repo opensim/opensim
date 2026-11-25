@@ -58,23 +58,16 @@ namespace OpenSim.Region.ClientStack.Linden
 
             httpResponse.StatusCode = (int)HttpStatusCode.OK;
 
-            UUID itemID = UUID.Zero;
-            UUID objectID = UUID.Zero;
-
-            try
-            {
-                if (map.TryGetValue("item_id", out OSD itmp))
-                    itemID = itmp;
-                if (map.TryGetValue("task_id", out OSD tmp))
-                    objectID = tmp;
-            }
-            catch { }
+            _ = map.TryGetUUID("item_id", out UUID itemID);
+            _ = map.TryGetUUID("task_id", out UUID objectID);
 
             if (itemID.IsZero())
             {
-                LLSDAssetUploadError error = new LLSDAssetUploadError();
-                error.message = "failed to recode request";
-                error.identifier = UUID.Zero;
+                LLSDAssetUploadError error = new LLSDAssetUploadError
+                {
+                    message = "failed to recode request",
+                    identifier = UUID.Zero
+                };
                 httpResponse.RawBuffer = Util.UTF8NBGetbytes(LLSDHelpers.SerialiseLLSDReply(error));
                 return;
             }
@@ -84,18 +77,22 @@ namespace OpenSim.Region.ClientStack.Linden
                 SceneObjectPart sop = m_Scene.GetSceneObjectPart(objectID);
                 if (sop == null)
                 {
-                    LLSDAssetUploadError error = new LLSDAssetUploadError();
-                    error.message = "object not found";
-                    error.identifier = UUID.Zero;
+                    LLSDAssetUploadError error = new LLSDAssetUploadError
+                    {
+                        message = "object not found",
+                        identifier = UUID.Zero
+                    };
                     httpResponse.RawBuffer = Util.UTF8NBGetbytes(LLSDHelpers.SerialiseLLSDReply(error));
                     return;
                 }
 
                 if (!m_Scene.Permissions.CanEditObjectInventory(objectID, m_AgentID))
                 {
-                    LLSDAssetUploadError error = new LLSDAssetUploadError();
-                    error.message = "No permissions to edit objec";
-                    error.identifier = UUID.Zero;
+                    LLSDAssetUploadError error = new LLSDAssetUploadError
+                    {
+                        message = "No permissions to edit objec",
+                        identifier = UUID.Zero
+                    };
                     httpResponse.RawBuffer = Util.UTF8NBGetbytes(LLSDHelpers.SerialiseLLSDReply(error));
                     return;
                 }
@@ -107,9 +104,11 @@ namespace OpenSim.Region.ClientStack.Linden
             int itemType = ItemAssetType(itemID, objectID);
             if (itemType != atype)
             {
-                LLSDAssetUploadError error = new LLSDAssetUploadError();
-                error.message = itemType < 0 ? "item not found" : "item is not of this type";
-                error.identifier = UUID.Zero;
+                LLSDAssetUploadError error = new LLSDAssetUploadError
+                {
+                    message = itemType < 0 ? "item not found" : "item is not of this type",
+                    identifier = UUID.Zero
+                };
                 httpResponse.RawBuffer = Util.UTF8NBGetbytes(LLSDHelpers.SerialiseLLSDReply(error));
                 return;
             }
@@ -118,19 +117,24 @@ namespace OpenSim.Region.ClientStack.Linden
 
             string protocol = m_HostCapsObj.SSLCaps ? "https://" : "http://";
             string uploaderURL = protocol + m_HostCapsObj.HostName + ":" + m_HostCapsObj.Port.ToString() + uploaderPath;
-            LLSDAssetUploadResponse uploadResponse = new LLSDAssetUploadResponse();
-            uploadResponse.uploader = uploaderURL;
-            uploadResponse.state = "upload";
+            LLSDAssetUploadResponse uploadResponse = new LLSDAssetUploadResponse
+            {
+                uploader = uploaderURL,
+                state = "upload"
+            };
 
-            ItemUpdater uploader = new ItemUpdater(itemID, objectID, atype, uploaderPath, m_HostCapsObj.HttpListener, m_dumpAssetsToFile);
-            uploader.m_remoteAdress = httpRequest.RemoteIPEndPoint.Address;
+            ItemUpdater uploader = new ItemUpdater(itemID, objectID, atype, uploaderPath, m_HostCapsObj.HttpListener, m_dumpAssetsToFile)
+            {
+                m_remoteAdress = httpRequest.RemoteIPEndPoint.Address
+            };
 
             uploader.OnUpLoad += ItemUpdated;
 
-            var uploaderHandler = new SimpleBinaryHandler("POST", uploaderPath, uploader.process);
+            var uploaderHandler = new SimpleBinaryHandler("POST", uploaderPath, uploader.process)
+            {
+                MaxDataSize = 10000000 // change per asset type?
+            };
 
-            uploaderHandler.MaxDataSize = 10000000; // change per asset type?
-            
             m_HostCapsObj.HttpListener.AddSimpleStreamHandler(uploaderHandler);
 
             // m_log.InfoFormat("[CAPS]: UpdateAgentInventoryAsset response: {0}",
