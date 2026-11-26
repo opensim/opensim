@@ -30,7 +30,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
+using System.Globalization;
 using System.Security;
+using System.Text;
 using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
@@ -223,7 +225,7 @@ namespace OpenSim.Server.Handlers.Grid
                     osb.AppendASCII('<');
                     osb.AppendASCII(k.Key);
                     osb.AppendASCII('>');
-                    osb.AppendASCII(SecurityElement.Escape(k.Value.ToString()));
+                    osb.AppendASCII(SecurityElement.Escape(ToAscii(k.Value.ToString())));
                     osb.AppendASCII("</");
                     osb.AppendASCII(k.Key);
                     osb.AppendASCII('>');
@@ -351,7 +353,7 @@ namespace OpenSim.Server.Handlers.Grid
                     osb.AppendASCII('<');
                     osb.AppendASCII(k.Key);
                     osb.AppendASCII('>');
-                    osb.AppendASCII(SecurityElement.Escape(k.Value.ToString()));
+                    osb.AppendASCII(SecurityElement.Escape(ToAscii(k.Value.ToString())));
                     osb.AppendASCII("</");
                     osb.AppendASCII(k.Key);
                     osb.AppendASCII('>');
@@ -361,6 +363,64 @@ namespace OpenSim.Server.Handlers.Grid
             }
             httpResponse.ContentType = "application/xml";
             httpResponse.RawBuffer = cachedStatAnswer;
+        }
+
+        /// <summary>
+        /// A value in ASCII only, as the answers are written one byte per character: the accents are
+        /// taken off the letters (Kimbe Red for an accented name), a few letters without accents get
+        /// their usual spelling, and any other character becomes an underscore.
+        /// </summary>
+        private static string ToAscii(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+                return value;
+            bool ascii = true;
+            foreach (char c in value)
+            {
+                if (c > 0x7F)
+                {
+                    ascii = false;
+                    break;
+                }
+            }
+            if (ascii)
+                return value;
+
+            string decomposed = value.Normalize(NormalizationForm.FormD);
+            StringBuilder sb = new StringBuilder(decomposed.Length);
+            for (int i = 0; i < decomposed.Length; i++)
+            {
+                char c = decomposed[i];
+                if (c <= 0x7F)
+                {
+                    sb.Append(c);
+                    continue;
+                }
+                if (CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.NonSpacingMark)
+                    continue;
+                switch (c)
+                {
+                    case '\u00DF': sb.Append("ss"); break;
+                    case '\u00C6': sb.Append("AE"); break;
+                    case '\u00E6': sb.Append("ae"); break;
+                    case '\u0152': sb.Append("OE"); break;
+                    case '\u0153': sb.Append("oe"); break;
+                    case '\u00D8': sb.Append('O'); break;
+                    case '\u00F8': sb.Append('o'); break;
+                    case '\u0110': sb.Append('D'); break;
+                    case '\u0111': sb.Append('d'); break;
+                    case '\u0141': sb.Append('L'); break;
+                    case '\u0142': sb.Append('l'); break;
+                    case '\u00DE': sb.Append("Th"); break;
+                    case '\u00FE': sb.Append("th"); break;
+                    default:
+                        if (char.IsHighSurrogate(c) && i + 1 < decomposed.Length && char.IsLowSurrogate(decomposed[i + 1]))
+                            i++;
+                        sb.Append('_');
+                        break;
+                }
+            }
+            return sb.ToString();
         }
     }
 }
