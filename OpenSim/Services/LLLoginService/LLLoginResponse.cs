@@ -665,8 +665,6 @@ namespace OpenSim.Services.LLLoginService
                 map["message"] = OSD.FromString(welcomeMessage);
                 map["region_x"] = OSD.FromInteger(RegionX);
                 map["region_y"] = OSD.FromInteger(RegionY);
-                // The same keys, from the same values, as the XML-RPC reply (ToHashtable), so
-                // both forms give the region size (a viewer reading the LLSD reply took every region as 256 m until it moved).
                 map["region_size_x"] = OSD.FromInteger(RegionSizeX);
                 map["region_size_y"] = OSD.FromInteger(RegionSizeY);
 
