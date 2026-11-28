@@ -85,6 +85,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        /// <summary>
+        /// Refuse a variable length write that could run past the end of the buffer: the writes are not bounds
+        /// checked (Unsafe.Add), and one past the end corrupts the managed heap. Zero-coding srclen bytes takes at
+        /// most half as much again, plus a zero run left to close.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void EnsureRoom(int srclen)
+        {
+            if (srclen < 0 || pos + srclen + (srclen >> 1) + 4 > m_dest.Length)
+                throw new InvalidOperationException(
+                    $"LLUDPZeroEncoder: {srclen} bytes at position {pos} could run past the {m_dest.Length} byte buffer");
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe void AddZeros(int len)
         {
@@ -116,6 +129,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public unsafe void AddBytes(byte[] src, int srclen)
         {
+            EnsureRoom(srclen);
             ref byte dst = ref MemoryMarshal.GetArrayDataReference(m_dest);
             for (int i = 0; i < srclen; ++i)
             {
@@ -151,6 +165,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public unsafe void AddBytes(byte* src, int srclen)
         {
+            EnsureRoom(srclen);
             ref byte dst = ref MemoryMarshal.GetArrayDataReference(m_dest);
             for (int i = 0; i < srclen; ++i)
             {
